@@ -17,7 +17,7 @@ Mostly Apache2 and HTTP class based.
 
 =cut
 
-use Apache2::Const -compile => qw( OK SERVER_ERROR NOT_FOUND DECLINED );
+use Apache2::Const -compile => qw( OK SERVER_ERROR NOT_FOUND DECLINED REDIRECT);
 use Apache2::Cookie     ();
 use Apache2::Log        ();
 use Apache2::Request    ();
@@ -78,8 +78,17 @@ sub handler {
         $r->log->error( "Response from remote server: ", Dumper($response) );
         return Apache2::Const::NOT_FOUND;
     }
+    elsif ( $response->code == 302 ) {
+        $r->log->debug("Request returned 302");
+        $r->log->debug("Response: ", Data::Dumper::Dumper($response));
+        $r->status_line( $response->code() . ' ' . $response->message() );
+        $response->scan( sub { $r->err_headers_out->add(@_); } );
+        $r->headers_out->set( Location => $response->header('location') );
+        return Apache2::Const::REDIRECT;
+    }
     elsif ( $response->code == 200 ) {
         $r->log->debug("Request returned 200 ");
+        $r->log->debug("Response:  ", Data::Dumper::Dumper($response));
         
         # Cache the content_type
         SL::Cache::stash( $url => $response->content_type );
