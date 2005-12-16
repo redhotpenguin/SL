@@ -16,9 +16,11 @@ our $ua_regex;
 
 BEGIN {
     require Regexp::Assemble;
-
+SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png)$ no-gzip dont-vary
+SetEnvIfNoCase Request_URI \.(?:exe|t?gz|zip|bz2|sit|rar)
     my @extensions = qw( 
-        txt gz ad css doc exe fla gif ico jpeg jpg pdf png ppt );
+        ad bz2 css doc exe fla gif gz ico jpeg jpg pdf png ppt rar sit 
+        tgz txt zip );
     
     $ext_regex = Regexp::Assemble->new;
     $ext_regex->add(@extensions);
