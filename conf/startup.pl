@@ -6,7 +6,7 @@ use warnings;
 # make sure we are in a sane environment.
 $ENV{MOD_PERL} or die "GATEWAY_INTERFACE not Perl!";
 
-use lib '/home/fred/dev/sl/lib';
+use lib '/home/fred/dev/sl/trunk/lib';
 
 # Preload these modules during httpd startup, don't import any symbols
 use Apache2::Log        ();
