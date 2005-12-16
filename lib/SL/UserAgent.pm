@@ -9,7 +9,7 @@ sub new {
     require LWP::UserAgent;
     # Mimic the user's user agent
     #
-    my $ua        = LWP::UserAgent->new();
+    my $ua        = LWP::UserAgent->new( max_redirect => 0 );
     my $origin_ua = $r->headers_in->{'user-agent'};
     if ( defined $origin_ua && length $origin_ua ) {
         $ua->agent($origin_ua);
