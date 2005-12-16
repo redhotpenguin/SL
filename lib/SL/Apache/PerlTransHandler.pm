@@ -70,7 +70,7 @@ sub handler {
 
     my $url = $r->construct_url( $r->unparsed_uri );
     $r->log->debug("Invoking Transhandler for url $url"); 
-   
+  
     if ( _not_a_browser($r) ) {
         $r->log->info("Request made by non-browser for $url");
         return &proxy_request( $r );
@@ -109,7 +109,7 @@ sub _not_a_browser {
     }
     
     # This is a bit torrent or browser we don't know about
-    $r->log->info("Request made by non_browser");
+    $r->log->info("Request made by non_browser $ua");
     return 1;
 }
 
