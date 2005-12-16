@@ -78,8 +78,8 @@ sub handler {
         $r->log->error( "Response from remote server: ", Dumper($response) );
         return Apache2::Const::NOT_FOUND;
     }
-    elsif ( $response->code == 302 ) {
-        $r->log->debug("Request returned 302");
+    elsif ( $response->code == 302 or $response->code == 301 ) {
+        $r->log->debug("Request returned ", $response->code);
         $r->log->debug("Response: ", Data::Dumper::Dumper($response));
         $r->status_line( $response->code() . ' ' . $response->message() );
         $response->scan( sub { $r->err_headers_out->add(@_); } );
