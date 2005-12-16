@@ -13,9 +13,17 @@ SL::Apache::TransHandler
 
 our $ext_regex;
 our $ua_regex;
+our $whitelist;
 
 BEGIN {
     require Regexp::Assemble;
+
+    open(FH, "< /home/fred/dev/sl/trunk/data/whitelist.txt") or
+        die "Could not open whitelist: $!\n";
+    my @whitelists = split("\n", do { local $/; <FH> } );
+    $whitelist = Regexp::Assemble->new;
+    $whitelist->add( @whitelists );
+    print STDERR "Regex for whitelist domains is ", $whitelist->re, "\n";
     
     my @extensions = qw( 
         ad bz2 css doc exe fla gif gz ico jpeg jpg pdf png ppt rar sit 
