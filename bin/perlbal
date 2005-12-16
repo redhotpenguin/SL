@@ -1,0 +1,2 @@
+#!/bin/sh
+${HOME}/dev/perl/bin/perlbal --config=${HOME}/dev/sl/conf/perlbal.conf 

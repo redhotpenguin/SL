@@ -1,0 +1,1 @@
+$HOME/dev/sl/httpd2/bin/httpd -X -f $HOME/dev/sl/conf/httpd.conf &

@@ -1,0 +1,7 @@
+In layman's terms, software which moves web pages downward a small amount from 
+the top of the web browser content area and inserts content.  On a more
+technical level, proxy server software which enables adding content to requests
+while still preserving as a whole the look, feel, and style of the original 
+request.  The request content is moved downward by a small amount, comparable 
+to the amount that content would be moved downward by configuration of web 
+browser toolbars, or additions of browser plugins such as search toolbars.

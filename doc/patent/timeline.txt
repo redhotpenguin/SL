@@ -1,0 +1,33 @@
+Silver Lining History and development timeline
+
+6-4-05
+Fred Moyer and Jeff Lennan are at the Crepe House eatery on Washington and
+Polk in San Francisco discussing Red Hot Penguin work and come up with the 
+concept of being able to serve ads through a web proxy server.  They discuss
+possible business advertising angles.  Fred draws out the proposed software
+architecture on a napkin.  Upon returning to 1440 Union Street Apt 302 Fred
+spends 20 minutes setting up a simple architectural proof of concept.
+
+6-6-05
+Fred Moyer orders a Stealth LittlePC computer to serve as the ad serving
+appliance.
+
+6-7-05
+Fred Moyer begins development of a prototype.  Jeff Lennan begins to draw up
+business development plans.
+
+8-15-05
+Fred commits the first working prototype code base into a version control
+repository.
+
+Fill in date
+Hans Eisenmann is NDA'd and brought into the picture
+
+10-14-05
+Fred and Jeff meet with Oregon Convention Center executives to discuss
+implementing a beta test.  Fred brings along the ad serving prototype and
+demonstrates functionality by serving ads on the Google.com web page.
+
+12-5-05
+Jeff Lennan submits a formal proposal to OCC for a beta test of the Silver
+Lining appliance.
