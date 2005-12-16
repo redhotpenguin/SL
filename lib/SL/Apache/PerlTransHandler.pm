@@ -25,7 +25,8 @@ BEGIN {
     $ext_regex->add(@extensions);
     print STDERR "Regex for static content match is ", $ext_regex->re, "\n";
 
-    my @user_agents = qw( Firefox IE Opera Mozilla Safari Links Lynx);
+    my @user_agents = qw( Firefox IE Opera Mozilla Safari libscrobbler Links 
+        Lynx);
     $ua_regex = Regexp::Assemble->new;
     $ua_regex->add(@user_agents);
     print STDERR "Regex for user agents is ", $ua_regex->re, "\n";
@@ -102,7 +103,7 @@ sub _not_a_browser {
     my $ua = $r->headers_in->{'user-agent'};
     
     $r->log->info("User agent is ", Data::Dumper::Dumper($ua));
-    if ( $ua =~ m/^$ua_regex/i ) {
+    if ( $ua =~ m/$ua_regex/i ) {
         # This is a request made by a web browser
         $r->pnotes('ua' => $ua);
         return 0;
