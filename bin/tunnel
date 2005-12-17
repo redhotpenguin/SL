@@ -1,3 +1,3 @@
 #!/bin/sh
 
-ssh -p 9022  -R 30681:localhost:22 ${USER}@app
+ssh  -R 30681:localhost:20022 ${USER}@192.168.2.6
