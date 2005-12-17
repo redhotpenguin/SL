@@ -69,7 +69,16 @@ sub proxy_request {
 
 sub static_content_uri {
     my $url = shift;
-    if ( $url =~ m/\.$ext_regex$/ ) {
+    if ( $url =~ m/\.$ext_regex$/i ) {
+        return 1;
+    }
+}
+
+sub _whitelisted {
+    my $r = shift;
+    my $url = $r->construct_url( $r->unparsed_uri );
+    if ( $url =~ m/$whitelist/i ) {
+        $r->log->debug( "Whitelist match: $url for $whitelist\n");
         return 1;
     }
 }
@@ -79,11 +88,17 @@ sub handler {
 
     my $url = $r->construct_url( $r->unparsed_uri );
     $r->log->debug("Invoking Transhandler for url $url"); 
-  
+ 
+    $r->log->debug("Whitelisting is : ", $r->dir_config->get("SLWhiteList")); 
+    unless ( ($r->dir_config->get("SLWhiteList") eq "On")  && _whitelisted( $r ) ) {
+        return &proxy_request( $r );
+    }
+    
     if ( _not_a_browser($r) ) {
         $r->log->info("Request made by non-browser for $url");
         return &proxy_request( $r );
     }    
+    
     if ( $r->method eq 'GET' ) {
         if ( static_content_uri( $url ) ) {
             $r->log->info("Match based on extension, proxying request");
