@@ -1,3 +1,0 @@
-#!/bin/sh
-
-su - fred -c "ssh -2 -f -N -R 30681:localhost:20022 fred@192.168.2.6"
