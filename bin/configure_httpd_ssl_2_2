@@ -1,1 +1,1 @@
-./configure --enable-ssl --enable-cache --enable-mem-cache --enable-proxy --enable-proxy-http --enable-headers --disable-userdir --prefix=$HOME/dev/sl/httpd2 --disable-dir --enable-deflate --enable-so --disable-asis --disable-include CFLAGS=-DAP_UNSAFE_ERROR_LOG_UNESCAPED
+./configure --disable-actions --enable-ssl --enable-cache --enable-mem-cache --enable-proxy --enable-proxy-http --enable-headers --disable-userdir --prefix=$HOME/dev/sl/httpd2 --disable-dir --enable-deflate --enable-so --disable-asis --disable-include CFLAGS=-DAP_UNSAFE_ERROR_LOG_UNESCAPED
