@@ -59,7 +59,7 @@ sub _add_headers {
 sub handler {
     my $r = shift;
 
-    my $url = $r->construct_url( $r->unparsed_uri);
+    my $url = $r->pnotes("url") || $r->construct_url( $r->unparsed_uri);
     $r->log->info( "Process $$ handling request for ", $url );
 
     my $content_type = $r->pnotes('content_type');
@@ -130,7 +130,7 @@ sub _make_request {
     my $ua = SL::UserAgent->new($r);
 
     # Construct the url for the proxy request with any ?args=this&args=that
-    my $url = $r->construct_url( $r->unparsed_uri );
+    my $url = $r->pnotes("url") || $r->construct_url( $r->unparsed_uri );
 
     ######################
     # Create a request object

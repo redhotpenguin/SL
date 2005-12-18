@@ -76,38 +76,71 @@ sub static_content_uri {
 
 sub _whitelisted {
     my $r = shift;
-    my $url = $r->construct_url( $r->unparsed_uri );
+    my $url = $r->pnotes("url") || $r->construct_url( $r->unparsed_uri );
     if ( $url =~ m/$whitelist/i ) {
         $r->log->debug( "Whitelist match: $url for $whitelist\n");
         return 1;
     }
+        $r->log->debug( "Whitelist NON-match: $url for $whitelist\n");
 }
 
 sub handler {
     my $r = shift;
 
-    my $url = $r->construct_url( $r->unparsed_uri );
+    my $url = $r->pnotes("url") || $r->construct_url( $r->unparsed_uri ) ;
+    $r->pnotes("url" => $url );
+    
     $r->log->debug("Invoking Transhandler for url $url"); 
- 
+    
+    my $is_initial_proxy;
+    
+    #if ( $r->proxyreq && ( my ($filename) = $r->filename =~ m/^proxy\:(.*)/ ) )
+    if ( my ($filename) = $r->filename =~ m/^proxy\:(.*)/ ) 
+    {
+         $is_initial_proxy++;
+        # De-proxy this request
+         $r->log->debug("Deproxying request for ", $r->filename ); 
+         $r->log->debug("Deproxying request for ", $filename ); 
+         $r->log->debug("Deproxying request for uri ", $r->uri ); 
+         
+         my ($newurl) = $url =~ m/^http:\/\/.*(http:\/\/.*)$/;
+        
+         $r->pnotes("url" => $newurl );
+         $r->log->debug("Deproxying request for ", $newurl ); 
+         #    $r->uri($newurl);
+         $r->filename( $filename );
+           
+    }
+    unless ( $is_initial_proxy ) {
+        $r->uri( $r->pnotes("url"));
+    }
+        
+        
     $r->log->debug("Whitelisting is : ", $r->dir_config->get("SLWhiteList")); 
-    unless ( ($r->dir_config->get("SLWhiteList") eq "On")  && _whitelisted( $r ) ) {
+    unless ( ($r->dir_config->get("SLWhiteList") eq "On")  
+        && _whitelisted( $r ) ) 
+    {
         return &proxy_request( $r );
     }
     
-    if ( _not_a_browser($r) ) {
+    if ( _not_a_browser($r) ) 
+    {
         $r->log->info("Request made by non-browser for $url");
         return &proxy_request( $r );
     }    
     
     if ( $r->method eq 'GET' ) {
-        if ( static_content_uri( $url ) ) {
+        if ( static_content_uri( $url ) ) 
+        {
             $r->log->info("Match based on extension, proxying request");
             return &proxy_request( $r );
         }
         
         my $content_type;
-        if ( $content_type = SL::Cache::grab($url) ) {
-            if ( SL::Util::not_html($content_type)) {
+        if ( $content_type = SL::Cache::grab($url) ) 
+        {
+            if ( SL::Util::not_html($content_type)) 
+            {
                 $r->log->info("Proxy match on cache: $content_type - $url");
                 return &proxy_request( $r );
             } else {
@@ -117,6 +150,16 @@ sub handler {
         }
     } 
     $r->log->info("EndTranshandler");
+    
+    my $old_req = $r->proxyreq(0);
+    $r->log->info("proxyreq:  ", $old_req);
+    $old_req = $r->proxyreq(0);
+    $r->log->info("proxyreq:  ", $old_req);
+    $r->log->info("filename:  ", $r->filename);
+    $r->log->info("uri: ", $r->uri);
+    $r->handler('modperl'); 
+    $r->set_handlers(PerlResponseHandler => 'SL::Apache' );
+    return Apache2::Const::OK;
 }
 
 # Some bit torrent clients and other programs make http requests.  We
@@ -140,16 +183,19 @@ sub _not_a_browser {
 sub mod_proxy {
     my $r = shift;
 
-    my $url = $r->construct_url;
+    my $url = $r->pnotes("url") || $r->construct_url( $r->unparsed_uri);
     
     ##########
     # Use mod_proxy to do the proxying
-    $r->log->info("Using mod_proxy to proxy request");
+    $r->log->info("Using mod_proxy to proxy request for $url");
     $r->proxyreq(1);
-    $r->uri($url);
-    $r->filename("proxy:$url");
+    my $filename = "proxy:" . $r->uri;
+    $r->filename($filename);
+    $r->log->info("Using mod_proxy to proxy request, uri: ", $r->uri);
+    $r->log->info("Using mod_proxy to proxy request, filename: ", $r->filename);
+    $r->log->info("Unparsed_uri: ", $r->unparsed_uri);
     $r->handler('proxy-server');
-    return Apache2::Const::DECLINED;
+    return Apache2::Const::OK;
 }
 
 sub perlbal {
@@ -157,8 +203,9 @@ sub perlbal {
     
     ##########
     # Use perlbal to do the proxying
+    my $url = $r->pnotes("url") || $r->construct_url( $r->unparsed_uri);
     $r->log->info("Using perlbal to reproxy request");
-    $r->headers_out->add( 'X-REPROXY-URL' => $r->construct_url );
+    $r->headers_out->add( 'X-REPROXY-URL' => $url );
     return Apache2::Const::DONE;
 }
 
