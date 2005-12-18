@@ -7,6 +7,7 @@ use SL::Test;
 
 my $test = SL::Test->new;
 my $mech = $test->mech;
+$mech->proxy('http', 'http://192.168.1.1:8888');
 
 my $url = "http://www.opera.com/";
 
