@@ -11,7 +11,6 @@ my %report;
 
 foreach my $status qw( dns ping tunnel ) {
     $report{$status} = $maintd->$status;
-    sleep 1;
 }
 
 require Data::Dumper;

@@ -1,0 +1,30 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+require SL::Maintd;
+
+my $hostname = 'herbert';
+my $admin = 'fred@redhotpenguin.com';
+my $maintd = SL::Maintd->new;
+my %report;
+
+foreach my $status qw( dns ping tunnel ) {
+    $report{$status} = $maintd->$status;
+}
+
+require Mail::Mailer;
+
+my $mailer = Mail::Mailer->new( 'qmail');
+
+$mailer->open({
+    From    => "$hostname\@redhotpenguin.com",
+    To      => $admin,
+    Subject => "$hostname Status Report"
+    }
+);
+
+require Data::Dumper;
+print $mailer Data::Dumper::Dumper(\%report);
+$mailer->close;
