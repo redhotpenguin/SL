@@ -5,13 +5,14 @@ use warnings;
 
 use SL::Maintd;
 
-my $maint = SL::Maintd->new;
+my $maintd = SL::Maintd->new;
 
 my %report;
 
-$report{'tunnel'} = $maint->tunnel;
-
-$report{'system'} = $maint->system;
+foreach my $status qw( dns ping tunnel ) {
+    $report{$status} = $maintd->$status;
+    sleep 1;
+}
 
 require Data::Dumper;
 print "##########################\n";
