@@ -10,7 +10,7 @@ my $admin = 'fred@redhotpenguin.com';
 my $maintd = SL::Maintd->new;
 my %report;
 
-foreach my $status qw( dns ping tunnel ) {
+foreach my $status qw( uptime ip dns ping tunnel ) {
     $report{$status} = $maintd->$status;
 }
 
@@ -21,10 +21,13 @@ my $mailer = Mail::Mailer->new( 'qmail');
 $mailer->open({
     From    => "$hostname\@redhotpenguin.com",
     To      => $admin,
-    Subject => "$hostname Status Report"
+    Subject => uc($hostname) . " Status Report"
     }
 );
 
 require Data::Dumper;
-print $mailer Data::Dumper::Dumper(\%report);
+
+my $body = "Maintd report ran at " . time() . "\n\n" . 
+    Data::Dumper::Dumper(\%report);
+print $mailer $body;
 $mailer->close;
