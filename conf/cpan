@@ -1,0 +1,7 @@
+Cache::FastMmap
+Regexp::Assemble
+Math::Pari
+Crypt::DH
+Crypt::DSA
+Net::SSH::Perl
+Net::DNS
