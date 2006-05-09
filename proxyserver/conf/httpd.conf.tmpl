@@ -14,11 +14,11 @@ MinSpareServers      24
 MaxSpareServers      48
 StartServers         64
 LogLevel             [% sl_apache_loglevel %]
-MaxClients           [% sl_max_apache_clients %]
+MaxClients           [% sl_apache_maxclients %]
 ErrorLog             [% sl_root %]/[% sl_version %]/[% sl_server %]/logs/httpd_error_log
 TransferLog          [% sl_root %]/[% sl_version %]/[% sl_server %]/logs/httpd_access_log
 MaxRequestsPerChild  500
-LogFormat "%h %l %u %t (%{User-agent %]i) \"%r\" %>s %b"
+LogFormat "%h %l %u %t (%{User-agent}i) \"%r\" %>s %b"
 UseCanonicalName     Off
 HostNameLookups      Off
 Timeout              30
@@ -51,10 +51,10 @@ LoadModule perl_module        modules/mod_perl.so
 PerlPassEnv SL_ROOT
 PerlRequire "[% sl_root %]/[% sl_version %]/[% sl_server %]/conf/startup.pl"
 PerlSetVar data_root "[% sl_root %]/data"
-PerlSetVar ad_url "[% sl_clickserver_uri %]"
+PerlSetVar ad_url "[% sl_adserver_uri %]"
 
 [% IF sl_devel %]
- Apache::Reload for development.
+# Apache::Reload for development.
 PerlModule           Apache2::Reload
 PerlInitHandler      Apache2::Reload
 PerlSetVar           ReloadAll On
