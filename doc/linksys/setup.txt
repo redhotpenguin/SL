@@ -1,0 +1,22 @@
+Instructions to setup linksys box with openwrt
+
+1) Flash using white russian rc5
+ a) http://192.168.1.1
+ b) Administration
+ c) Firmware Upgrade - make sure computer is plugged in good
+ d) Power cycle when upgrade complete 
+
+2) telnet 192.168.1.1
+
+3) set root password
+
+4) set dhcp-range in /etc/dnsmasq.conf
+
+5) set lan_ip address in web configuration to 192.168.69.1
+
+6) set name to free_wireless
+
+7) remove /etc/init.d/ S50telnet and S50 httpd
+
+8) Alter /etc/firewall.user
+

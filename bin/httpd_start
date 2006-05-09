@@ -1,1 +1,0 @@
-$HOME/dev/sl/httpd2/bin/httpd -f $HOME/dev/sl/trunk/conf/httpd.conf -k start

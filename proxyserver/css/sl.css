@@ -1,0 +1,43 @@
+#sl_top {
+    z-index: 99;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    padding: 0px 0px 0px 0px;
+    margin: 0px 0px 0px 0px;
+    width: 100%;
+/*   border: solid 1px black; */
+}
+
+img.sl_textad {
+	border: 0px;
+}
+
+p.sl {
+/*    border: solid 1px black;  */
+    text-align: left;
+    padding: 0px 0px 0px 0px;
+    margin: 0px 0px 0px 0px;
+}
+
+.sl_textad_text {
+    vertical-align: 70%;
+    font-weight: bold;
+    font-family: Trebuchet;
+    color: #0033FF;
+}
+p.sl_textad {
+	background-color: white;
+    padding: 0px 0px 0px 0px;
+    margin: 0px 0px 0px 0px;
+/*    border: solid 2px black;  */
+}
+a.sl_textad {
+	color: #666666;
+}
+
+#sl_ctr {
+    position: relative;
+    top: 50px;
+}
+

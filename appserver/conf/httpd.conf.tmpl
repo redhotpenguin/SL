@@ -1,0 +1,82 @@
+ServerRoot           {$httpd2_root}
+ServerAdmin          silverlining@redhotpenguin.com
+ServerSignature      Off
+ServerTokens         Prod
+PidFile              {$tmp_dir}/sl_{$sl_server}.pid
+DocumentRoot         {$sl_root}/htdocs
+TypesConfig          {$sl_root}/conf/mime.types
+User                 {$sl_user}
+Group                {$sl_group}
+KeepAlive            On
+MaxKeepAliveRequests 100
+KeepAliveTimeout     15
+MinSpareServers      24
+MaxSpareServers      48
+StartServers         64
+#LogLevel             error
+LogLevel             debug
+MaxClients           128
+ErrorLog             {$sl_root}/{$sl_server}/logs/httpd_error_log
+TransferLog          {$sl_root}/{$sl_server}/logs/httpd_access_log
+MaxRequestsPerChild  500
+LogFormat "%h %l %u %t (%{User-agent}i) \"%r\" %>s %b"
+UseCanonicalName     Off
+HostNameLookups      Off
+Timeout              30
+
+Listen 9999
+
+ServerName           sl_app
+ErrorDocument        404	/404.html
+ErrorDocument        500	/500.html
+
+LoadModule apreq_module       modules/mod_apreq2.so
+LoadModule perl_module        modules/mod_perl.so
+
+PerlPassEnv SL_ROOT
+PerlRequire "{$sl_root}/{$sl_server}/conf/startup.pl"
+PerlSetVar data_root "{$sl_root}/data/"
+PerlSetVar ad_url "{$ad_url}"
+
+# Apache::Reload for development.
+PerlModule           Apache2::Reload
+PerlInitHandler      Apache2::Reload
+PerlSetVar           ReloadAll On
+PerlSetVar           ReloadDirectories "{$sl_root}/{$sl_type}/lib"
+
+PerlPostReadRequestHandler Apache2::Const::OK
+PerlMapToStorageHandler Apache2::Const::OK
+PerlTransHandler SL::Apache::PerlTransHandler
+
+<Location />
+    SetHandler          modperl
+    #PerlFixupHandler +Apache::DB
+    PerlHeaderParserHandler Apache2::Const::OK
+    PerlAccessHandler       Apache2::Const::OK
+    PerlAuthenHandler       Apache2::Const::OK
+    PerlAuthzHandler        Apache2::Const::OK
+    PerlTypeHandler         Apache2::Const::OK
+    PerlFixupHandler        Apache2::Const::OK
+    PerlResponseHandler     SL::AppServer::Apache2::Root
+</Location>
+
+PerlSetVar Apache2DispatchRoot SL::AppServer::Apache2::Root
+
+<Location /app>
+    SetHandler modperl
+    PerlAuthenHandler       SL::AppServer::Apache2::Authen
+    PerlAuthzHandler        SL::AppServer::Apache2::Authz
+    PerlFixupHandler        SL::AppServer::Apache2::Fixup
+    PerlResponseHandler     SL::AppServer::Apache2::App
+</Location>
+
+<Location /app/upload>
+    SetHandler modperl
+    PerlResponseHandler     SL::AppServer::Apache2::Upload
+</Location>
+
+<Directory />
+    AllowOverride None
+</Directory>
+
+Include {$sl_root}/conf/deflate.conf

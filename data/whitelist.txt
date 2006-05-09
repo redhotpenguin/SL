@@ -1,8 +1,0 @@
-app.redhotpenguin.com
-www.redhotpenguin.com/images
-www.yahoo.com
-www.google.com
-local.google.com
-news.google.com
-maps.google.com
-www.oregoncc.org

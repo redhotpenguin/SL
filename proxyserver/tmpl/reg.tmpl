@@ -1,0 +1,19 @@
+<html>
+    <head>
+        <style type="text/css">
+            <!--
+            body { margin-top: 10% }
+            -->
+        </style>
+    </head>
+	<body>
+	<p align="center"><img src="/img/logo.gif"></p>
+	<p align="center">[% IF fail %]<font color="red">Activation code invalid, please try again</font>
+		[% ELSE %]Please enter your activation code[% END %]
+	</p>
+	<form method="POST" action="/">
+	<p align="center"><input type="text" size="8" maxlength="8" value="[% code %]" name="code"></p>
+	<p align="center"><input type="submit" value="Register" name="register"></p>
+	</form>
+</body>
+</html>

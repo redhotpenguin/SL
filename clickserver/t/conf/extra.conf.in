@@ -1,0 +1,11 @@
+
+LoadModule perl_module        /home/fred/dev/sl/httpd2/modules/mod_perl.so
+PerlPassEnv SL_CLICKSERVER_ROOT
+PerlRequire "/home/fred/dev/sl/tags/sl5/clickserver/conf/startup.pl"
+
+
+<Location /click>
+    SetHandler modperl
+    PerlResponseHandler SL::CS::Apache::Click
+</Location>
+

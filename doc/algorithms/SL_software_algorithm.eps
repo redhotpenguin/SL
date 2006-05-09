@@ -1,0 +1,833 @@
+%!PS-Adobe-2.0 EPSF-2.0
+%%Title: /home/fred/dev/sl/tags/sl5/doc/algorithms/SL_software_algorithm.dia
+%%Creator: Dia v0.94
+%%CreationDate: Sun Mar 12 16:45:41 2006
+%%For: fred
+%%Orientation: Portrait
+%%Magnification: 1.0000
+%%BoundingBox: 0 0 1590 2506
+%%BeginSetup
+%%EndSetup
+%%EndComments
+%%BeginProlog
+[ /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
+/.notdef /.notdef /space /exclam /quotedbl /numbersign /dollar /percent /ampersand /quoteright
+/parenleft /parenright /asterisk /plus /comma /hyphen /period /slash /zero /one
+/two /three /four /five /six /seven /eight /nine /colon /semicolon
+/less /equal /greater /question /at /A /B /C /D /E
+/F /G /H /I /J /K /L /M /N /O
+/P /Q /R /S /T /U /V /W /X /Y
+/Z /bracketleft /backslash /bracketright /asciicircum /underscore /quoteleft /a /b /c
+/d /e /f /g /h /i /j /k /l /m
+/n /o /p /q /r /s /t /u /v /w
+/x /y /z /braceleft /bar /braceright /asciitilde /.notdef /.notdef /.notdef
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
+/space /exclamdown /cent /sterling /currency /yen /brokenbar /section /dieresis /copyright
+/ordfeminine /guillemotleft /logicalnot /hyphen /registered /macron /degree /plusminus /twosuperior /threesuperior
+/acute /mu /paragraph /periodcentered /cedilla /onesuperior /ordmasculine /guillemotright /onequarter /onehalf
+/threequarters /questiondown /Agrave /Aacute /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla
+/Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex /Idieresis /Eth /Ntilde
+/Ograve /Oacute /Ocircumflex /Otilde /Odieresis /multiply /Oslash /Ugrave /Uacute /Ucircumflex
+/Udieresis /Yacute /Thorn /germandbls /agrave /aacute /acircumflex /atilde /adieresis /aring
+/ae /ccedilla /egrave /eacute /ecircumflex /edieresis /igrave /iacute /icircumflex /idieresis
+/eth /ntilde /ograve /oacute /ocircumflex /otilde /odieresis /divide /oslash /ugrave
+/uacute /ucircumflex /udieresis /yacute /thorn /ydieresis] /isolatin1encoding exch def
+/cp {closepath} bind def
+/c {curveto} bind def
+/f {fill} bind def
+/a {arc} bind def
+/ef {eofill} bind def
+/ex {exch} bind def
+/gr {grestore} bind def
+/gs {gsave} bind def
+/sa {save} bind def
+/rs {restore} bind def
+/l {lineto} bind def
+/m {moveto} bind def
+/rm {rmoveto} bind def
+/n {newpath} bind def
+/s {stroke} bind def
+/sh {show} bind def
+/slc {setlinecap} bind def
+/slj {setlinejoin} bind def
+/slw {setlinewidth} bind def
+/srgb {setrgbcolor} bind def
+/rot {rotate} bind def
+/sc {scale} bind def
+/sd {setdash} bind def
+/ff {findfont} bind def
+/sf {setfont} bind def
+/scf {scalefont} bind def
+/sw {stringwidth pop} bind def
+/tr {translate} bind def
+
+/ellipsedict 8 dict def
+ellipsedict /mtrx matrix put
+/ellipse
+{ ellipsedict begin
+   /endangle exch def
+   /startangle exch def
+   /yrad exch def
+   /xrad exch def
+   /y exch def
+   /x exch def   /savematrix mtrx currentmatrix def
+   x y tr xrad yrad sc
+   0 0 1 startangle endangle arc
+   savematrix setmatrix
+   end
+} def
+
+/mergeprocs {
+dup length
+3 -1 roll
+dup
+length
+dup
+5 1 roll
+3 -1 roll
+add
+array cvx
+dup
+3 -1 roll
+0 exch
+putinterval
+dup
+4 2 roll
+putinterval
+} bind def
+/Times-Roman-latin1
+    /Times-Roman findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Times-Italic-latin1
+    /Times-Italic findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Times-Bold-latin1
+    /Times-Bold findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Times-BoldItalic-latin1
+    /Times-BoldItalic findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/AvantGarde-Book-latin1
+    /AvantGarde-Book findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/AvantGarde-BookOblique-latin1
+    /AvantGarde-BookOblique findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/AvantGarde-Demi-latin1
+    /AvantGarde-Demi findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/AvantGarde-DemiOblique-latin1
+    /AvantGarde-DemiOblique findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Bookman-Light-latin1
+    /Bookman-Light findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Bookman-LightItalic-latin1
+    /Bookman-LightItalic findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Bookman-Demi-latin1
+    /Bookman-Demi findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Bookman-DemiItalic-latin1
+    /Bookman-DemiItalic findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Courier-latin1
+    /Courier findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Courier-Oblique-latin1
+    /Courier-Oblique findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Courier-Bold-latin1
+    /Courier-Bold findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Courier-BoldOblique-latin1
+    /Courier-BoldOblique findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Helvetica-latin1
+    /Helvetica findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Helvetica-Oblique-latin1
+    /Helvetica-Oblique findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Helvetica-Bold-latin1
+    /Helvetica-Bold findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Helvetica-BoldOblique-latin1
+    /Helvetica-BoldOblique findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Helvetica-Narrow-latin1
+    /Helvetica-Narrow findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Helvetica-Narrow-Oblique-latin1
+    /Helvetica-Narrow-Oblique findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Helvetica-Narrow-Bold-latin1
+    /Helvetica-Narrow-Bold findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Helvetica-Narrow-BoldOblique-latin1
+    /Helvetica-Narrow-BoldOblique findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/NewCenturySchoolbook-Roman-latin1
+    /NewCenturySchoolbook-Roman findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/NewCenturySchoolbook-Italic-latin1
+    /NewCenturySchoolbook-Italic findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/NewCenturySchoolbook-Bold-latin1
+    /NewCenturySchoolbook-Bold findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/NewCenturySchoolbook-BoldItalic-latin1
+    /NewCenturySchoolbook-BoldItalic findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Palatino-Roman-latin1
+    /Palatino-Roman findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Palatino-Italic-latin1
+    /Palatino-Italic findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Palatino-Bold-latin1
+    /Palatino-Bold findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Palatino-BoldItalic-latin1
+    /Palatino-BoldItalic findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/Symbol-latin1
+    /Symbol findfont
+definefont pop
+/ZapfChancery-MediumItalic-latin1
+    /ZapfChancery-MediumItalic findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+/ZapfDingbats-latin1
+    /ZapfDingbats findfont
+    dup length dict begin
+	{1 index /FID ne {def} {pop pop} ifelse} forall
+	/Encoding isolatin1encoding def
+    currentdict end
+definefont pop
+28.346000 -28.346000 scale
+15.424900 -90.505700 translate
+%%EndProlog
+
+
+1.000000 1.000000 1.000000 srgb
+n 1.750000 8.600000 m 1.750000 12.100000 l 12.050000 12.100000 l 12.050000 8.600000 l f
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 1.750000 8.600000 m 1.750000 12.100000 l 12.050000 12.100000 l 12.050000 8.600000 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(Packet accepted) dup sw 2 div 6.900000 ex sub 9.700000 m gs 1 -1 sc sh gr
+(on port 80 and forwarded) dup sw 2 div 6.900000 ex sub 10.500000 m gs 1 -1 sc sh gr
+(to proxy server port) dup sw 2 div 6.900000 ex sub 11.300000 m gs 1 -1 sc sh gr
+1.000000 1.000000 1.000000 srgb
+n 2.425000 2.150000 m 2.425000 5.650000 l 11.275000 5.650000 l 11.275000 2.150000 l f
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 2.425000 2.150000 m 2.425000 5.650000 l 11.275000 5.650000 l 11.275000 2.150000 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(HTTP Client) dup sw 2 div 6.850000 ex sub 3.250000 m gs 1 -1 sc sh gr
+(\(User with a browser) dup sw 2 div 6.850000 ex sub 4.050000 m gs 1 -1 sc sh gr
+(or equivalent\)) dup sw 2 div 6.850000 ex sub 4.850000 m gs 1 -1 sc sh gr
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slc
+n 6.850000 5.650000 m 6.889632 7.988284 l s
+0 slj
+1.000000 1.000000 1.000000 srgb
+n 6.639668 7.992521 m 6.898105 8.488213 l 7.139596 7.984048 l ef
+0.100000 slw
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 6.639668 7.992521 m 6.898105 8.488213 l 7.139596 7.984048 l cp s
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slc
+n 21.169112 24.504356 m 16.767500 24.535700 l s
+0 slj
+1.000000 1.000000 1.000000 srgb
+n 21.170892 24.754350 m 21.669099 24.500796 l 21.167332 24.254363 l ef
+0.100000 slw
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 21.170892 24.754350 m 21.669099 24.500796 l 21.167332 24.254363 l cp s
+1.000000 1.000000 1.000000 srgb
+n 1.683060 14.985000 m 1.683060 18.485000 l 11.983060 18.485000 l 11.983060 14.985000 l f
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 1.683060 14.985000 m 1.683060 18.485000 l 11.983060 18.485000 l 11.983060 14.985000 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(Proxy server examines) dup sw 2 div 6.833060 ex sub 16.485000 m gs 1 -1 sc sh gr
+(destination URI) dup sw 2 div 6.833060 ex sub 17.285000 m gs 1 -1 sc sh gr
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slc
+n 6.900000 12.100000 m 6.847252 14.373361 l s
+0 slj
+1.000000 1.000000 1.000000 srgb
+n 6.597319 14.367562 m 6.835653 14.873227 l 7.097184 14.379160 l ef
+0.100000 slw
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 6.597319 14.367562 m 6.835653 14.873227 l 7.097184 14.379160 l cp s
+1.000000 1.000000 1.000000 srgb
+n 6.783900 19.287500 m 16.767510 24.535665 l 6.783900 29.783831 l -3.199710 24.535665 l ef
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 6.783900 19.287500 m 16.767510 24.535665 l 6.783900 29.783831 l -3.199710 24.535665 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(URI not on) dup sw 2 div 6.783900 ex sub 21.885665 m gs 1 -1 sc sh gr
+(blacklist OR) dup sw 2 div 6.783900 ex sub 22.685665 m gs 1 -1 sc sh gr
+(URI on whitelist?) dup sw 2 div 6.783900 ex sub 23.485665 m gs 1 -1 sc sh gr
+(URI) dup sw 2 div 6.783900 ex sub 24.285665 m gs 1 -1 sc sh gr
+(matches) dup sw 2 div 6.783900 ex sub 25.085665 m gs 1 -1 sc sh gr
+(static content OR) dup sw 2 div 6.783900 ex sub 25.885665 m gs 1 -1 sc sh gr
+(URI is not a ) dup sw 2 div 6.783900 ex sub 26.685665 m gs 1 -1 sc sh gr
+(subrequest?) dup sw 2 div 6.783900 ex sub 27.485665 m gs 1 -1 sc sh gr
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slc
+n 6.833060 18.485000 m 6.821308 18.676841 l s
+0 slj
+1.000000 1.000000 1.000000 srgb
+n 6.571776 18.661555 m 6.790736 19.175906 l 7.070840 18.692127 l ef
+0.100000 slw
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 6.571776 18.661555 m 6.790736 19.175906 l 7.070840 18.692127 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(YES) 17.908100 24.100000 m gs 1 -1 sc sh gr
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slc
+n 6.783900 29.783800 m 6.825440 31.173470 l s
+0 slj
+1.000000 1.000000 1.000000 srgb
+n 6.575552 31.180939 m 6.840379 31.673247 l 7.075328 31.166000 l ef
+0.100000 slw
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 6.575552 31.180939 m 6.840379 31.673247 l 7.075328 31.166000 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(NO) 7.108060 30.700000 m gs 1 -1 sc sh gr
+1.000000 1.000000 1.000000 srgb
+n 22.417796 22.750000 m 30.791324 22.750000 l 29.517429 26.250000 l 21.143900 26.250000 l ef
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 22.417796 22.750000 m 30.791324 22.750000 l 29.517429 26.250000 l 21.143900 26.250000 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(Request forwarded) dup sw 2 div 25.967612 ex sub 23.850000 m gs 1 -1 sc sh gr
+(to lightweight) dup sw 2 div 25.967612 ex sub 24.650000 m gs 1 -1 sc sh gr
+(proxy server) dup sw 2 div 25.967612 ex sub 25.450000 m gs 1 -1 sc sh gr
+1.000000 1.000000 1.000000 srgb
+n 6.843718 31.785000 m 12.804378 34.765330 l 6.843718 37.745660 l 0.883058 34.765330 l ef
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 6.843718 31.785000 m 12.804378 34.765330 l 6.843718 37.745660 l 0.883058 34.765330 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(URI) dup sw 2 div 6.843718 ex sub 34.115330 m gs 1 -1 sc sh gr
+(content-type) dup sw 2 div 6.843718 ex sub 34.915330 m gs 1 -1 sc sh gr
+(in proxy cache) dup sw 2 div 6.843718 ex sub 35.715330 m gs 1 -1 sc sh gr
+1.000000 1.000000 1.000000 srgb
+n 21.093430 31.772500 m 27.028759 34.763791 l 21.093430 37.755082 l 15.158100 34.763791 l ef
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 21.093430 31.772500 m 27.028759 34.763791 l 21.093430 37.755082 l 15.158100 34.763791 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(URI) dup sw 2 div 21.093430 ex sub 34.113791 m gs 1 -1 sc sh gr
+(content-type is) dup sw 2 div 21.093430 ex sub 34.913791 m gs 1 -1 sc sh gr
+(text/html?) dup sw 2 div 21.093430 ex sub 35.713791 m gs 1 -1 sc sh gr
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slc
+n 14.546297 34.764190 m 12.804400 34.765300 l s
+0 slj
+1.000000 1.000000 1.000000 srgb
+n 14.546456 35.014190 m 15.046297 34.763871 l 14.546137 34.514190 l ef
+0.100000 slw
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 14.546456 35.014190 m 15.046297 34.763871 l 14.546137 34.514190 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(YES) 13.233100 34.285000 m gs 1 -1 sc sh gr
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slc
+n 21.093400 31.772500 m 21.138306 26.861778 l s
+0 slj
+1.000000 1.000000 1.000000 srgb
+n 21.388295 26.864064 m 21.142878 26.361799 l 20.888316 26.859492 l ef
+0.100000 slw
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 21.388295 26.864064 m 21.142878 26.361799 l 20.888316 26.859492 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(NO) 19.833100 29.685000 m gs 1 -1 sc sh gr
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slc
+n 21.093400 37.755100 m 21.124244 59.808897 l s
+0 slj
+1.000000 1.000000 1.000000 srgb
+n 20.874245 59.809247 m 21.124944 60.308897 l 21.374244 59.808548 l ef
+0.100000 slw
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 20.874245 59.809247 m 21.124944 60.308897 l 21.374244 59.808548 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(YES) 19.633100 41.985000 m gs 1 -1 sc sh gr
+1.000000 1.000000 1.000000 srgb
+n 1.333060 41.435000 m 1.333060 44.935000 l 12.333060 44.935000 l 12.333060 41.435000 l f
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 1.333060 41.435000 m 1.333060 44.935000 l 12.333060 44.935000 l 12.333060 41.435000 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(Proxy server makes) dup sw 2 div 6.833060 ex sub 42.935000 m gs 1 -1 sc sh gr
+(reproxy request to URI) dup sw 2 div 6.833060 ex sub 43.735000 m gs 1 -1 sc sh gr
+1.000000 1.000000 1.000000 srgb
+n 24.750100 49.385000 m 24.750100 52.885000 l 34.233058 52.885000 l 34.233058 49.385000 l f
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 24.750100 49.385000 m 24.750100 52.885000 l 34.233058 52.885000 l 34.233058 49.385000 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(URI Content-type) dup sw 2 div 29.491579 ex sub 50.885000 m gs 1 -1 sc sh gr
+(added to cache) dup sw 2 div 29.491579 ex sub 51.685000 m gs 1 -1 sc sh gr
+1.000000 1.000000 1.000000 srgb
+n 6.843718 48.125000 m 12.854378 51.130330 l 6.843718 54.135660 l 0.833058 51.130330 l ef
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 6.843718 48.125000 m 12.854378 51.130330 l 6.843718 54.135660 l 0.833058 51.130330 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(HTTP Response) dup sw 2 div 6.843718 ex sub 50.480330 m gs 1 -1 sc sh gr
+(Content-type) dup sw 2 div 6.843718 ex sub 51.280330 m gs 1 -1 sc sh gr
+(is text/html?) dup sw 2 div 6.843718 ex sub 52.080330 m gs 1 -1 sc sh gr
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slc
+n 6.843720 37.745700 m 6.834828 40.823199 l s
+0 slj
+1.000000 1.000000 1.000000 srgb
+n 6.584829 40.822477 m 6.833383 41.323197 l 7.084827 40.823922 l ef
+0.100000 slw
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 6.584829 40.822477 m 6.833383 41.323197 l 7.084827 40.823922 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(NO) 7.133060 39.670000 m gs 1 -1 sc sh gr
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slc
+n 29.516718 26.861803 m 29.491600 49.385000 l s
+0.100000 slw
+[] 0 sd
+0 slj
+n 29.766718 26.862082 m 29.517275 26.361803 l 29.266718 26.861524 l cp s
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slc
+n 6.833060 44.935000 m 6.841676 47.513200 l s
+0 slj
+1.000000 1.000000 1.000000 srgb
+n 6.591677 47.514035 m 6.843346 48.013197 l 7.091674 47.512365 l ef
+0.100000 slw
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 6.591677 47.514035 m 6.843346 48.013197 l 7.091674 47.512365 l cp s
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slc
+n 12.854400 51.130300 m 24.138297 51.134758 l s
+0 slj
+1.000000 1.000000 1.000000 srgb
+n 24.138198 51.384758 m 24.638297 51.134956 l 24.138395 50.884758 l ef
+0.100000 slw
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 24.138198 51.384758 m 24.638297 51.134956 l 24.138395 50.884758 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(NO) 16.175100 50.770000 m gs 1 -1 sc sh gr
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slc
+n 6.843720 54.135700 m 6.796828 57.956443 l s
+0 slj
+1.000000 1.000000 1.000000 srgb
+n 6.546847 57.953375 m 6.790692 58.456405 l 7.046809 57.959511 l ef
+0.100000 slw
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 6.546847 57.953375 m 6.790692 58.456405 l 7.046809 57.959511 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(YES) 7.175100 56.720700 m gs 1 -1 sc sh gr
+1.000000 1.000000 1.000000 srgb
+n 15.625100 60.420700 m 15.625100 63.920700 l 26.625100 63.920700 l 26.625100 60.420700 l f
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 15.625100 60.420700 m 15.625100 63.920700 l 26.625100 63.920700 l 26.625100 60.420700 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(Proxy server makes) dup sw 2 div 21.125100 ex sub 61.920700 m gs 1 -1 sc sh gr
+(reproxy request to URI) dup sw 2 div 21.125100 ex sub 62.720700 m gs 1 -1 sc sh gr
+1.000000 1.000000 1.000000 srgb
+n 1.325100 69.705700 m 1.325100 73.205700 l 12.200100 73.205700 l 12.200100 69.705700 l f
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 1.325100 69.705700 m 1.325100 73.205700 l 12.200100 73.205700 l 12.200100 69.705700 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(Proxy Server makes request) dup sw 2 div 6.762600 ex sub 70.805700 m gs 1 -1 sc sh gr
+(to click server for ad) dup sw 2 div 6.762600 ex sub 71.605700 m gs 1 -1 sc sh gr
+(supplement) dup sw 2 div 6.762600 ex sub 72.405700 m gs 1 -1 sc sh gr
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slc
+n 15.625100 62.170700 m 14.428675 62.146217 l s
+0 slj
+1.000000 1.000000 1.000000 srgb
+n 14.433790 61.896269 m 13.928780 62.135987 l 14.423561 62.396165 l ef
+0.100000 slw
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 14.433790 61.896269 m 13.928780 62.135987 l 14.423561 62.396165 l cp s
+1.000000 1.000000 1.000000 srgb
+n 1.275100 86.155700 m 1.275100 90.455700 l 12.275100 90.455700 l 12.275100 86.155700 l f
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 1.275100 86.155700 m 1.275100 90.455700 l 12.275100 90.455700 l 12.275100 86.155700 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(Proxy server applies filter) dup sw 2 div 6.775100 ex sub 87.255700 m gs 1 -1 sc sh gr
+(to reposition response web) dup sw 2 div 6.775100 ex sub 88.055700 m gs 1 -1 sc sh gr
+(page and add supplemental) dup sw 2 div 6.775100 ex sub 88.855700 m gs 1 -1 sc sh gr
+(HTTP response content \(ad\)) dup sw 2 div 6.775100 ex sub 89.655700 m gs 1 -1 sc sh gr
+1.000000 1.000000 1.000000 srgb
+n 6.789323 58.568200 m 13.816964 62.133645 l 6.789323 65.699090 l -0.238317 62.133645 l ef
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 6.789323 58.568200 m 13.816964 62.133645 l 6.789323 65.699090 l -0.238317 62.133645 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(HTTP Response) dup sw 2 div 6.789323 ex sub 61.083645 m gs 1 -1 sc sh gr
+(HTML well formed) dup sw 2 div 6.789323 ex sub 61.883645 m gs 1 -1 sc sh gr
+(enough for ad) dup sw 2 div 6.789323 ex sub 62.683645 m gs 1 -1 sc sh gr
+(supplement?) dup sw 2 div 6.789323 ex sub 63.483645 m gs 1 -1 sc sh gr
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slc
+n 6.789320 65.699100 m 6.766680 69.093910 l s
+0 slj
+1.000000 1.000000 1.000000 srgb
+n 6.516686 69.092243 m 6.763346 69.593899 l 7.016674 69.095577 l ef
+0.100000 slw
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 6.516686 69.092243 m 6.763346 69.593899 l 7.016674 69.095577 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(YES) 7.275100 67.705700 m gs 1 -1 sc sh gr
+/Helvetica-latin1 ff 0.560000 scf sf
+(NO) -3.024900 61.605700 m gs 1 -1 sc sh gr
+1.000000 1.000000 1.000000 srgb
+n -14.101004 62.105700 m -5.727476 62.105700 l -7.001371 65.605700 l -15.374900 65.605700 l ef
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n -14.101004 62.105700 m -5.727476 62.105700 l -7.001371 65.605700 l -15.374900 65.605700 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(Proxy server sends) dup sw 2 div -10.551188 ex sub 63.205700 m gs 1 -1 sc sh gr
+(HTTP Response) dup sw 2 div -10.551188 ex sub 64.005700 m gs 1 -1 sc sh gr
+(to client) dup sw 2 div -10.551188 ex sub 64.805700 m gs 1 -1 sc sh gr
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slc
+n -0.238317 62.133700 m -5.115685 62.108821 l s
+0 slj
+1.000000 1.000000 1.000000 srgb
+n -5.114409 61.858824 m -5.615678 62.106270 l -5.116960 62.358817 l ef
+0.100000 slw
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n -5.114409 61.858824 m -5.615678 62.106270 l -5.116960 62.358817 l cp s
+1.000000 1.000000 1.000000 srgb
+n 6.710760 77.083200 m 12.496420 79.976030 l 6.710760 82.868860 l 0.925100 79.976030 l ef
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 6.710760 77.083200 m 12.496420 79.976030 l 6.710760 82.868860 l 0.925100 79.976030 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(Click Server) dup sw 2 div 6.710760 ex sub 79.326030 m gs 1 -1 sc sh gr
+(returned ad) dup sw 2 div 6.710760 ex sub 80.126030 m gs 1 -1 sc sh gr
+(without error?) dup sw 2 div 6.710760 ex sub 80.926030 m gs 1 -1 sc sh gr
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slc
+n 6.762600 73.205700 m 6.718939 76.471451 l s
+0 slj
+1.000000 1.000000 1.000000 srgb
+n 6.468961 76.468109 m 6.712255 76.971407 l 6.968916 76.474793 l ef
+0.100000 slw
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 6.468961 76.468109 m 6.712255 76.971407 l 6.968916 76.474793 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(YES) 7.275100 84.155700 m gs 1 -1 sc sh gr
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slc
+n 6.710760 82.868900 m 6.763126 85.544014 l s
+0 slj
+1.000000 1.000000 1.000000 srgb
+n 6.513174 85.548907 m 6.772912 86.043918 l 7.013078 85.539121 l ef
+0.100000 slw
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n 6.513174 85.548907 m 6.772912 86.043918 l 7.013078 85.539121 l cp s
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slj
+0 slc
+n -5.838097 64.000700 m -2.849900 64.000700 l -2.849900 79.976100 l 0.925100 79.976100 l s
+0 slj
+1.000000 1.000000 1.000000 srgb
+n -5.838097 63.750700 m -6.338097 64.000700 l -5.838097 64.250700 l ef
+0.100000 slw
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n -5.838097 63.750700 m -6.338097 64.000700 l -5.838097 64.250700 l cp s
+/Helvetica-latin1 ff 0.560000 scf sf
+(NO) -2.324900 71.555700 m gs 1 -1 sc sh gr
+0.100000 slw
+[] 0 sd
+[] 0 sd
+0 slj
+0 slc
+n -6.389567 65.605700 m -5.623430 65.605700 l -5.623430 88.305700 l 1.275100 88.305700 l s
+0 slj
+1.000000 1.000000 1.000000 srgb
+n -6.389567 65.355700 m -6.889567 65.605700 l -6.389567 65.855700 l ef
+0.100000 slw
+[] 0 sd
+0 slj
+0.000000 0.000000 0.000000 srgb
+n -6.389567 65.355700 m -6.889567 65.605700 l -6.389567 65.855700 l cp s
+/Helvetica-latin1 ff 0.840000 scf sf
+(Flowchart which represents the algorithms used by the) 15.025100 8.800000 m gs 1 -1 sc sh gr
+(HTTP proxy server to serve supplemental HTTP response) 15.025100 10.000000 m gs 1 -1 sc sh gr
+(content \(ads\) with HTTP responses.) 15.025100 11.200000 m gs 1 -1 sc sh gr
+(Date of initial conception:  June 4th, 2005) 15.025100 13.600000 m gs 1 -1 sc sh gr
+(Revision date:  March 12th, 2006) 15.025100 14.800000 m gs 1 -1 sc sh gr
+(Author:  Fred Moyer) 15.025100 16.000000 m gs 1 -1 sc sh gr
+/Helvetica-latin1 ff 0.560000 scf sf
+showpage
