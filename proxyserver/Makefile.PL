@@ -4,17 +4,18 @@ use strict;
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
-    NAME           => 'SL::ProxyServer',
-    VERSION_FROM   => 'lib/SL/Apache.pm',
-    PREREQ_PM      => {
-        'Cache::FastMmap' => 1.09,
-        'Text::Template' => 1.44,
-        'Bundle::LWP' => 1.11,
-        'Regexp::Assemble' => 0.24,
-    },
-    ABSTRACT_FROM  => 'README',
-    AUTHOR         => 'Fred Moyer <fred@redhotpenguin.com>',
-);
+              NAME         => 'SL::ProxyServer',
+              VERSION	   => '0.6',
+              PREREQ_PM    => {
+                            'Cache::FastMmap'  => 1.09,
+                            'Text::Template'   => 1.44,
+                            'Bundle::LWP'      => 1.11,
+                            'Regexp::Assemble' => 0.24,
+							'Perl6::Slurp'	   => 0.03,
+                           },
+              ABSTRACT		=> 'This stuff proxies requests and inserts ads',
+              AUTHOR        => 'Fred Moyer <fred@redhotpenguin.com>',
+             );
 
 use Apache::TestMM qw(test clean);
 use Apache::TestRunPerl ();
