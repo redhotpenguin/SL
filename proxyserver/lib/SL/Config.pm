@@ -15,10 +15,8 @@ sub new {
 }
 
 sub cfg {
-	if ( ! defined $cfg ) {
-		$cfg = __PACKAGE__->new;
-	}
-	return $cfg;	
+	my $self = shift;
+	return $self->{_config};
 }
 
 sub init {
@@ -27,6 +25,12 @@ sub init {
 	foreach my $key ( keys %{$args_ref} ) {
 		$self->{_config}->{$key} = $args_ref->{$key};
 	}
+}
+
+sub data_root {
+	my $self = shift;
+	return join('/', $self->{_config}->{root}, $self->{_config}->{version}, 
+					 $self->{_config}->{server}, 'data');
 }
 
 1;
