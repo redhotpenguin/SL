@@ -38,6 +38,7 @@ Timeout              30
         </IfModule>
     </IfModule>
 </IfModule>
+
 [% ELSIF sl_proxy == 'perlbal' %]
 
 Listen 9000
@@ -68,6 +69,7 @@ PerlSetVar           SLWhiteList [% sl_whitelist %]
 PerlSetVar           SLMethod Stacked
 #PerlSetVar           SLMethod Container
 PerlSetVar           SLCssUri [% sl_css_uri %]
+PerlSetVar           SLProxy [% sl_proxy %]
 
 PerlPostReadRequestHandler Apache2::Const::OK
 PerlMapToStorageHandler Apache2::Const::OK

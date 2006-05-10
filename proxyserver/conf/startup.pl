@@ -34,4 +34,6 @@ use SL::UserAgent       ();
 use SL::Util            ();
 use DBI					();
 
+print "Libraries loaded, starting SL daemon...\n";
+
 1;

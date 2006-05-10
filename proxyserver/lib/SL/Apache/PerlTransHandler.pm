@@ -20,11 +20,11 @@ BEGIN {
     require Regexp::Assemble;
     require Perl6::Slurp;
     require SL::Config;
-    my $cfg = SL::Config->new;
-
+#    my $cfg = SL::Config->new;
+	my $data_root = $ENV{SL_ROOT} . '/proxyserver/data';
     ## Whitelist
     my @whitelists =
-      split("\n", Perl6::Slurp::slurp($cfg->data_root . '/whitelist.txt'));
+      split("\n", Perl6::Slurp::slurp($data_root . '/whitelist.txt'));
     die unless @whitelists;
     $whitelist = Regexp::Assemble->new;
     $whitelist->add(@whitelists);
@@ -33,7 +33,7 @@ BEGIN {
     #####################
     ## Blacklisting
     my @blacklists =
-      split("\n", Perl6::Slurp::slurp($cfg->data_root . '/blacklist.txt'));
+      split("\n", Perl6::Slurp::slurp($data_root . '/blacklist.txt'));
     $blacklist_regex = Regexp::Assemble->new;
     $blacklist_regex->add(@blacklists);
     print STDERR "Regex for blacklist_urls: ", $blacklist_regex->re, "\n\n";
@@ -69,21 +69,12 @@ use SL::Apache;
 use SL::Cache;
 use SL::Util;
 
-our $proxy;
-
-BEGIN {
-    my $server = Apache2::ServerUtil->server;
-    my $port   = $server->port;
-    ($port == '9000') ? $proxy = 'perlbal' : $proxy = 'mod_proxy';
-    print "SilverLining daemon initializing \n";
-}
-
 sub proxy_request {
     my $r = shift;
-    if ($proxy eq 'perlbal') {
+    if ($r->dir_config('SLProxy') eq 'perlbal') {
         return &perlbal($r);
     }
-    elsif ($proxy eq 'mod_proxy') {
+    elsif ($r->dir_config('SLProxy') eq 'mod_proxy') {
         return &mod_proxy($r);
     }
 }
@@ -233,7 +224,6 @@ sub mod_proxy {
 }
 
 sub perlbal {
-    my $class = shift;
     my $r     = shift;
 
     ##########

@@ -19,7 +19,7 @@ sub cfg {
 	return $self->{_config};
 }
 
-sub init {
+sub _init {
 	my ($self, $args_ref) = @_;
 
 	foreach my $key ( keys %{$args_ref} ) {
