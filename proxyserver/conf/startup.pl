@@ -25,7 +25,6 @@ use HTTP::Headers       ();
 use HTTP::Request       ();
 use HTTP::Response      ();
 use SL::Model::Ad       ();
-use SL::CS::Model       ();
 use SL::Apache          ();
 use SL::Apache::Reg     ();
 use SL::Apache::PerlAccessHandler  ();
@@ -34,4 +33,5 @@ use SL::Cache           ();
 use SL::UserAgent       ();
 use SL::Util            ();
 use DBI					();
+
 1;

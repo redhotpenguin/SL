@@ -23,6 +23,7 @@ UseCanonicalName     Off
 HostNameLookups      Off
 Timeout              30
 
+[% IF sl_proxy == 'mod_proxy' %]
 <IfModule mod_proxy.c>
     # If mod_proxy is used for proxy forwarding
     ProxyRequests On
@@ -37,9 +38,11 @@ Timeout              30
         </IfModule>
     </IfModule>
 </IfModule>
-<IfModule !mod_proxy.c>
-    Listen 9000
-</IfModule>
+[% ELSIF sl_proxy == 'perlbal' %]
+
+Listen 9000
+
+[% END %]
 
 ServerName           [% sl_servername %]
 ErrorDocument        404	/404.html

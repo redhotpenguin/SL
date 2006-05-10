@@ -20,19 +20,21 @@ BEGIN {
     require Regexp::Assemble;
 
     ## Whitelist
-    open(FH, "< " . $ENV{SL_ROOT} . "/proxyserver/data/whitelist.txt") or
+	my $fh;
+    open($fh, "< ", $ENV{SL_ROOT} . "/proxyserver/data/whitelist.txt") ||
         die "Could not open whitelist: $!\n";
-    my @whitelists = split("\n", do { local $/; <FH> } );
-    close(FH);
+    my @whitelists = split("\n", do { local $/; <$fh> } );
+    close($fh);
     $whitelist = Regexp::Assemble->new;
     $whitelist->add( @whitelists );
     print STDERR "Regex for whitelist domains is ", $whitelist->re, "\n\n";
     
     #####################
     ## Blacklisting
-    open(FH, "< " . $ENV{SL_ROOT} . "/proxyserver/data/blacklist.txt") or
+    open($fh, "< ", $ENV{SL_ROOT} . "/proxyserver/data/blacklist.txt") ||
         die "Could not open blacklist: $!\n";
-    my @blacklists = split("\n", do { local $/; <FH> } );
+    my @blacklists = split("\n", do { local $/; <$fh> } );
+	close($fh);
     $blacklist_regex = Regexp::Assemble->new;
     $blacklist_regex->add(@blacklists);
     print STDERR "Regex for blacklist_urls: ", $blacklist_regex->re, "\n\n";
