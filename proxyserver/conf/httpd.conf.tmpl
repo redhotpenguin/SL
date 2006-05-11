@@ -54,6 +54,9 @@ LoadModule perl_module        modules/mod_perl.so
 
 PerlPassEnv SL_ROOT
 PerlRequire "[% sl_root %]/[% sl_version %]/[% sl_server %]/conf/startup.pl"
+[% IF sl_debug %]
+PerlRequire "[% sl_root %]/[% sl_version %]/conf/db.pl"
+[% END %]
 PerlSetVar data_root "[% sl_root %]/data"
 PerlSetVar ad_url "[% sl_adserver_uri %]"
 
@@ -63,6 +66,9 @@ PerlModule           Apache2::Reload
 PerlInitHandler      Apache2::Reload
 PerlSetVar           ReloadAll On
 PerlSetVar           ReloadDirectories "[% sl_root %]/[% sl_version %]/[% sl_server %]/lib"
+[% END %]
+[% IF sl_prof %]
+	PerlModule Apache::DProf
 [% END %]
 
 PerlSetVar           SLWhiteList [% sl_whitelist %]
@@ -76,18 +82,22 @@ PerlTransHandler SL::Apache::PerlTransHandler
 
 <Location />
     SetHandler          modperl
-    #PerlFixupHandler +Apache::DB
-    PerlHeaderParserHandler Apache2::Const::OK
+ 	PerlHeaderParserHandler Apache2::Const::OK
     PerlAccessHandler       Apache2::Const::OK
     PerlAuthenHandler       Apache2::Const::OK
     PerlAuthzHandler        Apache2::Const::OK
     PerlTypeHandler         Apache2::Const::OK
+[% IF sl_debug %]
+    PerlFixupHandler +Apache::DB
+[% ELSE %]
     PerlFixupHandler        Apache2::Const::OK
+[% END %]
     PerlResponseHandler     SL::Apache 
 </Location>
 
 <Directory />
     AllowOverride None
 </Directory>
-
+[% IF sl_proxy_deflate %]
 Include [% sl_root %]/[% sl_version %]/conf/deflate.conf
+[% END %]

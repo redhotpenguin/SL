@@ -36,7 +36,9 @@ $template->process($conf_tmpl, \%app_config, $tmpl_out)
   || die $template->error, "\n";
 
 $|++;
-my $cmd = "$app_config{'sl_root'}/httpd2/bin/httpd -f $app_config{'sl_root'}/$app_config{'sl_version'}/$app_config{'sl_server'}/conf/httpd.conf -k start";
+my $cmd = "$app_config{'sl_root'}/httpd2/bin/httpd ";
+$cmd .= "-X " if (exists $app_config{'sl_debug'} && $app_config{'sl_debug'} == 1);
+$cmd .= "-f $app_config{'sl_root'}/$app_config{'sl_version'}/$app_config{'sl_server'}/conf/httpd.conf -k start";
 print "Starting with command: $cmd\n";
 my $started = `$cmd`;
 print $started;
