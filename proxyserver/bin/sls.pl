@@ -17,11 +17,12 @@ foreach my $config_data_file (@config_data) {
     my $config_data = slurp $config_data_file;
     my @lines = split("\n", $config_data);
     foreach my $line (@lines) {
-        chomp($line);
+        next if $line =~ m{^#};
+		chomp($line);
         $line =~ s/\s//g;
         my ($key, $value) = split('\|', $line);
         next unless ($key or $value);
-        die if (($key && !$value) or (!$key && $value));
+        die "key: $key, value: $value\n"if (($key && !$value) or (!$key && $value));
         $app_config{$key} = $value;
     }
 }
