@@ -10,9 +10,9 @@ Group                [% sl_apache_group %]
 KeepAlive            [% sl_apache_keepalive %]
 MaxKeepAliveRequests 100
 KeepAliveTimeout     15
-MinSpareServers      24
-MaxSpareServers      48
-StartServers         64
+MinSpareServers      [% sl_apache_min_spare_servers %]
+MaxSpareServers      [% sl_apache_max_spare_servers %]
+StartServers         [% sl_apache_start_servers %]
 LogLevel             [% sl_apache_loglevel %]
 MaxClients           [% sl_apache_maxclients %]
 ErrorLog             [% sl_root %]/[% sl_version %]/[% sl_server %]/logs/httpd_error_log
@@ -27,7 +27,7 @@ Timeout              30
 <IfModule mod_proxy.c>
     # If mod_proxy is used for proxy forwarding
     ProxyRequests On
-    Listen        8888
+    Listen        [% sl_http_frontend_ip %]
     <IfModule mod_cache.c>
         <IfModule mod_mem_cache.c>
         CacheEnable mem /
@@ -41,7 +41,7 @@ Timeout              30
 
 [% ELSIF sl_proxy == 'perlbal' %]
 
-Listen 9000
+Listen [% sl_http_backend_ip %]
 
 [% END %]
 
@@ -66,8 +66,7 @@ PerlSetVar           ReloadDirectories "[% sl_root %]/[% sl_version %]/[% sl_ser
 [% END %]
 
 PerlSetVar           SLWhiteList [% sl_whitelist %]
-PerlSetVar           SLMethod Stacked
-#PerlSetVar           SLMethod Container
+PerlSetVar           SLMethod [% sl_method %]
 PerlSetVar           SLCssUri [% sl_css_uri %]
 PerlSetVar           SLProxy [% sl_proxy %]
 

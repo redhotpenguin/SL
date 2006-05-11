@@ -20,7 +20,6 @@ BEGIN {
     require Regexp::Assemble;
     require Perl6::Slurp;
     require SL::Config;
-#    my $cfg = SL::Config->new;
 	my $data_root = $ENV{SL_ROOT} . '/proxyserver/data';
     ## Whitelist
     my @whitelists =
