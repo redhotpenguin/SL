@@ -27,7 +27,7 @@ Timeout              30
 <IfModule mod_proxy.c>
     # If mod_proxy is used for proxy forwarding
     ProxyRequests On
-    Listen        [% sl_http_frontend_ip %]
+    Listen        [% sl_http_frontend_port %]
     <IfModule mod_cache.c>
         <IfModule mod_mem_cache.c>
         CacheEnable mem /
@@ -41,7 +41,7 @@ Timeout              30
 
 [% ELSIF sl_proxy == 'perlbal' %]
 
-Listen [% sl_http_backend_ip %]
+Listen [% sl_http_backend_port %]
 
 [% END %]
 
