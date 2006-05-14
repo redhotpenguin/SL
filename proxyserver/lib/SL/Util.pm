@@ -21,7 +21,8 @@ sub extract_links {
         my $tag   = $token->[0];
         my $attrs = $token->[1];
         my $url   = $attrs->{'href'};
-		
+		next unless $url;
+
 		# potential bug here for non http links
 		# fixup relative links
         unless ($url =~ m{^http://}) {

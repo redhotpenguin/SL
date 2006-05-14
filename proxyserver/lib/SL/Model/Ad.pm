@@ -25,7 +25,8 @@ Method for ad insertion which wraps the whole page in a stylesheet
 
 sub container {
     my ( $css_url, $decoded_content, $ad ) = @_;
-    my $link    = qq{<link rel="stylesheet" href="$css_url" type="text/css" />};
+	
+	my $link    = qq{<link rel="stylesheet" href="$css_url" type="text/css" />};
     
     # Insert the stylesheet link
     my $regex = qr{^(.*?)(</\s*?head)(.*)$};

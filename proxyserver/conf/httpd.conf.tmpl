@@ -8,8 +8,8 @@ TypesConfig          [% sl_root %]/[% sl_version %]/conf/mime.types
 User                 [% sl_apache_user %] 
 Group                [% sl_apache_group %]
 KeepAlive            [% sl_apache_keepalive %]
-MaxKeepAliveRequests 100
-KeepAliveTimeout     15
+MaxKeepAliveRequests 0
+KeepAliveTimeout     300
 MinSpareServers      [% sl_apache_min_spare_servers %]
 MaxSpareServers      [% sl_apache_max_spare_servers %]
 StartServers         [% sl_apache_start_servers %]
@@ -17,7 +17,7 @@ LogLevel             [% sl_apache_loglevel %]
 MaxClients           [% sl_apache_maxclients %]
 ErrorLog             [% sl_root %]/[% sl_version %]/[% sl_server %]/logs/httpd_error_log
 TransferLog          [% sl_root %]/[% sl_version %]/[% sl_server %]/logs/httpd_access_log
-MaxRequestsPerChild  500
+MaxRequestsPerChild  1000
 LogFormat "%h %l %u %t (%{User-agent}i) \"%r\" %>s %b"
 UseCanonicalName     Off
 HostNameLookups      Off

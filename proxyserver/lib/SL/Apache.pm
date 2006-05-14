@@ -386,7 +386,7 @@ sub _generate_response {
         if ($r->dir_config("SLMethod") eq 'Container') {
 	    $r->log->debug("Using container method for ad insertion");
             $munged_resp = SL::Model::Ad::container( 
-                                       $r->dir_config('SL_css_url'), 
+                                       $r->dir_config('SLCssUri'), 
                                        $decoded_content, 
                                        $ad );
         }
