@@ -2,9 +2,11 @@
 ads.google.com
 gmail.com
 .meebo.com
+mail.google.com
 mail.yahoo.com
 login.yahoo.com
 .clientsection.com
+.projectpath.com
 .doubleclick.net
 .google-analytics.com
 .googlesyndication.com
@@ -28,3 +30,4 @@ dyn.cnn.com
 click.linksynergy.com
 .tkqlhce.com
 coremetrics.com
+.falkag.net
