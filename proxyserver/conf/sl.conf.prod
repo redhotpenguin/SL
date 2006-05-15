@@ -9,9 +9,9 @@ sl_devel|1
 sl_proxy_deflate|1
 sl_apache_loglevel|info
 sl_apache_maxclients|72
-sl_apache_start_servers|36
+sl_apache_start_servers|40
 sl_apache_max_spare_servers|24
-sl_apache_min_spare_servers|12
+sl_apache_min_spare_servers|16
 sl_apache_keepalive|On
 sl_apache_user|fred
 sl_apache_group|users
