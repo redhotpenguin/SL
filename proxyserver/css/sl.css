@@ -23,7 +23,8 @@ p.sl {
 	vertical-align: 50%;
     font-weight: bold;
     font-family: Trebuchet;
-    color: #0033FF;
+    font-size: 16px;
+	color: #0033FF;
 }
 
 #sl_ctr {
