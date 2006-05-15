@@ -16,18 +16,26 @@ BEGIN {
         # Load all the ads into a shared global
         my $dbh = SL::CS::Model->db_Main();
         my $sql = <<SQL;
-SELECT *
-FROM ad
-WHERE active = 't'
+SELECT
+ad.ad_id, 
+ad.name, 
+link.md5, 
+ad.template 
+FROM ad 
+LEFT JOIN link 
+USING (ad_id)
+WHERE ad.active = 't'
 SQL
 
         my $sth = $dbh->prepare_cached($sql);
         my $rv  = $sth->execute;
         die unless $rv;
+
         while ( my $ad_data = $sth->fetchrow_hashref ) {
-			require Data::Dumper;
-			print STDERR "Ad data: " . Data::Dumper::Dumper($ad_data);
-			push @ads, SL::CS::Model::Ad->new($ad_data);
+            require Data::Dumper;
+            my $ad = SL::CS::Model::Ad->new($ad_data);
+            print STDERR "Ad: " . Data::Dumper::Dumper($ad);
+            push @ads, $ad;
         }
 
         $dbh->commit;
@@ -36,7 +44,26 @@ SQL
             my ( $class, $ad_data ) = @_;
             my $self = {};
 
-            $self->{$_} = $ad_data->{$_} for keys %{$ad_data};
+            require Template;
+            my $tmpl_config = {
+                ABSOLUTE     => 1,
+                INCLUDE_PATH => $ENV{SL_ROOT} . "/clickserver/tmpl/"
+            };
+            my $ad_server = 'http://h1.redhotpenguin.com:7777/click';
+            my $template = Template->new($tmpl_config) || die $Template::ERROR,
+              "\n";
+            my %tmpl_vars = (
+                sl_link => "$ad_server/795da10ca01f942fd85157d8be9e832e",
+                ad_link => "$ad_server/" . $ad_data->{'md5'},
+                ad_text => $ad_data->{'name'},
+            );
+            my $output = '';
+            $template->process( $ad_data->{'template'} . '.tmpl',
+                \%tmpl_vars, \$output )
+              || die $template->error(), "\n";
+            $self->{'ad_id'} = $ad_data->{'ad_id'};
+            $self->{'_html'} = $output;
+
             bless $self, $class;
 
             return $self;
@@ -48,25 +75,12 @@ sub random {
     my $class = shift;
     refresh_ads() if $SL::Debug;
     my $index = int( rand( scalar(@ads) ) );
-require Data::Dumper;
-	print STDERR "Ads are " . Data::Dumper::Dumper(\@ads);
-	print STDERR "****\n\n****\nMY INDEX IS $index\n****\n****\n";
     return $ads[$index];
 }
 
 sub as_html {
     my $self = shift;
-    if ( defined $self->{'_html'} ) {
-        return $self->{'_html'};
-    }
 
-    # Ok it's not cached
-    my $template = $ENV{SL_ROOT} . "/clickserver/tmpl/$self->{'template'}.tmpl";
-
-    open( FH, "< $template" )
-      or die "template => $template, err: $!\n";
-    $self->{'_html'} = do { local $/; <FH> };
-    close(FH);
     return $self->{'_html'};
 }
 1;
