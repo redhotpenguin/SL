@@ -29,8 +29,8 @@ sub container {
 	my $link    = qq{<link rel="stylesheet" href="$css_url" type="text/css" />};
     
     # Insert the stylesheet link
-    my $regex = qr{^(.*?)(</\s*?head)(.*)$};
-    $decoded_content =~ s{$regex}{$1$link$2$3}ixms;
+    my $regex = qr{^(.*?)(</\s*head)(.*)$}i;
+    $decoded_content =~ s{$regex}{$1$link$2$3}mgs;
 
     # Insert the rest of the pieces
     my $top       = qq{<div id="sl_top">};

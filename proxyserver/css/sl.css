@@ -1,6 +1,7 @@
 #sl_top {
     z-index: 99;
-    position: absolute;
+    background-color: white;
+	position: absolute;
     top: 0px;
     left: 0px;
     padding: 0px 0px 0px 0px;
@@ -8,11 +9,6 @@
     width: 100%;
 /*   border: solid 1px black; */
 }
-
-img.sl_textad {
-	border: 0px;
-}
-
 p.sl {
 /*    border: solid 1px black;  */
     text-align: left;
@@ -21,23 +17,18 @@ p.sl {
 }
 
 .sl_textad_text {
-    vertical-align: 50%;
+	position: absolute;
+	top: 17px;
+	left: 150px;
+	vertical-align: 50%;
     font-weight: bold;
     font-family: Trebuchet;
     color: #0033FF;
 }
-p.sl_textad {
-	background-color: white;
-    padding: 0px 0px 0px 0px;
-    margin: 0px 0px 0px 0px;
-/*    border: solid 2px black;  */
-}
-a.sl_textad {
-	color: #666666;
-}
 
 #sl_ctr {
     position: relative;
-    top: 50px;
+    top: 60px;
+	margin-top: 0px
 }
 

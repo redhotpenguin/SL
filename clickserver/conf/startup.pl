@@ -23,6 +23,8 @@ use SL::CS::Apache::Click ();
 use SL::CS::Model         ();
 use SL::CS::Model::Ad     ();
 
+$SL::Debug = 1;
+
 my $username = 'fred';
 my $auth     = '';
 

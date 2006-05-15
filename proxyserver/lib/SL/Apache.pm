@@ -413,4 +413,4 @@ sub _generate_response {
     return $munged_resp;
 }
 
-1;
+;
