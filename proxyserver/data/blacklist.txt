@@ -1,5 +1,9 @@
 .hitbox.com
 .businessweek.com
+.live.com
+.msn.com
+.hotmail.com
+.passport.com
 ads.google.com
 gmail.com
 .meebo.com
