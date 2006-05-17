@@ -21,7 +21,7 @@ MaxRequestsPerChild  1000
 LogFormat "%h %l %u %t (%{User-agent}i) \"%r\" %>s %b"
 UseCanonicalName     Off
 HostNameLookups      Off
-Timeout              30
+Timeout              300
 
 [% IF sl_proxy == 'mod_proxy' %]
 <IfModule mod_proxy.c>

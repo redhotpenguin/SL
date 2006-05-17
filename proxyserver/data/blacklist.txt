@@ -1,6 +1,15 @@
 .hitbox.com
 .businessweek.com
-.netflix.com
+oingo.com
+youtube.com
+perlworkshop.no
+travelpost.com
+cheaptickets.com
+expedia.com
+priceline.com
+myway.com
+t-mobile.com
+netflix.com
 .live.com
 .msn.com
 .hotmail.com
