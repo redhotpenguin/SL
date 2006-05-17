@@ -3,6 +3,16 @@
 use strict;
 use warnings;
 
+@INC = ();
+push @INC, (
+'/home/fred/dev/sl/trunk/proxyserver/lib',
+'/home/fred/dev/perl/lib/5.8.8/i686-linux',
+'/home/fred/dev/perl/lib/5.8.8',
+'/home/fred/dev/perl/lib/site_perl/5.8.8/i686-linux',
+'/home/fred/dev/perl/lib/site_perl/5.8.8',
+'/home/fred/dev/perl/lib/site_perl',
+);
+
 use Template;
 use FindBin;
 use Perl6::Slurp;

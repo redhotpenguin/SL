@@ -10,6 +10,7 @@ WriteMakefile(
                             'Cache::FastMmap'  => 1.09,
                             'Text::Template'   => 1.44,
                             'Bundle::LWP'      => 1.11,
+                            'Template'      => 2.14,
                             'Regexp::Assemble' => 0.24,
 							'Perl6::Slurp'	   => 0.03,
                            },
