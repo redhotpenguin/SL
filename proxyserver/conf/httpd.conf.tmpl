@@ -17,7 +17,7 @@ LogLevel             [% sl_apache_loglevel %]
 MaxClients           [% sl_apache_maxclients %]
 ErrorLog             [% sl_root %]/[% sl_version %]/[% sl_server %]/logs/httpd_error_log
 TransferLog          [% sl_root %]/[% sl_version %]/[% sl_server %]/logs/httpd_access_log
-MaxRequestsPerChild  1000
+MaxRequestsPerChild  250
 LogFormat "%h %l %u %t (%{User-agent}i) \"%r\" %>s %b"
 UseCanonicalName     Off
 HostNameLookups      Off
