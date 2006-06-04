@@ -1,5 +1,8 @@
 .hitbox.com
 .businessweek.com
+yapceurope.org
+personals.yahoo.com
+shutterfly.com
 oingo.com
 youtube.com
 perlworkshop.no
@@ -9,7 +12,6 @@ expedia.com
 priceline.com
 myway.com
 t-mobile.com
-netflix.com
 .live.com
 .msn.com
 .hotmail.com
@@ -46,3 +48,5 @@ click.linksynergy.com
 .tkqlhce.com
 coremetrics.com
 .falkag.net
+earthlink.net
+rpc.bloglines.com

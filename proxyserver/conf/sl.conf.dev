@@ -7,7 +7,7 @@ sl_devel|1
 #sl_prof|1
 
 sl_proxy_deflate|1
-sl_apache_loglevel|info
+sl_apache_loglevel|debug
 sl_apache_maxclients|48
 sl_apache_start_servers|24
 sl_apache_min_spare_servers|6

@@ -32,19 +32,18 @@ VALUES
 SQL
 
 my %params = (
-	ip            => '10.0.0.3',
-    email         => 'fred@redhotpenguin.com',
-    firstname     => "Fred",
-    lastname      => "Moyer",
-    street_addr   => "1440 Union Street",
-    apt_suite     => "302",
-    zipcode       => "94109",
-    phone         => '415.720.2103',
+    email         => 'garrettsuchecki@gmail.com',
+    firstname     => "Garret",
+    lastname      => "Suchecki",
+    street_addr   => "32944 Green Harvest Ct",
+    apt_suite     => "",
+    zipcode       => "92595",
+    phone         => '9517757585',
     description   => '',
-    macaddr       => '0016B6288502',
+    macaddr       => '0016B62884D8',
     referer       => '',
-    serial_number => "CL7A0F219620",
-    code		=> "12345678",
+    serial_number => "CL7A0F219606",
+    code		=> "83960236",
   );	
 
 my $dbh = SL::CS::Model->db_Main();

@@ -99,7 +99,6 @@ After our filter:  ( --> indicates content added by filter )
    <body>
 -->  <div id="silverad">
 -->    <p>We are in control.  Do not attempt to adjust your webpage.</p>
--->    <p>Now eat some of these peanuts you hutzpah!</p>
 -->  </div>
 -->  <div id="silverwrapper">
        <div id="originalstyle">
@@ -145,23 +144,47 @@ use Apache2::ServerUtil;
 =cut
 
 sub _add_headers {
-    my ( $r, $proxy_req, $cookies ) = @_;
-
+    my ( $r, $proxy_req, $cookies, $ua ) = @_;
+use Data::Dumper;
+$r->log->debug("Cookies are " . Dumper($cookies));
+	use HTTP::Cookies;
+	my $jar = $ua->cookie_jar();
+	
     ## FIXME - I whine about warnings in the error log
-    {
-        no warnings;
-        $cookies->do(
-            sub {
-                my ( $key, $value ) = @_;
-
-                $r->log->debug( "$$ url ", $r->pnotes('url'),
-                    ", cookie key $key, value $value" );
-
-                $proxy_req->header( $key => $value );
-            }
-        );
-    }
-    return $proxy_req;
+#	$ua->cookie_jar->set_cookie('1', 'fred', 'fred', '/', 'redhotpenguin.com', 80, 1, 1, 3600, 0);
+	foreach my $cookie ( keys %{$cookies} ) {
+		$r->log->debug("COOKIE STRING: " . $cookies->{$cookie}->as_string);
+		my $path = $cookies->{$cookie}->path || '/';
+		my $domain = $cookies->{$cookie}->domain || $proxy_req->uri->host;
+		my $name = $cookies->{$cookie}->name;
+		my $port = $cookies->{$cookie}->port || '80';
+		$r->log->debug(
+			",Cookie version: " . $cookies->{$cookie}->version . 
+			",Cookie name: " . $name . 
+			",Cookie value: " . $cookies->{$cookie}->value . 
+			",Cookie path: " . $path . 
+			",Cookie domain: " . $domain . 
+			",Cookie port: " . $port . 
+			",Cookie secure: " . $cookies->{$cookie}->secure); 
+		$ua->cookie_jar->set_cookie( $cookies->{$cookie}->version,
+						  $name,
+						  $cookies->{$cookie}->value,
+						  $path,
+						  $domain,
+						  $port,
+						  1,
+						  $cookies->{$cookie}->secure,
+						  1149393645,
+						  0,) or die;
+	$r->log->debug("Cookie isa " . ref $cookies->{$cookie});
+				  } 
+				  #$jar->add_cookie_header($proxy_req);
+	use Data::Dumper;
+	$r->log->debug("**********\n\n** Proxy request is " . Dumper($proxy_req));
+#	$ua->cookie_jar($jar);
+	$r->log->debug("**********\n\n** UA is " . Dumper($ua));
+    
+	return $proxy_req;
 }
 
 sub handler {
@@ -180,6 +203,7 @@ sub handler {
 
     # Handle the response on a case basis depending on response code
     #
+	my $rc;
     if ( $response->code == 500 ) {
         $r->log->error( "$$ Request returned 500, response ",
             Dumper($response) );
@@ -193,12 +217,15 @@ sub handler {
     elsif ( $response->code == 302 or $response->code == 301 ) {
         $r->log->info("$$ Request to $url returned 302 or 301");
         $r->log->debug( "$$ Redirect returned, response", $response->code );
+		$r->log->debug("$$ headers: " . Dumper($response->headers));
 
         ## Handle the redirect for the client
-        $r->status_line( $response->code() . ' ' . $response->message() );
-        $response->scan( sub { $r->err_headers_out->add(@_); } );
+		# $r->status_line( $response->code() . ' ' . $response->message() );
+		#$response->scan( sub { $r->err_headers_out->add(@_); } );
         $r->headers_out->set( Location => $response->header('location') );
-        return Apache2::Const::REDIRECT;
+		$r->log->debug("$$ Request: " . $r->as_string);
+        $rc = Apache2::Const::REDIRECT;
+#		return Apache2::Const::REDIRECT;
     }
     elsif ( $response->code == 200 ) {
         $r->log->info("$$ Request to $url returned 200");
@@ -221,6 +248,7 @@ sub handler {
 			# this is not html
             $response_content = $response->content;
         }
+		$rc = Apache2::Const::OK;
     }
     else {
         $r->log->error( "$$ Request to $url failed: ", Dumper($response) );
@@ -251,15 +279,21 @@ sub handler {
     #
     $r->status_line( $response->code() . ' ' . $response->message() );
 	
-	#### FIXME - Set the headers as a composite of our server and the request
-	#$response->scan( sub { $r->err_headers_out->add(@_); } );
-
-    # Print the response
-    #
+	# This loops over the response headers and adds them to headers_out.
+#    my %custom_headers = ( Connection => 'close');
+#	my %headers;
+	$response->scan( sub { $r->err_headers_out->add(@_); } );
+	# Override any headers with our own here
+	
+	# rflush() flushes the headers to the client - thanks to gozer's mod_perl
+	# for speed presentation
     $r->rflush();
+    
+	# Print the response content
     #$r->print("hello world!");
     $r->print($response_content);
-    return Apache2::Const::OK;
+    return $rc;
+	#return Apache2::Const::OK;
 }
 
 sub _make_request {
@@ -271,7 +305,7 @@ sub _make_request {
 
     ## Grab the cookies
     #
-    my $cookies = Apache2::Cookie->fetch($r);
+    my %cookies = Apache2::Cookie->fetch($r);
 
     ## Make a user agent
     #
@@ -284,8 +318,9 @@ sub _make_request {
     ## Create a request object
     #
     my $proxy_req = HTTP::Request->new( $r->method(), $url );
-    if ($cookies) {
-        $proxy_req = _add_headers( $r, $proxy_req, $cookies );
+    if (keys %cookies) {
+		$r->log->debug("$$ Adding headers");
+        $proxy_req = _add_headers( $r, $proxy_req, \%cookies, $ua );
     }
 
     ## Do this schiznit for a post request
@@ -333,8 +368,8 @@ sub _browser_redirect {
     if (
         my ($redirect) =
         $response->content =~ m/
-        (?-xism:<meta\s+http-equiv\s*?=\s*?"Refresh"\s*?content\s*?=\s*?"?0"?\;
-        \s*?url\s*?=\s*?(http:\/\/\w+\.[^\"|^\>|\s]+))/xmsi
+        (s-xism:<meta\s+http-equiv\s*?=\s*?"Refresh"\s*?content\s*?=\s*?"?0"?\;
+        ss*?url\s*?=\s*?(http:\/\/\w+\.[^\"|^\>|\s]+))/xmsi
       )
     {
         return $redirect;

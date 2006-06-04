@@ -24,7 +24,7 @@ sub new {
     # Cookies
     #
     require HTTP::Cookies;
-    $ua->cookie_jar( HTTP::Cookies->new( file => "/tmp/foocookies" ) );
+    $ua->cookie_jar( HTTP::Cookies->new());# file => "/tmp/foocookies$$" ) );
    
     my $url = $r->pnotes('url');
     $r->log->debug("$$ Created user agent for $url, ua => ", Dumper($ua));

@@ -47,7 +47,7 @@ BEGIN {
     print STDERR "Regex for static content match is ", $ext_regex->re, "\n\n";
 
     my @user_agents =
-      qw( Camino Firefox IE Opera Mozilla Safari libscrobbler
+      qw( libwww-perl Camino Firefox IE Opera Mozilla Safari libscrobbler
       Links Lynx);
 
     $ua_regex = Regexp::Assemble->new;
