@@ -35,7 +35,7 @@ BEGIN {
     sub dbi_connect {
         my ( $db, $host, $user, $pass, $db_options, $dsn );
         $db         = 'sl';
-        $host       = 'localhost';
+        $host       = '10.0.0.2';
         $user       = 'fred';
         $pass       = '';
         $db_options = {
