@@ -17,30 +17,30 @@ Mostly Apache2 and HTTP class based.
 
 =cut
 
-use Apache2::Const -compile => qw( OK SERVER_ERROR NOT_FOUND DECLINED 
-                                   REDIRECT);
-use Apache2::Connection ();
+use Apache2::Const -compile => qw( OK SERVER_ERROR NOT_FOUND DECLINED
+  REDIRECT LOG_DEBUG LOG_ERR LOG_INFO);
+use Apache2::Connection     ();
 use Apache2::ConnectionUtil ();
-use Apache2::Cookie     ();
-use Apache2::Log        ();
-use Apache2::Request    ();
-use Apache2::RequestRec ();
-use Apache2::RequestIO  ();
-use Apache2::URI        ();
-use Data::Dumper qw( Dumper );
-use HTTP::Headers  ();
-use HTTP::Message  ();
-use HTTP::Request  ();
-use HTTP::Response ();
-use SL::UserAgent  ();
-use SL::Model::Ad  ();
+use Apache2::Cookie         ();
+use Apache2::Log            ();
+use Apache2::Request        ();
+use Apache2::RequestRec     ();
+use Apache2::RequestIO      ();
+use Apache2::ServerRec      ();
+use Apache2::URI            ();
+use HTTP::Headers           ();
+use HTTP::Message           ();
+use HTTP::Request           ();
+use HTTP::Response          ();
+use SL::UserAgent           ();
+use SL::Model::Ad           ();
 
 =head1 AD SERVING
 
 We've got a number of different algorithms to serve the ad with the response.
 Here's a list of them with a synopsis of each.
 
-=over4
+=over 4
 
 =item C<munge_body>
 
@@ -55,7 +55,7 @@ was the first algorithm used for this project.
 
 This method actually puts a mini web page 'above' the content received from
 the proxy server.  Like so:
-<html><body><p>Hungry?  How 'bout some peanuts you jackass! :)</p><body></html>
+<html><body><p>foofoobarbar</p><body></html>
 <html><body>response from proxy...
 
 I've only tested with firefox so at this point it's theoretical.  Don't know
@@ -145,15 +145,30 @@ use Apache2::ServerUtil;
 
 sub _add_headers {
     my ( $r, $proxy_req, $cookies, $ua ) = @_;
-use Data::Dumper;
-$r->log->debug("Cookies are " . Dumper($cookies));
+	
+	($r->server->log_level == Apache2::Const::LOG_DEBUG) &&
+		require Data::Dumper &&
+		$r->log->debug("Cookies are " . Dumper($cookies));
+	
 	use HTTP::Cookies;
 	my $jar = $ua->cookie_jar();
 	
-    ## FIXME - I whine about warnings in the error log
-#	$ua->cookie_jar->set_cookie('1', 'fred', 'fred', '/', 'redhotpenguin.com', 80, 1, 1, 3600, 0);
+	#{
+	#    no warnings;
+	#    $cookies->do(
+	#        sub {
+	#            my ($key, $value) = @_;
+	#
+	#            $r->log->debug("$$ url ", $r->pnotes('url'),
+	#                           ", cookie key $key, value $value");
+	#
+	#            $proxy_req->header($key => $value);
+	#        }
+	#    );
+	#}
+	#return $proxy_req;
+	
 	foreach my $cookie ( keys %{$cookies} ) {
-		$r->log->debug("COOKIE STRING: " . $cookies->{$cookie}->as_string);
 		my $path = $cookies->{$cookie}->path || '/';
 		my $domain = $cookies->{$cookie}->domain || $proxy_req->uri->host;
 		my $name = $cookies->{$cookie}->name;
@@ -176,20 +191,22 @@ $r->log->debug("Cookies are " . Dumper($cookies));
 						  $cookies->{$cookie}->secure,
 						  1149393645,
 						  0,) or die;
-	$r->log->debug("Cookie isa " . ref $cookies->{$cookie});
-				  } 
-				  #$jar->add_cookie_header($proxy_req);
-	use Data::Dumper;
-	$r->log->debug("**********\n\n** Proxy request is " . Dumper($proxy_req));
-#	$ua->cookie_jar($jar);
-	$r->log->debug("**********\n\n** UA is " . Dumper($ua));
-    
+		$r->log->debug("Cookie isa " . ref $cookies->{$cookie});
+	} 
+	if ($r->server->log_level == Apache2::Const::LOG_DEBUG) {
+		require Data::Dumper;
+		$r->log->debug("******\n\n** Proxy request is " . 
+			Data::Dumper::Dumper($proxy_req));
+		$r->log->debug("******\n\n** UA is " . Data::Dumper::Dumper($ua));
+	}
+	
 	return $proxy_req;
 }
 
 sub handler {
     my $r = shift;
 
+    $DB::single = 1;
     my $url          = $r->pnotes('url');
     my $ua           = $r->pnotes('ua');
     my $referer      = $r->pnotes('referer');
@@ -202,135 +219,136 @@ sub handler {
     my $response_content;
 
     # Handle the response on a case basis depending on response code
-    #
-	my $rc;
-    if ( $response->code == 500 ) {
-        $r->log->error( "$$ Request returned 500, response ",
-            Dumper($response) );
+    my $rc;
+	if ($response->code == 500) {
+        ($r->server->log_level == Apache2::Const::LOG_ERR)
+          && require Data::Dumper
+          && $r->log->error("$$ Request returned 500, response ",
+                            Data::Dumper::Dumper($response));
         return Apache2::Const::SERVER_ERROR;
     }
-    elsif ( $response->code == 404 ) {
-        $r->log->error( "$$ Request returned 404, response ",
-            Dumper($response) );
+    elsif ($response->code == 404) {
+        ($r->server->log_level == Apache2::Const::LOG_ERR)
+          && require Data::Dumper
+          && $r->log->error("$$ Request returned 404, response ",
+                            Data::Dumper::Dumper($response));
         return Apache2::Const::NOT_FOUND;
     }
-    elsif ( $response->code == 302 or $response->code == 301 ) {
+    elsif ($response->code == 302 or $response->code == 301) {
         $r->log->info("$$ Request to $url returned 302 or 301");
-        $r->log->debug( "$$ Redirect returned, response", $response->code );
+        $r->log->debug("$$ Redirect returned, response", $response->code);
 		$r->log->debug("$$ headers: " . Dumper($response->headers));
 
         ## Handle the redirect for the client
-		# $r->status_line( $response->code() . ' ' . $response->message() );
-		#$response->scan( sub { $r->err_headers_out->add(@_); } );
-        $r->headers_out->set( Location => $response->header('location') );
+        $r->headers_out->set(Location => $response->header('location'));
 		$r->log->debug("$$ Request: " . $r->as_string);
         $rc = Apache2::Const::REDIRECT;
-#		return Apache2::Const::REDIRECT;
     }
-    elsif ( $response->code == 200 ) {
+    elsif ($response->code == 200) {
         $r->log->info("$$ Request to $url returned 200");
-        $r->log->debug( "$$ Response from server:  ", Dumper($response) );
+        ($r->server->log_level == Apache2::Const::LOG_DEBUG)
+          && require Data::Dumper
+          && $r->log->debug("$$ Response from server:  ",
+                            Data::Dumper::Dumper($response));
 
         # Cache the content_type
-        SL::Cache::stash( $url => $response->content_type );
-        if ( not SL::Util::not_html( $response->content_type ) ) {
-			# first grab the links from the page and stash them
-			my $links = SL::Util->extract_links($response->content, $r);
-			$r->log->debug("$$ Links extracted: " . join(', ', @{$links}));
-			my $c = $r->connection;
-			$c->pnotes('rlinks' => $links);
-			$r->log->debug("$$ connection id _" . $c->id . "_ pnotes: " . Dumper($c->pnotes('rlinks')) . " keepalive? " . $c->keepalive);
-			
-			# put the ad in the response
-			$response_content = _generate_response( $r, $response );
-		}
+        SL::Cache::stash($url => $response->content_type);
+        if (not SL::Util::not_html($response->content_type)) {
+
+            # first grab the links from the page and stash them
+            my $links = SL::Util->extract_links($response->content, $r);
+            $r->log->debug("$$ Links extracted: " . join(', ', @{$links}));
+            my $c = $r->connection;
+            $c->pnotes('rlinks' => $links);
+            $r->server->loglevel == Apache2::Const::LOG_DEBUG
+              && require Data::Dumper
+              && $r->log->debug(  "$$ connection id _"
+                                . $c->id
+                                . "_ pnotes: "
+                                . Data::Dumper::Dumper($c->pnotes('rlinks'))
+                                . " keepalive? "
+                                . $c->keepalive);
+
+            # put the ad in the response
+            $response_content = _generate_response($r, $response);
+        }
         else {
-			# this is not html
+
+            # this is not html
             $response_content = $response->content;
         }
 		$rc = Apache2::Const::OK;
     }
     else {
-        $r->log->error( "$$ Request to $url failed: ", Dumper($response) );
+        ($r->server->log_level == Apache2::Const::LOG_ERR)
+          && require Data::Dumper
+          && $r->log->error("$$ Request to $url failed: ",
+                            Data::Dumper::Dumper($response));
         return Apache2::Const::SERVER_ERROR;
     }
 
     ## Set the response content type
-    #
     my $type = $response->header('content-type');
 
-    ######
-    ## BAAAAAH
-    ## Fucking IE doesn't like content types passed as an array reference
-    ## Certain sites return content type in the form
-    ## [ 'text/html', 'text/html ISO xxxxxx' ]
-    $r->content_type('text/html');
+    # IE doesn't like content types passed as an array reference
+    # Certain sites return content type in the form
+    # [ 'text/html', 'text/html ISO xxxxxx' ]
+    if ($ua =~ m/Internet Explorer/) {
 
-    # Pseudo code for conditionals
-    # if ( $user_agent =~ m/Internet Explorer/ ) {
-    #     # Set the content type to text/html
-    #     $r->content_type('text/html');
-    #     # Explicit elsif to constrain the truth table
-    # } elsif ( $user_agent !~ m/Internet Explorer/ ) {
-    #   $r->content_type($type);
-    # }
+        #     # Set the content type to text/html
+        $r->content_type('text/html');
 
-    ## Baaaaah - need to figure out what this stuff actually does, if we need it
-    #
+        #     # Explicit elsif to constrain the truth table
+    }
+    elsif ($ua !~ m/Internet Explorer/) {
+        $r->content_type($type);
+    }
+
+    # set the status line
     $r->status_line( $response->code() . ' ' . $response->message() );
-	
+
 	# This loops over the response headers and adds them to headers_out.
-#    my %custom_headers = ( Connection => 'close');
-#	my %headers;
-	$response->scan( sub { $r->err_headers_out->add(@_); } );
 	# Override any headers with our own here
+	$response->scan( sub { $r->err_headers_out->add(@_); } );
 	
-	# rflush() flushes the headers to the client - thanks to gozer's mod_perl
-	# for speed presentation
+	# rflush() flushes the headers to the client
+	# thanks to gozer's mod_perl for speed presentation
     $r->rflush();
-    
+
 	# Print the response content
-    #$r->print("hello world!");
     $r->print($response_content);
     return $rc;
-	#return Apache2::Const::OK;
 }
 
 sub _make_request {
     my $r = shift;
 
     ## Rebuild the query string for the remote request
-    #
     my $req = Apache2::Request->new($r);
 
     ## Grab the cookies
-    #
     my %cookies = Apache2::Cookie->fetch($r);
 
     ## Make a user agent
-    #
     my $ua = SL::UserAgent->new($r);
 
     ## Grab the url from pnotes
-    #
     my $url = $r->pnotes('url');
 
     ## Create a request object
-    #
-    my $proxy_req = HTTP::Request->new( $r->method(), $url );
+    my $proxy_req = HTTP::Request->new($r->method(), $url);
     if (keys %cookies) {
 		$r->log->debug("$$ Adding headers");
         $proxy_req = _add_headers( $r, $proxy_req, \%cookies, $ua );
     }
 
     ## Do this schiznit for a post request
-    #
-    if ( $r->method eq 'POST' ) {
+    if ($r->method eq 'POST') {
         $r->log->info("$$ Building content for POST, url $url");
         my $body = $req->param;
         my $content;
 
-        foreach my $key ( keys %$body ) {
+        foreach my $key (keys %$body) {
             my $value = $body->get($key);
             $r->log->debug("$$ POST body key is $key, value is $value");
             if ($content) {
@@ -341,19 +359,21 @@ sub _make_request {
         $proxy_req->content($content);
     }
 
-    $r->log->debug( "$$ Proxy request to remote server: ", Dumper($proxy_req) );
+    ($r->server->log_level == Apache2::Const::LOG_DEBUG)
+      && require Data::Dumper
+      && $r->log->debug("$$ Proxy request to remote server: ",
+                        Data::Dumper::Dumper($proxy_req));
 
     # Make the request to the remote server
-    #
     my $response = $ua->request($proxy_req);
 
     # Handle browser redirects instead of passing those back to the client
-    if ( $response->code == 200 ) {
-        if ( my $redirect = _browser_redirect($response) ) {
+    if ($response->code == 200) {
+        if (my $redirect = _browser_redirect($response)) {
             $r->log->debug("$$ Executing browser redirect to $redirect");
             $proxy_req->uri($redirect);
             $response = $ua->request($proxy_req);
-            unless ( $response->code == 200 ) {
+            unless ($response->code == 200) {
                 return $response->code;
             }
         }
@@ -370,7 +390,7 @@ sub _browser_redirect {
         $response->content =~ m/
         (s-xism:<meta\s+http-equiv\s*?=\s*?"Refresh"\s*?content\s*?=\s*?"?0"?\;
         ss*?url\s*?=\s*?(http:\/\/\w+\.[^\"|^\>|\s]+))/xmsi
-      )
+       )
     {
         return $redirect;
     }
@@ -383,21 +403,25 @@ Puts the ad in the response
 =cut
 
 sub _generate_response {
-    my ( $r, $response ) = @_;
+    my ($r, $response) = @_;
 
     my $ad;
     my $ad_ua   = SL::UserAgent->new($r);
     my $ad_url  = $r->dir_config('ad_url');
-    my $ad_req  = HTTP::Request->new( 'GET', $ad_url );
+    my $ad_req  = HTTP::Request->new('GET', $ad_url);
     my $ad_resp = $ad_ua->request($ad_req);
 
     my $url     = $r->pnotes('url');
     my $ua      = $r->pnotes('ua');
     my $referer = $r->pnotes('referer');
 
-    if ( $ad_resp->code != 200 ) {
+    if ($ad_resp->code != 200) {
         $r->log->error("$$ ALERT!  Could not retrieve ad from adserver");
-        $r->log->error( "$$ ALERT!  Response ", Dumper($ad_resp) );
+        ($r->server->log_level == Apache2::Const::LOG_ERR)
+          && require Data::Dumper
+          && $r->log->error(
+            "$$ ALERT!  
+			Response ", Data::Dumper::Dumper($ad_resp));
         return $response->content;
     }
     else {
@@ -409,21 +433,20 @@ sub _generate_response {
     # It's a fix for sites like google, yahoo who send encoded UTF-8 et al
     my $munged_resp;
     my $decoded_content = $response->decoded_content;
-    if ( $decoded_content =~ m/$skips/ixms ) {
-	$r->log->info("Skipping ad insertaion from skips regex");
+    if ($decoded_content =~ m/$skips/ixms) {
+        $r->log->info("Skipping ad insertaion from skips regex");
         return $response->content;
     }
-    elsif ( $r->dir_config("SLMethod") eq 'Stacked' ) {
-	$r->log->debug("Using stacked method for ad insertion");
-        $munged_resp = SL::Model::Ad::stacked( $decoded_content, $ad );
+    elsif ($r->dir_config("SLMethod") eq 'Stacked') {
+        $r->log->debug("Using stacked method for ad insertion");
+        $munged_resp = SL::Model::Ad::stacked($decoded_content, $ad);
     }
-    elsif ( $r->dir_config("SLMethod") eq 'Container' ) {
+    elsif ($r->dir_config("SLMethod") eq 'Container') {
         if ($r->dir_config("SLMethod") eq 'Container') {
-	    $r->log->debug("Using container method for ad insertion");
-            $munged_resp = SL::Model::Ad::container( 
-                                       $r->dir_config('SLCssUri'), 
-                                       $decoded_content, 
-                                       $ad );
+            $r->log->debug("Using container method for ad insertion");
+            $munged_resp =
+              SL::Model::Ad::container($r->dir_config('SLCssUri'),
+                                       $decoded_content, $ad);
         }
         else {
             return $response->content;
@@ -431,21 +454,23 @@ sub _generate_response {
     }
 
     # Check to see if the ad is inserted
-    unless ( grep( $ad, $munged_resp ) ) {
-        $r->log->error(
-            "$$ Ad insertion failed! try_container is ",
-            $try_container, "; response is ",
-            Dumper($response)
-        );
+    unless (grep($ad, $munged_resp)) {
+        $r->server->log_level == Apache2::Const::LOG_ERR
+          && require Data::Dumper
+          && $r->log->error(
+                            "$$ Ad insertion failed! try_container is ",
+                            $try_container,
+                            "; response is ",
+                            Data::Dumper::Dumper($response)
+                           );
         $r->log->error("$$ Munged response $munged_resp, ad $ad");
         return $response->content;
     }
 
     # We've made it this far so we're looking good
-    $r->log->info( "$$ Ad $ad inserted for url $url; try_container: ",
-        $try_container, "; referer : $referer; ua : $ua;" );
+    $r->log->info("$$ Ad $ad inserted for url $url; try_container: ",
+                  $try_container, "; referer : $referer; ua : $ua;");
     $r->log->debug("Munged response is \n $munged_resp");
     return $munged_resp;
 }
 
-;
