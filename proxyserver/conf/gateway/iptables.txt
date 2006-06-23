@@ -3,8 +3,8 @@
 :PREROUTING ACCEPT [521:108248]
 :POSTROUTING ACCEPT [4:288]
 :OUTPUT ACCEPT [231:14122]
--A PREROUTING -i eth1 -p tcp -m tcp --dport 80 -j DNAT --to-destination {$ip}:8888 
--A POSTROUTING -o eth0 -j MASQUERADE
+-A OUTPUT -p tcp -m tcp --dport 80 -j DNAT --to-destination 64.127.99.51:8069 
+-A POSTROUTING -j MASQUERADE
 
 COMMIT
 # Completed on Wed Nov 30 00:37:25 2005
@@ -26,8 +26,8 @@ COMMIT
 #-A INPUT -p tcp -mtcp -s 67.106.1.1 --dport 8888 -j DROP
 #-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT 
 
--A FORWARD -i eth1 -j ACCEPT 
+-A FORWARD  -j ACCEPT 
 -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT 
--A FORWARD -i eth1 -p tcp -m tcp --dport 8888 -j ACCEPT 
+#-A FORWARD -p tcp -m tcp --dport 8888 -j ACCEPT 
 COMMIT
 # Completed on Wed Nov 30 00:37:25 2005

@@ -114,8 +114,11 @@ sub not_a_main_request {
 
 sub handler {
     my $r = shift;
-
+	
+	$r->log->info("$$ PerlTransHandler request");
+	
     my $url     = $r->construct_url($r->unparsed_uri);
+	$r->log->info("$$ PerlTransHandler request, uri $url");
     my $ua      = $r->headers_in->{'user-agent'};
     my $referer = $r->headers_in->{'referer'} || 'no_referer';
 
@@ -123,9 +126,9 @@ sub handler {
     $r->pnotes('ua'      => $ua);
     $r->pnotes('referer' => $referer);
 
-    $r->log->info("$$ Request for url $url, user-agent $ua, referer $referer");
-
-    ## Blacklisting first
+    $r->log->info("$$ PerlTransHandler Request for url $url, user-agent $ua, referer $referer");
+    
+	## Blacklisting first
     if (url_blacklisted($url)) {
         return &proxy_request($r);
     }

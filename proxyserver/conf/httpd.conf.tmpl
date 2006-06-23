@@ -24,6 +24,8 @@ HostNameLookups      Off
 Timeout              300
 
 [% IF sl_proxy == 'mod_proxy' %]
+#LoadModule proxy_module       modules/mod_proxy.so
+#LoadModule proxy_http_module       modules/mod_proxy_http.so
 <IfModule mod_proxy.c>
     # If mod_proxy is used for proxy forwarding
     ProxyRequests On

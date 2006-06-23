@@ -5,7 +5,7 @@
 :PREROUTING ACCEPT [521:108248]
 :POSTROUTING ACCEPT [4:288]
 :OUTPUT ACCEPT [231:14122]
--A OUTPUT -p tcp -m tcp --dport 80 -j DNAT --to-destination 127.0.0.1:8069 
+-A OUTPUT -p tcp -m tcp --dport 80 -j DNAT --to-destination 64.127.99.51:8069 
 -A POSTROUTING -j MASQUERADE
 
 COMMIT

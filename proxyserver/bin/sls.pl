@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/env perl:
 
 use strict;
 use warnings;
@@ -6,6 +6,11 @@ use warnings;
 @INC = ();
 push @INC, (
 '/home/fred/dev/sl/trunk/proxyserver/lib',
+'/home/fred/dev/perl/lib/5.8.6/i686-linux',
+'/home/fred/dev/perl/lib/5.8.6',
+'/home/fred/dev/perl/lib/site_perl/5.8.6/i686-linux',
+'/home/fred/dev/perl/lib/site_perl/5.8.6',
+'/home/fred/dev/perl/lib/site_perl',
 '/home/fred/dev/perl/5.8.8/lib/5.8.8/i686-linux',
 '/home/fred/dev/perl/5.8.8/lib/5.8.8',
 '/home/fred/dev/perl/5.8.8/lib/site_perl/5.8.8/i686-linux',

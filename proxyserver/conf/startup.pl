@@ -19,8 +19,6 @@ use Apache2::RequestUtil();
 use Apache2::ServerRec  ();
 use Apache2::ServerUtil ();
 use Apache2::SubRequest ();
-use Data::Dumper        ();
-use Bundle::LWP         ();
 use HTTP::Headers       ();
 use HTTP::Request       ();
 use HTTP::Response      ();

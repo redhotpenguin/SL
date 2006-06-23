@@ -45,7 +45,7 @@ use Data::Dumper;
 my $host = '192.168.1.1';
 $|++;
 use Net::Telnet ();
-my $t = Net::Telnet->new(Timeout => 10,);
+my $t = Net::Telnet->new(Timeout => 30,);
 die unless $t;
 print "==> TEST RUN, --active=$active <==\n\n";
 #sleep 1;
