@@ -19,6 +19,7 @@ use Apache2::RequestUtil();
 use Apache2::ServerRec  ();
 use Apache2::ServerUtil ();
 use Apache2::SubRequest ();
+use APR::Table          ();
 use HTTP::Headers       ();
 use HTTP::Request       ();
 use HTTP::Response      ();
@@ -31,6 +32,7 @@ use SL::Cache           ();
 use SL::UserAgent       ();
 use SL::Util            ();
 use DBI					();
+use Data::Dumper        ();
 
 print "Libraries loaded, starting SL daemon...\n";
 

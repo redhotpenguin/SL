@@ -6,12 +6,12 @@ sl_devel|1
 #sl_debug|1
 #sl_prof|1
 
-sl_proxy_deflate|1
+#sl_proxy_deflate|1
 sl_apache_loglevel|debug
-sl_apache_maxclients|48
-sl_apache_start_servers|24
-sl_apache_min_spare_servers|6
-sl_apache_max_spare_servers|12
+sl_apache_maxclients|8
+sl_apache_start_servers|4
+sl_apache_min_spare_servers|4
+sl_apache_max_spare_servers|8
 sl_apache_keepalive|On
 sl_apache_user|fred
 sl_apache_group|users
