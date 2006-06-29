@@ -18,7 +18,7 @@ Mostly Apache2 and HTTP class based.
 =cut
 
 use Apache2::Const -compile => qw( OK SERVER_ERROR NOT_FOUND DECLINED
-  REDIRECT LOG_DEBUG LOG_ERR LOG_INFO);
+  REDIRECT LOG_DEBUG LOG_ERR LOG_INFO CONN_KEEPALIVE);
 use Apache2::Connection     ();
 use Apache2::ConnectionUtil ();
 use Apache2::Cookie         ();
@@ -28,6 +28,7 @@ use Apache2::RequestRec     ();
 use Apache2::RequestIO      ();
 use Apache2::ServerRec      ();
 use Apache2::URI            ();
+use APR::Table              ();
 use HTTP::Headers           ();
 use HTTP::Message           ();
 use HTTP::Request           ();
@@ -146,7 +147,7 @@ use Apache2::ServerUtil;
 sub _add_headers {
     my ( $r, $proxy_req, $cookies, $ua ) = @_;
 	
-	($r->server->log_level == Apache2::Const::LOG_DEBUG) &&
+	($r->server->loglevel == Apache2::Const::LOG_DEBUG) &&
 		require Data::Dumper &&
 		$r->log->debug("Cookies are " . Dumper($cookies));
 	
@@ -193,7 +194,7 @@ sub _add_headers {
 						  0,) or die;
 		$r->log->debug("Cookie isa " . ref $cookies->{$cookie});
 	} 
-	if ($r->server->log_level == Apache2::Const::LOG_DEBUG) {
+	if ($r->server->loglevel == Apache2::Const::LOG_DEBUG) {
 		require Data::Dumper;
 		$r->log->debug("******\n\n** Proxy request is " . 
 			Data::Dumper::Dumper($proxy_req));
@@ -221,14 +222,14 @@ sub handler {
     # Handle the response on a case basis depending on response code
     my $rc;
 	if ($response->code == 500) {
-        ($r->server->log_level == Apache2::Const::LOG_ERR)
+        ($r->server->loglevel == Apache2::Const::LOG_ERR)
           && require Data::Dumper
           && $r->log->error("$$ Request returned 500, response ",
                             Data::Dumper::Dumper($response));
         return Apache2::Const::SERVER_ERROR;
     }
     elsif ($response->code == 404) {
-        ($r->server->log_level == Apache2::Const::LOG_ERR)
+        ($r->server->loglevel == Apache2::Const::LOG_ERR)
           && require Data::Dumper
           && $r->log->error("$$ Request returned 404, response ",
                             Data::Dumper::Dumper($response));
@@ -237,16 +238,18 @@ sub handler {
     elsif ($response->code == 302 or $response->code == 301) {
         $r->log->info("$$ Request to $url returned 302 or 301");
         $r->log->debug("$$ Redirect returned, response", $response->code);
-		$r->log->debug("$$ headers: " . Dumper($response->headers));
+        ($r->server->loglevel == Apache2::Const::LOG_DEBUG)
+          && require Data::Dumper
+		  && $r->log->debug("$$ headers: " . Data::Dumper::Dumper(
+				  $response->headers));
 
         ## Handle the redirect for the client
-        $r->headers_out->set(Location => $response->header('location'));
 		$r->log->debug("$$ Request: " . $r->as_string);
         $rc = Apache2::Const::REDIRECT;
     }
     elsif ($response->code == 200) {
         $r->log->info("$$ Request to $url returned 200");
-        ($r->server->log_level == Apache2::Const::LOG_DEBUG)
+        ($r->server->loglevel == Apache2::Const::LOG_DEBUG)
           && require Data::Dumper
           && $r->log->debug("$$ Response from server:  ",
                             Data::Dumper::Dumper($response));
@@ -280,37 +283,67 @@ sub handler {
 		$rc = Apache2::Const::OK;
     }
     else {
-        ($r->server->log_level == Apache2::Const::LOG_ERR)
+        ($r->server->loglevel == Apache2::Const::LOG_ERR)
           && require Data::Dumper
           && $r->log->error("$$ Request to $url failed: ",
                             Data::Dumper::Dumper($response));
         return Apache2::Const::SERVER_ERROR;
     }
-
-    ## Set the response content type
-    my $type = $response->header('content-type');
+    # set the status line
+    $r->status_line( $response->code() . ' ' . $response->message() );
 
     # IE doesn't like content types passed as an array reference
     # Certain sites return content type in the form
     # [ 'text/html', 'text/html ISO xxxxxx' ]
-    if ($ua =~ m/Internet Explorer/) {
+#    if ($ua =~ m/Internet Explorer/) {
 
         #     # Set the content type to text/html
-        $r->content_type('text/html');
+#        $r->content_type('text/html');
 
         #     # Explicit elsif to constrain the truth table
-    }
-    elsif ($ua !~ m/Internet Explorer/) {
-        $r->content_type($type);
-    }
-
-    # set the status line
-    $r->status_line( $response->code() . ' ' . $response->message() );
+#    }
+#    elsif ($ua !~ m/Internet Explorer/) {
+#        $r->content_type($type);
+#    }
 
 	# This loops over the response headers and adds them to headers_out.
 	# Override any headers with our own here
-	$response->scan( sub { $r->err_headers_out->add(@_); } );
+	#$r->assbackwards(1);
+	$DB::single = 1;
+	my %headers;
+	$r->headers_out->clear();
 	
+	$response->scan( sub { $headers{$_[0]} = $_[1]; } );
+	
+	require Data::Dumper &&
+		$r->log->debug("Response headers: " . Data::Dumper::Dumper(\%headers));
+	
+	## Set the response content type
+	$content_type = $response->header('content_type');
+    $r->content_type($content_type);
+	delete $headers{'Content-Type'};
+
+	## Content encoding
+    $r->content_encoding($response->header('content-encoding'));
+	delete $headers{'Content-Encoding'};
+	
+	## Content languages
+	$r->content_languages($response->header('content_language'));
+	delete $headers{'Content-Language'};
+	
+	$r->headers_out->add('X-SilverLining' => 1);
+
+	delete $headers{'Client-Transfer-Encoding'};
+	delete $headers{'Client-Response-Num'};
+
+	foreach my $key ( keys %headers ) {
+		$r->log->debug("Adding key $key, value " . $headers{$key} . " to headers
+");
+		$r->headers_out->set($key => $headers{$key});
+	}
+
+	$r->connection->keepalive(1);
+	$r->no_cache(1);
 	# rflush() flushes the headers to the client
 	# thanks to gozer's mod_perl for speed presentation
     $r->rflush();
@@ -359,7 +392,7 @@ sub _make_request {
         $proxy_req->content($content);
     }
 
-    ($r->server->log_level == Apache2::Const::LOG_DEBUG)
+    ($r->server->loglevel == Apache2::Const::LOG_DEBUG)
       && require Data::Dumper
       && $r->log->debug("$$ Proxy request to remote server: ",
                         Data::Dumper::Dumper($proxy_req));
@@ -417,7 +450,7 @@ sub _generate_response {
 
     if ($ad_resp->code != 200) {
         $r->log->error("$$ ALERT!  Could not retrieve ad from adserver");
-        ($r->server->log_level == Apache2::Const::LOG_ERR)
+        ($r->server->loglevel == Apache2::Const::LOG_ERR)
           && require Data::Dumper
           && $r->log->error(
             "$$ ALERT!  
@@ -455,7 +488,7 @@ sub _generate_response {
 
     # Check to see if the ad is inserted
     unless (grep($ad, $munged_resp)) {
-        $r->server->log_level == Apache2::Const::LOG_ERR
+        $r->server->loglevel == Apache2::Const::LOG_ERR
           && require Data::Dumper
           && $r->log->error(
                             "$$ Ad insertion failed! try_container is ",
