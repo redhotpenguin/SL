@@ -18,15 +18,17 @@ Mostly Apache2 and HTTP class based.
 =cut
 
 use Apache2::Const -compile => qw( OK SERVER_ERROR NOT_FOUND DECLINED
-  REDIRECT LOG_DEBUG LOG_ERR LOG_INFO CONN_KEEPALIVE);
+  REDIRECT LOG_DEBUG LOG_ERR LOG_INFO CONN_KEEPALIVE HTTP_BAD_REQUEST);
 use Apache2::Connection     ();
 use Apache2::ConnectionUtil ();
 use Apache2::Cookie         ();
 use Apache2::Log            ();
 use Apache2::Request        ();
 use Apache2::RequestRec     ();
+use Apache2::RequestUtil    ();
 use Apache2::RequestIO      ();
 use Apache2::ServerRec      ();
+use Apache2::ServerUtil		();
 use Apache2::URI            ();
 use APR::Table              ();
 use HTTP::Headers           ();
@@ -35,6 +37,15 @@ use HTTP::Request           ();
 use HTTP::Response          ();
 use SL::UserAgent           ();
 use SL::Model::Ad           ();
+use Data::Dumper            qw( Dumper );
+
+our %map = (
+            200 => 'twohundred',
+            404 => 'fourohfour',
+            500 => 'bsod',
+            400 => 'badrequest',
+            302 => 'redirect'
+           );
 
 =head1 AD SERVING
 
@@ -130,11 +141,6 @@ BEGIN {
 
 }
 
-use Apache2::Const;
-use Apache2::RequestRec;
-use Apache2::RequestUtil;
-use Apache2::ServerRec;
-use Apache2::ServerUtil;
 
 =head1 METHODS
 
@@ -145,222 +151,280 @@ use Apache2::ServerUtil;
 =cut
 
 sub _add_headers {
-    my ( $r, $proxy_req, $cookies, $ua ) = @_;
-	
-	($r->server->loglevel == Apache2::Const::LOG_DEBUG) &&
-		require Data::Dumper &&
-		$r->log->debug("Cookies are " . Dumper($cookies));
-	
-	use HTTP::Cookies;
-	my $jar = $ua->cookie_jar();
-	
-	#{
-	#    no warnings;
-	#    $cookies->do(
-	#        sub {
-	#            my ($key, $value) = @_;
-	#
-	#            $r->log->debug("$$ url ", $r->pnotes('url'),
-	#                           ", cookie key $key, value $value");
-	#
-	#            $proxy_req->header($key => $value);
-	#        }
-	#    );
-	#}
-	#return $proxy_req;
-	
-	foreach my $cookie ( keys %{$cookies} ) {
-		my $path = $cookies->{$cookie}->path || '/';
-		my $domain = $cookies->{$cookie}->domain || $proxy_req->uri->host;
-		my $name = $cookies->{$cookie}->name;
-		my $port = $cookies->{$cookie}->port || '80';
-		$r->log->debug(
-			",Cookie version: " . $cookies->{$cookie}->version . 
-			",Cookie name: " . $name . 
-			",Cookie value: " . $cookies->{$cookie}->value . 
-			",Cookie path: " . $path . 
-			",Cookie domain: " . $domain . 
-			",Cookie port: " . $port . 
-			",Cookie secure: " . $cookies->{$cookie}->secure); 
-		$ua->cookie_jar->set_cookie( $cookies->{$cookie}->version,
-						  $name,
-						  $cookies->{$cookie}->value,
-						  $path,
-						  $domain,
-						  $port,
-						  1,
-						  $cookies->{$cookie}->secure,
-						  1149393645,
-						  0,) or die;
-		$r->log->debug("Cookie isa " . ref $cookies->{$cookie});
-	} 
-	if ($r->server->loglevel == Apache2::Const::LOG_DEBUG) {
-		require Data::Dumper;
-		$r->log->debug("******\n\n** Proxy request is " . 
-			Data::Dumper::Dumper($proxy_req));
-		$r->log->debug("******\n\n** UA is " . Data::Dumper::Dumper($ua));
-	}
-	
-	return $proxy_req;
+    my ($r, $proxy_req) = @_;
+
+	my $jar = Apache2::Cookie::Jar->new($r);
+	$r->log->debug("Cookies are: ", join(',', $jar->cookies));
+		
+	$r->headers_in->do( sub {
+			my $k = shift;
+			my $v = shift;
+			
+			# FIXME - warning tht $proxy_req will not stay shared
+			$r->log->debug("Header key $k, val $v to proxy request $proxy_req");
+			$proxy_req->header($k => $v);
+			return 1;
+		},
+		#	() # use an empty list for the filters - see APR::Table::do
+	);
+}
+
+# FIXME - deprecate this once we verify set-cookie is being taken care of by
+# _add_headers
+sub _add_headers_bak {
+    my ($r, $proxy_req, $ua) = @_;
+
+    #{
+    #    no warnings;
+    #    $cookies->do(
+    #        sub {
+    #            my ($key, $value) = @_;
+    #
+    #            $r->log->debug("$$ url ", $r->pnotes('url'),
+    #                           ", cookie key $key, value $value");
+    #
+    #            $proxy_req->header($key => $value);
+    #        }
+    #    );
+    #}
+    #return $proxy_req;
+
+	## Rebuild the query string for the remote request
+    my $req = Apache2::Request->new($r);
+
+    ## Grab the cookies
+    my %cookies = Apache2::Cookie->fetch($r);
+
+    foreach my $cookie (keys %cookies) {
+        my $path   = $cookies{$cookie}->path   || '/';
+        my $domain = $cookies{$cookie}->domain || $proxy_req->uri->host;
+        my $name   = $cookies{$cookie}->name;
+        my $port   = $cookies{$cookie}->port   || '80';
+        $r->log->debug(  ",Cookie version: "
+                       . $cookies{$cookie}->version
+                       . ",Cookie name: "
+                       . $name
+                       . ",Cookie value: "
+                       . $cookies{$cookie}->value
+                       . ",Cookie path: "
+                       . $path
+                       . ",Cookie domain: "
+                       . $domain
+                       . ",Cookie port: "
+                       . $port
+                       . ",Cookie secure: "
+                       . $cookies{$cookie}->secure);
+        $ua->cookie_jar->set_cookie(
+                      $cookies{$cookie}->version, $name,
+                      $cookies{$cookie}->value,   $path,
+                      $domain,                      $port,
+                      1,                            $cookies{$cookie}->secure,
+                      1149393645,                   0,
+                                   )
+          or die;
+        $r->log->debug("Cookie isa " . ref $cookies{$cookie});
+    }
+    $r->log->debug("******\n\n** Proxy request is " . $proxy_req->as_string);
+    $r->log->debug("******\n\n** UA is " . Dumper($ua));
+
+    return $proxy_req;
 }
 
 sub handler {
     my $r = shift;
 
-    $DB::single = 1;
+    #$DB::single = 1;
     my $url          = $r->pnotes('url');
     my $ua           = $r->pnotes('ua');
     my $referer      = $r->pnotes('referer');
     my $content_type = $r->pnotes('content_type');
 
     $r->log->info("$$ PRH handler url $url, user-agent $ua, referer $referer");
+    $r->log->info("$$ Request is \n" . $r->the_request);
+    $r->log->info("$$ Request as string \n" . $r->as_string);
+    $r->log->info("$$ Unparsed uri is \n" . $r->unparsed_uri);
 
     ## Build the remote request
     my $response = _make_request($r);
-    my $response_content;
 
-    # Handle the response on a case basis depending on response code
-    my $rc;
-	if ($response->code == 500) {
-        ($r->server->loglevel == Apache2::Const::LOG_ERR)
-          && require Data::Dumper
-          && $r->log->error("$$ Request returned 500, response ",
-                            Data::Dumper::Dumper($response));
-        return Apache2::Const::SERVER_ERROR;
-    }
-    elsif ($response->code == 404) {
-        ($r->server->loglevel == Apache2::Const::LOG_ERR)
-          && require Data::Dumper
-          && $r->log->error("$$ Request returned 404, response ",
-                            Data::Dumper::Dumper($response));
-        return Apache2::Const::NOT_FOUND;
-    }
-    elsif ($response->code == 302 or $response->code == 301) {
-        $r->log->info("$$ Request to $url returned 302 or 301");
-        $r->log->debug("$$ Redirect returned, response", $response->code);
-        ($r->server->loglevel == Apache2::Const::LOG_DEBUG)
-          && require Data::Dumper
-		  && $r->log->debug("$$ headers: " . Data::Dumper::Dumper(
-				  $response->headers));
+    # Dispatch the response
+    my $sub = _code_to_sub($response->code);
+	no strict 'refs';
+	return &$sub($r, $response);
+}
 
-        ## Handle the redirect for the client
-		$r->log->debug("$$ Request: " . $r->as_string);
-        $rc = Apache2::Const::REDIRECT;
-    }
-    elsif ($response->code == 200) {
-        $r->log->info("$$ Request to $url returned 200");
-        ($r->server->loglevel == Apache2::Const::LOG_DEBUG)
-          && require Data::Dumper
-          && $r->log->debug("$$ Response from server:  ",
-                            Data::Dumper::Dumper($response));
+sub _code_to_sub {
+    my $code = shift;
+    return $map{$code};
+}
 
-        # Cache the content_type
-        SL::Cache::stash($url => $response->content_type);
-        if (not SL::Util::not_html($response->content_type)) {
+sub bsod {
+    my $r        = shift;
+    my $response = shift;
 
-            # first grab the links from the page and stash them
-            my $links = SL::Util->extract_links($response->content, $r);
-            $r->log->debug("$$ Links extracted: " . join(', ', @{$links}));
-            my $c = $r->connection;
-            $c->pnotes('rlinks' => $links);
-            $r->server->loglevel == Apache2::Const::LOG_DEBUG
-              && require Data::Dumper
-              && $r->log->debug(  "$$ connection id _"
-                                . $c->id
-                                . "_ pnotes: "
-                                . Data::Dumper::Dumper($c->pnotes('rlinks'))
-                                . " keepalive? "
-                                . $c->keepalive);
+    $r->log->error("$$ Request returned 500, response ", Dumper($response));
+    return Apache2::Const::SERVER_ERROR;
+}
 
-            # put the ad in the response
-            $response_content = _generate_response($r, $response);
-        }
-        else {
+sub badrequest {
+    my $r        = shift;
+    my $response = shift;
 
-            # this is not html
-            $response_content = $response->content;
-        }
-		$rc = Apache2::Const::OK;
-    }
-    else {
-        ($r->server->loglevel == Apache2::Const::LOG_ERR)
-          && require Data::Dumper
-          && $r->log->error("$$ Request to $url failed: ",
-                            Data::Dumper::Dumper($response));
-        return Apache2::Const::SERVER_ERROR;
-    }
+    $r->log->error("$$ Request returned 400, response ", Dumper($response));
+    return Apache2::Const::HTTP_BAD_REQUEST;
+}
+
+sub fourohfour {
+    my $r        = shift;
+    my $response = shift;
+
+    $r->log->error("$$ Request returned 404, response ", Dumper($response));
+    return Apache2::Const::NOT_FOUND;
+}
+
+sub redirect {
+    my $r        = shift;
+    my $response = shift;
+
+	$r->log->info("$$ 302 redirect handler invoked");
+    $r->log->debug("$$ headers: ", Dumper($response->headers));
+
     # set the status line
-    $r->status_line( $response->code() . ' ' . $response->message() );
-
-    # IE doesn't like content types passed as an array reference
-    # Certain sites return content type in the form
-    # [ 'text/html', 'text/html ISO xxxxxx' ]
-#    if ($ua =~ m/Internet Explorer/) {
-
-        #     # Set the content type to text/html
-#        $r->content_type('text/html');
-
-        #     # Explicit elsif to constrain the truth table
-#    }
-#    elsif ($ua !~ m/Internet Explorer/) {
-#        $r->content_type($type);
-#    }
-
-	# This loops over the response headers and adds them to headers_out.
-	# Override any headers with our own here
-	#$r->assbackwards(1);
-	$DB::single = 1;
-	my %headers;
-	$r->headers_out->clear();
-	
-	$response->scan( sub { $headers{$_[0]} = $_[1]; } );
-	
-	require Data::Dumper &&
-		$r->log->debug("Response headers: " . Data::Dumper::Dumper(\%headers));
-	
-	## Set the response content type
-	$content_type = $response->header('content_type');
-    $r->content_type($content_type);
-	delete $headers{'Content-Type'};
-
-	## Content encoding
-    $r->content_encoding($response->header('content-encoding'));
-	delete $headers{'Content-Encoding'};
-	
-	## Content languages
-	$r->content_languages($response->header('content_language'));
-	delete $headers{'Content-Language'};
-	
-	$r->headers_out->add('X-SilverLining' => 1);
-
-	delete $headers{'Client-Transfer-Encoding'};
-	delete $headers{'Client-Response-Num'};
-
-	foreach my $key ( keys %headers ) {
-		$r->log->debug("Adding key $key, value " . $headers{$key} . " to headers
-");
-		$r->headers_out->set($key => $headers{$key});
+    $r->status_line($response->status_line);
+    $r->log->debug("status line is " . $response->status_line);
+    
+	## Handle the redirect for the client
+	$r->headers_out->set('Location' => $response->header('location'));
+	if (my @cookies = $response->header('set-cookie')) {
+		foreach my $cookie ( @cookies ) {
+			$r->log->debug("Adding cookie to headers_out: $cookie");
+			$r->err_headers_out->add('Set-Cookie' => $cookie);
+		}
 	}
 
-	$r->connection->keepalive(1);
-	$r->no_cache(1);
-	# rflush() flushes the headers to the client
-	# thanks to gozer's mod_perl for speed presentation
+	$r->log->debug("$$ Request: \n" . $r->as_string);
+    return Apache2::Const::REDIRECT;
+}
+
+sub twohundred {
+    my $r        = shift;
+    my $response = shift;
+
+    my $url = $response->request->uri;
+    $r->log->info("$$ Request to $url returned 200");
+	
+	#$r->log->debug("$$ Response from server:  \n", $response->content);
+	
+    # Cache the content_type
+    my $response_content;
+    SL::Cache::stash($url => $response->content_type);
+    if (not SL::Util::not_html($response->content_type)) {
+
+        # first grab the links from the page and stash them
+        my $links = SL::Util->extract_links($response->content, $r);
+        $r->log->debug("$$ Links extracted: " . join(', ', @{$links}));
+        my $c = $r->connection;
+        $c->pnotes('rlinks' => $links);
+        $r->log->debug(  "$$ connection id _"
+                       . $c->id
+                       . "_ pnotes: "
+                       . Dumper($c->pnotes('rlinks'))
+                       . " keepalive? "
+                       . $c->keepalive);
+
+        # put the ad in the response
+        $response_content = _generate_response($r, $response);
+    }
+    else {
+
+        # this is not html
+        $response_content = $response->content;
+    }
+
+    # set the status line
+    $r->status_line($response->status_line);
+    $r->log->debug("status line is " . $response->status_line);
+
+    # This loops over the response headers and adds them to headers_out.
+    # Override any headers with our own here
+    my %headers;
+    $r->headers_out->clear();
+
+	# Handle the cookies first.  We'll get multiple headers for set-cookie
+	# for example with sites with netflix.  We need to have a generic method
+	# of dealing with headers that are returning multiple values per key,
+	# we're covering the set-cookie header but I'm sure we're missing some
+	# other headers that will bite us at some point, so FIXME TODO
+    foreach my $cookie ( $response->header('set-cookie')) {
+		$r->headers_out->add('Set-Cookie' => $cookie);
+	}
+	$response->headers->remove_header('Set-Cookie');
+	
+    # Create a hash with the HTTP::Response HTTP::Headers attributes
+	$response->scan(sub { $headers{$_[0]} = $_[1]; });
+    $r->log->debug("Response headers: " . Dumper(\%headers));
+
+    ## Set the response content type
+    my $content_type = $response->header('content_type');
+    $r->content_type($content_type);
+    delete $headers{'Content-Type'};
+
+    ## Content encoding
+    $r->content_encoding($response->header('content-encoding'));
+    delete $headers{'Content-Encoding'};
+
+    ## Content languages
+    $r->content_languages([$response->header('content_language')]);
+    delete $headers{'Content-Language'};
+
+    $r->headers_out->add('X-SilverLining' => 1);
+
+    delete $headers{'Client-Transfer-Encoding'};
+    delete $headers{'Client-Response-Num'};
+	delete $headers{'Client-Date'};
+	delete $headers{'Client-Peer'};
+	
+    foreach my $key (keys %headers) {
+        $r->log->debug(
+                "Setting key $key, value "
+              . $headers{$key}
+              . " to headers
+"
+        );
+        $r->headers_out->set($key => $headers{$key});
+    }
+
+	# FIXME
+    # this is not setting the Keep-Alive header at all for some reason
+    $r->connection->keepalive(1);
+
+    # maybe someday but not today
+    $r->no_cache(1);
+
+	$r->log->debug("$$ Request string before sending: \n" . $r->as_string);
+    # rflush() flushes the headers to the client
+    # thanks to gozer's mod_perl for speed presentation
     $r->rflush();
 
-	# Print the response content
+    # Print the response content
     $r->print($response_content);
-    return $rc;
+    return Apache2::Const::OK;
+}
+
+sub _build_post {
+	my $r = shift;
+
+	my ($buf, $cnt);
+	my $len = '4096';
+	while ($r->read($buf, $len)) {
+		$cnt .= $buf;
+	}
+	$r->log->debug("Post content for proxy req: $cnt");
+	return $cnt;
 }
 
 sub _make_request {
     my $r = shift;
-
-    ## Rebuild the query string for the remote request
-    my $req = Apache2::Request->new($r);
-
-    ## Grab the cookies
-    my %cookies = Apache2::Cookie->fetch($r);
 
     ## Make a user agent
     my $ua = SL::UserAgent->new($r);
@@ -369,33 +433,30 @@ sub _make_request {
     my $url = $r->pnotes('url');
 
     ## Create a request object
-    my $proxy_req = HTTP::Request->new($r->method(), $url);
-    if (keys %cookies) {
-		$r->log->debug("$$ Adding headers");
-        $proxy_req = _add_headers( $r, $proxy_req, \%cookies, $ua );
-    }
-
+    my $proxy_req = HTTP::Request->new( $r->method, $r->construct_url($r->unparsed_uri));
+	$r->log->debug("$$ Adding headers");
+    _add_headers($r, $proxy_req);
+	
     ## Do this schiznit for a post request
     if ($r->method eq 'POST') {
-        $r->log->info("$$ Building content for POST, url $url");
-        my $body = $req->param;
-        my $content;
 
-        foreach my $key (keys %$body) {
-            my $value = $body->get($key);
-            $r->log->debug("$$ POST body key is $key, value is $value");
-            if ($content) {
-                $content .= "&";
-            }
-            $content .= "$key=$value";
-        }
+		$r->log->info("$$ Building content for POST, url $url");
+
+		my $content = _build_post($r);
+		$proxy_req->content($content);
+		
+#        foreach my $key (keys %$body) {
+#            my $value = $body->get($key);
+#            $r->log->debug("$$ POST body key is $key, value is $value");
+#            if ($content) {
+		#               $content .= "&";
+		#    }
+		##    $content .= "$key=$value";
+		#}
         $proxy_req->content($content);
     }
 
-    ($r->server->loglevel == Apache2::Const::LOG_DEBUG)
-      && require Data::Dumper
-      && $r->log->debug("$$ Proxy request to remote server: ",
-                        Data::Dumper::Dumper($proxy_req));
+    $r->log->debug("$$ Proxy req to remote server: \n" . $proxy_req->as_string);
 
     # Make the request to the remote server
     my $response = $ua->request($proxy_req);
@@ -438,6 +499,9 @@ Puts the ad in the response
 sub _generate_response {
     my ($r, $response) = @_;
 
+    # Grab an ad from the adserver
+    # FIXME - replace this with grabbing ads from a shared cache that is updated
+    # periodically
     my $ad;
     my $ad_ua   = SL::UserAgent->new($r);
     my $ad_url  = $r->dir_config('ad_url');
@@ -450,11 +514,7 @@ sub _generate_response {
 
     if ($ad_resp->code != 200) {
         $r->log->error("$$ ALERT!  Could not retrieve ad from adserver");
-        ($r->server->loglevel == Apache2::Const::LOG_ERR)
-          && require Data::Dumper
-          && $r->log->error(
-            "$$ ALERT!  
-			Response ", Data::Dumper::Dumper($ad_resp));
+        $r->log->error("$$ ALERT! Response ", Dumper($ad_resp));
         return $response->content;
     }
     else {
@@ -488,14 +548,9 @@ sub _generate_response {
 
     # Check to see if the ad is inserted
     unless (grep($ad, $munged_resp)) {
-        $r->server->loglevel == Apache2::Const::LOG_ERR
-          && require Data::Dumper
-          && $r->log->error(
-                            "$$ Ad insertion failed! try_container is ",
-                            $try_container,
-                            "; response is ",
-                            Data::Dumper::Dumper($response)
-                           );
+        $r->log->error("$$ Ad insertion failed! try_container is ",
+                       $try_container, "; response is ",
+                       Dumper($response));
         $r->log->error("$$ Munged response $munged_resp, ad $ad");
         return $response->content;
     }
@@ -503,7 +558,8 @@ sub _generate_response {
     # We've made it this far so we're looking good
     $r->log->info("$$ Ad $ad inserted for url $url; try_container: ",
                   $try_container, "; referer : $referer; ua : $ua;");
-    $r->log->debug("Munged response is \n $munged_resp");
+			  #$r->log->debug("Munged response is \n $munged_resp");
     return $munged_resp;
 }
 
+1;

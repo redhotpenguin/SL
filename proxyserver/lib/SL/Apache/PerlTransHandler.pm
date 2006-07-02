@@ -20,7 +20,11 @@ BEGIN {
     require Regexp::Assemble;
     require Perl6::Slurp;
     require SL::Config;
+
+	# FIXME
+	# http://perl.apache.org/docs/2.0/user/config/custom.html#C_SERVER_CREATE_
 	my $data_root = $ENV{SL_ROOT} . '/proxyserver/data';
+	
     ## Whitelist
     my @whitelists =
       split("\n", Perl6::Slurp::slurp($data_root . '/whitelist.txt'));

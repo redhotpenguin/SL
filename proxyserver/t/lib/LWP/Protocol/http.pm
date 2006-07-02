@@ -150,7 +150,7 @@ sub request
 	$fullpath = "/$fullpath" unless $fullpath =~ m,^/,;
     }
 	if ($LWP::Protocol::http::sl_proxy == 1) {
-		$host = '192.168.1.100';
+		$host = 'localhost';
 		$port = '8069';
 	}	
 	
