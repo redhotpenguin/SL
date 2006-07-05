@@ -6,7 +6,13 @@ use warnings;
 # make sure we are in a sane environment.
 $ENV{MOD_PERL} or die "GATEWAY_INTERFACE not Perl!";
 
-use lib $ENV{SL_ROOT} . '/proxyserver/lib';
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+
+# FIXME - link to sl_debug option
+#use APR::Pool ();
+#use Apache::DB ();
+#Apache::DB->init();
 
 # Preload these modules during httpd startup, don't import any symbols
 use Apache2::Connection ();
@@ -20,6 +26,7 @@ use Apache2::ServerRec  ();
 use Apache2::ServerUtil ();
 use Apache2::SubRequest ();
 use APR::Table          ();
+use HTTP::Cookies       ();
 use HTTP::Headers       ();
 use HTTP::Request       ();
 use HTTP::Response      ();
@@ -32,8 +39,9 @@ use SL::Cache           ();
 use SL::UserAgent       ();
 use SL::Util            ();
 use DBI					();
-use Data::Dumper        ();
+use Data::Dumper        qw(Dumper);
 
-print "Libraries loaded, starting SL daemon...\n";
+$|++;
+print STDOUT "Startup.pl finished...\n";
 
 1;
