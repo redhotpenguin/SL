@@ -16,6 +16,7 @@ t-mobile.com
 .msn.com
 .hotmail.com
 .passport.com
+ebaystatic.com
 ads.google.com
 gmail.com
 .meebo.com
