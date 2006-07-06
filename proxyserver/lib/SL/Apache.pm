@@ -1,7 +1,7 @@
 package SL::Apache;
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 
 =head1 NAME
 
@@ -44,7 +44,9 @@ our %map = (
             404 => 'fourohfour',
             500 => 'bsod',
             400 => 'badrequest',
-            302 => 'redirect'
+            302 => 'redirect',
+            301 => 'redirect',
+            304 => 'threeohfour',
            );
 
 =head1 AD SERVING
@@ -159,7 +161,12 @@ sub _add_headers {
 	$r->headers_in->do( sub {
 			my $k = shift;
 			my $v = shift;
-			
+			if ($k eq 'If-Modified-Since' or 
+				$k eq 'If-None-Match' or 
+				$k eq 'Accept-Encoding') {
+				$r->log->debug("Skipping add of header $k");
+				return 1;
+			}
 			# FIXME - warning tht $proxy_req will not stay shared
 			$r->log->debug("Header key $k, val $v to proxy request $proxy_req");
 			$proxy_req->header($k => $v);
@@ -167,67 +174,6 @@ sub _add_headers {
 		},
 		#	() # use an empty list for the filters - see APR::Table::do
 	);
-}
-
-# FIXME - deprecate this once we verify set-cookie is being taken care of by
-# _add_headers
-sub _add_headers_bak {
-    my ($r, $proxy_req, $ua) = @_;
-
-    #{
-    #    no warnings;
-    #    $cookies->do(
-    #        sub {
-    #            my ($key, $value) = @_;
-    #
-    #            $r->log->debug("$$ url ", $r->pnotes('url'),
-    #                           ", cookie key $key, value $value");
-    #
-    #            $proxy_req->header($key => $value);
-    #        }
-    #    );
-    #}
-    #return $proxy_req;
-
-	## Rebuild the query string for the remote request
-    my $req = Apache2::Request->new($r);
-
-    ## Grab the cookies
-    my %cookies = Apache2::Cookie->fetch($r);
-
-    foreach my $cookie (keys %cookies) {
-        my $path   = $cookies{$cookie}->path   || '/';
-        my $domain = $cookies{$cookie}->domain || $proxy_req->uri->host;
-        my $name   = $cookies{$cookie}->name;
-        my $port   = $cookies{$cookie}->port   || '80';
-        $r->log->debug(  ",Cookie version: "
-                       . $cookies{$cookie}->version
-                       . ",Cookie name: "
-                       . $name
-                       . ",Cookie value: "
-                       . $cookies{$cookie}->value
-                       . ",Cookie path: "
-                       . $path
-                       . ",Cookie domain: "
-                       . $domain
-                       . ",Cookie port: "
-                       . $port
-                       . ",Cookie secure: "
-                       . $cookies{$cookie}->secure);
-        $ua->cookie_jar->set_cookie(
-                      $cookies{$cookie}->version, $name,
-                      $cookies{$cookie}->value,   $path,
-                      $domain,                      $port,
-                      1,                            $cookies{$cookie}->secure,
-                      1149393645,                   0,
-                                   )
-          or die;
-        $r->log->debug("Cookie isa " . ref $cookies{$cookie});
-    }
-    $r->log->debug("******\n\n** Proxy request is " . $proxy_req->as_string);
-    $r->log->debug("******\n\n** UA is " . Dumper($ua));
-
-    return $proxy_req;
 }
 
 sub handler {
@@ -247,6 +193,7 @@ sub handler {
     ## Build the remote request
     my $response = _make_request($r);
 
+	$r->log->debug("Response is " . Dumper($response));
     # Dispatch the response
     my $sub = _code_to_sub($response->code);
 	no strict 'refs';
@@ -313,7 +260,7 @@ sub twohundred {
     my $url = $response->request->uri;
     $r->log->info("$$ Request to $url returned 200");
 	
-	#$r->log->debug("$$ Response from server:  \n", $response->content);
+	$r->log->debug("$$ Response from server:  \n", $response->content);
 	
     # Cache the content_type
     my $response_content;
@@ -357,6 +304,7 @@ sub twohundred {
 	# other headers that will bite us at some point, so FIXME TODO
     foreach my $cookie ( $response->header('set-cookie')) {
 		$r->headers_out->add('Set-Cookie' => $cookie);
+		$r->log->debug("$$ added set-cookie header: $cookie");
 	}
 	$response->headers->remove_header('Set-Cookie');
 	
@@ -365,26 +313,31 @@ sub twohundred {
     $r->log->debug("Response headers: " . Dumper(\%headers));
 
     ## Set the response content type
-    my $content_type = $response->header('content_type');
-    $r->content_type($content_type);
+    my $content_type = $response->header('content-type');
+	#$r->content_type($content_type);
+	$r->content_type('text/html');
+	$r->log->debug("$$ content type set to $content_type");
     delete $headers{'Content-Type'};
 
     ## Content encoding
-    $r->content_encoding($response->header('content-encoding'));
+	#$r->content_encoding($response->header('content-encoding'));
     delete $headers{'Content-Encoding'};
 
     ## Content languages
-    $r->content_languages([$response->header('content_language')]);
-    delete $headers{'Content-Language'};
+	if (defined $response->header('content-language')) {
+	    $r->content_languages([$response->header('content-language')]);
+		$r->log->debug("$$ content languages set to " . 
+			$response->header('content_language'));
+		delete $headers{'Content-Language'};
+	}
 
     $r->headers_out->add('X-SilverLining' => 1);
-
-    delete $headers{'Client-Transfer-Encoding'};
-    delete $headers{'Client-Response-Num'};
-	delete $headers{'Client-Date'};
+	$r->log->debug("$$ x-silverlining header set");
 	delete $headers{'Client-Peer'};
+	delete $headers{'Content-Encoding'};
 	
     foreach my $key (keys %headers) {
+		next if $key =~ m/^Client/; # skip HTTP::Response inserted headers
         $r->log->debug(
                 "Setting key $key, value "
               . $headers{$key}
@@ -402,6 +355,7 @@ sub twohundred {
     $r->no_cache(1);
 
 	$r->log->debug("$$ Request string before sending: \n" . $r->as_string);
+	$r->log->debug("$$ Response: \n" . $response_content);
     # rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
     $r->rflush();
@@ -445,15 +399,6 @@ sub _make_request {
 		my $content = _build_post($r);
 		$proxy_req->content($content);
 		
-#        foreach my $key (keys %$body) {
-#            my $value = $body->get($key);
-#            $r->log->debug("$$ POST body key is $key, value is $value");
-#            if ($content) {
-		#               $content .= "&";
-		#    }
-		##    $content .= "$key=$value";
-		#}
-        $proxy_req->content($content);
     }
 
     $r->log->debug("$$ Proxy req to remote server: \n" . $proxy_req->as_string);
@@ -499,7 +444,10 @@ Puts the ad in the response
 sub _generate_response {
     my ($r, $response) = @_;
 
-    # Grab an ad from the adserver
+	# yes this is ugly but it helps for testing
+    #return $response->decoded_content;
+    
+	# Grab an ad from the adserver
     # FIXME - replace this with grabbing ads from a shared cache that is updated
     # periodically
     my $ad;
@@ -558,7 +506,7 @@ sub _generate_response {
     # We've made it this far so we're looking good
     $r->log->info("$$ Ad $ad inserted for url $url; try_container: ",
                   $try_container, "; referer : $referer; ua : $ua;");
-			  #$r->log->debug("Munged response is \n $munged_resp");
+			  $r->log->debug("Munged response is \n $munged_resp");
     return $munged_resp;
 }
 
