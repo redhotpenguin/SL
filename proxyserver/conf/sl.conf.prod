@@ -6,7 +6,7 @@ sl_server|proxyserver
 #sl_debug|1
 #sl_prof|1
 
-sl_proxy_deflate|1
+#sl_proxy_deflate|1
 sl_apache_loglevel|info
 sl_apache_maxclients|128
 sl_apache_start_servers|48
