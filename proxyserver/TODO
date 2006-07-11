@@ -1,0 +1,4 @@
+- set the content type properly and decode/encode the response appropriately
+  after ad insertion
+- serve the ad only if it's the main request, extend the referer links such
+  that we can track main requests
