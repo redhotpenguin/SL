@@ -338,12 +338,16 @@ sub twohundred {
 	
     foreach my $key (keys %headers) {
 		next if $key =~ m/^Client/; # skip HTTP::Response inserted headers
+		
+		# some headers have an unecessary newline appended so chomp the value
+		chomp($headers{$key});
         $r->log->debug(
                 "Setting key $key, value "
               . $headers{$key}
               . " to headers
 "
         );
+
         $r->headers_out->set($key => $headers{$key});
     }
 
