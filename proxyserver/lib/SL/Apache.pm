@@ -1,7 +1,7 @@
 package SL::Apache;
 
 use strict;
-use warnings FATAL => 'all';
+use warnings;
 
 =head1 NAME
 
@@ -136,7 +136,7 @@ BEGIN {
     $skips = Regexp::Assemble->new;
 
     # Skip pages with stylesheets and skip embedded google ads
-    my @skips = qw( adwords.google.com );
+    my @skips = qw( framset adwords.google.com );
     push @skips, 'Ads by Goooooogle';
     $skips->add(@skips);
     print STDERR "Regex for content insertion skips ", $skips->re, "\n";
@@ -193,10 +193,11 @@ sub handler {
     ## Build the remote request
     my $response = _make_request($r);
 
-	$r->log->debug("Response is " . Dumper($response));
+	$r->log->info("Response is " . Dumper($response));
     # Dispatch the response
     my $sub = _code_to_sub($response->code);
 	no strict 'refs';
+	$r->log->info("Executing sub $sub");
 	return &$sub($r, $response);
 }
 
@@ -225,8 +226,12 @@ sub fourohfour {
     my $r        = shift;
     my $response = shift;
 
+	# FIXME - set the proper headers out
     $r->log->error("$$ Request returned 404, response ", Dumper($response));
-    return Apache2::Const::NOT_FOUND;
+	$r->content_type('text/html');
+    $r->status_line($response->status_line);
+	$r->print($response->decoded_content);
+	return Apache2::Const::OK;
 }
 
 sub redirect {
@@ -474,11 +479,12 @@ sub _generate_response {
     }
 
     # Skip ad insertion if $skips regex match on decoded_content
-    # The decoded_content method is used for a reason so don't refactor it :)
     # It's a fix for sites like google, yahoo who send encoded UTF-8 et al
-    my $munged_resp;
+	# FIXME - handle content type properly by re-encoding once, BUG_399
+	my $munged_resp;
     my $decoded_content = $response->decoded_content;
-    if ($decoded_content =~ m/$skips/ixms) {
+    
+	if ($decoded_content =~ m/$skips/ims) {
         $r->log->info("Skipping ad insertaion from skips regex");
         return $response->content;
     }
