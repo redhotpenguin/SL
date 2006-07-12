@@ -483,7 +483,12 @@ sub _generate_response {
 	# FIXME - handle content type properly by re-encoding once, BUG_399
 	my $munged_resp;
     my $decoded_content = $response->decoded_content;
-    
+	unless (defined $decoded_content) {
+		# hmmm, in some cases decoded_content is null so we use regular content
+		# https://www.redhotpenguin.com/bugzilla/show_bug.cgi?id=424
+		$decoded_content = $response->content;
+	}
+   	
 	if ($decoded_content =~ m/$skips/ims) {
         $r->log->info("Skipping ad insertaion from skips regex");
         return $response->content;
