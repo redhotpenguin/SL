@@ -18,7 +18,8 @@ Mostly Apache2 and HTTP class based.
 =cut
 
 use Apache2::Const -compile => qw( OK SERVER_ERROR NOT_FOUND DECLINED
-  REDIRECT LOG_DEBUG LOG_ERR LOG_INFO CONN_KEEPALIVE HTTP_BAD_REQUEST);
+  REDIRECT LOG_DEBUG LOG_ERR LOG_INFO CONN_KEEPALIVE HTTP_BAD_REQUEST
+  HTTP_UNAUTHORIZED );
 use Apache2::Connection     ();
 use Apache2::ConnectionUtil ();
 use Apache2::Cookie         ();
@@ -44,6 +45,7 @@ our %map = (
             404 => 'fourohfour',
             500 => 'bsod',
             400 => 'badrequest',
+            401 => 'fourohone',
             302 => 'redirect',
             301 => 'redirect',
             304 => 'threeohfour',
@@ -117,7 +119,7 @@ After our filter:  ( --> indicates content added by filter )
 -->  <div id="silverwrapper">
        <div id="originalstyle">
          <p>Hizzah!</p>
-       </div>
+       /</div>
 -->  </div>
    </body>
  </html>
@@ -228,6 +230,18 @@ sub fourohfour {
 
 	# FIXME - set the proper headers out
     $r->log->error("$$ Request returned 404, response ", Dumper($response));
+	$r->content_type('text/html');
+    $r->status_line($response->status_line);
+	$r->print($response->decoded_content);
+	return Apache2::Const::OK;
+}
+
+sub fourohone {
+    my $r        = shift;
+    my $response = shift;
+
+	# FIXME - set the proper headers out
+    $r->log->error("$$ Request returned 401, response ", Dumper($response));
 	$r->content_type('text/html');
     $r->status_line($response->status_line);
 	$r->print($response->decoded_content);
