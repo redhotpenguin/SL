@@ -44,14 +44,14 @@ BEGIN {
     ## Extension based matching
     my @extensions = qw(
       ad bz2 css doc exe fla gif gz ico jpeg jpg js pdf png ppt rar sit
-      tgz txt wmv vob zip );
+      rss tgz txt wmv vob zip );
 
     $ext_regex = Regexp::Assemble->new;
     $ext_regex->add(@extensions);
     print STDERR "Regex for static content match is ", $ext_regex->re, "\n\n";
 
     my @user_agents =
-      qw( libwww-perl Camino Firefox IE Opera Mozilla Safari libscrobbler
+      qw( libwww-perl Camino Firefox IE Opera Netscape Safari libscrobbler
       Links Lynx);
 
     $ua_regex = Regexp::Assemble->new;
