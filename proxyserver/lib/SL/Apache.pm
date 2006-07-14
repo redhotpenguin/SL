@@ -230,8 +230,9 @@ sub fourohfour {
 
 	# FIXME - set the proper headers out
     $r->log->error("$$ Request returned 404, response ", Dumper($response));
-	$r->content_type('text/html');
     $r->status_line($response->status_line);
+	$r->content_type('text/html');
+	_err_cookies_out($r, $response);
 	$r->print($response->decoded_content);
 	return Apache2::Const::OK;
 }
@@ -242,10 +243,16 @@ sub fourohone {
 
 	# FIXME - set the proper headers out
     $r->log->error("$$ Request returned 401, response ", Dumper($response));
-	$r->content_type('text/html');
     $r->status_line($response->status_line);
+	$r->content_type('text/html');
+	_err_cookies_out($r, $response);
+	
+	# method specific headers
+	$r->headers_out->set('www-authenticate' => 
+		$response->header('www-authenticate'));
+	
 	$r->print($response->decoded_content);
-	return Apache2::Const::OK;
+	return Apache2::Const::HTTP_UNAUTHORIZED;
 }
 
 sub redirect {
@@ -261,17 +268,23 @@ sub redirect {
     
 	## Handle the redirect for the client
 	$r->headers_out->set('Location' => $response->header('location'));
+	_err_cookies_out($r, $response);
+	$r->log->debug("$$ Request: \n" . $r->as_string);
+    return Apache2::Const::REDIRECT;
+}
+
+sub _err_cookies_out {
+	my ($r, $response) = @_;
 	if (my @cookies = $response->header('set-cookie')) {
 		foreach my $cookie ( @cookies ) {
 			$r->log->debug("Adding cookie to headers_out: $cookie");
 			$r->err_headers_out->add('Set-Cookie' => $cookie);
 		}
+		$response->headers->remove_header('Set-Cookie');
 	}
-
-	$r->log->debug("$$ Request: \n" . $r->as_string);
-    return Apache2::Const::REDIRECT;
+	return 1;
 }
-
+	
 sub twohundred {
     my $r        = shift;
     my $response = shift;
