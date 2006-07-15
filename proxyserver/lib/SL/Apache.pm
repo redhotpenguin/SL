@@ -33,12 +33,14 @@ use Apache2::ServerUtil		();
 use Apache2::URI            ();
 use APR::Table              ();
 use HTTP::Headers           ();
+use HTTP::Headers::Util     ();
 use HTTP::Message           ();
 use HTTP::Request           ();
 use HTTP::Response          ();
 use SL::UserAgent           ();
 use SL::Model::Ad           ();
 use Data::Dumper            qw( Dumper );
+use Encode                  ();
 
 our %map = (
             200 => 'twohundred',
@@ -344,11 +346,10 @@ sub twohundred {
 	$response->scan(sub { $headers{$_[0]} = $_[1]; });
     $r->log->debug("Response headers: " . Dumper(\%headers));
 
-    ## Set the response content type
+    ## Set the response content type from the request, preserving charset
     my $content_type = $response->header('content-type');
-	#$r->content_type($content_type);
-	$r->content_type('text/html');
-	$r->log->debug("$$ content type set to $content_type");
+    $r->content_type($content_type);
+    $r->log->debug("$$ content type set to $content_type");
     delete $headers{'Content-Type'};
 
     ## Content encoding
@@ -510,10 +511,15 @@ sub _generate_response {
 	# FIXME - handle content type properly by re-encoding once, BUG_399
 	my $munged_resp;
     my $decoded_content = $response->decoded_content;
+    my $content_needs_encoding = 1;
+
 	unless (defined $decoded_content) {
 		# hmmm, in some cases decoded_content is null so we use regular content
 		# https://www.redhotpenguin.com/bugzilla/show_bug.cgi?id=424
 		$decoded_content = $response->content;
+
+                # don't try to re-encode it in this case
+                $content_needs_encoding = 0;
 	}
    	
 	if ($decoded_content =~ m/$skips/ims) {
@@ -549,7 +555,43 @@ sub _generate_response {
     $r->log->info("$$ Ad $ad inserted for url $url; try_container: ",
                   $try_container, "; referer : $referer; ua : $ua;");
 			  $r->log->debug("Munged response is \n $munged_resp");
+
+    # re-encode content if needed
+    if ($content_needs_encoding) {
+        my $charset = _response_charset($response);
+
+        # don't need to worry about errors - this content came from
+        # Encode::decode via HTTP::Message::decoded_content, so as
+        # long as we don't start putting in non-ASCII ad content we
+        # should have no problems round-tripping.  If an error does
+        # occur the character will be replaced with a "subchar"
+        # specific to the encoding.
+        $munged_resp = Encode::encode($charset, $munged_resp);
+    }
+
     return $munged_resp;
+}
+
+# figure out what charset a reponse was made in, code adapted from
+# HTTP::Message::decoded_content
+sub _response_charset {
+    my $response = shift;
+
+    # default charset for HTTP::Message - if it couldn't guess it will
+    # have decoded as 8859-1, so we need to match that when
+    # re-encoding
+    my $charset  = "ISO-8859-1"; 
+
+    # pull apart Content-Type header and extract charset
+    my @ct =
+      HTTP::Headers::Util::split_header_words(
+                                           $response->header("Content-Type"));
+    if (@ct) {
+        my (undef, undef, %ct_param) = @{$ct[-1]};
+        $charset = $ct_param{charset};
+    }
+
+    return $charset;
 }
 
 1;
