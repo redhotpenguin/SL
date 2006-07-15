@@ -577,21 +577,20 @@ sub _generate_response {
 sub _response_charset {
     my $response = shift;
 
-    # default charset for HTTP::Message - if it couldn't guess it will
-    # have decoded as 8859-1, so we need to match that when
-    # re-encoding
-    my $charset  = "ISO-8859-1"; 
-
     # pull apart Content-Type header and extract charset
+    my $charset;
     my @ct =
       HTTP::Headers::Util::split_header_words(
                                            $response->header("Content-Type"));
     if (@ct) {
         my (undef, undef, %ct_param) = @{$ct[-1]};
-        $charset = $ct_param{charset};
+        $charset = $ct_param{charset}
     }
 
-    return $charset;
+    # default charset for HTTP::Message - if it couldn't guess it will
+    # have decoded as 8859-1, so we need to match that when
+    # re-encoding
+    return $charset || "ISO-8859-1"; 
 }
 
 1;
