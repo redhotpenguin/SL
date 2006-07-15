@@ -127,7 +127,7 @@ After our filter:  ( --> indicates content added by filter )
  </html>
 
 The question at hand for container is 'will it work?'
- 
+
 =cut
 
 my $try_container = 1;   # signals we will attempt to use the container approach
@@ -508,7 +508,6 @@ sub _generate_response {
 
     # Skip ad insertion if $skips regex match on decoded_content
     # It's a fix for sites like google, yahoo who send encoded UTF-8 et al
-	# FIXME - handle content type properly by re-encoding once, BUG_399
 	my $munged_resp;
     my $decoded_content = $response->decoded_content;
     my $content_needs_encoding = 1;
