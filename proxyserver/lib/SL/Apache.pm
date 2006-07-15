@@ -241,20 +241,36 @@ sub fourohfour {
 
 sub fourohone {
     my $r        = shift;
-    my $response = shift;
+    my $res = shift;
 
 	# FIXME - set the proper headers out
-    $r->log->error("$$ Request returned 401, response ", Dumper($response));
-    $r->status_line($response->status_line);
-	$r->content_type('text/html');
-	_err_cookies_out($r, $response);
+    $r->log->error("$$ Request returned 401, response ", Dumper($res));
+    $r->status_line($res->status_line);
+	my $content_type = $res->content_type;
+	$r->content_type($content_type);
+	_err_cookies_out($r, $res);
 	
 	# method specific headers
-	$r->headers_out->set('www-authenticate' => 
-		$response->header('www-authenticate'));
+	my @auth_headers = $res->header('www-authenticate');
+	$r->log->debug("Auth headers are " . Dumper(\@auth_headers));
+	$r->headers_out->add('www-authenticate' => $_) for @auth_headers;
 	
-	$r->print($response->decoded_content);
+	_add_x_headers($r, $res);
+	
+	$r->print($res->content);
 	return Apache2::Const::HTTP_UNAUTHORIZED;
+}
+
+sub _add_x_headers {
+	my ($r, $res) = @_;
+	my @x_header_names = grep { $_ =~ m{^x\-}i } 
+		$res->headers->header_field_names;
+
+	$r->log->debug("Found x-... headers: " . Dumper(\@x_header_names));
+	foreach my $x_header ( @x_header_names ) {
+		$r->headers_out->add($x_header => $res->header($x_header));
+	}
+	return 1;
 }
 
 sub redirect {
