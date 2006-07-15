@@ -202,7 +202,9 @@ sub handler {
     my $sub = _code_to_sub($response->code);
 	no strict 'refs';
 	$r->log->info("Executing sub $sub");
-	return &$sub($r, $response);
+    my $code = &$sub($r, $response);
+    $r->log->error("===> RETURN CODE $code (" . Apache2::Const::HTTP_UNAUTHORIZED . ")");
+    return $code;
 }
 
 sub _code_to_sub {
@@ -249,17 +251,21 @@ sub fourohone {
 	my $content_type = $res->content_type;
 	$r->content_type($content_type);
 	_err_cookies_out($r, $res);
-	
+
 	# method specific headers
 	my @auth_headers = $res->header('www-authenticate');
 	$r->log->debug("Auth headers are " . Dumper(\@auth_headers));
-	$r->headers_out->add('www-authenticate' => $_) for @auth_headers;
-	
+	$r->err_headers_out->add('www-authenticate' => $_) for @auth_headers;
+
 	_add_x_headers($r, $res);
-	
-	$r->print($res->content);
+
+    # this print causes the response to go out as a 200, not a 401.
+    # No idea why...
+    # $r->print($res->content);
+
 	return Apache2::Const::HTTP_UNAUTHORIZED;
 }
+
 
 sub _add_x_headers {
 	my ($r, $res) = @_;
@@ -268,7 +274,7 @@ sub _add_x_headers {
 
 	$r->log->debug("Found x-... headers: " . Dumper(\@x_header_names));
 	foreach my $x_header ( @x_header_names ) {
-		$r->headers_out->add($x_header => $res->header($x_header));
+		$r->err_headers_out->add($x_header => $res->header($x_header));
 	}
 	return 1;
 }
