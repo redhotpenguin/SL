@@ -321,19 +321,14 @@ sub twohundred {
     # Cache the content_type
     my $response_content;
     SL::Cache::stash($url => $response->content_type);
-    if (not SL::Util::not_html($response->content_type)) {
+
+    # serve an ad if this is HTML and it's not a sub-request of an
+    # ad-serving page
+    if (not SL::Util::not_html($response->content_type) and
+        not SL::Util::is_subrequest($r, $url)) {
 
         # first grab the links from the page and stash them
-        my $links = SL::Util->extract_links($response->content, $r);
-        $r->log->debug("$$ Links extracted: " . join(', ', @{$links}));
-        my $c = $r->connection;
-        $c->pnotes('rlinks' => $links);
-        $r->log->debug(  "$$ connection id _"
-                       . $c->id
-                       . "_ pnotes: "
-                       . Dumper($c->pnotes('rlinks'))
-                       . " keepalive? "
-                       . $c->keepalive);
+        SL::Util::collect_subrequest_links($r, \$response->content, $url);
 
         # put the ad in the response
         $response_content = _generate_response($r, $response);
