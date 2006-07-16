@@ -29,6 +29,10 @@ SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('click', 'click_id'),
 SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('link', 'link_id'), 12, true);
 
 
+-- Create the default group
+INSERT INTO ad_group (ad_group_id, name) values (1, 'Default');
+
+
 --
 -- Data for Name: ad; Type: TABLE DATA; Schema: public; Owner: fred
 --
