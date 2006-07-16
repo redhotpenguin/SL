@@ -84,7 +84,7 @@ sub proxy_request {
 
 sub static_content_uri {
     my $url = shift;
-    if ($url =~ m{\.$ext_regex}i) {
+    if ($url =~ m{\.(?:$ext_regex)$}i) {
         return 1;
     }
 }
