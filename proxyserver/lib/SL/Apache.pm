@@ -202,9 +202,7 @@ sub handler {
     my $sub = _code_to_sub($response->code);
 	no strict 'refs';
 	$r->log->info("Executing sub $sub");
-    my $code = &$sub($r, $response);
-    $r->log->error("===> RETURN CODE $code (" . Apache2::Const::HTTP_UNAUTHORIZED . ")");
-    return $code;
+    return &$sub($r, $response);
 }
 
 sub _code_to_sub {
