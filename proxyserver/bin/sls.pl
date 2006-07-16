@@ -4,24 +4,6 @@ use strict;
 use warnings;
 
 use FindBin;
-my $perl = "$FindBin::Bin/../../../../perl";
-die unless -d $perl;
-push @INC,
-  (
-    "$perl/lib/5.8.6/i686-linux",
-    "$perl/lib/5.8.6",
-    "$perl/lib/site_perl/5.8.6/i686-linux",
-    "$perl/lib/site_perl/5.8.6",
-    "$perl/lib/site_perl",
-    "$perl/5.8.8/lib/5.8.8/i686-linux",
-    "$perl/5.8.8/lib/5.8.8",
-    "$perl/5.8.8/lib/site_perl/5.8.8/i686-linux",
-    "$perl/5.8.8/lib/site_perl/5.8.8",
-    "$perl/5.8.8/lib/site_perl",
-  );
-
-#print STDERR "INC IS ", join("\n", @INC);
-
 use Template;
 use Template::Context;
 use Perl6::Slurp;
