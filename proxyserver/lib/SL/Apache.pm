@@ -39,6 +39,7 @@ use HTTP::Request           ();
 use HTTP::Response          ();
 use SL::UserAgent           ();
 use SL::Model::Ad           ();
+use SL::Model::Subrequest   ();
 use Data::Dumper            qw( Dumper );
 use Encode                  ();
 
@@ -320,13 +321,20 @@ sub twohundred {
     my $response_content;
     SL::Cache::stash($url => $response->content_type);
 
+    my $subrequest_tracker = SL::Model::Subrequest->new();
+
     # serve an ad if this is HTML and it's not a sub-request of an
     # ad-serving page
-    if (not SL::Util::not_html($response->content_type) and
-        not SL::Util::is_subrequest($r, $url)) {
+    my $is_subreq = $subrequest_tracker->is_subrequest(url => $url);
+    $r->log->error("===> $url is_subreq: $is_subreq");
+    if (not SL::Util::not_html($response->content_type) and 
+        not $is_subreq) {
+        
 
         # first grab the links from the page and stash them
-        SL::Util::collect_subrequest_links($r, \$response->content, $url);
+        $subrequest_tracker->collect_subrequests(
+                                           content_ref => \$response->content,
+                                           base_url    => $url);
 
         # put the ad in the response
         $response_content = _generate_response($r, $response);
