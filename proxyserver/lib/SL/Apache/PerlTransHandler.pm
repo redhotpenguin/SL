@@ -19,7 +19,7 @@ our $whitelist;
 BEGIN {
     require Regexp::Assemble;
     require Perl6::Slurp;
-    require SL::Config;
+	#require SL::Config;
 
 	# FIXME
 	# http://perl.apache.org/docs/2.0/user/config/custom.html#C_SERVER_CREATE_
@@ -112,7 +112,8 @@ sub not_a_main_request {
 
     my $referer = $r->pnotes('referer');
     if (grep { $_ =~ m/$referer/ } @{$r->connection->pnotes("rlinks")}) {
-        return;
+        $r->log->debug("This request referer matches rlinks");
+		return;
     }
 }
 
