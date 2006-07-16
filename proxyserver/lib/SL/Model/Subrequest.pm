@@ -83,6 +83,7 @@ sub collect_subrequests {
 
         # get a normalized URL and skip if already known
         $url = _normalize_url($url, $base_url);
+        next unless $url;
         next if $self->is_subrequest(url => $url);
 
         # send to the DB
@@ -101,6 +102,7 @@ sub is_subrequest {
     my $dbh   = SL::Util::dbi_connect();
 
     $url = _normalize_url($url);
+    return 0 unless $url;
 
     # look for the URL
     my $sth = $dbh->prepare_cached('SELECT 1 FROM subrequest WHERE url = ?');
@@ -120,12 +122,16 @@ sub _normalize_url {
     if ($url =~ m!^http://!) {
         # full url
         $canonical_url = URI->new($url)->canonical->as_string;
+    } elsif ($url =~ m!^(w+):!) {
+        # ignore fully-qualified non-http links
+        return "";
     } elsif ($base_url) {
         # base the new URL on the base
         $canonical_url = URI->new_abs($url, URI->new($base_url))
           ->canonical->as_string;
     } else {
-        die "Unable to normalize $url!";
+        warn "Unable to normalize $url!";
+        return "";
     }
 
     return $canonical_url;
