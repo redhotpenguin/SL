@@ -5,13 +5,13 @@ use warnings;
 
 use SL::CS::Model;
 $SL::Debug = 0;
-our @ads;
+our %ads_by_group_id;
 
 BEGIN {
     refresh_ads();
 
     sub refresh_ads {
-        undef @ads;
+        %ads_by_group_id = ();
 
         # Load all the ads into a shared global
         my $dbh = SL::CS::Model->db_Main();
@@ -20,7 +20,8 @@ SELECT
 ad.ad_id, 
 ad.name, 
 link.md5, 
-ad.template 
+ad.template,
+ad.ad_group_id
 FROM ad 
 LEFT JOIN link 
 USING (ad_id)
@@ -35,7 +36,9 @@ SQL
             require Data::Dumper;
             my $ad = SL::CS::Model::Ad->new($ad_data);
             print STDERR "Ad: " . Data::Dumper::Dumper($ad);
-            push @ads, $ad;
+
+            # put ads in arrays by group
+            push @{$ads_by_group_id{$ad->{ad_group_id}}}, $ad;
         }
 
         $dbh->commit;
@@ -62,6 +65,7 @@ SQL
                 \%tmpl_vars, \$output )
               || die $template->error(), "\n";
             $self->{'ad_id'} = $ad_data->{'ad_id'};
+            $self->{'ad_group_id'} = $ad_data->{'ad_group_id'};
             $self->{'_html'} = $output;
 
             bless $self, $class;
@@ -73,8 +77,17 @@ SQL
 
 sub random {
     my $class = shift;
+
+    # accept an optional list of groups, defaulting to the default
+    # group, id 1
+    my $groups = shift || [ 1 ];
     refresh_ads() if $SL::Debug;
+
+    # get ads for this group (if the lists every get large this should
+    # be recoded to do the random pick in-place)
+    my @ads = map { $_ ? @$_ : () } @ads_by_group_id{@$groups};
     my $index = int( rand( scalar(@ads) ) );
+
     return $ads[$index];
 }
 

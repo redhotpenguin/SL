@@ -3,7 +3,7 @@ package SL::CS::Apache::Ad;
 use strict;
 use warnings;
 
-use Apache2::Const -compile => qw( OK );
+use Apache2::Const -compile => qw( OK HTTP_NOT_FOUND );
 use Apache2::Log;
 use Apache2::RequestRec;
 use SL::CS::Model;
@@ -20,7 +20,18 @@ sub handler {
     die unless $r->method eq 'GET';
     $r->log->info( "$$ AD SERVED request, uri " . $r->uri );
 
-    my $ad = SL::CS::Model::Ad->random;
+    # look for group params and get ads for the groups if available
+    my $ad;
+    if (my @groups = $r->args =~ /g=(\d+)/g) {
+        $ad = SL::CS::Model::Ad->random(\@groups);
+    } else {
+        $ad = SL::CS::Model::Ad->random;
+    }
+    
+    # no ad found
+    unless ($ad) {
+        return Apache2::Const::HTTP_NOT_FOUND;
+    }
 
     $r->log->debug( "Ad content is : ", $ad->as_html );
     $r->no_cache(1);
