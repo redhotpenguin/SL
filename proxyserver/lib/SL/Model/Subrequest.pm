@@ -117,6 +117,10 @@ sub is_subrequest {
 sub _normalize_url {
     my ($url, $base_url) = @_;
 
+	# special case - can't normalize 'about:blank'
+	# given a base_url, this url normalizes, but otherwise it doesn't
+	return "" if ($url eq 'about:blank');
+
     # canonicalize the URL
     my $canonical_url;
     if ($url =~ m!^http://!) {
