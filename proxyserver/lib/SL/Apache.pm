@@ -198,7 +198,7 @@ sub handler {
     ## Build the remote request
     my $response = _make_request($r);
 
-	$r->log->info("Response is " . Dumper($response));
+	#$r->log->info("Response is " . Dumper($response));
     # Dispatch the response
     my $sub = _code_to_sub($response->code);
 	no strict 'refs';
@@ -229,14 +229,15 @@ sub badrequest {
 
 sub fourohfour {
     my $r        = shift;
-    my $response = shift;
+    my $res		 = shift;
 
 	# FIXME - set the proper headers out
-    $r->log->error("$$ Request returned 404, response ", Dumper($response));
-    $r->status_line($response->status_line);
-	$r->content_type('text/html');
-	_err_cookies_out($r, $response);
-	$r->print($response->decoded_content);
+    $r->log->debug("$$ Request returned 404, response ", Dumper($res));
+    $r->status_line($res->status_line);
+	my $content_type = $res->content_type;
+	$r->content_type($content_type);
+	_err_cookies_out($r, $res);
+	$r->print($res->content);
 	return Apache2::Const::OK;
 }
 
