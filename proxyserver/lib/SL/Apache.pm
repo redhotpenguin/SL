@@ -372,8 +372,15 @@ sub twohundred {
 
     ## Set the response content type from the request, preserving charset
     my $content_type = $response->header('content-type');
-    $r->content_type($content_type);
-    $r->log->debug("$$ content type set to $content_type");
+    # IE is very picky about it's content type so we use a hack here - FIXME
+    my $ua = $r->pnotes('ua');
+    if ( ($ua =~ m{MSIE}) && ($content_type =~ m{^text\/html}) ) {
+	$r->content_type('text/html');
+    	$r->log->debug("$$ MSIE content type set to text/html");
+    } else {
+    	$r->content_type($content_type);
+    	$r->log->debug("$$ content type set to $content_type");
+    }
     delete $headers{'Content-Type'};
 
     ## Content encoding
