@@ -119,7 +119,7 @@ sub _normalize_url {
 
 	# special case - can't normalize 'about:blank'
 	# given a base_url, this url normalizes, but otherwise it doesn't
-	return "" if ($url eq 'about:blank');
+	return "" if (($url eq 'about:blank') or ($url eq 'javascript:false;'));
 
     # canonicalize the URL
     my $canonical_url;
