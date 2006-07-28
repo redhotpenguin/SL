@@ -1,3 +1,15 @@
+euroclick.com
+caesars.com
+haaretz.com
+com.com
+comcast.net/providers
+livejournal.com
+stat.livejournal.com
+wynnlasvegas.com
+images.friendster.com
+img.shopzilla.com
+images.thetimes.co.uk
+connextra.com
 subaru.com
 ferrariworld.com
 porsche.com
@@ -17,6 +29,7 @@ my.ebay.com
 llnwd.net
 yieldmanager.com
 ebayobjects.com
+ebayrtm.com
 trafficmp.com
 urchin.com
 mediaplex.com
@@ -66,8 +79,8 @@ login.yahoo.com
 .clientsection.com
 .projectpath.com
 .doubleclick.net
-.google-analytics.com
-.googlesyndication.com
+google-analytics.com
+googlesyndication.com
 .adsonar.com
 .akamai.net
 .247realmedia.com
