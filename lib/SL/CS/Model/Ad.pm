@@ -5,13 +5,13 @@ use warnings;
 
 use SL::CS::Model;
 $SL::Debug = 0;
-our %ads_by_group_id;
+our @ads;
 
 BEGIN {
     refresh_ads();
 
     sub refresh_ads {
-        %ads_by_group_id = ();
+        undef @ads;
 
         # Load all the ads into a shared global
         my $dbh = SL::CS::Model->db_Main();
@@ -20,8 +20,7 @@ SELECT
 ad.ad_id, 
 ad.name, 
 link.md5, 
-ad.template,
-ad.ad_group_id
+ad.template 
 FROM ad 
 LEFT JOIN link 
 USING (ad_id)
@@ -36,9 +35,7 @@ SQL
             require Data::Dumper;
             my $ad = SL::CS::Model::Ad->new($ad_data);
             print STDERR "Ad: " . Data::Dumper::Dumper($ad);
-
-            # put ads in arrays by group
-            push @{$ads_by_group_id{$ad->{ad_group_id}}}, $ad;
+            push @ads, $ad;
         }
 
         $dbh->commit;
@@ -48,9 +45,13 @@ SQL
             my $self = {};
 
             require Template;
+			require SL::Config;
+			my $cfg = SL::Config->new;
+			my $app_root = join("/", $cfg->sl_root, $cfg->sl_version);
+			print STDERR "Looking for template at $app_root/tmpl/\n";
             my $tmpl_config = {
                 ABSOLUTE     => 1,
-                INCLUDE_PATH => $ENV{SL_ROOT} . "/clickserver/tmpl/"
+                INCLUDE_PATH => "$app_root/tmpl/",
             };
             my $ad_server = 'http://h1.redhotpenguin.com:7777/click';
             my $template = Template->new($tmpl_config) || die $Template::ERROR,
@@ -65,7 +66,6 @@ SQL
                 \%tmpl_vars, \$output )
               || die $template->error(), "\n";
             $self->{'ad_id'} = $ad_data->{'ad_id'};
-            $self->{'ad_group_id'} = $ad_data->{'ad_group_id'};
             $self->{'_html'} = $output;
 
             bless $self, $class;
@@ -77,17 +77,8 @@ SQL
 
 sub random {
     my $class = shift;
-
-    # accept an optional list of groups, defaulting to the default
-    # group, id 1
-    my $groups = shift || [ 1 ];
     refresh_ads() if $SL::Debug;
-
-    # get ads for this group (if the lists every get large this should
-    # be recoded to do the random pick in-place)
-    my @ads = map { $_ ? @$_ : () } @ads_by_group_id{@$groups};
     my $index = int( rand( scalar(@ads) ) );
-
     return $ads[$index];
 }
 
