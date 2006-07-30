@@ -8,13 +8,19 @@ $ENV{MOD_PERL} or die "GATEWAY_INTERFACE not Perl!";
 
 $|++;
 
-use FindBin;
-use lib "$FindBin::Bin/../lib";
+my $config;
 
-use SL::Config                    ();
-my @config_files =
-  ("$FindBin::Bin/../sl.conf", "$FindBin::Bin/../conf/sl.conf");
-my $config = SL::Config->new(\@config_files);
+BEGIN {
+    use FindBin;
+    use lib "$FindBin::Bin/../lib";
+
+    require SL::Config;
+    my @config_files =
+      ("$FindBin::Bin/../sl.conf", "$FindBin::Bin/../conf/sl.conf");
+
+    $config = SL::Config->new(\@config_files);
+
+}
 print STDOUT "Loading modules...\n";
 
 # FIXME - link to sl_debug option
@@ -49,6 +55,7 @@ use SL::Apache::Reg               ();
 use SL::Apache::PerlAccessHandler ();
 use SL::Apache::PerlTransHandler  ();
 use SL::Cache                     ();
+use SL::DB                        ();
 use SL::UserAgent                 ();
 use SL::Util                      ();
 use DBI                           ();
@@ -57,10 +64,11 @@ use Data::Dumper qw(Dumper);
 
 print STDOUT "Modules loaded, initializing database connections\n";
 
-$Apache::DBI::DEBUG = $config->db_debug;
-my $db_connect_params = $config->db_connect_params;
+$Apache::DBI::DEBUG = $config->sl_db_debug;
+my $db_connect_params = SL::DB->connect_params;
 Apache::DBI->connect_on_init(@{$db_connect_params});
-Apache::DBI->setPingTimeout($db_connect_params->[0], $config->db_ping_timeout);
+Apache::DBI->setPingTimeOut($db_connect_params->[0],
+                            $config->sl_db_ping_timeout);
 
 print STDOUT "Startup.pl finished...\n";
 

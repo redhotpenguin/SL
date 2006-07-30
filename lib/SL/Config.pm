@@ -39,10 +39,7 @@ sub new {
 	$config = $class->SUPER::new();
 	my $read;
 	foreach my $config_file ( @{$config_files_ref} ) {
-		unless (-e $config_file) {
-			warn("Hmm, you said $config_file but it's not there");
-			next;
-		}
+		next unless (-e $config_file);
 		$config->read($config_file);
 		$read++;
 	}
@@ -60,7 +57,6 @@ Returns an array reference
 
 sub sl_db_params {
 	my $self = shift;
-
 
 }
 

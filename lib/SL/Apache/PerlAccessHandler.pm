@@ -9,7 +9,8 @@ use Apache2::Log            ();
 use Apache2::Connection     ();
 use Apache2::ConnectionUtil ();
 use Cache::FastMmap;
-use DBI;
+
+use SL::DB;
 
 our $cache;
 our $login_url = 'http://www.redhotpenguin.com/sl/logon';
@@ -26,7 +27,7 @@ BEGIN {
       Cache::FastMmap->new( raw_values => 1, share_file => $share_file );
     my $sql         = qq{select ip from reg where active > 0};
 	require SL::DB;
-	my $dbh         = SL::DB->handle;
+	my $dbh         = SL::DB->connect;
 	my $ips_ary_ref = $dbh->selectall_arrayref($sql);
     die unless $ips_ary_ref;    # No ips in the database yet??
 	$dbh->commit;
@@ -37,26 +38,6 @@ BEGIN {
         $cache->set( $ip->[0] => 1 );
     }
 
-    sub dbi_connect {
-        my ( $db, $host, $user, $pass, $db_options, $dsn );
-        $db         = $cfg->sl_db_name;
-        $host       = $cfg->sl_db_host;
-        $user       = $cfg->sl_db_user;
-        $pass       = $cfg->sl_db_pass;
-        $db_options = {
-            RaiseError         => 1,
-            PrintError         => 1,
-            AutoCommit         => 0,
-            FetchHashKeyName   => 'NAME_lc',
-            ShowErrorStatement => 1,
-            ChopBlanks         => 1,
-        };
-        $dsn = "dbi:Pg:dbname='$db';host=$host";
-        my $dbh = DBI->connect( $dsn, $user, $pass, $db_options )
-          or die $DBI::errstr;
-
-        return $dbh;
-    }
 }
 
 sub handler {
@@ -105,7 +86,7 @@ sub registered {
 
         # try the database, maybe they just registered
         my $sql = "select ip from reg where ip = ? and active > 0";
-        my $dbh = dbi_connect();
+        my $dbh = SL::DB->connect;
 		die unless $dbh;
         my $sth = $dbh->prepare($sql);
         $sth->bind_param( 1, $ip );

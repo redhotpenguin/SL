@@ -9,6 +9,8 @@ sl_db_host	localhost
 sl_db_user  sl
 sl_db_user  fred
 sl_db_pass  
+sl_db_ping_timeout 5
+sl_db_debug 1
 
 sl_devel  1
 #sl_debug  1

@@ -2,7 +2,7 @@ ServerRoot           [% cfg.sl_root %]/httpd2
 ServerAdmin          fred@redhotpenguin.com
 ServerSignature      Off
 ServerTokens         Prod
-PidFile              [% cfg.sl_root %]/tmp/sl_[% cfg.sl_server %].pid
+PidFile              [% cfg.sl_root %]/tmp/sl_proxy.pid
 DocumentRoot         [% cfg.sl_root %]/[% cfg.sl_version %]/htdocs
 TypesConfig          [% cfg.sl_root %]/[% cfg.sl_version %]/conf/mime.types
 User                 [% cfg.sl_apache_user %] 
@@ -15,8 +15,8 @@ MaxSpareServers      [% cfg.sl_apache_max_spare_servers %]
 StartServers         [% cfg.sl_apache_start_servers %]
 LogLevel             [% cfg.sl_apache_loglevel %]
 MaxClients           [% cfg.sl_apache_maxclients %]
-ErrorLog             [% cfg.sl_root %]/[% cfg.sl_version %]/[% cfg.sl_server %]/logs/httpd_error_log
-TransferLog          [% cfg.sl_root %]/[% cfg.sl_version %]/[% cfg.sl_server %]/logs/httpd_access_log
+ErrorLog             [% cfg.sl_root %]/[% cfg.sl_version %]/logs/httpd_proxy_error_log
+TransferLog          [% cfg.sl_root %]/[% cfg.sl_version %]/logs/httpd_proxy_access_log
 MaxRequestsPerChild  250
 LogFormat "%h %l %u %t (%{User-agent}i) \"%r\" %>s %b"
 UseCanonicalName     Off
@@ -55,9 +55,7 @@ LoadModule apreq_module       modules/mod_apreq2.so
 LoadModule perl_module        modules/mod_perl.so
 
 PerlPassEnv SL_ROOT
-#PerlConfigRequire "[% sl_root %]/[% sl_version %]/[% sl_server %]/conf/config.pl"
-#PerlConfigRequire "[% sl_root %]/[% sl_version %]/[% sl_server %]/lib/SL/Config.pm"
-PerlPostConfigRequire "[% cfg.sl_root %]/[% cfg.sl_version %]/[% cfg.sl_server %]/conf/startup.pl"
+PerlPostConfigRequire "[% cfg.sl_root %]/[% cfg.sl_version %]/conf/startup_proxy.pl"
 #PerlLoadModule SL::Config
 #SLRoot '/home/fred/dev/sl/trunk'
 [% IF cfg.sl_debug %]
@@ -71,7 +69,7 @@ PerlSetVar ad_url "[% cfg.sl_adserver_uri %]"
 PerlModule           Apache2::Reload
 PerlInitHandler      Apache2::Reload
 PerlSetVar           ReloadAll On
-PerlSetVar           ReloadDirectories "[% cfg.sl_root %]/[% cfg.sl_version %]/[% cfg.sl_server %]/lib"
+PerlSetVar           ReloadDirectories "[% cfg.sl_root %]/[% cfg.sl_version %]/lib"
 [% END %]
 [% IF cfg.sl_prof %]
 	PerlModule Apache::DProf

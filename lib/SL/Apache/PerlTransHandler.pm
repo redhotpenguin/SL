@@ -23,7 +23,9 @@ BEGIN {
 
 	# FIXME
 	# http://perl.apache.org/docs/2.0/user/config/custom.html#C_SERVER_CREATE_
-	my $data_root = $ENV{SL_ROOT} . '/proxyserver/data';
+	require SL::Config;
+	my $cfg = SL::Config->new;
+	my $data_root = join('/', $cfg->sl_root, $cfg->sl_version, 'data');
 	
     ## Whitelist
     my @whitelists =

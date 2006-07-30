@@ -1,1 +1,0 @@
-$HOME/dev/sl/httpd2/bin/httpd -f $SL_ROOT/proxyserver/conf/httpd.conf -k start
