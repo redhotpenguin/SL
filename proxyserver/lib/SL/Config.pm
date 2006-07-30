@@ -28,21 +28,43 @@ are really fast.
 
 use base 'Config::ApacheFormat';
 
-my $cfg;
-BEGIN {
-	my $config_file = $ENV{SL_ROOT} . '/proxyserver/conf/sl.conf';
-	die print STDERR "No config file $config_file\n" unless -e $config_file;
-	$cfg = __PACKAGE__->SUPER::new();
-	$cfg->read($config_file);
-	$cfg->autoload_support(1);
-}
-
+our $config;
 
 sub new {
-	my $class = shift;
-	return $cfg;
+	my  ($class, $config_files_ref) = @_;
+
+	die unless ($config_files_ref or $config);
+	return $config if $config;
+
+	$config = $class->SUPER::new();
+	my $read;
+	foreach my $config_file ( @{$config_files_ref} ) {
+		unless (-e $config_file) {
+			warn("Hmm, you said $config_file but it's not there");
+			next;
+		}
+		$config->read($config_file);
+		$read++;
+	}
+	die print STDERR "No config files read!" unless $read;
+
+	$config->autoload_support(1);
+	return $config;
 }
 
+=item C<sl_db_params>
+
+Returns an array reference
+
+=cut
+
+sub sl_db_params {
+	my $self = shift;
+
+
+}
+
+1;
 __END__
 
 # TODO - make directives work, possibly in a different module.

@@ -4,6 +4,7 @@ sl_server  proxyserver
 
 sl_ip_cache_file	/tmp/sl_ips
 
+sl_db_name  sl
 sl_db_host	localhost
 sl_db_user  sl
 sl_db_user  fred

@@ -1,0 +1,119 @@
+ServerRoot           [% cfg.sl_root %]/httpd2
+ServerAdmin          fred@redhotpenguin.com
+ServerSignature      Off
+ServerTokens         Prod
+PidFile              [% cfg.sl_root %]/tmp/sl_[% cfg.sl_server %].pid
+DocumentRoot         [% cfg.sl_root %]/[% cfg.sl_version %]/htdocs
+TypesConfig          [% cfg.sl_root %]/[% cfg.sl_version %]/conf/mime.types
+User                 [% cfg.sl_apache_user %] 
+Group                [% cfg.sl_apache_group %]
+KeepAlive            [% cfg.sl_apache_keepalive %]
+MaxKeepAliveRequests 0
+KeepAliveTimeout     300
+MinSpareServers      [% cfg.sl_apache_min_spare_servers %]
+MaxSpareServers      [% cfg.sl_apache_max_spare_servers %]
+StartServers         [% cfg.sl_apache_start_servers %]
+LogLevel             [% cfg.sl_apache_loglevel %]
+MaxClients           [% cfg.sl_apache_maxclients %]
+ErrorLog             [% cfg.sl_root %]/[% cfg.sl_version %]/[% cfg.sl_server %]/logs/httpd_error_log
+TransferLog          [% cfg.sl_root %]/[% cfg.sl_version %]/[% cfg.sl_server %]/logs/httpd_access_log
+MaxRequestsPerChild  250
+LogFormat "%h %l %u %t (%{User-agent}i) \"%r\" %>s %b"
+UseCanonicalName     Off
+HostNameLookups      Off
+Timeout              300
+
+[% IF cfg.sl_proxy == 'mod_proxy' %]
+#LoadModule proxy_module       modules/mod_proxy.so
+#LoadModule proxy_http_module       modules/mod_proxy_http.so
+<IfModule mod_proxy.c>
+    # If mod_proxy is used for proxy forwarding
+    ProxyRequests On
+    Listen        [% cfg.sl_http_frontend_port %]
+    <IfModule mod_cache.c>
+        <IfModule mod_mem_cache.c>
+        CacheEnable mem /
+        MCacheSize 65536
+        MCacheMaxObjectCount 1024
+        MCacheMinObjectSize 1
+        MCacheMaxObjectSize 4096
+        </IfModule>
+    </IfModule>
+</IfModule>
+
+[% ELSIF cfg.sl_proxy == 'perlbal' %]
+
+Listen [% cfg.sl_http_backend_port %]
+
+[% END %]
+
+ServerName           [% cfg.sl_servername %]
+ErrorDocument        404	/404.html
+ErrorDocument        500	/500.html
+
+LoadModule apreq_module       modules/mod_apreq2.so
+LoadModule perl_module        modules/mod_perl.so
+
+PerlPassEnv SL_ROOT
+#PerlConfigRequire "[% sl_root %]/[% sl_version %]/[% sl_server %]/conf/config.pl"
+#PerlConfigRequire "[% sl_root %]/[% sl_version %]/[% sl_server %]/lib/SL/Config.pm"
+PerlPostConfigRequire "[% cfg.sl_root %]/[% cfg.sl_version %]/[% cfg.sl_server %]/conf/startup.pl"
+#PerlLoadModule SL::Config
+#SLRoot '/home/fred/dev/sl/trunk'
+[% IF cfg.sl_debug %]
+PerlRequire "[% cfg.sl_root %]/[% cfg.sl_version %]/conf/db.pl"
+[% END %]
+PerlSetVar data_root "[% cfg.sl_root %]/data"
+PerlSetVar ad_url "[% cfg.sl_adserver_uri %]"
+
+[% IF cfg.sl_devel %]
+# Apache::Reload for development.
+PerlModule           Apache2::Reload
+PerlInitHandler      Apache2::Reload
+PerlSetVar           ReloadAll On
+PerlSetVar           ReloadDirectories "[% cfg.sl_root %]/[% cfg.sl_version %]/[% cfg.sl_server %]/lib"
+[% END %]
+[% IF cfg.sl_prof %]
+	PerlModule Apache::DProf
+[% END %]
+
+PerlSetVar           SLWhiteList [% cfg.sl_whitelist %]
+PerlSetVar           SLMethod [% cfg.sl_method %]
+PerlSetVar           SLCssUri [% cfg.sl_css_uri %]
+PerlSetVar           SLProxy [% cfg.sl_proxy %]
+
+PerlPostReadRequestHandler Apache2::Const::OK
+PerlMapToStorageHandler Apache2::Const::OK
+PerlTransHandler SL::Apache::PerlTransHandler
+
+<Location />
+    SetHandler          modperl
+ 	PerlHeaderParserHandler Apache2::Const::OK
+    PerlAccessHandler       Apache2::Const::OK
+    PerlAuthenHandler       Apache2::Const::OK
+    PerlAuthzHandler        Apache2::Const::OK
+    PerlTypeHandler         Apache2::Const::OK
+[% IF cfg.sl_debug %]
+    PerlFixupHandler +Apache::DB
+[% ELSE %]
+    PerlFixupHandler        Apache2::Const::OK
+[% END %]
+    PerlResponseHandler     SL::Apache 
+</Location>
+
+<Location /click>
+    SetHandler modperl
+    PerlResponseHandler SL::CS::Apache::Click
+</Location>
+
+<Location /ad>
+    SetHandler modperl
+    PerlResponseHandler SL::CS::Apache::Ad
+</Location>
+
+<Directory />
+    AllowOverride None
+</Directory>
+[% IF cfg.sl_proxy_deflate %]
+Include [% cfg.sl_root %]/[% cfg.sl_version %]/conf/deflate.conf
+[% END %]
