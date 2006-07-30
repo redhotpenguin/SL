@@ -4,18 +4,21 @@ use strict;
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
-              NAME         => 'SL::ProxyServer',
-              VERSION	   => '0.6',
-              PREREQ_PM    => {
+              NAME      => 'SL',
+              VERSION   => '0.6',
+              PREREQ_PM => {
+                            'Apache::DBI'      => 0.9901,
+                            'DBI'              => 1.50,
+                            'DBD::Pg'          => 1.48,
                             'Cache::FastMmap'  => 1.09,
                             'Text::Template'   => 1.44,
                             'Bundle::LWP'      => 1.11,
-                            'Template'      => 2.14,
+                            'Template'         => 2.14,
                             'Regexp::Assemble' => 0.24,
-							'Perl6::Slurp'	   => 0.03,
+                            'Perl6::Slurp'     => 0.03,
                            },
-              ABSTRACT		=> 'This stuff proxies requests and inserts ads',
-              AUTHOR        => 'Fred Moyer <fred@redhotpenguin.com>',
+              ABSTRACT => 'An ad serving proxy server',
+              AUTHOR   => 'Fred Moyer <fred@redhotpenguin.com>',
              );
 
 use Apache::TestMM qw(test clean);
