@@ -5,8 +5,8 @@
 #   iptables -F; iptables -t nat -F
 
 # your local network setup
-$LOCAL_IF  = "ath0";
-$LOCAL_IP  = "192.168.1.3";
+$LOCAL_IF  = "eth0";
+$LOCAL_IP  = "192.168.2.5";
 $LOCAL_NET = "127.0.0.1";
 
 # the SL machine

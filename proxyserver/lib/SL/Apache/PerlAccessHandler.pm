@@ -15,13 +15,18 @@ our $cache;
 our $login_url = 'http://www.redhotpenguin.com/sl/logon';
 
 BEGIN {
+	require SL::Config;
+	my $cfg = SL::Config->new;
+	
 	# destroy the old cache file
-	my $share_file = '/tmp/sl_ips';
+	my $share_file = $cfg->sl_ip_cache_file;
+	
 	unlink $share_file if -e $share_file;
     $cache =
       Cache::FastMmap->new( raw_values => 1, share_file => $share_file );
     my $sql         = qq{select ip from reg where active > 0};
-    my $dbh         = dbi_connect();
+	require SL::DB;
+	my $dbh         = SL::DB->handle;
 	my $ips_ary_ref = $dbh->selectall_arrayref($sql);
     die unless $ips_ary_ref;    # No ips in the database yet??
 	$dbh->commit;
@@ -34,10 +39,10 @@ BEGIN {
 
     sub dbi_connect {
         my ( $db, $host, $user, $pass, $db_options, $dsn );
-        $db         = 'sl';
-        $host       = 'localhost';
-        $user       = 'fred';
-        $pass       = '';
+        $db         = $cfg->sl_db_name;
+        $host       = $cfg->sl_db_host;
+        $user       = $cfg->sl_db_user;
+        $pass       = $cfg->sl_db_pass;
         $db_options = {
             RaiseError         => 1,
             PrintError         => 1,
@@ -65,7 +70,7 @@ sub handler {
 		# let the request through
 		return Apache2::Const::OK;
     }
-    else {
+    else { # not registered serve the reg form
         # stash the destination
         my $c = $r->connection();
         unless ($c->pnotes('dest')) {
@@ -108,25 +113,24 @@ sub registered {
 		die unless $ok;
         my $ips_ary_ref = $sth->fetchall_arrayref;
 		$dbh->commit;
-        if ( scalar( @{$ips_ary_ref} ) > 1 ) {
-            $r->log->error("$$ More than one ip $ip found in database");
-            die;
-        }
-        elsif ( scalar( @{$ips_ary_ref} ) == 1 ) {
-
-            # This ip is registered
-            # Update the cache
-            $r->log->debug("ip $ip found in db, updating cache");
-            $cache->set( $ip => 1 );
-            return 1;
-        }
-        elsif ( scalar( @{$ips_ary_ref} ) == 0 ) {
+        
+		if ( scalar( @{$ips_ary_ref} ) == 0 ) {
             $r->log->debug("ip $ip is unregistered");
-
             # Unregistered IP
             return;
         }
-    }
+        # This ip is registered
+        elsif ( scalar( @{$ips_ary_ref} ) == 1 ) {
+			$r->log->debug("ip $ip found in db, updating cache");
+		}            
+		elsif ( scalar( @{$ips_ary_ref} ) > 1 ) {
+            $r->log->error("$$ More than one ip $ip found in database");
+        }
+		
+		# Update the cache
+        $cache->set( $ip => 1 );
+        return 1;
+   }
 }
 
 1;

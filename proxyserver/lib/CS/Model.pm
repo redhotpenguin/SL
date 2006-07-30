@@ -4,11 +4,13 @@ use strict;
 use warnings;
 
 use DBI;
+use SL::Config;
+my $cfg = SL::Config->new;
 
-my $db = 'sl';
-my $host = 'localhost';
-my $user = 'fred';
-my $pass = '';
+my $db = $cfg->sl_db_name;
+my $host = $cfg->sl_db_host;
+my $user = $cfg->sl_db_user;
+my $pass = $cfg->sl_db_pass;
 my $db_options = {
     RaiseError         => 1,
     PrintError         => 1,
