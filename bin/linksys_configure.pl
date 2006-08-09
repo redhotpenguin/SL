@@ -81,7 +81,7 @@ use FindBin;
 my @ok;
 my @conf_files =
   map { "$FindBin::Bin/../conf/linksys/etc/$_" }
-  qw( dnsmasq.conf firewall.user);
+  qw( banner dnsmasq.conf firewall.user);
 die unless @conf_files;
 foreach my $conf_file (@conf_files) {
     my ($rel_conf) = $conf_file =~ m{/([^/]+)$};
