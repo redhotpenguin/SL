@@ -46,11 +46,12 @@ END
 
     $statement = <<END;
 INSERT INTO click
-( link_id ) values ( ? )
+( link_id, ip ) values ( ?, ? )
 END
     
     $sth = $dbh->prepare( $statement );
-    $sth->bind_param( 1, $ary_ref->[0],);# { pg_type => PG_INTEGER } );
+    $sth->bind_param( 1, $ary_ref->[0]);# { pg_type => PG_INTEGER } );
+    $sth->bind_param( 2, $r->connection->remote_ip);
     $rv = $sth->execute;
     unless ( $rv ) {
         $r->log->error("$$ Could log find link for md5 $md5");

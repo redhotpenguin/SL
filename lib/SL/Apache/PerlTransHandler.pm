@@ -23,9 +23,7 @@ BEGIN {
 
 	# FIXME
 	# http://perl.apache.org/docs/2.0/user/config/custom.html#C_SERVER_CREATE_
-	require SL::Config;
-	my $cfg = SL::Config->new;
-	my $data_root = join('/', $cfg->sl_root, $cfg->sl_version, 'data');
+	my $data_root = $ENV{SL_ROOT} . '/proxyserver/data';
 	
     ## Whitelist
     my @whitelists =
@@ -46,7 +44,7 @@ BEGIN {
     ## Extension based matching
     my @extensions = qw(
       ad bz2 css doc exe fla gif gz ico jpeg jpg js pdf png ppt rar sit
-      rss tgz txt wmv vob zip );
+      rss tgz txt wmv vob xpi zip );
 
     $ext_regex = Regexp::Assemble->new;
     $ext_regex->add(@extensions);
@@ -204,6 +202,9 @@ sub _not_a_browser {
     my $r = shift;
 
     my $ua = $r->pnotes('ua');
+    if (! $ua ) {
+    	$r->log->error("$$ Hmmm there was no user agent..., url " . $r->pnotes('url'));
+    }
     if ($ua =~ m/$ua_regex/i) {
         $r->log->info("$$ Browser request user agent $ua");
         return 0;

@@ -20,6 +20,7 @@ SELECT
 ad.ad_id, 
 ad.name, 
 link.md5, 
+link.uri,
 ad.template 
 FROM ad 
 LEFT JOIN link 
@@ -45,22 +46,25 @@ SQL
             my $self = {};
 
             require Template;
-			require SL::Config;
-			my $cfg = SL::Config->new;
-			my $app_root = join("/", $cfg->sl_root, $cfg->sl_version);
-			print STDERR "Looking for template at $app_root/tmpl/\n";
             my $tmpl_config = {
                 ABSOLUTE     => 1,
-                INCLUDE_PATH => "$app_root/tmpl/",
+                INCLUDE_PATH => $ENV{SL_ROOT} . "/clickserver/tmpl/"
             };
             my $ad_server = 'http://h1.redhotpenguin.com:7777/click';
             my $template = Template->new($tmpl_config) || die $Template::ERROR,
               "\n";
             my %tmpl_vars = (
                 sl_link => "$ad_server/795da10ca01f942fd85157d8be9e832e",
-                ad_link => "$ad_server/" . $ad_data->{'md5'},
-                ad_text => $ad_data->{'name'},
             );
+           
+	    # ad setup based on ad type here
+	    if ($ad_data->{'template'} eq 'javascript') {
+		$tmpl_vars{'ad_link'} = $ad_data->{'uri'};
+	    } else {
+		$tmpl_vars{'ad_link'} = "$ad_server/" . $ad_data->{'md5'};
+                $tmpl_vars{'ad_text'} = $ad_data->{'name'};
+	    }
+	    
             my $output = '';
             $template->process( $ad_data->{'template'} . '.tmpl',
                 \%tmpl_vars, \$output )

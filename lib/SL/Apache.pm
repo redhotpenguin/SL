@@ -22,9 +22,7 @@ use Apache2::Const -compile => qw( OK SERVER_ERROR NOT_FOUND DECLINED
   HTTP_UNAUTHORIZED );
 use Apache2::Connection     ();
 use Apache2::ConnectionUtil ();
-use Apache2::Cookie         ();
 use Apache2::Log            ();
-use Apache2::Request        ();
 use Apache2::RequestRec     ();
 use Apache2::RequestUtil    ();
 use Apache2::RequestIO      ();
@@ -160,8 +158,6 @@ BEGIN {
 sub _add_headers {
     my ($r, $proxy_req) = @_;
 
-	my $jar = Apache2::Cookie::Jar->new($r);
-	$r->log->debug("Cookies are: ", join(',', $jar->cookies));
 		
 	$r->headers_in->do( sub {
 			my $k = shift;
@@ -190,19 +186,19 @@ sub handler {
     my $referer      = $r->pnotes('referer');
     my $content_type = $r->pnotes('content_type');
 
-    $r->log->info("$$ PRH handler url $url, user-agent $ua, referer $referer");
-    $r->log->info("$$ Request is \n" . $r->the_request);
-    $r->log->info("$$ Request as string \n" . $r->as_string);
-    $r->log->info("$$ Unparsed uri is \n" . $r->unparsed_uri);
+    $r->log->debug("$$ PRH handler url $url, user-agent $ua, referer $referer");
+    $r->log->debug("$$ Request is \n" . $r->the_request);
+    $r->log->debug("$$ Request as string \n" . $r->as_string);
+    $r->log->debug("$$ Unparsed uri is \n" . $r->unparsed_uri);
 
     ## Build the remote request
     my $response = _make_request($r);
-
-	#$r->log->info("Response is " . Dumper($response));
+    $r->log->debug("Response is " . Dumper($response));
+    
     # Dispatch the response
     my $sub = _code_to_sub($response->code);
 	no strict 'refs';
-	$r->log->info("Executing sub $sub");
+	$r->log->debug("Executing sub $sub");
     return &$sub($r, $response);
 }
 
@@ -327,7 +323,7 @@ sub twohundred {
     # serve an ad if this is HTML and it's not a sub-request of an
     # ad-serving page
     my $is_subreq = $subrequest_tracker->is_subrequest(url => $url);
-    $r->log->error("===> $url is_subreq: $is_subreq");
+    $r->log->debug("===> $url is_subreq: $is_subreq");
     if (not SL::Util::not_html($response->content_type) and 
         not $is_subreq) {
         
@@ -372,11 +368,20 @@ sub twohundred {
 
     ## Set the response content type from the request, preserving charset
     my $content_type = $response->header('content-type');
-    # IE is very picky about it's content type so we use a hack here - FIXME
+    
     my $ua = $r->pnotes('ua');
-    if ( ($ua =~ m{MSIE}) && ($content_type =~ m{^text\/html}) ) {
+    
+    # Cleanse the content-type.  I first noticed this with Opera 9.0 on the 
+    # Mac when doing a google toolbar search the first time I used Opera 9
+    # I saw this happen on IE first though
+    # IE is very picky about it's content type so we use a hack here - FIXME
+    if (! $ua) { $r->log->error("UA $ua for url $url") };	
+    if ( ($ua =~ m{(?:MSIE|opera)}i) && ($content_type =~ m{^text\/html}) ) {
 	$r->content_type('text/html');
     	$r->log->debug("$$ MSIE content type set to text/html");
+    } elsif (! $content_type) {
+	$r->content_type('text/html');
+    	$r->log->error("$$ Undefined content type, setting to text/html");
     } else {
     	$r->content_type($content_type);
     	$r->log->debug("$$ content type set to $content_type");
@@ -521,6 +526,8 @@ sub _generate_response {
     my $ad;
     my $ad_ua   = SL::UserAgent->new($r);
     my $ad_url  = $r->dir_config('ad_url');
+    $ad_url .= "/?ip=" . $r->connection->remote_ip;
+
     my $ad_req  = HTTP::Request->new('GET', $ad_url);
     my $ad_resp = $ad_ua->request($ad_req);
 
@@ -582,9 +589,9 @@ sub _generate_response {
     }
 
     # We've made it this far so we're looking good
-    $r->log->info("$$ Ad $ad inserted for url $url; try_container: ",
+    $r->log->info("$$ Ad inserted for url $url; try_container: ",
                   $try_container, "; referer : $referer; ua : $ua;");
-			  $r->log->debug("Munged response is \n $munged_resp");
+      $r->log->debug("Munged response is \n $munged_resp");
 
     # re-encode content if needed
     if ($content_needs_encoding) {
