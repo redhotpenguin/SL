@@ -3,7 +3,7 @@ package SL::CS::Apache::Ad;
 use strict;
 use warnings;
 
-use Apache2::Const -compile => qw( OK HTTP_NOT_FOUND );
+use Apache2::Const -compile => qw( OK );
 use Apache2::Log;
 use Apache2::RequestRec;
 use SL::CS::Model;
@@ -11,7 +11,7 @@ use SL::CS::Model::Ad;
 
 my $sql = <<SQL;
 INSERT INTO view
-( ad_id ) values ( ? )
+( ad_id, ip ) values ( ?, ? )
 SQL
 
 sub handler {
@@ -20,18 +20,11 @@ sub handler {
     die unless $r->method eq 'GET';
     $r->log->info( "$$ AD SERVED request, uri " . $r->uri );
 
-    # look for group params and get ads for the groups if available
-    my $ad;
-    if (my @groups = $r->args =~ /g=(\d+)/g) {
-        $ad = SL::CS::Model::Ad->random(\@groups);
-    } else {
-        $ad = SL::CS::Model::Ad->random;
+    my $ip;
+    unless (($ip) = $r->args =~ /ip=(\d+\.\d+\.\d+\.\d+)/g) {
+    	$ip = '0.0.0.0';
     }
-    
-    # no ad found
-    unless ($ad) {
-        return Apache2::Const::HTTP_NOT_FOUND;
-    }
+    my $ad = SL::CS::Model::Ad->random;
 
     $r->log->debug( "Ad content is : ", $ad->as_html );
     $r->no_cache(1);
@@ -42,6 +35,7 @@ sub handler {
     my $dbh = SL::CS::Model->db_Main();
     my $sth = $dbh->prepare($sql);
     $sth->bind_param( 1, $ad->{'ad_id'} );
+    $sth->bind_param( 2, $ip);
     my $rv = $sth->execute;
     if ( !$rv ) {
         $r->log->error(
