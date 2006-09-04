@@ -1,4 +1,4 @@
-package SL::CS::Apache::Click;
+package SL::Apache::Click;
 
 use strict;
 use warnings;
@@ -9,7 +9,7 @@ use Apache2::RequestIO;
 use Apache2::RequestRec ();
 use APR::Table ();
 use DBD::Pg qw(:pg_types);
-use SL::CS::Model;
+use SL::Model;
 
 sub handler {
     my $r = shift;
@@ -23,7 +23,7 @@ sub handler {
     }
     $r->log->debug("$$ MD5 is $md5");
 
-    my $dbh = SL::CS::Model->db_Main();
+    my $dbh = SL::Model->db_Main();
 
     my $statement = <<END;
 SELECT link_id, uri

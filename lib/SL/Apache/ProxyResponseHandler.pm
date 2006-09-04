@@ -1,4 +1,4 @@
-package SL::Apache;
+package SL::Apache::ProxyResponseHandler;
 
 use strict;
 use warnings;
@@ -21,7 +21,6 @@ use Apache2::Const -compile => qw( OK SERVER_ERROR NOT_FOUND DECLINED
   REDIRECT LOG_DEBUG LOG_ERR LOG_INFO CONN_KEEPALIVE HTTP_BAD_REQUEST
   HTTP_UNAUTHORIZED );
 use Apache2::Connection     ();
-use Apache2::ConnectionUtil ();
 use Apache2::Log            ();
 use Apache2::RequestRec     ();
 use Apache2::RequestUtil    ();
@@ -41,7 +40,7 @@ use SL::Model::Subrequest   ();
 use Data::Dumper            qw( Dumper );
 use Encode                  ();
 
-our %map = (
+our %response_map = (
             200 => 'twohundred',
             404 => 'fourohfour',
             500 => 'bsod',
@@ -196,15 +195,10 @@ sub handler {
     $r->log->debug("Response is " . Dumper($response));
     
     # Dispatch the response
-    my $sub = _code_to_sub($response->code);
+    my $sub = $response_map{$response->code};
 	no strict 'refs';
 	$r->log->debug("Executing sub $sub");
     return &$sub($r, $response);
-}
-
-sub _code_to_sub {
-    my $code = shift;
-    return $map{$code};
 }
 
 sub bsod {
@@ -520,29 +514,17 @@ sub _generate_response {
 	# yes this is ugly but it helps for testing
     #return $response->decoded_content;
     
-	# Grab an ad from the adserver
-    # FIXME - replace this with grabbing ads from a shared cache that is updated
-    # periodically
-    my $ad;
-    my $ad_ua   = SL::UserAgent->new($r);
-    my $ad_url  = $r->dir_config('ad_url');
-    $ad_url .= "/?ip=" . $r->connection->remote_ip;
-
-    my $ad_req  = HTTP::Request->new('GET', $ad_url);
-    my $ad_resp = $ad_ua->request($ad_req);
+	$r->log->info( "$$ AD SERVED request, uri " . $r->uri );
+    my $ad = SL::Model::Ad->random;
+    $r->log->debug( "Ad content is : ", $ad->as_html );
+    unless ($ad) {
+        $r->log->error("$$ Hmm, we didn't get an ad");
+        return $response->content;
+    }
 
     my $url     = $r->pnotes('url');
     my $ua      = $r->pnotes('ua');
     my $referer = $r->pnotes('referer');
-
-    if ($ad_resp->code != 200) {
-        $r->log->error("$$ ALERT!  Could not retrieve ad from adserver");
-        $r->log->error("$$ ALERT! Response ", Dumper($ad_resp));
-        return $response->content;
-    }
-    else {
-        $ad = $ad_resp->content;
-    }
 
     # Skip ad insertion if $skips regex match on decoded_content
     # It's a fix for sites like google, yahoo who send encoded UTF-8 et al
@@ -592,6 +574,22 @@ sub _generate_response {
     $r->log->info("$$ Ad inserted for url $url; try_container: ",
                   $try_container, "; referer : $referer; ua : $ua;");
       $r->log->debug("Munged response is \n $munged_resp");
+		
+    my $ip;
+	unless (($ip) = $r->args =~ /ip=(\d+\.\d+\.\d+\.\d+)/g) {
+    	$ip = '0.0.0.0';
+    }
+
+	# Log the ad view
+	my $ok = SL::Model::Ad->log_view($ip, $ad);
+  
+	unless ( $ok ) {
+        $r->log->error(
+            "$$ Error logging view for ad " . $ad->{'ad_id'} );
+    }
+    else {
+        $r->log->debug( "$$ logging view for ad " . $ad->{'ad_id'} );
+    }
 
     # re-encode content if needed
     if ($content_needs_encoding) {

@@ -1,12 +1,12 @@
-package SL::CS::Model::Report;
+package SL::Model::Report;
 
 use strict;
 use warnings;
 
+use base 'SL::Model';
 use Carp qw/croak/;
 use DateTime::Format::Pg;
 use DBD::Pg qw(:pg_types);
-use SL::CS::Model;
 
 my $ad_sql = <<SQL;
 SELECT ad.ad_id, ad.name
@@ -57,7 +57,7 @@ sub run_query {
     {
         croak('No start and end times passed!');
     }
-	my $dbh = SL::CS::Model->db_Main();
+	my $dbh = SL::Model->db_Main();
 	my $sth = $dbh->prepare_cached($sql);
 	$sth->bind_param(1, DateTime::Format::Pg->format_datetime($start));
 	$sth->bind_param(2, DateTime::Format::Pg->format_datetime($end));
@@ -87,7 +87,7 @@ sub interval_by_ts {
     }
 
     my %return;
-    my $dbh = SL::CS::Model->db_Main();
+    my $dbh = SL::Model->db_Main();
 
     my $ad_sth = $dbh->prepare_cached($ad_sql);
     my $rv     = $ad_sth->execute;

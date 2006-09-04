@@ -1,4 +1,4 @@
-package SL::Apache::PerlTransHandler;
+package SL::Apache::ProxyTransHandler;
 
 use strict;
 use warnings;
@@ -23,7 +23,7 @@ BEGIN {
 
 	# FIXME
 	# http://perl.apache.org/docs/2.0/user/config/custom.html#C_SERVER_CREATE_
-	my $data_root = $ENV{SL_ROOT} . '/proxyserver/data';
+	my $data_root = $ENV{SL_ROOT} . '/data';
 	
     ## Whitelist
     my @whitelists =

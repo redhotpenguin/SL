@@ -1,4 +1,4 @@
-package SL::CS::Apache::Logon;
+package SL::Apache::Logon;
 
 use strict;
 use warnings;
@@ -8,7 +8,7 @@ use Apache2::Log;
 use Apache2::RequestIO;
 use Apache2::RequestRec ();
 use DBD::Pg qw(:pg_types);
-use SL::CS::Model;
+use SL::Model;
 use Template;
 
 my %tmpl_config = ( INCLUDE_PATH => '/tmpl' );    # or list ref
@@ -71,7 +71,7 @@ sub post {
     else {
 
         # Process the registration
-		my $dbh = SL::CS::Model->db_Main();
+		my $dbh = SL::Model->db_Main();
 		my $sth = $dbh->prepare($insert);
 		my $i = 0;
         $sth->bind_param( ++$i, $params{$_} ) for qw( ip, email, firstname, lastname, street_addr, apt_suite, zipcode, phone, description, macaddr, referer, serial_number );
