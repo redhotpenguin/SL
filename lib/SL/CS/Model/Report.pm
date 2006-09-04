@@ -7,7 +7,6 @@ use Carp qw/croak/;
 use DateTime::Format::Pg;
 use DBD::Pg qw(:pg_types);
 use SL::CS::Model;
-use UNIVERSAL::isa;
 
 my $ad_sql = <<SQL;
 SELECT ad.ad_id, ad.name
@@ -28,6 +27,54 @@ USING(link_id)
 WHERE link_id = ? AND
 click.ts BETWEEN ? AND ?
 SQL
+
+# Most active ips
+my $view_sql = <<SQL;
+SELECT reg.email, count(ip) FROM view
+LEFT JOIN reg USING (ip)
+WHERE view.ts between ? and ?
+GROUP BY reg.email
+ORDER BY count(ip) DESC
+SQL
+
+# what links were clicked
+my $links_clicked = <<SQL;
+SELECT ad.name, count(link_id) from click
+left join link
+ using (link_id)
+ left join ad using (ad_id)
+WHERE ts BETWEEN ? AND ?
+ GROUP BY ad.name
+ ORDER BY count(link_id) DESC
+SQL
+
+sub run_query {
+	my ($class, $sql, $start, $end) = @_;
+
+	die unless $sql && $start && $end;
+    unless 
+        ( $start->isa('DateTime') && $end->isa('DateTime'))
+    {
+        croak('No start and end times passed!');
+    }
+	my $dbh = SL::CS::Model->db_Main();
+	my $sth = $dbh->prepare_cached($sql);
+	$sth->bind_param(1, DateTime::Format::Pg->format_datetime($start));
+	$sth->bind_param(2, DateTime::Format::Pg->format_datetime($end));
+	my $rv = $sth->execute;
+	my $ary_ref = $sth->fetchall_arrayref;
+	return $ary_ref;
+}
+
+sub views {
+	my ($class, $start, $end) = @_;
+	return $class->run_query($view_sql, $start, $end);
+}
+
+sub links {
+	my ($class, $start, $end) = @_;
+	return $class->run_query($links_clicked, $start, $end);
+}
 
 sub interval_by_ts {
     my ( $class, $ts ) = @_;
