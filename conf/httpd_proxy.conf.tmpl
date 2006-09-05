@@ -81,13 +81,13 @@ PerlSetVar           SLCssUri [% cfg.sl_css_uri %]
 PerlSetVar           SLProxy [% cfg.sl_proxy %]
 
 PerlPostReadRequestHandler Apache2::Const::OK
-PerlMapToStorageHandler Apache2::Const::OK
-PerlTransHandler SL::Apache::PerlTransHandler
+PerlMapToStorageHandler    Apache2::Const::OK
+PerlTransHandler SL::Apache::ProxyTransHandler
 
 <Location />
     SetHandler          modperl
  	PerlHeaderParserHandler Apache2::Const::OK
-    PerlAccessHandler       Apache2::Const::OK
+    PerlAccessHandler       SL??Apache::ProxyAccessHandler
     PerlAuthenHandler       Apache2::Const::OK
     PerlAuthzHandler        Apache2::Const::OK
     PerlTypeHandler         Apache2::Const::OK
@@ -96,17 +96,7 @@ PerlTransHandler SL::Apache::PerlTransHandler
 [% ELSE %]
     PerlFixupHandler        Apache2::Const::OK
 [% END %]
-    PerlResponseHandler     SL::Apache 
-</Location>
-
-<Location /click>
-    SetHandler modperl
-    PerlResponseHandler SL::CS::Apache::Click
-</Location>
-
-<Location /ad>
-    SetHandler modperl
-    PerlResponseHandler SL::CS::Apache::Ad
+    PerlResponseHandler     SL::Apache::ProxyResponseHandler
 </Location>
 
 <Directory />

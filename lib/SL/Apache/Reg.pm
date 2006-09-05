@@ -10,7 +10,7 @@ use Apache2::Const -compile => qw( OK SERVER_ERROR );
 use Apache2::Connection     ();
 use Apache2::ConnectionUtil ();
 use Template;
-use SL::Apache::PerlAccessHandler;
+use SL::Apache::ProxyAccessHandler;
 
 my $tmpl;
 

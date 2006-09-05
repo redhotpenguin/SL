@@ -47,13 +47,11 @@ use HTTP::Request                    ();
 use HTTP::Response                   ();
 use SL::Model                        ();
 use SL::Model::Ad                    ();
-use SL::Apache::Click                ();
-use SL::Apache::Reg                  ();
+use SL::Model::Subrequest            ();
 use SL::Apache::ProxyAccessHandler   ();
 use SL::Apache::ProxyTransHandler    ();
 use SL::Apache::ProxyResponseHandler ();
 use SL::Cache                        ();
-use SL::DB                           ();
 use SL::UserAgent                    ();
 use SL::Util                         ();
 use DBI                              ();
@@ -63,7 +61,7 @@ use Data::Dumper qw(Dumper);
 print STDOUT "Modules loaded, initializing database connections\n";
 
 $Apache::DBI::DEBUG = $config->sl_db_debug;
-my $db_connect_params = SL::DB->connect_params;
+my $db_connect_params = SL::Model->connect_params;
 Apache::DBI->connect_on_init(@{$db_connect_params});
 Apache::DBI->setPingTimeOut($db_connect_params->[0],
                             $config->sl_db_ping_timeout);
