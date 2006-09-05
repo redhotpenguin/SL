@@ -1,0 +1,32 @@
+sl_root  /home/fred/dev/sl
+sl_version  trunk
+sl_server  app
+
+sl_ip_cache_file	/tmp/sl_ips
+
+sl_db_name  sl
+sl_db_host	localhost
+sl_db_user  sl
+sl_db_user  fred
+sl_db_pass  
+sl_db_ping_timeout 5
+sl_db_debug 1
+
+sl_devel  1
+#sl_debug  1
+#sl_prof  1
+
+#sl_proxy_deflate  1
+sl_apache_loglevel  debug
+sl_apache_maxclients  8
+sl_apache_start_servers  4
+sl_apache_min_spare_servers  4
+sl_apache_max_spare_servers  8
+sl_apache_keepalive  On
+sl_apache_user  fred
+sl_apache_group  users
+
+sl_servername  app
+
+sl_http_port  9000
+sl_css_uri  http://www.redhotpenguin.com/css/sl.css

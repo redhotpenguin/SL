@@ -1,4 +1,4 @@
-package SL::Apache::Click;
+package SL::Apache::App::Click;
 
 use strict;
 use warnings;

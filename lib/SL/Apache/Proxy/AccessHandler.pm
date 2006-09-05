@@ -1,4 +1,4 @@
-package SL::Apache::ProxyAccessHandler;
+package SL::Apache::Proxy::AccessHandler;
 
 use strict;
 use warnings;

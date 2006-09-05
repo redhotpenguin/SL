@@ -1,4 +1,4 @@
-package SL::Apache::Reg;
+package SL::Apache::App::Reg;
 
 use strict;
 use warnings;
@@ -10,7 +10,6 @@ use Apache2::Const -compile => qw( OK SERVER_ERROR );
 use Apache2::Connection     ();
 use Apache2::ConnectionUtil ();
 use Template;
-use SL::Apache::ProxyAccessHandler;
 
 my $tmpl;
 
@@ -37,7 +36,7 @@ sub handler {
     elsif ( $r->method eq 'POST' ) {
         $r->log->debug("$$ handling POST request for reg");
 
-        my $dbh = SL::Apache::PerlAccessHandler::dbi_connect();
+        my $dbh = SL::Model->db_Main();
         unless ($dbh) {
             $r->log->error("$$ dbi connection failed");
             return Apache2::Const::SERVER_ERROR;

@@ -1,4 +1,4 @@
-package SL::Apache::ProxyTransHandler;
+package SL::Apache::Proxy::TransHandler;
 
 use strict;
 use warnings;
