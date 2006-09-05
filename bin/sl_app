@@ -1,0 +1,39 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use FindBin;
+use Template;
+use Template::Context;
+
+# FIXME once we know the server starts after make install
+use lib "$FindBin::Bin/../lib";
+use SL::Config;
+
+my $server = 'app';
+my $file = "sl.$server.conf";
+my @config_files =
+  ("$FindBin::Bin/../conf/$file", "$FindBin::Bin/../$file");
+
+my $config = SL::Config->new(\@config_files);
+
+# FIll out the httpd.conf
+my $httpd_conf = "httpd_$server.conf";
+my $conf_tmpl   = "$FindBin::Bin/../conf/$httpd_conf.tmpl";
+my $tmpl_out    = "$FindBin::Bin/../conf/$httpd_conf";
+my %tmpl_config = (ABSOLUTE => 1, INCLUDE_PATH => "$FindBin::Bin/../conf/");
+my $template    = Template->new(\%tmpl_config) || die $Template::ERROR, "\n";
+$template->process($conf_tmpl, { cfg => $config }, $tmpl_out)
+  || die $template->error, "\n";
+
+$|++;
+my $app_root = join('/', $config->sl_root, $config->sl_version);
+my $cmd = "$app_root/bin/httpd ";
+
+$cmd .= "-X " if ( $config->sl_debug);
+
+$cmd .= "-f $app_root/conf/$httpd_conf -k start";
+print "Starting with command: $cmd\n";
+my $started = `$cmd`;
+print $started;

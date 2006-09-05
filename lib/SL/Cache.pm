@@ -5,7 +5,11 @@ use warnings;
 
 use Cache::FastMmap;
 
-my $cache = Cache::FastMmap->new(raw_values => 1);
+our $cache;
+BEGIN {
+	$cache = Cache::FastMmap->new(raw_values => 1);
+}
+
 sub grab {
     my $key = shift;
     my $value = $cache->get($key);

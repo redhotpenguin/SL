@@ -3,7 +3,7 @@
 
 CREATE TABLE reg_ad_group (
     reg_id      integer NOT NULL,
-    ad_group_id integer NOT NULL,
+    ad_group_id integer NOT NULL
 );
 
 ALTER TABLE ONLY reg_ad_group

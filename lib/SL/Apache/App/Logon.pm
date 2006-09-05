@@ -12,7 +12,7 @@ use SL::Model;
 use Template;
 
 my %tmpl_config = ( INCLUDE_PATH => '/tmpl' );    # or list ref
-my $tmpl = Template->new( \%config ) || die $Template::ERROR;
+my $tmpl = Template->new( \%tmpl_config ) || die $Template::ERROR;
 
 my $insert = <<INSERT;
 INSERT INTO reg
@@ -74,15 +74,27 @@ sub post {
 		my $dbh = SL::Model->db_Main();
 		my $sth = $dbh->prepare($insert);
 		my $i = 0;
-        $sth->bind_param( ++$i, $params{$_} ) for qw( ip, email, firstname, lastname, street_addr, apt_suite, zipcode, phone, description, macaddr, referer, serial_number );
-        $rv = $sth->execute;
+        $sth->bind_param( ++$i, $params{$_} ) for qw(
+			ip 
+			email 
+			firstname 
+			lastname 
+			street_addr 
+			apt_suite 
+			zipcode 
+			phone 
+			description 
+			macaddr
+			referer
+			serial_number );
+        my $rv = $sth->execute;
         unless ($rv) {
             $r->log->error("$$ Could not save registration info");
             $dbh->rollback;
             return Apache2::Const::SERVER_ERROR;
         }
         else {
-            $r->log->debug( "$$ registered ip  ", $params[0] );
+            $r->log->debug( "$$ registered ip  ", $params{'ip'} );
             $dbh->commit;
             $r->internal_redirect("/login/success");
             return Apache2::Const::OK;

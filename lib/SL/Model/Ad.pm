@@ -5,6 +5,13 @@ use warnings;
 
 use base 'SL::Model';
 
+use Cache::FastMmap;
+
+our $cache;
+BEGIN {
+	$cache = Cache::FastMmap->new(share_file => '/tmp/sl_ad_cache');
+}
+
 =head1 NAME
 
 SL::Ad
@@ -14,8 +21,6 @@ SL::Ad
 This serves ads, ya see?
 
 =cut
-
-our @ads;
 
 use constant CLICKSERVER_URL    => 'http://h1.redhotpenguin.com:7777/click/';
 use constant SILVERLINING_AD_ID => "/795da10ca01f942fd85157d8be9e832e";
@@ -29,7 +34,6 @@ BEGIN {
     refresh_ads();
 
     sub refresh_ads {
-        undef @ads;
 
         # Load all the ads into a shared global
         my $dbh = SL::Model->db_Main();
@@ -39,10 +43,13 @@ ad.ad_id,
 ad.name, 
 link.md5, 
 link.uri,
-ad.template 
+ad.template, 
+ad_group.name
 FROM ad 
-LEFT JOIN link 
+INNER JOIN link 
 USING (ad_id)
+INNER JOIN ad_group
+USING (ad_group_id)
 WHERE ad.active = 't'
 SQL
 
@@ -62,6 +69,36 @@ SQL
         sub new {
             my ($class, $ad_data) = @_;
             my $self = {};
+
+            require Template;
+            my $tmpl_config = {
+                               ABSOLUTE     => 1,
+                               INCLUDE_PATH => $ENV{SL_ROOT} . "/tmpl/"
+                              };
+            my $template = Template->new($tmpl_config) || die $Template::ERROR,
+              "\n";
+            my %tmpl_vars = (sl_link => CLICKSERVER_URL . SILVERLINING_AD_ID);
+
+            # ad setup based on ad type here
+            if ($ad_data->{'template'} eq 'javascript') {
+                $tmpl_vars{'ad_link'} = $ad_data->{'uri'};
+            }
+            else {
+                $tmpl_vars{'ad_link'} = "$ad_server/" . $ad_data->{'md5'};
+                $tmpl_vars{'ad_text'} = $ad_data->{'name'};
+            }
+
+            my $output = '';
+            $template->process($ad_data->{'template'} . '.tmpl',
+                               \%tmpl_vars, \$output)
+              || die $template->error(), "\n";
+            $self->{'ad_id'} = $ad_data->{'ad_id'};
+            $self->{'_html'} = $output;
+			$self->{'group_name'} = $ad_data->{'group_name'};
+
+            bless $self, $class;
+
+            return $self;
         }
     }
 }
@@ -149,17 +186,15 @@ sub as_html {
 }
 
 sub log_view {
-	my ($ip, $ad) = @_;
+    my ($ip, $ad) = @_;
 
-
-
-	my $dbh = SL::Model->db_Main();
+    my $dbh = SL::Model->db_Main();
     my $sth = $dbh->prepare($log_view_sql);
-    $sth->bind_param( 1, $ad->{'ad_id'} );
-    $sth->bind_param( 2, $ip);
+    $sth->bind_param(1, $ad->{'ad_id'});
+    $sth->bind_param(2, $ip);
     my $rv = $sth->execute;
-	return 1 if $rv;
-	return;
+    return 1 if $rv;
+    return;
 }
 
 1;
