@@ -192,7 +192,7 @@ sub handler {
 
     ## Build the remote request
     my $response = _make_request($r);
-    $r->log->debug("Response is " . Dumper($response));
+	#$r->log->debug("Response is " . Dumper($response));
     
     # Dispatch the response
     my $sub = $response_map{$response->code};
@@ -573,7 +573,7 @@ sub _generate_response {
     # We've made it this far so we're looking good
     $r->log->info("$$ Ad inserted for url $url; try_container: ",
                   $try_container, "; referer : $referer; ua : $ua;");
-      $r->log->debug("Munged response is \n $munged_resp");
+			  #$r->log->debug("Munged response is \n $munged_resp");
 		
     my $ip;
 	unless (($ip) = $r->args =~ /ip=(\d+\.\d+\.\d+\.\d+)/g) {

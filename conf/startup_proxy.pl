@@ -16,7 +16,7 @@ BEGIN {
 
     require SL::Config;
     my @config_files =
-      ("$FindBin::Bin/../sl.conf", "$FindBin::Bin/../conf/sl.conf");
+      ("$FindBin::Bin/../sl.proxy.conf", "$FindBin::Bin/../conf/sl.proxy.conf");
 
     $config = SL::Config->new(\@config_files);
 

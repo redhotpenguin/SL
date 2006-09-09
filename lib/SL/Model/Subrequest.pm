@@ -6,7 +6,7 @@ use warnings;
 use HTML::TokeParser;
 use URI;
 
-use SL::Util;
+use SL::Model;
 
 =head1 NAME
 
@@ -69,7 +69,7 @@ sub collect_subrequests {
 
     my $parser = HTML::TokeParser->new( $content_ref );
 
-    my $dbh = SL::Util::dbi_connect();
+    my $dbh = SL::Model->connect();
     my $sth = $dbh->prepare_cached('INSERT INTO subrequest (url) VALUES (?)');
 
     # look for tags that can house sub-reqs
@@ -99,7 +99,7 @@ sub collect_subrequests {
 sub is_subrequest {
     my ($self, %args) = @_;
     my ($url) = @args{qw(url)};
-    my $dbh   = SL::Util::dbi_connect();
+    my $dbh   = SL::Model->connect();
 
     $url = _normalize_url($url);
     return 0 unless $url;

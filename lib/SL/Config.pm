@@ -33,8 +33,13 @@ our $config;
 sub new {
 	my  ($class, $config_files_ref) = @_;
 
-	die unless ($config_files_ref or $config);
 	return $config if $config;
+	unless ($config_files_ref or $config) {
+$DB::single = 1;
+		$config_files_ref = [ $ENV{SL_ROOT} . '/conf/sl.proxy.conf' ];
+		die unless $config_files_ref;
+	}
+
 
 	$config = $class->SUPER::new();
 	my $read;
@@ -43,7 +48,10 @@ sub new {
 		$config->read($config_file);
 		$read++;
 	}
-	die print STDERR "No config files read!" unless $read;
+	use Data::Dumper;
+	require Carp && Carp::croak( "No config files read: " . 
+		Dumper($config_files_ref))
+		unless $read;
 
 	$config->autoload_support(1);
 	return $config;

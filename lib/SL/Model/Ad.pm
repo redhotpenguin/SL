@@ -61,7 +61,7 @@ SQL
             require Data::Dumper;
             my $ad = __PACKAGE__->new($ad_data);
             print STDERR "Ad: " . Data::Dumper::Dumper($ad);
-            push @ads, $ad;
+            $cache->set($ad->{ad_id} => $ad);
         }
 
         $dbh->commit;
@@ -84,7 +84,7 @@ SQL
                 $tmpl_vars{'ad_link'} = $ad_data->{'uri'};
             }
             else {
-                $tmpl_vars{'ad_link'} = "$ad_server/" . $ad_data->{'md5'};
+                $tmpl_vars{'ad_link'} = CLICKSERVER_URL . $ad_data->{'md5'};
                 $tmpl_vars{'ad_text'} = $ad_data->{'name'};
             }
 
@@ -174,9 +174,9 @@ sub stacked {
 
 sub random {
     my $class = shift;
-    refresh_ads() if $SL::Debug;
-    my $index = int(rand(scalar(@ads)));
-    return $ads[$index];
+    my @cache_keys = $cache->get_keys();
+	my $index = int(rand(scalar(@cache_keys)));
+    return $cache->get($cache_keys[$index]);
 }
 
 sub as_html {
