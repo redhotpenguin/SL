@@ -53,7 +53,7 @@ USING (ad_group_id)
 WHERE ad.active = 't'
 SQL
 
-        my $sth = $dbh->prepare_cached($sql);
+        my $sth = $dbh->prepare($sql);
         my $rv  = $sth->execute;
         die unless $rv;
 
@@ -63,7 +63,7 @@ SQL
             print STDERR "Ad: " . Data::Dumper::Dumper($ad);
             $cache->set($ad->{ad_id} => $ad);
         }
-
+		$sth->finish;
         $dbh->commit;
 
         sub new {
@@ -186,14 +186,15 @@ sub as_html {
 }
 
 sub log_view {
-    my ($ip, $ad) = @_;
+    my ($class, $ip, $ad) = @_;
 
     my $dbh = SL::Model->db_Main();
-    my $sth = $dbh->prepare($log_view_sql);
+    my $sth = $dbh->prepare($log_view_sql); 
     $sth->bind_param(1, $ad->{'ad_id'});
     $sth->bind_param(2, $ip);
     my $rv = $sth->execute;
-    return 1 if $rv;
+    $sth->finish;
+	return 1 if $rv;
     return;
 }
 

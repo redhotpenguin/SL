@@ -15,7 +15,7 @@ my $db_options = {
                   FetchHashKeyName   => 'NAME_lc',
                   ShowErrorStatement => 1,
                   ChopBlanks         => 1,
-                 };
+			  };
 
 sub connect_params {
     my $self = shift;
@@ -29,7 +29,7 @@ sub connect_params {
 sub connect {
     my $class   = shift;
     my $connect = $class->connect_params;
-    my $dbh     = DBI->connect(@{$connect});
+    my $dbh     = DBI->connect_cached(@{$connect});
     if ($dbh->err or !$dbh) {
         print STDERR "Error connecting to database: "
           . $class->connect_params . ", "

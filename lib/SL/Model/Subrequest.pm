@@ -70,7 +70,7 @@ sub collect_subrequests {
     my $parser = HTML::TokeParser->new( $content_ref );
 
     my $dbh = SL::Model->connect();
-    my $sth = $dbh->prepare_cached('INSERT INTO subrequest (url) VALUES (?)');
+    my $sth = $dbh->prepare('INSERT INTO subrequest (url) VALUES (?)');
 
     # look for tags that can house sub-reqs
     my $count = 0;
@@ -105,7 +105,7 @@ sub is_subrequest {
     return 0 unless $url;
 
     # look for the URL
-    my $sth = $dbh->prepare_cached('SELECT 1 FROM subrequest WHERE url = ?');
+    my $sth = $dbh->prepare('SELECT 1 FROM subrequest WHERE url = ?');
     $sth->execute($url);
     my $exists = $sth->fetchrow_array() || 0;
     $sth->finish;

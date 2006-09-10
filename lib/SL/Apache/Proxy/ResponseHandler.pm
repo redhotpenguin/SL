@@ -168,7 +168,7 @@ sub _add_headers {
 				return 1;
 			}
 			# FIXME - warning tht $proxy_req will not stay shared
-			$r->log->debug("Header key $k, val $v to proxy request $proxy_req");
+			#		$r->log->debug("Header key $k, val $v to proxy request $proxy_req");
 			$proxy_req->header($k => $v);
 			return 1;
 		},
@@ -306,7 +306,8 @@ sub twohundred {
     my $url = $response->request->uri;
     $r->log->info("$$ Request to $url returned 200");
 	
-	$r->log->debug("$$ Response from server:  \n", $response->content);
+	#VERBOSE
+	#$r->log->debug("$$ Response from server:  \n", $response->content);
 	
     # Cache the content_type
     my $response_content;
@@ -352,7 +353,7 @@ sub twohundred {
 	# other headers that will bite us at some point, so FIXME TODO
     foreach my $cookie ( $response->header('set-cookie')) {
 		$r->headers_out->add('Set-Cookie' => $cookie);
-		$r->log->debug("$$ added set-cookie header: $cookie");
+		#$r->log->debug("$$ added set-cookie header: $cookie");
 	}
 	$response->headers->remove_header('Set-Cookie');
 	
@@ -404,12 +405,11 @@ sub twohundred {
 		
 		# some headers have an unecessary newline appended so chomp the value
 		chomp($headers{$key});
-        $r->log->debug(
-                "Setting key $key, value "
-              . $headers{$key}
-              . " to headers
-"
-        );
+		#$r->log->debug(
+		#        "Setting key $key, value "
+		#      . $headers{$key}
+		#      . " to headers"
+		#);
 
         $r->headers_out->set($key => $headers{$key});
     }
@@ -422,7 +422,7 @@ sub twohundred {
     $r->no_cache(1);
 
 	$r->log->debug("$$ Request string before sending: \n" . $r->as_string);
-	$r->log->debug("$$ Response: \n" . $response_content);
+	#$r->log->debug("$$ Response: \n" . $response_content);
     # rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
     $r->rflush();
@@ -516,7 +516,9 @@ sub _generate_response {
     
 	$r->log->info( "$$ AD SERVED request, uri " . $r->uri );
     my $ad = SL::Model::Ad->random;
-    $r->log->debug( "Ad content is : ", $ad->as_html );
+	
+	# VERBOSE
+	#$r->log->debug( "Ad content is : ", $ad->as_html );
     unless ($ad) {
         $r->log->error("$$ Hmm, we didn't get an ad");
         return $response->content;
