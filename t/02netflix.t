@@ -31,6 +31,6 @@ cmp_ok($mech->res->code, '==', 200, 'check 200 rc');
 ok($mech->res->title =~ m/welcome to netflix/i, 'check title');
 ok($mech->res->content =~ m/media center/i, 'check page content');
 my @cookies = $mech->res->headers->header('set-cookie');
-cmp_ok(scalar(@cookies), '==', '9', 'check that nine cookies were returned');
+cmp_ok(scalar(@cookies), '==', '10', 'check that nine cookies were returned');
 
 __END__

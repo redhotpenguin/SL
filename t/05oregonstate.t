@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 10;    # last test to print
+use Test::More tests => 8;    # last test to print
 use LWP::UserAgent;
 
 use LWP::Protocol::http;      # needed for our override
@@ -30,7 +30,6 @@ cmp_ok($mech->res->header('x-powered-by'), 'eq', 'ASP.NET', 'x-powered-by');
 cmp_ok($mech->res->header('X-AspNet-Version'), 'eq', '2.0.50727', 'x-power...');
 
 diag("content-type header");
-cmp_ok($mech->res->header('content-type'), 'eq', 'text/html; charset=utf-8',
-	'content_type ok');
+cmp_ok($mech->res->header('content-type'), 'eq', 'text/html; charset=iso-8859-1'	,'content_type ok');
 
 __END__
