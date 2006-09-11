@@ -2,7 +2,8 @@
 CREATE TABLE click (
     click_id serial NOT NULL,
     ts timestamp without time zone DEFAULT now(),
-    link_id integer NOT NULL
+    link_id integer NOT NULL,
+	ip inet
 );
 
 ALTER TABLE ONLY click
