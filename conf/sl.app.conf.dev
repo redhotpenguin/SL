@@ -28,5 +28,5 @@ sl_apache_group  users
 
 sl_servername  app
 
-sl_http_port  9000
+sl_http_port  7777
 sl_css_uri  http://www.redhotpenguin.com/css/sl.css
