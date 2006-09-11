@@ -19,29 +19,13 @@ our $whitelist;
 BEGIN {
     require Regexp::Assemble;
     require Perl6::Slurp;
-	#require SL::Config;
-
-	# FIXME
-	# http://perl.apache.org/docs/2.0/user/config/custom.html#C_SERVER_CREATE_
-	my $data_root = $ENV{SL_ROOT} . '/data';
-	
-    ## Whitelist
-    my @whitelists =
-      split("\n", Perl6::Slurp::slurp($data_root . '/whitelist.txt'));
-    die unless @whitelists;
-    $whitelist = Regexp::Assemble->new;
-    $whitelist->add(@whitelists);
-    print STDERR "Regex for whitelist domains is ", $whitelist->re, "\n\n";
 
     #####################
     ## Blacklisting
-    my @blacklists =
-      split("\n", Perl6::Slurp::slurp($data_root . '/blacklist.txt'));
-    $blacklist_regex = Regexp::Assemble->new;
-    $blacklist_regex->add(@blacklists);
-    print STDERR "Regex for blacklist_urls: ", $blacklist_regex->re, "\n\n";
+	require SL::Model::URL;
+	$blacklist_regex = SL::Model::URL->blacklist_regex;
 
-    ## Extension based matching
+	## Extension based matching
     my @extensions = qw(
       ad bz2 css doc exe fla gif gz ico jpeg jpg js pdf png ppt rar sit
       rss tgz txt wmv vob xpi zip );
