@@ -36,7 +36,7 @@ BEGIN {
     sub refresh_ads {
 
         # Load all the ads into a shared global
-        my $dbh = SL::Model->db_Main();
+        my $dbh = SL::Model->connect;
         my $sql = <<SQL;
 SELECT
 ad.ad_id, 
@@ -57,14 +57,20 @@ SQL
         my $rv  = $sth->execute;
         die unless $rv;
 
+		my %ad_groups;
         while (my $ad_data = $sth->fetchrow_hashref) {
             require Data::Dumper;
             my $ad = __PACKAGE__->new($ad_data);
             print STDERR "Ad: " . Data::Dumper::Dumper($ad);
-            $cache->set($ad->{ad_id} => $ad);
+            push  @{$ad_groups{$ad->{group_name}}}, $ad;
         }
 		$sth->finish;
         $dbh->commit;
+		
+		# cache the ad_groups
+		foreach my $ad_group ( keys %ad_groups) {
+			$cache->set($ad_group => $ad_groups{$ad_group});
+		}
 
         sub new {
             my ($class, $ad_data) = @_;
@@ -173,10 +179,10 @@ sub stacked {
 }
 
 sub random {
-    my $class = shift;
-    my @cache_keys = $cache->get_keys();
-	my $index = int(rand(scalar(@cache_keys)));
-    return $cache->get($cache_keys[$index]);
+    my ($class, $ad_group) = @_;
+	my $ad_group_arrayref = $cache->get($ad_group);
+	my $index = int(rand(scalar(@{$ad_group_arrayref})));
+    $ad_group_arrayref->[$index];
 }
 
 sub as_html {

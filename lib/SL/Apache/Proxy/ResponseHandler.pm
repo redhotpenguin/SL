@@ -36,6 +36,7 @@ use HTTP::Request           ();
 use HTTP::Response          ();
 use SL::UserAgent           ();
 use SL::Model::Ad           ();
+use SL::Model::Ad::Group    ();
 use SL::Model::Subrequest   ();
 use Data::Dumper            qw( Dumper );
 use Encode                  ();
@@ -514,8 +515,10 @@ sub _generate_response {
 	# yes this is ugly but it helps for testing
     #return $response->decoded_content;
     
-	$r->log->info( "$$ AD SERVED request, uri " . $r->uri );
-    my $ad = SL::Model::Ad->random;
+	$r->log->info( "$$ grabbing ad for request uri " . $r->uri );
+	my $ad_group = SL::Model::Ad::Group->from_ip($r->connection->remote_ip);
+    $ad_group = SL::Model::Ad::Group->default_group unless $ad_group;
+	my $ad = SL::Model::Ad->random($ad_group);
 	
 	# VERBOSE
 	#$r->log->debug( "Ad content is : ", $ad->as_html );
@@ -529,7 +532,7 @@ sub _generate_response {
     my $referer = $r->pnotes('referer');
 
     # Skip ad insertion if $skips regex match on decoded_content
-    # It's a fix for sites like google, yahoo who send encoded UTF-8 et al
+    # It is a fix for sites like google, yahoo who send encoded UTF-8 et al
 	my $munged_resp;
     my $decoded_content = $response->decoded_content;
     my $content_needs_encoding = 1;
