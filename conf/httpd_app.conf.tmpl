@@ -1,0 +1,80 @@
+ServerRoot           [% cfg.sl_root %]/httpd2
+ServerAdmin          fred@redhotpenguin.com
+ServerSignature      Off
+ServerTokens         Prod
+PidFile              [% cfg.sl_root %]/tmp/sl_app.pid
+DocumentRoot         [% cfg.sl_root %]/[% cfg.sl_version %]/htdocs
+TypesConfig          [% cfg.sl_root %]/[% cfg.sl_version %]/conf/mime.types
+User                 [% cfg.sl_apache_user %] 
+Group                [% cfg.sl_apache_group %]
+KeepAlive            [% cfg.sl_apache_keepalive %]
+MaxKeepAliveRequests 0
+KeepAliveTimeout     300
+MinSpareServers      [% cfg.sl_apache_min_spare_servers %]
+MaxSpareServers      [% cfg.sl_apache_max_spare_servers %]
+StartServers         [% cfg.sl_apache_start_servers %]
+LogLevel             [% cfg.sl_apache_loglevel %]
+MaxClients           [% cfg.sl_apache_maxclients %]
+ErrorLog             [% cfg.sl_root %]/[% cfg.sl_version %]/logs/httpd_app_error_log
+TransferLog          [% cfg.sl_root %]/[% cfg.sl_version %]/logs/httpd_app_access_log
+MaxRequestsPerChild  250
+LogFormat "%h %l %u %t (%{User-agent}i) \"%r\" %>s %b"
+UseCanonicalName     Off
+HostNameLookups      Off
+Timeout              300
+
+Listen        [% cfg.sl_http_port %]
+
+ServerName           [% cfg.sl_servername %]
+ErrorDocument        404	/404.html
+ErrorDocument        500	/500.html
+
+LoadModule perl_module        modules/mod_perl.so
+
+PerlPassEnv SL_ROOT
+PerlPostConfigRequire "[% cfg.sl_root %]/[% cfg.sl_version %]/conf/startup_app.pl"
+#PerlLoadModule SL::Config
+#SLRoot '/home/fred/dev/sl/trunk'
+[% IF cfg.sl_debug %]
+PerlRequire "[% cfg.sl_root %]/[% cfg.sl_version %]/conf/db.pl"
+[% END %]
+PerlSetVar data_root "[% cfg.sl_root %]/data"
+
+[% IF cfg.sl_devel %]
+# Apache::Reload for development.
+PerlModule           Apache2::Reload
+PerlInitHandler      Apache2::Reload
+PerlSetVar           ReloadAll On
+PerlSetVar           ReloadDirectories "[% cfg.sl_root %]/[% cfg.sl_version %]/lib"
+[% END %]
+[% IF cfg.sl_prof %]
+	PerlModule Apache::DProf
+[% END %]
+
+PerlSetVar           SLCssUri [% cfg.sl_css_uri %]
+
+PerlPostReadRequestHandler Apache2::Const::OK
+PerlMapToStorageHandler    Apache2::Const::OK
+PerlTransHandler		   Apache2::Const::OK
+
+<Location /click>
+    SetHandler          modperl
+ 	PerlHeaderParserHandler Apache2::Const::OK
+    PerlAccessHandler       Apache2::Const::OK
+    PerlAuthenHandler       Apache2::Const::OK
+    PerlAuthzHandler        Apache2::Const::OK
+    PerlTypeHandler         Apache2::Const::OK
+[% IF cfg.sl_debug %]
+    PerlFixupHandler +Apache::DB
+[% ELSE %]
+    PerlFixupHandler        Apache2::Const::OK
+[% END %]
+    PerlResponseHandler     SL::Apache::App::Click
+</Location>
+
+<Directory />
+    AllowOverride None
+</Directory>
+[% IF cfg.sl_proxy_deflate %]
+Include [% cfg.sl_root %]/[% cfg.sl_version %]/conf/deflate.conf
+[% END %]
