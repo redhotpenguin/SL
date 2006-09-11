@@ -40,11 +40,11 @@ BEGIN {
         my $sql = <<SQL;
 SELECT
 ad.ad_id, 
-ad.name, 
+ad.name AS ad_name,
 link.md5, 
 link.uri,
 ad.template, 
-ad_group.name
+ad_group.name AS ad_group_name
 FROM ad 
 INNER JOIN link 
 USING (ad_id)
@@ -85,7 +85,7 @@ SQL
             }
             else {
                 $tmpl_vars{'ad_link'} = CLICKSERVER_URL . $ad_data->{'md5'};
-                $tmpl_vars{'ad_text'} = $ad_data->{'name'};
+                $tmpl_vars{'ad_text'} = $ad_data->{'ad_name'};
             }
 
             my $output = '';
@@ -94,7 +94,7 @@ SQL
               || die $template->error(), "\n";
             $self->{'ad_id'} = $ad_data->{'ad_id'};
             $self->{'_html'} = $output;
-			$self->{'group_name'} = $ad_data->{'group_name'};
+			$self->{'group_name'} = $ad_data->{'ad_group_name'};
 
             bless $self, $class;
 

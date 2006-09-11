@@ -556,7 +556,7 @@ sub _generate_response {
             $r->log->debug("Using container method for ad insertion");
             $munged_resp =
               SL::Model::Ad::container($r->dir_config('SLCssUri'),
-                                       $decoded_content, $ad);
+                                       $decoded_content, $ad->as_html);
         }
         else {
             return $response->content;
