@@ -17,13 +17,18 @@ my $db_options = {
                   ChopBlanks         => 1,
 			  };
 
+# DBI connect 
 sub connect_params {
     my $self = shift;
+ 	return [ $self->dsn, $cfg->sl_db_user, $cfg->sl_db_pass, $db_options ];
+}
 
+# dsn
+sub dsn {
+	my $self = shift;
     my $db   = $cfg->sl_db_name;
     my $host = $cfg->sl_db_host;
-    my $dsn  = "dbi:Pg:dbname='$db';host=$host";
-    return [$dsn, $cfg->sl_db_user, $cfg->sl_db_pass, $db_options];
+    return "dbi:Pg:dbname='$db';host=$host";
 }
 
 sub connect {

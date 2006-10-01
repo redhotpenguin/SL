@@ -4,7 +4,7 @@ CREATE TABLE ad (
     name character varying(256),
     "template" character varying(32),
     active boolean DEFAULT false,
-    ad_group_id integer NOT NULL default 1,
+    ad_group_id integer NOT NULL default 1
 );
 
 ALTER TABLE ONLY ad

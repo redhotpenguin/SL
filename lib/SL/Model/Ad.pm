@@ -40,7 +40,7 @@ BEGIN {
         my $sql = <<SQL;
 SELECT
 ad.ad_id, 
-ad.name AS ad_name,
+ad.text AS ad_text,
 link.md5, 
 link.uri,
 ad.template, 
@@ -91,7 +91,7 @@ SQL
             }
             else {
                 $tmpl_vars{'ad_link'} = CLICKSERVER_URL . $ad_data->{'md5'};
-                $tmpl_vars{'ad_text'} = $ad_data->{'ad_name'};
+                $tmpl_vars{'ad_text'} = $ad_data->{'ad_text'};
             }
 
             my $output = '';

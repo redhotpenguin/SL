@@ -9,7 +9,8 @@ WriteMakefile(
               PREREQ_PM => {
                             'Apache::DBI'          => 0.9901,
                             'Cache::FastMmap'      => 1.09,
-                            'Config::ApacheFormat' => 1.2,
+							'Class::DBI::Pg'       => 0.09,
+							'Config::ApacheFormat' => 1.2,
                             'DBI'                  => 1.50,
                             'DBD::Pg'              => 1.48,
                             'Text::Template'       => 1.44,

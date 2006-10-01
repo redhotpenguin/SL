@@ -57,6 +57,33 @@ PerlPostReadRequestHandler Apache2::Const::OK
 PerlMapToStorageHandler    Apache2::Const::OK
 PerlTransHandler		   Apache2::Const::OK
 
+PerlLoadModule Apache2::dispatch
+
+## the public facing page
+#<Location />
+#	SetHandler modperl
+#	PerlResponseHandler SL::Apache::App::Root
+#</Location>
+
+## the user application, need to be logged in
+<Location  /app/ad>
+	SetHandler modperl
+#	PerlAuthenHandler	SL::Apache::App::Authen
+#	require valid-user
+	
+	DispatchPrefix SL::Apache::App::Ad
+	DispatchRequire On
+	DispatchUpperCase On
+	PerlResponseHandler Apache2::Dispatch
+</Location>
+
+## registration
+<Location /reg>
+	SetHandler modperl
+	PerlResponseHandler SL::Apache::App::reg
+</Location>
+
+## handle click requests
 <Location /click>
     SetHandler          modperl
  	PerlHeaderParserHandler Apache2::Const::OK

@@ -1,0 +1,23 @@
+[% INCLUDE header.tmpl %]
+<h1>All ads currently in rotation</h1>
+<hr>
+<p><a href="/app/ad/add">Add a new ad</a></p>
+<hr>
+<table border=1>
+<tr>
+<td>Ad Id</td><td>Name</td><td>Text</td><td>Template</td>
+<td>Active</td><td>Ad Group</td>
+</tr>
+[% FOREACH ad = ads %]
+<tr>
+<td><a href="/app/ad/edit/?ad_id=[% ad.ad_id %]">[% ad.ad_id %]</a></td>
+<td>[% ad.name %]</td>
+<td>[% ad.text %]</td>
+<td>[% ad.template %]</td>
+<td>[% IF ad.active %]Active[% ELSE %]Not Active[% END %]</td>
+<td>[% ad.ad_group_id.name %]</td>
+</tr>
+[% END %]
+</table>
+<hr>
+[% INCLUDE footer.tmpl %]
