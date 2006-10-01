@@ -46,7 +46,7 @@ use HTTP::Request                    ();
 use HTTP::Response                   ();
 use SL::Model                        ();
 use SL::Model::Ad                    ();
-use SL::Model::Ad::Grou              ();
+use SL::Model::Ad::Group             ();
 use SL::Model::Subrequest            ();
 use SL::Model::URL                   ();
 use SL::Apache::Proxy::AccessHandler   ();
