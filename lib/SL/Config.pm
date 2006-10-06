@@ -35,7 +35,6 @@ sub new {
 
 	return $config if $config;
 	unless ($config_files_ref or $config) {
-$DB::single = 1;
 		$config_files_ref = [ $ENV{SL_ROOT} . '/conf/sl.proxy.conf' ];
 		die unless $config_files_ref;
 	}
@@ -66,6 +65,11 @@ Returns an array reference
 sub sl_db_params {
 	my $self = shift;
 
+}
+
+sub tmpl_root {
+	my $self = shift;
+	return $self->sl_root . '/' . $self->sl_version . '/tmpl';
 }
 
 1;
