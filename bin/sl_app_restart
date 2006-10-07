@@ -1,0 +1,2 @@
+SL_APP_PID=$HOME/dev/sl/trunk
+kill cat `$SL_APP_PID` && perl bin/sl_app
