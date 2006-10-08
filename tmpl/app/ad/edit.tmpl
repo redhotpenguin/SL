@@ -1,9 +1,23 @@
-[% INCLUDE header %]
+[% INCLUDE header.tmpl %]
 
 <p>Here's the ad info</p>
 
-<p>Name: [% ad.short_name %]</p>
-<p>Text: [% ad.name %]</p>
+<form method="POST" action="/app/ad/edit/?ad_id=[% ad.ad_id %]">
+<p>Name:  <input type="text" name="name" value="[% ad.name %]"></p>
+<p>Text:  <input type="text" name="text" value="[% ad.text %]"></p>
+<p>Template name:  [% ad.template %]</p>
+<p>Active: <select name="active">
+<option [% IF ad.active == 1 %] SELECTED [% END %] value="1">Active</option>
+<option [% IF ad.active == 0 %] SELECTED [% END %] value="0">Inactive</option>
+</select>
+</p>
+<p>Ad Group:  <select name="ad_group">
+[% FOREACH ad_group = ad_groups %]
+<option [% IF ad.ad_group_id.ad_group_id == ad_group.ad_group_id %] SELECTED 
+[% END %] value="[% ad_group.name %]">[% ad_group.name %]</option>
+[% END %]
+</select>
+<p><input type="submit" value="Save"></p>
+</form>
 
-
-[% INCLUDE footer %]
+[% INCLUDE footer.tmpl %]
