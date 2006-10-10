@@ -45,7 +45,7 @@ PerlSetVar data_root "[% cfg.sl_root %]/data"
 PerlModule           Apache2::Reload
 PerlInitHandler      Apache2::Reload
 PerlSetVar           ReloadAll On
-PerlSetVar           ReloadDirectories "[% cfg.sl_root %]/[% cfg.sl_version %]/lib"
+PerlSetVar ReloadModules "SL::* Apache2::* ModPerl::*"
 [% END %]
 [% IF cfg.sl_prof %]
 	PerlModule Apache::DProf
