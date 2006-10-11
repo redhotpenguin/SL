@@ -54,8 +54,10 @@ PerlSetVar ReloadModules "SL::* Apache2::* ModPerl::*"
 PerlSetVar           SLCssUri [% cfg.sl_css_uri %]
 
 PerlPostReadRequestHandler Apache2::Const::OK
-PerlMapToStorageHandler    Apache2::Const::OK
-PerlTransHandler		   Apache2::Const::OK
+
+# turning these on screws up the css serving
+#PerlMapToStorageHandler    Apache2::Const::OK
+#PerlTransHandler		   Apache2::Const::OK
 
 PerlLoadModule Apache2::dispatch
 
@@ -64,6 +66,10 @@ PerlLoadModule Apache2::dispatch
 #	SetHandler modperl
 #	PerlResponseHandler SL::Apache::App::Root
 #</Location>
+
+<Location /css>
+    SetHandler default-handler
+</Location>
 
 ## the user application, need to be logged in
 <Location  /app/ad>

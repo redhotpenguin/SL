@@ -82,6 +82,7 @@ sub dispatch_edit {
 		}
 		$ad->update;
 		$r->internal_redirect('/app/ad');
+		return Apache2::Const::OK;
 	}
 }
 

@@ -1,0 +1,48 @@
+
+body {
+	font-family:  'Trebuchet MS', Verdana, sans-serif;
+	background-color:  #E5E5E5;
+}
+
+p.breadcrumb {
+	font-style:  italic;
+	font-size:  12px;
+	text-align:  left;
+}
+
+p {
+	font-size:  16px;
+	font-weight:  bold;
+}
+
+#container {
+	text-align:  center;
+	width:  500px;
+	position:  relative;
+	left:  50px;
+}
+
+#edit_form {
+	text-align:  left;
+	position:  relative;
+	left: 30%;
+}
+
+table.list {
+	border:  1px solid;
+	}
+
+tr.list_header {
+	font-color:  blue;
+	font-style:  italic;
+	font-weight:  bold;
+	background-color:  #FFFFCC;
+}
+
+tr.lite {
+	background-color:  #CCFFFF;
+}
+
+tr.dark {
+	background-color:  #CCFFCC;
+}
