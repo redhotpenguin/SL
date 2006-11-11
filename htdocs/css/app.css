@@ -1,18 +1,30 @@
-
 body {
 	font-family:  'Trebuchet MS', Verdana, sans-serif;
 	background-color:  #E5E5E5;
+	font-size: 14px;
 }
+
+A:link {	text-decoration: 	none; 
+			color: 				blue
+		}
+A:visited {	text-decoration: 	none; 
+			color: 				blue
+		}
+A:active {	text-decoration: 	none; 
+			color: 				blue
+		}
+A:hover {	text-decoration: 	underline; 
+			color: 				red
+		}
 
 p.breadcrumb {
 	font-style:  italic;
 	font-size:  12px;
-	text-align:  left;
 }
 
 p {
-	font-size:  16px;
 	font-weight:  bold;
+	text-align:  left;
 }
 
 #container {
@@ -25,24 +37,35 @@ p {
 #edit_form {
 	text-align:  left;
 	position:  relative;
-	left: 30%;
+}
+
+table.edit {
+	border:  1px solid;
+	border-padding: 2;
+	border-spacing: 3;
+	padding: 2px;
 }
 
 table.list {
 	border:  1px solid;
+	border-padding: 2;
+	border-spacing: 3;
 	}
 
 tr.list_header {
 	font-color:  blue;
 	font-style:  italic;
 	font-weight:  bold;
-	background-color:  #FFFFCC;
+	background-color:  #86c286;
 }
 
 tr.lite {
-	background-color:  #CCFFFF;
+	background-color:  #ffffff;
 }
 
 tr.dark {
-	background-color:  #CCFFCC;
+	background-color:  #cccccc;
 }
+
+td { font-size: 14px; padding: 2px }
+

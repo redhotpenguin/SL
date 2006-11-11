@@ -19,7 +19,8 @@ SET default_with_oids = false;
 CREATE TABLE reg (
     reg_id serial NOT NULL,
     ip inet NOT NULL,
-    email character varying(64) NOT NULL,
+    password_md5 character varying(32),
+	email character varying(64) NOT NULL,
     zipcode character varying(10) NOT NULL,
     serial_number character(12) NOT NULL,
     macaddr macaddr NOT NULL,

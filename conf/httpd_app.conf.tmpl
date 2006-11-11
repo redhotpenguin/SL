@@ -29,6 +29,7 @@ ServerName           [% cfg.sl_servername %]
 ErrorDocument        404	/404.html
 ErrorDocument        500	/500.html
 
+LoadModule apreq_module        modules/mod_apreq2.so
 LoadModule perl_module        modules/mod_perl.so
 
 PerlPassEnv SL_ROOT
@@ -59,7 +60,7 @@ PerlPostReadRequestHandler Apache2::Const::OK
 #PerlMapToStorageHandler    Apache2::Const::OK
 #PerlTransHandler		   Apache2::Const::OK
 
-PerlLoadModule Apache2::dispatch
+PerlLoadModule Apache2::Dispatch
 
 ## the public facing page
 #<Location />
@@ -71,13 +72,22 @@ PerlLoadModule Apache2::dispatch
     SetHandler default-handler
 </Location>
 
-## the user application, need to be logged in
-<Location  /app/ad>
+<Location /app/login>
+	AuthType SL::Apache::App::AuthCookie
+	AuthName SL
 	SetHandler modperl
-#	PerlAuthenHandler	SL::Apache::App::Authen
+	PerlResponseHandler SL::Apache::App::AuthCookie->login
+</Location>
+
+## the user application, need to be logged in
+<Location  /app>
+#	AuthType SL::Apache::App::AuthCookie
+#	AuthName SL
+	SetHandler modperl
+#	PerlAuthenHandler	SL::Apache::App::CookieAuth
 #	require valid-user
 	
-	DispatchPrefix SL::Apache::App::Ad
+	DispatchPrefix SL::Apache::App
 	DispatchRequire On
 	DispatchUpperCase On
 	PerlResponseHandler Apache2::Dispatch

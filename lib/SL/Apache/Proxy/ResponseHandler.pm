@@ -330,7 +330,8 @@ sub twohundred {
                                            base_url    => $url);
 
         # put the ad in the response
-        $response_content = _generate_response($r, $response);
+        my $response_content_ref = _generate_response($r, $response);
+		$response_content = $$response_content_ref;
     }
     else {
 
@@ -518,11 +519,11 @@ sub _generate_response {
 	$r->log->info( "$$ grabbing ad for request uri " . $r->uri );
 	my $ad_group = SL::Model::Ad::Group->from_ip($r->connection->remote_ip);
     $ad_group = SL::Model::Ad::Group->default_group unless $ad_group;
-	my $ad = SL::Model::Ad->random($ad_group);
+	my $ad_ref = SL::Model::Ad->random($ad_group);
 	
 	# VERBOSE
-	#$r->log->debug( "Ad content is : ", $ad->as_html );
-    unless ($ad) {
+	$r->log->debug( "Ad content is \n$$ad_ref\n");
+    unless ($ad_ref) {
         $r->log->error("$$ Hmm, we didn't get an ad");
         return $response->content;
     }
@@ -547,53 +548,45 @@ sub _generate_response {
 	}
    	
 	if ($decoded_content =~ m/$skips/ims) {
-        $r->log->info("Skipping ad insertaion from skips regex");
+        $r->log->info("Skipping ad insertion from skips regex");
         return $response->content;
     }
-    elsif ($r->dir_config("SLMethod") eq 'Stacked') {
-        $r->log->debug("Using stacked method for ad insertion");
-        $munged_resp = SL::Model::Ad::stacked($decoded_content, $ad);
-    }
-    elsif ($r->dir_config("SLMethod") eq 'Container') {
-        if ($r->dir_config("SLMethod") eq 'Container') {
-            $r->log->debug("Using container method for ad insertion");
-            $munged_resp =
+    else {
+        $r->log->debug("Using container method for ad insertion");
+        $munged_resp =
               SL::Model::Ad::container($r->dir_config('SLCssUri'),
-                                       $decoded_content, $ad->as_html);
-        }
-        else {
-            return $response->content;
-        }
+                                       \$decoded_content, $ad_ref);
     }
 
     # Check to see if the ad is inserted
-    unless (grep($ad, $munged_resp)) {
+    unless (grep($$ad_ref, $$munged_resp)) {
         $r->log->error("$$ Ad insertion failed! try_container is ",
                        $try_container, "; response is ",
                        Dumper($response));
-        $r->log->error("$$ Munged response $munged_resp, ad $ad");
+        $r->log->error("$$ Munged response $$munged_resp, ad $$ad_ref");
         return $response->content;
     }
 
     # We've made it this far so we're looking good
     $r->log->info("$$ Ad inserted for url $url; try_container: ",
                   $try_container, "; referer : $referer; ua : $ua;");
-			  #$r->log->debug("Munged response is \n $munged_resp");
+			  #$r->log->debug("Munged response is \n $$munged_resp");
 		
     my $ip;
 	unless (($ip) = $r->args =~ /ip=(\d+\.\d+\.\d+\.\d+)/g) {
     	$ip = '0.0.0.0';
     }
 
+	# FIXME - move to cleanup handler
 	# Log the ad view
-	my $ok = SL::Model::Ad->log_view($ip, $ad);
+	my $ok = SL::Model::Ad->log_view($ip, $ad_ref);
   
 	unless ( $ok ) {
         $r->log->error(
-            "$$ Error logging view for ad " . $ad->{'ad_id'} );
+            "$$ Error logging view for ad " . $ad_ref->{'ad_id'} );
     }
     else {
-        $r->log->debug( "$$ logging view for ad " . $ad->{'ad_id'} );
+        $r->log->debug( "$$ logging view for ad " . $ad_ref->{'ad_id'} );
     }
 
     # re-encode content if needed

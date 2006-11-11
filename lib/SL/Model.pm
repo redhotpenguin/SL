@@ -11,7 +11,7 @@ our $cfg = SL::Config->new;
 my $db_options = {
                   RaiseError         => 1,
                   PrintError         => 1,
-                  AutoCommit         => 0,
+                  AutoCommit         => 1,
                   FetchHashKeyName   => 'NAME_lc',
                   ShowErrorStatement => 1,
                   ChopBlanks         => 1,
@@ -48,12 +48,12 @@ sub db_Main {
     __PACKAGE__->connect();
 }
 
-sub dbi_commit {
+sub commit {
     my $self = shift;
     $self->connect->commit();
 }
 
-sub dbi_rollback {
+sub rollback {
     my $self = shift;
     $self->connect->rollback();
 }

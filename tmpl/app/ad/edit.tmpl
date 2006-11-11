@@ -2,30 +2,39 @@
 
 <div id="container">
 
-<p class="breadcrumb"><a href="/app">Home</a> => <a href="/app/ad">Ads</a> => 
+<p class="breadcrumb"><a href="/app">Home</a> > <a href="/app/ad/list">Ads</a> > 
 	[% IF ad.ad_id == -1 %]Add[% ELSIF ad.ad_id != -1 %]Edit[% END %]</p>
 <div id="edit_form">
-[% IF ad.ad_id == -1 %]
+
+<table class="edit">
+
+<tr><td colspan=2>
+	[% IF ad.ad_id != -1 %]
+	<p>YOU ARE EDITING AD ID '[% ad.ad_id %]'</p>
+[% ELSIF ad.ad_id == -1 %]
 <p>You are adding an ad to the system</p>
-[% ELSIF ad.ad_id != -1 %]
-<p>You are editing ad id [% ad.ad_id %]</p>
 [% END %]
+<hr size=1 color="#666666"></td>
+
 <form method="POST" action="/app/ad/edit/?ad_id=[% ad.ad_id %]">
-<p>Name:&nbsp;<input type="text" name="name" size="15" maxlength="15" value="[% ad.name %]"></p>
-<p>Text:&nbsp;&nbsp;&nbsp;<input type="text" size="25" maxlength="25" value="[% ad.text %]"></p>
-<p>Template name:&nbsp;&nbsp;<input type="text" name="template" size="15" maxlength="15" value="[% ad.template %]"></p>
-<p>Active:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<select name="active">
+<tr><td>Name:</td><td><input type="text" name="name" size="15" maxlength="15" value="[% ad.name %]"></td></tr>
+
+
+<tr><td>Text:</td><td><input type="text" name="text" size="25" maxlength="25" value="[% ad.text %]"></td></tr>
+<tr><td>Template:</td><td><input type="text" name="template" size="15" maxlength="15" value="[% ad.template %]"></td></tr>
+<tr><td>Active:</td><td><select name="active">
 <option [% IF ad.active == 1 %] SELECTED [% END %] value="1">Active</option>
 <option [% IF ad.active == 0 %] SELECTED [% END %] value="0">Inactive</option>
 </select>
-</p>
-<p>Ad Group:&nbsp;<select name="ad_group_id">
+</td></tr>
+<tr><td>Ad Group:</td><td><select name="ad_group_id">
 [% FOREACH ad_group = ad_groups %]
 <option [% IF ad.ad_group_id.ad_group_id == ad_group.ad_group_id %] SELECTED 
 [% END %] value="[% ad_group.ad_group_id %]">[% ad_group.name %]</option>
 [% END %]
 </select>
-<p><input type="submit" value="Save"></p>
+</td></tr>
+<tr><td><input type="submit" value="Save"></td></tr>
 </form>
 </div>
 </div>

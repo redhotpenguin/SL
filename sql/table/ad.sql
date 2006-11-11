@@ -3,7 +3,8 @@ CREATE TABLE ad (
     ad_id serial NOT NULL,
     name character varying(256),
     "template" character varying(32),
-    active boolean DEFAULT false,
+	text character varying(256),
+	active boolean DEFAULT false,
     ad_group_id integer NOT NULL default 1
 );
 
