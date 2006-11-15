@@ -72,12 +72,12 @@ PerlLoadModule Apache2::Dispatch
     SetHandler default-handler
 </Location>
 
-<Location /app/login>
-	AuthType SL::Apache::App::AuthCookie
-	AuthName SL
-	SetHandler modperl
-	PerlResponseHandler SL::Apache::App::AuthCookie->login
-</Location>
+#<Location /app/login>
+#	AuthType SL::Apache::App::AuthCookie
+#	AuthName SL
+#	SetHandler modperl
+#	PerlResponseHandler SL::Apache::App::AuthCookie->login
+#</Location>
 
 ## the user application, need to be logged in
 <Location  /app>

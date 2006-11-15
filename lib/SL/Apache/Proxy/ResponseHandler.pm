@@ -330,9 +330,8 @@ sub twohundred {
                                            base_url    => $url);
 
         # put the ad in the response
-        my $response_content_ref = _generate_response($r, $response);
-		$response_content = $$response_content_ref;
-    }
+        $response_content = _generate_response($r, $response);
+	}
     else {
 
         # this is not html
@@ -519,11 +518,11 @@ sub _generate_response {
 	$r->log->info( "$$ grabbing ad for request uri " . $r->uri );
 	my $ad_group = SL::Model::Ad::Group->from_ip($r->connection->remote_ip);
     $ad_group = SL::Model::Ad::Group->default_group unless $ad_group;
-	my $ad_ref = SL::Model::Ad->random($ad_group);
+	my ($ad_id, $ad_content_ref) = SL::Model::Ad->random($ad_group);
 	
 	# VERBOSE
-	$r->log->debug( "Ad content is \n$$ad_ref\n");
-    unless ($ad_ref) {
+	$r->log->debug( "Ad content is \n$$ad_content_ref\n");
+    unless ($ad_content_ref) {
         $r->log->error("$$ Hmm, we didn't get an ad");
         return $response->content;
     }
@@ -555,15 +554,15 @@ sub _generate_response {
         $r->log->debug("Using container method for ad insertion");
         $munged_resp =
               SL::Model::Ad::container($r->dir_config('SLCssUri'),
-                                       \$decoded_content, $ad_ref);
+                                       $decoded_content, $ad_content_ref);
     }
 
     # Check to see if the ad is inserted
-    unless (grep($$ad_ref, $$munged_resp)) {
+    unless (grep($$ad_content_ref, $munged_resp)) {
         $r->log->error("$$ Ad insertion failed! try_container is ",
                        $try_container, "; response is ",
                        Dumper($response));
-        $r->log->error("$$ Munged response $$munged_resp, ad $$ad_ref");
+        $r->log->error("$$ Munged response $munged_resp, ad $$ad_content_ref");
         return $response->content;
     }
 
@@ -579,14 +578,14 @@ sub _generate_response {
 
 	# FIXME - move to cleanup handler
 	# Log the ad view
-	my $ok = SL::Model::Ad->log_view($ip, $ad_ref);
+	my $ok = SL::Model::Ad->log_view($ip, $ad_id);
   
 	unless ( $ok ) {
         $r->log->error(
-            "$$ Error logging view for ad " . $ad_ref->{'ad_id'} );
+            "$$ Error logging view for ad id $ad_id");
     }
     else {
-        $r->log->debug( "$$ logging view for ad " . $ad_ref->{'ad_id'} );
+        $r->log->debug( "$$ logging view for ad id $ad_id" );
     }
 
     # re-encode content if needed

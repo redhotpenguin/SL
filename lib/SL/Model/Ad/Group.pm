@@ -14,7 +14,7 @@ sub from_ip {
     my $ip    = shift;
     my $dbh   = $class->connect;
     my $sql   = <<SQL;
-SELECT ad_group.name
+SELECT ad_group.ad_group_id
 FROM ad_group
 INNER JOIN reg_ad_group USING (ad_group_id)
 INNER JOIN reg USING (reg_id)
@@ -35,7 +35,7 @@ BEGIN {
         return $default_group if $default_group;
         my $dbh = $class->connect;
         my $sql = <<SQL;
-SELECT ad_group.name
+SELECT ad_group.ad_group_id
 FROM ad_group
 WHERE ad_group_id = ?
 SQL

@@ -46,7 +46,7 @@ use Apache2::SubRequest              ();
 use APR::Table                       ();
 use SL::Apache::App::Click           ();
 #use SL::Apache::App::Reg			 ();
-use SL::Apache::App::AuthCookie      ();
+#use SL::Apache::App::AuthCookie      ();
 use SL::Apache::App::Logon			 ();
 use SL::Model                        ();
 use SL::Model::Ad                    ();

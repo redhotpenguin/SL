@@ -62,7 +62,7 @@ sub container {
     my $container = qq{</div><div id="sl_ctr">};
     my $tail      = qq{</div>};
     $decoded_content =~ s{^(.*?)<body([^>]*?)>(.*?)</body>(.*)$}
-                         {$1<body$2>$top$ad$container$3$tail</body>$4}ismx;
+                         {$1<body$2>$top$$ad$container$3$tail</body>$4}ismx;
 
     return $decoded_content;
 }
@@ -108,7 +108,7 @@ sub stacked {
 }
 
 sub random {
-    my ( $class, $ad_group ) = @_;
+    my ( $class, $ad_group_id ) = @_;
 
     my $sql = <<SQL;
 SELECT
@@ -128,9 +128,9 @@ LIMIT 1
 SQL
     my $dbh = SL::Model->connect();
     my $sth = $dbh->prepare($sql);
-    $sth->bind_param( 1, $ad_group->ad_group_id );
+	$sth->bind_param( 1, $ad_group_id );
     my $rv = $sth->execute;
-    die "Problem executing query: $sql";
+    die "Problem executing query: $sql" unless $rv;
 
     my $ad_data = $sth->fetchrow_hashref;
     $sth->finish;
@@ -145,19 +145,20 @@ SQL
         $tmpl_vars{'ad_text'} = $ad_data->{'text'};
     }
 
+	my $output;
     $template->process( $ad_data->{'template'} . '.tmpl',
-        {%tmpl_vars, %sl_ad_data}, \my $output )
+        {%tmpl_vars, %sl_ad_data}, \$output )
       || die $template->error(), "\n";
 
-	return $output;
+	return ($ad_data->{'ad_id'}, \$output);
 }
 
 sub log_view {
-    my ( $class, $ip, $ad ) = @_;
+    my ( $class, $ip, $ad_id ) = @_;
 
     my $dbh = SL::Model->db_Main();
     my $sth = $dbh->prepare($log_view_sql);
-    $sth->bind_param( 1, $ad->{'ad_id'} );
+    $sth->bind_param( 1, $ad_id);
     $sth->bind_param( 2, $ip );
     my $rv = $sth->execute;
     $sth->finish;
