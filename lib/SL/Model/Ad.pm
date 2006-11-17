@@ -156,6 +156,7 @@ SQL
 sub log_view {
     my ( $class, $ip, $ad_id ) = @_;
 
+	print STDERR "Logging view for ip $ip, ad_id $ad_id\n";
     my $dbh = SL::Model->db_Main();
     my $sth = $dbh->prepare($log_view_sql);
     $sth->bind_param( 1, $ad_id);

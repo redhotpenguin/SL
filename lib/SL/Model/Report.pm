@@ -87,7 +87,7 @@ sub run_query {
 
 sub views {
 	my ($class, $start, $end) = @_;
-	return $class->run_query($ip_views, $start, $end);
+	return $class->run_query($view_sql, $start, $end);
 }
 
 sub links {

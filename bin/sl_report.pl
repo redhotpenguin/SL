@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use lib '../lib';
 use DateTime;
-use SL::CS::Model::Report;
+use SL::Model::Report;
 use Mail::Mailer;
 
 my $ADMIN = 'info@redhotpenguin.com';
@@ -16,8 +16,8 @@ my $end = DateTime->now;
 my %results;
 foreach my $day ( @DAYS ) {
     my $end = DateTime->now->subtract( days => $day );
-    $results{$day}{views} = SL::CS::Model::Report->views($end, $start);
-    $results{$day}{clicks} = SL::CS::Model::Report->links($end, $start);
+    $results{$day}{views} = SL::Model::Report->views($end, $start);
+    $results{$day}{clicks} = SL::Model::Report->links($end, $start);
 }
 
 # Generate the email

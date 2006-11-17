@@ -571,14 +571,9 @@ sub _generate_response {
                   $try_container, "; referer : $referer; ua : $ua;");
 			  #$r->log->debug("Munged response is \n $$munged_resp");
 		
-    my $ip;
-	unless (($ip) = $r->args =~ /ip=(\d+\.\d+\.\d+\.\d+)/g) {
-    	$ip = '0.0.0.0';
-    }
-
 	# FIXME - move to cleanup handler
 	# Log the ad view
-	my $ok = SL::Model::Ad->log_view($ip, $ad_id);
+	my $ok = SL::Model::Ad->log_view($r->connection->remote_ip, $ad_id);
   
 	unless ( $ok ) {
         $r->log->error(
