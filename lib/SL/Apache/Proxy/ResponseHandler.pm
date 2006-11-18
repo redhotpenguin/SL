@@ -50,6 +50,7 @@ our %response_map = (
             302 => 'redirect',
             301 => 'redirect',
             304 => 'threeohfour',
+            307 => 'redirect',
            );
 
 =head1 AD SERVING
@@ -198,7 +199,7 @@ sub handler {
     # Dispatch the response
     my $sub = $response_map{$response->code};
 	no strict 'refs';
-	$r->log->debug("Executing sub $sub");
+	$r->log->error("Response code " . $response->code);
     return &$sub($r, $response);
 }
 
