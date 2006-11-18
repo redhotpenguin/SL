@@ -14,18 +14,21 @@
 [% ELSIF ad.ad_id == -1 %]
 <p>You are adding an ad to the system</p>
 [% END %]
-<hr size=1 color="#666666"></td>
+<hr size=1 color="#CCCCCC"></td>
 
 <form method="POST" action="/app/ad/edit/?ad_id=[% ad.ad_id %]">
-<tr><td>Name:</td><td><input type="text" name="name" size="15" maxlength="15" value="[% ad.name %]"></td></tr>
-
-
-<tr><td>Text:</td><td><input type="text" name="text" size="25" maxlength="25" value="[% ad.text %]"></td></tr>
-<tr><td>Template:</td><td><input type="text" name="template" size="15" maxlength="15" value="[% ad.template %]"></td></tr>
-<tr><td>Active:</td><td><select name="active">
-<option [% IF ad.active == 1 %] SELECTED [% END %] value="1">Active</option>
-<option [% IF ad.active == 0 %] SELECTED [% END %] value="0">Inactive</option>
-</select>
+<tr><td>Name this Ad:</td><td><input type="text" name="name" size="30" maxlength="30" value="[% ad.name %]"></td></tr>
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+<tr><td>Ad Text:</td><td><input type="text" name="text" size="50" maxlength="100" value="[% ad.text %]"></td></tr>
+<tr><td colspan=2>(100 character limit)</td></tr>
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+<tr><td>Ad Links To:</td><td><input type="text" name="link" size="50" maxlength="512" value="[% link.uri %]"></td></tr>
+<tr><td colspan=2>(example http://anywebsite.com/)</td></tr>
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+<tr><td>Active:</td><td>
+Yes<input type="radio" name="active" value="1" [% IF ad.active == 1 ||  ad.ad_id == -1 %] checked [% END %]>
+No<input type="radio" name="active" value="0" [% IF ad.active == 0 %] checked [% END %]>
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 </td></tr>
 <tr><td>Ad Group:</td><td><select name="ad_group_id">
 [% FOREACH ad_group = ad_groups %]
@@ -34,6 +37,7 @@
 [% END %]
 </select>
 </td></tr>
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 <tr><td><input type="submit" value="Save"></td></tr>
 </form>
 </div>

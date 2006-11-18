@@ -58,6 +58,9 @@ use SL::Util                         ();
 use DBI                              ();
 use DBD::Pg                          ();
 use Data::Dumper qw(Dumper);
+use Data::FormValidator              ();
+use DBIx::Class						 ();
+use DBIx::Class::Schema::Loader		 ();
 
 print STDOUT "Modules loaded, initializing database connections\n";
 

@@ -1,6 +1,6 @@
 body {
 	font-family:  'Trebuchet MS', Verdana, sans-serif;
-	background-color:  #E5E5E5;
+	background-color:  #FFFFFF;
 	font-size: 14px;
 }
 
@@ -29,7 +29,7 @@ p {
 
 #container {
 	text-align:  center;
-	width:  500px;
+	width:  800px;
 	position:  relative;
 	left:  50px;
 }

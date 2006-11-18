@@ -54,7 +54,7 @@ sub dispatch_list {
         "Template error: " . $tmpl->error() );
 }
 
-my %ad_profile = ( required => [qw( name text ad_group_id active template)], );
+my %ad_profile = ( required => [qw( link name text ad_group_id active )], );
 
 sub dispatch_report {
     my ( $self, $r ) = @_;
@@ -82,13 +82,15 @@ sub dispatch_edit {
     my $req   = Apache2::Request->new($r);
     my $ad_id = $req->param('ad_id');
 
-    my ( %tmpl_data, $ad, $output );
+    my ( %tmpl_data, $ad, $output, $link );
     if ( $ad_id > 0 ) {    # edit existing ad
                            # grab the ad
         ($ad) = SL::Model::App->resultset('Ad')->search( { ad_id => $ad_id } );
         return Apache2::Const::NOT_FOUND unless $ad;
         $tmpl_data{'ad'} = $ad;
-    }
+		($link) = SL::Model::App->resultset('Link')->search( { ad_id => $ad_id });
+		$tmpl_data{'link'} = $link;
+	}
     elsif ( $ad_id == -1 ) {
         $tmpl_data{'ad'}{'ad_id'} = $ad_id;
     }
@@ -111,12 +113,30 @@ sub dispatch_edit {
             %{ $tmpl_data{'invalid'} } = map { $_ => 1 } $results->invalid;
             my $ok = $tmpl->process( 'ad/edit.tmpl', \%tmpl_data, \$output );
         }
-        foreach my $attr qw( name text active ad_group_id template ) {
+		unless ($ad) {
+			$ad = SL::Model::App->resultset('Ad')->new({});
+			$link = SL::Model::App->resultset('Link')->new({});
+		}
+        foreach my $attr qw( name text active ad_group_id ) {
 			$r->log->debug("setting attr $attr to ", $req->param($attr));
 			$ad->$attr( $req->param($attr) );
         }
+		$ad->template('text_ad');
+		
+		if ($ad_id == -1) {
+			$ad->insert;
+		}
         $ad->update;
-        $r->internal_redirect('/app/ad/list');
+
+		if ($ad_id == -1) {
+			$link->ad_id($ad->ad_id);
+			$link->insert;
+		}
+		$link->uri($req->param('link'));
+		$link->active('t');
+		$link->update;
+
+		$r->internal_redirect('/app/ad/list');
         return Apache2::Const::OK;
     }
 }

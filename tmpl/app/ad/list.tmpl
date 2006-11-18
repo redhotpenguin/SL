@@ -2,25 +2,25 @@
 <div id="container">
 
 <p class="breadcrumb"><a href="/app">Home</a> > <a href="/app/ad/list">Ads</a></p>
+<p style="text-align: left;"><a href="/app/ad/edit/?ad_id=-1">Create a New Ad</a></p>
 <p class="list_title">All ads currently in rotation</p>
 <table class="list">
 <tr class="list_header">
-<td>AD ID</td><td>NAME</td><td>TEXT</td><td>TEMPLATE</td>
+<td>ID</td><td>NAME</td><td>TEXT</td>
 <td>ACTIVE</td><td>AD GROUP</td>
+<td>Edit</td>
 </tr>
 [% FOREACH ad = ads %]
 <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
 	
-<td>
-	<a href="/app/ad/edit/?ad_id=[% ad.ad_id %]">[% ad.ad_id %]</a></td>
-<td><a href="/app/ad/edit/?ad_id=[% ad.ad_id %]">[% ad.name %]</a></td>
+<td>[% ad.ad_id %]</a></td>
+<td>[% ad.name %]</a></td>
 <td>[% ad.text %]</td>
-<td>[% ad.template %]</td>
-<td>[% IF ad.active %]Active[% ELSE %]Not Active[% END %]</td>
+<td>[% IF ad.active %]Yes[% ELSE %]No[% END %]</td>
 <td>[% ad.ad_group_id.name %]</td>
+<td><a href="/app/ad/edit/?ad_id=[% ad.ad_id %]">Edit</a></td>
 </tr>
 [% END %]
 </table>
-<p style="text-align: left;"><a href="/app/ad/edit/?ad_id=-1">Create a New Ad</a></p>
 </div>
 [% INCLUDE footer.tmpl %]
