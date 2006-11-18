@@ -24,6 +24,7 @@
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 <tr><td>Ad Links To:</td><td><input type="text" name="link" size="50" maxlength="512" value="[% link.uri %]"></td></tr>
 <tr><td colspan=2>(example http://anywebsite.com/)</td></tr>
+[% IF link.uri %]<tr><td colspan=2><a href="[% link.uri %]">Link</a></td></tr>[% END %]
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 <tr><td>Active:</td><td>
 Yes<input type="radio" name="active" value="1" [% IF ad.active == 1 ||  ad.ad_id == -1 %] checked [% END %]>

@@ -18,10 +18,10 @@ sl_db_debug 1
 
 #sl_proxy_deflate  1
 sl_apache_loglevel  info
-sl_apache_maxclients  128
-sl_apache_start_servers  48
-sl_apache_max_spare_servers  32
-sl_apache_min_spare_servers  24
+sl_apache_maxclients  96
+sl_apache_start_servers  64
+sl_apache_max_spare_servers  24
+sl_apache_min_spare_servers  16
 sl_apache_keepalive  On
 sl_apache_user  phred
 sl_apache_group  users
