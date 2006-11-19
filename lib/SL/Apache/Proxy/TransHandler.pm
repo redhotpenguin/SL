@@ -13,6 +13,8 @@ SL::Apache::TransHandler
 
 use constant BLACKLIST_REGEN => 100;
 
+use SL::Model::URL;
+
 our $blacklist_regex;
 our $ext_regex;
 our $ua_regex;
@@ -24,7 +26,6 @@ BEGIN {
 
     #####################
     ## Blacklisting
-	require SL::Model::URL;
 	$blacklist_regex = SL::Model::URL->blacklist_regex;
 
 	## Extension based matching
@@ -112,8 +113,8 @@ sub handler {
     
 	## Blacklisting first
 	$blacklist_counter++;
-	if ($blacklist_counter == BLACKLIST_REGEN) {
-		require SL::Model::URL;
+	if (($blacklist_counter == BLACKLIST_REGEN) 
+		&& SL::Model::URL->should_update_blacklist ) {
 		$blacklist_regex = SL::Model::URL->blacklist_regex;
 		$blacklist_counter = 0;
 	}
