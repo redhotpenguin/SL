@@ -54,7 +54,7 @@ sub dispatch_list {
         "Template error: " . $tmpl->error() );
 }
 
-my %ad_profile = ( required => [qw( link name text ad_group_id active )], );
+my %ad_profile = ( required => [qw( link text ad_group_id active )], );
 
 sub dispatch_report {
     my ( $self, $r ) = @_;
@@ -117,7 +117,7 @@ sub dispatch_edit {
 			$ad = SL::Model::App->resultset('Ad')->new({});
 			$link = SL::Model::App->resultset('Link')->new({});
 		}
-        foreach my $attr qw( name text active ad_group_id ) {
+        foreach my $attr qw( text active ad_group_id ) {
 			$r->log->debug("setting attr $attr to ", $req->param($attr));
 			$ad->$attr( $req->param($attr) );
         }

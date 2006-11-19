@@ -11,10 +11,12 @@ SL::Apache::TransHandler
 
 =cut
 
+use constant BLACKLIST_REGEN => 100;
+
 our $blacklist_regex;
 our $ext_regex;
 our $ua_regex;
-our $whitelist;
+our $blacklist_counter = 0;
 
 BEGIN {
     require Regexp::Assemble;
@@ -72,14 +74,6 @@ sub static_content_uri {
     }
 }
 
-sub _whitelisted {
-    my ($r, $url) = @_;
-    if ($url =~ m/$whitelist/i) {
-        $r->log->debug("$$ Whitelist match: $url for $whitelist\n");
-        return 1;
-    }
-}
-
 sub not_a_main_request {
     my $r = shift;
 
@@ -117,20 +111,18 @@ sub handler {
     $r->log->info("$$ PerlTransHandler Request for url $url, user-agent $ua, referer $referer");
     
 	## Blacklisting first
-    if (url_blacklisted($url)) {
+	$blacklist_counter++;
+	if ($blacklist_counter == BLACKLIST_REGEN) {
+		require SL::Model::URL;
+		$blacklist_regex = SL::Model::URL->blacklist_regex;
+		$blacklist_counter = 0;
+	}
+	
+	if (url_blacklisted($url)) {
         return &proxy_request($r);
     }
 
-    ## Whitelisting
-    #
-    my $whitelist = $r->dir_config->get('SLWhiteList');
-    $r->log->debug("$$ Whitelisting is $whitelist");
-    if ($whitelist eq "On" && !_whitelisted($r, $url)) {
-        $r->log->debug("$$ Url $url not whitelisted, proxying");
-        return &proxy_request($r);
-    }
-
-    ## Handle non-browsers that use port 80
+	## Handle non-browsers that use port 80
     #
     if (_not_a_browser($r)) {
         return &proxy_request($r);

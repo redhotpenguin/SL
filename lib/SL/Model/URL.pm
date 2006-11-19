@@ -26,7 +26,7 @@ sub blacklist_regex {
 	my @blacklists = $class->get_blacklisted_urls;
 	my $blacklist_regex = Regexp::Assemble->new;
 	$blacklist_regex->add(@blacklists);
-	print STDERR "Regex for blacklist_urls: ", $blacklist_regex->re, "\n\n";
+	#print STDERR "Regex for blacklist_urls: ", $blacklist_regex->re, "\n\n";
 	return $blacklist_regex;
 }
 

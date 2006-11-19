@@ -1,12 +1,12 @@
 [% INCLUDE header.tmpl %]
 
-<div id="container">
+<div id="list_center">
+	<div class="content">
 
-<p class="breadcrumb"><a href="/app">Home</a> > <a href="/app/ad/list">Ads</a> > 
-	[% IF ad.ad_id == -1 %]Add[% ELSIF ad.ad_id != -1 %]Edit[% END %]</p>
+<h2><a href="/app">Dashboard</a> > <a href="/app/ad/list">Manage Your Ads</a> > [% IF ad.ad_id == -1 %]Add[% ELSIF ad.ad_id != -1 %]Edit[% END %]</h2>
 <div id="edit_form">
 
-<table class="edit">
+<table class="edit"> 
 
 <tr><td colspan=2>
 	[% IF ad.ad_id != -1 %]
@@ -17,8 +17,6 @@
 <hr size=1 color="#CCCCCC"></td>
 
 <form method="POST" action="/app/ad/edit/?ad_id=[% ad.ad_id %]">
-<tr><td>Name this Ad:</td><td><input type="text" name="name" size="30" maxlength="30" value="[% ad.name %]"></td></tr>
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 <tr><td>Ad Text:</td><td><input type="text" name="text" size="50" maxlength="100" value="[% ad.text %]"></td></tr>
 <tr><td colspan=2>(100 character limit)</td></tr>
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
@@ -41,6 +39,9 @@ No<input type="radio" name="active" value="0" [% IF ad.active == 0 %] checked [%
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 <tr><td><input type="submit" value="Save"></td></tr>
 </form>
+</table>
 </div>
 </div>
+</div>
+[% INCLUDE right.tmpl %]
 [% INCLUDE footer.tmpl %]
