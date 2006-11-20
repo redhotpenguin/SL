@@ -114,7 +114,6 @@ sub random {
 SELECT
 ad.ad_id, 
 ad.text,
-ad.name,
 ad.template,
 link.md5, 
 link.uri

@@ -9,7 +9,7 @@ use DateTime::Format::Pg;
 use DBD::Pg qw(:pg_types);
 
 my $ad_sql = <<SQL;
-SELECT ad.ad_id, ad.name
+SELECT ad.ad_id, ad.text
 FROM ad
 SQL
 
@@ -40,12 +40,23 @@ SQL
 
 # what links were clicked for a given time period
 my $links_clicked = <<SQL;
-SELECT ad.name, count(link_id) from click
+SELECT ad.text, count(link_id) from click
 left join link
  using (link_id)
  left join ad using (ad_id)
 WHERE ts BETWEEN ? AND ?
- GROUP BY ad.name
+ GROUP BY ad.text
+ ORDER BY count(link_id) DESC
+SQL
+
+my $links_clicked_ip = <<SQL;
+SELECT ad.text, count(link_id) from click
+left join link
+ using (link_id)
+ left join ad using (ad_id)
+WHERE ts BETWEEN ? AND ?
+AND ip = ?
+ GROUP BY ad.text
  ORDER BY count(link_id) DESC
 SQL
 
@@ -56,6 +67,20 @@ FROM view
 WHERE view.ts BETWEEN ? AND ?
 AND ip = ?
 GROUP BY ad_id
+SQL
+
+my $ip_count_views = <<SQL;
+SELECT count(ad_id) 
+FROM view
+WHERE view.ts BETWEEN ? AND ?
+AND ip = ?
+SQL
+
+my $ip_count_links = <<SQL;
+SELECT count(link_id)
+FROM click
+WHERE ts BETWEEN ? AND ?
+AND ip = ?
 SQL
 
 my $ip_links = <<SQL;
@@ -77,6 +102,7 @@ sub run_query {
     }
 	my $dbh = SL::Model->db_Main();
 	my $sth = $dbh->prepare_cached($sql);
+	#$DB::single = 1;
 	$sth->bind_param(1, DateTime::Format::Pg->format_datetime($start));
 	$sth->bind_param(2, DateTime::Format::Pg->format_datetime($end));
 	$sth->bind_param(3, $ip) if $ip;
@@ -101,12 +127,21 @@ sub ip_views {
 	return $class->run_query($ip_views, $start, $end, $ip);
 }
 
+sub ip_count_views { 
+	my ($class, $start, $end, $ip) = @_;
+	return $class->run_query($ip_count_views, $start, $end, $ip);
+}
+
 # returns clicks for an ip within for $start to $end
 sub ip_links {
 	my ($class, $start, $end, $ip) = @_;
-	return $class->run_query($ip_links, $start, $end, $ip);
+	return $class->run_query($links_clicked_ip, $start, $end, $ip);
 }
 
+sub ip_count_links {
+	my ($class, $start, $end, $ip) = @_;
+	return $class->run_query($ip_count_links, $start, $end, $ip);
+}
 
 sub interval_by_ts {
     my ( $class, $ts ) = @_;
@@ -179,6 +214,29 @@ sub last_fifteen {
 		}
 	}
 	die "Could not calculate last_fifteen";
+}
+
+# SL::Model::Report
+# build the ad summary
+sub ad_clicks_summary {
+	my ($class, $ip, $start_date, $now) = @_;
+	my $ad_clicks_ref = SL::Model::Report->ip_links( $start_date, $now, $ip );
+	use Text::Wrap;
+	$Text::Wrap::columns = 25;
+	my @ad_clicks_data;
+	my $max_ad_clicks = 0;
+	foreach my $ref ( sort { $a->[1] <=> $b->[1] } @{$ad_clicks_ref} ) {
+
+		if ( length( $ref->[0] ) > 25 ) {
+			$ref->[0] = wrap( "", "", $ref->[0] );
+		}
+		unshift @{ $ad_clicks_data[0] }, $ref->[0];
+		unshift @{ $ad_clicks_data[1] }, $ref->[1];
+		if ( $ref->[1] > $max_ad_clicks ) {
+		  $max_ad_clicks = $ref->[1];
+		}
+	}
+	return ($max_ad_clicks, \@ad_clicks_data);
 }
 
 1;
