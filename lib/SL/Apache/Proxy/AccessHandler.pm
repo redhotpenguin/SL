@@ -16,30 +16,30 @@ use constant LOGIN_URL  => 'http://www.redhotpenguin.com/sl/logon';
 our $cache;
 our $APP_DOMAIN = 'redhotpenguin';
 
-BEGIN {
-	require SL::Config;
-	my $cfg = SL::Config->new;
+#BEGIN {
+#	require SL::Config;
+#	my $cfg = SL::Config->new;
 	
 	# destroy the old cache file
-	my $share_file = $cfg->sl_ip_cache_file;
+#	my $share_file = $cfg->sl_ip_cache_file;
 	
-	unlink $share_file if -e $share_file;
-    $cache =
-      Cache::FastMmap->new( raw_values => 1, share_file => $share_file );
-    my $sql         = qq{select ip from reg where active > 0};
-	require SL::Model;
-	my $dbh         = SL::Model->connect;
-	my $ips_ary_ref = $dbh->selectall_arrayref($sql);
-    die unless $ips_ary_ref;    # No ips in the database yet??
-	$dbh->commit;
+#	unlink $share_file if -e $share_file;
+#    $cache =
+#      Cache::FastMmap->new( raw_values => 1, share_file => $share_file );
+#    my $sql         = qq{select ip from reg where active > 0};
+#	require SL::Model;
+##	my $dbh         = SL::Model->connect;
+#	my $ips_ary_ref = $dbh->selectall_arrayref($sql);
+#    die unless $ips_ary_ref;    # No ips in the database yet??
+#	$dbh->commit;
 
     # load up the cache from the database
-    foreach my $ip ( @{$ips_ary_ref} ) {
-        print STDERR "Caching ip " . $ip->[0] . "...\n";
-        $cache->set( $ip->[0] => 1 );
-    }
+#    foreach my $ip ( @{$ips_ary_ref} ) {
+#        print STDERR "Caching ip " . $ip->[0] . "...\n";
+#        $cache->set( $ip->[0] => 1 );
+#    }
 
-}
+#}
 
 sub handler {
     my $r = shift;
