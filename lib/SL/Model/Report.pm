@@ -92,60 +92,59 @@ GROUP BY link_id
 SQL
 
 sub run_query {
-	my ($class, $sql, $start, $end, $ip) = @_;
+    my ( $class, $sql, $start, $end, $ip ) = @_;
 
-	die unless $sql && $start && $end;
-    unless 
-        ( $start->isa('DateTime') && $end->isa('DateTime'))
-    {
+    die unless $sql && $start && $end;
+    unless ( $start->isa('DateTime') && $end->isa('DateTime') ) {
         croak('No start and end times passed!');
     }
-	my $dbh = SL::Model->db_Main();
-	my $sth = $dbh->prepare_cached($sql);
-	#$DB::single = 1;
-	$sth->bind_param(1, DateTime::Format::Pg->format_datetime($start));
-	$sth->bind_param(2, DateTime::Format::Pg->format_datetime($end));
-	$sth->bind_param(3, $ip) if $ip;
-	my $rv = $sth->execute;
-	my $ary_ref = $sth->fetchall_arrayref;
-	return $ary_ref;
+    my $dbh = SL::Model->db_Main();
+    my $sth = $dbh->prepare_cached($sql);
+
+    #$DB::single = 1;
+    $sth->bind_param( 1, DateTime::Format::Pg->format_datetime($start) );
+    $sth->bind_param( 2, DateTime::Format::Pg->format_datetime($end) );
+    $sth->bind_param( 3, $ip ) if $ip;
+    my $rv      = $sth->execute;
+    my $ary_ref = $sth->fetchall_arrayref;
+    return $ary_ref;
 }
 
 sub views {
-	my ($class, $start, $end) = @_;
-	return $class->run_query($view_sql, $start, $end);
+    my ( $class, $start, $end ) = @_;
+    return $class->run_query( $view_sql, $start, $end );
 }
 
 sub links {
-	my ($class, $start, $end) = @_;
-	return $class->run_query($links_clicked, $start, $end);
+    my ( $class, $start, $end ) = @_;
+    return $class->run_query( $links_clicked, $start, $end );
 }
 
 # returns views for an ip within for $start to $end
 sub ip_views {
-	my ($class, $start, $end, $ip) = @_;
-	return $class->run_query($ip_views, $start, $end, $ip);
+    my ( $class, $start, $end, $ip ) = @_;
+    return $class->run_query( $ip_views, $start, $end, $ip );
 }
 
-sub ip_count_views { 
-	my ($class, $start, $end, $ip) = @_;
-	return $class->run_query($ip_count_views, $start, $end, $ip);
+sub ip_count_views {
+    my ( $class, $start, $end, $ip ) = @_;
+    return $class->run_query( $ip_count_views, $start, $end, $ip );
 }
 
 # returns clicks for an ip within for $start to $end
 sub ip_links {
-	my ($class, $start, $end, $ip) = @_;
-	return $class->run_query($links_clicked_ip, $start, $end, $ip);
+    my ( $class, $start, $end, $ip ) = @_;
+    return $class->run_query( $links_clicked_ip, $start, $end, $ip );
 }
 
 sub ip_count_links {
-	my ($class, $start, $end, $ip) = @_;
-	return $class->run_query($ip_count_links, $start, $end, $ip);
+    my ( $class, $start, $end, $ip ) = @_;
+    return $class->run_query( $ip_count_links, $start, $end, $ip );
 }
 
 sub interval_by_ts {
     my ( $class, $ts ) = @_;
-    
+
     unless (
         ( ref $ts->{'start'} && UNIVERSAL::isa( $ts->{'start'}, 'DateTime' ) )
         && ( ref $ts->{'end'} && UNIVERSAL::isa( $ts->{'end'}, 'DateTime' ) ) )
@@ -189,7 +188,7 @@ sub interval_by_ts {
                     push
                       @{ $return{ $ad->{'name'} }{ $link->{'uri'} }{'times'} },
                       $click->[1];
-                      $return{ $ad->{'name'} }{ $link->{'uri'} }{'count'}++;
+                    $return{ $ad->{'name'} }{ $link->{'uri'} }{'count'}++;
                 }
 
             }
@@ -200,43 +199,95 @@ sub interval_by_ts {
 
 # set the DateTime object minute to the previous 15 minute interval
 sub last_fifteen {
-	my ($class, $dt) = @_;
-	die unless ($class->isa(__PACKAGE__) && $dt->isa('DateTime'));
-	my $dt_start = $dt->clone;
-	$dt_start->truncate( to => 'hour' );
-	my $minutes = 15;
-	for (1..4) {
-		$dt_start->add( minutes => $minutes );
-		if ($dt < $dt_start) {
-			$dt->set_minute( 
-				$dt_start->subtract( minutes => $minutes )->minute );
-			return 1;
-		}
-	}
-	die "Could not calculate last_fifteen";
+    my ( $class, $dt ) = @_;
+    die unless ( $class->isa(__PACKAGE__) && $dt->isa('DateTime') );
+    my $dt_start = $dt->clone;
+    $dt_start->truncate( to => 'hour' );
+    my $minutes = 15;
+    for ( 1 .. 4 ) {
+        $dt_start->add( minutes => $minutes );
+        if ( $dt < $dt_start ) {
+            $dt->set_minute(
+                $dt_start->subtract( minutes => $minutes )->minute );
+            return 1;
+        }
+    }
+    die "Could not calculate last_fifteen";
 }
 
 # SL::Model::Report
 # build the ad summary
 sub ad_clicks_summary {
-	my ($class, $ip, $start_date, $now) = @_;
-	my $ad_clicks_ref = SL::Model::Report->ip_links( $start_date, $now, $ip );
-	use Text::Wrap;
-	$Text::Wrap::columns = 25;
-	my @ad_clicks_data;
-	my $max_ad_clicks = 0;
-	foreach my $ref ( sort { $a->[1] <=> $b->[1] } @{$ad_clicks_ref} ) {
+    my ( $class, $ip, $start_date, $now ) = @_;
+    my $ad_clicks_ref = SL::Model::Report->ip_links( $start_date, $now, $ip );
+    use Text::Wrap;
+    $Text::Wrap::columns = 25;
+    my @ad_clicks_data;
+    my $max_ad_clicks = 0;
+    foreach my $ref ( sort { $a->[1] <=> $b->[1] } @{$ad_clicks_ref} ) {
 
-		if ( length( $ref->[0] ) > 25 ) {
-			$ref->[0] = wrap( "", "", $ref->[0] );
-		}
-		unshift @{ $ad_clicks_data[0] }, $ref->[0];
-		unshift @{ $ad_clicks_data[1] }, $ref->[1];
-		if ( $ref->[1] > $max_ad_clicks ) {
-		  $max_ad_clicks = $ref->[1];
-		}
-	}
-	return ($max_ad_clicks, \@ad_clicks_data);
+        if ( length( $ref->[0] ) > 25 ) {
+            $ref->[0] = wrap( "", "", $ref->[0] );
+        }
+        unshift @{ $ad_clicks_data[0] }, $ref->[0];
+        unshift @{ $ad_clicks_data[1] }, $ref->[1];
+        if ( $ref->[1] > $max_ad_clicks ) {
+            $max_ad_clicks = $ref->[1];
+        }
+    }
+    return ( $max_ad_clicks, \@ad_clicks_data );
+}
+
+sub data_daily_ip {
+    my ( $class, $ip ) = @_;
+
+    my (
+        $max_view_results, @view_results,   $max_click_results,
+        @click_results,    $max_click_rate, @click_rates
+    );
+
+    my $now = DateTime->now( time_zone => 'local' );
+    $now->truncate( to => 'hour' );
+
+    for ( 0 .. 23 ) {
+        my $previous = $now->clone->subtract( hours => 1 );
+        my $views_count =
+          SL::Model::Report->ip_count_views( $previous, $now, $ip );
+        unshift @{ $view_results[0] }, $now->strftime("%l %p");
+        unshift @{ $view_results[1] }, $views_count->[0]->[0];
+        if ( $views_count->[0]->[0] > $max_view_results ) {
+            $max_view_results = $views_count->[0]->[0];
+        }
+
+        my $clicks_count =
+          SL::Model::Report->ip_count_links( $previous, $now, $ip );
+        unshift @{ $click_results[0] }, $now->strftime("%l %p");
+        unshift @{ $click_results[1] }, $clicks_count->[0]->[0];
+        if ( $clicks_count->[0]->[0] > $max_click_results ) {
+            $max_click_results = $clicks_count->[0]->[0];
+        }
+
+        unshift @{ $click_rates[0] }, $now->strftime("%l %p");
+        my $click_rate;
+        if ( $views_count->[0]->[0] == 0 ) {
+            $click_rate = 0;
+        }
+        else {
+            $click_rate =
+              100 * $clicks_count->[0]->[0] / $views_count->[0]->[0];
+        }
+        unshift @{ $click_rates[1] }, $click_rate;
+        if ( $click_rate > $max_click_rate ) {
+            $max_click_rate = $click_rate;
+        }
+
+        $now = $previous->clone;
+    }
+
+    return (
+        $max_view_results, \@view_results,  $max_click_results,
+        \@click_results,   $max_click_rate, \@click_rates
+    );
 }
 
 1;
