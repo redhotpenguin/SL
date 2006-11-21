@@ -245,6 +245,7 @@ sub data_daily_ip {
         $max_view_results, @view_results,   $max_click_results,
         @click_results,    $max_click_rate, @click_rates
     );
+    $max_view_results = $max_click_results = $max_click_rate = 0;
 
     my $now = DateTime->now( time_zone => 'local' );
     $now->truncate( to => 'hour' );

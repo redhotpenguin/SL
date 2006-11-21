@@ -21,6 +21,7 @@ CREATE TABLE reg (
     ip inet NOT NULL,
     password_md5 character varying(32),
 	email character varying(64) NOT NULL,
+	report_email character varying(64) NOT NULL DEFAULT '',
     zipcode character varying(10) NOT NULL,
     serial_number character(12) NOT NULL,
     macaddr macaddr NOT NULL,
@@ -33,7 +34,7 @@ CREATE TABLE reg (
     phone character varying(14),
     cts timestamp without time zone DEFAULT now(),
     mts timestamp without time zone DEFAULT now(),
-    active smallint DEFAULT 0,
+    active boolean default 't',
     sponsor character varying(64),
     code integer NOT NULL
 );
