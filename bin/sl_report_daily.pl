@@ -22,7 +22,7 @@ foreach my $account (@accounts) {
     my $account_id = $account->reg_id;
     my $ip         = $account->ip;
     $account_info{$ip} = $account->email;
-    my $dir = "$DATA_ROOT/$account_id/$ip";
+    my $dir = "$DATA_ROOT/$account_id/$ip/daily";
     unless ( -d $dir ) {
         ( system("mkdir -p $dir") == 0 ) or die $!;
     }
@@ -34,7 +34,7 @@ foreach my $account (@accounts) {
     ) = SL::Model::Report->data_daily_ip($ip);
 
     ## Build the graph of views for the last 24 hours
-    my $filename = "$dir/views_daily.png";
+    my $filename = "$dir/views.png";
     my $ok       = eval {
         SL::Model::Report::Graph->bars(
             {
@@ -50,7 +50,7 @@ foreach my $account (@accounts) {
     die $@ if $@;
 
     # Build the graph for the number of clicks
-    $filename = "$dir/clicks_daily.png";
+    $filename = "$dir/clicks.png";
     $ok       = eval {
         SL::Model::Report::Graph->bars(
             {
@@ -67,7 +67,7 @@ foreach my $account (@accounts) {
     die $@ if $@;
 
     # Build the graph for the click rates
-    $filename = "$dir/rates_daily.png";
+    $filename = "$dir/rates.png";
     $ok       = eval {
         SL::Model::Report::Graph->bars(
             {
@@ -95,7 +95,7 @@ foreach my $account (@accounts) {
     $max_ad_clicks           ||= 1;
     $ad_clicks_data_ref->[0] ||= [0];
     $ad_clicks_data_ref->[1] ||= [0];
-    $filename = "$dir/ads_daily.png";
+    $filename = "$dir/ads.png";
     $ok       = eval {
         SL::Model::Report::Graph->hbars(
             {
@@ -127,7 +127,7 @@ foreach my $account (@accounts) {
 }
 
 # Now build the overall usage stats for the root user
-my $dir = "$DATA_ROOT/global";
+my $dir = "$DATA_ROOT/global/daily";
 unless ( -d $dir ) {
     ( system("mkdir -p $dir") == 0 ) or die $!;
 }
@@ -168,7 +168,7 @@ foreach my $account_id ( keys %global ) {
     }
 }
 
-my $filename = "$dir/views_daily.png";
+my $filename = "$dir/views.png";
 my $ok       = eval {
     SL::Model::Report::Graph->bars_many(
         {
@@ -183,7 +183,7 @@ my $ok       = eval {
 };
 die $@ if $@;
 
-$filename = "$dir/clicks_daily.png";
+$filename = "$dir/clicks.png";
 $ok       = eval {
     SL::Model::Report::Graph->bars_many(
         {
@@ -198,7 +198,7 @@ $ok       = eval {
 };
 die $@ if $@;
 
-$filename = "$dir/rates_daily.png";
+$filename = "$dir/rates.png";
 $ok       = eval {
     SL::Model::Report::Graph->bars_many(
         {
@@ -215,7 +215,7 @@ $ok       = eval {
 };
 die $@ if $@;
 
-$filename = "$dir/ads_daily.png";
+$filename = "$dir/ads.png";
 $ok       = eval {
     SL::Model::Report::Graph->hbars_many(
         {
