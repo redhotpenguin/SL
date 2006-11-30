@@ -39,7 +39,8 @@ sub bars {
       or die $graph->error;
 
     my $fh;
-    open( $fh, ">", $args_ref->{filename} ) or die $!;
+    open( $fh, ">", $args_ref->{filename} ) 
+    	or die "Could not open file " . $args_ref->{filename} . " " . $!;
     print $fh $gd->png;
     close($fh);
     return 1;

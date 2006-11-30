@@ -3,12 +3,12 @@ use warnings;
 
 use MIME::Lite;
 
-my $FROM    = "SL Reporting Daemon <fred\@redhotpenguin.com";
+my $FROM    = "SL Reporting Daemon <fred\@redhotpenguin.com>";
 my $TO      = "info\@redhotpenguin.com";
 my $SUBJECT = "Global SL Report Graphs";
 my $dir     = "/tmp/data/sl/global/daily";
 
-my $msg = MIME::lite->new(
+my $msg = MIME::Lite->new(
     From    => $FROM,
     To      => $TO,
     Subject => $SUBJECT,

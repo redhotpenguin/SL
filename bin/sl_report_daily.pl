@@ -112,8 +112,10 @@ foreach my $account (@accounts) {
     die $@ if $@;
 
     # stash the data for the big graph;
-    if ( grep { $view_results_ref->[1]->[$_] != 0 }
-        0 .. scalar( @{$view_results_ref} ) )
+    # only if there have been views for that account
+    # grep through the views for 0..24 hours (in this case of daily)
+    if (grep { $view_results_ref->[1]->[$_] }
+    	0..scalar(@{$view_results_ref->[1]}) )
     {
         $global{$account_id}{$ip}{views}{max}   = $max_view_results;
         $global{$account_id}{$ip}{views}{data}  = $view_results_ref;
@@ -203,7 +205,7 @@ $ok       = eval {
     SL::Model::Report::Graph->bars_many(
         {
             filename        => $filename,
-            title           => "Global Ad Clicks in Last $duration",
+            title           => "Global Click Rates Last $duration",
             y_max_value     => $max_clicks * 1.1,
             y_tick_number   => 3,
             data_ref        => $click_data_ref,
