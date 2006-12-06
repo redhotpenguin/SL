@@ -145,12 +145,10 @@ sub ip_count_links {
 sub interval_by_ts {
     my ( $class, $ts ) = @_;
 
-    unless (
+    croak('No start and end times passed!')
+      unless (
         ( ref $ts->{'start'} && UNIVERSAL::isa( $ts->{'start'}, 'DateTime' ) )
-        && ( ref $ts->{'end'} && UNIVERSAL::isa( $ts->{'end'}, 'DateTime' ) ) )
-    {
-        croak('No start and end times passed!');
-    }
+        && ( ref $ts->{'end'} && UNIVERSAL::isa( $ts->{'end'}, 'DateTime' ) ) );
 
     my %return;
     my $dbh = SL::Model->db_Main();
@@ -181,7 +179,6 @@ sub interval_by_ts {
             $rv = $click_sth->execute;
             if ( $rv == 0 ) {
                 $return{ $ad->{'name'} }{ $link->{'uri'} }{'count'} = 0;
-                print "FOO";
             }
             else {
                 while ( my $click = $click_sth->fetchrow_arrayref ) {
@@ -220,17 +217,23 @@ sub last_fifteen {
 sub ad_clicks_summary {
     my ( $class, $ip, $start_date, $now ) = @_;
     my $ad_clicks_ref = SL::Model::Report->ip_links( $start_date, $now, $ip );
+
+    # wrap the text if too long
     use Text::Wrap;
     $Text::Wrap::columns = 25;
+
     my @ad_clicks_data;
     my $max_ad_clicks = 0;
     foreach my $ref ( sort { $a->[1] <=> $b->[1] } @{$ad_clicks_ref} ) {
 
-        if ( length( $ref->[0] ) > 25 ) {
+        # wrap the text if the length is greater than the wrap length
+        if ( length( $ref->[0] ) >= $Text::Wrap::columns ) {
             $ref->[0] = wrap( "", "", $ref->[0] );
         }
         unshift @{ $ad_clicks_data[0] }, $ref->[0];
         unshift @{ $ad_clicks_data[1] }, $ref->[1];
+
+        # set the max number of ad clicks
         if ( $ref->[1] > $max_ad_clicks ) {
             $max_ad_clicks = $ref->[1];
         }
@@ -238,8 +241,13 @@ sub ad_clicks_summary {
     return ( $max_ad_clicks, \@ad_clicks_data );
 }
 
-sub data_daily_ip {
-    my ( $class, $ip ) = @_;
+# Last 24 hours of data for an ip and a given temporal range
+# ( daily, weekly, monthly, quarterly )
+sub data_for_ip {
+    my ( $class, $ip, $temporal ) = @_;
+
+    die "No IP passed to data_for_ip" unless $ip;
+    die "No temporal param passed"    unless $temporal;
 
     my (
         $max_view_results, @view_results,   $max_click_results,
@@ -250,27 +258,63 @@ sub data_daily_ip {
     my $now = DateTime->now( time_zone => 'local' );
     $now->truncate( to => 'hour' );
 
-    for ( 0 .. 23 ) {
-        my $previous = $now->clone->subtract( hours => 1 );
+    my %time_hash = (
+        daily => {
+            range    => [ 0 .. 23 ],
+            interval => [ hours => 1],
+            format   => "%a %l %p"
+        },
+        weekly =>
+          { range => [ 0 .. 6 ], interval => [ days => 1 ], format => "%a %e %l %p" },
+        monthly => { range => [ 0 .. 29 ], interval => [ days => 1 ], format => "%b %a %e" },
+        quarterly =>
+          { range => [ 0 .. 11 ], interval => [ weeks => 1 ], format => "%a %e" },
+    );
+    die "Invalid temporal parameter passed"
+      unless grep { $temporal eq $_ } keys %time_hash;
+
+    for ( @{ $time_hash{$temporal}->{range} } ) {
+        my $previous =
+          $now->clone->subtract( @{$time_hash{$temporal}->{interval}} );
+
+        # Ads viewed
         my $views_count =
           SL::Model::Report->ip_count_views( $previous, $now, $ip );
-        unshift @{ $view_results[0] }, $now->strftime("%l %p");
+
+        # add the date in the format specified
+        unshift @{ $view_results[0] },
+          $previous->strftime( $time_hash{$temporal}->{format} ) . ' - '
+          . $now->strftime( $time_hash{$temporal}->{format} );
+
+        # then the data
         unshift @{ $view_results[1] }, $views_count->[0]->[0];
         if ( $views_count->[0]->[0] > $max_view_results ) {
             $max_view_results = $views_count->[0]->[0];
         }
 
+        # Ads clicked
         my $clicks_count =
           SL::Model::Report->ip_count_links( $previous, $now, $ip );
-        unshift @{ $click_results[0] }, $now->strftime("%l %p");
+
+        # date
+        unshift @{ $click_results[0] },
+          $previous->strftime( $time_hash{$temporal}->{format} ) . ' - '
+          . $now->strftime( $time_hash{$temporal}->{format} );
+
+        # data
         unshift @{ $click_results[1] }, $clicks_count->[0]->[0];
         if ( $clicks_count->[0]->[0] > $max_click_results ) {
             $max_click_results = $clicks_count->[0]->[0];
         }
 
-        unshift @{ $click_rates[0] }, $now->strftime("%l %p");
+        # Click rate
+        unshift @{ $click_rates[0] },
+          $previous->strftime( $time_hash{$temporal}->{format} ) . ' - '
+          . $now->strftime( $time_hash{$temporal}->{format} );
         my $click_rate;
         if ( $views_count->[0]->[0] == 0 ) {
+
+            # sometimes the view count is zero, and can't divide by zero
             $click_rate = 0;
         }
         else {
@@ -289,6 +333,37 @@ sub data_daily_ip {
         $max_view_results, \@view_results,  $max_click_results,
         \@click_results,   $max_click_rate, \@click_rates
     );
+}
+
+sub data_weekly_ip {
+    my ( $class, $ip ) = @_;
+
+    my (
+        $max_view_results, @view_results,   $max_click_results,
+        @click_results,    $max_click_rate, @click_rates
+    );
+    $max_view_results = $max_click_results = $max_click_rate = 0;
+
+    my $now = DateTime->now( time_zone => 'local' );
+    $now->truncate( to => 'hour' );
+
+    for ( 0 .. 6 ) {
+        my $previous = $now->clone->subtract( hours => 24 );
+
+        # Ads viewed
+        my $views_count =
+          SL::Model::Report->ip_count_views( $previous, $now, $ip );
+
+        # add the date in the format "Mon 1pm to Mon 2pm"
+        unshift @{ $view_results[0] },
+          $previous->strftime("%a %l %p") . ' - ' . $now->strftime("%a %l %p");
+        unshift @{ $view_results[1] }, $views_count->[0]->[0];
+        if ( $views_count->[0]->[0] > $max_view_results ) {
+            $max_view_results = $views_count->[0]->[0];
+        }
+
+    }
+
 }
 
 1;
