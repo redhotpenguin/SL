@@ -38,21 +38,20 @@ foreach my $temporal qw( daily weekly monthly quarterly ) {
         unless ( -d $dir ) {
             ( system("mkdir -p $dir") == 0 ) or die $!;
         }
-
-        # Grab the last 24 hours of data for this ip
-        my $sub = "data_" . $temporal . "_ip";
+        
+		# Grab the last 24 hours of data for this ip
         my (
             $max_view_results,  $view_results_ref, $max_click_results,
             $click_results_ref, $max_click_rate,   $click_rate_ref
         ) = SL::Model::Report->data_for_ip( $ip, $temporal );
-        
+        $DB::single = 1;
 		## Build the graph of views for the last 24 hours
         my $filename = "$dir/views.png";
         my $ok       = eval {
             SL::Model::Report::Graph->bars(
                 {
                     filename => $filename,
-                    title    => "Ad Views in Last "
+                    title    => "Ad Views "
                       . $duration_hash{$temporal} . " - "
                       . DateTime->now( time_zone => "local" )
                       ->strftime("%a %b %e,%l:%m %p"),
@@ -72,7 +71,7 @@ foreach my $temporal qw( daily weekly monthly quarterly ) {
             SL::Model::Report::Graph->bars(
                 {
                     filename => $filename,
-                    title    => "Ad Clicks in Last "
+                    title    => "Ad Clicks "
                       . $duration_hash{$temporal} . " - "
                       . DateTime->now( time_zone => "local" )
                       ->strftime("%a %b %e,%l:%m %p"),
@@ -91,7 +90,7 @@ foreach my $temporal qw( daily weekly monthly quarterly ) {
         $ok       = eval {
             SL::Model::Report::Graph->bars(
                 {
-                    title => "Click Rate Last "
+                    title => "Click Rate "
                       . $duration_hash{$temporal} . " - "
                       . DateTime->now( time_zone => "local" )
                       ->strftime("%a %b %e,%l:%m %p"),
@@ -124,13 +123,13 @@ foreach my $temporal qw( daily weekly monthly quarterly ) {
         $ok = eval {
             SL::Model::Report::Graph->hbars(
                 {
-                    title => "Ads Clicked in Last "
+                    title => "Ads Clicked "
                       . $duration_hash{$temporal} . " - "
                       . DateTime->now( time_zone => "local" )
                       ->strftime("%a %b %e,%l:%m %p"),
                     filename      => $filename,
                     y_max_value   => $max_ad_clicks,
-                    y_label       => 'Clicks in Last 24 Hours',
+                    y_label       => 'Clicks 24 Hours',
                     y_tick_number => $max_ad_clicks,
                     data_ref      => $ad_clicks_data_ref,
 
@@ -139,9 +138,12 @@ foreach my $temporal qw( daily weekly monthly quarterly ) {
         };
         die $@ if $@;
 
-        # stash the data for the big graph;
-        if ( grep { $view_results_ref->[1]->[$_] != 0 }
-            0 .. scalar( @{$view_results_ref} ) )
+        # stash the data for the big graph
+		# if there is data to stash...  grep over each element to see that it's
+		# defined and not zero
+        if ( grep { (defined $view_results_ref->[1]->[$_])
+				&& ($view_results_ref->[1]->[$_] != 0 ) }
+            0 .. scalar( @{$view_results_ref->[1]} ) )
         {
             $global{$account_id}{$ip}{views}{max}   = $max_view_results;
             $global{$account_id}{$ip}{views}{data}  = $view_results_ref;
@@ -157,7 +159,6 @@ foreach my $temporal qw( daily weekly monthly quarterly ) {
     # Now build the overall usage stats for the root user
     my $dir = "$DATA_ROOT/global/$temporal";
 
-    #my $dir = "$DATA_ROOT/global/";
     unless ( -d $dir ) {
         ( system("mkdir -p $dir") == 0 ) or die $!;
     }
@@ -204,13 +205,13 @@ foreach my $temporal qw( daily weekly monthly quarterly ) {
         }
     }
 
-    $DB::single = 1;
+   $DB::single = 1;
     my $filename = "$dir/views.png";
     my $ok       = eval {
         SL::Model::Report::Graph->bars_many(
             {
                 filename => $filename,
-                title    => "Global Ad Views in Last "
+                title    => "Global Ad Views "
                   . $duration_hash{$temporal} . " - "
                   . DateTime->now( time_zone => "local" )
                   ->strftime("%a %b %e,%l:%m %p"),
@@ -229,7 +230,7 @@ foreach my $temporal qw( daily weekly monthly quarterly ) {
         SL::Model::Report::Graph->bars_many(
             {
                 filename => $filename,
-                title    => "Global Ad Clicks in Last "
+                title    => "Global Ad Clicks "
                   . $duration_hash{$temporal} . " - "
                   . DateTime->now( time_zone => "local" )
                   ->strftime("%a %b %e,%l:%m %p"),
@@ -248,7 +249,7 @@ foreach my $temporal qw( daily weekly monthly quarterly ) {
         SL::Model::Report::Graph->bars_many(
             {
                 filename => $filename,
-                title    => "Global Click Rate Last "
+                title    => "Global Click Rate "
                   . $duration_hash{$temporal} . " - "
                   . DateTime->now( time_zone => "local" )
                   ->strftime("%a %b %e,%l:%m %p"),
@@ -264,7 +265,7 @@ foreach my $temporal qw( daily weekly monthly quarterly ) {
     };
     die $@ if $@;
 
-    $DB::single = 1;
+#    $DB::single = 1;
 
     # [ 'ad_one', 'ad_two' ]
     # [ 'account_one_clicks_for_ad_one', 'account_one_clicks_for_ad_two' ]
@@ -313,7 +314,7 @@ foreach my $temporal qw( daily weekly monthly quarterly ) {
         SL::Model::Report::Graph->hbars_many(
             {
                 filename => $filename,
-                title    => "Global Ads Clicked in Last "
+                title    => "Global Ads Clicked "
                   . $duration_hash{$temporal} . " - "
                   . DateTime->now( time_zone => "local" )
                   ->strftime("%a %b %e,%l:%m %p"),
