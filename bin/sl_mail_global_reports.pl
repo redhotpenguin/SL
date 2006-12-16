@@ -29,6 +29,7 @@ GetOptions(
 	'man' => \$man,
 ) or pod2usage(2);
 
+pod2usage(1) unless ($to && $intervals[0]);
 pod2usage(1) if $help;
 pod2usage( -verbose => 2) if $man;
 
