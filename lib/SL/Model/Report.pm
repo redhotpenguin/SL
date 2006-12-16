@@ -265,10 +265,10 @@ sub data_for_ip {
             format   => "%a %l %p"
         },
         weekly =>
-          { range => [ 0 .. 6 ], interval => [ days => 1 ], format => "%a %e %l %p" },
-        monthly => { range => [ 0 .. 29 ], interval => [ days => 1 ], format => "%b %a %e" },
+          { range => [ 0 .. 6 ], interval => [ days => 1 ], format => "%a %e, %l %p" },
+        monthly => { range => [ 0 .. 29 ], interval => [ days => 1 ], format => "%a %b %e" },
         quarterly =>
-          { range => [ 0 .. 11 ], interval => [ weeks => 1 ], format => "%a %e" },
+          { range => [ 0 .. 11 ], interval => [ weeks => 1 ], format => "%a %b %e" },
     );
     die "Invalid temporal parameter passed"
       unless grep { $temporal eq $_ } keys %time_hash;

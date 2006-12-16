@@ -1,14 +1,45 @@
-#!/home/fred/dev/perl/bin/perl
-
 use strict;
 use warnings;
 
 use lib '../lib';
 
+=head1 NAME
+
+ sl_report_graph.pl
+
+=head1 SYNOPSIS
+
+ perl sl_report_graph.pl --interval=daily --interval=weekly --interval=monthly
+	--interval=quarterly
+
+ perl sl_report_graph.pl --help
+ 
+ perl sl_report_graph.pl --man
+
+=cut
+
+use Getopt::Long;
+use Pod::Usage;
+
+my @intervals;
+my ($help, $man);
+
+pod2usage(1) unless @ARGV;
+GetOptions(
+	'interval=s' => \@intervals,
+	'help' => \$help,
+	'man' => \$man,
+) or pod2usage(2);
+
+pod2usage(1) if $help;
+pod2usage( -verbose => 2) if $man;
+
+die "Bad interval" unless grep { $_ =~ m/(?:daily|weekly|monthly|quarterly)/ }
+	@intervals;
+
 use DateTime;
 use SL::Model::Report;
 use SL::Model::Report::Graph;
-
 use SL::Model::App;
 
 my @accounts = SL::Model::App->resultset('Reg')->search( { active => 1 } );
@@ -22,7 +53,7 @@ my %duration_hash = (
     quarterly => '90 days',
 );
 
-foreach my $temporal qw( daily weekly monthly quarterly ) {
+foreach my $temporal ( @intervals ) {
     my %global;
     my %account_info;
     print STDERR "Processing temporal $temporal\n";
@@ -132,7 +163,6 @@ foreach my $temporal qw( daily weekly monthly quarterly ) {
                     y_label       => 'Clicks 24 Hours',
                     y_tick_number => $max_ad_clicks,
                     data_ref      => $ad_clicks_data_ref,
-
                 }
             );
         };

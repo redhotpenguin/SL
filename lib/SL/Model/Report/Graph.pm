@@ -10,7 +10,7 @@ use GD::Graph::hbars;
 our $WIDTH  = 600;
 our $HEIGHT = 500;
 
-our @TITLE_FONT   = ( '/usr/share/fonts/corefonts/verdanab.ttf', 16 );
+our @TITLE_FONT   = ( '/usr/share/fonts/corefonts/verdanab.ttf', 14 );
 our @X_AXIS_FONT  = ( '/usr/share/fonts/corefonts/verdana.ttf',  10 );
 our @Y_AXIS_FONT  = ( '/usr/share/fonts/corefonts/verdana.ttf',  10 );
 our @Y_LABEL_FONT = ( '/usr/share/fonts/corefonts/verdanab.ttf', 12 );
@@ -69,7 +69,10 @@ sub bars_many {
     $graph->set_y_axis_font(@Y_AXIS_FONT);
     $graph->set_y_label_font(@Y_LABEL_FONT);
     $graph->set_values_font(@VALUES_FONT);
-    
+	  $DB::single = 1;
+	unless (defined $args_ref->{data_ref}) {
+		$args_ref->{data_ref} = [[0, 0], [0,0]];
+	}
 	my $gd = $graph->plot( $args_ref->{data_ref} )
       or die $graph->error;
 
