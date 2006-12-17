@@ -1,0 +1,18 @@
+# sample crontab
+SHELL=/bin/bash
+PATH=/home/phred/dev/perl/bin
+
+# mail text report every day at 5:20 am
+20 5 * * * perl $HOME/dev/sl/trunk/bin/sl_report.pl
+
+# generate daily, weekly, and monthly reports every day at 5 am
+00 5 * * * perl $HOME/dev/sl/trunk/bin/sl_report_graph.pl --interval=daily --interval=weekly --interval=monthly
+
+# mail daily, weekly, weekly, and monthly reports every day at 5:20 am
+20 5 * * * perl $HOME/dev/sl/trunk/bin/sl_mail_global_reports.pl --to=info@redhotpenguin.com --interval=daily --interval=weekly --interval=monthly
+
+# generate the quarterly reports once a week at 5 am
+20 4 0 * * perl $HOME/dev/sl/trunk/bin/sl_report_graph.pl --interval=quarterly
+
+# mail the quarterly reports once a week at 5:20 am
+20 5 0 * * perl $HOME/bin/sl_mail_global_reports.pl --to=info@redhotpenguin.com
