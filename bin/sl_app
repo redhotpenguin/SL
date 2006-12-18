@@ -12,11 +12,12 @@ use lib "$FindBin::Bin/../lib";
 use SL::Config;
 
 my $server = 'app';
-my $file = "sl.$server.conf";
-my @config_files =
-  ("$FindBin::Bin/../conf/$file", "$FindBin::Bin/../$file");
+#my $file = "sl.$server.conf";
+#my @config_files =
+#  ("$FindBin::Bin/../conf/$file", "$FindBin::Bin/../$file");
 
-my $config = SL::Config->new(\@config_files);
+#my $config = SL::Config->new(\@config_files);
+my $config = SL::Config->new();
 
 # FIll out the httpd.conf
 my $httpd_conf = "httpd_$server.conf";

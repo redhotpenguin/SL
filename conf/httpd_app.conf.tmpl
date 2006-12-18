@@ -5,16 +5,16 @@ ServerTokens         Prod
 PidFile              [% cfg.sl_root %]/tmp/sl_app.pid
 DocumentRoot         [% cfg.sl_root %]/[% cfg.sl_version %]/htdocs
 TypesConfig          [% cfg.sl_root %]/[% cfg.sl_version %]/conf/mime.types
-User                 [% cfg.sl_apache_user %] 
-Group                [% cfg.sl_apache_group %]
-KeepAlive            [% cfg.sl_apache_keepalive %]
+User                 [% cfg.sl_app_apache_user %] 
+Group                [% cfg.sl_app_apache_group %]
+KeepAlive            [% cfg.sl_app_apache_keepalive %]
 MaxKeepAliveRequests 0
 KeepAliveTimeout     300
-MinSpareServers      [% cfg.sl_apache_min_spare_servers %]
-MaxSpareServers      [% cfg.sl_apache_max_spare_servers %]
-StartServers         [% cfg.sl_apache_start_servers %]
-LogLevel             [% cfg.sl_apache_loglevel %]
-MaxClients           [% cfg.sl_apache_maxclients %]
+MinSpareServers      [% cfg.sl_app_apache_min_spare_servers %]
+MaxSpareServers      [% cfg.sl_app_apache_max_spare_servers %]
+StartServers         [% cfg.sl_app_apache_start_servers %]
+LogLevel             [% cfg.sl_app_apache_loglevel %]
+MaxClients           [% cfg.sl_app_apache_maxclients %]
 ErrorLog             [% cfg.sl_root %]/[% cfg.sl_version %]/logs/httpd_app_error_log
 TransferLog          [% cfg.sl_root %]/[% cfg.sl_version %]/logs/httpd_app_access_log
 MaxRequestsPerChild  250
@@ -23,9 +23,9 @@ UseCanonicalName     Off
 HostNameLookups      Off
 Timeout              300
 
-Listen        [% cfg.sl_http_port %]
+Listen        [% cfg.sl_app_http_port %]
 
-ServerName           [% cfg.sl_servername %]
+ServerName           [% cfg.sl_app_servername %]
 ErrorDocument        404	/404.html
 ErrorDocument        500	/500.html
 
@@ -72,26 +72,28 @@ PerlLoadModule Apache2::Dispatch
     SetHandler default-handler
 </Location>
 
-#<Location /app/login>
-#	AuthType SL::Apache::App::AuthCookie
-#	AuthName SL
-#	SetHandler modperl
-#	PerlResponseHandler SL::Apache::App::AuthCookie->login
-#</Location>
+PerlSetVar TypeKeyPath /
+PerlSetVar TypeKeyLoginScript /login.pl
 
 ## the user application, need to be logged in
 <Location  /app>
-#	AuthType SL::Apache::App::AuthCookie
-#	AuthName SL
+	AuthType SL::Apache::App::CookieAuth
+	AuthName [% cfg.sl_app_cookie_name %]
 	SetHandler modperl
-#	PerlAuthenHandler	SL::Apache::App::CookieAuth
-#	require valid-user
+	PerlAuthenHandler SL::Apache::App::CookieAuth->authenticate
+	PerlAuthzHandler Apache2::Const::OK
+	require valid-user
 	
 	DispatchPrefix SL::Apache::App
 	#DispatchDebug 2
 	DispatchRequire On
 	DispatchUpperCase On
 	PerlResponseHandler Apache2::Dispatch
+</Location>
+
+<Location /login>
+	SetHandler modperl
+	PerlResponseHandler SL::Apache::App::CookieAuth->login
 </Location>
 
 ## registration

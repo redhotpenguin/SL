@@ -1,13 +1,17 @@
 [% INCLUDE header.tmpl %]
-<div id="container">
 
-<p class="breadcrumb">Login</p>
-[% IF login_error %]<p>Error in logging in, try again</p>[% END %]
-<p>Please login</p>
-<form method="POST" action="/app/login">
-<p>Email Address:<input type="text" name="credential_0"></p>
-<p>Password:&nbsp;<input type="text" name="credential_1"></p>
+<div id="center">
+<div class="content">
+
+<h2><a href="/">Home</a> > Login</h2>
+
+[% IF error == 'invalid' %]<p><font color="red">Invalid email or password, please try again</font></p>[% END %]
+[% IF error == 'incomplete' %]<p><font color="red">Please fill out all fields to login</font></p>[% END %]
+<form method="POST" action="/login">
+<p>Email Address:</p><p><input type="text" name="email"></p>
+<p>Password:</p><p><input type="password" name="password"></p>
 <p><input type="submit" name="login" value="Login"></p>
 </form>
+</div>
 </div>
 [% INCLUDE footer.tmpl %]

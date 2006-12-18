@@ -1,8 +1,6 @@
 use strict;
 use warnings;
 
-use lib '../lib';
-
 =head1 NAME
 
  sl_report_graph.pl

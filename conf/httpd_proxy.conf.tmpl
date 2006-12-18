@@ -5,16 +5,16 @@ ServerTokens         Prod
 PidFile              [% cfg.sl_root %]/tmp/sl_proxy.pid
 DocumentRoot         [% cfg.sl_root %]/[% cfg.sl_version %]/htdocs
 TypesConfig          [% cfg.sl_root %]/[% cfg.sl_version %]/conf/mime.types
-User                 [% cfg.sl_apache_user %] 
-Group                [% cfg.sl_apache_group %]
-KeepAlive            [% cfg.sl_apache_keepalive %]
+User                 [% cfg.sl_proxy_apache_user %] 
+Group                [% cfg.sl_proxy_apache_group %]
+KeepAlive            [% cfg.sl_proxy_apache_keepalive %]
 MaxKeepAliveRequests 0
 KeepAliveTimeout     300
-MinSpareServers      [% cfg.sl_apache_min_spare_servers %]
-MaxSpareServers      [% cfg.sl_apache_max_spare_servers %]
-StartServers         [% cfg.sl_apache_start_servers %]
-LogLevel             [% cfg.sl_apache_loglevel %]
-MaxClients           [% cfg.sl_apache_maxclients %]
+MinSpareServers      [% cfg.sl_proxy_apache_min_spare_servers %]
+MaxSpareServers      [% cfg.sl_proxy_apache_max_spare_servers %]
+StartServers         [% cfg.sl_proxy_apache_start_servers %]
+LogLevel             [% cfg.sl_proxy_apache_loglevel %]
+MaxClients           [% cfg.sl_proxy_apache_maxclients %]
 ErrorLog             [% cfg.sl_root %]/[% cfg.sl_version %]/logs/httpd_proxy_error_log
 TransferLog          [% cfg.sl_root %]/[% cfg.sl_version %]/logs/httpd_proxy_access_log
 MaxRequestsPerChild  250
@@ -29,7 +29,7 @@ Timeout              300
 <IfModule mod_proxy.c>
     # If mod_proxy is used for proxy forwarding
     ProxyRequests On
-    Listen        [% cfg.sl_http_frontend_port %]
+    Listen        [% cfg.sl_proxy_http_frontend_port %]
     <IfModule mod_cache.c>
         <IfModule mod_mem_cache.c>
         CacheEnable mem /
@@ -43,11 +43,11 @@ Timeout              300
 
 [% ELSIF cfg.sl_proxy == 'perlbal' %]
 
-Listen [% cfg.sl_http_backend_port %]
+Listen [% cfg.sl_proxy_http_backend_port %]
 
 [% END %]
 
-ServerName           [% cfg.sl_servername %]
+ServerName           [% cfg.sl_proxy_servername %]
 ErrorDocument        404	/404.html
 ErrorDocument        500	/500.html
 

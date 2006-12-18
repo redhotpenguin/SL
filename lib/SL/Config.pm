@@ -26,34 +26,69 @@ are really fast.
 
 =cut
 
+# setup the application root to determine where the conf file is.
+# assume that the app is layed out $sl_root/conf $sl_root/bin
+our ( $sl_root, $config );
+
+BEGIN {
+    require FindBin;
+    $sl_root = "$FindBin::RealBin/../";
+    if ( !-d "$sl_root/conf" ) {
+
+        # no conf directory, try using $ENV{SL_ROOT} for $sl_root
+        die "Couldn't set \$sl_root" unless ( $ENV{SL_ROOT} );
+        $sl_root = $ENV{SL_ROOT};
+    }
+}
+
 use base 'Config::ApacheFormat';
 
-our $config;
-
 sub new {
-	my  ($class, $config_files_ref) = @_;
+    my ( $class, $config_files_ref ) = @_;
 
-	return $config if $config;
-	unless ($config_files_ref or $config) {
-		$config_files_ref = [ $ENV{SL_ROOT} . '/conf/sl.proxy.conf' ];
-		die unless $config_files_ref;
-	}
+    return $config if $config;
 
+    unless ($config_files_ref) {
 
-	$config = $class->SUPER::new();
-	my $read;
-	foreach my $config_file ( @{$config_files_ref} ) {
-		next unless (-e $config_file);
-		$config->read($config_file);
-		$read++;
-	}
-	use Data::Dumper;
-	require Carp && Carp::croak( "No config files read: " . 
-		Dumper($config_files_ref))
-		unless $read;
+        # use the developer's config file if it exists
+        if ( -e "$sl_root/sl.conf" ) {
+            push @{$config_files_ref}, "$sl_root/sl.conf";
+        }
 
-	$config->autoload_support(1);
-	return $config;
+        # if no default config, or dev config found we can't do anything
+        if (   ( !$config_files_ref )
+            && ( !-e "$sl_root/conf/sl.conf" ) )
+        {
+            require Carp
+              && Carp::croak(
+                    "No $sl_root/sl.conf or $sl_root/conf/sl.conf present, "
+                  . "did you symlink the conf directory to the httpd root?" );
+        }
+        elsif ( -e "$sl_root/conf/sl.conf" ) {
+
+            # if there is a default config setup use it
+            unshift @{$config_files_ref}, "$sl_root/conf/sl.conf";
+        }
+    }
+
+    # we have a configuration file to work with, so get to work
+    $config = $class->SUPER::new();
+    my $read;
+    foreach my $config_file ( @{$config_files_ref} ) {
+        next unless ( -e $config_file );
+        $config->read($config_file);
+        $read++;
+    }
+
+    unless ($read) {
+        require Data::Dumper;
+        require Carp
+          && Carp::croak( "No config files read: "
+              . Data::Dumper::Dumper($config_files_ref) );
+    }
+
+    $config->autoload_support(1);
+    return $config;
 }
 
 =item C<sl_db_params>
@@ -63,13 +98,13 @@ Returns an array reference
 =cut
 
 sub sl_db_params {
-	my $self = shift;
+    my $self = shift;
 
 }
 
 sub tmpl_root {
-	my $self = shift;
-	return $self->sl_root . '/' . $self->sl_version . '/tmpl';
+    my $self = shift;
+    return $self->sl_root . '/' . $self->sl_version . '/tmpl';
 }
 
 1;

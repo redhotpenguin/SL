@@ -12,10 +12,10 @@ use Apache2::Request    ();
 use base 'SL::Apache::App';
 
 # setup our template object
-use SL::Config;
+use SL::Config ();
 my $config = SL::Config->new;
 
-use Template;
+use Template ();
 my %tmpl_config = ( INCLUDE_PATH => $config->tmpl_root . '/app' );
 my $tmpl = Template->new( \%tmpl_config ) || die $Template::ERROR;
 
