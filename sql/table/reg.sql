@@ -36,7 +36,8 @@ CREATE TABLE reg (
     mts timestamp without time zone DEFAULT now(),
     active boolean default 't',
     sponsor character varying(64),
-    code integer NOT NULL
+    code integer NOT NULL,
+	password_md5 character varying(32)
 );
 
 
