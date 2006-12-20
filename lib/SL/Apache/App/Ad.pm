@@ -45,7 +45,7 @@ sub dispatch_list {
     # grab the ads
 	my $count = 0;
     if ( $r->pnotes('root') ) {
-
+		$tmpl_data{'root'} = 1;
         # root user gets all ads
         @{ $tmpl_data{'ads'} } =
           sort { $a->ad_id <=> $b->ad_id } SL::Model::App->resultset('Ad')->all;

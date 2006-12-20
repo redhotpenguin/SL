@@ -8,6 +8,9 @@
 <table class="list">
 <tr class="list_header">
 <td>&nbsp;&nbsp;Ad&nbsp;&nbsp;</td><td>Text</td>
+[% IF root == 1 %]
+<td>Ad Group</td>
+[% END %]
 <td>Active&nbsp;&nbsp;</td>
 <td>Edit</td>
 </tr>
@@ -16,6 +19,9 @@
 	
 <td style="color: #639D63">&nbsp;&nbsp;[% ad.ad_id %]</a></td>
 <td>[% ad.text %]</a></td>
+[% IF root == 1 %]
+<td>[% ad.ad_group_id.name %]
+[% END %]
 <td style="text-align: center;">[% IF ad.active %]Yes[% ELSE %]No[% END %]</td>
 <td><a href="/app/ad/edit/?ad_id=[% ad.ad_id %]">Edit</a></td>
 </tr>
