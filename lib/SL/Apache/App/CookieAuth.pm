@@ -158,7 +158,14 @@ sub auth_ok {
 	# setup the request auth blabla
     $r->user( $reg->email );
     $r->pnotes( $r->user => $reg );
-  
+
+	# Check to see if they are a root user
+	my ($root) = SL::Model::App->resultset('Root')->search({ 
+		reg_id => $reg->reg_id });
+	if ($root) {
+		$r->pnotes('root' => $root->root_id);
+	}
+
 	return Apache2::Const::OK; 
 }
 

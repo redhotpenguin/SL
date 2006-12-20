@@ -6,7 +6,7 @@ use warnings;
 use SL::Model;
 use base qw(DBIx::Class::Schema::Loader);
 
-our $DEBUG = 0;
+our $DEBUG = 1;
 
 __PACKAGE__->loader_options(
 	relationships => 1,
