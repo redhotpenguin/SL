@@ -36,7 +36,15 @@ sub authenticate {
     my ( $class, $r ) = @_;
 
     # subrequests ok
-    return Apache2::Const::OK unless ( $r->is_initial_req );
+    unless ( $r->is_initial_req ) {
+        # FIXME - abstract this out to match auth_ok
+        $r->user($r->prev->user);
+        $r->pnotes($r->user => $r->prev->pnotes($r->prev->user));
+        if ($r->prev->pnotes('root')) {
+            $r->pnotes('root' => 1);
+        }
+        return Apache2::Const::OK;
+    }
 
     # grab the cookies
     my $jar    = Apache2::Cookie::Jar->new($r);
@@ -165,7 +173,6 @@ sub auth_ok {
 	if ($root) {
 		$r->pnotes('root' => $root->root_id);
 	}
-
 	return Apache2::Const::OK; 
 }
 
