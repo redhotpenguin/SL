@@ -9,7 +9,7 @@ use Apache2::Log    ();
 use Apache2::Cookie ();
 use Apache2::URI    ();
 
-use SL::Apache::App ();
+use base 'SL::Apache::App';
 use SL::Model::App ();
 
 use Digest::MD5 ();
@@ -89,8 +89,8 @@ sub login {
             \$output );
 
         $ok
-          ? return SL::Apache::App::ok( $r, $output )
-          : return SL::Apache::App::error( $r,
+          ? return $class->ok( $r, $output )
+          : return $class->ok( $r,
             "Template error: " . $TEMPLATE->error() );
     }
 

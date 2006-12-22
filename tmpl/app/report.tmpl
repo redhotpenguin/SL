@@ -1,12 +1,12 @@
 [% INCLUDE header.tmpl %]
 
 <div id="center">
-<div id="content">
-
+<div class="content">
 <h2><a href="/app">Dashboard</a> > View Reports</h2>
-[% FOREACH type = [ 'views' clicks rates ads ] %]
+[% FOREACH type = [ 'views' 'clicks' 'rates' 'ads' ] %]
 <p><img src="/img/report/[% reg.reg_id %]/[% reg.ip %]/daily/[% type %].png"></p>
 [% END %]
-
+</div>
+</div>
 
 [% INCLUDE footer.tmpl %]

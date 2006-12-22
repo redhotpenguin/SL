@@ -31,8 +31,8 @@ sub dispatch_index {
 	my %tmpl_data = ( root => $r->pnotes('root') );
 	my $output;
 	my $ok = $tmpl->process('home.tmpl', \%tmpl_data, \$output);
-	$ok ? return ok($r, $output) 
-		: return error($r, "Template error: " . $tmpl->error());
+	$ok ? return $self->ok($r, $output) 
+		: return $self->error($r, "Template error: " . $tmpl->error());
 }
 
 sub ok {
