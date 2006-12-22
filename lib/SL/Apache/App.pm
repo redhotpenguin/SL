@@ -28,7 +28,7 @@ This method serves of the master ad control panel for now
 
 sub dispatch_index {
 	my ($self, $r) = @_;
-	my %tmpl_data;
+	my %tmpl_data = ( root => $r->pnotes('root') );
 	my $output;
 	my $ok = $tmpl->process('home.tmpl', \%tmpl_data, \$output);
 	$ok ? return ok($r, $output) 
@@ -36,7 +36,7 @@ sub dispatch_index {
 }
 
 sub ok {
-	my ($r, $output) = @_;
+	my ($self, $r, $output) = @_;
 	# send successful response
 	$r->content_type('text/html');
 	$r->print($output);
@@ -44,7 +44,7 @@ sub ok {
 }
 
 sub error {
-	my ($r, $error) = @_;
+	my ($self, $r, $error) = @_;
 	$r->log->error($error);
 	return Apache2::Const::SERVER_ERROR;
 }

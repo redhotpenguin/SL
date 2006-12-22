@@ -1,6 +1,7 @@
 sl_root  /Users/phred/dev/sl
 sl_version  trunk
 
+sl_data_root /tmp/data/sl
 sl_ip_cache_file	/tmp/sl_ips
 
 # configure the database connection

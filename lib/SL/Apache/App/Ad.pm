@@ -73,32 +73,12 @@ sub dispatch_list {
     my $output;
     my $ok = $tmpl->process( 'ad/list.tmpl', \%tmpl_data, \$output );
     $ok
-      ? return SL::Apache::App::ok( $r, $output )
-      : return SL::Apache::App::error( $r,
+      ? return $self->ok( $r, $output )
+      : return $self->error( $r,
         "Template error: " . $tmpl->error() );
 }
 
 my %ad_profile = ( required => [qw( link text ad_group_id active )], );
-
-sub dispatch_report {
-    my ( $self, $r ) = @_;
-
-    my @DAYS = qw( 1 3 7 14 30 );
-
-    # generate the results
-    my $start = DateTime->now;
-    my $end   = DateTime->now;
-    my %results;
-    foreach my $day (@DAYS) {
-        my $end = DateTime->now->subtract( days => $day );
-        $results{$day}{views}  = SL::CS::Model::Report->views( $end, $start );
-        $results{$day}{clicks} = SL::CS::Model::Report->links( $end, $start );
-    }
-
-    my %tmpl_data;
-    my $output;
-    my $ok = $tmpl->process( 'ad/report.tmpl', \%tmpl_data, \$output );
-}
 
 sub dispatch_edit {
     my ( $self, $r ) = @_;
@@ -136,8 +116,8 @@ sub dispatch_edit {
 
   	    my $ok = $tmpl->process( 'ad/edit.tmpl', \%tmpl_data, \$output );
         $ok
-          ? return SL::Apache::App::ok( $r, $output )
-          : return SL::Apache::App::error( $r,
+          ? return $self->ok( $r, $output )
+          : return $self->error( $r,
             "Template error: " . $tmpl->error() );
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {

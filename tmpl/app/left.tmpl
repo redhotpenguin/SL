@@ -2,9 +2,15 @@
 	<div class="sidebar"> 
 	<img src="http://www.redhotpenguin.com/images/sl/dashboard.gif">
 	<ul>
+        [% IF root %]
+        <li><font color="red">ROOT USER MODE</font><br><img src="http://johnsonparty.typepad.com/image/line.gif"><br /></li>
+        [% END %]
 		<li><a href="/app/ad/edit?ad_id=-1">Create a New Ad</a><br><img src="http://johnsonparty.typepad.com/image/line.gif"><br /> </li>
-		<li><a href="/app/report">View Reports</a><br><img src="http://johnsonparty.typepad.com/image/line.gif"><br /> </li>
+		<li><a href="/app/report/index">View Reports</a><br><img src="http://johnsonparty.typepad.com/image/line.gif"><br /> </li>
 		<li><a href="/app/ad/list">Manage Ads</a><br><img src="http://johnsonparty.typepad.com/image/line.gif"><br /> </li>
+		[% IF root %]
+		<li><a href="/app/blacklist">Blacklist Website</a><br><img src="http://johnsonparty.typepad.com/image/line.gif"><br /></li>
+		[% END %]
 	</ul>
 	</div>
 </div>

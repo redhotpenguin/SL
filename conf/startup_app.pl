@@ -36,6 +36,9 @@ use Apache2::ServerUtil    ();
 use Apache2::SubRequest    ();
 use APR::Table             ();
 use SL::Apache::App::Click ();
+use SL::Apache::App         ();
+use SL::Apache::App::Ad     ();
+use SL::Apache::App::Report ();
 
 #use SL::Apache::App::Reg			 ();
 #use SL::Apache::App::AuthCookie      ();
