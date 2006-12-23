@@ -72,9 +72,6 @@ PerlLoadModule Apache2::Dispatch
     SetHandler default-handler
 </Location>
 
-PerlSetVar TypeKeyPath /
-PerlSetVar TypeKeyLoginScript /login.pl
-
 ## the user application, need to be logged in
 <Location  /app>
 	AuthType SL::Apache::App::CookieAuth
@@ -99,6 +96,11 @@ PerlSetVar TypeKeyLoginScript /login.pl
 <Location /forgot>
 	SetHandler modperl
 	PerlResponseHandler SL::Apache::App::CookieAuth->forgot
+</Location>
+
+<Location /forgot/reset>
+    SetHandler modperl
+    PerlResponseHandler SL::Apache::App::CookieAuth->forgot_reset
 </Location>
 
 ## registration

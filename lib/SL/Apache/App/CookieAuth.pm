@@ -86,7 +86,9 @@ sub login {
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my $output;
         my $ok =
-          $TEMPLATE->process( 'login.tmpl', { error => $req->param('error') || '' },
+          $TEMPLATE->process( 'login.tmpl', 
+         { status => $req->param('status') || '',
+           error => $req->param('error') || '' },
             \$output );
 
         $ok
@@ -262,6 +264,58 @@ sub forgot {
         }
        return Apache2::Const::OK;
       }
+}
+
+sub forgot_reset {
+    my ($class, $r) = @_;
+
+    my $req = Apache2::Request->new($r);
+
+    return Apache2::Const::SERVER_ERROR unless $req->param('key');
+
+    my ($forgot) = SL::Model::App->resultset('Forgot')->search({ 
+         link_md5 => $req->param('key') });
+    return Apache2::Const::NOT_FOUND unless $forgot;
+
+    if ($r->method_number == Apache2::Const::M_GET) {
+
+       # found the link, serve the reset password page
+       my $output;
+       my $url = $r->construct_url('/forgot/reset/?key=' . 
+                                   $forgot->link_md5());
+
+       my $ok = $TEMPLATE->process( 'forgot_reset.tmpl', 
+              { key => $req->param('key'), 
+                error => $req->param('error') || '' }, \$output );
+
+       $ok
+          ? return $class->ok( $r, $output )
+          : return $class->ok( $r,
+            "Template error: " . $TEMPLATE->error() );
+       
+    } elsif ($r->method_number == Apache2::Const::M_POST) {
+      unless (($req->param('password') && $req->param('retype')) &&
+              ($req->param('password') eq $req->param('retype'))) {
+         $r->method_number(Apache2::Const::M_GET);
+         $r->internal_redirect('/forgot/reset/?error=mismatch&key=' . 
+                               $req->param('key'));
+         return Apache2::Const::OK;
+       }
+
+      # update the password
+      my $reg = $forgot->reg_id;
+      $reg->password_md5(Digest::MD5::md5_hex($req->param('password')));
+      $reg->update;
+
+      # expire the link
+      $forgot->expired(1);
+      $forgot->update;
+
+      # send to the login page
+      $r->method_number(Apache2::Const::M_GET);
+      $r->internal_redirect('/login/?status=password_updated');
+      return Apache2::Const::OK;
+    }
 }
 
 1;

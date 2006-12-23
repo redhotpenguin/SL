@@ -1,0 +1,20 @@
+[% INCLUDE header.tmpl %]
+
+<div id="center">
+<div class="content">
+
+<h2><a href="/">Home</a> > <a href="/login/">Login</a> > <a href="/forgot/">Forgot Password?</a> > Reset Password</h2>
+[% IF error == 'mismatch' %]<p><font color="red">Your passwords didn't match, please try again</font></p>[% END %]
+<br />
+<h3>Enter a new password</h3>
+<form method="POST" action="/forgot/reset/">
+<p>Password:</p>
+<p><input type="password" name="password"></p>
+<p>Retype Password:</p>
+<p><input type="password" name="retype"></p>
+<input type="hidden" name="key" value="[% key %]">
+<p><input type="submit" name="login" value="Submit"></p>
+</form>
+</div>
+</div>
+[% INCLUDE footer.tmpl %]

@@ -1,0 +1,16 @@
+[% INCLUDE header.tmpl %]
+
+<div id="center">
+<div class="content">
+
+<h2><a href="/">Home</a> > <a href="/login">Login</a> > Forgot Password?</h2>
+
+[% IF status == 'notfound' %]<p><font color="red">We couldn't find [% email %] in our system.  Please try again, or email support@silverliningnetworks.com</font></p>[% END %]
+[% IF status == 'sent' %]<p><font color="red">A link to change your password has been emailed to [% email %]</font></p>[% END %]
+<form method="POST" action="/forgot">
+<p>Please enter your email address and we'll send you a link to reset your password:</p><p><input type="text" name="email"></p>
+<p><input type="submit" name="login" value="Submit"></p>
+</form>
+</div>
+</div>
+[% INCLUDE footer.tmpl %]
