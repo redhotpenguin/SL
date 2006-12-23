@@ -13,6 +13,7 @@ use base 'SL::Apache::App';
 use SL::Model::App ();
 
 use Digest::MD5 ();
+use MIME::Lite  ();
 
 our $CONFIG;
 my ( $CIPHER, $TEMPLATE );
@@ -195,6 +196,72 @@ sub redirect_auth {
     $r->log->debug( $class . " redirecting to $dest, reason '$reason'" );
     $r->headers_out->set( Location => $dest );
     return Apache2::Const::REDIRECT;
+}
+
+sub forgot {
+    my ($class, $r) = @_;
+
+    my $req = Apache2::Request->new($r);
+
+    if ( $r->method_number == Apache2::Const::M_GET ) {
+        my $output;
+        my $ok =
+          $TEMPLATE->process( 'forgot.tmpl', 
+                              { status => $req->param('status') || '',
+                                email  => $req->param('email') }, \$output );
+
+        $ok
+          ? return $class->ok( $r, $output )
+          : return $class->ok( $r,
+            "Template error: " . $TEMPLATE->error() );
+
+    } elsif ($r->method_number == Apache2::Const::M_POST ) {
+      $r->log->debug("POSTING...");
+        my $email;
+        unless ($email = $req->param('email')) {
+          # missing email
+          $r->method_number(Apache2::Const::M_GET);
+          $r->internal_redirect('/forgot/?status=blank');
+          return Apache2::Const::OK;
+        }
+
+        my ($reg) = SL::Model::App->resultset('Reg')->search({
+          email => $email });
+        
+        unless ($reg) {
+          # bad email address
+          $r->method_number(Apache2::Const::M_GET);
+          $r->internal_redirect('/forgot/?status=notfound&email=' . 
+                                $req->param('email'));
+
+        } else {
+        
+           # we have a valid email, setup forgot password link
+           my $forgot = SL::Model::App->resultset('Forgot')->new({ 
+                reg_id => $reg->reg_id});
+           $forgot->insert;
+           $forgot->update;
+           $forgot->discard_changes;
+           my $output;
+           my $url = $r->construct_url('/forgot/reset/?key=' . 
+                                       $forgot->link_md5());
+
+           my $ok = $TEMPLATE->process( 'forgot_email.tmpl', 
+                              { url => $url, email => $reg->email }, \$output );
+          
+           my $msg = MIME::Lite->new(
+               From => "Todd the Support Guy <support\@silverliningnetworks.com>",
+               To   => $reg->email,
+               Subject => "Your password reset request",
+               Data => $output,
+           );
+
+           $msg->send;
+           $r->method_number(Apache2::Const::M_GET);
+           $r->internal_redirect("/forgot/?status=sent&email=$email");
+        }
+       return Apache2::Const::OK;
+      }
 }
 
 1;

@@ -96,6 +96,11 @@ PerlSetVar TypeKeyLoginScript /login.pl
 	PerlResponseHandler SL::Apache::App::CookieAuth->login
 </Location>
 
+<Location /forgot>
+	SetHandler modperl
+	PerlResponseHandler SL::Apache::App::CookieAuth->forgot
+</Location>
+
 ## registration
 <Location /reg>
 	SetHandler modperl
