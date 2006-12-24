@@ -14,13 +14,28 @@
 [% ELSIF ad.ad_id == -1 %]
 <p>You are adding an ad to the system</p>
 [% END %]
+
+[% IF errors.missing %]
+<p><font color="red">Please complete the missing fields</font></p>
+[% END %]
+[% IF errors.invalid %]
+<p><font color="red">Some fields were invalid, please correct them</font></p>
+[% END %]
 <hr size=1 color="#CCCCCC"></td>
 
 <form method="POST" action="/app/ad/edit/?ad_id=[% ad.ad_id %]">
-<tr><td>Ad Text:</td><td><input type="text" name="text" size="50" maxlength="100" value="[% ad.text %]"></td></tr>
+<tr><td>
+[% IF errors.missing.text %]<font color="red">[% END %]
+Ad Text:
+[% IF errors.missing.text  %]</font>[% END %]
+</td><td><input type="text" name="text" size="50" maxlength="100" value="[% ad.text %]"></td></tr>
 <tr><td colspan=2>(100 character limit)</td></tr>
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
-<tr><td>Ad Links To:</td><td><input type="text" name="link" size="50" maxlength="512" value="[% IF ad.ad_id == -1 %]http://[% ELSE %][% link.uri %][% END %]"></td></tr>
+<tr><td>
+[% IF errors.missing.link %]<font color="red">[% END %]
+Ad Links To:
+[% IF errors.missing.text %]</font>[% END %]
+</td><td><input type="text" name="link" size="50" maxlength="512" value="[% IF ad.ad_id == -1 %]http://[% ELSE %][% link.uri %][% END %]"></td></tr>
 <tr><td colspan=2>(example http://anywebsite.com/)</td></tr>
 [% IF link.uri %]<tr><td colspan=2><a href="[% link.uri %]">Link</a></td></tr>[% END %]
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>

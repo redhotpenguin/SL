@@ -88,7 +88,7 @@ sub dispatch_list {
 my %ad_profile = ( required => [qw( link text ad_group_id active )], );
 
 sub dispatch_edit {
-    my ( $self, $r ) = @_;
+    my ( $self, $r, $errors ) = @_;
 
     my $req   = Apache2::Request->new($r);
     my $ad_id = $req->param('ad_id');
@@ -121,6 +121,9 @@ sub dispatch_edit {
 				@reg_ad_groups;
 		}
 
+        if ( keys %{$errors} ) {
+              $tmpl_data{'errors'} = $errors;
+        }
   	    my $ok = $tmpl->process( 'ad/edit.tmpl', \%tmpl_data, \$output );
         $ok
           ? return $self->ok( $r, $output )
@@ -132,9 +135,15 @@ sub dispatch_edit {
         my $req = Apache2::Request->new($r);
         my $results = Data::FormValidator->check( $req, \%ad_profile );
         if ( $results->has_missing or $results->has_invalid ) {
-            %{ $tmpl_data{'missing'} } = map { $_ => 1 } $results->missing;
-            %{ $tmpl_data{'invalid'} } = map { $_ => 1 } $results->invalid;
-            my $ok = $tmpl->process( 'ad/edit.tmpl', \%tmpl_data, \$output );
+            my %errors;
+            if ($results->has_missing) {
+                %{$errors{'missing'}} = map { $_ => 1 } $results->missing;
+              }
+            if ($results->has_invalid) {
+                %{$errors{'invalid'}} = map { $_ => 1 } $results->invalid;
+              }
+            $r->method_number(Apache2::Const::M_GET);
+            return $self->dispatch_edit($r, \%errors );
         }
         unless ($ad) {
             $ad   = SL::Model::App->resultset('Ad')->new(   {} );
