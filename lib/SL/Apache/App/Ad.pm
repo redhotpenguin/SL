@@ -136,7 +136,6 @@ sub dispatch_edit {
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
 
-        my $req = Apache2::Request->new($r);
         my $results = Data::FormValidator->check( $req, \%ad_profile );
         if ( $results->has_missing or $results->has_invalid ) {
             my %errors;

@@ -1,0 +1,42 @@
+[% INCLUDE header.tmpl %]
+
+<div id="list_center">
+<div class="content">
+
+<h2><a href="/app">Dashboard</a> > Blacklist Websites</h2>
+
+[% IF status == 'added' %]
+<p><font color="red">Url '[% added_url %]' was added to the blacklist.</font></p>
+[% END %]
+
+<p style="text-align: left; padding-bottom: 5px;"><a href="/app/blacklist/edit/?url_id=-1">Blacklist a Url</a></span></p>
+
+<table class="list">
+  <tr class="list_header">
+    <td>&nbsp;ID&nbsp;</td>
+    <td>&nbsp;URL&nbsp;</td>
+    <td>Who Blacklisted It</td>
+    <td>Date Blacklisted</td>
+  </tr>
+
+[% FOREACH url = urls %]
+  <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
+
+    <td style="color: #639D63">&nbsp;&nbsp;[% url.url_id %]</a></td>
+
+    <td>[% url.url %]</td>
+
+    <td>[% url.reg_id.email %]</td>
+
+    <td>[% url.ts %]</td>
+
+  </tr>
+[% END %]
+</table>
+</div>
+</div>
+
+[% INCLUDE right.tmpl %]
+[% INCLUDE footer.tmpl %]
+
+

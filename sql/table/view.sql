@@ -1,6 +1,8 @@
 CREATE TABLE view (
     view_id serial NOT NULL,
     ad_id integer NOT NULL
+    ts timestamp without time zone default now(),
+    ip inet
 );
 
 
