@@ -39,11 +39,15 @@ Ad Links To:
 <tr><td colspan=2>(example http://anywebsite.com/)</td></tr>
 [% IF link.uri %]<tr><td colspan=2><a href="[% link.uri %]">Link</a></td></tr>[% END %]
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+
 <tr><td>Active:</td><td>
 Yes<input type="radio" name="active" value="1" [% IF ad.active == 1 ||  ad.ad_id == -1 %] checked [% END %]>
-No<input type="radio" name="active" value="0" [% IF ad.active == 0 %] checked [% END %]>
+No<input type="radio" name="active" value="0" [% IF ad.active == 0 %] checked [% END %]></td></tr>
+<tr><td colspan=3>Deactivating the ad removes it from the ad serving rotation.<br />To ensure consistency in reporting, ads cannot be deleted.</td></tr>
+
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 </td></tr>
+
 <tr><td>Ad Group:</td><td><select name="ad_group_id">
 [% FOREACH ad_group = ad_groups %]
 <option [% IF ad.ad_group_id.ad_group_id == ad_group.ad_group_id %] SELECTED 

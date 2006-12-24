@@ -49,7 +49,9 @@ sub dispatch_list {
 		$tmpl_data{'root'} = 1;
         # root user gets all ads
         @{ $tmpl_data{'ads'} } =
-          sort { $a->ad_id <=> $b->ad_id } SL::Model::App->resultset('Ad')->all;
+          sort { $b->active <=> $a->active } 
+          sort { $b->ad_id <=> $a->ad_id } 
+          SL::Model::App->resultset('Ad')->all;
     }
     else {
 
@@ -162,11 +164,15 @@ sub dispatch_edit {
 
         # status for redirect
         my $status = 'updated';
+  
+        # case for adding an ad
         if ( $ad_id == -1 ) {
             $link->ad_id( $ad->ad_id );
             $link->insert;
             $status = 'added';
         }
+
+        # do this for both ads and updates
         $link->uri( $req->param('link') );
         $link->active('t');
         $link->update;
