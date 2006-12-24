@@ -18,8 +18,10 @@ my $tmpl = Template->new( \%tmpl_config) || die $Template::ERROR;
 sub dispatch_index {
     my ( $self, $r ) = @_;
 
-    my %tmpl_data = ( root => $r->pnotes('root'), 
-                        reg => $r->pnotes( $r->user) );
+	my $req = Apache2::Request->new($r);
+	my %tmpl_data = ( root => $r->pnotes('root'), 
+                        reg => $r->pnotes( $r->user),
+					   temporal => $req->param('temporal') || 'daily'	);
 
     my $output;
     my $ok = $tmpl->process('report.tmpl', \%tmpl_data, \$output);

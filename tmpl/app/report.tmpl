@@ -1,10 +1,37 @@
 [% INCLUDE header.tmpl %]
 
-<div id="center">
+<div id="list_center">
 <div class="content">
 <h2><a href="/app">Dashboard</a> > View Reports</h2>
+<br />
+<h2>Select a range to view reports</h2>
+<br />
+[% UNLESS temporal == 'daily' %]
+<a href="/app/report/index/?temporal=daily">[% END %]
+<h2>24 Hours
+[% UNLESS temporal == 'daily' %]</a>[% END %]
+&nbsp;>&nbsp;
+
+[% UNLESS temporal == 'weekly' %]
+<a href="/app/report/index/?temporal=weekly">[% END %]
+7 days
+[% UNLESS temporal == 'weekly' %]</a>[% END %]
+&nbsp;>&nbsp;
+
+[% UNLESS temporal == 'monthly' %]
+<a href="/app/report/index/?temporal=monthly">[% END %]
+30 days
+[% UNLESS temporal == 'monthly' %]</a>[% END %]
+&nbsp;>&nbsp;
+
+[% UNLESS temporal == 'quarterly' %]
+<a href="/app/report/index/?temporal=quarterly">[% END %]
+90 days</h2>
+[% UNLESS temporal == 'quarterly' %]</a>[% END %]
+
 [% FOREACH type = [ 'views' 'clicks' 'rates' 'ads' ] %]
-<p><img src="/img/report/[% reg.reg_id %]/[% reg.ip %]/daily/[% type %].png"></p>
+<p style="width: 600px;">
+<img width="600" src="/img/report/[% reg.reg_id %]/[% reg.ip %]/[% temporal %]/[% type %].png"></p>
 [% END %]
 </div>
 </div>
