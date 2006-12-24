@@ -274,7 +274,7 @@ sub forgot_reset {
     return Apache2::Const::SERVER_ERROR unless $req->param('key');
 
     my ($forgot) = SL::Model::App->resultset('Forgot')->search({ 
-         link_md5 => $req->param('key') });
+         link_md5 => $req->param('key'), expired => 'f' });
     return Apache2::Const::NOT_FOUND unless $forgot;
 
     if ($r->method_number == Apache2::Const::M_GET) {
