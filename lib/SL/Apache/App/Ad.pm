@@ -50,7 +50,7 @@ sub dispatch_list {
         # root user gets all ads
         @{ $tmpl_data{'ads'} } =
           sort { $b->active <=> $a->active } 
-          sort { $b->ad_id <=> $a->ad_id } 
+          sort { $b->ad_id  <=> $a->ad_id } 
           SL::Model::App->resultset('Ad')->all;
     }
     else {
@@ -68,7 +68,9 @@ sub dispatch_list {
             push @ads, SL::Model::App->resultset('Ad')
               ->search( { ad_group_id => $ad_group->ad_group_id } );
         }
-        @{ $tmpl_data{'ads'} } = sort { $a->ad_id <=> $b->ad_id } @ads;
+        @{ $tmpl_data{'ads'} } = 
+          sort { $b->active <=> $a->active }
+          sort { $b->ad_id  <=> $a->ad_id } @ads;
     }
 	$tmpl_data{'count'} = scalar(@{$tmpl_data{'ads'}});
 
