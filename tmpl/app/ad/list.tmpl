@@ -4,6 +4,11 @@
 <div class="content">
 
 <h2><a href="/app">Dashboard</a> > Manage Your Ads > [% count %] Ads Total</h2>
+[% IF status == 'added' %]
+<p><font color="red">Ad '[% ad_text %]' was successfully added.</font></p>
+[% ELSIF  status == 'updated' %]
+<p><font color="red">Ad '[% ad_text %]' was successfully updated.</font></p>
+[% END %]
 <p style="text-align: right; padding-bottom: 5px;"><a href="/app/ad/edit/?ad_id=-1">Create a New Ad</a></span></p>
 <table class="list">
 <tr class="list_header">

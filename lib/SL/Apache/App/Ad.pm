@@ -70,6 +70,13 @@ sub dispatch_list {
     }
 	$tmpl_data{'count'} = scalar(@{$tmpl_data{'ads'}});
 
+    # set the status, if any
+    my $req = Apache2::Request->new($r);
+    if ($req->param('status') ) {
+      $tmpl_data{'status'} = $req->param('status');
+      $tmpl_data{'ad_text'} = $req->param('ad_text');
+    }
+
     my $output;
     my $ok = $tmpl->process( 'ad/list.tmpl', \%tmpl_data, \$output );
     $ok
@@ -144,15 +151,20 @@ sub dispatch_edit {
         }
         $ad->update;
 
+        # status for redirect
+        my $status = 'updated';
         if ( $ad_id == -1 ) {
             $link->ad_id( $ad->ad_id );
             $link->insert;
+            $status = 'added';
         }
         $link->uri( $req->param('link') );
         $link->active('t');
         $link->update;
-
-        $r->internal_redirect('/app/ad/list');
+        
+        $r->method_number(Apache2::Const::M_GET);
+        $r->internal_redirect("/app/ad/list/?status=$status&ad_text="  .
+                              $ad->text);
         return Apache2::Const::OK;
     }
 }
