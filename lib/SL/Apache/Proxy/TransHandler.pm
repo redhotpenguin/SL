@@ -13,7 +13,6 @@ SL::Apache::TransHandler
 
 use SL::Model::URL;
 
-our $blacklist_regex;
 our $ext_regex;
 our $ua_regex;
 
@@ -21,9 +20,6 @@ BEGIN {
     require Regexp::Assemble;
     require Perl6::Slurp;
 
-    #####################
-    ## Blacklisting
-	$blacklist_regex = SL::Model::URL->blacklist_regex;
 
 	## Extension based matching
     my @extensions = qw(
@@ -107,15 +103,7 @@ sub handler {
     $r->pnotes('referer' => $referer);
 
     $r->log->info("$$ PerlTransHandler Request for url $url, user-agent $ua, referer $referer");
-    
-	## Blacklisting first
-	$blacklist_counter++;
-	if (($blacklist_counter == BLACKLIST_REGEN) 
-		&& SL::Model::URL->should_update_blacklist ) {
-		$blacklist_regex = SL::Model::URL->blacklist_regex;
-		$blacklist_counter = 0;
-	}
-	
+    	
 	if (url_blacklisted($url)) {
         return &proxy_request($r);
     }
@@ -166,6 +154,8 @@ sub handler {
 
 sub url_blacklisted {
     my $url = shift;
+
+	my $blacklist_regex = SL::Model::URL->blacklist_regex;
     return 1 if ($url =~ m{$blacklist_regex});
 }
 
