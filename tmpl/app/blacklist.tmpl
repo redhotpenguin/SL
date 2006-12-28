@@ -6,7 +6,11 @@
 <h2><a href="/app">Dashboard</a> > Blacklist Websites</h2>
 
 [% IF status == 'added' %]
-<p><font color="red">Url '[% added_url %]' was added to the blacklist.</font></p>
+<p><font color="red">Url '[% url %]' was added to the blacklist.</font></p>
+[% END %]
+
+[% IF status == 'deleted' %]
+<p><font color="red">Url '[% url %]' was removed from the blacklist.</font></p>
 [% END %]
 
 <p style="text-align: left; padding-bottom: 5px;"><a href="/app/blacklist/edit/?url_id=-1">Blacklist a Url</a></span></p>
@@ -17,6 +21,9 @@
     <td>&nbsp;URL&nbsp;</td>
     <td>Who Blacklisted It</td>
     <td>Date Blacklisted</td>
+    [% IF root == 1 %]
+    <td>Unblacklist</td>
+    [% END %]
   </tr>
 
 [% FOREACH url = urls %]
@@ -30,6 +37,9 @@
 
     <td>[% url.ts %]</td>
 
+    [% IF root == 1 %]
+    <td><a href="/app/blacklist/delete/?url_id=[% url.url_id %]">Delete</a></td>
+    [% END %]
   </tr>
 [% END %]
 </table>

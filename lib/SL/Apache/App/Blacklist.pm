@@ -24,19 +24,44 @@ sub dispatch_index {
 
     # serve the page
     @{ $tmpl_data{'urls'} } = sort { $b->ts cmp $a->ts }
-      SL::Model::App->resultset('Url')->all;
+      SL::Model::App->resultset('Url')->search( { blacklisted => 't' });
 
     if ($req->param('status')) {
       $tmpl_data{'status'} = $req->param('status');
-      $tmpl_data{'added_url'} = $req->param('url');
+      $tmpl_data{'url'} = $req->param('url');
     }
-   
+
+    if ($r->pnotes('root')) {
+      $tmpl_data{'root'} = 1;
+    }
+
     my $output;
     my $ok = $tmpl->process( 'blacklist.tmpl', \%tmpl_data, \$output );
     $ok
       ? return $self->ok( $r, $output )
       : return $self->error( $r,
         "Template error: " . $tmpl->error() );
+}
+
+sub dispatch_delete {
+    my ($self, $r) = @_;
+
+    my $req = Apache2::Request->new($r);
+    my $url_id = $req->param('url_id');
+
+    $r->log->error("URL ID is $url_id");
+    return Apache2::Const::SERVER_ERROR unless $url_id;
+    my ($url) = SL::Model::App->resultset('Url')->search(
+           { url_id => $url_id });
+    return Apache2::Const::NOT_FOUND unless $url;
+
+    # ok we have an url, take it off the blacklist;
+    $url->blacklisted('f');
+    $url->update;
+
+    $r->method_number(Apache2::Const::M_GET);
+    $r->internal_redirect("/app/blacklist/index?status=deleted&url_id=$url_id");
+    return Apache2::Const::OK;
 }
 
 my %url_profile = ( required => [qw( url )], );

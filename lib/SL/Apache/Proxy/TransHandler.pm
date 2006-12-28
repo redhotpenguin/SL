@@ -11,14 +11,11 @@ SL::Apache::TransHandler
 
 =cut
 
-use constant BLACKLIST_REGEN => 100;
-
 use SL::Model::URL;
 
 our $blacklist_regex;
 our $ext_regex;
 our $ua_regex;
-our $blacklist_counter = 0;
 
 BEGIN {
     require Regexp::Assemble;
@@ -30,7 +27,7 @@ BEGIN {
 
 	## Extension based matching
     my @extensions = qw(
-      ad bz2 css doc exe fla gif gz ico jpeg jpg js pdf png ppt rar sit
+      ad avi bz2 css doc exe fla gif gz ico jpeg jpg js pdf png ppt rar sit
       rss tgz txt wmv vob xpi zip );
 
     $ext_regex = Regexp::Assemble->new;

@@ -6,7 +6,12 @@ use warnings;
 use base 'SL::Model';
 use Regexp::Assemble;
 
+my @URLS;
+my $BLACKLIST_REGEX;
+
 our $MAX_URL_ID;
+our $url_query;
+
 
 BEGIN {
 	my $dbh = SL::Model->connect;
@@ -19,8 +24,27 @@ SQL
 	$sth->execute;
 	my $id_ref = $sth->fetchrow_arrayref;
 	$MAX_URL_ID = $id_ref->[0];
+
+$url_query = <<SQL;
+SELECT url
+FROM url
+WHERE
+blacklisted = 't'
+SQL
+
+    @URLS = __PACKAGE__->get_blacklisted_urls();
+sub get_blacklisted_urls {
+	my ($class, $dbh) = @_;
+	my $sth = $dbh->prepare($url_query);
+	$sth->execute;
+    my @blacklisted_urls = map { $_->[0] }  @{$sth->fetchall_arrayref};
+	return wantarray ? @blacklisted_urls : \@blacklisted_urls;
 }
 
+}
+
+########
+# this doesn't work if urls have been removed from the list - DEPRECATED
 sub should_update_blacklist {
 	my $class = shift;
 	my $dbh = SL::Model->connect;
@@ -39,29 +63,40 @@ SQL
 	}
 	return;
 }
-
-sub get_blacklisted_urls {
-	my $class = shift;
-	my $dbh = SL::Model->connect;
-	my $sql = <<SQL;
-SELECT url
-FROM url
-WHERE
-blacklisted = 't'
-SQL
-	my $sth = $dbh->prepare($sql);
-	$sth->execute;
-	my @urls = map { $_->[0] } @{$sth->fetchall_arrayref};
-	return wantarray ? @urls : \@urls;
-}
+#######
 
 sub blacklist_regex {
 	my ($class) = @_;
-	my @blacklists = $class->get_blacklisted_urls;
-	my $blacklist_regex = Regexp::Assemble->new;
-	$blacklist_regex->add(@blacklists);
-	print STDERR "$$ Regex for blacklist_urls: ", $blacklist_regex->re, "\n\n";
-	return $blacklist_regex;
+
+    # First check to see if the urls have changed.  We don't compare the count
+    # because they can be added and subtracted, resulting in a net count of 0.
+
+	my $sth = $dbh->prepare($url_query);
+	$sth->execute;
+    my @recent_urls = $class->get_blacklisted_urls;
+
+    # compare the two arrays
+    my $they_are_different = (
+        Digest::MD5::md5_hex(join('', (sort { $a cmp $b } @URLS))) 
+          ne
+        Digest::MD5::md5_hex(join('', (sort { $a cmp $b } @recent_urls ))) 
+                              )
+      ? 1 : 0;
+
+    # if nothing has changed, return the existing regex
+    unless ($they_are_different) {
+      return $BLACKLIST_REGEX;
+    }
+
+    # ok they have changed, log info level and recompute the regex
+	$BLACKLIST_REGEX = Regexp::Assemble->new;
+	$BLACKLIST_REGEX->add(@blacklists);
+	print STDERR "$$ Regex for blacklist_urls computed: ", 
+      $BLACKLIST_REGEX->re, "\n\n";
+
+    # oh, don't forget to update the array
+    @URLS = @recent_urls;
+	return $BLACKLIST_REGEX;
 }
 
 1;
