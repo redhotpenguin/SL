@@ -123,7 +123,7 @@ sub _normalize_url {
 
     # canonicalize the URL
     my $canonical_url;
-    if ($url =~ m!^http://!) {
+    if ($url =~ m!^https?://!) {
         # full url
         $canonical_url = URI->new($url)->canonical->as_string;
     } elsif ($url =~ m!^(w+):!) {
