@@ -22,6 +22,7 @@ LogFormat "%h %l %u %t (%{User-agent}i) \"%r\" %>s %b"
 UseCanonicalName     Off
 HostNameLookups      Off
 Timeout              300
+AllowEncodedSlashes On
 
 [% IF cfg.sl_proxy == 'mod_proxy' %]
 #LoadModule proxy_module       modules/mod_proxy.so
