@@ -1,4 +1,4 @@
-sl_root  /Users/phred/dev/sl
+sl_root  /home/phred/dev/sl
 sl_version  trunk
 
 sl_data_root /tmp/data/sl
@@ -28,7 +28,7 @@ sl_proxy_apache_loglevel  debug
 sl_proxy_apache_keepalive  On
 sl_proxy_apache_user  phred
 sl_proxy_apache_group  phred
-
+sl_proxy_admin support@silverliningnetworks.com
 sl_proxy_servername  sl_proxy
 
 sl_clickserver_uri  http://localhost:9000

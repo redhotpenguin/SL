@@ -28,6 +28,7 @@ sl_proxy_apache_loglevel  info
 sl_proxy_apache_keepalive  On
 sl_proxy_apache_user  phred
 sl_proxy_apache_group  users
+sl_proxy_admin support@silverliningnetworks.com
 
 sl_proxy_servername  sl_proxy
 
