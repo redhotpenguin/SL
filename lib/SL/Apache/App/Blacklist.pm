@@ -110,7 +110,16 @@ sub dispatch_edit {
             return $self->dispatch_edit($r, \%errors );
         }
         unless ($url) {
-            $url   = SL::Model::App->resultset('Url')->new( {} );
+           # make sure monkeys aren't adding duplicate urls, bug 518
+          my ($exists) = SL::Model::App->resultset('Url')->search({
+              url => $req->param('url')});
+          if ($exists) {
+              $r->method_number(Apache2::Const::M_GET);
+              $r->internal_redirect("/app/blacklist/index?status=exists&url=" .
+                                    $req->param('url'));
+              return Apache2::Const::OK;
+           }
+           $url   = SL::Model::App->resultset('Url')->new( {} );
         }
         $url->url( $req->param('url') );
         $url->reg_id($r->pnotes($r->user)->reg_id);

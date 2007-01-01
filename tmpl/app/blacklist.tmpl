@@ -5,11 +5,11 @@
 
 <h2><a href="/app">Dashboard</a> > Blacklist Websites</h2>
 
-[% IF status == 'added' %]
+[% IF status == 'exists' %]
+<p><font color="red">Url '[% url %]' has already been blacklisted :-)</font></p>
+[% ELSIF status == 'added' %]
 <p><font color="red">Url '[% url %]' was added to the blacklist.</font></p>
-[% END %]
-
-[% IF status == 'deleted' %]
+[% ELSIF status == 'deleted' %]
 <p><font color="red">Url '[% url %]' was removed from the blacklist.</font></p>
 [% END %]
 
