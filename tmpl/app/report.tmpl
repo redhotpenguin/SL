@@ -3,9 +3,25 @@
 <div id="list_center">
 <div class="content">
 <h2><a href="/app">Dashboard</a> > View Reports</h2>
-<br />
+<hr>
+[% IF status == 'updated' %]
+<p><font color="red">Email preferences updated</font></p>
+[% END %]
+
+<form method="POST" action="/app/report/index">
+Email [% temporal %] reports to [% reg.email %] once a 
+[% IF temporal == 'daily' OR temporal == 'weekly' %]
+day
+[% ELSIF temporal == 'monthly' OR temporal == 'quarterly' %]
+week
+[% END %]
+<input type="checkbox" name="send_report" [% IF send_report %]CHECKED[% END %]>
+<input type="hidden" name="temporal" value="[% temporal %]">
+<input type="submit" value="Save">
+</form>
+<hr>
 <h2>Select a range to view reports</h2>
-<br />
+
 [% UNLESS temporal == 'daily' %]
 <a href="/app/report/index/?temporal=daily">[% END %]
 <h2>24 Hours

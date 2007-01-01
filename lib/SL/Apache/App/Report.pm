@@ -3,7 +3,7 @@ package SL::Apache::App::Report;
 use strict;
 use warnings;
 
-use Apache2::Const -compile => qw( OK);
+use Apache2::Const -compile => qw( OK M_POST M_GET);
 use Apache2::Log ();
 
 use base 'SL::Apache::App';
@@ -19,14 +19,33 @@ sub dispatch_index {
     my ( $self, $r ) = @_;
 
 	my $req = Apache2::Request->new($r);
-	my %tmpl_data = ( root => $r->pnotes('root'), 
-                        reg => $r->pnotes( $r->user),
-					   temporal => $req->param('temporal') || 'daily'	);
+    my $temporal = $req->param('temporal') || 'daily';
+    my $accessor = "send_reports_$temporal";
 
-    my $output;
-    my $ok = $tmpl->process('report.tmpl', \%tmpl_data, \$output);
-    $ok ? return $self->ok($r, $output)
-        : return $self->error($r, "Template error: " . $tmpl->error());
+    if ($r->method_number == Apache2::Const::M_GET ) {
+        my %tmpl_data = ( root => $r->pnotes('root'), 
+                           reg => $r->pnotes( $r->user),
+                           status => $req->param('status') || '',
+                           send_report => $r->pnotes($r->user)->$accessor,
+                           temporal => $temporal );
+
+        my $output;
+        my $ok = $tmpl->process('report.tmpl', \%tmpl_data, \$output);
+        $ok ? return $self->ok($r, $output)
+          : return $self->error($r, "Template error: " . $tmpl->error());
+    }
+    elsif ($r->method_number == Apache2::Const::M_POST ) {
+        return $self->error($r, "$self: Missing params") unless ($temporal);
+        # update the status 
+        my $val = ($req->param('send_report') eq 'on') ? 1 : 0;
+        $r->pnotes($r->user)->$accessor($val);
+        $r->pnotes($r->user)->update;
+
+        $r->method_number(Apache2::Const::M_GET);
+        $r->internal_redirect($r->construct_url(
+             $r->uri . "?temporal=$temporal&status=updated"));
+        return Apache2::Const::OK;
+    }
 }
 
 1;

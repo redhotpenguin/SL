@@ -28,7 +28,9 @@ This method serves of the master ad control panel for now
 
 sub dispatch_index {
 	my ($self, $r) = @_;
-	my %tmpl_data = ( root => $r->pnotes('root') );
+
+	my %tmpl_data = ( root => $r->pnotes('root'),
+                       email => $r->user);
 	my $output;
 	my $ok = $tmpl->process('home.tmpl', \%tmpl_data, \$output);
 	$ok ? return $self->ok($r, $output) 
