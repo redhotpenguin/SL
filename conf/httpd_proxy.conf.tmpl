@@ -23,6 +23,7 @@ UseCanonicalName     Off
 HostNameLookups      Off
 Timeout              300
 AllowEncodedSlashes On
+ProxyVia On
 
 [% IF cfg.sl_proxy == 'mod_proxy' %]
 #LoadModule proxy_module       modules/mod_proxy.so
