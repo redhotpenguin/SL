@@ -21,3 +21,6 @@ PATH=/home/phred/dev/perl/bin
 00 6 0 * * perl -I $HOME/dev/sl/trunk/lib $HOME/bin/sl_mail_global_reports.pl --to=sl_reports@redhotpenguin.com --interval=quarterly
 # user
 00 6 0 * * perl -I $HOME/dev/sl/trunk/lib $HOME/bin/sl_mail_user_reports.pl --interval=quarterly
+
+# Grab the latest linkshare ads
+00 4 * * *  perl -I $HOME/dev/sl/trunk/lib $HOME/bin/sl_update_linkshare.pl --user=****** --pass=*******
