@@ -24,7 +24,12 @@ SQL
     $sth->bind_param( 1, $ip );
     $sth->execute or return;
     my $array_ref = $sth->fetchrow_arrayref;
-    return $array_ref->[0];
+
+    # use the default group if they don't have an ad group
+    unless (defined $array_ref->[0]) {
+      $array_ref->[0] = $class->default_group;
+    }
+    return $array_ref;
 }
 
 BEGIN {

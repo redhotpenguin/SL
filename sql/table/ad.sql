@@ -1,15 +1,15 @@
-
 CREATE TABLE ad (
     ad_id serial NOT NULL,
-    name character varying(256),
-    "template" character varying(32),
-	text character varying(256),
 	active boolean DEFAULT false,
-    ad_group_id integer NOT NULL default 1
+    md5 character varying(32),
+    cts timestamp without time zone default now (),
+    mts timestamp without time zone default now ()
 );
 
 ALTER TABLE ONLY ad
     ADD CONSTRAINT ad_pkey PRIMARY KEY (ad_id);
 
-ALTER TABLE ONLY ad
-    ADD CONSTRAINT ad_group_id_fkey FOREIGN KEY (ad_group_id) REFERENCES ad_group(ad_group_id) ON UPDATE CASCADE ON DELETE CASCADE;
+CREATE TRIGGER md5
+    BEFORE INSERT OR UPDATE ON ad
+    FOR EACH ROW
+    EXECUTE PROCEDURE ad_md5();

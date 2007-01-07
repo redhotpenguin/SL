@@ -107,33 +107,89 @@ sub stacked {
     return $decoded_content;
 }
 
-sub random {
-    my ( $class, $ad_group_id ) = @_;
-
+sub _sl_feed {
+    my ($class, $ip) = @_;
+    
+    # only linkshare for right now
     my $sql = <<SQL;
 SELECT
-ad.ad_id, 
-ad.text,
-ad.template,
-link.md5, 
-link.uri
-FROM ad 
-INNER JOIN link 
-USING (ad_id)
+ad_linkshare.ad_id,
+adlinkshare.displaytext AS text,
+ad.md5,
+ad_linkshare.linkurl AS uri
+FROM ad_linkshare
+INNER JOIN ad USING(ad_id)
 WHERE ad.active = 't'
-AND ad_group_id = ?
 ORDER BY RANDOM()
 LIMIT 1
 SQL
+
     my $dbh = SL::Model->connect();
     my $sth = $dbh->prepare($sql);
-	$sth->bind_param( 1, $ad_group_id );
     my $rv = $sth->execute;
     die "Problem executing query: $sql" unless $rv;
 
     my $ad_data = $sth->fetchrow_hashref;
     $sth->finish;
+    $ad_data->{'template'} = 'text_ad';
+    return $ad_data;
+}
 
+sub _sl_ad {
+    my ($class, $ip) = @_;
+
+    my $ad_groups_ref = SL::Model::Ad::Group->from_ip($ip);
+    my $ad_group_count = scalar(@{$ad_groups_ref});
+    my $in = '?,' x $ad_group_count;
+
+    # remove the trailing ','
+    {
+      no warnings;
+      substr($in, -length($in), length($in)-1);
+    }
+
+    my $sql = <<SQL;
+SELECT
+ad_sl.ad_id, 
+ad_sl.text,
+ad.md5, 
+ad_sl.uri
+FROM ad_sl
+INNER JOIN ad USING (ad_id)
+INNER JOIN ad_group USING (ad_sl_group_id)
+WHERE ad.active = 't'
+AND ad_group_id = ($in)
+ORDER BY RANDOM()
+LIMIT 1
+SQL
+    my $dbh = SL::Model->connect();
+    my $sth = $dbh->prepare($sql);
+    my $i = 1;
+    $sth->bind_param($i++, $_->ad_group_id) for @{$ad_groups_ref};
+	my $rv = $sth->execute;
+    die "Problem executing query: $sql" unless $rv;
+
+    my $ad_data = $sth->fetchrow_hashref;
+    $sth->finish;
+    $ad_data->{'template'} = 'text_ad';
+    return $ad_data;
+}
+
+# this method returns a random ad, given the ip of the router
+sub random {
+    my ( $class, $ip ) = @_;
+
+    # figure out what ad to serve.
+    # current logic says  use default/custom ad groups 25% of the time
+    # and our feeds 75% of the time
+    my $custom_ad_weight = 25;
+    my $ad_data;
+    if (rand(100) <= $custom_ad_weight) {
+        $ad_data = $class->_sl_ad($ip);
+    } else {
+        $ad_data = $class->_feed_ad($ip);
+    }
+ 
 	my %tmpl_vars;
     # ad setup based on ad type here
     if ( $ad_data->{'template'} eq 'javascript' ) {
