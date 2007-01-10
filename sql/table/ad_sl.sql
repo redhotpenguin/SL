@@ -3,7 +3,8 @@ CREATE TABLE ad_sl (
     ad_id INTEGER NOT NULL,
 	text character varying(256),
     uri character varying(512),
-    ad_sl_group_id integer NOT NULL default 1
+    ad_sl_group_id integer NOT NULL default 1,
+    mts timestamp without time zone default now ()
 );
  
 ALTER TABLE ONLY ad_sl

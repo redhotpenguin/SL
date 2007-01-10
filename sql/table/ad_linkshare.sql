@@ -8,7 +8,8 @@ CREATE TABLE ad_linkshare (
 	linkurl varchar(256),
 	trackurl varchar(256),
 	category varchar(64),
-    displaytext varchar(256)
+    displaytext varchar(256),
+    mts timestamp without time zone default now ()
 );
 
 ALTER TABLE ONLY ad_linkshare
