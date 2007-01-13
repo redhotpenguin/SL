@@ -20,7 +20,7 @@ my $dbh = DBI->connect($dsn, 'phred', '', $db_options);
 # drop the test database if exists
 my $cmd = `dropdb sl2`;
 $cmd = `createdb sl2`;
-$cmd = `pg_dump sl | psql sl2`;
+$cmd = `pg_dump sl3 | psql sl2`;
 $cmd = `psql -d sl2 -c 'alter table reg_ad_group drop constraint reg_ad_group_ad_group_id_fkey'`;
 foreach my $t qw( view click link ad ad_group ) {
   $cmd = `psql -d sl2 -c "drop table $t"`;

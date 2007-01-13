@@ -17,7 +17,7 @@ my %results;
 foreach my $day ( @DAYS ) {
     my $end = DateTime->now->subtract( days => $day );
     $results{$day}{views} = SL::Model::Report->views($end, $start);
-    $results{$day}{clicks} = SL::Model::Report->links($end, $start);
+    $results{$day}{clicks} = SL::Model::Report->clicks($end, $start);
 }
 
 # Generate the email
