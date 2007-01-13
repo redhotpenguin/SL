@@ -3,26 +3,7 @@
 use strict;
 use warnings;
 
-use Getopt::Long;
-use Pod::Usage;
-
-# Config options
-my ($from, $to);
-my ($help, $man);
-
-pod2usage(1) unless @ARGV;
-GetOptions(
-	'from=s' => \$from,
-	'to=s' => \$to,
-	'help'	   => \$help,
-	'man'	   => \$man,
-) or pod2usage(2);
-
-pod2usage(1) if $help;
-pod2usage( -verbose => 2) if $man;
-
 use DBI;
-
 my $db_options = {
                   RaiseError         => 1,
                   PrintError         => 1,
@@ -36,6 +17,24 @@ my $db_options = {
 my $dsn = "dbi:Pg:dbname='sl';host=localhost";
 my $dbh = DBI->connect($dsn, 'phred', '', $db_options);
 
+# drop the test database if exists
+my $cmd = `dropdb sl2`;
+$cmd = `createdb sl2`;
+$cmd = `pg_dump sl | psql sl2`;
+$cmd = `psql -d sl2 -c 'alter table reg_ad_group drop constraint reg_ad_group_ad_group_id_fkey'`;
+foreach my $t qw( view click link ad ad_group ) {
+  $cmd = `psql -d sl2 -c "drop table $t"`;
+}
+
+my $sql2dir = '/Users/Phred/dev/sl/trunk/sql2/';
+
+# create the new tables
+$cmd = `psql -d sl2 -f "$sql2dir/func/ad_md5.sql"`;
+foreach my $table qw( ad ad_linkshare ad_sl_group ad_sl click view ) {
+  $cmd = `psql -d sl2 -f "$sql2dir/table/$table.sql"`;
+}
+
+
 $dsn = "dbi:Pg:dbname='sl2';host=localhost";
 my $dbh2 = DBI->connect($dsn, 'phred', '', $db_options);
 
@@ -47,7 +46,7 @@ SELECT ad_group_id, name
 FROM ad_group
 SQL
 
-my $group_hashref = $dbh->selectall_hashref($sql);
+my $group_hashref = $dbh->selectall_arrayref($sql, { Slice => {} });
 
 $sql = <<SQL;
 INSERT INTO ad_sl_group
@@ -69,7 +68,7 @@ FROM ad
 JOIN link USING (ad_id)
 SQL
 
-my $ad_hashref = $dbh->selectall_hashref($sql);
+my $ad_hashref = $dbh->selectall_arrayref($sql, { Slice => {} });
 
 # put them in sl2
 $sql = <<SQL;

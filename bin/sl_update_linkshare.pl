@@ -57,7 +57,7 @@ if ($result->fault) {
 # update the linkshare ads
 use SL::Model::App;
 print "Retrieving current links from database\n";
-my (@current_linkshares) = SL::Model::App->resultset('Linkshare')->all;
+my (@current_linkshares) = SL::Model::App->resultset('AdLinkshare')->all;
 
 # figure out which ads that we have aren't in the new resultset and deactivate
 # them
@@ -69,10 +69,12 @@ my @ads_to_deactivate = grep { not exists
 use DateTime;
 use DateTime::Format::Pg;
 my $ts = DateTime::Format::Pg->format_datetime(DateTime->now);
-foreach my $ad ( @ads_to_deactivate ) {
-    $ad->active(0);
-    $ad->ts($ts);
-	$ad->update;
+foreach my $ad_linkshare ( @ads_to_deactivate ) {
+    $ad_linkshare->ad_id->active(0);
+    $ad_linkshare->ad_id->update;
+
+    $ad_linkshare->mts($ts);
+	$ad_linkshare->update;
 }
 
 # do ads change? probably not, so just import the new ones
@@ -81,9 +83,14 @@ my @new_ads = grep { not exists $current_ads{$_->{mid} . '_' . $_->{linkID}} }
     @{$result->paramsall};
 print "Adding new ads\n";
 foreach my $ad ( @new_ads ) {
+    my $new_ad = SL::Model::App->resultset('Ad')->new({});
+    $new_ad->insert;
+    $new_ad->update;
+
 	my %args = map { lc($_) => $ad->{$_} } 
 	    qw(mname mid linkID linkName linkUrl trackUrl category displayText);
-    my $linkshare = SL::Model::App->resultset('Linkshare')->new(\%args);
+    $args{ad_id} = $new_ad->ad_id;
+    my $linkshare = SL::Model::App->resultset('AdLinkshare')->new(\%args);
     $linkshare->insert;
 	$linkshare->update;
 }
