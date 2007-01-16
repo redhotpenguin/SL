@@ -21,7 +21,7 @@ SQL
 
 # clicks for a given time period
 my $click_sql = <<SQL;
-SELECT click.click_id, click.ts
+SELECT click.click_id, click.cts
 FROM click
 INNER JOIN link
 USING(link_id)
@@ -33,38 +33,30 @@ SQL
 my $view_sql = <<SQL;
 SELECT reg.email, count(ip) FROM view
 LEFT JOIN reg USING (ip)
-WHERE view.ts between ? and ?
+WHERE view.cts between ? and ?
 GROUP BY reg.email
 ORDER BY count(ip) DESC
 SQL
 
-# what links were clicked for a given time period
-my $links_clicked = <<SQL;
-SELECT ad.text, count(link_id) from click
-left join link
- using (link_id)
- left join ad using (ad_id)
-WHERE ts BETWEEN ? AND ?
- GROUP BY ad.text
- ORDER BY count(link_id) DESC
+# what adss were clicked for a given time period
+my $clicks = <<SQL;
+SELECT ad_id, count(click_id) FROM click
+WHERE cts BETWEEN ? AND ?
+GROUP BY ad_id
 SQL
 
-my $links_clicked_ip = <<SQL;
-SELECT ad.text, count(link_id) from click
-left join link
- using (link_id)
- left join ad using (ad_id)
-WHERE ts BETWEEN ? AND ?
+my $ad_ids_clicked_by_ip = <<SQL;
+SELECT ad_id, count(click_id) FROM click
+WHERE cts BETWEEN ? AND ?
 AND ip = ?
- GROUP BY ad.text
- ORDER BY count(link_id) DESC
+GROUP BY ad_id
 SQL
 
 # queries for the reporting page
 my $ip_views = <<SQL;
-SELECT ad_id, count(ad_id) 
+SELECT ad_id, count(view_id) 
 FROM view
-WHERE view.ts BETWEEN ? AND ?
+WHERE view.cts BETWEEN ? AND ?
 AND ip = ?
 GROUP BY ad_id
 SQL
@@ -72,29 +64,30 @@ SQL
 my $ip_count_views = <<SQL;
 SELECT count(ad_id) 
 FROM view
-WHERE view.ts BETWEEN ? AND ?
+WHERE view.cts BETWEEN ? AND ?
 AND ip = ?
 SQL
 
-my $ip_count_links = <<SQL;
-SELECT count(link_id)
+my $ip_count_clicks = <<SQL;
+SELECT count(click_id)
 FROM click
-WHERE ts BETWEEN ? AND ?
+WHERE cts BETWEEN ? AND ?
 AND ip = ?
 SQL
 
-my $ip_links = <<SQL;
-SELECT link_id, count(link_id)
+my $ip_clicks = <<SQL;
+SELECT click_id, count(click_id)
 FROM click
-WHERE ts BETWEEN ? AND ?
+WHERE cts BETWEEN ? AND ?
 AND ip = ?
-GROUP BY link_id
+GROUP BY click_id
 SQL
 
 sub run_query {
     my ( $class, $sql, $start, $end, $ip ) = @_;
 
     die unless $sql && $start && $end;
+
     unless ( $start->isa('DateTime') && $end->isa('DateTime') ) {
         croak('No start and end times passed!');
     }
@@ -115,9 +108,28 @@ sub views {
     return $class->run_query( $view_sql, $start, $end );
 }
 
-sub links {
+sub _ad_text_from_id {
+  my ($class, $ad_id) = @_;
+  # look in linkshare first;
+  my ($ad) = SL::Model::App->resultset('AdLinkshare')->search({ 
+     ad_id => $ad_id});
+  unless ($ad) {
+    # it's an sl ad
+    ($ad) = SL::Model::App->resultset('AdSl')->search({ ad_id => $ad_id});
+    die "Couldn't find ad $ad_id" unless $ad;
+  }
+  return $ad->text;
+}
+
+sub clicks {
     my ( $class, $start, $end ) = @_;
-    return $class->run_query( $links_clicked, $start, $end );
+    
+    my $clicks_ref = $class->run_query( $clicks, $start, $end );
+
+    foreach my $c (@{$clicks_ref}) {
+      $c->[0] = $class->_ad_text_from_id($c->[0]);
+    }
+    return $clicks_ref;
 }
 
 # returns views for an ip within for $start to $end
@@ -132,14 +144,19 @@ sub ip_count_views {
 }
 
 # returns clicks for an ip within for $start to $end
-sub ip_links {
+sub ip_clicks {
     my ( $class, $start, $end, $ip ) = @_;
-    return $class->run_query( $links_clicked_ip, $start, $end, $ip );
+    my $clicks_ref = 
+      $class->run_query( $ad_ids_clicked_by_ip, $start, $end, $ip );
+    foreach my $c (@{$clicks_ref}) {
+      $c->[0] = $class->_ad_text_from_id($c->[0]);
+    }
+    return $clicks_ref;
 }
 
-sub ip_count_links {
+sub ip_count_clicks {
     my ( $class, $start, $end, $ip ) = @_;
-    return $class->run_query( $ip_count_links, $start, $end, $ip );
+    return $class->run_query( $ip_count_clicks, $start, $end, $ip );
 }
 
 sub interval_by_ts {
@@ -216,7 +233,7 @@ sub last_fifteen {
 # build the ad summary
 sub ad_clicks_summary {
     my ( $class, $ip, $start_date, $now ) = @_;
-    my $ad_clicks_ref = SL::Model::Report->ip_links( $start_date, $now, $ip );
+    my $ad_clicks_ref = SL::Model::Report->ip_clicks( $start_date, $now, $ip );
 
     # wrap the text if too long
     use Text::Wrap;
@@ -224,13 +241,15 @@ sub ad_clicks_summary {
 
     my @ad_clicks_data;
     my $max_ad_clicks = 0;
+    # sort by count of ad_id
     foreach my $ref ( sort { $a->[1] <=> $b->[1] } @{$ad_clicks_ref} ) {
 
+        my $ad_text = $class->_ad_text_from_id($ref->[0]);
         # wrap the text if the length is greater than the wrap length
-        if ( length( $ref->[0] ) >= $Text::Wrap::columns ) {
-            $ref->[0] = wrap( "", "", $ref->[0] );
+        if ( length( $ad_text ) >= $Text::Wrap::columns ) {
+            $ad_text = wrap( "", "", $ad_text );
         }
-        unshift @{ $ad_clicks_data[0] }, $ref->[0];
+        unshift @{ $ad_clicks_data[0] }, $ad_text;
         unshift @{ $ad_clicks_data[1] }, $ref->[1];
 
         # set the max number of ad clicks
@@ -294,7 +313,7 @@ sub data_for_ip {
 
         # Ads clicked
         my $clicks_count =
-          SL::Model::Report->ip_count_links( $previous, $now, $ip );
+          SL::Model::Report->ip_count_clicks( $previous, $now, $ip );
 
         # date
         unshift @{ $click_results[0] },

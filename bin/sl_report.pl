@@ -1,7 +1,8 @@
-#!/home/fred/dev/perl/bin/perl
+#!perl
 
 use strict;
 use warnings;
+
 use lib '../lib';
 use DateTime;
 use SL::Model::Report;
@@ -12,6 +13,7 @@ my @DAYS = qw( 1 3 7 14 30 );
 
 # generate the results
 my $start = DateTime->now;
+
 my $end = DateTime->now;
 my %results;
 foreach my $day ( @DAYS ) {
@@ -27,44 +29,43 @@ $mailer->open({
   'From' => "silverlining reporting daemon <fred\@redhotpenguin.com>",
   'Subject' => 'Latest silverlining reporting stats' });
 
+my $cnt = '';
 foreach my $day (@DAYS) {
 	my $total = 0;
-print $mailer "-------------------------------\n";
-  print $mailer "Last $day days worth of ad views by ip\n";
-  print $mailer "       IP        |   Ad Views  \n";
-  print $mailer "-------------------------------\n";
+    $cnt .= "-------------------------------\n";
+    $cnt .= "Last $day days worth of ad views by ip\n";
+    $cnt .= "       IP        |   Ad Views  \n";
+    $cnt .= "-------------------------------\n";
     foreach my $row ( @{$results{$day}{views}} ) {
-      print $mailer $row->[0] . ' => ' . $row->[1] . "\n";
-	$total += $row->[1];
+      $cnt .= $row->[0] . ' => ' . $row->[1] . "\n";
+      $total += $row->[1];
     }
-    print $mailer "-------------------------------\n";
-    print $mailer "Total views for the last $day days: $total\n";
-    print $mailer "-------------------------------\n";
-    print $mailer "-------------------------------\n";
+    $cnt .= "-------------------------------\n";
+    $cnt .= "Total views for the last $day days: $total\n";
+    $cnt .= "-------------------------------\n";
+    $cnt .= "-------------------------------\n";
 
     $total=0;
-    print $mailer "Last $day days of clicks by link\n";
-    print $mailer "     Link     |    Clicks \n";
-  print $mailer "-------------------------------\n";
-if (@{$results{$day}{clicks}} ) {
-foreach my $row ( @{$results{$day}{clicks}} ) {
-  print $mailer $row->[0] . " => " . $row->[1] . "\n";
-  $total += $row->[1];
-}
-  print $mailer "-------------------------------\n";
-print $mailer "Total clicks for the last $day days: $total\n";
-  print $mailer "-------------------------------\n";
-  print $mailer "-------------------------------\n";
-} else {
-print $mailer "uh oh, no clicks for you monkeys in the last $day days\n";
-print $mailer "Time to get to work or no banana\n";
-  print $mailer "-------------------------------\n\n";
-}
-
-
+    $cnt .= "Last $day days of clicks by link\n";
+    $cnt .= "     Link     |    Clicks \n";
+    $cnt .= "-------------------------------\n";
+    if (@{$results{$day}{clicks}} ) {
+      foreach my $row ( @{$results{$day}{clicks}} ) {
+        $cnt .= $row->[0] . " => " . $row->[1] . "\n";
+        $total += $row->[1];
+      }
+      $cnt .= "-------------------------------\n";
+      $cnt .= "Total clicks for the last $day days: $total\n";
+      $cnt .= "-------------------------------\n";
+      $cnt .= "-------------------------------\n";
+    } else {
+      $cnt .= "uh oh, no clicks for you monkeys in the last $day days\n";
+      $cnt .= "Time to get to work or no banana\n";
+      $cnt .= "-------------------------------\n\n";
+    }
 }
 
-print $mailer "\nHave a nice day :)\n";
-  $mailer->close;
+$cnt .= "\nHave a nice day :)\n";
 
-  
+print $mailer $cnt;
+$mailer->close;

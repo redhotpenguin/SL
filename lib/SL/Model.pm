@@ -26,14 +26,18 @@ sub connect_params {
 # dsn
 sub dsn {
 	my $self = shift;
-    my $db   = $cfg->sl_db_name;
-    my $host = $cfg->sl_db_host;
+    my $db   = shift || $cfg->sl_db_name;
+    my $host = shift || $cfg->sl_db_host;
     return "dbi:Pg:dbname='$db';host=$host";
 }
 
 sub connect {
     my $class   = shift;
+	my $params = shift;
     my $connect = $class->connect_params;
+	if (exists $params->{db}) {
+        $connect->[0] = $class->dsn($params->{db});
+	}
     my $dbh     = DBI->connect_cached(@{$connect});
     if ($dbh->err or !$dbh) {
         print STDERR "Error connecting to database: "

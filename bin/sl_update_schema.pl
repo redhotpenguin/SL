@@ -14,7 +14,7 @@ my $db_options = {
 			  };
 
 
-my $dsn = "dbi:Pg:dbname='sl';host=localhost";
+my $dsn = "dbi:Pg:dbname='sl3';host=localhost";
 my $dbh = DBI->connect($dsn, 'phred', '', $db_options);
 
 # drop the test database if exists
@@ -101,11 +101,19 @@ foreach my $ad (@{$ad_hashref}) {
 # views
 
 $sql = <<SQL;
+select count(ad_id) from view
+SQL
+
+my $foo = $dbh->selectall_arrayref($sql);
+print STDERR "Count is " . $foo->[0]->[0] . "\n";
+
+$sql = <<SQL;
 SELECT ad_id, ts, ip
 FROM view
 SQL
 
-my $view_arrayref = $dbh->selectall_arrayref($sql);
+my $blarg = $dbh->prepare_cached($sql);
+$blarg->execute;
 
 $sql = <<SQL;
 INSERT INTO view (ad_id, cts, ip)
@@ -113,13 +121,16 @@ VALUES (?,?,?)
 SQL
 
 $sth = $dbh2->prepare($sql);
-
-foreach my $view (@{$view_arrayref}) {
+my $i = 0;
+while (my $view = $blarg->fetchrow_arrayref) {
+# foreach my $view (@{$view_arrayref}) {
     $sth->bind_param(1, $view->[0]);
     $sth->bind_param(2, $view->[1]);
     $sth->bind_param(3, $view->[2]);
     $sth->execute;
+$i++;
 }
+print STDERR "Hey we found $i views\n";
 
 #############################
 # clicks
