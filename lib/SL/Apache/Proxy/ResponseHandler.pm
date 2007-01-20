@@ -407,6 +407,9 @@ sub twohundred {
 		
 		# some headers have an unecessary newline appended so chomp the value
 		chomp($headers{$key});
+		if ( $headers{$key} =~ m/\n/ ) {
+			$headers{$key} =~ s/\n/ /g;
+		}
 		#$r->log->debug(
 		#        "Setting key $key, value "
 		#      . $headers{$key}
