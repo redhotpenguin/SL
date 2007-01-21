@@ -27,6 +27,13 @@ use SL::Model::App;    # works for now
 
 use DateTime;
 
+sub shrink {
+  my $string = shift;
+  my $length = 25;
+  return $string if (length($string)-3) < $length;
+  return substr($string, -length($string), $length) . '...';
+}
+
 =head1 METHODS
 
 =over 4
@@ -49,28 +56,28 @@ sub dispatch_list {
 		$tmpl_data{'root'} = 1;
         # root user gets all ads
         @{ $tmpl_data{'ads'} } =
-          sort { $b->active <=> $a->active } 
-          sort { $b->ad_id  <=> $a->ad_id } 
-          SL::Model::App->resultset('Ad')->all;
+          sort { $b->{active} <=> $a->{active} } 
+          sort { $b->{id}     <=> $a->{id} } 
+          map { { active =>  $_->ad_id->active, 
+                  text   =>  shrink($_->text),
+                  id     =>  $_->ad_sl_id,
+                  cts    =>  $_->ad_id->cts,
+                  email  =>  $_->reg_id->email, } }
+          SL::Model::App->resultset('AdSl')->all;
     }
     else {
 
         # thou art not root
-        my @reg_ad_groups =
-          SL::Model::App->resultset('RegAdGroup')
-          ->search( { reg_id => $r->pnotes( $r->user )->reg_id } );
-        my @ad_groups;
-        foreach my $reg_ad_group (@reg_ad_groups) {
-            push @ad_groups, $reg_ad_group->ad_group_id;
-        }
-        my @ads;
-        foreach my $ad_group (@ad_groups) {
-            push @ads, SL::Model::App->resultset('Ad')
-              ->search( { ad_group_id => $ad_group->ad_group_id } );
-        }
         @{ $tmpl_data{'ads'} } = 
-          sort { $b->active <=> $a->active }
-          sort { $b->ad_id  <=> $a->ad_id } @ads;
+          sort { $b->{active} <=> $a->{active} } 
+          sort { $b->{id}     <=> $a->{id} } 
+          map { { active =>  $_->ad_id->active, 
+                  text   =>  shrink($_->text),
+                  id     =>  $_->ad_sl_id,
+                  cts    =>  $_->ad_id->cts,
+                  email  =>  $_->reg_id->email, } }
+          SL::Model::App->resultset('AdSL')
+          ->search( { reg_id => $r->pnotes( $r->user )->reg_id } );
     }
 	$tmpl_data{'count'} = scalar(@{$tmpl_data{'ads'}});
 
@@ -89,45 +96,42 @@ sub dispatch_list {
         "Template error: " . $tmpl->error() );
 }
 
-my %ad_profile = ( required => [qw( link text ad_group_id active )], );
+my %ad_profile = ( required => [qw( uri text active )], );
 
 sub dispatch_edit {
     my ( $self, $r, $errors ) = @_;
 
     my $req   = Apache2::Request->new($r);
-    my $ad_id = $req->param('ad_id');
+    my $id = $req->param('id');
 
     my ( %tmpl_data, $ad, $output, $link );
-    if ( $ad_id > 0 ) {    # edit existing ad
+    if ( $id > 0 ) {    # edit existing ad
                            # grab the ad
-        ($ad) = SL::Model::App->resultset('Ad')->search( { ad_id => $ad_id } );
+      my %search;
+      # restrict search params for nonroot
+      if ( ! $r->pnotes('root') ) {
+        $search{reg_id} = $r->pnotes($r->user)->reg_id;
+      }
+
+      $search{ad_sl_id} = $id;
+      ($ad) = SL::Model::App->resultset('AdSl')->search( \%search );
+     
         return Apache2::Const::NOT_FOUND unless $ad;
-        $tmpl_data{'ad'} = $ad;
-        ($link) =
-          SL::Model::App->resultset('Link')->search( { ad_id => $ad_id } );
-        $tmpl_data{'link'} = $link;
+        $tmpl_data{'ad'} = { uri     => $ad->uri,
+                               id     => $ad->ad_sl_id,
+                               text   => $ad->text,
+                               active => $ad->ad_id->active };
+        
     }
-    elsif ( $ad_id == -1 ) {
-        $tmpl_data{'ad'}{'ad_id'} = $ad_id;
+    elsif ( $id == -1 ) {
+        $tmpl_data{'ad'}->{'id'} = $id;
     }
     if ( $r->method_number == Apache2::Const::M_GET ) {
-
-        # serve the form
-		# AdGroups - FIXME - put in model class, $reg->ad_groups
-		if ($r->pnotes('root')) {
-			@{ $tmpl_data{'ad_groups'} } =
-				SL::Model::App->resultset('AdGroup')->all;
-		} else {
-			my @reg_ad_groups = 
-				SL::Model::App->resultset('RegAdGroup')->search({ 
-					reg_id => $r->pnotes($r->user)->reg_id });
-			@{ $tmpl_data{'ad_groups'} } = map { $_->ad_group_id } 
-				@reg_ad_groups;
-		}
 
         if ( keys %{$errors} ) {
               $tmpl_data{'errors'} = $errors;
         }
+
   	    my $ok = $tmpl->process( 'ad/edit.tmpl', \%tmpl_data, \$output );
         $ok
           ? return $self->ok( $r, $output )
@@ -148,36 +152,33 @@ sub dispatch_edit {
             $r->method_number(Apache2::Const::M_GET);
             return $self->dispatch_edit($r, \%errors );
         }
-        unless ($ad) {
-            $ad   = SL::Model::App->resultset('Ad')->new(   {} );
-            $link = SL::Model::App->resultset('Link')->new( {} );
-        }
-        foreach my $attr qw( text active ad_group_id ) {
-            $r->log->debug( "setting attr $attr to ", $req->param($attr) );
-            $ad->$attr( $req->param($attr) );
-        }
-        $ad->template('text_ad');
-
-        if ( $ad_id == -1 ) {
-            $ad->insert;
-        }
-        $ad->update;
-
-        # status for redirect
-        my $status = 'updated';
-  
-        # case for adding an ad
-        if ( $ad_id == -1 ) {
-            $link->ad_id( $ad->ad_id );
-            $link->insert;
-            $status = 'added';
-        }
-
-        # do this for both ads and updates
-        $link->uri( $req->param('link') );
-        $link->active('t');
-        $link->update;
         
+        my ($status, $base_ad);
+        if ($id == -1) {
+            $base_ad = SL::Model::App->resultset('Ad')->new( { active => 't'} );
+            $base_ad->insert(); 
+
+            $ad = SL::Model::App->resultset('AdSl')->new( { 
+               ad_id => $base_ad->ad_id,
+               text  => $req->param('text'),
+               uri   => $req->param('uri'),
+               reg_id => $r->pnotes($r->user)->reg_id,
+            });
+            $ad->insert();
+            
+            $status = 'added';
+            $base_ad->update;
+            $ad->update;
+        }
+        else {
+            $ad->ad_id->active($req->param('active'));
+            $ad->text($req->param('text'));
+            $ad->uri($req->param('uri'));
+            $status = 'updated';
+            $ad->ad_id->update;
+            $ad->update;
+        }
+
         $r->method_number(Apache2::Const::M_GET);
         $r->internal_redirect("/app/ad/list/?status=$status&ad_text="  .
                               $ad->text);
