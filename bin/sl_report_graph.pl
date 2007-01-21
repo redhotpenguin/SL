@@ -42,7 +42,10 @@ use SL::Model::App;
 
 my @accounts = SL::Model::App->resultset('Reg')->search( { active => 1 } );
 
-my $DATA_ROOT = "/tmp/data/sl";
+use SL::Config;
+my $config = SL::Config->new();
+
+my $DATA_ROOT = $config->data_root;
 
 my %duration_hash = (
     daily     => '24 hours',

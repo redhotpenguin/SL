@@ -5,7 +5,7 @@ use warnings;
 
 use DBI;
 my $db_options = {
-                  RaiseError         => 1,
+                  RaiseError         => 0,
                   PrintError         => 1,
                   AutoCommit         => 1,
                   FetchHashKeyName   => 'NAME_lc',
@@ -14,51 +14,86 @@ my $db_options = {
 			  };
 
 
-my $dsn = "dbi:Pg:dbname='sl3';host=localhost";
+my $new = 'sl2';
+my $old = 'sl3';
+
+my $dsn = "dbi:Pg:dbname='$old';host=localhost";
 my $dbh = DBI->connect($dsn, 'phred', '', $db_options);
 
 # drop the test database if exists
-my $cmd = `dropdb sl2`;
-$cmd = `createdb sl2`;
-$cmd = `pg_dump sl3 | psql sl2`;
-$cmd = `psql -d sl2 -c 'alter table reg_ad_group drop constraint reg_ad_group_ad_group_id_fkey'`;
-foreach my $t qw( view click link ad ad_group ) {
-  $cmd = `psql -d sl2 -c "drop table $t"`;
+my $cmd = `dropdb $new`;
+$cmd = `createdb $new`;
+$cmd = `pg_dump $old | psql $new`;
+$cmd = `psql -d $new -c 'alter table reg_ad_group drop constraint reg_ad_group_ad_group_id_fkey'`;
+$cmd = `psql -d $new -c 'alter table ad drop constraint ad_group_id_fkey'`;
+foreach my $t qw( view click link ad ad_group reg_ad_group) {
+  $cmd = `psql -d $new -c "drop table $t"`;
 }
 
 my $sql2dir = '/Users/Phred/dev/sl/trunk/sql2/';
 
 # create the new tables
-$cmd = `psql -d sl2 -f "$sql2dir/func/ad_md5.sql"`;
-foreach my $table qw( ad ad_linkshare ad_sl_group ad_sl click view ) {
-  $cmd = `psql -d sl2 -f "$sql2dir/table/$table.sql"`;
+foreach my $table qw( ad ad_linkshare router ad_sl router_ad_sl click view ) {
+  $cmd = `psql -d $new -f "$sql2dir/table/$table.sql"`;
 }
 
-
-$dsn = "dbi:Pg:dbname='sl2';host=localhost";
+$dsn = "dbi:Pg:dbname='$new';host=localhost";
 my $dbh2 = DBI->connect($dsn, 'phred', '', $db_options);
 
 ############################
-# ad_groups
+# reg to router
 
 my $sql = <<SQL;
-SELECT ad_group_id, name
-FROM ad_group
+SELECT reg_id, ip, serial_number, macaddr, code
+FROM reg
 SQL
 
-my $group_hashref = $dbh->selectall_arrayref($sql, { Slice => {} });
-
+my $reg_hashref = $dbh->selectall_arrayref($sql, { Slice => {} } );
 $sql = <<SQL;
-INSERT INTO ad_sl_group
-VALUES (?,?)
+INSERT INTO router
+( reg_id, ip, serial_number, macaddr, code)
+VALUES
+( ?,      ?,  ? ,           ?,        ?)
 SQL
 
 my $sth = $dbh2->prepare($sql);
-foreach my $group (@{$group_hashref}) {
-    $sth->bind_param(1, $group->{ad_group_id});
-	$sth->bind_param(2, $group->{name});
-	$sth->execute;
+foreach my $reg (@{$reg_hashref}) { 
+    $sth->bind_param(1, $reg->{reg_id});
+    $sth->bind_param(2, $reg->{ip});
+    $sth->bind_param(3, $reg->{serial_number});
+    $sth->bind_param(4, $reg->{macaddr});
+    $sth->bind_param(5, $reg->{code});
+    $sth->execute;
 }
+
+foreach my $column qw( ip serial_number macaddr code ) {
+  $cmd = `psql -d $new -c 'alter table reg drop column $column'`;  
+}
+
+
+#### scratch this next section?  
+############################
+# ad_groups
+
+#$sql = <<SQL;
+#SELECT ad_group_id, name
+#FROM ad_group
+#SQL
+
+#my $group_hashref = $dbh->selectall_arrayref($sql, { Slice => {} });
+
+#$sql = <<SQL;
+#INSERT INTO ad_sl_group
+#VALUES (?,?)
+#SQL
+
+#my $sth = $dbh2->prepare($sql);
+#foreach my $group (@{$group_hashref}) {
+#    $sth->bind_param(1, $group->{ad_group_id});
+#	$sth->bind_param(2, $group->{name});
+#	$sth->execute;
+#}
+
 
 #############################
 # ads
@@ -79,7 +114,7 @@ SQL
 $sth = $dbh2->prepare($sql);
 
 my $sql2 = <<SQL;
-INSERT INTO ad_sl (ad_id, text, uri, ad_sl_group_id)
+INSERT INTO ad_sl (ad_id, text, uri, reg_id)
 VALUES (?, ?, ?, ?)
 SQL
 my $sth2 = $dbh2->prepare($sql2);
@@ -90,11 +125,24 @@ foreach my $ad (@{$ad_hashref}) {
     $sth->bind_param(3, $ad->{md5});
     $sth->execute;
 
+    # now get the reg_id
+$sql = <<SQL;
+SELECT reg_id from reg_ad_group
+WHERE ad_group_id = ?
+LIMIT 1
+SQL
+
+    my $reg_id = $dbh->selectcol_arrayref($sql, {}, ($ad->{ad_group_id}))->[0] 
+        || 14;
+
 	$sth2->bind_param(1, $ad->{ad_id});
     $sth2->bind_param(2, $ad->{text});
     $sth2->bind_param(3, $ad->{uri});
-    $sth2->bind_param(4, $ad->{ad_group_id});
-    $sth2->execute;
+    $sth2->bind_param(4, $reg_id);
+    eval { $sth2->execute };
+    if ($@) {
+      warn("duplicate encountered, reg id " . $ad->{reg_id});
+    }
 }
 
 ################################
@@ -122,13 +170,17 @@ SQL
 
 $sth = $dbh2->prepare($sql);
 my $i = 0;
-while (my $view = $blarg->fetchrow_arrayref) {
-# foreach my $view (@{$view_arrayref}) {
+{ 
+    local $dbh2->{AutoCommit} = 0;
+  while (my $view = $blarg->fetchrow_arrayref) {
+  # foreach my $view (@{$view_arrayref}) {
     $sth->bind_param(1, $view->[0]);
     $sth->bind_param(2, $view->[1]);
     $sth->bind_param(3, $view->[2]);
     $sth->execute;
-$i++;
+    $i++;
+  }
+  $dbh2->commit;
 }
 print STDERR "Hey we found $i views\n";
 
@@ -156,6 +208,64 @@ foreach my $click (@{$click_arrayref}) {
     $sth->bind_param(3, $click->[2]);
 	$sth->execute;
 }
+
+
+###### now link the ads to the routers
+$sql = <<SQL;
+SELECT reg_id, ad_group_id
+FROM reg_ad_group;
+SQL
+
+my $reg_ad_group_arrayref = $dbh->selectall_arrayref($sql, { Slice => {} } );
+
+$sql = <<SQL;
+SELECT ad_id
+FROM ad
+WHERE ad_group_id = ?
+SQL
+
+my $new_sql = <<SQL;
+INSERT INTO router_ad_sl
+(router_id, ad_sl_id)
+VALUES
+(?, ?)
+SQL
+
+# handle for making the router_ad_sl entries
+my $new_sth = $dbh2->prepare($new_sql);
+
+$sth = $dbh->prepare($sql);
+my $missing = 0;
+foreach my $reg_ad_group ( @{$reg_ad_group_arrayref}) {
+    # grab the router
+    my $foo_sql = <<SQL;
+SELECT router_id FROM router
+WHERE reg_id = ?
+SQL
+
+    my $router_ary_ref = $dbh2->selectcol_arrayref($foo_sql, {}, 
+        ( $reg_ad_group->{reg_id}));
+
+    # find all ads in this reg ad group
+    my $ary_ref = $dbh->selectall_arrayref($sql, {}, 
+                                           ($reg_ad_group->{ad_group_id}));
+    foreach my $foo_ad ( @{$ary_ref}) {
+        $new_sth->bind_param(1, $router_ary_ref->[0]);
+        $new_sth->bind_param(2, $foo_ad->[0]);
+        
+        my $rv = $new_sth->execute;
+        if (!$rv) {
+          warn("One missing: " . $foo_ad->[0]);
+          $missing++;
+        }
+    }
+}
+
+    warn("This many missing: $missing");
+
+$cmd = `psql -d $new -f "$sql2dir/func/ad_md5.sql"`;
+$cmd = `psql -d $new -f "$sql2dir/trigger/md5.sql"`;
+
 
 1;
 
