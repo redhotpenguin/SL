@@ -9,26 +9,30 @@
 [% ELSIF  status == 'updated' %]
 <p><font color="red">Ad '[% ad_text %]' was successfully updated.</font></p>
 [% END %]
-<p style="text-align: right; padding-bottom: 5px;"><a href="/app/ad/edit/?ad_id=-1">Create a New Ad</a></span></p>
+<p style="text-align: right; padding-bottom: 5px;"><a href="/app/ad/edit/?id=-1">Create a New Ad</a></span></p>
 <table class="list">
 <tr class="list_header">
 <td>&nbsp;&nbsp;Ad&nbsp;&nbsp;</td><td>Text</td>
 [% IF root == 1 %]
-<td>Ad Group</td>
+<td>Creator</td>
 [% END %]
+<td>Creation Time</td>
 <td>Active&nbsp;&nbsp;</td>
 <td>Edit</td>
 </tr>
 [% FOREACH ad = ads %]
-<tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
+  <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
 	
-<td style="color: #639D63">&nbsp;&nbsp;[% ad.ad_id %]</a></td>
+  <td style="color: #639D63">&nbsp;&nbsp;[% ad.id %]</a></td>
 <td>[% ad.text %]</a></td>
 [% IF root == 1 %]
-<td>[% ad.ad_group_id.name %]
+  <td>[% ad.email %]
 [% END %]
+
+<td>[% ad.cts %]</td>
+
 <td style="text-align: center;">[% IF ad.active %]Yes[% ELSE %]No[% END %]</td>
-<td><a href="/app/ad/edit/?ad_id=[% ad.ad_id %]">Edit</a></td>
+<td><a href="/app/ad/edit/?id=[% ad.id %]">Edit</a></td>
 </tr>
 [% END %]
 </table>

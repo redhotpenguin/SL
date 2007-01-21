@@ -3,15 +3,15 @@
 <div id="list_center">
 	<div class="content">
 
-<h2><a href="/app">Dashboard</a> > <a href="/app/ad/list">Manage Your Ads</a> > [% IF ad.ad_id == -1 %]Create a New Ad[% ELSIF ad.ad_id != -1 %]Edit an Existing Ad[% END %]</h2>
+<h2><a href="/app">Dashboard</a> > <a href="/app/ad/list">Manage Your Ads</a> > [% IF ad.id == -1 %]Create a New Ad[% ELSIF ad.id != -1 %]Edit an Existing Ad[% END %]</h2>
 <div id="edit_form">
 
 <table class="edit"> 
 
 <tr><td colspan=2>
-	[% IF ad.ad_id != -1 %]
-	<h2>Edit Existing Ad Id '[% ad.ad_id %]'</h2>
-[% ELSIF ad.ad_id == -1 %]
+	[% IF ad.id != -1 %]
+	<h2>Edit Existing Ad Id '[% ad.id %]'</h2>
+[% ELSIF ad.id == -1 %]
 <h2>Create A New Ad</h2>
 [% END %]
 [% IF errors.missing %]
@@ -22,7 +22,7 @@
 [% END %]
 <hr size=1 style="padding-top: 5px; padding-bottom:5px; color='#CCCCCC';"></td>
 
-<form method="POST" action="/app/ad/edit/?ad_id=[% ad.ad_id %]">
+<form method="POST" action="/app/ad/edit/?id=[% ad.id %]">
 <tr><td>
 [% IF errors.missing.text %]<font color="red">[% ELSE %]
 [% END %]
@@ -41,29 +41,20 @@ Ad Links To:
 </font>
 </td>
 
-<td><input type="text" name="link" size="50" maxlength="512" value="[% IF ad.ad_id == -1 %]http://[% ELSE %][% link.uri %][% END %]"></td></tr>
+<td><input type="text" name="uri" size="50" maxlength="512" value="[% IF ad.id == -1 %]http://[% ELSE %][% ad.uri %][% END %]"></td></tr>
+
 <tr><td colspan=2><font color="#CCCCCC">
 (example http://anywebsite.com/)</font></td></tr>
-[% IF link.uri %]<tr><td colspan=2><a href="[% link.uri %]">Link</a></td></tr>[% END %]
+[% IF ad.uri %]<tr><td colspan=2><a href="[% ad.uri %]">Link</a></td></tr>[% END %]
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
 <tr><td>Active:</font></td><td>
-Yes<input type="radio" name="active" value="1" [% IF ad.active == 1 ||  ad.ad_id == -1 %] checked [% END %]>
+Yes<input type="radio" name="active" value="1" [% IF ad.active == 1 ||  ad.id == -1 %] checked [% END %]>
 No<input type="radio" name="active" value="0" [% IF ad.active == 0 %] checked [% END %]></td></tr>
 <tr><td colspan=3><font color="#CCCCCC">
 Deactivating the ad removes it from the ad serving rotation.<br />To ensure consistency in reporting, ads cannot be deleted.
 </font></td></tr>
 
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
-</td></tr>
-
-<tr><td>Ad Group:</td><td><select name="ad_group_id">
-[% FOREACH ad_group = ad_groups %]
-<option [% IF ad.ad_group_id.ad_group_id == ad_group.ad_group_id %] SELECTED 
-[% END %] value="[% ad_group.ad_group_id %]">[% ad_group.name %]</option>
-[% END %]
-</select>
-</td></tr>
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 <tr><td><input type="submit" value="Save"></td></tr>
 </form>
