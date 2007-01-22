@@ -12,14 +12,13 @@
 }
 p.sl {
 /*    border: solid 1px black;  */
-    text-align: left;
+	text-align: left;
     padding: 0px 0px 0px 0px;
     margin: 0px 0px 0px 0px;
 }
 
 .sl_javascript_textad_text {
 	position: absolute;
-    text-decoration: none;
 	top: 5px;
 	left: 150px;
 	vertical-align: 50%;
@@ -29,15 +28,28 @@ p.sl {
 	color: #0033FF;
 }
 
-
 .sl_textad_text {
 	position: absolute;
 	top: 15px;
 	left: 150px;
 	vertical-align: 50%;
+	text-decoration: underline;
     font-weight: bold;
     font-family: Arial;
     font-size: 16px;
+	color: #0033FF;
+}
+
+.sl_link {
+	position: absolute;
+	bottom: 4px;
+	right: 25px;
+	text-decoration: underline;
+	text-align: right;
+	vertical-align: 50%;
+    font-weight: bold;
+    font-family: Arial;
+    font-size: 10px;
 	color: #0033FF;
 }
 
