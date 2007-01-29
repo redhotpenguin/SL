@@ -114,7 +114,7 @@ sub _sl_feed {
     my $sql = <<SQL;
 SELECT
 ad_linkshare.ad_id,
-adlinkshare.displaytext AS text,
+ad_linkshare.displaytext AS text,
 ad.md5,
 ad_linkshare.linkurl AS uri
 FROM ad_linkshare
@@ -187,7 +187,7 @@ sub random {
     if (rand(100) <= $custom_ad_weight) {
         $ad_data = $class->_sl_ad($ip);
     } else {
-        $ad_data = $class->_feed_ad($ip);
+        $ad_data = $class->_sl_feed($ip);
     }
  
 	my %tmpl_vars;
