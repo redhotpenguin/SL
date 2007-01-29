@@ -23,7 +23,8 @@
 [% FOREACH ad = ads %]
   <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
 	
-  <td style="color: #639D63">&nbsp;&nbsp;[% ad.id %]</a></td>
+  <td style="color: #639D63">&nbsp;&nbsp;
+<a href="/app/ad/edit/?id=[% ad.id %]">[% ad.id %]</a></td>
 <td>[% ad.text %]</a></td>
 [% IF root == 1 %]
   <td>[% ad.email %]
