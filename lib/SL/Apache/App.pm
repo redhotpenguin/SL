@@ -1,3 +1,4 @@
+
 package SL::Apache::App;
 
 use strict;
@@ -27,28 +28,29 @@ This method serves of the master ad control panel for now
 =cut
 
 sub dispatch_index {
-	my ($self, $r) = @_;
+    my ($self, $r) = @_;
 
-	my %tmpl_data = ( root => $r->pnotes('root'),
+    my %tmpl_data = ( root => $r->pnotes('root'),
                        email => $r->user);
-	my $output;
-	my $ok = $tmpl->process('home.tmpl', \%tmpl_data, \$output);
-	$ok ? return $self->ok($r, $output) 
-		: return $self->error($r, "Template error: " . $tmpl->error());
+    my $output;
+    my $ok = $tmpl->process('home.tmpl', \%tmpl_data, \$output);
+    $ok ? return $self->ok($r, $output) 
+        : return $self->error($r, "Template error: " . $tmpl->error());
 }
 
 sub ok {
-	my ($self, $r, $output) = @_;
-	# send successful response
-	$r->content_type('text/html');
-	$r->print($output);
-	return Apache2::Const::OK;
+    my ($self, $r, $output) = @_;
+    # send successful response
+    $r->no_cache(1);
+    $r->content_type('text/html');
+    $r->print($output);
+    return Apache2::Const::OK;
 }
 
 sub error {
-	my ($self, $r, $error) = @_;
-	$r->log->error($error);
-	return Apache2::Const::SERVER_ERROR;
+    my ($self, $r, $error) = @_;
+    $r->log->error($error);
+    return Apache2::Const::SERVER_ERROR;
 }
 
 1;
