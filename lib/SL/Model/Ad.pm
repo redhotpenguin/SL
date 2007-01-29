@@ -19,11 +19,15 @@ This serves ads, ya see?
 
 use constant CLICKSERVER_URL    => 'http://h1.redhotpenguin.com:7777/click/';
 use constant SILVERLINING_AD_ID => "/795da10ca01f942fd85157d8be9e832e";
+use constant DEFAULT_BUG_LINK   => 
+  'http://www.redhotpenguin.com/img/sl/free_wireless.gif';
 
-my $template;
+my ($template, $config);
 our( $log_view_sql, %sl_ad_data );
 
 BEGIN {
+  require SL::Config;
+  $config = SL::Config->new;
 
     $log_view_sql = <<SQL;
 INSERT INTO view
@@ -107,6 +111,35 @@ sub stacked {
     return $decoded_content;
 }
 
+# choose from our selection of default ads
+sub _sl_default {
+    my $class = shift;
+
+    my $sql = <<SQL;
+SELECT 
+ad_sl.ad_id, 
+ad_sl.text,
+ad.md5, 
+ad_sl.uri
+FROM ad_sl
+INNER JOIN ad USING (ad_id)
+WHERE ad.active = 't'
+AND ad_sl.reg_id = 1
+ORDER BY RANDOM()
+LIMIT 1
+SQL
+
+    my $dbh = SL::Model->connect();
+    my $sth = $dbh->prepare($sql);
+    my $rv = $sth->execute;
+    die "Problem executing query: $sql" unless $rv;
+
+    my $ad_data = $sth->fetchrow_hashref;
+    $sth->finish;
+    $ad_data->{'template'} = 'text_ad';
+    return $ad_data;
+}
+
 sub _sl_feed {
     my ($class, $ip) = @_;
     
@@ -138,16 +171,6 @@ SQL
 sub _sl_ad {
     my ($class, $ip) = @_;
 
-    my $ad_groups_ref = SL::Model::Ad::Group->from_ip($ip);
-    my $ad_group_count = scalar(@{$ad_groups_ref});
-    my $in = '?,' x $ad_group_count;
-
-    # remove the trailing ','
-    {
-      no warnings;
-      substr($in, -length($in), length($in)-1);
-    }
-
     my $sql = <<SQL;
 SELECT
 ad_sl.ad_id, 
@@ -156,16 +179,17 @@ ad.md5,
 ad_sl.uri
 FROM ad_sl
 INNER JOIN ad USING (ad_id)
-INNER JOIN ad_group USING (ad_sl_group_id)
+INNER JOIN reg USING (reg_id)
+INNER JOIN router USING (reg_id)                                                
 WHERE ad.active = 't'
-AND ad_group_id = ($in)
+AND router.ip = ?
 ORDER BY RANDOM()
 LIMIT 1
 SQL
+
     my $dbh = SL::Model->connect();
     my $sth = $dbh->prepare($sql);
-    my $i = 1;
-    $sth->bind_param($i++, $_->ad_group_id) for @{$ad_groups_ref};
+    $sth->bind_param(1, $ip);
 	my $rv = $sth->execute;
     die "Problem executing query: $sql" unless $rv;
 
@@ -175,6 +199,26 @@ SQL
     return $ad_data;
 }
 
+sub _bug_link {
+  my ($class, $ip) = @_;
+
+  my $sql = <<SQL;
+SELECT reg_id FROM router WHERE router.ip = ?
+SQL
+    my $dbh = SL::Model->connect();
+    my $sth = $dbh->prepare($sql);
+    $sth->bind_param(1, $ip);
+	my $rv = $sth->execute;
+    die "Problem executing query: $sql" unless $rv;
+    my $reg_id = $sth->fetchrow_arrayref->[0];
+  
+  if (-e join('/', $config->sl_data_root, $reg_id, $ip, 'img/logo.gif')) {
+    my $link = join('/', '/img/user', $reg_id, $ip, 'logo.gif');
+    return $link;
+ }
+  return DEFAULT_BUG_LINK;
+}
+
 # this method returns a random ad, given the ip of the router
 sub random {
     my ( $class, $ip ) = @_;
@@ -182,23 +226,23 @@ sub random {
     # figure out what ad to serve.
     # current logic says  use default/custom ad groups 25% of the time
     # and our feeds 75% of the time
-    my $custom_ad_weight = 25;
+    my $feed_threshold = 50;
+    my $custom_threshold = 25;
     my $ad_data;
-    if (rand(100) <= $custom_ad_weight) {
-        $ad_data = $class->_sl_ad($ip);
-    } else {
+    my $rand = rand(100);
+    if ($rand >= $feed_threshold) {
         $ad_data = $class->_sl_feed($ip);
+    } elsif ( $rand >= $custom_threshold ) {
+        $ad_data = $class->_sl_ad($ip);
     }
- 
-	my %tmpl_vars;
-    # ad setup based on ad type here
-    if ( $ad_data->{'template'} eq 'javascript' ) {
-        $tmpl_vars{'ad_link'} = $ad_data->{'uri'};
+
+    unless (exists $ad_data->{'text'}) {
+      $ad_data = $class->_sl_default();
     }
-    else {
-        $tmpl_vars{'ad_link'} = CLICKSERVER_URL . $ad_data->{'md5'};
-        $tmpl_vars{'ad_text'} = $ad_data->{'text'};
-    }
+	my %tmpl_vars = ( 
+        ad_link  => CLICKSERVER_URL . $ad_data->{'md5'},
+        ad_text  => $ad_data->{'text'},
+        bug_link => $class->_bug_link($ip)  );
 
 	my $output;
     $template->process( $ad_data->{'template'} . '.tmpl',

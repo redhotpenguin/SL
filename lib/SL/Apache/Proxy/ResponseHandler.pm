@@ -36,7 +36,6 @@ use HTTP::Request           ();
 use HTTP::Response          ();
 use SL::UserAgent           ();
 use SL::Model::Ad           ();
-use SL::Model::Ad::Group    ();
 use SL::Model::Subrequest   ();
 use Data::Dumper            qw( Dumper );
 use Encode                  ();
@@ -520,9 +519,8 @@ sub _generate_response {
     #return $response->decoded_content;
     
 	$r->log->info( "$$ grabbing ad for request uri " . $r->uri );
-	my $ad_group = SL::Model::Ad::Group->from_ip($r->connection->remote_ip);
-    $ad_group = SL::Model::Ad::Group->default_group unless $ad_group;
-	my ($ad_id, $ad_content_ref) = SL::Model::Ad->random($ad_group);
+	my ($ad_id, $ad_content_ref) = 
+        SL::Model::Ad->random($r->connection->remote_ip);
 	
 	# VERBOSE
 	$r->log->debug( "Ad content is \n$$ad_content_ref\n");
