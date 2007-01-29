@@ -1,0 +1,65 @@
+[% INCLUDE header.tmpl %]
+
+<div id="list_center">
+	<div class="content">
+
+<h2><a href="/app">Dashboard</a> > <a href="/app/settings/index"> Manage Settings</a> > Manage Router
+[% IF router.name %] [% router.name %] 
+[% ELSE %] [% router.ip %]
+[% END %]</h2>
+
+<p>Use this page to edit the settings for this router</p>
+<div id="edit_form">
+
+<form method="POST" action="/app/settings/router" enctype = 'multipart/form-data'>
+
+[% IF status == 'ok'%]
+<p><font color="red">Changes have been saved</font></p>
+[% ELSIF status == 'not_gif' %]
+<p><font color="red">Sorry that wasn't a gif!</font></p>
+[% ELSIF status == 'not_sized' %]
+<p><font color="red">Sorry the image was too big!</font></p>
+[% END %]
+
+<table class="edit">
+
+<tr><td>
+[% IF errors.missing.name %]<font color="red">Name this router:</font>
+[% ELSE %]
+Name this router:
+[% END %]
+</td>
+<td>
+<input type="text" name = "name" size="25" maxlength="25" value='[% router.name %]'>
+<input type="hidden" name="id" value="[% router.router_id %]">
+</td></tr>
+
+<tr><td>
+[% IF errors.missing %]<font color="red">[% END %]
+Upload a GIF type image for your router no larger than 100px wide by 50px tall:
+[% IF status == 'missing' %]</font>[% END %]
+</td>
+<td><input type=file name=bug></td></tr>
+
+[% IF file != '' %]
+<tr><td><img src='[% file %]'></td></tr>
+[% END %]
+
+<hr size=1 color="#CCCCCC">
+<tr><td><input type="submit" value="Save"></td></tr>
+</form>
+
+[% IF img_file != '' %]
+<tr><td>
+<img src="[% img_file %]">
+</td></tr>
+[% END %]
+
+  </table>
+
+</div>
+</div>
+</div>
+[% INCLUDE right.tmpl %]
+[% INCLUDE footer.tmpl %]
+

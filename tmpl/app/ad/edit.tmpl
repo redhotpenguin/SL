@@ -20,25 +20,24 @@
 [% IF errors.invalid %]
 <p><font color="red">Some fields were invalid, please correct them</font></p>
 [% END %]
-<hr size=1 style="padding-top: 5px; padding-bottom:5px; color='#CCCCCC';"></td>
+<hr size=1 color="#CCCCCC"></td>
 
 <form method="POST" action="/app/ad/edit/?id=[% ad.id %]">
 <tr><td>
-[% IF errors.missing.text %]<font color="red">[% ELSE %]
-[% END %]
+[% IF errors.missing.text %]<font color="red">Ad Text:</font>[% ELSE %]
 Ad Text:
-</font>
-</td><td><input type="text" name="text" size="50" maxlength="100" value="[% ad.text %]"></td></tr>
+[% END %]
+</td>
+<td><input type="text" name="text" size="50" maxlength="100" value='[% ad.text %]'></td></tr>
 
 <tr><td colspan=2><font color="#CCCCCC">(100 character limit)</font></td></tr>
 
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
 <tr><td>
-[% IF errors.missing.link %]<font color="red">[% ELSE %]
+[% IF errors.missing.link %]<font color="red">Ad Links To:</font>[% ELSE %]
 [% END %]
 Ad Links To:
-</font>
 </td>
 
 <td><input type="text" name="uri" size="50" maxlength="512" value="[% IF ad.id == -1 %]http://[% ELSE %][% ad.uri %][% END %]"></td></tr>
