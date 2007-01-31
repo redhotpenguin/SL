@@ -21,6 +21,7 @@ use constant CLICKSERVER_URL    => 'http://h1.redhotpenguin.com:7777/click/';
 use constant SILVERLINING_AD_ID => "/795da10ca01f942fd85157d8be9e832e";
 use constant DEFAULT_BUG_LINK   => 
   'http://www.redhotpenguin.com/img/sl/free_wireless.gif';
+use constant DEFAULT_REG_ID => 14;
 
 my ($template, $config);
 our( $log_view_sql, %sl_ad_data );
@@ -124,13 +125,14 @@ ad_sl.uri
 FROM ad_sl
 INNER JOIN ad USING (ad_id)
 WHERE ad.active = 't'
-AND ad_sl.reg_id = 1
+AND ad_sl.reg_id = ?
 ORDER BY RANDOM()
 LIMIT 1
 SQL
 
     my $dbh = SL::Model->connect();
     my $sth = $dbh->prepare($sql);
+    $sth->bind_param(1, DEFAULT_REG_ID);
     my $rv = $sth->execute;
     die "Problem executing query: $sql" unless $rv;
 
@@ -210,13 +212,16 @@ SQL
     $sth->bind_param(1, $ip);
 	my $rv = $sth->execute;
     die "Problem executing query: $sql" unless $rv;
-    my $reg_id = $sth->fetchrow_arrayref->[0];
+    my $ary_ref = $sth->fetchrow_arrayref;
+    return DEFAULT_BUG_LINK unless $ary_ref; # unregistered router
+    
+    my $reg_id = $ary_ref->[0];
+    if (-e join('/', $config->sl_data_root, $reg_id, $ip, 'img/logo.gif')) {
+      my $link = join('/', '/img/user', $reg_id, $ip, 'logo.gif');
+      return $link;
+    }
   
-  if (-e join('/', $config->sl_data_root, $reg_id, $ip, 'img/logo.gif')) {
-    my $link = join('/', '/img/user', $reg_id, $ip, 'logo.gif');
-    return $link;
- }
-  return DEFAULT_BUG_LINK;
+    return DEFAULT_BUG_LINK;
 }
 
 # this method returns a random ad, given the ip of the router
@@ -239,7 +244,8 @@ sub random {
     unless (exists $ad_data->{'text'}) {
       $ad_data = $class->_sl_default();
     }
-	my %tmpl_vars = ( 
+
+ 	my %tmpl_vars = ( 
         ad_link  => CLICKSERVER_URL . $ad_data->{'md5'},
         ad_text  => $ad_data->{'text'},
         bug_link => $class->_bug_link($ip)  );
@@ -255,7 +261,6 @@ sub random {
 sub log_view {
     my ( $class, $ip, $ad_id ) = @_;
 
-	print STDERR "Logging view for ip $ip, ad_id $ad_id\n";
     my $dbh = SL::Model->db_Main();
     my $sth = $dbh->prepare($log_view_sql);
     $sth->bind_param( 1, $ad_id);
