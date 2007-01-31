@@ -8,19 +8,12 @@ $ENV{MOD_PERL} or die "GATEWAY_INTERFACE not Perl!";
 
 $|++;
 
-my $config;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
 
-BEGIN {
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
+use SL::Config;
+my $config = SL::Config->new();
 
-    require SL::Config;
-    my @config_files =
-      ("$FindBin::Bin/../sl.proxy.conf", "$FindBin::Bin/../conf/sl.proxy.conf");
-
-    $config = SL::Config->new(\@config_files);
-
-}
 print STDOUT "Loading modules...\n";
 
 # FIXME - link to sl_debug option
@@ -35,7 +28,7 @@ use Apache2::ConnectionUtil ();
 use Apache2::Log            ();
 use Apache2::RequestIO      ();
 use Apache2::RequestRec     ();
-use Apache2::RequestUtil();
+use Apache2::RequestUtil    ();
 use Apache2::ServerRec               ();
 use Apache2::ServerUtil              ();
 use Apache2::SubRequest              ();
@@ -46,7 +39,6 @@ use HTTP::Request                    ();
 use HTTP::Response                   ();
 use SL::Model                        ();
 use SL::Model::Ad                    ();
-use SL::Model::Ad::Group             ();
 use SL::Model::Subrequest            ();
 use SL::Model::URL                   ();
 use SL::Apache::Proxy::AccessHandler   ();
