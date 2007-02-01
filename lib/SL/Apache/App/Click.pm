@@ -26,9 +26,9 @@ sub handler {
     my $dbh = SL::Model->db_Main();
 
     my $statement = <<END;
-SELECT link_id, uri
-FROM link
-WHERE link.md5 = ?
+SELECT ad_id
+FROM ad
+WHERE ad.md5 = ?
 END
     
     my $sth = $dbh->prepare( $statement );
@@ -46,7 +46,7 @@ END
 
     $statement = <<END;
 INSERT INTO click
-( link_id, ip ) values ( ?, ? )
+( ad_id, ip ) values ( ?, ? )
 END
     
     $sth = $dbh->prepare( $statement );
@@ -61,9 +61,32 @@ END
         $dbh->commit;
     }
 
+	# find the ad to grab the url and redirect
+	my $sql = <<SQL;
+SELECT uri from ad_sl
+WHERE ad_id = ?
+SQL
+	$sth = $dbh->prepare($sql);
+	$sth->bind_param(1, $ary_ref->[0]);
+	$rv = $sth->execute;
+	my $url_ary_ref = $sth->fetchrow_arrayref;
+	unless ($url_ary_ref) { # hmm must be a feed ad
+		$sql = <<SQL;
+SELECT linkurl FROM ad_linkshare
+WHERE ad_id = ?
+SQL
+		$sth = $dbh->prepare($sql);
+		$sth->bind_param(1, $ary_ref->[0]);
+		$rv = $sth->execute;
+		$url_ary_ref = $sth->fetchrow_arrayref;
+		unless ($url_ary_ref) { # oh this is bad, no ad, i'm sad
+			$r->log->error("$$ couldn't find an ad id " . $url_ary_ref->[0]);
+			$r->headers_out->set( Location => 'http://www.silverliningnetworks.com');
+		}
+	}
     # Now redirect
-    $r->log->debug("$$ Redirecting to ", $ary_ref->[1] );
-    $r->headers_out->set( Location => $ary_ref->[1] );
+    $r->log->debug("$$ Redirecting to ", $url_ary_ref->[0] );
+    $r->headers_out->set( Location => $url_ary_ref->[0] );
     return Apache2::Const::REDIRECT;
 }
 
