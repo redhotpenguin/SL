@@ -3,20 +3,31 @@
 	<div class="content">
 
 <h2><a href="/app">Dashboard</a> > Manage Settings</h2>
-<hr />
-<p><a href="/app/settings/account">Email and Password</a></p>
-<hr />
-<p>Manage Routers</p>
+<hr size=1 color="#CCCCCC"></td>
+<div id="edit_form">
+
+<table class="edit">
+<tr><td colspan=2>
+<h2>Manage Settings</h2></td></tr>
+<tr><td colspan=2><hr size=1 color="#CCCCCC" width=600px></td></tr>
+<tr><td><a href="/app/settings/account">Email and Password</a> </td></tr>
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+<tr><td>Routers</td></tr>
+<tr><td><ul>
 [% FOREACH router = routers %]
-<a href="/app/settings/router/?id=[% router.id %]">
+<li><a href="/app/settings/router/?id=[% router.id %]">
 [% IF router.name != ''%]
 [% router.name %]
 [% ELSE %]
 Unnamed router at ip [% router.ip %]
 [% END %]
-
+</li>
 [% END %]
-</div>
+</ul>
+</td></tr>
+</table>
+    </div>
+    </div>
 </div>
 [% INCLUDE right.tmpl %]
 [% INCLUDE footer.tmpl %]
