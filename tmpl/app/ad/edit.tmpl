@@ -4,6 +4,7 @@
 	<div class="content">
 
 <h2><a href="/app">Dashboard</a> > <a href="/app/ad/list">Manage Your Ads</a> > [% IF ad.id == -1 %]Create a New Ad[% ELSIF ad.id != -1 %]Edit an Existing Ad[% END %]</h2>
+<hr size=1 color="#CCCCCC">
 <div id="edit_form">
 
 <table class="edit"> 
@@ -12,7 +13,7 @@
 	[% IF ad.id != -1 %]
 	<h2>Edit Existing Ad Id '[% ad.id %]'</h2>
 [% ELSIF ad.id == -1 %]
-<h2>Create A New Ad</h2>
+<h2>Create a New Ad</h2></td></tr>
 [% END %]
 [% IF errors.missing %]
 <p><font color="red">Please complete the missing fields</font></p>
@@ -20,7 +21,7 @@
 [% IF errors.invalid %]
 <p><font color="red">Some fields were invalid, please correct them</font></p>
 [% END %]
-<hr size=1 color="#CCCCCC"></td>
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
 <form method="POST" action="/app/ad/edit/?id=[% ad.id %]">
 <tr><td>
