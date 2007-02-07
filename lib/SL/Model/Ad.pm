@@ -20,7 +20,7 @@ This serves ads, ya see?
 use constant CLICKSERVER_URL    => 'http://h1.redhotpenguin.com:7777/click/';
 use constant SILVERLINING_AD_ID => "/795da10ca01f942fd85157d8be9e832e";
 use constant DEFAULT_BUG_LINK   => 
-  'http://www.redhotpenguin.com/img/sl/free_wireless.gif';
+  'http://www.redhotpenguin.com/images/sl/free_wireless.gif';
 use constant DEFAULT_REG_ID => 14;
 
 my ($template, $config);
