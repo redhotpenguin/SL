@@ -23,6 +23,7 @@ WriteMakefile(
                             'Bundle::LWP'          => 1.11,
                             'Template'             => 2.14,
                             'Regexp::Assemble'     => 0.24,
+							'SOAP::Lite'           => 0.69,
                             'Perl6::Slurp'         => 0.03,
                            },
               ABSTRACT => 'An ad serving proxy server',
