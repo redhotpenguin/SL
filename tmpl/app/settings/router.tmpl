@@ -13,12 +13,16 @@
 
 <form method="POST" action="/app/settings/router" enctype = 'multipart/form-data'>
 
+[% IF updated_name == 'ok' %]
+<p><font color="red">Name has been updated</font></p>
+[% END %]
+
 [% IF status == 'ok'%]
-<p><font color="red">Changes have been saved</font></p>
+<p><font color="red">Image has been uploaded</font></p>
 [% ELSIF status == 'not_gif' %]
-<p><font color="red">Sorry that wasn't a gif!</font></p>
+<p><font color="red">Sorry that wasn't a gif! Please upload a 80 pixel wide by 50 pixel high gif.</font></p>
 [% ELSIF status == 'not_sized' %]
-<p><font color="red">Sorry the image was too big!</font></p>
+<p><font color="red">Sorry that gif image was too big!  It needs to be smaller than 80 pixels wide and 50 pixels high.</font></p>
 [% END %]
 
 <table class="edit">

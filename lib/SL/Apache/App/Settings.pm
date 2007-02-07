@@ -121,12 +121,14 @@ sub dispatch_router {
         $img{'link'} =
           'http://www.redhotpenguin.com/images/sl/free_wireless.gif';
     }
+    my $status;
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
             root   => $r->pnotes('root'),
             reg    => $r->pnotes( $r->user ),
             status => $req->param('status') || '',
+			updated_name => $req->param('updated_name') || '',
             router => $router,
             file   => $img{'link'}
         );
@@ -139,7 +141,6 @@ sub dispatch_router {
           : return $self->error( $r, "Template error: " . $tmpl->error() );
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
-        my $status;
         $r->method_number(Apache2::Const::M_GET);
         my $upload = $req->upload('bug');
         if ($upload) {
@@ -148,37 +149,54 @@ sub dispatch_router {
             if ( -e $img{'file'} ) {
                 unlink $img{'file'} or die "Could not unlink $img{'file'}, $!";
             }
-            $upload->link( $img{'file'} )
-              or die "Could not link $img{'file'}, $!";
+            my $new = $img{'file'} . '.new';
+			unlink ($new) if -e $new;
+			$upload->link( $new) or die "Could not link $img{'file'}, $!";
 
-            # are you my type?
-            my $type = `file -b $img{'file'}`;
-            my ( $exact_type, $width, $height ) =
-              $type =~
-m/^Image type is (\w+) image data, version (?:\d+\w+), (\d+) x (\d+)/;
-            unless ( $exact_type eq 'GIF' ) {
-                $status = 'not_gif';
+			my $convert = `convert -sample 100 x 50 $new $img{'file'}`;
+			$r->log->error("Log of convert: $convert");
+			## are you my type?
+			#my $type = `file -b $img{'file'}`;
+			#if ( $type !~ m/GIF/ ) {
+			#		$r->log->error("NOT A GIF - $type");
+			#    $status = 'not_gif';
+			#    unlink $img{'file'} or die "Could not unlink $img{'file'}, $!";
+			# } else {
+            # it's a gif at least
+			# my ( $exact_type, $width, $height ) = $type =~
+			# m/(\w+) image data, version (?:\d+\w+), (\d+) x (\d+)/;
+		#m/^Image type is (\w+) image data, version (?:\d+\w+), (\d+) x (\d+)/;
+		#$r->log->error("Type is $exact_type, wid $width, h $height"); 
+                # is it the right size?
+				#       if ( ( $width > 100 ) or ( $height > 50 ) ) {
+				#		$status = 'not_sized';
+				#		unlink $img{'file'} or die "Could not unlink $img{'file'}, $!";
+				# }
+				#else {
+				$status = 'ok';
+				#$r->log->error(
+				#    "type: $exact_type, height: $height, width: $width");
+				#}
             }
-            elsif ( ( $width > 100 ) or ( $height > 50 ) ) {
-                $status = 'not_sized';
-            }
-            else {
-                $status = 'ok';
-                $r->log->error(
-                    "type: $exact_type, height: $height, width: $width");
-            }
-        }
+			# }
 
-        if ( $req->param('name') ) {
+		my $updated_name;
+        if ( $req->param('name') && ($req->param('name') ne $router->name) ) {
             $router->name( $req->param('name') );
             $router->update;
-            $status = 'ok';
+			$updated_name = 'ok';
         }
-
+		my $uri = '?';
+		if ($status) {
+			$uri .= "status=$status&";
+		}
+		if ($updated_name) {
+			$uri .= "updated_name=$updated_name&";
+		}
+		$uri .= "id=" . $router->router_id;
+		$r->log->error("URI is $uri");
         $r->internal_redirect(
-            $r->construct_url(
-                $r->uri . "?status=$status&id=" . $router->router_id
-            )
+			$r->construct_url($r->uri . $uri)
         );
         return Apache2::Const::OK;
     }
