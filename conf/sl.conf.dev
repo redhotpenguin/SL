@@ -57,3 +57,6 @@ sl_app_cookie_name SLApp
 sl_app_auth_uri /login
 sl_app_auth_secret kEa+!&MrJ=EzTjup@YWB-bF#&KLmxSH$bj=W#rkn_c?wem+BP!BxLmVWr@#XP#@$
 sl_app_static_host_ip 10.0.0.1
+sl_app_static_path '/var/www/redhotpenguin.com/images'
+sl_app_static_host 'http://www.redhotpenguin.com'
+sl_app_static_user phred

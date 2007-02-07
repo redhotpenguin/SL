@@ -42,9 +42,6 @@ use SL::Apache::App::Ad     ();
 use SL::Apache::App::Report ();
 use SL::Apache::App::Blacklist ();
 use SL::Apache::App::Settings  ();
-
-#use SL::Apache::App::Reg			 ();
-#use SL::Apache::App::AuthCookie      ();
 use SL::Apache::App::Logon      ();
 use SL::Apache::App::CookieAuth ();
 use SL::Model                   ();
