@@ -1,11 +1,11 @@
-sl_root  /home/phred/dev/sl
+sl_root  /Users/phred/dev/sl
 sl_version  trunk
 
 sl_data_root /tmp/data/sl
 sl_ip_cache_file	/tmp/sl_ips
 
 # configure the database connection
-sl_db_name  sl
+sl_db_name  sl2
 sl_db_host	localhost
 sl_db_user  sl
 sl_db_user  phred
@@ -20,10 +20,10 @@ sl_devel  1
 
 # proxy server settings
 #sl_proxy_apache_deflate  1
-sl_proxy_apache_maxclients  128
-sl_proxy_apache_start_servers  48
-sl_proxy_apache_max_spare_servers  32
-sl_proxy_apache_min_spare_servers  24
+sl_proxy_apache_maxclients  32
+sl_proxy_apache_start_servers  16
+sl_proxy_apache_max_spare_servers  8
+sl_proxy_apache_min_spare_servers  16
 sl_proxy_apache_loglevel  debug
 sl_proxy_apache_keepalive  On
 sl_proxy_apache_user  phred
@@ -56,3 +56,4 @@ sl_app_http_port  7777
 sl_app_cookie_name SLApp
 sl_app_auth_uri /login
 sl_app_auth_secret kEa+!&MrJ=EzTjup@YWB-bF#&KLmxSH$bj=W#rkn_c?wem+BP!BxLmVWr@#XP#@$
+sl_app_static_host_ip 10.0.0.1
