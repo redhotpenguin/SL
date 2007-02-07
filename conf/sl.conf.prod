@@ -5,7 +5,7 @@ sl_data_root /tmp/data/sl
 sl_ip_cache_file	/tmp/sl_ips
 
 # configure the database connection
-sl_db_name  sl
+sl_db_name  sl2
 sl_db_host	localhost
 sl_db_user  sl
 sl_db_user  phred
@@ -30,7 +30,7 @@ sl_proxy_apache_user  phred
 sl_proxy_apache_group  users
 sl_proxy_admin support@silverliningnetworks.com
 
-sl_proxy_servername  sl_proxy
+sl_proxy_servername  app.redhotpenguin.com
 
 sl_clickserver_uri  http://localhost:7777/ad
 sl_proxy_http_frontend_port  8069
@@ -55,6 +55,9 @@ sl_app_apache_user  phred
 sl_app_apache_group  users
 sl_app_http_port  7777
 sl_app_cookie_name SLApp
-sl_app_auth_uri /login
+sl_app_auth_uri '/login'
 sl_app_auth_secret kEa+!&MrJ=EzTjup@YWB-bF#&KLmxSH$bj=W#rkn_c?wem+BP!BxLmVWr@#XP#@$
 sl_app_static_host_ip 10.0.0.1
+sl_app_static_user fred
+sl_app_static_path '/var/www/redhotpenguin.com/images/sl'
+sl_app_static_host 'http://www.redhotpenguin.com'
