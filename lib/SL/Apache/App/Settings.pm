@@ -164,7 +164,7 @@ sub dispatch_router {
             $upload->link($new) or die "Could not link $img{'file'}, $!";
 
             # convert the image
-            my $convert = `convert -sample 100x50 $new $img{'file'}`;
+            my $convert = `convert -sample 90x45 $new $img{'file'}`;
             if ($convert) {
                 $r->log->error("$$ $self image conversion error: $convert");
                 die;
@@ -173,9 +173,16 @@ sub dispatch_router {
             # push it to the image server
             my $system_user = getpwuid( Apache2::ServerUtil->user_id );
             my $static_host = $config->get('sl_app_static_host_ip');
-            my $push        =
-              `rsync -avze ssh $img{'file'} $system_user\@$static_host:`;
-            if ( $push =~ m/timed out/ ) {
+            my $static_path = $config->get('sl_app_static_path');
+            my $static_user = $config->get('sl_app_static_user');
+            my $cmd = "rsync -avze ssh $DATA_ROOT/ $static_user\@$static_host:/$static_path/user/";
+            my $push = `$cmd`;
+            $r->log->debug("cmd $cmd push is $push");
+            if ( $push =~ m/timed out/i ) {
+                $r->log->error("$$ $self rsync failure: $push");
+                die;
+            }
+            if ($push =~ m/permission denied/i ) {
                 $r->log->error("$$ $self rsync failure: $push");
                 die;
             }

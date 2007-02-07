@@ -217,7 +217,8 @@ SQL
     
     my $reg_id = $ary_ref->[0];
     if (-e join('/', $config->sl_data_root, $reg_id, $ip, 'img/logo.gif')) {
-      my $link = join('/', '/img/user', $reg_id, $ip, 'logo.gif');
+      my $link = join('/', $config->get('sl_app_static_host'),
+		  'images/sl/user', $reg_id, $ip, 'logo.gif');
       return $link;
     }
   
