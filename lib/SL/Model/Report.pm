@@ -131,12 +131,13 @@ sub _ad_text_from_id {
   my ($class, $ad_id) = @_;
   # look in linkshare first;
   my $return;
-  if (my ($ad) = SL::Model::App->resultset('AdLinkshare')->search({ 
-                  ad_id => $ad_id}) {
+  my $ad;
+  if (($ad) = SL::Model::App->resultset('AdLinkshare')->search({ 
+                  ad_id => $ad_id})) {
     return $ad->displaytext;
   } else {
     # it's an sl ad
-    my ($ad) = SL::Model::App->resultset('AdSl')->search({ ad_id => $ad_id});
+    ($ad) = SL::Model::App->resultset('AdSl')->search({ ad_id => $ad_id});
     die "Couldn't find ad $ad_id" unless $ad;
     return $ad->text;
   }
