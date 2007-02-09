@@ -7,6 +7,7 @@ use base 'SL::Model';
 use Carp qw/croak/;
 use DateTime::Format::Pg;
 use DBD::Pg qw(:pg_types);
+use SL::Model::App;
 
 my $ad_sql = <<SQL;
 SELECT ad.ad_id, ad.text
@@ -31,10 +32,10 @@ SQL
 
 # views for a given time period
 my $view_sql = <<SQL;
-SELECT reg.email, count(ip) FROM view
-LEFT JOIN reg USING (ip)
-WHERE view.cts between ? and ?
-GROUP BY reg.email
+SELECT ip, count(ip) FROM view
+WHERE view.cts between
+? and  ?
+GROUP BY ip
 ORDER BY count(ip) DESC
 SQL
 
@@ -94,7 +95,6 @@ sub run_query {
     my $dbh = SL::Model->db_Main();
     my $sth = $dbh->prepare_cached($sql);
 
-    #$DB::single = 1;
     $sth->bind_param( 1, DateTime::Format::Pg->format_datetime($start) );
     $sth->bind_param( 2, DateTime::Format::Pg->format_datetime($end) );
     $sth->bind_param( 3, $ip ) if $ip;
@@ -105,7 +105,26 @@ sub run_query {
 
 sub views {
     my ( $class, $start, $end ) = @_;
-    return $class->run_query( $view_sql, $start, $end );
+    my $ary_ref = $class->run_query( $view_sql, $start, $end );
+    my $dbh = SL::Model->db_Main();
+    my $sql = <<SQL;
+SELECT reg.email, router.ip, router.name
+FROM router
+LEFT JOIN reg using (reg_id)
+WHERE ip = ?
+SQL
+    my $sth = $dbh->prepare($sql);
+    foreach my $entry ( @{$ary_ref} ) {
+        # add the email and router name/ip to the entry
+        $sth->bind_param(1, $entry->[0]);
+        $sth->execute;
+        my $reg_ary_ref = $sth->fetchrow_arrayref;
+        if ($reg_ary_ref) {
+            $entry->[0] = join(' - ', @{$reg_ary_ref}[0..1], 
+                               $reg_ary_ref->[2] || '');
+        }
+    }
+    return $ary_ref;
 }
 
 sub _ad_text_from_id {
