@@ -1,0 +1,69 @@
+[% INCLUDE header.tmpl %]
+
+<div id="list_center">
+	<div class="content">
+
+<h2><a href="/app">Dashboard</a> > <a href="/app/settings/index">Manage Settings</a> > Manage Account</h2>
+<hr size=1 color="#CCCCCC">
+<div id="edit_form">
+
+<table class="edit"> 
+
+<tr><td colspan=2>
+	<h2>Update your personal information</h2>
+</td></tr>
+
+[% IF password_updated %]
+<p><font color="red">Your password has been updated</font></p>
+[% END %]
+
+[% IF errors.password %]
+<p><font color="red">Your passwords did not match</font></p>
+[% END %]
+
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+
+<form method="POST" action="/app/settings/account">
+<tr><td>
+[% IF errors.email %]<font color="red">
+Email Address:</font>[% ELSE %]
+Email Address:
+[% END %]
+</td><td>[% reg.email %]</td>
+</tr>
+
+<tr><td colspan=2><font color="#CCCCCC">(50 character limit)</font></td></tr>
+
+<tr><td colspan=2><hr size=1 color="#FFFFF" style="color: #CCCCCC; width: 500px;"></td></tr>
+
+<tr><td>
+[% IF errors.password %]<font color="red">Password:</font>[% ELSE %]
+Password:
+[% END %]
+</td>
+
+<td><input type="password" name="password" size="15" maxlength="15" value="">
+</td></tr>
+
+
+<tr><td>
+[% IF errors.password %]<font color="red">Retype Password:</font>[% ELSE %]
+Retype Password:
+[% END %]
+</td>
+
+<td><input type="password" name="retype" size="15" maxlength="15" value="">
+</td></tr>
+
+<tr><td colspan=2><font color="#CCCCCC">
+(Minimum 5 characters)</font></td></tr>
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+
+<tr><td><input type="submit" value="Save"></td></tr>
+</form>
+</table>
+</div>
+</div>
+</div>
+[% INCLUDE right.tmpl %]
+[% INCLUDE footer.tmpl %]
