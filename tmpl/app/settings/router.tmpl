@@ -38,16 +38,18 @@ Name this router:
 <input type="hidden" name="id" value="[% router.router_id %]">
 </td></tr>
 
+[% IF file != '' %]
+<tr><td>Current Sponsor Image:&nbsp;</td><td><img src='[% file %]'></td></tr>
+[% END %]
+
+
 <tr><td>
 [% IF errors.missing %]<font color="red">[% END %]
-Upload a GIF type image for your router no larger than 100px wide by 50px tall:
-[% IF status == 'missing' %]</font>[% END %]
+Upload New Image[% IF status == 'missing' %]</font>[% END %]
 </td>
 <td><input type=file name=bug></td></tr>
-
-[% IF file != '' %]
-<tr><td><img src='[% file %]'></td></tr>
-[% END %]
+<tr style="margin: 0px; padding: 0px;"><td colspan=2><font color="#CCCCCC">
+(Image will be resized to a 90px wide by 45 px tall gif)</font></td></tr>
 
 <hr size=1 color="#CCCCCC">
 <tr><td><input type="submit" value="Save"></td></tr>
