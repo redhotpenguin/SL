@@ -253,7 +253,7 @@ sub last_fifteen {
 
 # SL::Model::Report
 # build the ad summary
-sub ad_clicks_summary {
+sub ad_summary {
     my ( $class, $ip, $start_date, $now ) = @_;
     my $ad_clicks_ref = SL::Model::Report->ip_clicks( $start_date, $now, $ip );
 
@@ -266,7 +266,8 @@ sub ad_clicks_summary {
     # sort by count of ad_id
     foreach my $ref ( sort { $a->[1] <=> $b->[1] } @{$ad_clicks_ref} ) {
 
-        my $ad_text = $class->_ad_text_from_id($ref->[0]);
+        my $ad_text = $ref->[0];
+
         # wrap the text if the length is greater than the wrap length
         if ( length( $ad_text ) >= $Text::Wrap::columns ) {
             $ad_text = wrap( "", "", $ad_text );
@@ -279,7 +280,17 @@ sub ad_clicks_summary {
             $max_ad_clicks = $ref->[1];
         }
     }
-    return ( $max_ad_clicks, \@ad_clicks_data );
+
+    # handle those unfortunately empty report entries
+    $max_ad_clicks ||= 1;
+    $ad_clicks_data[0] ||= [0];
+    $ad_clicks_data[1] ||= [0];
+
+    my %return = (
+                  max => $max_ad_clicks,
+                  data => \@ad_clicks_data,
+                  );
+    return \%return;
 }
 
 # Last 24 hours of data for an ip and a given temporal range
@@ -370,10 +381,16 @@ sub data_for_ip {
         $now = $previous->clone;
     }
 
-    return (
-        $max_view_results, \@view_results,  $max_click_results,
-        \@click_results,   $max_click_rate, \@click_rates
+    my %return = (
+        max_views        => $max_view_results,
+        views_data       => \@view_results,
+        max_clicks       => $max_click_results,
+        clicks_data      => \@click_results,
+        max_rates  => $max_click_rate,
+        rates_data => \@click_rates,
     );
+
+    return \%return;
 }
 
 sub data_weekly_ip {

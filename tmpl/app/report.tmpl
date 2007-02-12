@@ -9,46 +9,59 @@
 [% END %]
 
 <form method="POST" action="/app/report/index">
-Email [% temporal %] reports to [% reg.email %] once a 
-[% IF temporal == 'daily' OR temporal == 'weekly' %]
-day
-[% ELSIF temporal == 'monthly' OR temporal == 'quarterly' %]
-week
-[% END %]
-<input type="checkbox" name="send_report" [% IF send_report %]CHECKED[% END %]>
-<input type="hidden" name="temporal" value="[% temporal %]">
+<p style="padding: 10px; background-color: #EEEEEE;">Email these reports to [% reg.email %]
+<br />
+<input type="radio" name="report_email_frequency" value="monthly"
+[% IF report_email_frequency == 'monthly' %]checked[% END %]>monthly
+
+<input type="radio" name="report_email_frequency" value="weekly"
+[% IF report_email_frequency == 'weekly' %]checked[% END %]>weekly
+
+<input type="radio" name="report_email_frequency" value="daily"
+[% IF report_email_frequency == 'daily' %]checked[% END %]>daily
+
+<input type="radio" name="report_email_frequency" value="never"
+[% IF report_email_frequency == '' || report_email_frequency == 'never' %]checked[% END %]>never
+&nbsp;&nbsp;&nbsp;
+
 <input type="submit" value="Save">
+<br/>(<a href="/app/settings/account">change email address</a>)</p>
+
 </form>
-<hr>
-<h2>Select a range to view reports</h2>
 
-[% UNLESS temporal == 'daily' %]
-<a href="/app/report/index/?temporal=daily">[% END %]
-<h2>24 Hours
-[% UNLESS temporal == 'daily' %]</a>[% END %]
-&nbsp;>&nbsp;
+<table>
+<tr>
+<td style="text-align: right;">Select a type of report:&nbsp;&nbsp;</td>
 
-[% UNLESS temporal == 'weekly' %]
-<a href="/app/report/index/?temporal=weekly">[% END %]
-7 days
-[% UNLESS temporal == 'weekly' %]</a>[% END %]
-&nbsp;>&nbsp;
-
-[% UNLESS temporal == 'monthly' %]
-<a href="/app/report/index/?temporal=monthly">[% END %]
-30 days
-[% UNLESS temporal == 'monthly' %]</a>[% END %]
-&nbsp;>&nbsp;
-
-[% UNLESS temporal == 'quarterly' %]
-<a href="/app/report/index/?temporal=quarterly">[% END %]
-90 days</h2>
-[% UNLESS temporal == 'quarterly' %]</a>[% END %]
-
-[% FOREACH type = [ 'views' 'clicks' 'rates' 'ads' ] %]
-<p style="width: 600px;">
-<img width="600" src="/img/report/[% reg.reg_id %]/[% reg.ip %]/[% temporal %]/[% type %].png"></p>
+[% FOREACH mytype = [ 'views', 'clicks', 'rates', 'ads' ] %]
+   <td>
+    [% UNLESS mytype == type %]
+    <a href="/app/report/index/?type=[% mytype %]&temporal=[% temporal %]">
+    [% END %]
+    [% types.$mytype %]
+    [% UNLESS mytype == type %]</a>[% END %]
+    &nbsp;</td>
 [% END %]
+</tr>
+<tr>
+<td style="text-align: right;">For this date range:&nbsp;&nbsp;</td>
+
+[% FOREACH mytemporal = [ 'daily', 'weekly', 'monthly', 'quarterly' ] %]
+    <td>
+    [% UNLESS mytemporal == temporal %]
+    <a href="/app/report/index/?type=[% type %]&temporal=[% mytemporal %]">
+    [% END %]
+    [% temporals.$mytemporal %]
+    [% UNLESS mytemporal == temporal %]</a>[% END %]
+    &nbsp;</td>
+[% END %]
+</tr>
+</table>
+
+<h2>Viewing reports for [% types.$type %] in the last [% temporals.$temporal %]</h2>
+
+<p style="width: 600px;">
+<img width="600" src="/img/report/[% reg.reg_id %]/[% temporal %]/[% type %].png"></p>
 </div>
 </div>
 

@@ -37,11 +37,8 @@ CREATE TABLE reg (
     active boolean default 't',
     sponsor character varying(64),
     code integer NOT NULL,
-    send_reports_daily boolean default 'f',
-    send_reports_weekly boolean default 'f',
-    send_reports_monthly boolean default 'f',
-    send_reports_quarterly boolean default 'f',
-	password_md5 character varying(32)
+	password_md5 character varying(32),
+    report_email_frequency  character varying(16)  not null default ''
 );
 
 

@@ -544,8 +544,8 @@ sub _generate_response {
 		# https://www.redhotpenguin.com/bugzilla/show_bug.cgi?id=424
 		$decoded_content = $response->content;
 
-                # don't try to re-encode it in this case
-                $content_needs_encoding = 0;
+        # don't try to re-encode it in this case
+        $content_needs_encoding = 0;
 	}
    	
 	if ($decoded_content =~ m/$skips/ims) {
