@@ -27,13 +27,20 @@ sub dispatch_index {
     my @routers =
       SL::Model::App->resultset('Router')
       ->search( { reg_id => $r->pnotes( $r->user )->reg_id } );
+
+    # see if this ip is currently unregistered;
+    my $is_registered = grep { $_->ip eq $r->connection->remote_ip } @routers;
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
+            
             root    => $r->pnotes('root'),
             reg     => $r->pnotes( $r->user ),
             status  => $req->param('status') || '',
             routers => \@routers
         );
+        unless ($is_registered) {
+          $tmpl_data{'unregistered_ip'} = $r->connection->remote_ip;
+        }
         my $output;
         my $ok = $tmpl->process( 'settings/index.tmpl', \%tmpl_data, \$output );
         $ok
@@ -111,12 +118,22 @@ sub dispatch_router {
     my ( $self, $r ) = @_;
 
     my $req = Apache2::Request->new( $r, TEMP_DIR => '/tmp' );
-    my ($router) = SL::Model::App->resultset('Router')->search(
+
+    my $router;
+    if ($req->param('id') == -1) {
+      # adding a new router
+      $router = SL::Model::App->resultset('Router')->new( 
+          { ip => $r->connection->remote_ip, 
+            reg_id => $r->pnotes($r->user)->reg_id, });
+      $router->insert;
+      $router->update;
+    } elsif ($req->param('id')) {
+      ($router) = SL::Model::App->resultset('Router')->search(
         {
             router_id => $req->param('id'),
             reg_id    => $r->pnotes( $r->user )->reg_id,
-        }
-    );
+        });
+    }
 
     return Apache2::Const::NOT_FOUND unless $router;
 
@@ -125,6 +142,7 @@ sub dispatch_router {
     unless ( -d $dir ) {
         ( system("mkdir -p $dir") == 0 ) or die "DIR IS $dir " . $!;
     }
+
     my %img = ( file => "$dir/logo.gif", link => "/img/user/$subdir/logo.gif" );
     unless ( -e $img{'file'} ) {
         $img{'link'} =
@@ -175,14 +193,16 @@ sub dispatch_router {
             my $static_host = $config->get('sl_app_static_host_ip');
             my $static_path = $config->get('sl_app_static_path');
             my $static_user = $config->get('sl_app_static_user');
-            my $cmd = "rsync -avze ssh $DATA_ROOT/ $static_user\@$static_host:/$static_path/user/";
+            my $cmd         =
+"rsync -avze ssh $DATA_ROOT/ $static_user\@$static_host:/$static_path/user/";
             my $push = `$cmd`;
             $r->log->debug("cmd $cmd push is $push");
+
             if ( $push =~ m/timed out/i ) {
                 $r->log->error("$$ $self rsync failure: $push");
                 die;
             }
-            if ($push =~ m/permission denied/i ) {
+            if ( $push =~ m/permission denied/i ) {
                 $r->log->error("$$ $self rsync failure: $push");
                 die;
             }
