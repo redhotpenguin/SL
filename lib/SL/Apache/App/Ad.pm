@@ -76,7 +76,7 @@ sub dispatch_list {
                   id     =>  $_->ad_sl_id,
                   cts    =>  $_->ad_id->cts,
                   email  =>  $_->reg_id->email, } }
-          SL::Model::App->resultset('AdSL')
+          SL::Model::App->resultset('AdSl')
           ->search( { reg_id => $r->pnotes( $r->user )->reg_id } );
     }
 	$tmpl_data{'count'} = scalar(@{$tmpl_data{'ads'}});
