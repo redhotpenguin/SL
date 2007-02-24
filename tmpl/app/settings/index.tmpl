@@ -17,7 +17,7 @@
 
 [% IF unregistered_ip %]
 <li><a href="/app/settings/router/?id=-1">Register this router at ip 
-[% unregistered %]</a></li>
+[% unregistered_ip %]</a></li>
 [% END %]
 
 [% FOREACH router = routers %]
