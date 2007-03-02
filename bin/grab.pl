@@ -6,7 +6,7 @@
 
 my $file = 'firewall.user.new';
 my $url = "http://www.redhotpenguin.com/sl/$file";
-
+chdir('/etc');
 my $grab = `wget $url`;
 
 if (-e "/etc/$file") {
