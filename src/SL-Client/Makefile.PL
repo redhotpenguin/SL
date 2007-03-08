@@ -1,18 +1,16 @@
-# generated via h2xs -X
 use 5.008005;
-use ExtUtils::MakeMaker;
+use strict;
+use warnings FATAL => 'all';
 
-WriteMakefile(
-    NAME         => 'SL::Client',
-    VERSION_FROM => 'lib/SL/Client.pm',
-    PREREQ_PM    => { Regexp::Assemble => 0.25 },
-    (
-        $] >= 5.005
-        ?    ## Add these new keywords supported since 5.005
-          (
-            ABSTRACT_FROM => 'lib/SL/Client.pm', # retrieve abstract from module
-            AUTHOR => 'Fred Moyer <phred@redhotpenguin.com>'
-          )
-        : ()
-    ),
+use Apache::TestMM ();
+Apache::TestMM->import(qw(test clean));
+Apache: TestMM::filter_args();
+Apache::TestMM::generate_script('t/TEST');
+
+use ModPerl::MM;
+ModPerl::MM::WriteMakefile(
+    NAME          => 'SL::Client',
+    VERSION_FROM  => 'lib/SL/Client.pm',
+    ABSTRACT_FROM => 'lib/SL/Client.pm',
+    AUTHOR => 'Fred Moyer <phred@redhotpenguin.com>',
 );
