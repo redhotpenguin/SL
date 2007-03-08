@@ -1,0 +1,4 @@
+Revision history for Perl extension SL-Client.
+
+0.1  Sat Mar  3 12:04:17 2007
+	- Client proxy functionality decoupled from main server codebase

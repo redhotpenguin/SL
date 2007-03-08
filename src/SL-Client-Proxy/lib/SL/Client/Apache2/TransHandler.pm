@@ -1,0 +1,224 @@
+package SL::Client::Apache2::PerlTransHandler;
+
+use strict;
+use warnings;
+
+=head1 NAME
+ 
+SL::Client::Apache2::PerlTransHandler
+
+=head1 SYNOPSIS
+
+In your httpd.conf file:
+
+  SL_URL_Blacklist /etc/sl/url_blacklist.txt
+  SL_UA_Blacklist  /etc/sl/user_agent_blacklist.txt
+
+  PerlTransHandler SL::Client::Apache2::PerlTranshandler
+
+=cut
+
+use Apache2::Module;
+use Apache2::ServerUtil;
+
+our ($cfg, $server, $url_regex, $ua_regex);
+
+BEGIN {
+    $server = Apache2::ServerUtil->server;
+    $cfg = Apache2::Module::get_config('SL::Client::Config', $server);
+
+    # load the blacklist regexes into global variables 
+    ## start with the url regex
+    my $fh;
+    open($fh, "<", $cfg->SL_URL_Blacklist) 
+      or die "Couldn't open file " . $cfg->SL_URL_Blacklist . ":  $!\n";
+    my $regex_content = do { local $/; <$fh> };
+    $url_regex = qr/$regex_content/i;
+    close($fh);
+    
+    ## then grab the user agent regex
+    open($fh, "<", $cfg->SL_UA_Blacklist)
+      or die "Couldn't open file " . $cfg->SL_UA_Blacklist . ":  $!\n";
+    $regex_content = do { local $/; <$fh> };
+    
+
+	## Extension based matching
+    my @extensions = qw(
+      ad avi bz2 css doc exe fla gif gz ico jpeg jpg js pdf png ppt rar sit
+      rss tgz txt wmv vob xpi zip );
+
+    $ext_regex = Regexp::Assemble->new;
+    $ext_regex->add(@extensions);
+    print STDERR "Regex for static content match is ", $ext_regex->re, "\n\n";
+
+    my @user_agents =
+      qw( libwww-perl Camino Firefox IE Opera Netscape Safari libscrobbler
+      Links Lynx);
+
+    $ua_regex = Regexp::Assemble->new;
+    $ua_regex->add(@user_agents);
+    print STDERR "Regex for user agents is ", $ua_regex->re, "\n\n";
+}
+
+use Apache2::Const -compile =>
+  qw( OK SERVER_ERROR NOT_FOUND DECLINED CONN_KEEPALIVE DONE);
+use Apache2::Connection     ();
+use Apache2::ConnectionUtil ();
+use Apache2::RequestRec     ();
+use Apache2::RequestUtil    ();
+use Apache2::ServerRec      ();
+use Apache2::ServerUtil     ();
+use Data::Dumper qw( Dumper );
+use SL::Cache;
+use SL::Util;
+
+sub SERVER_CREATE {
+    my $class = shift;
+    return bless 
+
+sub proxy_request {
+    my $r = shift;
+    if ($r->dir_config('SLProxy') eq 'perlbal') {
+        return &perlbal($r);
+    }
+    elsif ($r->dir_config('SLProxy') eq 'mod_proxy') {
+        return &mod_proxy($r);
+    }
+}
+
+sub static_content_uri {
+    my $url = shift;
+    if ($url =~ m{\.(?:$ext_regex)$}i) {
+        return 1;
+    }
+}
+
+sub not_a_main_request {
+    my $r = shift;
+
+    my $c      = $r->connection;
+    my $rlinks = $c->pnotes('rlinks');
+    unless (defined $rlinks) {
+
+        # this is a new connection so scan just return and grab the links later
+        $r->log->debug("$$ RLINKS undefined");
+        return;
+    }
+    $r->log->debug("Rlinks are " . join(', ', @{$rlinks}));
+
+    my $referer = $r->pnotes('referer');
+    if (grep { $_ =~ m/$referer/ } @{$r->connection->pnotes("rlinks")}) {
+        $r->log->debug("This request referer matches rlinks");
+		return;
+    }
+}
+
+sub handler {
+    my $r = shift;
+	
+	$r->log->info("$$ PerlTransHandler request");
+	
+    my $url     = $r->construct_url($r->unparsed_uri);
+	$r->log->info("$$ PerlTransHandler request, uri $url");
+    my $ua      = $r->headers_in->{'user-agent'};
+    my $referer = $r->headers_in->{'referer'} || 'no_referer';
+
+    $r->pnotes('url'     => $url);
+    $r->pnotes('ua'      => $ua);
+    $r->pnotes('referer' => $referer);
+
+    $r->log->info("$$ PerlTransHandler Request for url $url, user-agent $ua, referer $referer");
+    	
+	if (url_blacklisted($url)) {
+        return &proxy_request($r);
+    }
+
+	## Handle non-browsers that use port 80
+    #
+    if (_not_a_browser($r)) {
+        return &proxy_request($r);
+    }
+
+    ## check for browser subrequests - UNDER CONSTRUCTION
+    if (not_a_main_request($r)) {
+        return &proxy_request($r);
+    }
+
+    if ($r->method eq 'GET') {
+
+        ## Static content
+        #
+        if (static_content_uri($url)) {
+            $r->log->info("$$ Url $url static content extension, proxying");
+            return &proxy_request($r);
+        }
+
+        ## Check the cache for a static content match
+        #
+        if (my $content_type = SL::Cache::grab($url)) {
+
+            $r->log->info("$$ SL::Cache hit for url $url, type $content_type");
+
+            if (SL::Util::not_html($content_type)) {
+                ## Cache returned static content
+                #
+                $r->log->info("$$ Proxying static $url, type $content_type");
+                return &proxy_request($r);
+            }
+            else {
+
+                # Cache returned dynamic html
+                #
+                $r->log->info("$$ SL::Cache $url HTML type $content_type");
+                $r->pnotes('content_type' => $content_type);
+            }
+        }
+    }
+    $r->log->info("EndTranshandler");
+}
+
+sub url_blacklisted {
+    my $url = shift;
+
+	my $blacklist_regex = SL::Model::URL->blacklist_regex;
+    return 1 if ($url =~ m{$blacklist_regex});
+}
+
+# Some bit torrent clients and other programs make http requests.  We
+# don't want to mess with those
+sub _not_a_browser {
+    my $r = shift;
+
+    my $ua = $r->pnotes('ua');
+    if (! $ua ) {
+    	$r->log->error("$$ Hmmm there was no user agent..., url " . $r->pnotes('url'));
+    }
+    if ($ua =~ m/$ua_regex/i) {
+        $r->log->info("$$ Browser request user agent $ua");
+        return 0;
+    }
+
+    # This is a bit torrent or browser we don't know about
+    $r->log->info("$$ Proxying non-browser for user-agent $ua");
+    return 1;
+}
+
+sub mod_proxy {
+    my $r = shift;
+
+    ## Don't change this next line even if you think you should
+    #
+    my $url = $r->construct_url;
+
+    ## Use mod_proxy to do the proxying
+    #
+    $r->log->info("$$ mod_proxy handling request for $url");
+    $r->uri($url);
+
+    $r->filename("proxy:$url");
+    $r->handler('proxy-server');
+    $r->proxyreq(1);
+    return Apache2::Const::DECLINED;
+}
+
+1;

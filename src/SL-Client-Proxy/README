@@ -1,0 +1,31 @@
+SL-Client version 0.1
+============================
+
+This library provides the necessary software for Silver Lining clients.
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+DEPENDENCIES
+
+This module requires these other modules and libraries:
+
+  perl 5.8.5
+  Regexp::Assemble 0.25
+
+COPYRIGHT AND LICENSE
+
+Copyright (C) 2007 by Red Hot Penguin Consulting LLC
+All Rights Reserved
+
+This library is for use only with a Red Hot Penguin Consulting LLC commercial
+software license.  Any reverse engineering, duplication, copying, or unauthorized
+distribution of this module is specifically prohibited.  By using, and or viewing the
+source code for this library, you hereby agree to the terms of the terms of this
+software license.

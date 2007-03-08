@@ -1,0 +1,6 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/SL-Client-Proxy.t
+lib/SL-Client-Proxy.pm
