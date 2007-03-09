@@ -8,7 +8,7 @@ WriteMakefile(
               VERSION   => '0.6',
               PREREQ_PM => {
                             'Apache::DBI'          => 0.9901,
-                            'Cache::FastMmap'      => 1.09,
+                            'Cache::FastMmap'      => 1.14,
 							'Class::DBI::Pg'       => 0.09,
 							'Config::ApacheFormat' => 1.2,
 							'Crypt::Blowfish'      => 2.10,
