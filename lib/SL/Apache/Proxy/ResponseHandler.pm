@@ -37,6 +37,7 @@ use HTTP::Response          ();
 use SL::UserAgent           ();
 use SL::Model::Ad           ();
 use SL::Model::Subrequest   ();
+use SL::Model::RateLimit    ();
 use Data::Dumper            qw( Dumper );
 use Encode                  ();
 
@@ -314,15 +315,32 @@ sub twohundred {
     my $response_content;
     SL::Cache::stash($url => $response->content_type);
 
-    my $subrequest_tracker = SL::Model::Subrequest->new();
+    # check to make sure it's HTML first
+    my $is_html = not SL::Util::not_html($response->content_type);
+    $r->log->debug("===> $url is_html: $is_html");
+
+    # check the rate-limiter, if it's HTML
+    my $rate_limit = SL::Model::RateLimit->new(r => $r);
+    my $is_toofast;
+    if ($is_html) {
+        $is_toofast = $rate_limit->check_violation();
+        $r->log->debug("===> $url check_violation: $is_toofast");
+    }
+    
+    # check for sub-reqs if it passed the other tests
+    my $subrequest_tracker = SL::Model::Subrequest->new(); 
+    my $is_subreq;
+    if ($is_html and not $is_toofast) {
+        $is_subreq = $subrequest_tracker->is_subrequest(url => $url);
+        $r->log->debug("===> $url is_subreq: $is_subreq");
+    }
 
     # serve an ad if this is HTML and it's not a sub-request of an
-    # ad-serving page
-    my $is_subreq = $subrequest_tracker->is_subrequest(url => $url);
-    $r->log->debug("===> $url is_subreq: $is_subreq");
-    if (not SL::Util::not_html($response->content_type) and 
-        not $is_subreq) {
-        
+    # ad-serving page, and it's not too soon after a previous ad was served
+    if ($is_html and not $is_toofast and not $is_subreq) {
+
+        # note the ad-serving time for the rate-limitter
+        $rate_limit->record_ad_serve();
 
         # first grab the links from the page and stash them
         $subrequest_tracker->collect_subrequests(
@@ -331,6 +349,7 @@ sub twohundred {
 
         # put the ad in the response
         $response_content = _generate_response($r, $response);
+        
 	}
     else {
 
