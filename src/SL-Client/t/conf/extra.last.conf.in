@@ -1,0 +1,13 @@
+PerlLoadModule SL::Client::Config
+PerlRequire @ServerRoot@/conf/myconfig_startup.pl
+
+SL_URL_Blacklist_File @ServerRoot@/conf/url_blacklist.txt
+SL_UA_Blacklist_File @ServerRoot@/conf/ua_blacklist.txt
+SL_EXT_Blacklist_File @ServerRoot@/conf/ext_blacklist.txt
+SL_Proxy_List_File @ServerRoot@/conf/proxy_list.txt
+
+PerlLoadModule SL::Client::Apache2::TransHandler
+
+SetHandler modperl
+
+PerlTransHandler           SL::Client::Apache2::TransHandler
