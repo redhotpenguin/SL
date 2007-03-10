@@ -40,6 +40,9 @@ multiple ads on a page but will miss more chances to show ads when
 users click through links quickly or open multiple pages
 simultaneously.
 
+Individual routers can have custom rate-limits by setting
+router.custom_rate_limit.
+
 =head1 METHODS
 
 =over 4
@@ -123,8 +126,21 @@ sub check_violation {
     my $self = shift;
     my $dbh = SL::Model->connect();
     my $user_id = $self->{user_id};
-    my $limit = $self->{r}->dir_config('SLRateLimit');
+    my $r = $self->{r};
 
+    # check for a custom rate-limit for this router
+    my $custom_limit_sth = 
+      $dbh->prepare_cached('SELECT custom_rate_limit FROM router 
+                            WHERE ip = ?');
+    $custom_limit_sth->execute($r->connection->remote_ip);
+    my ($limit) = $custom_limit_sth->fetchrow_array();
+
+    # use the global limit if none set
+    unless ($limit) {
+        $limit = $r->dir_config('SLRateLimit');
+    }
+
+    # do the rate check with limit
     my $check_sth = 
       $dbh->prepare_cached('SELECT 1 FROM rate_limit 
                             WHERE user_id = ? AND (now() - ts) < ?');
