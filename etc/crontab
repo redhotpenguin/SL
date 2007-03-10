@@ -4,6 +4,9 @@ PATH=/home/phred/dev/perl/bin
 # mail text report every day
 00 06 * * * perl -I $HOME/dev/sl/trunk/lib $HOME/dev/sl/trunk/bin/sl_report.pl
 
+# clean up the rate_limit table every six minutes
+* */10 * * * perl -I $HOME/dev/sl/trunk/lib $HOME/dev/sl/trunk/bin/sl_rate_limit_cleanup.pl
+
 # generate daily, weekly, and monthly reports every day
 30 05 * * * perl -I $HOME/dev/sl/trunk/lib $HOME/dev/sl/trunk/bin/sl_report_graph.pl --interval=daily --interval=weekly --interval=monthly
 
