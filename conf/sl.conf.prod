@@ -31,6 +31,7 @@ sl_proxy_apache_group  users
 sl_proxy_admin support@silverliningnetworks.com
 
 sl_proxy_servername  app.redhotpenguin.com
+sl_proxy_rate_limit '5 sec'
 
 sl_clickserver_uri  http://localhost:7777/ad
 sl_proxy_http_frontend_port  8069
@@ -43,7 +44,7 @@ sl_proxy  mod_proxy
 sl_css_uri  http://www.redhotpenguin.com/css/sl.css
 
 # app server settings
-sl_app_servername  sl_app
+sl_app_servername  10.0.0.2
 #sl_app_apache_deflate  1
 sl_app_apache_loglevel  debug
 sl_app_apache_maxclients  32
