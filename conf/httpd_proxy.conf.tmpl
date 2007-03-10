@@ -79,6 +79,7 @@ PerlSetVar           SLWhiteList [% cfg.sl_whitelist %]
 PerlSetVar           SLMethod [% cfg.sl_method %]
 PerlSetVar           SLCssUri [% cfg.sl_css_uri %]
 PerlSetVar           SLProxy [% cfg.sl_proxy %]
+PerlSetVar           SLRateLimit "[% cfg.sl_proxy_rate_limit %]"
 
 PerlPostReadRequestHandler Apache2::Const::OK
 PerlMapToStorageHandler    Apache2::Const::OK

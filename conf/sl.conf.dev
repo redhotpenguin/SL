@@ -30,6 +30,7 @@ sl_proxy_apache_user  phred
 sl_proxy_apache_group  phred
 sl_proxy_admin support@silverliningnetworks.com
 sl_proxy_servername  sl_proxy
+sl_proxy_rate_limit '5 sec'
 
 sl_clickserver_uri  http://localhost:9000
 sl_proxy_http_frontend_port  8069
