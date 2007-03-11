@@ -87,10 +87,11 @@ sub _bake_user_id {
     my $self = shift;
     my $r    = $self->{r};
 
-    # start with the user's IP
+    # start with the router's IP
     my $uid = $r->connection->remote_ip;
 
-    # FIX: if available, add router IP (how?)
+    # FIX: add the user's IP or MAC address (not possible without help
+    # from the router)
 
     # add in user-agent
     $uid .= "|" . $r->headers_in->{'user-agent'};
