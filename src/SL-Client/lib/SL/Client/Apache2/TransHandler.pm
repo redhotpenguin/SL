@@ -14,7 +14,7 @@ In your httpd.conf file:
   SL_URL_Blacklist_File /etc/sl/url_blacklist.txt
   SL_EXT_Blacklist_File /etc/sl/ext_blacklist.txt
   SL_Client_Cache_File  /tmp/sl/client_cache_file
-  SL_Open_Proxy_List_File /etc/sl/open_proxy_list.txt
+  SL_Proxy_List_File /etc/sl/open_proxy_list.txt
 
   PerlTransHandler SL::Client::Apache2::PerlTranshandler
 
@@ -51,6 +51,8 @@ BEGIN {
         print STDERR "Caching $param, content $regex_content\n";
         $cache->set( lc($param) => $regex_content );
     }
+
+    # leave the open proxy list cache entry empty initially
 }
 
 use Apache2::Const -compile =>
