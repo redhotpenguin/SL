@@ -106,3 +106,7 @@ PerlTransHandler SL::Apache::Proxy::TransHandler
 [% IF cfg.sl_proxy_deflate %]
 Include [% cfg.sl_root %]/[% cfg.sl_version %]/conf/deflate.conf
 [% END %]
+
+<Location /sl_secret_ping_button>
+  PerlResponseHandler Apache2::Const::OK
+</Location>

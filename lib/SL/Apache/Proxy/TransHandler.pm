@@ -103,6 +103,11 @@ sub handler {
     $r->pnotes('referer' => $referer);
 
     $r->log->info("$$ PerlTransHandler Request for url $url, user-agent $ua, referer $referer");
+
+    # allow /sl_secret_ping_button to pass through
+    if ($url =~ m!/sl_secret_ping_button$!) {
+        return Apache2::Const::DONE;
+    }
     	
 	if (url_blacklisted($url)) {
         return &proxy_request($r);
