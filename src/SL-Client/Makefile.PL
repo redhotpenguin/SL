@@ -13,6 +13,7 @@ ModPerl::MM::WriteMakefile(
     VERSION_FROM  => 'lib/SL/Client.pm',
     PREREQ_PM => {
                   'Cache::FastMmap' => 1.14,
+                  'LWP::UserAgent'  => 2.033,
     },
     ABSTRACT_FROM => 'lib/SL/Client.pm',
     EXE_FILES     => ['bin/sl_proxy_ping', 'bin/sl_config_update'],
