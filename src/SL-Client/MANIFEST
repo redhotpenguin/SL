@@ -7,4 +7,3 @@ bin/sl_config_update
 lib/SL/Client.pm
 lib/SL/Client/Apache2/TransHandler.pm
 lib/SL/Client/Config.pm
-bin/sl_proxy_ping
