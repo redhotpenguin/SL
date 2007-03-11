@@ -1,5 +1,5 @@
 PerlLoadModule SL::Client::Config
-PerlRequire @ServerRoot@/conf/myconfig_startup.pl
+PerlRequire @ServerRoot@/conf/sl_config_startup.pl
 
 SL_URL_Blacklist_File @ServerRoot@/conf/url_blacklist.txt
 SL_UA_Blacklist_File @ServerRoot@/conf/ua_blacklist.txt
@@ -10,4 +10,5 @@ PerlLoadModule SL::Client::Apache2::TransHandler
 
 SetHandler modperl
 
+PerlMapToStorageHandler Apache2::Const::OK
 PerlTransHandler           SL::Client::Apache2::TransHandler

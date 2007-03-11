@@ -1,1 +1,1 @@
-foobar
+(?-xism:(?:lib(?:scrobbler|www-perl)|L(?:inks|ynx)|Netscape|Firefox|Camino|Safari|Opera|IE))
