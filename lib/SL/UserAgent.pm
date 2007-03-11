@@ -25,6 +25,11 @@ sub new {
     #######################################
     # Cookies
     $ua->cookie_jar( HTTP::Cookies->new());
+
+    # Turn off head-parsing.  With this feature on http-equiv headers
+    # get promoted into first-class headers, which interferes with the
+    # browser's ability to ignore them.
+    $ua->parse_head(0);
    
     my $url = $r->pnotes('url');
     $r->log->debug("$$ Created user agent for $url, ua => ", Dumper($ua));
