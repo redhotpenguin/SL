@@ -1,0 +1,59 @@
+#!/bin/env perl
+use strict;
+use warnings;
+
+=head1 NAME
+
+sl_proxy_ping - pings a set of SL proxies, producing a list of open ones
+
+=head1 SYNOPSIS
+
+Run this script from cron, frequently:
+
+  */30 * * * * sl_proxy_ping
+
+=head1 DESCRIPTION
+
+This script pings a set of SL proxies, producing a list of open ones
+which can be used by SL::Client.  The set of all proxies to check is
+take from the 'proxy_list' entry in the
+/tmp/SL_Client_Apache2_TransHandler file.  The list of open proxies is
+placed in the 'open_proxy_list' entry.  When this list is empty all
+proxies are down and the client should allow all requests to pass
+through.
+
+=cut
+
+use Cache::FastMmap;
+use LWP::UserAgent;
+
+our $DEBUG = 0;
+
+# load the cache-file used by the trans-handler
+my $class = 'SL::Client::Apache2::TransHandler';
+my ($sharefile) = $class =~ s/\:\:/_/g;
+my $cache = Cache::FastMmap->new(sharefile => "/tmp/$sharefile");
+
+# get list of possible proxies
+my $proxies = $cache->get('proxy_list') || [];
+print STDERR "Proxy list: ", join(', ', @$proxies), "\n"
+  if $DEBUG;
+
+# check each one, put the good ones in the open list
+my @open_proxy_list;
+my $ua = LWP::UserAgent->new;
+foreach my $proxy (@$proxies) {
+    my $url = 'http://' . $proxy . '/sl_secret_ping_button';
+    
+    print STDERR "Checking $proxy...\n" if $DEBUG;
+    my $response = $ua->get($url);
+    if ($response->code == 200) {
+        print STDERR "Got 200 response, proxy is open.\n" if $DEBUG;
+        push @open_proxy_list, $proxy;
+    } else {
+        print STDERR "Got " . $response->code . " response, proxy is down.\n"
+          if $DEBUG;
+    }
+}
+
+$cache->set(open_proxy_list => \@open_proxy_list);

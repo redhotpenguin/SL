@@ -4,3 +4,4 @@ MANIFEST
 README
 t/SL-Client-Proxy.t
 lib/SL-Client-Proxy.pm
+bin/sl_proxy_ping
