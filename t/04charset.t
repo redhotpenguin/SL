@@ -25,7 +25,7 @@ my $ua =
   LWP::UserAgent->new(
     max_redirect => 0,
     agent        =>
-'User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.0.4) Gecko/20060508 Firefox/1.5.0.4',
+'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.0.4) Gecko/20060508 Firefox/1.5.0.4',
   );
 
 # a small selection of sites with known character sets - add more here
