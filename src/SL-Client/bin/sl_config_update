@@ -24,7 +24,7 @@ put into place in /usr/local/sl/conf.
 use Cache::FastMmap;
 use LWP::UserAgent;
 
-our $DEBUG = 1;
+our $DEBUG = 0;
 our $CONFIG_URL = "http://www.redhotpenguin.com/sl/conf/";
 our $CONFIG_ROOT = '/usr/local/sl/conf/';
 
@@ -56,8 +56,7 @@ foreach my $config_file qw( ext_blacklist proxy_list
         # update the cache
         $cache->set($config_file => $response->content);
     } else {
-        print STDERR "Got " . $response->code . " response, error.\n"
-          if $DEBUG;
+        print STDERR "Got " . $response->code . " response, error.\n";
     }
 }
 
