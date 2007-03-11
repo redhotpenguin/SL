@@ -1,0 +1,76 @@
+#!/bin/bash
+#
+# httpd        Startup script for the SL httpd
+#
+# chkconfig: - 2345 85 15
+# description: SL httpd server
+
+. /etc/rc.d/init.d/functions
+
+apachectl=/usr/local/sl/httpd2/bin/apachectl
+httpd=/usr/local/sl/httpd2/bin/httpd
+prog=httpd
+pidfile=/usr/local/sl/httpd2/logs/httpd.pid
+RETVAL=0
+
+start() {
+        echo -n $"Starting $prog: "
+        daemon $httpd $OPTIONS
+        RETVAL=$?
+        echo
+        return $RETVAL
+}
+stop() {
+	echo -n $"Stopping $prog: "
+	killproc $httpd
+	RETVAL=$?
+	echo
+	[ $RETVAL = 0 ] && rm -f ${pidfile}
+}
+reload() {
+    echo -n $"Reloading $prog: "
+    if ! $httpd $OPTIONS -t >&/dev/null; then
+        RETVAL=$?
+        echo $"not reloading due to configuration syntax error"
+        failure $"not reloading $httpd due to configuration syntax error"
+    else
+        killproc $httpd -HUP
+        RETVAL=$?
+    fi
+    echo
+}
+
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  status)
+        status $httpd
+	RETVAL=$?
+	;;
+  restart)
+	stop
+	start
+	;;
+  condrestart)
+	if [ -f ${pidfile} ] ; then
+		stop
+		start
+	fi
+	;;
+  reload)
+        reload
+	;;
+  graceful|help|configtest|fullstatus)
+	$apachectl $@
+	RETVAL=$?
+	;;
+  *)
+	echo $"Usage: $prog {start|stop|restart|condrestart|reload|status|fullstatus|graceful|help|configtest}"
+	exit 1
+esac
+
+exit $RETVAL
