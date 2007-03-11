@@ -45,17 +45,17 @@ foreach my $config_file qw( ext_blacklist proxy_list
     my $response = $ua->get($uri);
     if ($response->code == 304) {
         print STDERR "Got 304 response, skip to next file.\n" if $DEBUG;
-		next;
-	} elsif ($response->code == 200) {
+        next;
+    } elsif ($response->code == 200) {
         print STDERR "Got 200 response, grabbing file.\n" if $DEBUG;
         my $fh;
-		open($fh, ">", $CONFIG_ROOT . $config_file . '.txt') or die $!;
-		print $fh $response->content;
-		close($fh);
+        open($fh, ">", $CONFIG_ROOT . $config_file . '.txt') or die $!;
+        print $fh $response->content;
+        close($fh);
 
-		# update the cache
+        # update the cache
         $cache->set($config_file => $response->content);
-	} else {
+    } else {
         print STDERR "Got " . $response->code . " response, error.\n"
           if $DEBUG;
     }
