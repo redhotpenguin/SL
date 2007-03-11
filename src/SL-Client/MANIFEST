@@ -2,6 +2,9 @@ Changes
 Makefile.PL
 MANIFEST
 README
-t/SL-Client-Proxy.t
-lib/SL-Client-Proxy.pm
+bin/sl_proxy_ping
+bin/sl_config_update
+lib/SL/Client.pm
+lib/SL/Client/Apache2/TransHandler.pm
+lib/SL/Client/Config.pm
 bin/sl_proxy_ping
