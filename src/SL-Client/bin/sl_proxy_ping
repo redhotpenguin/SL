@@ -31,8 +31,10 @@ our $DEBUG = 0;
 
 # load the cache-file used by the trans-handler
 my $class = 'SL::Client::Apache2::TransHandler';
-my ($sharefile) = $class =~ s/\:\:/_/g;
-my $cache = Cache::FastMmap->new(sharefile => "/tmp/$sharefile");
+(my $sharefile = $class) =~ s/\:\:/_/g;
+my $cache = Cache::FastMmap->new(share_file => "/tmp/$sharefile",
+                                 cache_size => '32m',
+                                );
 
 # get list of possible proxies
 my $proxies = $cache->get('proxy_list') || [];

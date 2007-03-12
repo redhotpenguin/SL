@@ -34,15 +34,13 @@ BEGIN {
     $cfg    = Apache2::Module::get_config( 'SL::Client::Config', $server );
 
     my $class = __PACKAGE__;
-    my ($sharefile) = $class =~ s/\:\:/_/g;
+    (my $sharefile = $class) =~ s/\:\:/_/g;
     $cache = Cache::FastMmap->new( cache_size => '32m', 
-                                   sharefile => "/tmp/$sharefile" );
+                                   share_file => "/tmp/$sharefile" );
 
     # load the data into the cache
     my $fh;
-    foreach my $param qw( URL_Blacklist EXT_Blacklist Proxy_List
-                          Open_Proxy_List)
-    {
+    foreach my $param qw( URL_Blacklist EXT_Blacklist ) {
         open( $fh, "<", $cfg->{"SL_$param\_File"} )
           or die "no open " . $cfg->{"SL_$param\_File"} . ":  $!\n";
         my $regex_content = do { local $/; <$fh> };
@@ -51,6 +49,17 @@ BEGIN {
         print STDERR "Caching $param, content $regex_content\n";
         $cache->set( lc($param) => $regex_content );
     }
+
+    # load proxy list
+    open($fh, "<",  $cfg->{"SL_Proxy_List_File"} )
+      or die "no open " . $cfg->{"SL_Proxy_List_File"} . ":  $!\n";
+    my @proxy_list;
+    while (<$fh>) {
+        chomp;
+        push(@proxy_list, $_);
+    }
+    close $fh;
+    $cache->set(proxy_list => \@proxy_list);    
 
     # leave the open proxy list cache entry empty initially
 }
@@ -81,18 +90,21 @@ sub handler {
         # Match against the list of known browsers we support
       $r->log->debug("testing user agent");
         if ( _not_a_browser( $r, $ua ) ) {
+            $r->log->debug("+++ sending to mod_proxy: not a user agent");
             return &proxy_request($r);
         }
 
       $r->log->debug("Testing extension");
         # Match against the list of suspected static file extensions
         if ( _ext_blacklisted( $r, $url ) ) {
+            $r->log->debug("+++ sending to mod_proxy: ext blacklist");
             return &proxy_request($r);
         }
 
       $r->log->debug("Testing URL");
         # Match against the url blacklist
         if ( _url_blacklisted( $r, $url ) ) {
+            $r->log->debug("+++ sending to mod_proxy: url blacklist");
             return &proxy_request($r);
         }
     }
@@ -104,6 +116,7 @@ sub handler {
     my $proxy_ref;
     unless ($proxy_ref = $cache->get('open_proxy_list')) {
       # no available proxies, have mod_proxy handle it
+        $r->log->debug("+++ sending to mod_proxy: no open proxies");
       return &proxy_request($r);
     }
 
@@ -165,7 +178,7 @@ sub proxy_request {
     ## Don't change this next line even if you think you should
     ## No matter how tempting it may be, don't touch it
     my $url = $r->construct_url;
-    $r->log->error("regular proxy request");
+    $r->log->error("regular proxy request: $url");
     ## Use mod_proxy to do the proxying
     $r->uri($url);
     $r->filename("proxy:$url");
