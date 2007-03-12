@@ -113,22 +113,27 @@ sub handler {
     }
 
     # proxy the request if there are any available proxies
-    my $proxy_ref;
-    unless ($proxy_ref = $cache->get('open_proxy_list')) {
-      # no available proxies, have mod_proxy handle it
+    my $proxy_list = $cache->get('open_proxy_list');
+    unless ($proxy_list and @$proxy_list) {
+        # no available proxies, have mod_proxy handle it
         $r->log->debug("+++ sending to mod_proxy: no open proxies");
-      return &proxy_request($r);
+        return &proxy_request($r);
     }
 
     # choose a random proxy
-    my $proxy_url = "http://" . $proxy_ref->[int(rand(scalar(@{$proxy_ref})))];
-    $url = $r->construct_url;
+    my ($proxy_host, $proxy_port) = 
+      split(':', $proxy_list->[int(rand(scalar(@{$proxy_list})))]);
 
-    $r->uri($proxy_url);
-    $r->filename("proxy:$url");
-    $r->handler('proxy-server');
-    $r->proxyreq(1);
-    return Apache2::Const::DECLINED;
+    # put info in pnotes for use in the response handler
+    $r->pnotes(url => $url);
+    $r->pnotes(proxy_host => $proxy_host);
+    $r->pnotes(proxy_port => $proxy_port);
+
+    $r->log->debug("*** sending '$url' to SL proxy '$proxy_host:$proxy_port'");
+
+    # got this far, must be ok to proxy the request to SL - go to
+    # ResponseHandler
+    return;
 }
 
 sub _ext_blacklisted {
