@@ -47,8 +47,8 @@ The get() method requires three named parameters:
   port - the port to send the request to
 
 An optional 'headers' parameter is supported, which may contain a hash
-of headers to add to the response.  By default the 'User-Agent' header
-is set to:
+(or array-ref) of headers to add to the response.  By default the
+'User-Agent' header is set to:
 
   Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.0.2) Gecko/20060308 Firefox/1.5.0.2
 
@@ -70,17 +70,25 @@ sub get {
     my %args = validate(@_, { url  => 1,
                               host => 1,
                               port => 1,
-                              headers => { type => HASHREF, optional => 1 },
+                              headers => 0,
                             });
 
     my $url = URI->new($args{url})
       or croak("Unable to parse url '$args{url}'.");
     my $host = $args{host};
     my $port = $args{port};
-    my $headers = $args{headers} || {};
+    my $headers = $args{headers} || [];
 
+    # convert headers to array-ref if a hash-ref is passed
+    $headers = [ %$headers ] if (ref $headers eq 'HASH');
+        
     # setup some default headers
-    $headers->{'User-Agent'} ||= 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.0.2) Gecko/20060308 Firefox/1.5.0.2';
+    my %seen_keys;
+    for my $i (0 .. $#$headers) {
+        $seen_keys{$headers->[$i]}++ if (($i % 2) == 0);
+    }
+    push @$headers, ('User-Agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.0.2) Gecko/20060308 Firefox/1.5.0.2')
+      unless $seen_keys{'User-Agent'};
 
     my $http = Net::HTTP->new(Host => $url->host,
                               PeerAddr => $host,
@@ -92,7 +100,7 @@ sub get {
 
     # make the request
     my $req = $url->path_query || "/";
-    $http->write_request(GET => $req, %$headers);
+    $http->write_request(GET => $req, @$headers);
 
     # get the resulr code, message and response headers
     my ($code, $mess, @headers_out) = $http->read_response_headers;
