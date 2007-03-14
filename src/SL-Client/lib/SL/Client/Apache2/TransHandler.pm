@@ -11,10 +11,10 @@ SL::Client::Apache2::PerlTransHandler
 
 In your httpd.conf file:
 
-  SL_URL_Blacklist_File /etc/sl/url_blacklist.txt
-  SL_EXT_Blacklist_File /etc/sl/ext_blacklist.txt
+  SL_URL_Blacklist_File /usr/local/sl/conf/url_blacklist.txt
+  SL_EXT_Blacklist_File /usr/local/sl/conf/ext_blacklist.txt
   SL_Client_Cache_File  /tmp/sl/client_cache_file
-  SL_Proxy_List_File /etc/sl/open_proxy_list.txt
+  SL_Proxy_List_File    /usr/local/sl/conf/proxy_list.txt
 
   PerlTransHandler SL::Client::Apache2::PerlTranshandler
 
