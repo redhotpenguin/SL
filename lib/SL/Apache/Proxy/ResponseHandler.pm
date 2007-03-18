@@ -592,7 +592,7 @@ sub _generate_response {
                   $try_container, "; referer : $referer; ua : $ua;");
     #$r->log->debug("Munged response is \n $$munged_resp");
 		
-	# Log the ad view later
+    # Log the ad view later
     $r->pnotes( log_data => [ $r->connection->remote_ip, $ad_id ] );
 
     # re-encode content if needed
