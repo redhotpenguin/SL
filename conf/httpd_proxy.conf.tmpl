@@ -10,6 +10,7 @@ Group                [% cfg.sl_proxy_apache_group %]
 KeepAlive            [% cfg.sl_proxy_apache_keepalive %]
 MaxKeepAliveRequests 0
 KeepAliveTimeout     300
+ServerLimit          512
 MinSpareServers      [% cfg.sl_proxy_apache_min_spare_servers %]
 MaxSpareServers      [% cfg.sl_proxy_apache_max_spare_servers %]
 StartServers         [% cfg.sl_proxy_apache_start_servers %]
