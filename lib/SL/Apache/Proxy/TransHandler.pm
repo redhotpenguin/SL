@@ -21,7 +21,7 @@ BEGIN {
     require Perl6::Slurp;
 
 
-	## Extension based matching
+    ## Extension based matching
     my @extensions = qw(
       ad avi bz2 css doc exe fla gif gz ico jpeg jpg js pdf png ppt rar sit
       rss tgz txt wmv vob xpi zip );
@@ -30,13 +30,6 @@ BEGIN {
     $ext_regex->add(@extensions);
     print STDERR "Regex for static content match is ", $ext_regex->re, "\n\n";
 
-    my @user_agents =
-      qw( libwww-perl Camino Firefox IE Opera Netscape Safari libscrobbler
-      Links Lynx);
-
-    $ua_regex = Regexp::Assemble->new;
-    $ua_regex->add(@user_agents);
-    print STDERR "Regex for user agents is ", $ua_regex->re, "\n\n";
 }
 
 use Apache2::Const -compile =>
@@ -84,17 +77,17 @@ sub not_a_main_request {
     my $referer = $r->pnotes('referer');
     if (grep { $_ =~ m/$referer/ } @{$r->connection->pnotes("rlinks")}) {
         $r->log->debug("This request referer matches rlinks");
-		return;
+        return;
     }
 }
 
 sub handler {
     my $r = shift;
-	
-	$r->log->info("$$ PerlTransHandler request");
-	
+    
+    $r->log->info("$$ PerlTransHandler request");
+    
     my $url     = $r->construct_url($r->unparsed_uri);
-	$r->log->info("$$ PerlTransHandler request, uri $url");
+    $r->log->info("$$ PerlTransHandler request, uri $url");
     my $ua      = $r->headers_in->{'user-agent'};
     my $referer = $r->headers_in->{'referer'} || 'no_referer';
 
@@ -108,12 +101,12 @@ sub handler {
     if ($url =~ m!/sl_secret_ping_button$!) {
         return Apache2::Const::DONE;
     }
-    	
-	if (url_blacklisted($url)) {
+        
+    if (url_blacklisted($url)) {
         return &proxy_request($r);
     }
 
-	## Handle non-browsers that use port 80
+    ## Handle non-browsers that use port 80
     #
     if (_not_a_browser($r)) {
         return &proxy_request($r);
@@ -160,26 +153,20 @@ sub handler {
 sub url_blacklisted {
     my $url = shift;
 
-	my $blacklist_regex = SL::Model::URL->blacklist_regex;
+    my $blacklist_regex = SL::Model::URL->blacklist_regex;
     return 1 if ($url =~ m{$blacklist_regex});
 }
 
-# Some bit torrent clients and other programs make http requests.  We
-# don't want to mess with those
+# extract this to a utility library or something
 sub _not_a_browser {
     my $r = shift;
 
-    my $ua = $r->pnotes('ua');
-    if (! $ua ) {
-    	$r->log->error("$$ Hmmm there was no user agent..., url " . $r->pnotes('url'));
-    }
-    if ($ua =~ m/$ua_regex/i) {
-        $r->log->info("$$ Browser request user agent $ua");
-        return 0;
+    # all browsers start with Mozilla, at least in apache
+    if (substr($r->pnotes('ua'), 0, 7) eq 'Mozilla') {
+      return;
     }
 
-    # This is a bit torrent or browser we don't know about
-    $r->log->info("$$ Proxying non-browser for user-agent $ua");
+    $r->log->debug("$$ This is not a browser: " . $r->pnotes('ua'));
     return 1;
 }
 
