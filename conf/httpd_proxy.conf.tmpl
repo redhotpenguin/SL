@@ -89,7 +89,6 @@ PerlTransHandler SL::Apache::Proxy::TransHandler
 <Location />
     SetHandler          modperl
  	PerlHeaderParserHandler Apache2::Const::OK
-#    PerlAccessHandler       SL::Apache::Proxy::AccessHandler
     PerlAuthenHandler       Apache2::Const::OK
     PerlAuthzHandler        Apache2::Const::OK
     PerlTypeHandler         Apache2::Const::OK
@@ -98,7 +97,8 @@ PerlTransHandler SL::Apache::Proxy::TransHandler
 [% ELSE %]
     PerlFixupHandler        Apache2::Const::OK
 [% END %]
-    PerlResponseHandler     SL::Apache::Proxy::ResponseHandler
+    PerlResponseHandler SL::Apache::Proxy::ResponseHandler
+    PerlLogHandler      SL::Apache::Proxy::LogHandler    
 </Location>
 
 <Directory />
