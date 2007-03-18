@@ -590,19 +590,10 @@ sub _generate_response {
     # We've made it this far so we're looking good
     $r->log->info("$$ Ad inserted for url $url; try_container: ",
                   $try_container, "; referer : $referer; ua : $ua;");
-			  #$r->log->debug("Munged response is \n $$munged_resp");
+    #$r->log->debug("Munged response is \n $$munged_resp");
 		
-	# FIXME - move to cleanup handler
-	# Log the ad view
-	my $ok = SL::Model::Ad->log_view($r->connection->remote_ip, $ad_id);
-  
-	unless ( $ok ) {
-        $r->log->error(
-            "$$ Error logging view for ad id $ad_id");
-    }
-    else {
-        $r->log->debug( "$$ logging view for ad id $ad_id" );
-    }
+	# Log the ad view later
+    $r->pnotes( log_data => [ $r->connection->remote_ip, $ad_id ] );
 
     # re-encode content if needed
     if ($content_needs_encoding) {
