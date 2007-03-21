@@ -199,7 +199,7 @@ sub handler {
     # Dispatch the response
     my $sub = $response_map{$response->code};
     no strict 'refs';
-    $r->log->error("Response code " . $response->code);
+    $r->log->info("Response code " . $response->code);
     return &$sub($r, $response);
 }
 
