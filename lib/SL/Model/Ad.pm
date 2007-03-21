@@ -17,11 +17,13 @@ This serves ads, ya see?
 
 =cut
 
-use constant CLICKSERVER_URL    => 'http://h1.redhotpenguin.com:7777/click/';
+use constant CLICKSERVER_URL    => 'http://64.151.90.20:81/click/';
 use constant SILVERLINING_AD_ID => "/795da10ca01f942fd85157d8be9e832e";
 use constant DEFAULT_BUG_LINK   => 
   'http://www.redhotpenguin.com/images/sl/free_wireless.gif';
 use constant DEFAULT_REG_ID => 14;
+use constant  LINKTOADS_IP => '24.7.60.203';
+use constant LINKTOADS_AD_ID => 107;
 
 my ($template, $config);
 our( $log_view_sql, %sl_ad_data );
@@ -36,7 +38,7 @@ INSERT INTO view
 SQL
     my $tmpl_config = {
         ABSOLUTE     => 1,
-        INCLUDE_PATH => $ENV{SL_ROOT} . "/tmpl/"
+        INCLUDE_PATH =>  "/home/phred/dev/sl/trunk/tmpl/"
     };
     $template = Template->new($tmpl_config) || die $Template::ERROR, "\n";
     %sl_ad_data = ( sl_link => CLICKSERVER_URL . SILVERLINING_AD_ID );
@@ -236,11 +238,11 @@ sub random {
     my $custom_threshold = 25;
     my $ad_data;
     my $rand = rand(100);
-    if ($rand >= $feed_threshold) {
-        $ad_data = $class->_sl_feed($ip);
-    } elsif ( $rand >= $custom_threshold ) {
+	if ($rand >= $feed_threshold) {
+		$ad_data = $class->_sl_feed($ip);
+		   } elsif ( $rand >= $custom_threshold ) {
         $ad_data = $class->_sl_ad($ip);
-    }
+		 }
 
     unless (exists $ad_data->{'text'}) {
       $ad_data = $class->_sl_default();
@@ -252,11 +254,19 @@ sub random {
         bug_link => $class->_bug_link($ip)  );
 
 	my $output;
-    $template->process( $ad_data->{'template'} . '.tmpl',
+    
+	if ($ip eq LINKTOADS_IP) {
+		$template->process( 'linktoads.tmpl',
+        {%tmpl_vars, %sl_ad_data}, \$output )
+      || die $template->error(), "\n";
+		return (LINKTOADS_AD_ID, \$output);
+    } else {
+		$template->process( $ad_data->{'template'} . '.tmpl',
         {%tmpl_vars, %sl_ad_data}, \$output )
       || die $template->error(), "\n";
 
 	return ($ad_data->{'ad_id'}, \$output);
+	}
 }
 
 sub log_view {
