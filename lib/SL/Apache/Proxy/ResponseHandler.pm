@@ -198,6 +198,11 @@ sub handler {
     
     # Dispatch the response
     my $sub = $response_map{$response->code};
+    unless ($sub) {
+        $r->log->error(sprintf("No handler for res code %d, url %s, ua %s",
+            $response->code, $url, $ua));
+		$sub = $response_map{'404'};
+	}
     no strict 'refs';
     $r->log->info("Response code " . $response->code);
     return &$sub($r, $response);
