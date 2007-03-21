@@ -18,10 +18,8 @@ our $ua_regex;
 
 BEGIN {
     require Regexp::Assemble;
-    require Perl6::Slurp;
-
-
-    ## Extension based matching
+    
+	## Extension based matching
     my @extensions = qw(
       ad avi bz2 css doc exe fla gif gz ico jpeg jpg js pdf png ppt rar sit
       rss tgz txt wmv vob xpi zip );
