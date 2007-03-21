@@ -11,7 +11,7 @@ sl_db_user  sl
 sl_db_user  phred
 sl_db_pass  
 sl_db_ping_timeout 5
-sl_db_debug 1
+sl_db_debug 0
 
 # debugging levels, etc.  debug is single user mode
 #sl_devel  1
@@ -20,21 +20,21 @@ sl_db_debug 1
 
 # proxy server settings
 #sl_proxy_apache_deflate  1
-sl_proxy_apache_maxclients  128
-sl_proxy_apache_start_servers  64
+sl_proxy_apache_maxclients  384
+sl_proxy_apache_start_servers  192
 sl_proxy_apache_max_spare_servers  24
 sl_proxy_apache_min_spare_servers  16
-sl_proxy_apache_loglevel  info
+sl_proxy_apache_loglevel  warn
 sl_proxy_apache_keepalive  On
 sl_proxy_apache_user  phred
 sl_proxy_apache_group  users
 sl_proxy_admin support@silverliningnetworks.com
 
-sl_proxy_servername  app.redhotpenguin.com
+sl_proxy_servername  app2.redhotpenguin.com
 sl_proxy_rate_limit '5 sec'
 
-sl_clickserver_uri  http://localhost:7777/ad
-sl_proxy_http_frontend_port  8069
+sl_clickserver_uri  http://localhost:81/ad
+sl_proxy_http_frontend_port  80
 sl_proxy_http_backend_port  9000
 sl_whitelist  Off
 sl_method  Container
@@ -54,7 +54,7 @@ sl_app_apache_max_spare_servers  16
 sl_app_apache_keepalive  On
 sl_app_apache_user  phred
 sl_app_apache_group  users
-sl_app_http_port  7777
+sl_app_http_port  81
 sl_app_cookie_name SLApp
 sl_app_auth_uri '/login'
 sl_app_auth_secret kEa+!&MrJ=EzTjup@YWB-bF#&KLmxSH$bj=W#rkn_c?wem+BP!BxLmVWr@#XP#@$
