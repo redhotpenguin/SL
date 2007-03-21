@@ -35,11 +35,18 @@ AllowEncodedSlashes On
     Listen        [% cfg.sl_proxy_http_frontend_port %]
     <IfModule mod_cache.c>
         <IfModule mod_mem_cache.c>
-        CacheEnable mem /
-        MCacheSize 65536
-        MCacheMaxObjectCount 1024
-        MCacheMinObjectSize 1
-        MCacheMaxObjectSize 4096
+            CacheEnable mem /
+            MCacheSize 65536
+            MCacheMaxObjectCount 1024
+            MCacheMinObjectSize 1
+            MCacheMaxObjectSize 4096
+        </IfModule>
+        <IfModule mod_disk_cache.c>
+            # 102*1024*8192 = 8192 megabytes
+            CacheMaxFileSize 134217728
+            CacheMinFileSize 64
+            CacheRoot /tmp/mod_disk_cache
+            CacheDirLevels 4
         </IfModule>
     </IfModule>
 </IfModule>
