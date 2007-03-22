@@ -67,7 +67,6 @@ BEGIN {
 use Apache2::Const -compile =>
   qw( OK SERVER_ERROR NOT_FOUND DECLINED CONN_KEEPALIVE DONE M_GET);
 use Apache2::Connection     ();
-use Apache2::ConnectionUtil ();
 use Apache2::RequestRec     ();
 use Apache2::RequestUtil    ();
 use Apache2::ServerRec      ();
