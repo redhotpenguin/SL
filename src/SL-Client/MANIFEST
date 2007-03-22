@@ -2,6 +2,7 @@ Changes
 Makefile.PL
 MANIFEST
 README
+bin/sl_fw_ha
 bin/sl_proxy_ping
 bin/sl_config_update
 etc/httpd.conf
@@ -9,4 +10,5 @@ lib/SL/Client.pm
 lib/SL/Client/Apache2/TransHandler.pm
 lib/SL/Client/Apache2/ResponseHandler.pm
 lib/SL/Client/Config.pm
+lib/SL/Client/HTTP.pm
 t/TEST.PL
