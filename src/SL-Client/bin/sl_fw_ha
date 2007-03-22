@@ -1,4 +1,3 @@
-Possible precedence problem on bitwise & operator at /sw/lib/perl5/Perl/Tidy.pm line 1840.
 #!/bin/env perl
 use strict;
 use warnings;
