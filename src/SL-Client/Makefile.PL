@@ -18,6 +18,6 @@ ModPerl::MM::WriteMakefile(
     },
     ABSTRACT_FROM => 'lib/SL/Client.pm',
     EXE_FILES     => ['bin/sl_proxy_ping', 'bin/sl_config_update', 
-	    'bin/sl_fw_ha],
+	    'bin/sl_fw_ha'],
     AUTHOR => 'Fred Moyer <phred@redhotpenguin.com>',
 );
