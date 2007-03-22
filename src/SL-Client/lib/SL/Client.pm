@@ -13,6 +13,6 @@ SL::Client - Client libraries for Silver Lining
 
 =cut
 
-our $VERSION = '0.1';
+our $VERSION = '0.2';
 
 1;
