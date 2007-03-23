@@ -28,7 +28,8 @@ our $SL_PROXY_FILE = '/usr/local/sl/conf/proxy_list.txt';
 
 # load the cache-file used by the trans-handler
 my $cache = Cache::FastMmap->new(
-    share_file => "/tmp/sl_config_cache",
+    raw_values => 1,
+	share_file => "/tmp/sl_config_cache",
     cache_size => '32m',
 );
 
