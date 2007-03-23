@@ -12,3 +12,7 @@ lib/SL/Client/Apache2/ResponseHandler.pm
 lib/SL/Client/Config.pm
 lib/SL/Client/HTTP.pm
 t/TEST.PL
+t/conf/ext_blacklist.txt
+t/conf/proxy_list.txt
+t/conf/ua_blacklist.txt
+t/conf/url_blacklist.txt
