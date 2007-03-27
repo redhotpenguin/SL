@@ -80,8 +80,8 @@ sub blacklist_regex {
     # ok they have changed, log info level and recompute the regex
 	$BLACKLIST_REGEX = Regexp::Assemble->new;
 	$BLACKLIST_REGEX->add(@recent_urls);
-	print STDERR "$$ Regex for blacklist_urls computed: ", 
-      $BLACKLIST_REGEX->re, "\n\n";
+	#print STDERR "$$ Regex for blacklist_urls computed: ", 
+	#  $BLACKLIST_REGEX->re, "\n\n";
 
     # oh, don't forget to update the array
     @URLS = @recent_urls;
