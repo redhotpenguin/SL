@@ -2,7 +2,7 @@
 -- shouldn't get ads
 
 CREATE TABLE subrequest (
-    url varchar(511) PRIMARY KEY,
+    url varchar(1024) PRIMARY KEY,
     ts timestamp without time zone DEFAULT now()
 );
 
