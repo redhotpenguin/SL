@@ -24,7 +24,7 @@ put into place in /usr/local/sl/conf.
 use Cache::FastMmap;
 use LWP::UserAgent;
 
-our $DEBUG = 0;
+our $DEBUG = 1;
 our $CONFIG_URL = "http://www.redhotpenguin.com/sl/conf/";
 our $CONFIG_ROOT = '/usr/local/sl/conf/';
 
