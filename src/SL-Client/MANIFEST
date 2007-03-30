@@ -5,7 +5,9 @@ README
 bin/sl_fw_ha
 bin/sl_proxy_ping
 bin/sl_config_update
+bin/sl_maintd
 lib/SL/Client/HTTP.pm
+lib/SL/Client/Maintd.pm
 t/conf/ext_blacklist.txt
 t/conf/proxy_list.txt
 t/conf/ua_blacklist.txt

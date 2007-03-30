@@ -3,11 +3,11 @@
 use strict;
 use warnings;
 
-require SL::Maintd;
+use SL::Client::Maintd;
 
 my $hostname = 'herbert';
 my $admin = 'fred@redhotpenguin.com';
-my $maintd = SL::Maintd->new;
+my $maintd = SL::Client::Maintd->new;
 my %report;
 
 foreach my $status qw( uptime ip dns ping tunnel ) {

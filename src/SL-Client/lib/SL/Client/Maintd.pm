@@ -1,9 +1,10 @@
-package SL::Maintd;
+package SL::Client::Maintd;
 
 use strict;
 use warnings;
 
-my $data_center = 'app.redhotpenguin.com';
+my $DATA_CENTER = 'app.redhotpenguin.com';
+my $DC_PORT = 30681;
 
 sub new {
     my $class = shift;
@@ -44,10 +45,10 @@ sub dns {
 
     if ( $query ) {
         require Data::Dumper;
-        return \( dns => "DNS query for $data_center resolved to " .
+        return \( dns => "DNS query for $DATA_CENTER resolved to " .
             Data::Dumper::Dumper($query->answer) . " \n" );
     } elsif ( !$query ) {
-        return \( dns => "DNS query for $data_center FAILED\n" );
+        return \( dns => "DNS query for $DATA_CENTER FAILED\n" );
     }
 }
 
@@ -59,16 +60,16 @@ sub ping {
         require Time::HiRes;
         $ping->hires();
     }
-    my ($ret, $duration, $ip) = $ping->ping( $data_center,5.5 );
+    my ($ret, $duration, $ip) = $ping->ping( $DATA_CENTER,5.5 );
 
     if ( $ret ) {
         my $return = 
             sprintf(
-                "$data_center [ip:$ip] is alive (packet return time: %.f ms)\n",
+                "$DATA_CENTER [ip:$ip] is alive (packet return time: %.f ms)\n",
                     1000 * $duration);
         return \( ping => $return );
     } elsif ( !$ret ) {
-        return \( ping => "Ping to $data_center FAILED\n" );
+        return \( ping => "Ping to $DATA_CENTER FAILED\n" );
     }
 }
 
@@ -91,7 +92,7 @@ sub tunnel_restart {
         print STDERR "Existing tunnel process found, killing it\n";
 
     }
-    my $restart = `ssh -2 -f -N -R 30681:localhost:20022 fred\@$data_center`;
+    my $restart = `ssh -2 -f -N -R $DC_PORT:localhost:20022 fred\@$DATA_CENTER`;
     print STDERR "Restart status: $restart";
     return $restart;
 }
