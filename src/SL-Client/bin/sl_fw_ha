@@ -23,7 +23,7 @@ use Cache::FastMmap;
 use LWP::UserAgent;
 
 our $DEBUG         = 1;
-our $LAN           = 'eth0';
+our $LAN           = 'br0';
 our $SL_PROXY_FILE = '/usr/local/sl/conf/proxy_list.txt';
 
 # load the cache-file used by the trans-handler
@@ -34,25 +34,17 @@ my $cache = Cache::FastMmap->new(
 );
 
 # get list of possible proxies
-my $current_proxy = $cache->get('current_proxy') || '';
-
-unless ($current_proxy) {
-
-    # the cache isn't setup yet, set it up
-    my ( $fh, @proxies );
-    open( $fh, "<", $SL_PROXY_FILE ) or die "file error: $SL_PROXY_FILE, $!";
-    while (<$fh>) {
-        chomp($_);
-        push @proxies, $_;
-    }
-
-    # grab a random proxy and make it the current proxy
-    $cache->set(
-        'current_proxy' => $proxies[ int( rand( scalar(@proxies) ) ) ] );
-    unless ( $current_proxy = $cache->get('current_proxy') ) {
-        die "Error - cache is broken!";
-    }
+die "No proxy config file $SL_PROXY_FILE\n" unless -e $SL_PROXY_FILE;
+my ( $fh, @proxies );
+open( $fh, "<", $SL_PROXY_FILE ) or die "file error: $SL_PROXY_FILE, $!";
+while (<$fh>) {
+    chomp($_);
+    push @proxies, $_;
 }
+
+# grab a random proxy and make it the current proxy
+my $current_proxy = $proxies[ int( rand( scalar(@proxies) ) ) ];
+
 print STDERR "Current proxy: $current_proxy \n" if $DEBUG;
 
 my $ua  = LWP::UserAgent->new;
@@ -66,28 +58,36 @@ if ( $response->code == 200 ) {
 
         # turn sl back on
         my $iptables = <<IPTABLES;
-iptables -F
-iptables -t nat -F
-iptables -t nat -A prerouting rule -p tcp --dport 80 -j DNAT --to $current_proxy
+-F
+-t nat -F
+-t nat -A PREROUTING -i $LAN -p tcp --dport 80 -j DNAT --to $current_proxy
 IPTABLES
-        system("/sbin/iptables-restore < $iptables") == 0
-          or die "error updating firewall: $!";
+        my @cmds = split("\n", $iptables);
+        foreach my $cmd (@cmds) {
+            system("/sbin/iptables $cmd") == 0
+                or die "error updating firewall: $!";
+        }
+        system("/sbin/iptables-save > /var/lib/iptables/rules-save") == 0
+            or die "error updating firewall: $!";
         $cache->set( 'proxy_down' => 0 );
         exit(0);
     }
-}
-else {
+} else {
     print STDERR "Got " . $response->code . " response, proxy is down.\n";
 
     # create a new iptables ruleset
     my $iptables = <<IPTABLES;
-iptables -F
-iptables -t nat -F
-iptables -A FORWARD -i $LAN -j ACCEPT
-iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
+-F
+-t nat -F
 IPTABLES
-    system("/sbin/iptables-restore < $iptables") == 0
-      or die "error updating firewall: $!";
+    my @cmds = split("\n", $iptables);
+    foreach my $cmd (@cmds) {
+            system("/sbin/iptables $cmd") == 0
+                or die "error updating firewall: $!";
+    }
+    system("/sbin/iptables-save > /var/lib/iptables/rules-save") == 0
+        or die "error updating firewall: $!";
+ 
     $cache->set( 'proxy_down' => 1 );
     exit(0);
 }
