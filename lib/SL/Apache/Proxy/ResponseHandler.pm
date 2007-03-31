@@ -543,7 +543,7 @@ sub _generate_response {
     #return $response->decoded_content;
     
     $r->log->info( "$$ grabbing ad for request uri " . $r->uri );
-    my ($ad_id, $ad_content_ref) = 
+    my ($ad_id, $ad_content_ref, $css_url) = 
         SL::Model::Ad->random($r->connection->remote_ip);
     
     # VERBOSE
@@ -579,7 +579,7 @@ sub _generate_response {
     else {
         $r->log->debug("Using container method for ad insertion");
         $munged_resp =
-              SL::Model::Ad::container($r->dir_config('SLCssUri'),
+              SL::Model::Ad::container($css_url,
                                        $decoded_content, $ad_content_ref);
     }
 

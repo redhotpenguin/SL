@@ -22,8 +22,12 @@ use constant SILVERLINING_AD_ID => "/795da10ca01f942fd85157d8be9e832e";
 use constant DEFAULT_BUG_LINK   => 
   'http://www.redhotpenguin.com/images/sl/free_wireless.gif';
 use constant DEFAULT_REG_ID => 14;
-use constant  LINKTOADS_IP => '24.7.60.203';
+use constant  OCC_IP => '198.145.32.11';
+use constant  OCC_LINK => 'http://www.oregoncc.org';
+use constant  LINKTOADS_IP => '74.39.199.115';
 use constant LINKTOADS_AD_ID => 107;
+use constant LINKTOADS_CSS_URL => 'http://www.redhotpenguin.com/css/linktoads.css';
+use constant SL_CSS_URL => 'http://www.redhotpenguin.com/css/sl.css';
 
 my ($template, $config);
 our( $log_view_sql, %sl_ad_data );
@@ -234,7 +238,7 @@ sub random {
     # figure out what ad to serve.
     # current logic says  use default/custom ad groups 25% of the time
     # and our feeds 75% of the time
-    my $feed_threshold = 50;
+    my $feed_threshold = 100;
     my $custom_threshold = 25;
     my $ad_data;
     my $rand = rand(100);
@@ -259,13 +263,17 @@ sub random {
 		$template->process( 'linktoads.tmpl',
         {%tmpl_vars, %sl_ad_data}, \$output )
       || die $template->error(), "\n";
-		return (LINKTOADS_AD_ID, \$output);
+
+		return (LINKTOADS_AD_ID, \$output, LINKTOADS_CSS_URL);
     } else {
+		if ($ip eq OCC_IP) {
+			$sl_ad_data{'sl_link'} = OCC_LINK;
+		}
 		$template->process( $ad_data->{'template'} . '.tmpl',
         {%tmpl_vars, %sl_ad_data}, \$output )
       || die $template->error(), "\n";
 
-	return ($ad_data->{'ad_id'}, \$output);
+	return ($ad_data->{'ad_id'}, \$output, SL_CSS_URL);
 	}
 }
 
