@@ -252,13 +252,14 @@ sub forgot {
                               { url => $url, email => $reg->email }, \$output );
           
            my $msg = MIME::Lite->new(
-               From => "Todd the Support Guy <support\@silverliningnetworks.com>",
+               From => "SilverLining <support\@silverliningnetworks.com>",
                To   => $reg->email,
                Subject => "Your password reset request",
                Data => $output,
            );
 
            $msg->send;
+		   #$msg->send_by_smtp('www.redhotpenguin.com');
            $r->method_number(Apache2::Const::M_GET);
            $r->internal_redirect("/forgot/?status=sent&email=$email");
         }
