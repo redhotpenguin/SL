@@ -40,7 +40,7 @@ use HTTP::Response                   ();
 use SL::Model                        ();
 use SL::Model::Ad                    ();
 use SL::Model::Subrequest            ();
-use SL::Model::URL                   ();
+#use SL::Model::URL                   ();
 use SL::Apache::Proxy::TransHandler    ();
 use SL::Apache::Proxy::ResponseHandler ();
 use SL::Apache::Proxy::LogHandler      ();
@@ -50,6 +50,7 @@ use SL::Util                         ();
 use DBI                              ();
 use DBD::Pg                          ();
 use Data::Dumper qw(Dumper);
+use Sys::Load ();
 
 print STDOUT "Modules loaded, initializing database connections\n";
 

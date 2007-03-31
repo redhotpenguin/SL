@@ -33,7 +33,7 @@ AllowEncodedSlashes On
     # If mod_proxy is used for proxy forwarding
     ProxyRequests On
     Listen        [% cfg.sl_proxy_http_frontend_port %]
-    Listen        8069
+#    Listen        8069
     <IfModule mod_cache.c>
         <IfModule mod_mem_cache.c>
             CacheEnable mem /
@@ -116,5 +116,5 @@ Include [% cfg.sl_root %]/[% cfg.sl_version %]/conf/deflate.conf
 [% END %]
 
 <Location /sl_secret_ping_button>
-  PerlResponseHandler Apache2::Const::OK
+  PerlResponseHandler SL::Apache::Proxy::PingHandler
 </Location>

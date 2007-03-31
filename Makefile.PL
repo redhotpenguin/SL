@@ -24,8 +24,8 @@ WriteMakefile(
                             'Template'             => 2.14,
                             'Regexp::Assemble'     => 0.24,
                             'SOAP::Lite'           => 0.69,
-                            'Perl6::Slurp'         => 0.03,
-                           },
+                            'Sys::Load'            => 0.2,   
+						},
               ABSTRACT => 'An ad serving proxy server',
               AUTHOR   => 'Fred Moyer <fred@redhotpenguin.com>',
              );
