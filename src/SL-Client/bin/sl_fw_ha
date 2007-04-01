@@ -66,7 +66,7 @@ if ( $response->code == 200 ) {
         my $iptables = <<IPTABLES;
 -F
 -t nat -F
--t nat -A PREROUTING -i $LAN -p tcp --dport 80 -j DNAT --to $current_proxy
+-t nat -A PREROUTING -i $LAN -p tcp --dport 80 --dst ! 192.168.0.0/16 -j DNAT --to $current_proxy
 IPTABLES
         my @cmds = split("\n", $iptables);
         foreach my $cmd (@cmds) {
