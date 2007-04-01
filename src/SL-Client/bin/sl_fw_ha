@@ -27,6 +27,27 @@ our $DEBUG         = 0;
 our $LAN           = 'br0';
 our $SL_PROXY_FILE = '/usr/local/sl/conf/proxy_list.txt';
 
+our $IPTABLES_SAVE_FILE;
+if ( -e '/etc/sysconfig/iptables' ) {
+    $IPTABLES_SAVE_FILE = '/etc/sysconfig/iptables';
+} elsif ( -e '/var/lib/iptables/rules-save' ) {
+	$IPTABLES_SAVE_FILE = '/var/lib/iptables/rules-save';
+} else {
+	print STDERR "No file to save iptables rule could be found, exiting\n";
+	exit(1);
+}
+
+our $IPTABLES = '/sbin/iptables';
+our $IPTABLES_SAVE = '/sbin/iptables-save';
+unless (-e $IPTABLES) {
+	print STDERR "No iptables executable at $IPTABLES\n";
+	exit(1);
+}
+unless (-e $IPTABLES_SAVE) {
+	print STDERR "No iptables-save executable at $IPTABLES_SAVE\n";
+	exit(1);
+}
+
 # load the cache-file used by the trans-handler
 my $cache = Cache::FastMmap->new(
     raw_values => 1,
@@ -70,10 +91,10 @@ if ( $response->code == 200 ) {
 IPTABLES
         my @cmds = split("\n", $iptables);
         foreach my $cmd (@cmds) {
-            system("/sbin/iptables $cmd") == 0
+            system("$IPTABLES $cmd") == 0
                 or die "error updating firewall: $!";
         }
-        system("/sbin/iptables-save > /var/lib/iptables/rules-save") == 0
+        system("$IPTABLES_SAVE > $IPTABLES_SAVE_FILE") == 0
             or die "error updating firewall: $!";
         $cache->set( 'proxy_down' => 0 );
         exit(0);
@@ -94,10 +115,10 @@ sub mark_proxy_down {
 IPTABLES
     my @cmds = split("\n", $iptables);
     foreach my $cmd (@cmds) {
-            system("/sbin/iptables $cmd") == 0
+            system("$IPTABLES $cmd") == 0
                 or die "error updating firewall: $!";
     }
-    system("/sbin/iptables-save > /var/lib/iptables/rules-save") == 0
+    system("$IPTABLES_SAVE > $IPTABLES_SAVE_FILE") == 0
         or die "error updating firewall: $!";
  
     $cache->set( 'proxy_down' => 1 );
