@@ -3,7 +3,7 @@ Makefile.PL
 MANIFEST
 README
 bin/sl_fw_ha
-bin/sl_proxy_ping
+bin/sl_tunnel
 bin/sl_config_update
 bin/sl_maintd
 lib/SL/Client/HTTP.pm

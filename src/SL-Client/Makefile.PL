@@ -10,11 +10,12 @@ WriteMakefile(
     PREREQ_PM => {
                   'Cache::FastMmap'  => 1.14,
                   'LWP::UserAgent'   => 2.033,
-                  'Net::DNS' => 0,
+                  'Net::DNS'         => 0,
+                  'IPC::Run3'        => 0,
 				  'Params::Validate' => 0.88,
     },
     ABSTRACT       => 'SilverLining client libraries and utilities',
-    EXE_FILES     => ['bin/sl_proxy_ping', 'bin/sl_config_update', 
+    EXE_FILES     => ['bin/sl_tunnel', 'bin/sl_config_update', 
 	    'bin/sl_fw_ha', 'bin/sl_maintd'],
     AUTHOR => 'Fred Moyer <phred@redhotpenguin.com>',
 );
