@@ -5,6 +5,7 @@ use warnings;
 
 use SL::Client::Maintd;
 
+our $MAILER = (-d '/var/qmail') ? 'qmail' : 'sendmail';
 my $hostname = 'herbert';
 my $admin = 'fred@redhotpenguin.com';
 my $maintd = SL::Client::Maintd->new;
@@ -14,9 +15,10 @@ foreach my $status qw( uptime ip dns ping tunnel ) {
     $report{$status} = $maintd->$status;
 }
 
-require Mail::Mailer;
+use Mail::Mailer;
+use Data::Dumper;
 
-my $mailer = Mail::Mailer->new( 'qmail');
+my $mailer = Mail::Mailer->new($MAILER);
 
 $mailer->open({
     From    => "$hostname\@redhotpenguin.com",
@@ -24,8 +26,6 @@ $mailer->open({
     Subject => uc($hostname) . " Status Report"
     }
 );
-
-require Data::Dumper;
 
 my $body = "Maintd report ran at " . time() . "\n\n" . 
     Data::Dumper::Dumper(\%report);
