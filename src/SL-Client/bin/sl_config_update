@@ -24,7 +24,7 @@ put into place in /usr/local/sl/conf.
 use Cache::FastMmap;
 use LWP::UserAgent;
 
-our $DEBUG = 1;
+our $DEBUG = 0;
 our $CONFIG_URL = "http://www.redhotpenguin.com/sl/conf/";
 our $CONFIG_ROOT = '/usr/local/sl/conf/';
 
@@ -36,8 +36,7 @@ my $cache = Cache::FastMmap->new(sharefile => "/tmp/$sharefile");
 # grab the files from our static server
 my $ua = LWP::UserAgent->new;
 
-foreach my $config_file qw( ext_blacklist proxy_list 
-                            ua_blacklist url_blacklist ) {
+foreach my $config_file qw( proxy_list ) {
     
     my $uri = $CONFIG_URL . $config_file . '.txt';
     
@@ -57,6 +56,7 @@ foreach my $config_file qw( ext_blacklist proxy_list
         $cache->set($config_file => $response->content);
     } else {
         print STDERR "Got " . $response->code . " response, error.\n";
+		print STDERR "Response content: " . Dumper($response->content) . "\n";
     }
 }
 

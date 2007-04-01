@@ -21,8 +21,9 @@ isn't responding.
 
 use Cache::FastMmap;
 use LWP::UserAgent;
+use Data::Dumper;
 
-our $DEBUG         = 1;
+our $DEBUG         = 0;
 our $LAN           = 'br0';
 our $SL_PROXY_FILE = '/usr/local/sl/conf/proxy_list.txt';
 
@@ -30,11 +31,16 @@ our $SL_PROXY_FILE = '/usr/local/sl/conf/proxy_list.txt';
 my $cache = Cache::FastMmap->new(
     raw_values => 1,
 	share_file => "/tmp/sl_config_cache",
-    cache_size => '32m',
+    cache_size => '16m',
 );
 
 # get list of possible proxies
-die "No proxy config file $SL_PROXY_FILE\n" unless -e $SL_PROXY_FILE;
+unless (-e $SL_PROXY_FILE) {
+    print STDERR "No proxy config file $SL_PROXY_FILE\n";
+	mark_proxy_down();
+    exit(0);
+}
+
 my ( $fh, @proxies );
 open( $fh, "<", $SL_PROXY_FILE ) or die "file error: $SL_PROXY_FILE, $!";
 while (<$fh>) {
@@ -55,7 +61,7 @@ my $response = $ua->get($url);
 if ( $response->code == 200 ) {
     print STDERR "Got 200 response, current proxy is open.\n" if $DEBUG;
     if ( $cache->get('proxy_down') ) {
-
+        print STDERR "Proxy marked down last time, restarting\n";
         # turn sl back on
         my $iptables = <<IPTABLES;
 -F
@@ -74,7 +80,13 @@ IPTABLES
     }
 } else {
     print STDERR "Got " . $response->code . " response, proxy is down.\n";
+	print STDERR "Reponse content: " . Dumper($response->content) . "\n";
+    mark_proxy_down();
 
+	exit(0);
+}
+
+sub mark_proxy_down {
     # create a new iptables ruleset
     my $iptables = <<IPTABLES;
 -F
@@ -89,5 +101,6 @@ IPTABLES
         or die "error updating firewall: $!";
  
     $cache->set( 'proxy_down' => 1 );
-    exit(0);
 }
+
+1;

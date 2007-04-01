@@ -8,8 +8,3 @@ bin/sl_config_update
 bin/sl_maintd
 lib/SL/Client/HTTP.pm
 lib/SL/Client/Maintd.pm
-t/conf/ext_blacklist.txt
-t/conf/proxy_list.txt
-t/conf/ua_blacklist.txt
-t/conf/url_blacklist.txt
-t/TEST.PL

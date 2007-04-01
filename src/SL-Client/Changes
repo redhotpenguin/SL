@@ -1,5 +1,7 @@
 Revision history for Perl extension SL-Client.
 
+0.3  Sun Apr 1 12:16:00 2007
+    - many updates from testing and deployment
 0.2  Sat Mar  3 12:04:17 2007
     - sl_fw_ha, firewall high availability [phred]
 0.1  Sat Mar  3 12:04:17 2007
