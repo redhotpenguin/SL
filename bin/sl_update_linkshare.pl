@@ -83,7 +83,7 @@ my @new_ads = grep { not exists $current_ads{$_->{mid} . '_' . $_->{linkID}} }
     @{$result->paramsall};
 print "Adding new ads\n";
 foreach my $ad ( @new_ads ) {
-    my $new_ad = SL::Model::App->resultset('Ad')->new({});
+    my $new_ad = SL::Model::App->resultset('Ad')->new({ active => 't' });
     $new_ad->insert;
     $new_ad->update;
 

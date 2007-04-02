@@ -11,6 +11,7 @@ SL::Apache::TransHandler
 
 =cut
 
+use SL::Model;
 use SL::Model::URL;
 
 our $ext_regex;
@@ -86,14 +87,20 @@ sub handler {
     
     my $url     = $r->construct_url($r->unparsed_uri);
     $r->log->info("$$ PerlTransHandler request, uri $url");
-    my $ua      = $r->headers_in->{'user-agent'};
     my $referer = $r->headers_in->{'referer'} || 'no_referer';
 
     $r->pnotes('url'     => $url);
-    $r->pnotes('ua'      => $ua);
     $r->pnotes('referer' => $referer);
+	my $ua = $r->pnotes('ua');
 
     $r->log->info("$$ PerlTransHandler Request for url $url, user-agent $ua, referer $referer");
+
+	# first check that a database handle is available
+	my $dbh = SL::Model->connect();
+	unless ($dbh) {
+		$r->log->error("Database has gone away, sending to mod_proxy");
+        return &proxy_request($r);
+	}
 
     # allow /sl_secret_ping_button to pass through
     if ($url =~ m!/sl_secret_ping_button$!) {

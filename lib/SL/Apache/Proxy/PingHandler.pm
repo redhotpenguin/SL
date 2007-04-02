@@ -3,26 +3,24 @@ package SL::Apache::Proxy::PingHandler;
 use strict;
 use warnings;
 
-use Apache2::Const -compile => qw( OK HTTP_SERVICE_UNAVAILABLE );
+use Apache2::Const -compile => qw( HTTP_SERVICE_UNAVAILABLE DONE );
 use Apache2::Log ();
 use Sys::Load ();
 use SL::Model ();
 
-our $MAX_LOAD = 1.5;
+our $MAX_LOAD = 2;
 
 sub handler {
 	my $r = shift;
 
-	# first check that a database handle is available
+	my $minute_avg = [Sys::Load::getload()]->[0];
 	my $dbh = SL::Model->connect();
 	unless ($dbh) {
-		$r->log->error("Database has gone away :(");
+		$r->log->error("Database is not responding: sysload $minute_avg");
 		return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
-	}
-
-	# now check the load
-	my $minute_avg = [Sys::Load::getload()]->[0];
-    return Apache2::Const::OK if $minute_avg < $MAX_LOAD;
+	}	
+	
+    return Apache2::Const::DONE if $minute_avg < $MAX_LOAD;
 	$r->log->error("System max load $MAX_LOAD exceeded: $minute_avg");
 	return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
 }

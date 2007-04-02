@@ -8,6 +8,7 @@ use DateTime;
 use SL::Model::Report;
 use Mail::Mailer;
 
+#my $ADMIN = 'phredwolf@yahoo.com';
 my $ADMIN = 'info@redhotpenguin.com';
 my @DAYS  = qw( 1 3 7 14 30 );
 

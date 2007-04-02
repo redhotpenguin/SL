@@ -23,7 +23,7 @@ use constant DEFAULT_BUG_LINK   =>
   'http://www.redhotpenguin.com/images/sl/free_wireless.gif';
 use constant DEFAULT_REG_ID => 14;
 use constant  OCC_IP => '198.145.32.11';
-use constant  OCC_LINK => 'http://www.oregoncc.org';
+use constant  OCC_LINK => 'http://www.nwfoodserviceshow.com/2007_Site/index.shtml';
 use constant  LINKTOADS_IP => '74.39.199.115';
 use constant LINKTOADS_AD_ID => 107;
 use constant LINKTOADS_CSS_URL => 'http://www.redhotpenguin.com/css/linktoads.css';
