@@ -82,7 +82,7 @@ my $response = $ua->get($url);
 if ( $response->code == 200 ) {
     print STDERR "Got 200 response, current proxy is open.\n" if $DEBUG;
     if ( $cache->get('proxy_down') ) {
-        print STDERR "Proxy marked down last time, restarting\n";
+        print STDERR "RECOVERY - Proxy marked down last time, restarting\n";
         # turn sl back on
         my $iptables = <<IPTABLES;
 -F
@@ -100,7 +100,7 @@ IPTABLES
         exit(0);
     }
 } else {
-    print STDERR "Got " . $response->code . " response, proxy is down.\n";
+    print STDERR "ERROR - Got " . $response->code . " response, proxy is down.\n";
 	print STDERR "Reponse content: " . Dumper($response->content) . "\n";
     mark_proxy_down();
 
