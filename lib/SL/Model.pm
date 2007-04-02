@@ -9,7 +9,7 @@ use SL::Config;
 our $cfg = SL::Config->new;
 
 my $db_options = {
-                  RaiseError         => 1,
+                  RaiseError         => 0,
                   PrintError         => 1,
                   AutoCommit         => 1,
                   FetchHashKeyName   => 'NAME_lc',
@@ -39,7 +39,7 @@ sub connect {
         $connect->[0] = $class->dsn($params->{db});
 	}
     my $dbh     = DBI->connect_cached(@{$connect});
-    if ($dbh->err or !$dbh) {
+    if (!$dbh or ($dbh && $dbh->err)) {
         print STDERR "Error connecting to database: "
           . $class->connect_params . ", "
           . $DBI::errstr . "\n";
