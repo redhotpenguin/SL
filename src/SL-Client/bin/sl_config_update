@@ -23,6 +23,7 @@ put into place in /usr/local/sl/conf.
 
 use Cache::FastMmap;
 use LWP::UserAgent;
+use Data::Dumper;
 
 our $DEBUG = 0;
 our $CONFIG_URL = "http://www.redhotpenguin.com/sl/conf/";
