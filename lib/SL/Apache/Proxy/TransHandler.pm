@@ -102,12 +102,21 @@ sub handler {
         return &proxy_request($r);
 	}
 
+    # allow /sl_secret_blacklist_button to pass through
+    if ($url =~ m!/sl_secret_blacklist_button$!) {
+        return Apache2::Const::OK;
+    }
+
     # allow /sl_secret_ping_button to pass through
     if ($url =~ m!/sl_secret_ping_button$!) {
         return Apache2::Const::DONE;
     }
-        
-    if (url_blacklisted($url)) {
+    
+	if (user_blacklisted($r, $dbh)) {
+        return &proxy_request($r);
+	}
+    
+	if (url_blacklisted($url)) {
         return &proxy_request($r);
     }
 
@@ -121,6 +130,10 @@ sub handler {
     if (not_a_main_request($r)) {
         return &proxy_request($r);
     }
+
+	if ($r->method ne 'GET') {
+		return &proxy_request($r);
+	}
 
     if ($r->method eq 'GET') {
 
@@ -153,6 +166,20 @@ sub handler {
         }
     }
     $r->log->info("EndTranshandler");
+}
+
+sub user_blacklisted {
+	my ($r, $dbh) = @_;
+
+	my $user_id = join("|", $r->connection->remote_ip, 
+		$r->pnotes('ua'), $r->construct_server());
+
+	my $sth = $dbh->prepare("SELECT count(user_id) FROM user_blacklist WHERE user_id = ?");
+	$sth->bind_param(1, $user_id);
+	$sth->execute;
+	my $ary_ref = $sth->fetchrow_arrayref;
+	return 1 if $ary_ref->[0] > 0;
+	return;
 }
 
 sub url_blacklisted {

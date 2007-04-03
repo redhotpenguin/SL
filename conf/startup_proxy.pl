@@ -51,6 +51,8 @@ use DBI                              ();
 use DBD::Pg                          ();
 use Data::Dumper qw(Dumper);
 use Sys::Load ();
+use Params::Validate ();
+use SL::Apache::Proxy::BlacklistHandler ();
 
 print STDOUT "Modules loaded, initializing database connections\n";
 
