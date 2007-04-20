@@ -40,6 +40,19 @@ p.sl {
 	color: #0033FF;
 }
 
+.sl_black {
+	position: absolute;
+	top: 10px;
+	right: 25px;
+	text-decoration: underline;
+	text-align: right;
+	vertical-align: 50%;
+    font-weight: bold;
+    font-family: Arial;
+    font-size: 10px;
+	color: #0033FF;
+}
+
 .sl_link {
 	position: absolute;
 	bottom: 4px;
