@@ -92,7 +92,7 @@ sub get {
 
     my $http = Net::HTTP->new(Host => $url->host,
                               PeerAddr => $host,
-                              PeerPort => $port);
+                              PeerPort => $port) || die $@;
 
     # reinforce the point (Net::HTTP adds PeerPort to host during
     # new())

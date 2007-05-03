@@ -12,6 +12,7 @@ WriteMakefile(
                   'LWP::UserAgent'   => 2.033,
                   'Net::DNS'         => 0,
                   'IPC::Run3'        => 0,
+                  'Mail::Mailer'     => 0,
 				  'Params::Validate' => 0.88,
     },
     ABSTRACT       => 'SilverLining client libraries and utilities',
