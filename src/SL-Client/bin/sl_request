@@ -3,19 +3,23 @@
 use strict;
 use warnings;
 
-use SL::Client::HTTP;
-
 my $url = shift or die "No url passed!\n";
 my $port = shift or die "No port passed!\n";
 my $host = shift or die "using default host\n";
 
+use Time::HiRes qw(gettimeofday tv_interval);
+use SL::Client::HTTP;
+
+my $start = [ gettimeofday ];
 my $response = SL::Client::HTTP->get(
 	url => $url,
 	host => $host,
 	port => $port,
 );
+my $end = tv_interval($start, [gettimeofday]);
 
 use Data::Dumper;
 print Dumper($response);
 
-sleep 1;
+print sprintf("\nTime: %s\n", $end);
+
