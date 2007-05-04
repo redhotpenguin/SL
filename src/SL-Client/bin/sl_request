@@ -1,47 +1,21 @@
+#!perl -w
+
 use strict;
 use warnings;
 
-=head1 NAME
-
- sl_request
-
-=head1 SYNOPSIS
-
- perl sl_request --url=http://foo.com/bar.gif --host=192.168.1.183 --port=80
-
- perl sl_request --help
-
- perl sl_request --man
-
-=cut
-
-use Getopt::Long;
-use Pod::Usage;
-
-my ($help, $man, $url, $host, $port);
-
-pod2usage(1) unless @ARGV;
-GetOptions(
-	'url=s'  => \$url,
-	'host=s' => \$host,
-	'port=i' => \$port,
-) or pod2usage(2);
-
-pod2usage(1) if $help;
-pod2usage( -verbose => 2) if $man;
-
-$host ||= 'localhost';
-$port ||= 80;
-
 use SL::Client::HTTP;
 
+my $url = shift or die "No url passed!\n";
+my $port = shift or die "No port passed!\n";
+my $host = shift or die "using default host\n";
+
 my $response = SL::Client::HTTP->get(
-    url  => $url,
-    host => $host,
-    port => $port,
+	url => $url,
+	host => $host,
+	port => $port,
 );
 
 use Data::Dumper;
 print Dumper($response);
 
-1;
+sleep 1;
