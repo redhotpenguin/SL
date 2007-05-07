@@ -6,11 +6,11 @@
 
 # your local network setup
 $LOCAL_IF  = "eth0";
-$LOCAL_IP  = "192.168.2.5";
+$LOCAL_IP  = "192.168.1.104";
 $LOCAL_NET = "127.0.0.1";
 
 # the SL machine
-$SL_IP     = "64.127.99.51";
+$SL_IP     = "192.168.1.103";
 $SL_PORT   = "8069";
 
 system("iptables -t nat -F");  # clear tables

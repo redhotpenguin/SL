@@ -3,37 +3,62 @@ package SL::UserAgent;
 use strict;
 use warnings;
 
-use Apache2::Const -compile => qw(LOG_DEBUG LOG_ERR LOG_INFO);
-use Apache2::Log         ();
-use Apache2::RequestUtil ();
-use Apache2::ServerRec   ();
-use LWP::UserAgent       ();
-use HTTP::Cookies		 ();
-use Data::Dumper        qw( Dumper );
+use LWP::UserAgent ();
+use HTTP::Cookies  ();
 
 sub new {
-    my ($self, $r) = @_;
+    my $self = shift;
 
-	my $ua = LWP::UserAgent->new(max_redirect => 0);
-    #######################################
-    # Mimic the user's user agent
-	#my $origin_ua = $r->pnotes('ua');
-	#if (defined $origin_ua && length $origin_ua) {
-	#    $ua->agent($origin_ua);
-	#}
+    my $ua = LWP::UserAgent->new(max_redirect => 0);
 
-    #######################################
     # Cookies
-    $ua->cookie_jar( HTTP::Cookies->new());
+    $ua->cookie_jar(HTTP::Cookies->new());
 
     # Turn off head-parsing.  With this feature on http-equiv headers
     # get promoted into first-class headers, which interferes with the
     # browser's ability to ignore them.
     $ua->parse_head(0);
-   
-    my $url = $r->pnotes('url');
-    $r->log->debug("$$ Created user agent for $url, ua => ", Dumper($ua));
+
     return $ua;
+}
+
+sub request {
+	my ($self, $request) = @_;
+
+	die unless $request->isa('SL::HTTP::Request');
+
+	my $response = $self->SUPER::request($request);
+
+	# Handle browser redirects instead of passing those back to the client
+    if ($response->code == 200) {
+        if (my $redirect = $self->_browser_redirect($response)) {
+
+			# handle the redirect
+			$request->uri($redirect);
+            $response = $self->SUPER::request($request);
+            unless ($response->code == 200) {
+                return $response->code;
+            }
+        }
+    }
+	return $response;
+}
+
+sub _browser_redirect {
+	my ($self, $response) = @_;	
+    # Examine the response content and return the browser redirect url if found
+    if (
+        my ($redirect) =
+        $response->content =~ m/
+        (s-xism:<meta\s+http-equiv\s*?=\s*?"Refresh"\s*?content\s*?=\s*?"?0"?\;
+        ss*?url\s*?=\s*?(http:\/\/\w+\.[^\"|^\>|\s]+))/xmsi
+       )
+    {
+        return $redirect;
+    }
+
+	# not a redirect
+	return;
 }
 
 1;

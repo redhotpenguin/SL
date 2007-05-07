@@ -33,26 +33,22 @@ use Apache2::ServerRec               ();
 use Apache2::ServerUtil              ();
 use Apache2::SubRequest              ();
 use APR::Table                       ();
-use HTTP::Cookies                    ();
-use HTTP::Headers                    ();
-use HTTP::Request                    ();
-use HTTP::Response                   ();
 use SL::Model                        ();
 use SL::Model::Ad                    ();
 use SL::Model::Subrequest            ();
-#use SL::Model::URL                   ();
 use SL::Apache::Proxy::TransHandler    ();
 use SL::Apache::Proxy::ResponseHandler ();
+use SL::Apache::Proxy::BlacklistHandler ();
 use SL::Apache::Proxy::LogHandler      ();
 use SL::Cache                        ();
 use SL::UserAgent                    ();
+use SL::HTTP::Request                ();
 use SL::Util                         ();
 use DBI                              ();
 use DBD::Pg                          ();
 use Data::Dumper qw(Dumper);
 use Sys::Load ();
 use Params::Validate ();
-use SL::Apache::Proxy::BlacklistHandler ();
 
 print STDOUT "Modules loaded, initializing database connections\n";
 

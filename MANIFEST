@@ -51,9 +51,7 @@ conf/startup_proxy.pl
 conf/net_eth1_eth3_dhcp
 conf/sl.conf.dev
 conf/mime.types
-bin/apxs
 bin/sl_mail_global_reports.pl
-bin/httpd
 bin/sl_update_linkshare.pl
 bin/configure_httpd_ssl_2_2
 bin/sl_update_schema.pl
@@ -127,3 +125,4 @@ htdocs/img/app_logo.gif
 htdocs/404.html
 htdocs/500.html
 lib/SL/Apache/Proxy/BlacklistHandler.pm
+lib/SL/HTTP/Request.pm
