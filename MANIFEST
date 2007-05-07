@@ -126,3 +126,4 @@ htdocs/img/logo.gif
 htdocs/img/app_logo.gif
 htdocs/404.html
 htdocs/500.html
+lib/SL/Apache/Proxy/BlacklistHandler.pm
