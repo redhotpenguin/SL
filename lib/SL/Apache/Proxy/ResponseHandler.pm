@@ -29,11 +29,7 @@ use Apache2::ServerRec    ();
 use Apache2::ServerUtil   ();
 use Apache2::URI          ();
 use APR::Table            ();
-use HTTP::Headers         ();
-use HTTP::Headers::Util   ();
-use HTTP::Message         ();
-use HTTP::Request         ();
-use HTTP::Response        ();
+use SL::HTTP::Request     ();
 use SL::UserAgent         ();
 use SL::Model::Ad         ();
 use SL::Model::Subrequest ();
@@ -177,7 +173,7 @@ sub handler {
 
     # Dispatch the response
     my $sub = $response_map{$response->code};
-    unless ($sub) {
+    unless (defined $sub) {
         $r->log->error(
                     sprintf(
                             "No handler for response code %d, url %s, ua %s",

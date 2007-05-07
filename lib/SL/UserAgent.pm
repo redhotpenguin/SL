@@ -37,7 +37,7 @@ sub request {
 			$request->uri($redirect);
             $response = $self->SUPER::request($request);
             unless ($response->code == 200) {
-                return $response->code;
+                return $response;
             }
         }
     }
