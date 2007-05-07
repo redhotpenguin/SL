@@ -3,8 +3,8 @@ ServerAdmin          [% cfg.sl_proxy_admin %]
 ServerSignature      Off
 ServerTokens         Prod
 PidFile              [% cfg.sl_root %]/tmp/sl_proxy.pid
-DocumentRoot         [% cfg.sl_root %]/[% cfg.sl_version %]/htdocs
-TypesConfig          [% cfg.sl_root %]/[% cfg.sl_version %]/conf/mime.types
+DocumentRoot         [% cfg.sl_root %]/htdocs
+TypesConfig          [% cfg.sl_root %]/conf/mime.types
 User                 [% cfg.sl_proxy_apache_user %] 
 Group                [% cfg.sl_proxy_apache_group %]
 KeepAlive            [% cfg.sl_proxy_apache_keepalive %]
@@ -16,8 +16,8 @@ MaxSpareServers      [% cfg.sl_proxy_apache_max_spare_servers %]
 StartServers         [% cfg.sl_proxy_apache_start_servers %]
 LogLevel             [% cfg.sl_proxy_apache_loglevel %]
 MaxClients           [% cfg.sl_proxy_apache_maxclients %]
-ErrorLog             [% cfg.sl_root %]/[% cfg.sl_version %]/logs/httpd_proxy_error_log
-TransferLog          [% cfg.sl_root %]/[% cfg.sl_version %]/logs/httpd_proxy_access_log
+ErrorLog             [% cfg.sl_root %]/logs/httpd_proxy_error_log
+TransferLog          [% cfg.sl_root %]/logs/httpd_proxy_access_log
 MaxRequestsPerChild  250
 LogFormat "%h %l %u %t (%{User-agent}i) \"%r\" %>s %b %{SL_URL}e"
 UseCanonicalName     Off
@@ -64,11 +64,11 @@ ErrorDocument        500	/500.html
 LoadModule perl_module        modules/mod_perl.so
 
 PerlPassEnv SL_ROOT
-PerlPostConfigRequire "[% cfg.sl_root %]/[% cfg.sl_version %]/conf/startup_proxy.pl"
+PerlPostConfigRequire "[% cfg.sl_root %]/conf/startup_proxy.pl"
 #PerlLoadModule SL::Config
-#SLRoot '/home/fred/dev/sl/trunk'
+#SLRoot '/home/fred/dev/sl'
 [% IF cfg.sl_debug %]
-PerlRequire "[% cfg.sl_root %]/[% cfg.sl_version %]/conf/db.pl"
+PerlRequire "[% cfg.sl_root %]/conf/db.pl"
 [% END %]
 PerlSetVar data_root "[% cfg.sl_root %]/data"
 
@@ -77,7 +77,7 @@ PerlSetVar data_root "[% cfg.sl_root %]/data"
 PerlModule           Apache2::Reload
 PerlInitHandler      Apache2::Reload
 PerlSetVar           ReloadAll On
-PerlSetVar           ReloadDirectories "[% cfg.sl_root %]/[% cfg.sl_version %]/lib"
+PerlSetVar           ReloadDirectories "[% cfg.sl_root %]/lib"
 [% END %]
 [% IF cfg.sl_prof %]
 	PerlModule Apache::DProf
@@ -112,7 +112,7 @@ PerlTransHandler SL::Apache::Proxy::TransHandler
     AllowOverride None
 </Directory>
 [% IF cfg.sl_proxy_deflate %]
-Include [% cfg.sl_root %]/[% cfg.sl_version %]/conf/deflate.conf
+Include [% cfg.sl_root %]/conf/deflate.conf
 [% END %]
 
 <Location /sl_secret_ping_button>
