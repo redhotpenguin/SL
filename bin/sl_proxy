@@ -28,12 +28,11 @@ $template->process($conf_tmpl, { cfg => $config }, $tmpl_out)
   || die $template->error, "\n";
 
 $|++;
-my $app_root = join('/', $config->sl_root, $config->sl_version);
-my $cmd = "$app_root/bin/httpd ";
+my $cmd = sprintf("%s/bin/httpd", $config->sl_root);
 
 $cmd .= "-X " if ( $config->sl_debug);
 
-$cmd .= "-f $app_root/conf/$httpd_conf -k start";
+$cmd .= sprintf(" -f %s/conf/$httpd_conf -k start", $config->sl_root);
 print "Starting with command: $cmd\n";
 my $started = `$cmd`;
 print $started;
