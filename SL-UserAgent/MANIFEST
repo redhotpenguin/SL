@@ -3,4 +3,5 @@ Makefile.PL
 MANIFEST
 README
 t/SL-UserAgent.t
-lib/SL-UserAgent.pm
+lib/SL/UserAgent.pm
+META.yml                                 Module meta-data (added by MakeMaker)

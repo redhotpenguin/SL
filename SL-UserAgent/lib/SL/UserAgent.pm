@@ -3,15 +3,15 @@ package SL::UserAgent;
 use strict;
 use warnings;
 
-use LWP::UserAgent ();
-use HTTP::Cookies  ();
+use base 'LWP::UserAgent';
+use HTTP::Cookies ();
 
 sub new {
-    my $self = shift;
 
-    my $ua = LWP::UserAgent->new(max_redirect => 0);
+    # shifty yet super, we will handle redirects
+    my $ua = shift->SUPER::new(max_redirect => 0);
 
-    # Cookies
+    # Cookies, yummy yummy
     $ua->cookie_jar(HTTP::Cookies->new());
 
     # Turn off head-parsing.  With this feature on http-equiv headers
@@ -25,7 +25,8 @@ sub new {
 sub request {
     my ($self, $request) = @_;
 
-    die 'oops!' unless $request->isa('SL::HTTP::Request');
+    die 'oops, not an http::request!'
+      unless $request->isa('HTTP::Request');
 
     my $response = $self->SUPER::request($request);
 
@@ -45,7 +46,8 @@ sub request {
 }
 
 sub _browser_redirect {
-    my ($self, $response) = @_;    
+    my ($self, $response) = @_;
+
     # Examine the response content and return the browser redirect url if found
     if (
         my ($redirect) =
