@@ -1,4 +1,4 @@
-sl_root  /Users/phred/dev/sl
+sl_root  /home/fred/dev/sl/SL
 sl_version  trunk
 
 sl_data_root /tmp/data/sl
