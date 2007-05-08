@@ -26,7 +26,6 @@ lib/SL/Model/URL.pm
 lib/SL/Model/RateLimit.pm
 lib/SL/Model/Subrequest.pm
 lib/SL/Model/Report.pm
-lib/SL/UserAgent.pm
 lib/SL/Maintd.pm
 lib/SL/Test.pm
 lib/SL/Config.pm
@@ -125,4 +124,3 @@ htdocs/img/app_logo.gif
 htdocs/404.html
 htdocs/500.html
 lib/SL/Apache/Proxy/BlacklistHandler.pm
-lib/SL/HTTP/Request.pm
