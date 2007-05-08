@@ -23,29 +23,29 @@ sub new {
 }
 
 sub request {
-	my ($self, $request) = @_;
+    my ($self, $request) = @_;
 
-	die unless $request->isa('SL::HTTP::Request');
+    die 'oops!' unless $request->isa('SL::HTTP::Request');
 
-	my $response = $self->SUPER::request($request);
+    my $response = $self->SUPER::request($request);
 
-	# Handle browser redirects instead of passing those back to the client
+    # Handle browser redirects instead of passing those back to the client
     if ($response->code == 200) {
         if (my $redirect = $self->_browser_redirect($response)) {
 
-			# handle the redirect
-			$request->uri($redirect);
+            # handle the redirect
+            $request->uri($redirect);
             $response = $self->SUPER::request($request);
             unless ($response->code == 200) {
                 return $response;
             }
         }
     }
-	return $response;
+    return $response;
 }
 
 sub _browser_redirect {
-	my ($self, $response) = @_;	
+    my ($self, $response) = @_;    
     # Examine the response content and return the browser redirect url if found
     if (
         my ($redirect) =
@@ -57,8 +57,8 @@ sub _browser_redirect {
         return $redirect;
     }
 
-	# not a redirect
-	return;
+    # not a redirect
+    return;
 }
 
 1;
