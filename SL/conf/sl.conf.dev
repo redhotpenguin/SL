@@ -1,4 +1,5 @@
 sl_root  /home/fred/dev/sl/SL
+sl_httpd_root  /home/phred/dev/sl/httpd2
 sl_version  trunk
 
 sl_data_root /tmp/data/sl

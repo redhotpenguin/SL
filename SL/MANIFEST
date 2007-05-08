@@ -32,7 +32,6 @@ lib/SL/Config.pm
 lib/SL/Cache.pm
 conf/perlbal.conf
 conf/firewall.user
-conf/sl.proxy.conf.prod
 conf/startup_app.pl
 conf/sshd_config
 conf/httpd_proxy.conf.tmpl
@@ -40,10 +39,9 @@ conf/deflate.conf
 conf/gateway/iptables.txt
 conf/bridge/iptables.txt
 conf/httpd_app.conf.tmpl
-conf/sl.proxy.conf.dev
-conf/sl.app.conf.prod
 conf/iptables.txt
 conf/sl.conf.prod
+conf/sl.conf.qa
 conf/dnsmasq.conf
 conf/postgresql.conf
 conf/startup_proxy.pl
