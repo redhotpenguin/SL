@@ -13,7 +13,7 @@
 #     ABSTRACT => q[SL specific http abstractions]
 #     AUTHOR => q[Fred Moyer <fred@redhotpenguin.com>]
 #     NAME => q[SL::HTTP]
-#     PREREQ_PM => { libwww-perl=>q[5.805] }
+#     PREREQ_PM => { Net::HTTP=>q[1], LWP::UserAgent=>q[2.033] }
 #     VERSION => q[0.1]
 
 # --- MakeMaker post_initialize section:
@@ -172,9 +172,10 @@ PERL_ARCHIVE       =
 PERL_ARCHIVE_AFTER = 
 
 
-TO_INST_PM = 
+TO_INST_PM = lib/SL/HTTP/Request.pm
 
-PM_TO_BLIB = 
+PM_TO_BLIB = lib/SL/HTTP/Request.pm \
+	blib/lib/SL/HTTP/Request.pm
 
 
 # --- MakeMaker platform_constants section:
@@ -409,7 +410,7 @@ realclean_subdirs :
 realclean purge ::  clean realclean_subdirs
 	$(RM_RF) $(INST_AUTODIR) $(INST_ARCHAUTODIR)
 	$(RM_RF) $(DISTVNAME)
-	$(RM_F)  $(MAKEFILE_OLD) $(FIRST_MAKEFILE)
+	$(RM_F)  blib/lib/SL/HTTP/Request.pm $(MAKEFILE_OLD) $(FIRST_MAKEFILE)
 
 
 # --- MakeMaker metafile section:
@@ -421,7 +422,8 @@ metafile :
 	$(NOECHO) $(ECHO) 'version_from: ' >> META.yml
 	$(NOECHO) $(ECHO) 'installdirs:  site' >> META.yml
 	$(NOECHO) $(ECHO) 'requires:' >> META.yml
-	$(NOECHO) $(ECHO) '    libwww-perl:                   5.805' >> META.yml
+	$(NOECHO) $(ECHO) '    LWP::UserAgent:                2.033' >> META.yml
+	$(NOECHO) $(ECHO) '    Net::HTTP:                     1' >> META.yml
 	$(NOECHO) $(ECHO) '' >> META.yml
 	$(NOECHO) $(ECHO) 'distribution_type: module' >> META.yml
 	$(NOECHO) $(ECHO) 'generated_by: ExtUtils::MakeMaker version 6.17' >> META.yml
@@ -691,7 +693,8 @@ ppd:
 	$(NOECHO) $(ECHO) '    <ABSTRACT>SL specific http abstractions</ABSTRACT>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <AUTHOR>Fred Moyer &lt;fred@redhotpenguin.com&gt;</AUTHOR>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <IMPLEMENTATION>' >> $(DISTNAME).ppd
-	$(NOECHO) $(ECHO) '        <DEPENDENCY NAME="libwww-perl" VERSION="5,805,0,0" />' >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '        <DEPENDENCY NAME="LWP-UserAgent" VERSION="2,033,0,0" />' >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '        <DEPENDENCY NAME="Net-HTTP" VERSION="1,0,0,0" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <OS NAME="$(OSNAME)" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <ARCHITECTURE NAME="i686-linux" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <CODEBASE HREF="" />' >> $(DISTNAME).ppd
@@ -702,6 +705,8 @@ ppd:
 # --- MakeMaker pm_to_blib section:
 
 pm_to_blib: $(TO_INST_PM)
+	$(NOECHO) $(PERLRUN) -MExtUtils::Install -e 'pm_to_blib({@ARGV}, '\''$(INST_LIB)/auto'\'', '\''$(PM_FILTER)'\'')'\
+	  lib/SL/HTTP/Request.pm blib/lib/SL/HTTP/Request.pm 
 	$(NOECHO) $(TOUCH) $@
 
 # --- MakeMaker selfdocument section:

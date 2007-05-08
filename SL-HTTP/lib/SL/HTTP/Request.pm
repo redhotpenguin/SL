@@ -7,7 +7,8 @@ use base 'HTTP::Request';
 
 sub new {
     my ($class, $args_ref) = @_;
-    my $self = $class->SUPER::new($args_ref->{method}, $args_ref->{url});
+
+	my $self = $class->SUPER::new($args_ref->{method}, $args_ref->{url});
 
     foreach my $k ( keys %{$args_ref->{headers}} ) {
             next if (   
