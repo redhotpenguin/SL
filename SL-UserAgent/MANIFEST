@@ -1,0 +1,6 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/SL-UserAgent.t
+lib/SL-UserAgent.pm
