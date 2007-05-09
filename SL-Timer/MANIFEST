@@ -3,4 +3,4 @@ Makefile.PL
 MANIFEST
 README
 t/SL-Timer.t
-lib/SL-Timer.pm
+lib/SL/Timer.pm

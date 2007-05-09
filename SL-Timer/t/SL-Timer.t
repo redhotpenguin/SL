@@ -1,15 +1,25 @@
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl SL-Timer.t'
+#!/usr/bin/env perl
 
-#########################
+use strict;
+use warnings FATAL => 'all';
 
-# change 'tests => 1' to 'tests => last_test_to_print';
+use Test::More tests => 5;
 
-use Test::More tests => 1;
-BEGIN { use_ok('SL-Timer') };
+my $pkg;
+BEGIN {
+   $pkg = 'SL::Timer';
+   use_ok($pkg);
+}
 
-#########################
+can_ok($pkg, qw( new start stop current ));
 
-# Insert your test code below, the Test::More module is use()ed here so read
-# its man page ( perldoc Test::More ) for help writing this test script.
+my $obj = $pkg->new();
+isa_ok($obj, $pkg, 'constructor');
+$obj->start('foo');
+sleep 1;
+my $stop = $obj->stop();
+cmp_ok($obj->current(), 'eq', 'foo', 'current ok');
+print "STOP IS " . $stop . "\n\n";
+like($stop, qr/^1\.\d+/, 'about one second');
 
+1;
