@@ -8,10 +8,10 @@ $ENV{MOD_PERL} or die "GATEWAY_INTERFACE not Perl!";
 
 $|++;
 
-use FindBin;
+use FindBin ();
 use lib "$FindBin::Bin/../lib";
 
-use SL::Config;
+use SL::Config ();
 my $config = SL::Config->new();
 
 print STDOUT "Loading modules...\n";
@@ -46,9 +46,10 @@ use SL::HTTP::Request                   ();
 use SL::Util                            ();
 use DBI                                 ();
 use DBD::Pg                             ();
-use Data::Dumper qw(Dumper);
-use Sys::Load        ();
-use Params::Validate ();
+use Data::Dumper                        ();
+use Sys::Load                           ();
+use Params::Validate                    ();
+use Time::HiRes                         ();    
 
 print STDOUT "Modules loaded, initializing database connections\n";
 
