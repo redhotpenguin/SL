@@ -2,5 +2,6 @@ Changes
 Makefile.PL
 MANIFEST
 README
-t/SL-Timer.t
-lib/SL/Timer.pm
+t/RHP-Timer.t
+lib/RHP/Timer.pm
+META.yml                                 Module meta-data (added by MakeMaker)

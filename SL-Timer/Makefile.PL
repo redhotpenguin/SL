@@ -1,11 +1,11 @@
 use 5.008006;
 use ExtUtils::MakeMaker;
 WriteMakefile(
-              NAME      => 'SL::Timer',
+              NAME      => 'RHP::Timer',
               VERSION   => '0.1',
               PREREQ_PM => {Time::HiRes => '1.65'},
               (
-               ABSTRACT => 'The silverlining timer abstration',
+               ABSTRACT => 'The redhotpenguin hi-res timer abstration',
                AUTHOR   => 'Fred Moyer <fred@redhotpenguin.com'
               ),
              );
