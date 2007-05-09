@@ -62,7 +62,8 @@ sub new {
             require Carp
               && Carp::croak(
                     "No $sl_root/sl.conf or $sl_root/conf/sl.conf present, "
-                  . "did you symlink the conf directory to the httpd root?" );
+                  . "did you symlink the conf directory to the httpd root?"
+                  . "\nOr forget to set the environment variable SL_ROOT?" );
         }
         elsif ( -e "$sl_root/conf/sl.conf" ) {
 
