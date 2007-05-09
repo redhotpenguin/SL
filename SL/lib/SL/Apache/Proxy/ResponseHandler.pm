@@ -36,11 +36,10 @@ use SL::Model::Subrequest ();
 use SL::Model::RateLimit  ();
 use Data::Dumper          ();
 use Encode                ();
-use Time;
-: HiRes();
+use RHP::Timer            ();
 
-my $TIMER;
-our $VERBOSE_DEBUG = 1;
+my $TIMER = RHP::Timer->new();
+our $VERBOSE_DEBUG = 0;
 our %response_map = (
                      200 => 'twohundred',
                      404 => 'fourohfour',
@@ -153,7 +152,7 @@ BEGIN {
 sub handler {
     my $r = shift;
 
-    $TIMER = [Time::HiRes(gettimeofday)];
+    $TIMER->start('build_remote_request');
 
     # Build the request
     my %headers;
@@ -174,11 +173,19 @@ sub handler {
                               headers => \%headers,
                              }
                             );
+    # checkpoint
+    $r->log->info($TIMER->checkpoint());
 
-    # Make the request to the remote server
+    $TIMER->start('make_remote_request')
+      if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
+    
+	# Make the request to the remote server
     my $response = $SL_UA->request($proxy_request);
 
-    # Dispatch the response
+    # checkpoint
+    $r->log->info($TIMER->checkpoint());
+    
+	# Dispatch the response
     my $sub = $response_map{$response->code};
     unless (defined $sub) {
         $r->log->error(
@@ -288,7 +295,7 @@ sub _err_cookies_out {
     if (my @cookies = $response->header('set-cookie')) {
         foreach my $cookie (@cookies) {
             $r->log->debug("Adding cookie to headers_out: $cookie") 
-				if $VERBOSE_DEBUG;
+                if $VERBOSE_DEBUG;
             $r->err_headers_out->add('Set-Cookie' => $cookie);
         }
         $response->headers->remove_header('Set-Cookie');
@@ -297,14 +304,15 @@ sub _err_cookies_out {
 }
 
 sub twohundred {
-    my $r        = shift;
-    my $response = shift;
+    my ($r, $response) = @_;
+
+	$TIMER->start('twohundred');
 
     my $url = $response->request->uri;
     $r->log->debug("$$ Request to $url returned 200");
 
-    #VERBOSE
-    #$r->log->debug("$$ Response from server:  \n", $response->content);
+    $r->log->debug("$$ Response from server:  \n", $response->content)
+		if $VERBOSE_DEBUG;
 
     # Cache the content_type
     my $response_content;
@@ -314,6 +322,9 @@ sub twohundred {
     my $is_html = not SL::Util::not_html($response->content_type);
     $r->log->debug("$$ ===> $url is_html: $is_html");
 
+	$r->log->info($TIMER->checkpoint);
+
+	$TIMER->start('rate_limiter');
     # check the rate-limiter, if it's HTML
     my $rate_limit = SL::Model::RateLimit->new(r => $r);
     my $is_toofast;
@@ -321,7 +332,9 @@ sub twohundred {
         $is_toofast = $rate_limit->check_violation();
         $r->log->debug("$$ ===> $url check_violation: $is_toofast");
     }
+	$r->log->info($TIMER->checkpoint);
 
+	$TIMER->start('subrequest_check');
     # check for sub-reqs if it passed the other tests
     my $subrequest_tracker = SL::Model::Subrequest->new();
     my $is_subreq;
@@ -329,6 +342,7 @@ sub twohundred {
         $is_subreq = $subrequest_tracker->is_subrequest(url => $url);
         $r->log->debug("$$ ===> $url is_subreq: $is_subreq");
     }
+	$r->log->info($TIMER->checkpoint);
 
     # serve an ad if this is HTML and it's not a sub-request of an
     # ad-serving page, and it's not too soon after a previous ad was served
@@ -343,7 +357,9 @@ sub twohundred {
                                              base_url    => $url);
 
         # put the ad in the response
+		$TIMER->start('_generate_response');
         $response_content = _generate_response($r, $response);
+		$r->log->info($TIMER->checkpoint);
 
     }
     else {
@@ -352,6 +368,7 @@ sub twohundred {
         $response_content = $response->content;
     }
 
+	$TIMER->start('prepare_response_headers');
     # set the status line
     $r->status_line($response->status_line);
     $r->log->debug("status line is " . $response->status_line);
@@ -446,17 +463,21 @@ sub twohundred {
     $r->no_cache(1);
 
     $r->log->debug("$$ Request string before sending: " . $r->as_string)
-		if $VERBOSE_DEBUG;
+        if $VERBOSE_DEBUG;
 
     $r->log->debug("$$ Response content: " . $response_content) 
-		if $VERBOSE_DEBUG;
+        if $VERBOSE_DEBUG;
     
-	# rflush() flushes the headers to the client
+    # rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
     $r->rflush();
+	$r->log->info($TIMER->checkpoint);
 
+	$TIMER->start('print_response');
     # Print the response content
     $r->print($response_content);
+	$r->log->info($TIMER->checkpoint);
+
     return Apache2::Const::OK;
 }
 

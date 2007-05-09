@@ -102,9 +102,7 @@ sub handler {
     );
 
     # checkpoint
-    $r->log->info(
-         sprintf("$$ %s %s: %s", __PACKAGE__, $TIMER->current(), $TIMER->stop())
-    );
+    $r->log->info($TIMER->checkpoint);
 
     # reset the clock
     $TIMER->start('db_mod_proxy_filters')
@@ -144,18 +142,12 @@ sub handler {
     # we only serve ads on GETs
     return &proxy_request($r) if ($r->method ne 'GET');
 
-    ## <refactor>
     # checkpoint
-    $r->log->info(
-         sprintf(
-                 "$$ %s %s: %s", __PACKAGE__, $TIMER->current(), $TIMER->stop(),
-                )
-    );
+    $r->log->info($TIMER->checkpoint);
 
     # reset the clock
     $TIMER->start('examine_request')
       if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
-    ## </refactor>
 
     # we should examine this request
     if ($r->method eq 'GET') {
@@ -187,11 +179,7 @@ sub handler {
     $r->log->debug("EndTranshandler");
 
     # checkpoint
-    $r->log->info(
-         sprintf(
-                 "$$ %s %s: %s", __PACKAGE__, $TIMER->current(), $TIMER->stop(),
-                )
-    );
+    $r->log->info($TIMER->checkpoint);
 
     return Apache2::Const::OK;
 }
