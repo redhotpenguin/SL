@@ -11,8 +11,9 @@ SL::Apache::TransHandler
 
 =cut
 
-use SL::Model;
-use SL::Model::URL;
+use SL::Model      ();
+use SL::Model::URL ();
+use Time::HiRes    ();
 
 our $ext_regex;
 our $ua_regex;
@@ -83,24 +84,21 @@ sub not_a_main_request {
 sub handler {
     my $r = shift;
     
-    $r->log->info("$$ PerlTransHandler request");
-    
     my $url     = $r->construct_url($r->unparsed_uri);
-    $r->log->info("$$ PerlTransHandler request, uri $url");
     my $referer = $r->headers_in->{'referer'} || 'no_referer';
 
     $r->pnotes('url'     => $url);
     $r->pnotes('referer' => $referer);
-	my $ua = $r->pnotes('ua');
+    my $ua = $r->pnotes('ua');
 
-    $r->log->info("$$ PerlTransHandler Request for url $url, user-agent $ua, referer $referer");
+    $r->log->debug(sprintf("$$ PerlTransHandler Request for url $url, user-agent $ua, referer $referer");
 
-	# first check that a database handle is available
-	my $dbh = SL::Model->connect();
-	unless ($dbh) {
-		$r->log->error("Database has gone away, sending to mod_proxy");
+    # first check that a database handle is available
+    my $dbh = SL::Model->connect();
+    unless ($dbh) {
+        $r->log->error("Database has gone away, sending to mod_proxy");
         return &proxy_request($r);
-	}
+    }
 
     # allow /sl_secret_blacklist_button to pass through
     if ($url =~ m!/sl_secret_blacklist_button$!) {
@@ -112,11 +110,11 @@ sub handler {
         return Apache2::Const::DONE;
     }
     
-	if (user_blacklisted($r, $dbh)) {
+    if (user_blacklisted($r, $dbh)) {
         return &proxy_request($r);
-	}
+    }
     
-	if (url_blacklisted($url)) {
+    if (url_blacklisted($url)) {
         return &proxy_request($r);
     }
 
@@ -131,9 +129,9 @@ sub handler {
         return &proxy_request($r);
     }
 
-	if ($r->method ne 'GET') {
-		return &proxy_request($r);
-	}
+    if ($r->method ne 'GET') {
+        return &proxy_request($r);
+    }
 
     if ($r->method eq 'GET') {
 
@@ -169,17 +167,17 @@ sub handler {
 }
 
 sub user_blacklisted {
-	my ($r, $dbh) = @_;
+    my ($r, $dbh) = @_;
 
-	my $user_id = join("|", $r->connection->remote_ip, 
-		$r->pnotes('ua'), $r->construct_server());
+    my $user_id = join("|", $r->connection->remote_ip, 
+        $r->pnotes('ua'), $r->construct_server());
 
-	my $sth = $dbh->prepare("SELECT count(user_id) FROM user_blacklist WHERE user_id = ?");
-	$sth->bind_param(1, $user_id);
-	$sth->execute;
-	my $ary_ref = $sth->fetchrow_arrayref;
-	return 1 if $ary_ref->[0] > 0;
-	return;
+    my $sth = $dbh->prepare("SELECT count(user_id) FROM user_blacklist WHERE user_id = ?");
+    $sth->bind_param(1, $user_id);
+    $sth->execute;
+    my $ary_ref = $sth->fetchrow_arrayref;
+    return 1 if $ary_ref->[0] > 0;
+    return;
 }
 
 sub url_blacklisted {

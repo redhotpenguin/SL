@@ -34,9 +34,13 @@ use SL::UserAgent         ();
 use SL::Model::Ad         ();
 use SL::Model::Subrequest ();
 use SL::Model::RateLimit  ();
-use Data::Dumper qw( Dumper );
-use Encode ();
+use Data::Dumper          ();
+use Encode                ();
+use Time;
+: HiRes();
 
+my $TIMER;
+our $VERBOSE_DEBUG = 1;
 our %response_map = (
                      200 => 'twohundred',
                      404 => 'fourohfour',
@@ -48,6 +52,9 @@ our %response_map = (
                      304 => 'threeohfour',
                      307 => 'redirect',
                     );
+
+## Make a user agent
+my $SL_UA = SL::UserAgent->new;
 
 =head1 AD SERVING
 
@@ -146,16 +153,16 @@ BEGIN {
 sub handler {
     my $r = shift;
 
-    ## Make a user agent and request
-    my $ua = SL::UserAgent->new;
+    $TIMER = [Time::HiRes(gettimeofday)];
 
-    # and an http request
+    # Build the request
     my %headers;
     $r->headers_in->do(
         sub {
             my $k = shift;
             my $v = shift;
             $headers{$k} = $v;
+            return 1;    # don't remove me
         }
     );
 
@@ -169,7 +176,7 @@ sub handler {
                             );
 
     # Make the request to the remote server
-    my $response = $ua->request($proxy_request);
+    my $response = $SL_UA->request($proxy_request);
 
     # Dispatch the response
     my $sub = $response_map{$response->code};
@@ -191,7 +198,8 @@ sub bsod {
     my $r        = shift;
     my $response = shift;
 
-    $r->log->error("$$ Request returned 500, response ", Dumper($response));
+    $r->log->error("$$ Request returned 500, response ",
+                   Data::Dumper::Dumper($response));
     return Apache2::Const::SERVER_ERROR;
 }
 
@@ -199,16 +207,17 @@ sub badrequest {
     my $r        = shift;
     my $response = shift;
 
-    $r->log->error("$$ Request returned 400, response ", Dumper($response));
+    $r->log->error("$$ Request returned 400, response ",
+                   Data::Dumper::Dumper($response));
     return Apache2::Const::HTTP_BAD_REQUEST;
 }
 
 sub fourohfour {
-    my $r   = shift;
-    my $res = shift;
+    my ($r, $res)   = @_;
 
     # FIXME - set the proper headers out
-    $r->log->debug("$$ Request returned 404, response ", Dumper($res));
+    $r->log->debug("$$ Request returned 404, response ",
+                   Data::Dumper::Dumper($res));
     $r->status_line($res->status_line);
     my $content_type = $res->content_type;
     $r->content_type($content_type);
@@ -222,7 +231,8 @@ sub fourohone {
     my $res = shift;
 
     # FIXME - set the proper headers out
-    $r->log->error("$$ Request returned 401, response ", Dumper($res));
+    $r->log->error("$$ Request returned 401, response ",
+                   Data::Dumper::Dumper($res));
     $r->status_line($res->status_line);
     my $content_type = $res->content_type;
     $r->content_type($content_type);
@@ -230,7 +240,7 @@ sub fourohone {
 
     # method specific headers
     my @auth_headers = $res->header('www-authenticate');
-    $r->log->debug("Auth headers are " . Dumper(\@auth_headers));
+    $r->log->debug("Auth headers are " . Data::Dumper::Dumper(\@auth_headers));
     $r->err_headers_out->add('www-authenticate' => $_) for @auth_headers;
 
     _add_x_headers($r, $res);
@@ -247,7 +257,8 @@ sub _add_x_headers {
     my @x_header_names =
       grep { $_ =~ m{^x\-}i } $res->headers->header_field_names;
 
-    $r->log->debug("Found x-... headers: " . Dumper(\@x_header_names));
+    $r->log->debug(
+              "Found x-... headers: " . Data::Dumper::Dumper(\@x_header_names));
     foreach my $x_header (@x_header_names) {
         $r->err_headers_out->add($x_header => $res->header($x_header));
     }
@@ -259,7 +270,7 @@ sub redirect {
     my $response = shift;
 
     $r->log->info("$$ 302 redirect handler invoked");
-    $r->log->debug("$$ headers: ", Dumper($response->headers));
+    $r->log->debug("$$ headers: ", Data::Dumper::Dumper($response->headers));
 
     # set the status line
     $r->status_line($response->status_line);
@@ -268,7 +279,7 @@ sub redirect {
     ## Handle the redirect for the client
     $r->headers_out->set('Location' => $response->header('location'));
     _err_cookies_out($r, $response);
-    $r->log->debug("$$ Request: \n" . $r->as_string);
+    $r->log->debug("$$ Request: \n" . $r->as_string) if $VERBOSE_DEBUG;
     return Apache2::Const::REDIRECT;
 }
 
@@ -276,7 +287,8 @@ sub _err_cookies_out {
     my ($r, $response) = @_;
     if (my @cookies = $response->header('set-cookie')) {
         foreach my $cookie (@cookies) {
-            $r->log->debug("Adding cookie to headers_out: $cookie");
+            $r->log->debug("Adding cookie to headers_out: $cookie") 
+				if $VERBOSE_DEBUG;
             $r->err_headers_out->add('Set-Cookie' => $cookie);
         }
         $response->headers->remove_header('Set-Cookie');
@@ -289,7 +301,7 @@ sub twohundred {
     my $response = shift;
 
     my $url = $response->request->uri;
-    $r->log->info("$$ Request to $url returned 200");
+    $r->log->debug("$$ Request to $url returned 200");
 
     #VERBOSE
     #$r->log->debug("$$ Response from server:  \n", $response->content);
@@ -300,14 +312,14 @@ sub twohundred {
 
     # check to make sure it's HTML first
     my $is_html = not SL::Util::not_html($response->content_type);
-    $r->log->debug("===> $url is_html: $is_html");
+    $r->log->debug("$$ ===> $url is_html: $is_html");
 
     # check the rate-limiter, if it's HTML
     my $rate_limit = SL::Model::RateLimit->new(r => $r);
     my $is_toofast;
     if ($is_html) {
         $is_toofast = $rate_limit->check_violation();
-        $r->log->debug("===> $url check_violation: $is_toofast");
+        $r->log->debug("$$ ===> $url check_violation: $is_toofast");
     }
 
     # check for sub-reqs if it passed the other tests
@@ -315,7 +327,7 @@ sub twohundred {
     my $is_subreq;
     if ($is_html and not $is_toofast) {
         $is_subreq = $subrequest_tracker->is_subrequest(url => $url);
-        $r->log->debug("===> $url is_subreq: $is_subreq");
+        $r->log->debug("$$ ===> $url is_subreq: $is_subreq");
     }
 
     # serve an ad if this is HTML and it's not a sub-request of an
@@ -363,7 +375,9 @@ sub twohundred {
 
     # Create a hash with the HTTP::Response HTTP::Headers attributes
     $response->scan(sub { $headers{$_[0]} = $_[1]; });
-    $r->log->debug("Response headers: " . Dumper(\%headers));
+    $r->log->debug(
+               sprintf("Response headers: %s", Data::Dumper::Dumper(\%headers)))
+      if $VERBOSE_DEBUG;
 
     ## Set the response content type from the request, preserving charset
     my $content_type = $response->header('content-type');
@@ -431,10 +445,13 @@ sub twohundred {
     # maybe someday but not today
     $r->no_cache(1);
 
-    $r->log->debug("$$ Request string before sending: \n" . $r->as_string);
+    $r->log->debug("$$ Request string before sending: " . $r->as_string)
+		if $VERBOSE_DEBUG;
 
-    #$r->log->debug("$$ Response: \n" . $response_content);
-    # rflush() flushes the headers to the client
+    $r->log->debug("$$ Response content: " . $response_content) 
+		if $VERBOSE_DEBUG;
+    
+	# rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
     $r->rflush();
 
@@ -459,8 +476,7 @@ sub _generate_response {
     my ($ad_id, $ad_content_ref, $css_url) =
       SL::Model::Ad->random($r->connection->remote_ip);
 
-    # VERBOSE
-    $r->log->debug("Ad content is \n$$ad_content_ref\n");
+    $r->log->debug("Ad content is \n$$ad_content_ref\n") if $VERBOSE_DEBUG;
     unless ($ad_content_ref) {
         $r->log->error("$$ Hmm, we didn't get an ad");
         return $response->content;
@@ -498,9 +514,10 @@ sub _generate_response {
 
     # Check to see if the ad is inserted
     unless (grep($$ad_content_ref, $munged_resp)) {
-        $r->log->error("$$ Ad insertion failed! try_container is ",
-                       $try_container, "; response is ",
-                       Dumper($response));
+        $r->log->error(
+                       sprintf("$$ Ad insertion failed, response: %s",
+                               Data::Dumper::Dumper($response))
+                      );
         $r->log->error("$$ Munged response $munged_resp, ad $$ad_content_ref");
         return $response->content;
     }
@@ -509,7 +526,7 @@ sub _generate_response {
     $r->log->info("$$ Ad inserted for url $url; try_container: ",
                   $try_container, "; referer : $referer; ua : $ua;");
 
-    #$r->log->debug("Munged response is \n $$munged_resp");
+    $r->log->debug("Munged response is \n $$munged_resp") if $VERBOSE_DEBUG;
 
     # Log the ad view later
     $r->pnotes(log_data => [$r->connection->remote_ip, $ad_id]);
