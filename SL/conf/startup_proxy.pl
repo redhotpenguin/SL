@@ -44,12 +44,12 @@ use SL::Cache                           ();
 use SL::UserAgent                       ();
 use SL::HTTP::Request                   ();
 use SL::Util                            ();
+use RHP::Timer                          ();
 use DBI                                 ();
 use DBD::Pg                             ();
 use Data::Dumper                        ();
 use Sys::Load                           ();
 use Params::Validate                    ();
-use Time::HiRes                         ();    
 
 print STDOUT "Modules loaded, initializing database connections\n";
 
