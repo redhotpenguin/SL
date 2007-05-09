@@ -3,23 +3,26 @@
 use strict;
 use warnings;
 
-my $url = shift or die "No url passed!\n";
-my $port = shift or die "No port passed!\n";
-my $host = shift or die "using default host\n";
+my $msg = "\nperl sl_request http://www.foo.com/bar 80 foo.com\n\n";
+
+my $url  = shift or die $msg;
+my $port = shift or die $msg;
+my $host = shift or die $msg;
 
 use Time::HiRes qw(gettimeofday tv_interval);
 use SL::Client::HTTP;
 
-my $start = [ gettimeofday ];
+my $start = [gettimeofday];
 my $response = SL::Client::HTTP->get(
-	url => $url,
-	host => $host,
-	port => $port,
-);
+                                     url  => $url,
+                                     host => $host,
+                                     port => $port,
+                                    );
 my $end = tv_interval($start, [gettimeofday]);
 
 use Data::Dumper;
-print Dumper($response);
+
+#print Dumper($response);
 
 print sprintf("\nTime: %s\n", $end);
 
