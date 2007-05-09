@@ -7,7 +7,7 @@ use Test::More tests => 13;
 
 my $pkg;
 BEGIN {
-   $pkg = 'SL::Timer';
+   $pkg = 'RHP::Timer';
    use_ok($pkg);
 }
 

@@ -1,4 +1,4 @@
-package SL::Timer;
+package RHP::Timer;
 
 use strict;
 use warnings;
