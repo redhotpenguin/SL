@@ -6,7 +6,7 @@ sl_data_root /tmp/data/sl
 sl_ip_cache_file	/tmp/sl_ips
 
 # configure the database connection
-sl_db_name  sl
+sl_db_name  sl2
 sl_db_host	localhost
 sl_db_user  sl
 sl_db_user  phred
