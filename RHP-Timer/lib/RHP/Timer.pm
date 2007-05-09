@@ -5,6 +5,8 @@ use warnings;
 
 use Time::HiRes ();
 
+our $VERSION = 0.1;
+
 sub new {
     my ($class) = @_;
     my $self = {};
