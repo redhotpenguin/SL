@@ -1,0 +1,16 @@
+#!perl;
+
+use strict;
+use warnings;
+
+use FindBin qw($Bin);
+
+chdir("$Bin/../conf/");
+`rm httpd && rm apxs && rm sl.conf`;
+`ln -s /home/fred/dev/sl/httpd2/bin/httpd .`;
+`ln -s /home/fred/dev/sl/httpd2/bin/apxs .`;
+`ln -s sl.conf.dev sl.conf`;
+
+print "Finished configuring dev server\n";
+
+1;

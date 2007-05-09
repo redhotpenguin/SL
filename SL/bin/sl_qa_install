@@ -1,0 +1,16 @@
+#!perl;
+
+use strict;
+use warnings;
+
+use FindBin qw($Bin);
+
+chdir("$Bin/../conf/");
+`rm httpd && rm apxs && rm sl.conf`;
+`ln -s /home/phred/dev/httpd2/bin/httpd .`;
+`ln -s /home/phred/dev/httpd2/bin/apxs .`;
+`ln -s sl.conf.qa sl.conf`;
+
+print "Finished configuring qa server\n";
+
+1;
