@@ -15,21 +15,22 @@ use SL::Model      ();
 use SL::Model::URL ();
 use Time::HiRes    ();
 
-our $ext_regex;
-our $ua_regex;
-our $DEBUG = 0;
+our $EXT_REGEX;
+our $UA_REGEX;
+our $VERBOSE_DEBUG = 0;
 
 BEGIN {
     require Regexp::Assemble;
-    
+
     ## Extension based matching
     my @extensions = qw(
       ad avi bz2 css doc exe fla gif gz ico jpeg jpg js pdf png ppt rar sit
       rss tgz txt wmv vob xpi zip );
 
-    $ext_regex = Regexp::Assemble->new;
-    $ext_regex->add(@extensions);
-    print STDERR "Regex for static content match is ", $ext_regex->re, "\n\n" if $DEBUG;
+    $EXT_REGEX = Regexp::Assemble->new;
+    $EXT_REGEX->add(@extensions);
+    print STDERR "Regex for static content match is ", $EXT_REGEX->re, "\n\n"
+      if $DEBUG;
 }
 
 use Apache2::Const -compile =>
@@ -56,7 +57,7 @@ sub proxy_request {
 
 sub static_content_uri {
     my $url = shift;
-    if ($url =~ m{\.(?:$ext_regex)$}i) {
+    if ($url =~ m{\.(?:$EXT_REGEX)$}i) {
         return 1;
     }
 }
@@ -83,15 +84,19 @@ sub not_a_main_request {
 
 sub handler {
     my $r = shift;
-    
-    my $url     = $r->construct_url($r->unparsed_uri);
+
+    my $url = $r->construct_url($r->unparsed_uri);
     my $referer = $r->headers_in->{'referer'} || 'no_referer';
 
     $r->pnotes('url'     => $url);
     $r->pnotes('referer' => $referer);
     my $ua = $r->pnotes('ua');
 
-    $r->log->debug(sprintf("$$ PerlTransHandler Request for url $url, user-agent $ua, referer $referer");
+    $r->log->debug(
+        sprintf(
+"$$ PerlTransHandler Request for url $url, user-agent $ua, referer $referer"
+        )
+    );
 
     # first check that a database handle is available
     my $dbh = SL::Model->connect();
@@ -109,11 +114,11 @@ sub handler {
     if ($url =~ m!/sl_secret_ping_button$!) {
         return Apache2::Const::DONE;
     }
-    
+
     if (user_blacklisted($r, $dbh)) {
         return &proxy_request($r);
     }
-    
+
     if (url_blacklisted($url)) {
         return &proxy_request($r);
     }
@@ -169,10 +174,13 @@ sub handler {
 sub user_blacklisted {
     my ($r, $dbh) = @_;
 
-    my $user_id = join("|", $r->connection->remote_ip, 
-        $r->pnotes('ua'), $r->construct_server());
+    my $user_id = join("|",
+                       $r->connection->remote_ip, $r->pnotes('ua'),
+                       $r->construct_server());
 
-    my $sth = $dbh->prepare("SELECT count(user_id) FROM user_blacklist WHERE user_id = ?");
+    my $sth =
+      $dbh->prepare(
+                 "SELECT count(user_id) FROM user_blacklist WHERE user_id = ?");
     $sth->bind_param(1, $user_id);
     $sth->execute;
     my $ary_ref = $sth->fetchrow_arrayref;
@@ -193,7 +201,7 @@ sub _not_a_browser {
 
     # all browsers start with Mozilla, at least in apache
     if (substr($r->pnotes('ua'), 0, 7) eq 'Mozilla') {
-      return;
+        return;
     }
 
     $r->log->debug("$$ This is not a browser: " . $r->pnotes('ua'));
@@ -219,7 +227,7 @@ sub mod_proxy {
 }
 
 sub perlbal {
-    my $r     = shift;
+    my $r = shift;
 
     ##########
     # Use perlbal to do the proxying
