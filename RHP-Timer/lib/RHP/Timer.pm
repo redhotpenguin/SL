@@ -36,4 +36,16 @@ sub current {
     return $self->{_current};
 }
 
+sub checkpoint {
+	my $self = shift;
+	my $stop = $self->stop;
+	return ( caller, $self->current, $self->stop);
+#	return sprintf("$$ %s %s: %s", (caller())[0], $self->current, $stop);
+}
+
+sub last_interval {
+	my $self = shift;
+	return $self->{$self->{_current}}->{interval};
+}
+
 1;
