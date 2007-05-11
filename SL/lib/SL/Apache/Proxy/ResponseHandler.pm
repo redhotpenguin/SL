@@ -323,7 +323,7 @@ sub twohundred {
     $r->log->debug("$$ Request to $url returned 200");
 
     # Cache the content_type
-    my $response_content;
+    my $response_content_ref;
     SL::Cache::stash($url => $response->content_type);
 
     # check to make sure it's HTML first
@@ -377,12 +377,12 @@ sub twohundred {
         $r->log->info(sprintf("timer $$ %s %d %s %f",
             @{$TIMER->checkpoint}[0,2..4]));
 
-        $response_content = _generate_response($r, $response);
+        $response_content_ref = _generate_response($r, $response);
     }
     else {
 
         # this is not html
-        $response_content = $response->content;
+        $response_content_ref = \$response->content;
     }
 
     $TIMER->start('prepare_response_headers')
@@ -483,7 +483,7 @@ sub twohundred {
     $r->log->debug("$$ Request string before sending: " . $r->as_string)
         if $VERBOSE_DEBUG;
 
-    $r->log->debug("$$ Response content: " . $response_content) 
+    $r->log->debug("$$ Response content: " . $$response_content_ref) 
         if $VERBOSE_DEBUG;
     
     # rflush() flushes the headers to the client
@@ -497,7 +497,7 @@ sub twohundred {
     # Print the response content
     $TIMER->start('print_response')
         if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
-    $r->print($response_content);
+    $r->print($response_content_ref);
     # checkpoint
     $r->log->info(sprintf("timer $$ %s %d %s %f",
         @{$TIMER->checkpoint}[0,2..4]));
@@ -577,7 +577,7 @@ sub _generate_response {
     }
 
     # We've made it this far so we're looking good
-    $r->log->info("$$ Ad inserted for url $url; try_container: ",
+    $r->log->debug("$$ Ad inserted for url $url; try_container: ",
                   $try_container, "; referer : $referer; ua : $ua;");
 
     $r->log->debug("Munged response is \n $munged_resp") if $VERBOSE_DEBUG;
@@ -598,7 +598,7 @@ sub _generate_response {
         $munged_resp = Encode::encode($charset, $munged_resp);
     }
 
-    return $munged_resp;
+    return \$munged_resp;
 }
 
 # figure out what charset a reponse was made in, code adapted from
