@@ -5,7 +5,7 @@ WriteMakefile(
               VERSION   => '0.1',
               PREREQ_PM => {Time::HiRes => '1.65'},
               (
-               ABSTRACT => 'The redhotpenguin hi-res timer abstration',
+               ABSTRACT => 'The RedHotPenguin high resolution timer abstration',
                AUTHOR   => 'Fred Moyer <fred@redhotpenguin.com'
               ),
              );

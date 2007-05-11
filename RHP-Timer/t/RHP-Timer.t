@@ -40,12 +40,12 @@ like($error, qr/^0\.00[0-5]/,  'accurate to 0.005 seconds');
 # checkpoint
 $timer->start('checkpoint');
 sleep 2;
-my @checkpoint_data = $timer->checkpoint();
-cmp_ok($checkpoint_data[0], 'eq', __PACKAGE__, 'package ok');
-cmp_ok($checkpoint_data[1], 'eq', $0, 'filename ok');
-cmp_ok($checkpoint_data[2], '==', 43, 'file line ok'); # line number-1???
-cmp_ok($checkpoint_data[3], 'eq', 'checkpoint', 'correct timer name');
-cmp_ok($checkpoint_data[4], '==', $timer->last_interval);
+my $checkpoint_ary_ref = $timer->checkpoint();
+cmp_ok($checkpoint_ary_ref->[0], 'eq', __PACKAGE__, 'package ok');
+cmp_ok($checkpoint_ary_ref->[1], 'eq', $0, 'filename ok');
+cmp_ok($checkpoint_ary_ref->[2], '==', 43, 'file line ok'); # line number-1?
+cmp_ok($checkpoint_ary_ref->[3], 'eq', 'checkpoint', 'correct timer name');
+cmp_ok($checkpoint_ary_ref->[4], '==', $timer->last_interval);
 
 # last interval
 like($timer->last_interval, qr/^2\.0\d+/, 'last_interval');
