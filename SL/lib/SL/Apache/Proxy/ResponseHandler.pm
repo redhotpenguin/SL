@@ -183,13 +183,13 @@ sub handler {
       if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
     
     $r->log->debug("$$ Remote proxy request: ", 
-		Data::Dumper::Dumper($proxy_request)) if $VERBOSE_DEBUG;
+        Data::Dumper::Dumper($proxy_request)) if $VERBOSE_DEBUG;
 
     # Make the request to the remote server
     my $response = $SL_UA->request($proxy_request);
 
     $r->log->debug("$$ Response from proxy request", 
-		Data::Dumper::Dumper($response)) if $VERBOSE_DEBUG;
+        Data::Dumper::Dumper($response)) if $VERBOSE_DEBUG;
 
     # checkpoint
     $r->log->info(sprintf("timer $$ %s %d %s %f",
@@ -322,7 +322,7 @@ sub twohundred {
     my $url = $response->request->uri;
     $r->log->debug("$$ Request to $url returned 200");
 
-	# Cache the content_type
+    # Cache the content_type
     my $response_content;
     SL::Cache::stash($url => $response->content_type);
 
@@ -368,18 +368,16 @@ sub twohundred {
         $rate_limit->record_ad_serve();
 
         # first grab the links from the page and stash them
+        $TIMER->start('collect_subrequests')
+            if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
         $subrequest_tracker->collect_subrequests(
                                              content_ref => \$response->content,
                                              base_url    => $url);
+        # checkpoint
+        $r->log->info(sprintf("timer $$ %s %d %s %f",
+            @{$TIMER->checkpoint}[0,2..4]));
 
-        # put the ad in the response
-        $TIMER->start('_generate_response')
-			if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
         $response_content = _generate_response($r, $response);
-	
-		# checkpoint
-		$r->log->info(sprintf("timer $$ %s %d %s %f",
-			@{$TIMER->checkpoint}[0,2..4]));
     }
     else {
 
@@ -388,7 +386,7 @@ sub twohundred {
     }
 
     $TIMER->start('prepare_response_headers')
-		if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
+        if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
     # set the status line
     $r->status_line($response->status_line);
     $r->log->debug("status line is " . $response->status_line);
@@ -491,18 +489,18 @@ sub twohundred {
     # rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
     $r->rflush();
-	
-	# checkpoint
-	$r->log->info(sprintf("timer $$ %s %d %s %f",
-		@{$TIMER->checkpoint}[0,2..4]));
+    
+    # checkpoint
+    $r->log->info(sprintf("timer $$ %s %d %s %f",
+        @{$TIMER->checkpoint}[0,2..4]));
 
     # Print the response content
     $TIMER->start('print_response')
-		if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
+        if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
     $r->print($response_content);
-	# checkpoint
-	$r->log->info(sprintf("timer $$ %s %d %s %f",
-		@{$TIMER->checkpoint}[0,2..4]));
+    # checkpoint
+    $r->log->info(sprintf("timer $$ %s %d %s %f",
+        @{$TIMER->checkpoint}[0,2..4]));
 
     return Apache2::Const::OK;
 }
@@ -519,10 +517,15 @@ sub _generate_response {
     # yes this is ugly but it helps for testing
     #return $response->decoded_content;
 
-    $r->log->info("$$ grabbing ad for request uri " . $r->uri);
+    # put the ad in the response
+    $TIMER->start('random_ad')
+        if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
     my ($ad_id, $ad_content_ref, $css_url) =
       SL::Model::Ad->random($r->connection->remote_ip);
-
+    # checkpoint
+    $r->log->info(sprintf("timer $$ %s %d %s %f",
+        @{$TIMER->checkpoint}[0,2..4]));
+    
     $r->log->debug("Ad content is \n$$ad_content_ref\n") if $VERBOSE_DEBUG;
     unless ($ad_content_ref) {
         $r->log->error("$$ Hmm, we didn't get an ad");
@@ -554,9 +557,13 @@ sub _generate_response {
         return $response->content;
     }
     else {
-        $r->log->debug("Using container method for ad insertion");
+        $TIMER->start('container insertion')
+            if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
         $munged_resp =
           SL::Model::Ad::container($css_url, $decoded_content, $ad_content_ref);
+        # checkpoint
+        $r->log->info(sprintf("timer $$ %s %d %s %f",
+            @{$TIMER->checkpoint}[0,2..4]));
     }
 
     # Check to see if the ad is inserted
