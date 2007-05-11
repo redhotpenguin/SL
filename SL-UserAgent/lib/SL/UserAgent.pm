@@ -9,7 +9,7 @@ use HTTP::Cookies ();
 sub new {
 
     # shifty yet super, we will handle redirects
-    my $ua = shift->SUPER::new(max_redirect => 0);
+    my $ua = shift->SUPER::new(max_redirect => 0, keep_alive => 10);
 
     # Cookies, yummy yummy
     $ua->cookie_jar(HTTP::Cookies->new());
