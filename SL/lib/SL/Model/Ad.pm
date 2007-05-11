@@ -19,36 +19,37 @@ This serves ads, ya see?
 
 use constant CLICKSERVER_URL    => 'http://64.151.90.20:81/click/';
 use constant SILVERLINING_AD_ID => "/795da10ca01f942fd85157d8be9e832e";
-use constant DEFAULT_BUG_LINK   => 
+use constant DEFAULT_BUG_LINK =>
   'http://www.redhotpenguin.com/images/sl/free_wireless.gif';
-use constant DEFAULT_REG_ID => 14;
-use constant  OCC_IP => '198.145.32.11';
-use constant  OCC_LINK => 'http://www.nwfoodserviceshow.com/2007_Site/index.shtml';
-use constant  LINKTOADS_IP => '74.39.199.115';
+use constant DEFAULT_REG_ID  => 14;
+use constant OCC_IP          => '198.145.32.11';
+use constant LINKTOADS_IP    => '74.39.199.115';
 use constant LINKTOADS_AD_ID => 107;
-use constant LINKTOADS_CSS_URL => 'http://www.redhotpenguin.com/css/linktoads.css';
-use constant SL_CSS_URL => 'http://www.redhotpenguin.com/css/sl.css';
+use constant LINKTOADS_CSS_URL =>
+  'http://www.redhotpenguin.com/css/linktoads.css';
+use constant SL_CSS_URL  => 'http://www.redhotpenguin.com/css/sl.css';
+use constant OCC_CSS_URL => 'http://www.redhotpenguin.com/css/occ.css';
 
 my ($template, $config);
-our( $log_view_sql, %sl_ad_data );
+our ($log_view_sql, %sl_ad_data);
 
 BEGIN {
-  require SL::Config;
-  $config = SL::Config->new;
+    require SL::Config;
+    $config = SL::Config->new;
 
     $log_view_sql = <<SQL;
 INSERT INTO view
 ( ad_id, ip ) values ( ?, ? )
 SQL
 
-	my $path = $config->sl_root . '/tmpl/';
-	die "Template include path $path doesn't exist!\n" unless -d $path;
+    my $path = $config->sl_root . '/tmpl/';
+    die "Template include path $path doesn't exist!\n" unless -d $path;
     my $tmpl_config = {
-        ABSOLUTE     => 1,
-        INCLUDE_PATH =>  $config->sl_root . '/tmpl/',
-    };
+                       ABSOLUTE     => 1,
+                       INCLUDE_PATH => $config->sl_root . '/tmpl/',
+                      };
     $template = Template->new($tmpl_config) || die $Template::ERROR, "\n";
-    %sl_ad_data = ( sl_link => CLICKSERVER_URL . SILVERLINING_AD_ID );
+    %sl_ad_data = (sl_link => CLICKSERVER_URL . SILVERLINING_AD_ID);
 
 }
 
@@ -63,7 +64,7 @@ Method for ad insertion which wraps the whole page in a stylesheet
 =cut
 
 sub container {
-    my ( $css_url, $decoded_content, $ad ) = @_;
+    my ($css_url, $decoded_content, $ad) = @_;
 
     my $link = qq{<link rel="stylesheet" href="$css_url" type="text/css" />};
 
@@ -102,7 +103,7 @@ The ad content
 =cut
 
 sub body_regex {
-    my ( $decoded_content, $ad ) = @_;
+    my ($decoded_content, $ad) = @_;
     $decoded_content =~ s{^(.*?)<body([^>]*?)>}{$1<body$2>$$ad}isxm;
     return $decoded_content;
 }
@@ -115,9 +116,9 @@ inline with the original request response.
 =cut
 
 sub stacked {
-    my ( $decoded_content, $ad ) = @_;
+    my ($decoded_content, $ad) = @_;
     my $html = qq{<html><body>$$ad</body></html>};
-    $decoded_content = join ( "\n", $html, $decoded_content );
+    $decoded_content = join("\n", $html, $decoded_content);
     return $decoded_content;
 }
 
@@ -153,7 +154,7 @@ SQL
 
 sub _sl_feed {
     my ($class, $ip) = @_;
-    
+
     # only linkshare for right now
     my $sql = <<SQL;
 SELECT
@@ -170,7 +171,7 @@ SQL
 
     my $dbh = SL::Model->connect();
     my $sth = $dbh->prepare($sql);
-    my $rv = $sth->execute;
+    my $rv  = $sth->execute;
     die "Problem executing query: $sql" unless $rv;
 
     my $ad_data = $sth->fetchrow_hashref;
@@ -201,7 +202,7 @@ SQL
     my $dbh = SL::Model->connect();
     my $sth = $dbh->prepare($sql);
     $sth->bind_param(1, $ip);
-	my $rv = $sth->execute;
+    my $rv = $sth->execute;
     die "Problem executing query: $sql" unless $rv;
 
     my $ad_data = $sth->fetchrow_hashref;
@@ -211,82 +212,90 @@ SQL
 }
 
 sub _bug_link {
-  my ($class, $ip) = @_;
+    my ($class, $ip) = @_;
 
-  my $sql = <<SQL;
+    my $sql = <<SQL;
 SELECT reg_id FROM router WHERE router.ip = ?
 SQL
     my $dbh = SL::Model->connect();
     my $sth = $dbh->prepare($sql);
     $sth->bind_param(1, $ip);
-	my $rv = $sth->execute;
+    my $rv = $sth->execute;
     die "Problem executing query: $sql" unless $rv;
     my $ary_ref = $sth->fetchrow_arrayref;
-    return DEFAULT_BUG_LINK unless $ary_ref; # unregistered router
-    
+    return DEFAULT_BUG_LINK unless $ary_ref;    # unregistered router
+
     my $reg_id = $ary_ref->[0];
     if (-e join('/', $config->sl_data_root, $reg_id, $ip, 'img/logo.gif')) {
-      my $link = join('/', $config->get('sl_app_static_host'),
-		  'images/sl/user', $reg_id, $ip, 'logo.gif');
-      return $link;
+        my $link = join('/',
+                        $config->get('sl_app_static_host'),
+                        'images/sl/user', $reg_id, $ip, 'logo.gif');
+        return $link;
     }
-  
+
     return DEFAULT_BUG_LINK;
 }
 
 # this method returns a random ad, given the ip of the router
 sub random {
-    my ( $class, $ip ) = @_;
+    my ($class, $ip) = @_;
 
     # figure out what ad to serve.
     # current logic says  use default/custom ad groups 25% of the time
     # and our feeds 75% of the time
-    my $feed_threshold = 100;
+    my $feed_threshold   = 100;
     my $custom_threshold = 25;
     my $ad_data;
     my $rand = rand(100);
-	if ($rand >= $feed_threshold) {
-		$ad_data = $class->_sl_feed($ip);
-		   } elsif ( $rand >= $custom_threshold ) {
+    if ($rand >= $feed_threshold) {
+        $ad_data = $class->_sl_feed($ip);
+    }
+    elsif ($rand >= $custom_threshold) {
         $ad_data = $class->_sl_ad($ip);
-		 }
-
-    unless (exists $ad_data->{'text'}) {
-      $ad_data = $class->_sl_default();
     }
 
- 	my %tmpl_vars = ( 
-        ad_link  => CLICKSERVER_URL . $ad_data->{'md5'},
-        ad_text  => $ad_data->{'text'},
-        bug_link => $class->_bug_link($ip)  );
+    unless (exists $ad_data->{'text'}) {
+        $ad_data = $class->_sl_default();
+    }
 
-	my $output;
-    
-	if ($ip eq LINKTOADS_IP) {
-		$template->process( 'linktoads.tmpl',
-        {%tmpl_vars, %sl_ad_data}, \$output )
+    my %tmpl_vars = (
+                     ad_link  => CLICKSERVER_URL . $ad_data->{'md5'},
+                     ad_text  => $ad_data->{'text'},
+                     bug_link => $class->_bug_link($ip)
+                    );
+
+    my $output;
+
+    # linktoads
+    if ($ip eq LINKTOADS_IP) {
+        $template->process('linktoads.tmpl', {%tmpl_vars, %sl_ad_data},
+                           \$output)
+          || die $template->error(), "\n";
+
+        return (LINKTOADS_AD_ID, \$output, LINKTOADS_CSS_URL);
+    }
+    # OCC
+    elsif ($ip eq OCC_IP) {
+        $template->process('occ.tmpl', {%tmpl_vars, %sl_ad_data}, \$output)
+          || die $template->error(), "\n";
+        return ($ad_data->{'ad_id'}, \$output, OCC_CSS_URL);
+    }
+
+    # everybody else
+    $template->process($ad_data->{'template'} . '.tmpl',
+                       {%tmpl_vars, %sl_ad_data}, \$output)
       || die $template->error(), "\n";
 
-		return (LINKTOADS_AD_ID, \$output, LINKTOADS_CSS_URL);
-    } else {
-		if ($ip eq OCC_IP) {
-			$sl_ad_data{'sl_link'} = OCC_LINK;
-		}
-		$template->process( $ad_data->{'template'} . '.tmpl',
-        {%tmpl_vars, %sl_ad_data}, \$output )
-      || die $template->error(), "\n";
-
-	return ($ad_data->{'ad_id'}, \$output, SL_CSS_URL);
-	}
+    return ($ad_data->{'ad_id'}, \$output, SL_CSS_URL);
 }
 
 sub log_view {
-    my ( $class, $ip, $ad_id ) = @_;
+    my ($class, $ip, $ad_id) = @_;
 
     my $dbh = SL::Model->db_Main();
     my $sth = $dbh->prepare($log_view_sql);
-    $sth->bind_param( 1, $ad_id);
-    $sth->bind_param( 2, $ip );
+    $sth->bind_param(1, $ad_id);
+    $sth->bind_param(2, $ip);
     my $rv = $sth->execute;
     $sth->finish;
     return 1 if $rv;
