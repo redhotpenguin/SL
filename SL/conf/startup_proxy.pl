@@ -32,24 +32,38 @@ use Apache2::RequestUtil                ();
 use Apache2::ServerRec                  ();
 use Apache2::ServerUtil                 ();
 use Apache2::SubRequest                 ();
+use Apache2::Status                     ();
 use APR::Table                          ();
+
 use SL::Model                           ();
 use SL::Model::Ad                       ();
 use SL::Model::Subrequest               ();
+use SL::Model::Ratelimit                ();
+use SL::Model::URL                      ();
+
 use SL::Apache::Proxy::TransHandler     ();
 use SL::Apache::Proxy::ResponseHandler  ();
 use SL::Apache::Proxy::BlacklistHandler ();
 use SL::Apache::Proxy::LogHandler       ();
+
 use SL::Cache                           ();
 use SL::UserAgent                       ();
 use SL::HTTP::Request                   ();
 use SL::Util                            ();
+
 use RHP::Timer                          ();
+
+use Digest::MD5                         ();
 use DBI                                 ();
+DBI->install_driver('Pg')               ();
 use DBD::Pg                             ();
 use Data::Dumper                        ();
 use Sys::Load                           ();
 use Params::Validate                    ();
+use Encode                              ();
+use Template                            ();
+use URI                                 ();
+use Regexp::Assemble                    ();
 
 print STDOUT "Modules loaded, initializing database connections\n";
 
