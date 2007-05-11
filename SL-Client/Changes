@@ -1,5 +1,6 @@
 Revision history for Perl extension SL-Client.
-
+0.5-dev
+	- added verbose option to sl_request
 0.4 - high performance through tcp level client proxying
     - sl_ipq tcp level utility [phred]
 0.3  Sun Apr 1 12:16:00 2007
