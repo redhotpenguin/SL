@@ -1,5 +1,10 @@
+0.7
+- working makefile (yay!)
+- split the ball of mud up into manageable modules
 - chomp the response headers so they don't creep into the response [fred]
 - add http 1.1 headers [fred]
 - add rlinks which stashes page links in connection pnotes [fred]
 - add Changelog [fred]
-sl5 release
+
+sl5
+- ??

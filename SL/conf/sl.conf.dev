@@ -1,5 +1,5 @@
-sl_root  /home/fred/dev/sl/SL
-sl_httpd_root  /home/phred/dev/sl/httpd2
+sl_root  /home/fred/dev/sl/trunk/SL
+sl_httpd_root  /home/fred/dev/sl/httpd2
 sl_version  trunk
 
 sl_data_root /tmp/data/sl
@@ -9,10 +9,10 @@ sl_ip_cache_file	/tmp/sl_ips
 sl_db_name  sl2
 sl_db_host	localhost
 sl_db_user  sl
-sl_db_user  phred
+sl_db_user  fred
 sl_db_pass  
 sl_db_ping_timeout 5
-sl_db_debug 2
+sl_db_debug 0
 
 # debugging levels, etc.  debug is single user mode
 sl_devel  1
@@ -25,10 +25,10 @@ sl_proxy_apache_maxclients  32
 sl_proxy_apache_start_servers  16
 sl_proxy_apache_max_spare_servers  8
 sl_proxy_apache_min_spare_servers  16
-sl_proxy_apache_loglevel  debug
+sl_proxy_apache_loglevel  info
 sl_proxy_apache_keepalive  On
-sl_proxy_apache_user  phred
-sl_proxy_apache_group  phred
+sl_proxy_apache_user  fred
+sl_proxy_apache_group  apache
 sl_proxy_admin support@silverliningnetworks.com
 sl_proxy_servername  sl_proxy
 sl_proxy_rate_limit '5 sec'
@@ -46,14 +46,14 @@ sl_css_uri  http://www.redhotpenguin.com/css/sl.css
 # app server settings
 sl_app_servername  sl_proxy
 #sl_app_apache_deflate  1
-sl_app_apache_loglevel  debug
+sl_app_apache_loglevel  info
 sl_app_apache_maxclients  8
 sl_app_apache_start_servers  4
 sl_app_apache_min_spare_servers  4
 sl_app_apache_max_spare_servers  8
 sl_app_apache_keepalive  On
-sl_app_apache_user  phred
-sl_app_apache_group  phred
+sl_app_apache_user  fred
+sl_app_apache_group  fred
 sl_app_http_port  7777
 sl_app_cookie_name SLApp
 sl_app_auth_uri /login
@@ -61,4 +61,4 @@ sl_app_auth_secret kEa+!&MrJ=EzTjup@YWB-bF#&KLmxSH$bj=W#rkn_c?wem+BP!BxLmVWr@#XP
 sl_app_static_host_ip 10.0.0.1
 sl_app_static_path '/var/www/redhotpenguin.com/images'
 sl_app_static_host 'http://www.redhotpenguin.com'
-sl_app_static_user phred
+sl_app_static_user fred

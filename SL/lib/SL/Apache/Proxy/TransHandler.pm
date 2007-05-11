@@ -102,7 +102,8 @@ sub handler {
     );
 
     # checkpoint
-    $r->log->info($TIMER->checkpoint);
+    $r->log->info(sprintf("timer $$ %s %d %s %f",
+        @{$TIMER->checkpoint}[0,2..4]));
 
     # reset the clock
     $TIMER->start('db_mod_proxy_filters')
@@ -143,8 +144,9 @@ sub handler {
     return &proxy_request($r) if ($r->method ne 'GET');
 
     # checkpoint
-    $r->log->info($TIMER->checkpoint);
-
+    $r->log->info(sprintf("timer $$ %s %d %s %f",
+        @{$TIMER->checkpoint}[0,2..4]));
+    
     # reset the clock
     $TIMER->start('examine_request')
       if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
@@ -177,10 +179,11 @@ sub handler {
         }
     }
     $r->log->debug("EndTranshandler");
-
+    
     # checkpoint
-    $r->log->info($TIMER->checkpoint);
-
+    $r->log->info(sprintf("timer $$ %s %d %s %f",
+        @{$TIMER->checkpoint}[0,2..4]));
+   
     return Apache2::Const::OK;
 }
 

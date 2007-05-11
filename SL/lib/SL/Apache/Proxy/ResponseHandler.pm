@@ -152,7 +152,8 @@ BEGIN {
 sub handler {
     my $r = shift;
 
-    $TIMER->start('build_remote_request');
+    $TIMER->start('build_remote_request')
+      if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
 
     # Build the request
     my %headers;
@@ -173,19 +174,28 @@ sub handler {
                               headers => \%headers,
                              }
                             );
+    
     # checkpoint
-    $r->log->info($TIMER->checkpoint());
-
+    $r->log->info(sprintf("timer $$ %s %d %s %f",
+        @{$TIMER->checkpoint}[0,2..4]));
+    
     $TIMER->start('make_remote_request')
       if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
     
-	# Make the request to the remote server
+    $r->log->debug("$$ Remote proxy request: ", 
+		Data::Dumper::Dumper($proxy_request)) if $VERBOSE_DEBUG;
+
+    # Make the request to the remote server
     my $response = $SL_UA->request($proxy_request);
 
+    $r->log->debug("$$ Response from proxy request", 
+		Data::Dumper::Dumper($response)) if $VERBOSE_DEBUG;
+
     # checkpoint
-    $r->log->info($TIMER->checkpoint());
+    $r->log->info(sprintf("timer $$ %s %d %s %f",
+        @{$TIMER->checkpoint}[0,2..4]));
     
-	# Dispatch the response
+    # Dispatch the response
     my $sub = $response_map{$response->code};
     unless (defined $sub) {
         $r->log->error(
@@ -306,15 +316,13 @@ sub _err_cookies_out {
 sub twohundred {
     my ($r, $response) = @_;
 
-	$TIMER->start('twohundred');
+    $TIMER->start('twohundred')
+      if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
 
     my $url = $response->request->uri;
     $r->log->debug("$$ Request to $url returned 200");
 
-    $r->log->debug("$$ Response from server:  \n", $response->content)
-		if $VERBOSE_DEBUG;
-
-    # Cache the content_type
+	# Cache the content_type
     my $response_content;
     SL::Cache::stash($url => $response->content_type);
 
@@ -322,27 +330,35 @@ sub twohundred {
     my $is_html = not SL::Util::not_html($response->content_type);
     $r->log->debug("$$ ===> $url is_html: $is_html");
 
-	$r->log->info($TIMER->checkpoint);
+    # checkpoint
+    $r->log->info(sprintf("timer $$ %s %d %s %f",
+        @{$TIMER->checkpoint}[0,2..4]));
 
-	$TIMER->start('rate_limiter');
     # check the rate-limiter, if it's HTML
+    $TIMER->start('rate_limiter')
+      if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
     my $rate_limit = SL::Model::RateLimit->new(r => $r);
     my $is_toofast;
     if ($is_html) {
         $is_toofast = $rate_limit->check_violation();
         $r->log->debug("$$ ===> $url check_violation: $is_toofast");
     }
-	$r->log->info($TIMER->checkpoint);
+    # checkpoint
+    $r->log->info(sprintf("timer $$ %s %d %s %f",
+        @{$TIMER->checkpoint}[0,2..4]));
 
-	$TIMER->start('subrequest_check');
     # check for sub-reqs if it passed the other tests
+    $TIMER->start('subrequest_check')
+      if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
     my $subrequest_tracker = SL::Model::Subrequest->new();
     my $is_subreq;
     if ($is_html and not $is_toofast) {
         $is_subreq = $subrequest_tracker->is_subrequest(url => $url);
         $r->log->debug("$$ ===> $url is_subreq: $is_subreq");
     }
-	$r->log->info($TIMER->checkpoint);
+    # checkpoint
+    $r->log->info(sprintf("timer $$ %s %d %s %f",
+        @{$TIMER->checkpoint}[0,2..4]));
 
     # serve an ad if this is HTML and it's not a sub-request of an
     # ad-serving page, and it's not too soon after a previous ad was served
@@ -357,10 +373,13 @@ sub twohundred {
                                              base_url    => $url);
 
         # put the ad in the response
-		$TIMER->start('_generate_response');
+        $TIMER->start('_generate_response')
+			if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
         $response_content = _generate_response($r, $response);
-		$r->log->info($TIMER->checkpoint);
-
+	
+		# checkpoint
+		$r->log->info(sprintf("timer $$ %s %d %s %f",
+			@{$TIMER->checkpoint}[0,2..4]));
     }
     else {
 
@@ -368,7 +387,8 @@ sub twohundred {
         $response_content = $response->content;
     }
 
-	$TIMER->start('prepare_response_headers');
+    $TIMER->start('prepare_response_headers')
+		if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
     # set the status line
     $r->status_line($response->status_line);
     $r->log->debug("status line is " . $response->status_line);
@@ -471,12 +491,18 @@ sub twohundred {
     # rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
     $r->rflush();
-	$r->log->info($TIMER->checkpoint);
+	
+	# checkpoint
+	$r->log->info(sprintf("timer $$ %s %d %s %f",
+		@{$TIMER->checkpoint}[0,2..4]));
 
-	$TIMER->start('print_response');
     # Print the response content
+    $TIMER->start('print_response')
+		if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
     $r->print($response_content);
-	$r->log->info($TIMER->checkpoint);
+	# checkpoint
+	$r->log->info(sprintf("timer $$ %s %d %s %f",
+		@{$TIMER->checkpoint}[0,2..4]));
 
     return Apache2::Const::OK;
 }
@@ -547,7 +573,7 @@ sub _generate_response {
     $r->log->info("$$ Ad inserted for url $url; try_container: ",
                   $try_container, "; referer : $referer; ua : $ua;");
 
-    $r->log->debug("Munged response is \n $$munged_resp") if $VERBOSE_DEBUG;
+    $r->log->debug("Munged response is \n $munged_resp") if $VERBOSE_DEBUG;
 
     # Log the ad view later
     $r->pnotes(log_data => [$r->connection->remote_ip, $ad_id]);

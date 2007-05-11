@@ -40,9 +40,12 @@ BEGIN {
 INSERT INTO view
 ( ad_id, ip ) values ( ?, ? )
 SQL
+
+	my $path = $config->sl_root . '/tmpl/';
+	die "Template include path $path doesn't exist!\n" unless -d $path;
     my $tmpl_config = {
         ABSOLUTE     => 1,
-        INCLUDE_PATH =>  "/home/phred/dev/sl/trunk/tmpl/"
+        INCLUDE_PATH =>  $config->sl_root . '/tmpl/',
     };
     $template = Template->new($tmpl_config) || die $Template::ERROR, "\n";
     %sl_ad_data = ( sl_link => CLICKSERVER_URL . SILVERLINING_AD_ID );
