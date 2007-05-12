@@ -59,7 +59,6 @@ src/Text-Balanced-v2.0.0.tar.gz
 src/Class-C3-0.14.tar.gz
 src/IO-Compress-Base-2.001.tar.gz
 src/MIME-Types-1.18.tar.gz
-src/DBIx-Class-Schema-Loader-0.03009.tar.gz
 src/IO-Compress-Zlib-2.001.tar.gz
 src/Template-Toolkit-2.14.tar.gz
 src/HTML-Parser-3.55.tar.gz
@@ -75,9 +74,7 @@ src/libapreq2-2.09.tar.gz
 src/Class-Data-Accessor-0.03.tar.gz
 src/Cache-FastMmap-1.14.tar.gz
 src/Parse-RecDescent-1.94.tar.gz
-src/DBIx-Class-0.07005.tar.gz
 src/Regexp-Assemble-0.25.tar.gz
-src/DBD-Pg-1.49.tar.gz
 src/Config-ApacheFormat-1.2.tar.gz
 src/Data-FormValidator-4.50.tar.gz
 src/Tie-IxHash-1.21.tar.gz
@@ -91,8 +88,6 @@ src/File-MMagic-1.27.tar.gz
 src/ExtUtils-XSBuilder-0.28.tar.gz
 src/Date-Calc-5.4.tar.gz
 src/perl-5.8.8.tar.bz2
-src/Apache-DBI-1.06.tar.gz
-src/DBI-1.55.tar.gz
 src/Digest-SHA1-2.11.tar.gz
 src/Crypt-CBC-2.22.tar.gz
 src/httpd-2.2.4.tar.bz2
