@@ -17,7 +17,8 @@ sl_db_debug 0
 # debugging levels, etc.  debug is single user mode
 sl_devel  1
 #sl_debug  1
-#sl_prof  1
+sl_prof 1
+#sl_small_prof  1
 
 # proxy server settings
 #sl_proxy_apache_deflate  1

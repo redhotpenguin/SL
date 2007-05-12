@@ -16,54 +16,61 @@ my $config = SL::Config->new();
 
 print STDOUT "Loading modules...\n";
 
-# FIXME - link to sl_debug option
-#use APR::Pool ();
-#use Apache::DB ();
-#Apache::DB->init();
+# single user mode
+if ($config->sl_debug or $config->sl_small_prof) {
+    require APR::Pool;
+    require Apache::DB;
+    Apache::DB->init();
+}
+
+# profiling
+if ($config->sl_prof) {
+    require Apache::DProf;
+}
 
 # Preload these modules during httpd startup, don't import any symbols
-use Apache::DBI                         ();
-use Apache2::Connection                 ();
-use Apache2::ConnectionUtil             ();
-use Apache2::Log                        ();
-use Apache2::RequestIO                  ();
-use Apache2::RequestRec                 ();
-use Apache2::RequestUtil                ();
-use Apache2::ServerRec                  ();
-use Apache2::ServerUtil                 ();
-use Apache2::SubRequest                 ();
-use Apache2::Status                     ();
-use APR::Table                          ();
+use Apache::DBI             ();
+use Apache2::Connection     ();
+use Apache2::ConnectionUtil ();
+use Apache2::Log            ();
+use Apache2::RequestIO      ();
+use Apache2::RequestRec     ();
+use Apache2::RequestUtil    ();
+use Apache2::ServerRec      ();
+use Apache2::ServerUtil     ();
+use Apache2::SubRequest     ();
+use Apache2::Status         ();
+use APR::Table              ();
 
-use SL::Model                           ();
-use SL::Model::Ad                       ();
-use SL::Model::Subrequest               ();
-use SL::Model::RateLimit                ();
-use SL::Model::URL                      ();
+use SL::Model             ();
+use SL::Model::Ad         ();
+use SL::Model::Subrequest ();
+use SL::Model::RateLimit  ();
+use SL::Model::URL        ();
 
 use SL::Apache::Proxy::TransHandler     ();
 use SL::Apache::Proxy::ResponseHandler  ();
 use SL::Apache::Proxy::BlacklistHandler ();
 use SL::Apache::Proxy::LogHandler       ();
 
-use SL::Cache                           ();
-use SL::UserAgent                       ();
-use SL::HTTP::Request                   ();
-use SL::Util                            ();
+use SL::Cache         ();
+use SL::UserAgent     ();
+use SL::HTTP::Request ();
+use SL::Util          ();
 
-use RHP::Timer                          ();
+use RHP::Timer ();
 
-use Digest::MD5                         ();
-use DBI                                 ();
+use Digest::MD5 ();
+use DBI         ();
 DBI->install_driver('Pg');
-use DBD::Pg                             ();
-use Data::Dumper                        ();
-use Sys::Load                           ();
-use Params::Validate                    ();
-use Encode                              ();
-use Template                            ();
-use URI                                 ();
-use Regexp::Assemble                    ();
+use DBD::Pg          ();
+use Data::Dumper     ();
+use Sys::Load        ();
+use Params::Validate ();
+use Encode           ();
+use Template         ();
+use URI              ();
+use Regexp::Assemble ();
 
 print STDOUT "Modules loaded, initializing database connections\n";
 

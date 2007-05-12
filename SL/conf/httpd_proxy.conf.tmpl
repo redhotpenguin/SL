@@ -101,6 +101,8 @@ PerlTransHandler SL::Apache::Proxy::TransHandler
     PerlTypeHandler         Apache2::Const::OK
 [% IF cfg.sl_debug %]
     PerlFixupHandler +Apache::DB
+[% ELSIF cfg.sl_small_prof %]
+    PerlFixupHandler Apache::SmallProf
 [% ELSE %]
     PerlFixupHandler        Apache2::Const::OK
 [% END %]
