@@ -17,7 +17,6 @@ WriteMakefile(
                             'Text::Template'       => 1.44,
                             'Template'             => 2.14,
                             'Regexp::Assemble'     => 0.24,
-                            'SOAP::Lite'           => 0.69,
                             'Sys::Load'            => 0.2,
                             'SL::Model'            => 0.1,
                             'SL::UserAgent'        => 0.1,
