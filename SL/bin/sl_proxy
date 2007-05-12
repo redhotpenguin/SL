@@ -14,7 +14,7 @@ use SL::Config;
 my $server = 'proxy';
 my $file = "sl.conf";
 my @config_files =
-  ("$FindBin::Bin/../conf/$file", "$FindBin::Bin/../$file");
+  ("$FindBin::Bin/../conf/$file", "$FindBin::Bin/../$file", "/etc/$file");
 
 my $config = SL::Config->new(\@config_files);
 

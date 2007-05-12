@@ -38,7 +38,7 @@ use APR::Table                          ();
 use SL::Model                           ();
 use SL::Model::Ad                       ();
 use SL::Model::Subrequest               ();
-use SL::Model::Ratelimit                ();
+use SL::Model::RateLimit                ();
 use SL::Model::URL                      ();
 
 use SL::Apache::Proxy::TransHandler     ();
@@ -55,7 +55,7 @@ use RHP::Timer                          ();
 
 use Digest::MD5                         ();
 use DBI                                 ();
-DBI->install_driver('Pg')               ();
+DBI->install_driver('Pg');
 use DBD::Pg                             ();
 use Data::Dumper                        ();
 use Sys::Load                           ();
