@@ -7,7 +7,7 @@ use Cache::FastMmap;
 
 our $cache;
 BEGIN {
-	$cache = Cache::FastMmap->new(raw_values => 1);
+    $cache = Cache::FastMmap->new(raw_values => 1);
 }
 
 sub grab {
