@@ -497,7 +497,7 @@ sub twohundred {
     # Print the response content
     $TIMER->start('print_response')
         if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
-    $r->print($response_content_ref);
+    $r->print($$response_content_ref);
     # checkpoint
     $r->log->info(sprintf("timer $$ %s %d %s %f",
         @{$TIMER->checkpoint}[0,2..4]));
@@ -559,20 +559,20 @@ sub _generate_response {
     else {
         $TIMER->start('container insertion')
             if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
-        $munged_resp =
-          SL::Model::Ad::container($css_url, $decoded_content, $ad_content_ref);
+        my $ok_container =
+          SL::Model::Ad::container($css_url, \$decoded_content, $ad_content_ref);
         # checkpoint
         $r->log->info(sprintf("timer $$ %s %d %s %f",
             @{$TIMER->checkpoint}[0,2..4]));
     }
 
     # Check to see if the ad is inserted
-    unless (grep($$ad_content_ref, $munged_resp)) {
+    unless (grep($$ad_content_ref, $decoded_content)) {
         $r->log->error(
                        sprintf("$$ Ad insertion failed, response: %s",
                                Data::Dumper::Dumper($response))
                       );
-        $r->log->error("$$ Munged response $munged_resp, ad $$ad_content_ref");
+        $r->log->error("$$ Munged response $decoded_content, ad $$ad_content_ref");
         return $response->content;
     }
 
@@ -580,7 +580,7 @@ sub _generate_response {
     $r->log->debug("$$ Ad inserted for url $url; try_container: ",
                   $try_container, "; referer : $referer; ua : $ua;");
 
-    $r->log->debug("Munged response is \n $munged_resp") if $VERBOSE_DEBUG;
+    $r->log->debug("Munged response is \n $decoded_content") if $VERBOSE_DEBUG;
 
     # Log the ad view later
     $r->pnotes(log_data => [$r->connection->remote_ip, $ad_id]);
@@ -595,10 +595,10 @@ sub _generate_response {
         # should have no problems round-tripping.  If an error does
         # occur the character will be replaced with a "subchar"
         # specific to the encoding.
-        $munged_resp = Encode::encode($charset, $munged_resp);
+        $decoded_content = Encode::encode($charset, $decoded_content);
     }
 
-    return \$munged_resp;
+    return \$decoded_content;
 }
 
 # figure out what charset a reponse was made in, code adapted from
