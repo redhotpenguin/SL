@@ -520,7 +520,8 @@ sub _generate_response {
     # put the ad in the response
     $TIMER->start('random_ad')
         if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
-    my ($ad_id, $ad_content_ref, $css_url) =
+
+	my ($ad_id, $ad_content_ref, $css_url) =
       SL::Model::Ad->random($r->connection->remote_ip);
     # checkpoint
     $r->log->info(sprintf("timer $$ %s %d %s %f",
@@ -538,7 +539,6 @@ sub _generate_response {
 
     # Skip ad insertion if $skips regex match on decoded_content
     # It is a fix for sites like google, yahoo who send encoded UTF-8 et al
-    my $munged_resp;
     my $decoded_content        = $response->decoded_content;
     my $content_needs_encoding = 1;
 
@@ -559,8 +559,7 @@ sub _generate_response {
     else {
         $TIMER->start('container insertion')
             if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
-        my $ok_container =
-          SL::Model::Ad::container($css_url, \$decoded_content, $ad_content_ref);
+        SL::Model::Ad::container($css_url, \$decoded_content, $ad_content_ref);
         # checkpoint
         $r->log->info(sprintf("timer $$ %s %d %s %f",
             @{$TIMER->checkpoint}[0,2..4]));
