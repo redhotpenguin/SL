@@ -6,7 +6,7 @@ use warnings;
 use DBI;
 use SL::Config;
 
-our $VERSION = 1;
+our $VERSION = 0.1;
 
 our $cfg = SL::Config->new;
 
