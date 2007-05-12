@@ -6,6 +6,8 @@ use warnings;
 use DBI;
 use SL::Config;
 
+our $VERSION = 1;
+
 our $cfg = SL::Config->new;
 
 my $db_options = {
