@@ -135,22 +135,22 @@ Apache2::Module::add(__PACKAGE__, \@dirs);
 use Data::Dumper;
 sub SLRoot {
     my ($cfg, $parms, $arg) = @_;
-	print STDERR "\nSLRoot cfg " . Dumper($cfg) . ", parms $parms, arg $arg";
+    print STDERR "\nSLRoot cfg " . Dumper($cfg) . ", parms $parms, arg $arg";
    $cfg->{_slroot} = $arg;
-	print STDERR "\n222SLRoot cfg " . Dumper($cfg) . ", parms $parms, arg $arg";
+    print STDERR "\n222SLRoot cfg " . Dumper($cfg) . ", parms $parms, arg $arg";
 }
 
 sub SERVER_CREATE {
  my ($class, $parms) = @_;
-	print STDERR  "\nSERVER_CREATE class $class, parms $parms";
-	my $s = Apache2::ServerUtil->server;
-	#my $cfg = $s->module_config;
-	#print STDERR "\nMODULE CONFIG SERVER CREAETE IS " . Dumper($cfg);
+    print STDERR  "\nSERVER_CREATE class $class, parms $parms";
+    my $s = Apache2::ServerUtil->server;
+    #my $cfg = $s->module_config;
+    #print STDERR "\nMODULE CONFIG SERVER CREAETE IS " . Dumper($cfg);
 
-	my $cfg = Apache2::Module::get_config(__PACKAGE__, $s);
-	print STDERR "\nConfig is " . Dumper($cfg) . "\n";
-	print STDERR "\nKeep alive is " . $s->keep_alive() . "\n";
-	return bless {slroot => $cfg->{_slroot}, name => __PACKAGE__}, $class;
+    my $cfg = Apache2::Module::get_config(__PACKAGE__, $s);
+    print STDERR "\nConfig is " . Dumper($cfg) . "\n";
+    print STDERR "\nKeep alive is " . $s->keep_alive() . "\n";
+    return bless {slroot => $cfg->{_slroot}, name => __PACKAGE__}, $class;
 }
 
 1;
