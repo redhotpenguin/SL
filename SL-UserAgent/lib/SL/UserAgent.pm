@@ -6,6 +6,8 @@ use warnings;
 use base 'LWP::UserAgent';
 use HTTP::Cookies ();
 
+our $VERSION = 0.1;
+
 sub new {
 
     # shifty yet super, we will handle redirects
