@@ -5,6 +5,8 @@ use warnings;
 
 use base 'HTTP::Request';
 
+our $VERSION = 0.1;
+
 sub new {
     my ($class, $args_ref) = @_;
 
