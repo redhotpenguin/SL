@@ -17,6 +17,6 @@ WriteMakefile(
     },
     ABSTRACT       => 'SilverLining client libraries and utilities',
     EXE_FILES     => ['bin/sl_tunnel', 'bin/sl_config_update', 
-	    'bin/sl_fw_ha', 'bin/sl_maintd'],
+	    'bin/sl_fw_ha', 'bin/sl_maintd', 'bin/sl_request' ],
     AUTHOR => 'Fred Moyer <phred@redhotpenguin.com>',
 );

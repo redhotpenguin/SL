@@ -6,5 +6,6 @@ bin/sl_fw_ha
 bin/sl_tunnel
 bin/sl_config_update
 bin/sl_maintd
+bin/sl_request
 lib/SL/Client/HTTP.pm
 lib/SL/Client/Maintd.pm
