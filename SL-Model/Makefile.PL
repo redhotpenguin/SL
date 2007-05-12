@@ -15,6 +15,7 @@ WriteMakefile(
 							'URI'                         => 1.35,
 			  
 			  },
+              EXE_FILES => [qw( bin/sl_mail_global_reports.pl bin/sl_mail_user_reports.pl bin/sl_rate_limit_cleanup.pl bin/sl_report.pl bin/sl_report_graph.pl bin/sl_update_linkshare.pl )],
               ABSTRACT  => 'The database abstraction layer for SL',
               AUTHOR    => 'Fred Moyer <fred@redhotpenguin.com',
              );

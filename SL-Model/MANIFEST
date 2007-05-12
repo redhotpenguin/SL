@@ -3,6 +3,8 @@ Makefile.PL
 MANIFEST
 README
 t/SL-Model.t
+t/SL-Model-App.t
+t/SL-Model-Ad-Group.t
 lib/SL/Model.pm
 lib/SL/Model/Ad/Group.pm
 lib/SL/Model/App.pm
@@ -13,3 +15,9 @@ lib/SL/Model/RateLimit.pm
 lib/SL/Model/Subrequest.pm
 lib/SL/Model/Report.pm
 META.yml                                 Module meta-data (added by MakeMaker)
+bin/sl_mail_global_reports.pl
+bin/sl_mail_user_reports.pl
+bin/sl_rate_limit_cleanup.pl
+bin/sl_report.pl
+bin/sl_report_graph.pl
+bin/sl_update_linkshare.pl

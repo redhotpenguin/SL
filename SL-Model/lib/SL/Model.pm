@@ -29,7 +29,7 @@ sub connect_params {
 sub dsn {
 	my $self = shift;
     my $db   = shift || $cfg->sl_db_name;
-    my $dsn = "dbi:Pg:dbname=`$db`;";
+    my $dsn = "dbi:Pg:dbname='$db';";
 	my $host = shift || $cfg->sl_db_host;
     unless (($host eq '127.0.0.1') or ($host eq 'localhost')) {
 		# connection not over unix socket, specify connection host

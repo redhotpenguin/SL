@@ -6,11 +6,11 @@ use warnings;
 use SL::Model;
 use base qw(DBIx::Class::Schema::Loader);
 
-our $DEBUG = 1;
+our $VERBOSE_DEBUG = 0;
 
 __PACKAGE__->loader_options(
 	relationships => 1,
-	debug => $DEBUG,
+	debug => $VERBOSE_DEBUG,
 #	moniker_map => sub { return join '::', split /[\W_]+/, shift },
 );
 
