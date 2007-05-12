@@ -1,11 +1,18 @@
 use strict;
-use warnings FATAL => 'all'
+use warnings FATAL => 'all';
 
-use Test::More tests => 2;
+use Test::More tests => 9;
 
 BEGIN {
 	use_ok('SL::Model');
+	use_ok('SL::Model::Ad');
+	use_ok('SL::Model::Ad::Group');
+	use_ok('SL::Model::App');
+	use_ok('SL::Model::Report');
+	use_ok('SL::Model::Report::Graph');
+	use_ok('SL::Model::URL');
+	use_ok('SL::Model::RateLimit');
+	use_ok('SL::Model::Subrequest');
 }
 
-
-
+1;
