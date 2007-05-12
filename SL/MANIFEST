@@ -1,6 +1,5 @@
 Makefile.PL
 MANIFEST
-lib/SL/Model.pm
 lib/SL/Apache/App/Ad.pm
 lib/SL/Apache/App/Reg.pm
 lib/SL/Apache/App/Blacklist.pm
@@ -18,15 +17,6 @@ lib/SL/Apache/Proxy/ResponseHandler.pm
 lib/SL/Apache/Proxy/AccessHandler.pm
 lib/SL/Test/Mechanize.pm
 lib/SL/Util.pm
-lib/SL/Model/Ad/Group.pm
-lib/SL/Model/App.pm
-lib/SL/Model/Ad.pm
-lib/SL/Model/Report/Graph.pm
-lib/SL/Model/URL.pm
-lib/SL/Model/RateLimit.pm
-lib/SL/Model/Subrequest.pm
-lib/SL/Model/Report.pm
-lib/SL/Maintd.pm
 lib/SL/Test.pm
 lib/SL/Config.pm
 lib/SL/Cache.pm
