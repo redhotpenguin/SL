@@ -3,7 +3,7 @@ Makefile.PL
 MANIFEST
 README
 t/SL-Model.t
-lib/SL//Model.pm
+lib/SL/Model.pm
 lib/SL/Model/Ad/Group.pm
 lib/SL/Model/App.pm
 lib/SL/Model/Ad.pm
