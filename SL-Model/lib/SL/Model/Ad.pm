@@ -64,22 +64,23 @@ Method for ad insertion which wraps the whole page in a stylesheet
 =cut
 
 our ($regex, $second_regex);
-my $top       = qq{<div id="sl_top">};
-my $container = qq{</div><div id="sl_ctr">};
-my $tail      = qq{</div>};
+our ($top, $container, $tail);
 BEGIN {
-	$regex = qr{^(.*?)(</\s*head.*)$}si;
-    $second_regex = qr{^(.*?)<body([^>]*?)>(.*?)</body>(.*)$}is;
+    $top       = qq{<div id="sl_top">};
+    $container = qq{</div><div id="sl_ctr">};
+    $tail      = qq{</div>};
+    $regex = qr{^(.*?<\s*?head\s*?>)(.*)$}is;
+    $second_regex = qr{\G(.*?)<body([^>]*?)>(.*?)</body>(.*)$}is;
 }
 
 sub container {
     my ($css_url_ref, $decoded_content_ref, $ad_ref) = @_;
 
     my $link = 
-	    qq{<link rel="stylesheet" href="$$css_url_ref" type="text/css" />};
+        qq{<link rel="stylesheet" href="$$css_url_ref" type="text/css" />};
     
     # Insert the stylesheet link
-	$$decoded_content_ref =~ s{$regex}{$1$link$2};
+    $$decoded_content_ref =~ s{$regex}{$1$link$2};
 
     # Insert the rest of the pieces
     $$decoded_content_ref =~ s{$second_regex}
