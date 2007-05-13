@@ -17,7 +17,7 @@ sub handler {
     $r->subprocess_env("SL_URL" => sprintf('sl_url|%s', $r->pnotes('url')));    
     # for subrequests we don't have any log_data since no ad was inserted
     return Apache2::Const::DECLINED unless 
-        ($r->pnotes('log_data')->[0] and $r->pnotes('log_data')->[1]);
+        (defined $r->pnotes('log_data') && $r->pnotes('log_data')->[0] && $r->pnotes('log_data')->[1]);
     
     $TIMER->start('log_view');
     my $logged = SL::Model::Ad->log_view( 

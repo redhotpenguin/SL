@@ -1,4 +1,5 @@
 0.7
+- Pass response content by reference instead of by value
 - working makefile (yay!)
 - split the ball of mud up into manageable modules
 - chomp the response headers so they don't creep into the response [fred]

@@ -133,3 +133,5 @@ tmpl/starbucks.tmpl
 tmpl/yahoo.tmpl
 tmpl/reg.tmpl
 tmpl/occ_main.tmpl
+bin/sl_qa_install
+bin/sl_dev_install

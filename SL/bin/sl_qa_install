@@ -5,10 +5,14 @@ use warnings;
 
 use FindBin qw($Bin);
 
+my $ROOT = $ENV{HOME};
+
+chdir("$Bin");
+`rm httpd && rm apxs`;
+`ln -s $HOME/dev/httpd2/bin/httpd .`;
+`ln -s $HOME/dev/httpd2/bin/apxs .`;
 chdir("$Bin/../conf/");
-`rm httpd && rm apxs && rm sl.conf`;
-`ln -s /home/phred/dev/httpd2/bin/httpd .`;
-`ln -s /home/phred/dev/httpd2/bin/apxs .`;
+`rm sl.conf`;
 `ln -s sl.conf.qa sl.conf`;
 
 print "Finished configuring qa server\n";
