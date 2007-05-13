@@ -48,7 +48,7 @@ like($HTML, qr/$css_link/, 'css link inserted ok');
 diag("Time was $interval");
 cmp_ok($interval, '<', 0.010, 'HTML Ad inserted in less than 10 milliseconds');
 cmp_ok($interval, '<', 0.005, 'HTML Ad inserted in less than 5 milliseconds');
-cmp_ok($interval, '<', 0.0005, 'HTML Ad inserted in less than 0.5 milliseconds');
+cmp_ok($interval, '<', 0.002, 'HTML Ad inserted in less than 2 milliseconds');
 
 1;
 

@@ -63,18 +63,17 @@ Method for ad insertion which wraps the whole page in a stylesheet
 
 =cut
 
-our ($regex, $second_regex, $uber_match);
+our ($regex, $second_regex, $uber_match, $end_body_match);
 our ($top, $container, $tail);
 BEGIN {
     $top       = qq{<div id="sl_top">};
     $container = qq{</div><div id="sl_ctr">};
     $tail      = qq{</div>};
     $regex = qr{^(.*?<\s*?head\s*?>)(.*)$}is;
-    $second_regex = qr{\G(.*?)<body([^>]*?)>(.*?)</body>(.*)$}is;
-    
+    $second_regex = qr{\G(.*?)<body([^>]*?)>(.*)$}is;
     $uber_match = qr{\G(?:</\s*?head\s*?>)}i;
+    $end_body_match = qr{^(.*)(<\s*?/body\s*?>.*)$}i;
 }
-
 sub container {
     my ($css_url_ref, $decoded_content_ref, $ad_ref) = @_;
 
@@ -84,14 +83,18 @@ sub container {
     # Insert the stylesheet link
     $$decoded_content_ref =~ s{$regex}{$1$link$2};
 
-    # move the pointer - optimization, 5/100 of a millisecond
+    # move the pointer - optimization, 0.5 milliseconds
     $$decoded_content_ref =~ m/$uber_match/;
-
+    
     # Insert the rest of the pieces
     $$decoded_content_ref =~ s{$second_regex}
-                         {$1<body$2>$top$$ad_ref$container$3$tail</body>$4};
+                         {$1<body$2>$top$$ad_ref$container$3};
 
-    return $decoded_content_ref;
+    # insert the tail
+    $end_body_match = qr{^(.*)(<\s*?/body\s*?>.*)$}i;
+	$$decoded_content_ref =~ s{$end_body_match}{$1$tail$2};
+
+	return $decoded_content_ref;
 }
 
 =item C<body_regex> 
