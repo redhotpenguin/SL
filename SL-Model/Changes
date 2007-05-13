@@ -1,6 +1,8 @@
 Revision history for Perl extension SL-Model.
 
 0.01  Sat May 12 03:26:55 2007
-	- original version; created by h2xs 1.23 with options
-		-X SL-Model
+    - Optimize SL::Model::Container, speedup from 500 ms to 8 ms latency
+        [Stephen Edwards, Fred Moyer]
+    - original version; created by h2xs 1.23 with options
+        -X SL-Model
 
