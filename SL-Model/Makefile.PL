@@ -9,6 +9,7 @@ WriteMakefile(
     PREREQ_PM => {
         'DBI'                         => 1.50,
         'GD::Graph'                   => 1.44,
+        'DateTime::Format::Pg'        => 0.1,
         'DBIx::Class'                 => 0.07001,
         'DBIx::Class::Schema::Loader' => 0.03007,
         'DBD::Pg'                     => 1.49,

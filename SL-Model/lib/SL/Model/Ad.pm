@@ -63,23 +63,29 @@ Method for ad insertion which wraps the whole page in a stylesheet
 
 =cut
 
+our ($regex, $second_regex);
+my $top       = qq{<div id="sl_top">};
+my $container = qq{</div><div id="sl_ctr">};
+my $tail      = qq{</div>};
+BEGIN {
+	$regex = qr{^(.*?)(</\s*head.*)$}si;
+    $second_regex = qr{^(.*?)<body([^>]*?)>(.*?)</body>(.*)$}is;
+}
+
 sub container {
-    my ($css_url, $decoded_content, $ad) = @_;
+    my ($css_url_ref, $decoded_content_ref, $ad_ref) = @_;
 
-    my $link = qq{<link rel="stylesheet" href="$css_url" type="text/css" />};
-
+    my $link = 
+	    qq{<link rel="stylesheet" href="$$css_url_ref" type="text/css" />};
+    
     # Insert the stylesheet link
-    my $regex = qr{^(.*?)(</\s*head)(.*)$}i;
-    $decoded_content =~ s{$regex}{$1$link$2$3}mgs;
+	$$decoded_content_ref =~ s{$regex}{$1$link$2};
 
     # Insert the rest of the pieces
-    my $top       = qq{<div id="sl_top">};
-    my $container = qq{</div><div id="sl_ctr">};
-    my $tail      = qq{</div>};
-    $decoded_content =~ s{^(.*?)<body([^>]*?)>(.*?)</body>(.*)$}
-                         {$1<body$2>$top$$ad$container$3$tail</body>$4}ismx;
+    $$decoded_content_ref =~ s{$second_regex}
+                         {$1<body$2>$top$$ad_ref$container$3$tail</body>$4};
 
-    return $decoded_content;
+    return $decoded_content_ref;
 }
 
 =item C<body_regex> 
