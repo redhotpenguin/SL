@@ -63,7 +63,7 @@ Method for ad insertion which wraps the whole page in a stylesheet
 
 =cut
 
-our ($regex, $second_regex);
+our ($regex, $second_regex, $uber_match);
 our ($top, $container, $tail);
 BEGIN {
     $top       = qq{<div id="sl_top">};
@@ -71,6 +71,8 @@ BEGIN {
     $tail      = qq{</div>};
     $regex = qr{^(.*?<\s*?head\s*?>)(.*)$}is;
     $second_regex = qr{\G(.*?)<body([^>]*?)>(.*?)</body>(.*)$}is;
+    
+    $uber_match = qr{\G(?:</\s*?head\s*?>)}i;
 }
 
 sub container {
@@ -81,6 +83,9 @@ sub container {
     
     # Insert the stylesheet link
     $$decoded_content_ref =~ s{$regex}{$1$link$2};
+
+    # move the pointer - optimization, 5/100 of a millisecond
+    $$decoded_content_ref =~ m/$uber_match/;
 
     # Insert the rest of the pieces
     $$decoded_content_ref =~ s{$second_regex}
