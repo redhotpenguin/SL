@@ -60,13 +60,11 @@ src/IO-Compress-Base-2.001.tar.gz
 src/MIME-Types-1.18.tar.gz
 src/IO-Compress-Zlib-2.001.tar.gz
 src/Template-Toolkit-2.14.tar.gz
-src/HTML-Parser-3.55.tar.gz
 src/Class-Accessor-0.30.tar.gz
 src/mod_perl-2.0-current.tar.gz
 src/Image-Size-3.01.tar.gz
 src/Bit-Vector-6.4.tar.gz
 src/Regexp-Common-2.120.tar.gz
-src/HTML-Tagset-3.10.tar.gz
 src/libapreq2-2.09.tar.gz
 src/Class-Data-Accessor-0.03.tar.gz
 src/Cache-FastMmap-1.14.tar.gz
