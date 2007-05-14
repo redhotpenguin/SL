@@ -559,7 +559,7 @@ sub _generate_response {
     else {
         $TIMER->start('container insertion')
             if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
-        SL::Model::Ad::container($css_url, \$decoded_content, $ad_content_ref);
+        SL::Model::Ad::container(\$css_url, \$decoded_content, $ad_content_ref);
         # checkpoint
         $r->log->info(sprintf("timer $$ %s %d %s %f",
             @{$TIMER->checkpoint}[0,2..4]));
