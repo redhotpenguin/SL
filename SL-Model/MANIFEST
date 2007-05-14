@@ -2,9 +2,6 @@ Changes
 Makefile.PL
 MANIFEST
 README
-t/SL-Model.t
-t/SL-Model-App.t
-t/SL-Model-Ad-Group.t
 lib/SL/Model.pm
 lib/SL/Model/Ad/Group.pm
 lib/SL/Model/App.pm
@@ -21,3 +18,9 @@ bin/sl_rate_limit_cleanup.pl
 bin/sl_report.pl
 bin/sl_report_graph.pl
 bin/sl_update_linkshare.pl
+t/SL-Ad-Group.t
+t/SL-Model-Ad-Group.t
+t/SL-Model-Ad.t
+t/SL-Model-App.t
+t/SL-Model-URL.t
+t/SL-Model.t
