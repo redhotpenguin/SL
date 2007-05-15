@@ -32,9 +32,9 @@ AllowEncodedSlashes On
 <IfModule mod_proxy.c>
     # If mod_proxy is used for proxy forwarding
     ProxyRequests On
-	Listen 64.151.90.20:80
-	Listen 64.151.90.20:8069
-#    Listen        8069
+	
+    [% cfg.sl_proxy_apache_listen %]
+    
     <IfModule mod_cache.c>
         <IfModule mod_mem_cache.c>
             CacheEnable mem /

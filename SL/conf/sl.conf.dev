@@ -33,10 +33,9 @@ sl_proxy_apache_group  apache
 sl_proxy_admin support@silverliningnetworks.com
 sl_proxy_servername  sl_proxy
 sl_proxy_rate_limit '5 sec'
+sl_proxy_apache_listen  0.0.0.0:8000
 
 sl_clickserver_uri  http://localhost:9000
-sl_proxy_http_frontend_port  8069
-sl_proxy_http_backend_port  9000
 sl_whitelist  Off
 sl_method  Container
 #sl_method  Stacked
