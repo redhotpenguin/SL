@@ -18,6 +18,7 @@ sl_db_debug 0
 #sl_devel  1
 #sl_debug  1
 #sl_prof  1
+#sl_status 1
 
 # proxy server settings
 sl_proxy_apache_deflate  1

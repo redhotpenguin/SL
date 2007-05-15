@@ -24,16 +24,14 @@ UseCanonicalName     Off
 HostNameLookups      Off
 Timeout              300
 AllowEncodedSlashes On
-#ProxyVia On
+#ProxyVia On # don't enable this
 
 [% IF cfg.sl_proxy == 'mod_proxy' %]
-#LoadModule proxy_module       modules/mod_proxy.so
-#LoadModule proxy_http_module       modules/mod_proxy_http.so
 <IfModule mod_proxy.c>
     # If mod_proxy is used for proxy forwarding
     ProxyRequests On
 	
-    [% cfg.sl_proxy_apache_listen %]
+    Listen [% cfg.sl_proxy_apache_listen %]
     
     <IfModule mod_cache.c>
         <IfModule mod_mem_cache.c>
@@ -42,12 +40,6 @@ AllowEncodedSlashes On
             MCacheMaxObjectCount 1024
             MCacheMinObjectSize 1
             MCacheMaxObjectSize 4096
-        </IfModule>
-        <IfModule mod_disk_cache.c>
-            CacheRoot /tmp/mod_disk_cache
-            CacheEnable disk /
-			CacheMaxFileSize 134217728
-            CacheDirLevels 4
         </IfModule>
     </IfModule>
 </IfModule>
@@ -118,11 +110,14 @@ PerlTransHandler SL::Apache::Proxy::TransHandler
 Include [% cfg.sl_root %]/conf/deflate.conf
 [% END %]
 
+[% IF cfg.sl_status %]
 <Location /sl_secret_status>
 	SetHandler modperl
     PerlHandler Apache2::Status
     PerlSetVar StatusOptionsAll On
 </Location>
+[% END %]
+
 <Location /sl_secret_ping_button>
   PerlResponseHandler SL::Apache::Proxy::PingHandler
 </Location>

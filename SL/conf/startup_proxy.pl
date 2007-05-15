@@ -28,6 +28,11 @@ if ($config->sl_prof) {
     require Apache::DProf;
 }
 
+# status
+if ($config->sl_status) {
+    require Apache2::Status;
+}
+
 # Preload these modules during httpd startup, don't import any symbols
 use Apache::DBI             ();
 use Apache2::Connection     ();
@@ -39,7 +44,6 @@ use Apache2::RequestUtil    ();
 use Apache2::ServerRec      ();
 use Apache2::ServerUtil     ();
 use Apache2::SubRequest     ();
-use Apache2::Status         ();
 use APR::Table              ();
 
 use SL::Model             ();
@@ -62,8 +66,8 @@ use RHP::Timer ();
 
 use Digest::MD5 ();
 use DBI         ();
-DBI->install_driver('Pg');
 use DBD::Pg          ();
+DBI->install_driver('Pg');
 use Data::Dumper     ();
 use Sys::Load        ();
 use Params::Validate ();
