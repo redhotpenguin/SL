@@ -96,10 +96,10 @@ sub handler {
     $r->pnotes('referer' => $referer);
     my $ua = $r->pnotes('ua');
 
-    $r->log->debug(
-         sprintf("$$ %s Request for url $url, user-agent $ua, referer $referer",
-                 __PACKAGE__)
-    );
+	#$r->log->debug(
+	#     sprintf("$$ %s Request for url $url, user-agent $ua, referer $referer",
+	#             __PACKAGE__)
+	#);
 
     # checkpoint
     $r->log->info(sprintf("timer $$ %s %d %s %f",
