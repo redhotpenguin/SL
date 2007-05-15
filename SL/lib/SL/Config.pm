@@ -11,9 +11,9 @@ SL::Config
 
   use SL::Config;
 
-  $cfg  = SL::Config->new()
-  $val  = $cfg->key
-  @vals = $cfg->key
+  $cfg  = SL::Config->new( [ '/path/to/config/file.conf' ] );
+  $val  = $cfg->key;
+  @vals = $cfg->key;
 
 =head1 DESCRIPTION
 
@@ -26,71 +26,49 @@ are really fast.
 
 =cut
 
-# setup the application root to determine where the conf file is.
-# assume that the app is layed out $sl_root/conf $sl_root/bin
-our ( $sl_root, $config );
-
-BEGIN {
-    require FindBin;
-    $sl_root = "/home/phred/dev/sl/trunk/SL";
-	#$sl_root = "$FindBin::RealBin/../";
-    if ( !-d "$sl_root/conf" ) {
-
-        # no conf directory, try using $ENV{SL_ROOT} for $sl_root
-        die "Couldn't set \$sl_root" unless ( $ENV{SL_ROOT} );
-        $sl_root = $ENV{SL_ROOT};
-    }
-}
+our ($config, $conf_dir);
+our $file = 'sl.conf';
 
 use base 'Config::ApacheFormat';
+use FindBin;
 
 sub new {
-    my ( $class, $config_files_ref ) = @_;
+    my $class = shift;
 
     return $config if $config;
+    
+    my @config_files;
+    if (-d "$FindBin::Bin/../conf") {
 
-    unless ($config_files_ref) {
-
-        # use the developer's config file if it exists
-        if ( -e "$sl_root/sl.conf" ) {
-            push @{$config_files_ref}, "$sl_root/sl.conf";
-        }
-
-        # if no default config, or dev config found we can't do anything
-        if (   ( !$config_files_ref )
-            && ( !-e "$sl_root/conf/sl.conf" ) )
-        {
-            require Carp
-              && Carp::croak(
-                    "No $sl_root/sl.conf or $sl_root/conf/sl.conf present, "
-                  . "did you symlink the conf directory to the httpd root?"
-                  . "\nOr forget to set the environment variable SL_ROOT?" );
-        }
-        elsif ( -e "$sl_root/conf/sl.conf" ) {
-
-            # if there is a default config setup use it
-            unshift @{$config_files_ref}, "$sl_root/conf/sl.conf";
-        }
+        # development
+        $conf_dir = "$FindBin::Bin/../conf";
+        @config_files = ("$conf_dir/$file", "$conf_dir/../$file");
+    }
+    elsif (-d "/etc/sl") {
+        $conf_dir = "/etc/sl";
+        @config_files = ("$conf_dir/$file");
+    }
+    else {
+        die "No file $file found in $FindBin::Bin/../conf/ or /etc/sl/!\n";
     }
 
     # we have a configuration file to work with, so get to work
     $config = $class->SUPER::new();
     my $read;
-    foreach my $config_file ( @{$config_files_ref} ) {
-        next unless ( -e $config_file );
+    foreach my $config_file (@config_files) {
+        next unless (-e $config_file);
         $config->read($config_file);
         $read++;
     }
-
-    unless ($read) {
-        require Data::Dumper;
-        require Carp
-          && Carp::croak( "No config files read: "
-              . Data::Dumper::Dumper($config_files_ref) );
-    }
+    die "No config files read! conf_dir $conf_dir\n" unless $read;
 
     $config->autoload_support(1);
     return $config;
+}
+
+sub conf_dir {
+    my $self = shift;
+    return $conf_dir;
 }
 
 =item C<sl_db_params>
