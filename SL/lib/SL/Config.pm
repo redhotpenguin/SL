@@ -32,7 +32,8 @@ our ( $sl_root, $config );
 
 BEGIN {
     require FindBin;
-    $sl_root = "$FindBin::RealBin/../";
+    $sl_root = "/home/phred/dev/sl/trunk/SL";
+	#$sl_root = "$FindBin::RealBin/../";
     if ( !-d "$sl_root/conf" ) {
 
         # no conf directory, try using $ENV{SL_ROOT} for $sl_root
