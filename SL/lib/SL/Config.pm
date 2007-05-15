@@ -38,7 +38,11 @@ sub new {
     return $config if $config;
     
     my @config_files;
-    if (-d "$FindBin::Bin/../conf") {
+    if ($ENV{SL_ROOT} && ( -d $ENV{SL_ROOT} . "/conf" ) ) {
+        # If we have an env sl_root, use it
+        $conf_dir = $ENV{SL_ROOT} . '/conf';
+        @config_files = ("$conf_dir/$file", "$conf_dir/../$file");
+    } elsif (-d "$FindBin::Bin/../conf") {
 
         # development
         $conf_dir = "$FindBin::Bin/../conf";
@@ -49,7 +53,8 @@ sub new {
         @config_files = ("$conf_dir/$file");
     }
     else {
-        die "No file $file found in $FindBin::Bin/../conf/ or /etc/sl/!\n";
+        die "No file $file found in $ENV{SL_ROOT} or " . 
+            "$FindBin::Bin/../conf/ or /etc/sl/!\n";
     }
 
     # we have a configuration file to work with, so get to work
