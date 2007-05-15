@@ -1,10 +1,10 @@
-ServerRoot           [% cfg.sl_root %]/httpd2
+ServerRoot           [% cfg.sl_httpd_root %]
 ServerAdmin          fred@redhotpenguin.com
 ServerSignature      Off
 ServerTokens         Prod
 PidFile              [% cfg.sl_root %]/tmp/sl_app.pid
-DocumentRoot         [% cfg.sl_root %]/[% cfg.sl_version %]/htdocs
-TypesConfig          [% cfg.sl_root %]/[% cfg.sl_version %]/conf/mime.types
+DocumentRoot         [% cfg.sl_root %]/htdocs
+TypesConfig          [% cfg.sl_root %]/conf/mime.types
 User                 [% cfg.sl_app_apache_user %] 
 Group                [% cfg.sl_app_apache_group %]
 KeepAlive            [% cfg.sl_app_apache_keepalive %]
@@ -15,8 +15,8 @@ MaxSpareServers      [% cfg.sl_app_apache_max_spare_servers %]
 StartServers         [% cfg.sl_app_apache_start_servers %]
 LogLevel             [% cfg.sl_app_apache_loglevel %]
 MaxClients           [% cfg.sl_app_apache_maxclients %]
-ErrorLog             [% cfg.sl_root %]/[% cfg.sl_version %]/logs/httpd_app_error_log
-TransferLog          [% cfg.sl_root %]/[% cfg.sl_version %]/logs/httpd_app_access_log
+ErrorLog             [% cfg.sl_root %]/logs/httpd_app_error_log
+TransferLog          [% cfg.sl_root %]/logs/httpd_app_access_log
 MaxRequestsPerChild  250
 LogFormat "%h %l %u %t (%{User-agent}i) \"%r\" %>s %b"
 UseCanonicalName     Off
@@ -33,11 +33,11 @@ LoadModule apreq_module        modules/mod_apreq2.so
 LoadModule perl_module        modules/mod_perl.so
 
 PerlPassEnv SL_ROOT
-PerlPostConfigRequire "[% cfg.sl_root %]/[% cfg.sl_version %]/conf/startup_app.pl"
+PerlPostConfigRequire "[% cfg.sl_root %]/conf/startup_app.pl"
 #PerlLoadModule SL::Config
 #SLRoot '/home/fred/dev/sl/trunk'
 [% IF cfg.sl_debug %]
-PerlRequire "[% cfg.sl_root %]/[% cfg.sl_version %]/conf/db.pl"
+PerlRequire "[% cfg.sl_root %]/conf/db.pl"
 [% END %]
 PerlSetVar data_root "[% cfg.sl_root %]/data"
 
@@ -129,5 +129,5 @@ PerlLoadModule Apache2::Dispatch
     AllowOverride None
 </Directory>
 [% IF cfg.sl_proxy_deflate %]
-Include [% cfg.sl_root %]/[% cfg.sl_version %]/conf/deflate.conf
+Include [% cfg.sl_root %]/conf/deflate.conf
 [% END %]

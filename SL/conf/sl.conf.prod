@@ -1,4 +1,4 @@
-sl_root  /home/phred/dev/sl
+sl_root  /home/phred/dev/sl/trunk/SL
 sl_httpd_root  /home/phred/dev/sl/httpd2
 sl_version  trunk
 
@@ -25,7 +25,7 @@ sl_proxy_apache_maxclients  384
 sl_proxy_apache_start_servers  192
 sl_proxy_apache_max_spare_servers  24
 sl_proxy_apache_min_spare_servers  16
-sl_proxy_apache_loglevel  warn
+sl_proxy_apache_loglevel  info
 sl_proxy_apache_keepalive  On
 sl_proxy_apache_user  phred
 sl_proxy_apache_group  users
