@@ -39,6 +39,7 @@ use Encode                ();
 use RHP::Timer            ();
 
 my $TIMER = RHP::Timer->new();
+
 our $VERBOSE_DEBUG = 0;
 our %response_map = (
                      200 => 'twohundred',
@@ -176,11 +177,11 @@ sub handler {
                             );
     
     # checkpoint
-    $r->log->info(sprintf("timer $$ %s %d %s %f",
-        @{$TIMER->checkpoint}[0,2..4]));
-    
-    $TIMER->start('make_remote_request')
-      if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
+    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+        $r->log->info(sprintf("timer $$ %s %d %s %f",
+            @{$TIMER->checkpoint}[0,2..4]));
+        $TIMER->start('make_remote_request');
+    }
     
     $r->log->debug("$$ Remote proxy request: ", 
         Data::Dumper::Dumper($proxy_request)) if $VERBOSE_DEBUG;
@@ -192,9 +193,11 @@ sub handler {
         Data::Dumper::Dumper($response)) if $VERBOSE_DEBUG;
 
     # checkpoint
-    $r->log->info(sprintf("timer $$ %s %d %s %f",
-        @{$TIMER->checkpoint}[0,2..4]));
-    
+    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+        $r->log->info(sprintf("timer $$ %s %d %s %f",
+            @{$TIMER->checkpoint}[0,2..4]));
+    }
+
     # Dispatch the response
     my $sub = $response_map{$response->code};
     unless (defined $sub) {
@@ -331,25 +334,26 @@ sub twohundred {
     $r->log->debug("$$ ===> $url is_html: $is_html");
 
     # checkpoint
-    $r->log->info(sprintf("timer $$ %s %d %s %f",
-        @{$TIMER->checkpoint}[0,2..4]));
+    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+        $r->log->info(sprintf("timer $$ %s %d %s %f",
+            @{$TIMER->checkpoint}[0,2..4]));
+        $TIMER->start('rate_limiter');
+    }
 
-    # check the rate-limiter, if it's HTML
-    $TIMER->start('rate_limiter')
-      if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
     my $rate_limit = SL::Model::RateLimit->new(r => $r);
     my $is_toofast;
     if ($is_html) {
         $is_toofast = $rate_limit->check_violation();
         $r->log->debug("$$ ===> $url check_violation: $is_toofast");
     }
-    # checkpoint
-    $r->log->info(sprintf("timer $$ %s %d %s %f",
-        @{$TIMER->checkpoint}[0,2..4]));
+    
+    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+        $r->log->info(sprintf("timer $$ %s %d %s %f",
+            @{$TIMER->checkpoint}[0,2..4]));
+        $TIMER->start('subrequest_check');
+    }
 
     # check for sub-reqs if it passed the other tests
-    $TIMER->start('subrequest_check')
-      if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
     my $subrequest_tracker = SL::Model::Subrequest->new();
     my $is_subreq;
     if ($is_html and not $is_toofast) {
@@ -357,8 +361,10 @@ sub twohundred {
         $r->log->debug("$$ ===> $url is_subreq: $is_subreq");
     }
     # checkpoint
-    $r->log->info(sprintf("timer $$ %s %d %s %f",
-        @{$TIMER->checkpoint}[0,2..4]));
+    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+        $r->log->info(sprintf("timer $$ %s %d %s %f",
+            @{$TIMER->checkpoint}[0,2..4]));
+    }
 
     # serve an ad if this is HTML and it's not a sub-request of an
     # ad-serving page, and it's not too soon after a previous ad was served
@@ -374,8 +380,10 @@ sub twohundred {
                                              content_ref => \$response->content,
                                              base_url    => $url);
         # checkpoint
-        $r->log->info(sprintf("timer $$ %s %d %s %f",
-            @{$TIMER->checkpoint}[0,2..4]));
+        if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+            $r->log->info(sprintf("timer $$ %s %d %s %f",
+                @{$TIMER->checkpoint}[0,2..4]));
+        }
 
         $response_content_ref = _generate_response($r, $response);
     }
@@ -491,16 +499,19 @@ sub twohundred {
     $r->rflush();
     
     # checkpoint
-    $r->log->info(sprintf("timer $$ %s %d %s %f",
-        @{$TIMER->checkpoint}[0,2..4]));
-
-    # Print the response content
-    $TIMER->start('print_response')
-        if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
+    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+        $r->log->info(sprintf("timer $$ %s %d %s %f",
+            @{$TIMER->checkpoint}[0,2..4]));
+        # Print the response content
+        $TIMER->start('print_response');
+    }
     $r->print($$response_content_ref);
+    
     # checkpoint
-    $r->log->info(sprintf("timer $$ %s %d %s %f",
-        @{$TIMER->checkpoint}[0,2..4]));
+    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+        $r->log->info(sprintf("timer $$ %s %d %s %f",
+            @{$TIMER->checkpoint}[0,2..4]));
+    }
 
     return Apache2::Const::OK;
 }
@@ -521,12 +532,14 @@ sub _generate_response {
     $TIMER->start('random_ad')
         if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
 
-	my ($ad_id, $ad_content_ref, $css_url) =
+    my ($ad_id, $ad_content_ref, $css_url) =
       SL::Model::Ad->random($r->connection->remote_ip);
     # checkpoint
-    $r->log->info(sprintf("timer $$ %s %d %s %f",
-        @{$TIMER->checkpoint}[0,2..4]));
-    
+    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+        $r->log->info(sprintf("timer $$ %s %d %s %f",
+            @{$TIMER->checkpoint}[0,2..4]));
+    }
+
     $r->log->debug("Ad content is \n$$ad_content_ref\n") if $VERBOSE_DEBUG;
     unless ($ad_content_ref) {
         $r->log->error("$$ Hmm, we didn't get an ad");
@@ -559,10 +572,14 @@ sub _generate_response {
     else {
         $TIMER->start('container insertion')
             if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
+        
         SL::Model::Ad::container(\$css_url, \$decoded_content, $ad_content_ref);
+        
         # checkpoint
-        $r->log->info(sprintf("timer $$ %s %d %s %f",
-            @{$TIMER->checkpoint}[0,2..4]));
+        if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+            $r->log->info(sprintf("timer $$ %s %d %s %f",
+                @{$TIMER->checkpoint}[0,2..4]));
+        }
     }
 
     # Check to see if the ad is inserted

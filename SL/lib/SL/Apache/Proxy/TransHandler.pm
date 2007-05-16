@@ -94,20 +94,15 @@ sub handler {
 
     $r->pnotes('url'     => $url);
     $r->pnotes('referer' => $referer);
-    my $ua = $r->pnotes('ua');
-
-	#$r->log->debug(
-	#     sprintf("$$ %s Request for url $url, user-agent $ua, referer $referer",
-	#             __PACKAGE__)
-	#);
 
     # checkpoint
-    $r->log->info(sprintf("timer $$ %s %d %s %f",
-        @{$TIMER->checkpoint}[0,2..4]));
+    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+        $r->log->info(sprintf("timer $$ %s %d %s %f",
+            @{$TIMER->checkpoint}[0,2..4]));
+        # reset the clock
+        $TIMER->start('db_mod_proxy_filters');
 
-    # reset the clock
-    $TIMER->start('db_mod_proxy_filters')
-      if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
+    }
 
     # first check that a database handle is available
     my $dbh = SL::Model->connect();
@@ -121,6 +116,9 @@ sub handler {
     if ($url =~ m!/sl_secret_blacklist_button$!) {
         return Apache2::Const::OK;
     }
+    if ($url =~ m!/sl_secret_status!) {
+        return Apache2::Const::OK;
+    }
 
     # allow /sl_secret_ping_button to pass through
     if ($url =~ m!/sl_secret_ping_button$!) {
@@ -131,9 +129,21 @@ sub handler {
     # Close this bar
     return &proxy_request($r) if (user_blacklisted($r, $dbh));
 
+    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+        $r->log->info(sprintf("timer $$ %s %d %s %f",
+            @{$TIMER->checkpoint}[0,2..4]));
+        $TIMER->start('url_blacklisted');
+    }
+
     # blacklisted urls
     return &proxy_request($r) if (url_blacklisted($url));
 
+    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+        $r->log->info(sprintf("timer $$ %s %d %s %f",
+            @{$TIMER->checkpoint}[0,2..4]));
+        $TIMER->start('not_a_browser');
+    }
+    
     ## Handle non-browsers that use port 80
     return &proxy_request($r) if (_not_a_browser($r));
 
@@ -143,47 +153,43 @@ sub handler {
     # we only serve ads on GETs
     return &proxy_request($r) if ($r->method ne 'GET');
 
-    # checkpoint
-    $r->log->info(sprintf("timer $$ %s %d %s %f",
-        @{$TIMER->checkpoint}[0,2..4]));
-    
-    # reset the clock
-    $TIMER->start('examine_request')
-      if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
+    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+        $r->log->info(sprintf("timer $$ %s %d %s %f",
+            @{$TIMER->checkpoint}[0,2..4]));
+        $TIMER->start('examine_request');
+    }
 
-    # we should examine this request
-    if ($r->method eq 'GET') {
+    ## Static content
+    if (static_content_uri($url)) {
+        $r->log->debug("$$ Url $url static content extension, proxying");
+        return &proxy_request($r);
+    }
 
-        ## Static content
-        if (static_content_uri($url)) {
-            $r->log->debug("$$ Url $url static content extension, proxying");
+    ## Check the cache for a static content match
+    if (my $content_type = SL::Cache::grab($url)) {
+
+        $r->log->debug("$$ SL::Cache hit for url $url, type $content_type");
+
+        if (SL::Util::not_html($content_type)) {
+            ## Cache returned static content
+            $r->log->debug("$$ Proxying static $url, type $content_type");
             return &proxy_request($r);
         }
+        else {
 
-        ## Check the cache for a static content match
-        if (my $content_type = SL::Cache::grab($url)) {
-
-            $r->log->debug("$$ SL::Cache hit for url $url, type $content_type");
-
-            if (SL::Util::not_html($content_type)) {
-                ## Cache returned static content
-                $r->log->debug("$$ Proxying static $url, type $content_type");
-                return &proxy_request($r);
-            }
-            else {
-
-                # Cache returned dynamic html
-                $r->log->debug("$$ SL::Cache $url HTML type $content_type");
-                $r->pnotes('content_type' => $content_type);
-            }
+            # Cache returned dynamic html
+            $r->log->debug("$$ SL::Cache $url HTML type $content_type");
+            $r->pnotes('content_type' => $content_type);
         }
     }
+
     $r->log->debug("EndTranshandler");
     
-    # checkpoint
-    $r->log->info(sprintf("timer $$ %s %d %s %f",
-        @{$TIMER->checkpoint}[0,2..4]));
-   
+    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+        $r->log->info(sprintf("timer $$ %s %d %s %f",
+            @{$TIMER->checkpoint}[0,2..4]));
+    }
+
     return Apache2::Const::OK;
 }
 

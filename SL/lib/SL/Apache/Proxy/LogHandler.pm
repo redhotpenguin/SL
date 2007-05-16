@@ -18,8 +18,10 @@ sub handler {
     # for subrequests we don't have any log_data since no ad was inserted
     return Apache2::Const::DECLINED unless 
         (defined $r->pnotes('log_data') && $r->pnotes('log_data')->[0] && $r->pnotes('log_data')->[1]);
-    
-    $TIMER->start('log_view');
+
+    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+        $TIMER->start('log_view');
+    }
     my $logged = SL::Model::Ad->log_view( 
         $r->pnotes('log_data')->[0], $r->pnotes('log_data')->[1] );
 
@@ -30,8 +32,10 @@ sub handler {
 		@{$r->pnotes('log_data')})) unless $logged;
 
     # checkpoint
-    $r->log->info(sprintf("timer $$ %s %d %s %f",
-        @{$TIMER->checkpoint}[0,2..4]));
+    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+        $r->log->info(sprintf("timer $$ %s %d %s %f",
+            @{$TIMER->checkpoint}[0,2..4]));
+    }
 
     return Apache2::Const::DECLINED;
 }
