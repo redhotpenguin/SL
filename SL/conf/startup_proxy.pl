@@ -80,8 +80,6 @@ use Template         ();
 use URI              ();
 use Regexp::Assemble ();
 
-use GTop ();
-
 print STDOUT "Modules loaded, initializing database connections\n";
 
 $Apache::DBI::DEBUG = $config->sl_db_debug;
