@@ -17,6 +17,8 @@ use SL::Model::URL ();
 our ($EXT_REGEX, $BLACKLIST_REGEX);
 use Regexp::Assemble ();
 
+our $VERBOSE_DEBUG = 0;
+
 BEGIN {
     ## Extension based matching
     my @extensions = qw(
@@ -24,10 +26,11 @@ BEGIN {
       rss tgz txt wmv vob xpi zip );
 
     $EXT_REGEX = Regexp::Assemble->new->add(@extensions)->re;
-    print STDERR "Regex for static content match is $EXT_REGEX\n";
+    print STDERR "Regex for static content match is $EXT_REGEX\n"
+        if $VERBOSE_DEBUG;
 
     $BLACKLIST_REGEX = SL::Model::URL->generate_blacklist_regex;
-    print STDERR "Blacklist reges is $BLACKLIST_REGEX\n";
+    print STDERR "Blacklist reges is $BLACKLIST_REGEX\n" if $VERBOSE_DEBUG;
 
 }
 
@@ -44,7 +47,6 @@ use SL::Cache               ();
 use SL::Util                ();
 use RHP::Timer              ();
 
-our $VERBOSE_DEBUG = 0;
 my $TIMER = RHP::Timer->new();
 
 sub proxy_request {
