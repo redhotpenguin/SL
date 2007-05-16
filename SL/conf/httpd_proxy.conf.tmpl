@@ -18,7 +18,7 @@ LogLevel             [% cfg.sl_proxy_apache_loglevel %]
 MaxClients           [% cfg.sl_proxy_apache_maxclients %]
 ErrorLog             [% cfg.sl_root %]/logs/httpd_proxy_error_log
 TransferLog          [% cfg.sl_root %]/logs/httpd_proxy_access_log
-MaxRequestsPerChild  250
+MaxRequestsPerChild  [% cfg.sl_proxy_apache_max_requests_per_child %]
 LogFormat "%h %l %u %t (%{User-agent}i) \"%r\" %>s %b %{SL_URL}e"
 UseCanonicalName     Off
 HostNameLookups      Off
@@ -57,7 +57,8 @@ ErrorDocument        500	/500.html
 LoadModule perl_module        modules/mod_perl.so
 
 PerlPassEnv SL_ROOT
-PerlPostConfigRequire "[% cfg.sl_root %]/conf/startup_proxy.pl"
+PerlRequire "[% cfg.sl_root %]/conf/startup_proxy.pl"
+#PerlPostConfigRequire "[% cfg.sl_root %]/conf/startup_proxy.pl"
 #PerlLoadModule SL::Config
 #SLRoot '/home/fred/dev/sl'
 [% IF cfg.sl_debug %]
@@ -71,9 +72,6 @@ PerlModule           Apache2::Reload
 PerlInitHandler      Apache2::Reload
 PerlSetVar           ReloadAll On
 PerlSetVar           ReloadDirectories "[% cfg.sl_root %]/lib"
-[% END %]
-[% IF cfg.sl_prof %]
-	PerlModule Apache::DProf
 [% END %]
 
 PerlSetVar           SLWhiteList [% cfg.sl_whitelist %]

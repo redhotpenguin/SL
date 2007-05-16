@@ -44,6 +44,8 @@ use Apache2::RequestUtil    ();
 use Apache2::ServerRec      ();
 use Apache2::ServerUtil     ();
 use Apache2::SubRequest     ();
+use Apache2::URI            ();
+use Apache2::Const          ();
 use APR::Table              ();
 
 use SL::Model             ();
@@ -55,6 +57,8 @@ use SL::Model::URL        ();
 use SL::Apache::Proxy::TransHandler     ();
 use SL::Apache::Proxy::ResponseHandler  ();
 use SL::Apache::Proxy::BlacklistHandler ();
+use SL::Apache::Proxy::PostReadRequestHandler  ();
+use SL::Apache::Proxy::PingHandler      ();
 use SL::Apache::Proxy::LogHandler       ();
 
 use SL::Cache         ();
@@ -66,7 +70,7 @@ use RHP::Timer ();
 
 use Digest::MD5 ();
 use DBI         ();
-use DBD::Pg          ();
+use DBD::Pg     ();
 DBI->install_driver('Pg');
 use Data::Dumper     ();
 use Sys::Load        ();
@@ -75,6 +79,8 @@ use Encode           ();
 use Template         ();
 use URI              ();
 use Regexp::Assemble ();
+
+use GTop ();
 
 print STDOUT "Modules loaded, initializing database connections\n";
 

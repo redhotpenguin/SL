@@ -133,21 +133,13 @@ The question at hand for container is 'will it work?'
 
 =cut
 
-my $try_container = 1;   # signals we will attempt to use the container approach
-
-our $skips;
+our $SKIPS;
 
 BEGIN {
-    require Regexp::Assemble;
-
-    $skips = Regexp::Assemble->new;
-
-    # Skip pages with stylesheets and skip embedded google ads
     my @skips = qw( framset adwords.google.com );
     push @skips, 'Ads by Goooooogle';
-    $skips->add(@skips);
-    print STDERR "Regex for content insertion skips ", $skips->re, "\n";
-
+    $SKIPS = Regexp::Assemble->new->add(@skips)->re;
+    print STDERR "Regex for content insertion skips ", $SKIPS, "\n";
 }
 
 sub handler {
@@ -175,27 +167,29 @@ sub handler {
                               headers => \%headers,
                              }
                             );
-    
+
     # checkpoint
     if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $r->log->info(sprintf("timer $$ %s %d %s %f",
-            @{$TIMER->checkpoint}[0,2..4]));
+        $r->log->info(
+             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
         $TIMER->start('make_remote_request');
     }
-    
-    $r->log->debug("$$ Remote proxy request: ", 
-        Data::Dumper::Dumper($proxy_request)) if $VERBOSE_DEBUG;
+
+    $r->log->debug("$$ Remote proxy request: ",
+                   Data::Dumper::Dumper($proxy_request))
+      if $VERBOSE_DEBUG;
 
     # Make the request to the remote server
     my $response = $SL_UA->request($proxy_request);
 
-    $r->log->debug("$$ Response from proxy request", 
-        Data::Dumper::Dumper($response)) if $VERBOSE_DEBUG;
+    $r->log->debug("$$ Response from proxy request",
+                   Data::Dumper::Dumper($response))
+      if $VERBOSE_DEBUG;
 
     # checkpoint
     if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $r->log->info(sprintf("timer $$ %s %d %s %f",
-            @{$TIMER->checkpoint}[0,2..4]));
+        $r->log->info(
+             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
     }
 
     # Dispatch the response
@@ -233,7 +227,7 @@ sub badrequest {
 }
 
 sub fourohfour {
-    my ($r, $res)   = @_;
+    my ($r, $res) = @_;
 
     # FIXME - set the proper headers out
     $r->log->debug("$$ Request returned 404, response ",
@@ -307,8 +301,8 @@ sub _err_cookies_out {
     my ($r, $response) = @_;
     if (my @cookies = $response->header('set-cookie')) {
         foreach my $cookie (@cookies) {
-            $r->log->debug("Adding cookie to headers_out: $cookie") 
-                if $VERBOSE_DEBUG;
+            $r->log->debug("Adding cookie to headers_out: $cookie")
+              if $VERBOSE_DEBUG;
             $r->err_headers_out->add('Set-Cookie' => $cookie);
         }
         $response->headers->remove_header('Set-Cookie');
@@ -335,8 +329,8 @@ sub twohundred {
 
     # checkpoint
     if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $r->log->info(sprintf("timer $$ %s %d %s %f",
-            @{$TIMER->checkpoint}[0,2..4]));
+        $r->log->info(
+             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
         $TIMER->start('rate_limiter');
     }
 
@@ -346,10 +340,10 @@ sub twohundred {
         $is_toofast = $rate_limit->check_violation();
         $r->log->debug("$$ ===> $url check_violation: $is_toofast");
     }
-    
+
     if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $r->log->info(sprintf("timer $$ %s %d %s %f",
-            @{$TIMER->checkpoint}[0,2..4]));
+        $r->log->info(
+             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
         $TIMER->start('subrequest_check');
     }
 
@@ -360,10 +354,11 @@ sub twohundred {
         $is_subreq = $subrequest_tracker->is_subrequest(url => $url);
         $r->log->debug("$$ ===> $url is_subreq: $is_subreq");
     }
+
     # checkpoint
     if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $r->log->info(sprintf("timer $$ %s %d %s %f",
-            @{$TIMER->checkpoint}[0,2..4]));
+        $r->log->info(
+             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
     }
 
     # serve an ad if this is HTML and it's not a sub-request of an
@@ -375,14 +370,17 @@ sub twohundred {
 
         # first grab the links from the page and stash them
         $TIMER->start('collect_subrequests')
-            if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
+          if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
         $subrequest_tracker->collect_subrequests(
                                              content_ref => \$response->content,
                                              base_url    => $url);
+
         # checkpoint
         if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-            $r->log->info(sprintf("timer $$ %s %d %s %f",
-                @{$TIMER->checkpoint}[0,2..4]));
+            $r->log->info(
+                          sprintf("timer $$ %s %d %s %f",
+                                  @{$TIMER->checkpoint}[0, 2 .. 4])
+                         );
         }
 
         $response_content_ref = _generate_response($r, $response);
@@ -394,7 +392,8 @@ sub twohundred {
     }
 
     $TIMER->start('prepare_response_headers')
-        if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
+      if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
+
     # set the status line
     $r->status_line($response->status_line);
     $r->log->debug("status line is " . $response->status_line);
@@ -489,28 +488,29 @@ sub twohundred {
     $r->no_cache(1);
 
     $r->log->debug("$$ Request string before sending: " . $r->as_string)
-        if $VERBOSE_DEBUG;
+      if $VERBOSE_DEBUG;
 
-    $r->log->debug("$$ Response content: " . $$response_content_ref) 
-        if $VERBOSE_DEBUG;
-    
+    $r->log->debug("$$ Response content: " . $$response_content_ref)
+      if $VERBOSE_DEBUG;
+
     # rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
     $r->rflush();
-    
+
     # checkpoint
     if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $r->log->info(sprintf("timer $$ %s %d %s %f",
-            @{$TIMER->checkpoint}[0,2..4]));
+        $r->log->info(
+             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
+
         # Print the response content
         $TIMER->start('print_response');
     }
     $r->print($$response_content_ref);
-    
+
     # checkpoint
     if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $r->log->info(sprintf("timer $$ %s %d %s %f",
-            @{$TIMER->checkpoint}[0,2..4]));
+        $r->log->info(
+             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
     }
 
     return Apache2::Const::OK;
@@ -530,14 +530,15 @@ sub _generate_response {
 
     # put the ad in the response
     $TIMER->start('random_ad')
-        if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
+      if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
 
     my ($ad_id, $ad_content_ref, $css_url) =
       SL::Model::Ad->random($r->connection->remote_ip);
+
     # checkpoint
     if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $r->log->info(sprintf("timer $$ %s %d %s %f",
-            @{$TIMER->checkpoint}[0,2..4]));
+        $r->log->info(
+             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
     }
 
     $r->log->debug("Ad content is \n$$ad_content_ref\n") if $VERBOSE_DEBUG;
@@ -565,20 +566,22 @@ sub _generate_response {
         $content_needs_encoding = 0;
     }
 
-    if ($decoded_content =~ m/$skips/ims) {
+    if ($decoded_content =~ m/$SKIPS/is) {
         $r->log->info("Skipping ad insertion from skips regex");
         return $response->content;
     }
     else {
         $TIMER->start('container insertion')
-            if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
-        
+          if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
+
         SL::Model::Ad::container(\$css_url, \$decoded_content, $ad_content_ref);
-        
+
         # checkpoint
         if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-            $r->log->info(sprintf("timer $$ %s %d %s %f",
-                @{$TIMER->checkpoint}[0,2..4]));
+            $r->log->info(
+                          sprintf("timer $$ %s %d %s %f",
+                                  @{$TIMER->checkpoint}[0, 2 .. 4])
+                         );
         }
     }
 
@@ -588,13 +591,13 @@ sub _generate_response {
                        sprintf("$$ Ad insertion failed, response: %s",
                                Data::Dumper::Dumper($response))
                       );
-        $r->log->error("$$ Munged response $decoded_content, ad $$ad_content_ref");
+        $r->log->error(
+                    "$$ Munged response $decoded_content, ad $$ad_content_ref");
         return $response->content;
     }
 
     # We've made it this far so we're looking good
-    $r->log->debug("$$ Ad inserted for url $url; try_container: ",
-                  $try_container, "; referer : $referer; ua : $ua;");
+    $r->log->debug("$$ Ad inserted url $url; referer: $referer; ua: $ua;");
 
     $r->log->debug("Munged response is \n $decoded_content") if $VERBOSE_DEBUG;
 

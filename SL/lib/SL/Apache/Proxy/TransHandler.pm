@@ -14,20 +14,21 @@ SL::Apache::TransHandler
 use SL::Model      ();
 use SL::Model::URL ();
 
-our $EXT_REGEX;
-our $UA_REGEX;
+our ($EXT_REGEX, $BLACKLIST_REGEX);
+use Regexp::Assemble ();
 
 BEGIN {
-    require Regexp::Assemble;
-
     ## Extension based matching
     my @extensions = qw(
       ad avi bz2 css doc exe fla gif gz ico jpeg jpg js pdf png ppt rar sit
       rss tgz txt wmv vob xpi zip );
 
-    $EXT_REGEX = Regexp::Assemble->new;
-    $EXT_REGEX->add(@extensions);
-    print STDERR "Regex for static content match is ", $EXT_REGEX->re, "\n\n";
+    $EXT_REGEX = Regexp::Assemble->new->add(@extensions)->re;
+    print STDERR "Regex for static content match is $EXT_REGEX\n";
+
+    $BLACKLIST_REGEX = SL::Model::URL->generate_blacklist_regex;
+    print STDERR "Blacklist reges is $BLACKLIST_REGEX\n";
+
 }
 
 use Apache2::Const -compile =>
@@ -38,6 +39,7 @@ use Apache2::RequestRec     ();
 use Apache2::RequestUtil    ();
 use Apache2::ServerRec      ();
 use Apache2::ServerUtil     ();
+use Apache2::URI            ();
 use SL::Cache               ();
 use SL::Util                ();
 use RHP::Timer              ();
@@ -97,8 +99,9 @@ sub handler {
 
     # checkpoint
     if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $r->log->info(sprintf("timer $$ %s %d %s %f",
-            @{$TIMER->checkpoint}[0,2..4]));
+        $r->log->info(
+             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
+
         # reset the clock
         $TIMER->start('db_mod_proxy_filters');
 
@@ -130,8 +133,8 @@ sub handler {
     return &proxy_request($r) if (user_blacklisted($r, $dbh));
 
     if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $r->log->info(sprintf("timer $$ %s %d %s %f",
-            @{$TIMER->checkpoint}[0,2..4]));
+        $r->log->info(
+             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
         $TIMER->start('url_blacklisted');
     }
 
@@ -139,11 +142,11 @@ sub handler {
     return &proxy_request($r) if (url_blacklisted($url));
 
     if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $r->log->info(sprintf("timer $$ %s %d %s %f",
-            @{$TIMER->checkpoint}[0,2..4]));
+        $r->log->info(
+             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
         $TIMER->start('not_a_browser');
     }
-    
+
     ## Handle non-browsers that use port 80
     return &proxy_request($r) if (_not_a_browser($r));
 
@@ -154,8 +157,8 @@ sub handler {
     return &proxy_request($r) if ($r->method ne 'GET');
 
     if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $r->log->info(sprintf("timer $$ %s %d %s %f",
-            @{$TIMER->checkpoint}[0,2..4]));
+        $r->log->info(
+             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
         $TIMER->start('examine_request');
     }
 
@@ -184,10 +187,10 @@ sub handler {
     }
 
     $r->log->debug("EndTranshandler");
-    
+
     if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $r->log->info(sprintf("timer $$ %s %d %s %f",
-            @{$TIMER->checkpoint}[0,2..4]));
+        $r->log->info(
+             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
     }
 
     return Apache2::Const::OK;
@@ -213,8 +216,11 @@ sub user_blacklisted {
 sub url_blacklisted {
     my $url = shift;
 
-    my $blacklist_regex = SL::Model::URL->blacklist_regex;
-    return 1 if ($url =~ m{$blacklist_regex});
+    my $ping = SL::Model::URL->ping_blacklist_regex;
+    if ($ping) { # update the blacklist if it has changed
+        $BLACKLIST_REGEX = $ping;
+    }
+    return 1 if ($url =~ m{$BLACKLIST_REGEX}i);
 }
 
 # extract this to a utility library or something

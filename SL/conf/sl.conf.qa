@@ -32,6 +32,7 @@ sl_proxy_apache_user  phred
 sl_proxy_apache_group  users
 sl_proxy_admin support@silverliningnetworks.com
 sl_proxy_apache_listen  0.0.0.0:8000
+sl_proxy_apache_max_requests_per_child 250
 
 sl_proxy_servername  app2.redhotpenguin.com
 sl_proxy_rate_limit '5 sec'
