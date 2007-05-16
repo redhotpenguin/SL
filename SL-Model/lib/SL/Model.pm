@@ -8,8 +8,6 @@ use SL::Config;
 
 our $VERSION = 0.1;
 
-our $cfg = SL::Config->new;
-
 my $db_options = {
                   RaiseError         => 0,
                   PrintError         => 1,
@@ -22,12 +20,15 @@ my $db_options = {
 # DBI connect 
 sub connect_params {
     my $self = shift;
+    my $cfg = SL::Config->new;
+
  	return [ $self->dsn, $cfg->sl_db_user, $cfg->sl_db_pass, $db_options ];
 }
 
 # dsn
 sub dsn {
 	my $self = shift;
+    my $cfg = SL::Config->new;
     my $db   = shift || $cfg->sl_db_name;
     my $dsn = "dbi:Pg:dbname='$db';";
 	my $host = shift || $cfg->sl_db_host;

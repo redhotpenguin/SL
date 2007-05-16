@@ -8,12 +8,13 @@ use Regexp::Assemble ();
 use Digest::MD5      ();
 use Cache::FastMmap  ();
 
-my @URLS;
-my $BLACKLIST_REGEX;
+our @URLS;
+our $BLACKLIST_REGEX;
 my $CACHE;
 
 my $REGEX_DEBUG = 0;
 
+our $URL_QUERY;
 BEGIN {
 
     # setup the cache object;
@@ -26,29 +27,29 @@ BEGIN {
         expire_time => 3600 * 24 * 30,    # 30 days
         cache_size  => '128m',
     );
-
-}
-
-our $MAX_URL_ID;
-our $url_query = <<SQL;
+    $URL_QUERY = <<SQL;
 SELECT url
 FROM url
 WHERE
 blacklisted = 't'
 SQL
 
+}
+
+our $MAX_URL_ID;
 @URLS = __PACKAGE__->get_blacklisted_urls();
+$BLACKLIST_REGEX = __PACKAGE__->generate_blacklist_regex(\@URLS);
 
 sub get_blacklisted_urls {
     my $class = shift;
     my $dbh     = SL::Model->connect;
-    my $sth     = $dbh->prepare($url_query);
+    my $sth     = $dbh->prepare($URL_QUERY);
     $sth->execute;
     my @blacklisted_urls = map { $_->[0] } @{ $sth->fetchall_arrayref };
     return wantarray ? @blacklisted_urls : \@blacklisted_urls;
 }
 
-sub blacklist_regex {
+sub ping_blacklist_regex {
     my $class = shift;
 
     # First check to see if the urls have changed.  We don't compare the count
@@ -67,18 +68,24 @@ sub blacklist_regex {
         ) ? 1 : 0;
 
         # if nothing has changed, return the existing regex
-        unless ($they_are_different) {
-            return $BLACKLIST_REGEX;
-        }
+        return unless ($they_are_different);
     }
+    
+    return $class->generate_blacklist_regex(\@recent_urls);
+}
 
-    # ok they have changed, log info level and recompute the regex
-    $BLACKLIST_REGEX = Regexp::Assemble->new->add(@recent_urls)->re;
+sub generate_blacklist_regex {
+    my ($class, $urls_ref) = @_;
+
+    unless ($urls_ref) {
+        $urls_ref = $class->get_blacklisted_urls;
+    }
+    $BLACKLIST_REGEX = Regexp::Assemble->new->add(@{$urls_ref})->re;
     print STDERR sprintf("$$ Regex for blacklist_urls recomputed: %s\n", 
         $BLACKLIST_REGEX ) if $REGEX_DEBUG;
     
     # oh, don't forget to update the array
-    @URLS = @recent_urls;
+    @URLS = @{$urls_ref};
     return $BLACKLIST_REGEX;
 }
 

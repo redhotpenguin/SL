@@ -3,10 +3,10 @@ package SL::Model::Subrequest;
 use strict;
 use warnings;
 
-use HTML::TokeParser;
-use URI;
+use HTML::TokeParser ();
+use URI ();
 
-use SL::Model;
+use SL::Model ();
 
 =head1 NAME
 
@@ -91,7 +91,7 @@ sub collect_subrequests {
     }
 
     $sth->finish;
-    $dbh->commit;
+    # $dbh->commit; # currently autocommit
 
     return $count;
 }
