@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 16;
+use Test::More tests => 12;
 
 my $pkg;
 
@@ -26,15 +26,11 @@ my $stop       = $timer->stop();
 my $super_stop = $supervisor_timer->stop();
 
 cmp_ok($timer->current(), 'eq', 'foo', 'current ok');
-like($stop, qr/^1\.0\d+/,       'precise to 0.1 seconds');
-like($stop, qr/^1\.00\d+/,      'precise to 0.01 seconds');
-like($stop, qr/^1\.00[0-5]\d+/, 'precise to 0.005 seconds');
+cmp_ok($stop-$interval, '<', 0.005, 'precise to 0.005 seconds');
 
 # accuracy
 my $error = $super_stop - $stop;
-like($error, qr/^0\.0\d+/,     'accurate to 0.1 second');
-like($error, qr/^0\.00\d+/,    'accurate to 0.01 seconds');
-like($error, qr/^0\.00[0-5]/,  'accurate to 0.005 seconds');
+cmp_ok($error, '<', 0.005, 'accurate to 0.005 seconds');
 
 
 # checkpoint
@@ -43,7 +39,7 @@ sleep 2;
 my $checkpoint_ary_ref = $timer->checkpoint();
 cmp_ok($checkpoint_ary_ref->[0], 'eq', __PACKAGE__, 'package ok');
 cmp_ok($checkpoint_ary_ref->[1], 'eq', $0, 'filename ok');
-cmp_ok($checkpoint_ary_ref->[2], '==', 43, 'file line ok'); # line number-1?
+cmp_ok($checkpoint_ary_ref->[2], '==', 39, 'file line ok'); # line number-1?
 cmp_ok($checkpoint_ary_ref->[3], 'eq', 'checkpoint', 'correct timer name');
 cmp_ok($checkpoint_ary_ref->[4], '==', $timer->last_interval);
 
