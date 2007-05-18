@@ -89,7 +89,7 @@ sub sl_db_params {
 
 sub tmpl_root {
     my $self = shift;
-    return $self->sl_root . '/' . $self->sl_version . '/tmpl';
+    return $self->sl_root . '/tmpl';
 }
 
 1;
