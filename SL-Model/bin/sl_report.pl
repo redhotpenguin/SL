@@ -71,6 +71,5 @@ foreach my $day (@DAYS) {
 }
 
 $cnt .= "\nHave a nice day :)\n";
-$DB::single = 1;
 print $mailer $cnt;
 $mailer->close;
