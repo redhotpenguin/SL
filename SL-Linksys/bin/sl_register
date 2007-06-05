@@ -1,0 +1,31 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+our $DEBUG = 1;
+my $reg_url;
+
+# grab the list of available proxies
+open( $fh, '<', $SL_CONF ) or die $!;
+while (<$fh>) {
+    next unless $_ =~ m/^reg/;
+    chomp($_);
+    $reg_url = ( split ( /\s+/, $_ ) )[1];
+}
+close($fh) or die $!;
+
+my $ifconfig = `/sbin/ifconfig`;
+my ($mac_address) =
+  $ifconfig =~ m/ether\s(\w{2}:\w{2}:\w{2}:\w{2}:\w{2}:\w{2})\w{2}/i;
+
+my $registration = `wget $reg_url/$mac_address`;
+if ( $registration =~ m/error 50/i ) {
+    print STDERR "Could not register mac address $mac_address\n";
+    exit(1);
+}
+
+# else reg went ok
+print "Registration ok for $mac_address\n" if $DEBUG;
+
+1;
