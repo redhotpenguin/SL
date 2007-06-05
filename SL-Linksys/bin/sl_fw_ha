@@ -1,0 +1,110 @@
+#!/usr/bin/microperl
+
+our $DEBUG                = 1;
+our $IPTABLES_FILE        = '/etc/firewall.user.default';
+our $SL_IPTABLES_FILE     = '/etc/firewall.user.sl';
+our $SL_IPTABLES_TEMPLATE = '/etc/firewall.user.sl.tmpl';
+our $IPTABLES             = '/usr/sbin/iptables';
+our $SL_CONF              = '/etc/sl_linksys.conf';
+our $FIREWALL             = '/etc/init.d/S35firewall';
+
+my ( $fh, @available_proxies );
+my $current_proxy_file = '/tmp/sl_current_proxy.txt';
+unless ( -e $current_proxy_file ) {
+
+    # grab the list of available proxies
+    open( $fh, '<', $SL_CONF ) or die $!;
+    while (<$fh>) {
+        next unless $_ =~ m/^proxy/;
+        chomp($_);
+        @available_proxies = split ( /\s+/, $_ );
+        shift @available_proxies;    # get rid of the label
+    }
+    close($fh) or die $!;
+
+    # set the current proxy to the first one in the list
+    open( $fh, '>', $current_proxy_file ) or die $!;
+    print $fh $available_proxies[0] . "\n";
+    close($fh) or die $!;
+}
+
+# grab the current proxy from the file
+my $current_proxy;
+open( $fh, '<', $current_proxy_file ) or die $!;
+while (<$fh>) {
+    chomp($_);
+    $current_proxy = $_;
+}
+
+# ping the proxy
+my $ping = ping($current_proxy);
+if ( $ping !~ m/error 50/i ) {
+    print "Ping returned ok, server $current_proxy is up\n" if $DEBUG;
+    unlink('sl_secret_ping_button');
+    exit(0);
+}
+
+# ping returned a 50x, handle the error
+foreach my $available_proxy (@available_proxies) {
+    if ( $available_proxy eq $current_proxy ) {
+        print "Skipping check for current proxy $current_proxy\n" if $DEBUG;
+        next;
+    }
+    $ping = ping($available_proxy);
+    if ( $ping !~ m/error 50/i ) {
+
+        # this proxy is open, change the routing table
+        print "Updating proxy to $available_proxy\n" if $DEBUG;
+        update_current_proxy($available_proxy);
+        exit(0);
+    }
+    else {
+
+        # this proxy threw an error
+        print STDERR "Proxy $available_proxy down\n" if $DEBUG;
+        next;
+    }
+}
+
+# if we get here then no available proxies could be reached
+# set the routing table to default
+print STDERR "No available proxies, setting default route\n";
+set_firewall('default');
+exit(0);
+
+sub set_firewall {
+    my $route = shift;
+    chdir('/etc');
+    unlink('firewall.user');
+    symlink( "firewall.user.$route", 'firewall.user' );
+    my $restart = `/bin/sh $FIREWALL stop && /bin/sh $FIREWALL start`;
+    print "Firewall restarted: $restart\n" if $DEBUG;
+}
+
+sub update_current_proxy {
+    my $available_proxy = shift;
+
+    # update the sl firewall rules
+    my $fh;
+    my $content = '';
+    open( $fh, '<', $SL_IPTABLES_TEMPLATE ) or die $!;
+    $content .= $_ while (<$fh>);
+    close($fh) or die $!;
+    my $rule_content = sprintf( $content, $available_proxy );
+    open( $fh, '>', $SL_IPTABLES_FILE ) or die $!;
+    print $fh $content;
+    close($fh) or die $!;
+
+    # set the firewall to sl rules
+    set_firewall('sl');
+
+    # we're finished here
+    print "Current proxy updated with $available_proxy\n" if $DEBUG;
+}
+
+sub ping {
+    my $proxy = shift;
+    return `wget $current_proxy/sl_secret_ping_button`;
+}
+
+1;

@@ -1,0 +1,139 @@
+Package: kernel
+Status: install ok installed
+Root: /
+Version: 2.4.30-brcm-5
+
+Package: base-files
+Status: install ok installed
+Root: /
+Version: 9
+
+Package: base-files-brcm
+Status: install ok installed
+Root: /
+Version: 2
+
+Package: bridge
+Status: install ok installed
+Root: /
+Version: 1.0.6-1
+
+Package: busybox
+Status: install ok installed
+Root: /
+Version: 1.00-5
+
+Package: dnsmasq
+Status: install ok installed
+Root: /
+Conffiles: /etc/dnsmasq.conf 4b50d621eb981fd4bba8e864e13e7cd3
+Version: 2.35-1
+
+Package: dropbear
+Status: install ok installed
+Root: /
+Version: 0.48.1-1
+
+Package: haserl
+Status: install ok installed
+Root: /
+Version: 0.8.0-1
+
+Package: ipkg
+Status: install ok installed
+Root: /
+Essential: yes
+Version: 0.99.149-2
+
+Package: iptables
+Status: install ok installed
+Root: /
+Conffiles: /etc/config/firewall 02e205534ac12e3c46cd65eee068be7e /etc/firewall.user f626143fa22ae40fe361eaceb69d2942
+Version: 1.3.3-2
+
+Package: iwlib
+Status: install ok installed
+Root: /
+Version: 28.pre7-1
+
+Package: kmod-brcm-wl
+Status: install ok installed
+Root: /
+Version: 2.4.30-brcm-5
+
+Package: kmod-diag
+Status: install ok installed
+Root: /
+Version: 2.4.30-brcm-5
+
+Package: kmod-ipt-nat-default
+Status: install ok installed
+Root: /
+Version: 2.4.30-brcm-5
+
+Package: kmod-ppp
+Status: install ok installed
+Root: /
+Version: 2.4.30-brcm-5
+
+Package: kmod-pppoe
+Status: install ok installed
+Root: /
+Version: 2.4.30-brcm-5
+
+Package: kmod-switch
+Status: install ok installed
+Root: /
+Version: 2.4.30-brcm-1
+
+Package: kmod-wlcompat
+Status: install ok installed
+Root: /
+Version: 2.4.30-brcm-4
+
+Package: microperl
+Status: install ok installed
+Root: /
+Version: 5.8.6-1
+
+Package: mtd
+Status: install ok installed
+Root: /
+Version: 5
+
+Package: nvram
+Status: install ok installed
+Root: /
+Version: 1
+
+Package: ppp
+Status: install ok installed
+Root: /
+Conffiles: /etc/ppp/chap-secrets e29cbe6021f13bd9b14d780a80f188ab /etc/ppp/options 51127b11b2a9175ff808e81780bce343
+Version: 2.4.3-7
+
+Package: ppp-mod-pppoe
+Status: install ok installed
+Root: /
+Version: 2.4.3-7
+
+Package: uclibc
+Status: install ok installed
+Root: /
+Version: 0.9.27-9
+
+Package: webif
+Status: install ok installed
+Root: /
+Version: 0.2-1
+
+Package: wificonf
+Status: install ok installed
+Root: /
+Version: 6
+
+Package: wireless-tools
+Status: install ok installed
+Root: /
+Version: 28.pre7-1
+

@@ -1,0 +1,8 @@
+/
+/etc/
+/etc/modules.d/
+/etc/modules.d/10-wlcompat
+/lib/
+/lib/modules/
+/lib/modules/2.4.30/
+/lib/modules/2.4.30/wlcompat.o

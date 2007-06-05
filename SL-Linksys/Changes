@@ -1,0 +1,6 @@
+Revision history for Perl extension SL-Linksys.
+
+0.01  Sun Jun  3 10:40:04 2007
+	- original version; created by h2xs 1.23 with options
+		-X SL-Linksys
+

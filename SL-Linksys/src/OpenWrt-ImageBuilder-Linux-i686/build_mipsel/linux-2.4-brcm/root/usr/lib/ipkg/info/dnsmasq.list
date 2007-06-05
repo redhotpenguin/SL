@@ -1,0 +1,8 @@
+/
+/usr/
+/usr/sbin/
+/usr/sbin/dnsmasq
+/etc/
+/etc/init.d/
+/etc/init.d/S60dnsmasq
+/etc/dnsmasq.conf

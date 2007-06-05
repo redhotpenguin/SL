@@ -1,0 +1,35 @@
+#!/usr/bin/microperl
+
+our $DEBUG = 0;
+
+# open the config file
+my $config_file = '/etc/sl_linksys.conf';
+my $fh;
+open($fh, '<', $config_file) or die $!;
+
+# parse it and grab the config file location
+my $url;
+while(<$fh>) {
+    next unless $_ =~ m/^config/;
+    chomp($_);
+    $url = (split(/\s+/, $_))[1];
+}
+
+my ($file) = $url =~ m/([^\/]+)$/;
+
+# change to tmp dir
+chdir('/tmp');
+# remove it if it already exists
+unlink($file) if -e $file;
+
+# grab the file
+my $grab = `wget $url`;
+if (-e $file) {
+    print "$file retrieved ok\n" if $DEBUG;
+    my $mv = `mv $file /etc/$file`;
+    print "$file moved to /etc\n" if $DEBUG;
+} else {
+    print STDERR "Couldn't retrieve $url\n";
+}
+
+1;

@@ -1,0 +1,12 @@
+/
+/usr/
+/usr/bin/
+/usr/bin/scp
+/usr/bin/ssh
+/usr/bin/dbclient
+/usr/bin/dropbearkey
+/usr/sbin/
+/usr/sbin/dropbear
+/etc/
+/etc/init.d/
+/etc/init.d/S50dropbear

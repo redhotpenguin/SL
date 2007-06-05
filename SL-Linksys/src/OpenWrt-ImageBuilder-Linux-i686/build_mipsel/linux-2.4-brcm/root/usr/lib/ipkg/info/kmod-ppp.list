@@ -1,0 +1,7 @@
+/
+/lib/
+/lib/modules/
+/lib/modules/2.4.30/
+/lib/modules/2.4.30/ppp_async.o
+/lib/modules/2.4.30/ppp_generic.o
+/lib/modules/2.4.30/slhc.o

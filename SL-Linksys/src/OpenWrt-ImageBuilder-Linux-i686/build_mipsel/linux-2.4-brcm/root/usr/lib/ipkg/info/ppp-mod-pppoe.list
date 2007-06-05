@@ -1,0 +1,8 @@
+/
+/sbin/
+/sbin/ifup.pppoe
+/usr/
+/usr/lib/
+/usr/lib/pppd/
+/usr/lib/pppd/2.4.3/
+/usr/lib/pppd/2.4.3/rp-pppoe.so
