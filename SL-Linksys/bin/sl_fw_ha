@@ -1,16 +1,16 @@
 #!/usr/bin/microperl
 
-our $DEBUG                = 1;
-our $IPTABLES_FILE        = '/etc/firewall.user.default';
+our $DEBUG                = 0;
+our $IPTABLES_FILE        = '/etc/firewall.user';
 our $SL_IPTABLES_FILE     = '/etc/firewall.user.sl';
 our $SL_IPTABLES_TEMPLATE = '/etc/firewall.user.sl.tmpl';
 our $IPTABLES             = '/usr/sbin/iptables';
 our $SL_CONF              = '/etc/sl_linksys.conf';
 our $FIREWALL             = '/etc/init.d/S35firewall';
+our $CURRENT_PROXY_FILE   = '/tmp/sl_current_proxy.txt';
 
 my ( $fh, @available_proxies );
-my $current_proxy_file = '/tmp/sl_current_proxy.txt';
-unless ( -e $current_proxy_file ) {
+unless ( -e $CURRENT_PROXY_FILE ) {
 
     # grab the list of available proxies
     open( $fh, '<', $SL_CONF ) or die $!;
@@ -23,24 +23,28 @@ unless ( -e $current_proxy_file ) {
     close($fh) or die $!;
 
     # set the current proxy to the first one in the list
-    open( $fh, '>', $current_proxy_file ) or die $!;
+    open( $fh, '>', $CURRENT_PROXY_FILE ) or die $!;
     print $fh $available_proxies[0] . "\n";
     close($fh) or die $!;
 }
 
 # grab the current proxy from the file
 my $current_proxy;
-open( $fh, '<', $current_proxy_file ) or die $!;
+open( $fh, '<', $CURRENT_PROXY_FILE ) or die $!;
 while (<$fh>) {
     chomp($_);
     $current_proxy = $_;
 }
 
 # ping the proxy
-my $ping = ping($current_proxy);
-if ( $ping !~ m/error 50/i ) {
+if ( ping_ok($current_proxy) ) {
     print "Ping returned ok, server $current_proxy is up\n" if $DEBUG;
     unlink('sl_secret_ping_button');
+    unless (-e $IPTABLES_FILE) {
+        # gotta have that file
+        update_current_proxy($current_proxy);
+    }
+
     exit(0);
 }
 
@@ -50,8 +54,7 @@ foreach my $available_proxy (@available_proxies) {
         print "Skipping check for current proxy $current_proxy\n" if $DEBUG;
         next;
     }
-    $ping = ping($available_proxy);
-    if ( $ping !~ m/error 50/i ) {
+    if ( ping_ok($available_proxy) ) {
 
         # this proxy is open, change the routing table
         print "Updating proxy to $available_proxy\n" if $DEBUG;
@@ -76,9 +79,9 @@ sub set_firewall {
     my $route = shift;
     chdir('/etc');
     unlink('firewall.user');
-    symlink( "firewall.user.$route", 'firewall.user' );
+    my $link = `ln -s firewall.user.$route firewall.user`;
     my $restart = `/bin/sh $FIREWALL stop && /bin/sh $FIREWALL start`;
-    print "Firewall restarted: $restart\n" if $DEBUG;
+    print "Firewall restarted: $link\n" if $DEBUG;
 }
 
 sub update_current_proxy {
@@ -102,9 +105,15 @@ sub update_current_proxy {
     print "Current proxy updated with $available_proxy\n" if $DEBUG;
 }
 
-sub ping {
+sub ping_ok {
     my $proxy = shift;
-    return `wget $current_proxy/sl_secret_ping_button`;
+    my $ping  = `wget http://$proxy/sl_secret_ping_button`;
+    if ( $ping =~ m/error 50/i ) {
+        print STDERR "Proxy $proxy returned ping error:  $ping\n";
+        return;
+    }
+    print "Ping returned ok:  $ping\n" if $DEBUG;
+    return 1;
 }
 
 1;
