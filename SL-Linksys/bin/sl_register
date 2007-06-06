@@ -1,12 +1,11 @@
-#!/usr/bin/perl
+#!/usr/bin/microperl
 
-use strict;
-use warnings;
-
+our $SL_CONF = '/etc/sl_linksys.conf';
 our $DEBUG = 1;
 my $reg_url;
 
 # grab the list of available proxies
+my $fh;
 open( $fh, '<', $SL_CONF ) or die $!;
 while (<$fh>) {
     next unless $_ =~ m/^reg/;
@@ -17,7 +16,7 @@ close($fh) or die $!;
 
 my $ifconfig = `/sbin/ifconfig`;
 my ($mac_address) =
-  $ifconfig =~ m/ether\s(\w{2}:\w{2}:\w{2}:\w{2}:\w{2}:\w{2})\w{2}/i;
+  $ifconfig =~ m/br0.*?HWaddr\s(\w{2}:\w{2}:\w{2}:\w{2}:\w{2}:\w{2})\w{2}/i;
 
 my $registration = `wget $reg_url/$mac_address`;
 if ( $registration =~ m/error 50/i ) {
