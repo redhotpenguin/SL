@@ -10,6 +10,7 @@ use Apache2::Upload     ();
 use Apache2::ServerUtil ();
 use Data::FormValidator ();
 use Digest::MD5         ();
+use SL::Model::App      ();
 
 use base 'SL::Apache::App';
 use SL::Config;
