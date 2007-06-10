@@ -18,7 +18,6 @@ SET default_with_oids = false;
 
 CREATE TABLE router (
     router_id SERIAL NOT NULL,
-    reg_id INTEGER NOT NULL,
     ip inet NOT NULL,
     serial_number character(12),
     macaddr macaddr,
@@ -31,12 +30,8 @@ CREATE TABLE router (
     mts timestamp without time zone DEFAULT now(),
     active boolean default 't',
     code integer,
-    custom_rate_limit character varying(10),
+    custom_rate_limit character varying(10)
 );
 
 ALTER TABLE ONLY router
     ADD CONSTRAINT router_pkey PRIMARY KEY (router_id);
-
-ALTER TABLE router
-ADD CONSTRAINT reg_id_fkey FOREIGN KEY (reg_id) 
-REFERENCES reg(reg_id) ON UPDATE CASCADE ON DELETE CASCADE;
