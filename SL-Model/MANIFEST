@@ -11,6 +11,7 @@ lib/SL/Model/URL.pm
 lib/SL/Model/RateLimit.pm
 lib/SL/Model/Subrequest.pm
 lib/SL/Model/Report.pm
+lib/SL/Model/Proxy/Router.pm
 META.yml                                 Module meta-data (added by MakeMaker)
 bin/sl_mail_global_reports.pl
 bin/sl_mail_user_reports.pl
