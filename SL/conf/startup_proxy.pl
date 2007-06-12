@@ -8,28 +8,25 @@ $ENV{MOD_PERL} or die "GATEWAY_INTERFACE not Perl!";
 
 $|++;
 
-use FindBin ();
-use lib "$FindBin::Bin/../lib";
-
 use SL::Config ();
 my $config = SL::Config->new();
 
 print STDOUT "Loading modules...\n";
 
 # single user mode
-if ($config->sl_debug or $config->sl_small_prof) {
+if ( $config->sl_debug or $config->sl_small_prof ) {
     require APR::Pool;
     require Apache::DB;
     Apache::DB->init();
 }
 
 # profiling
-if ($config->sl_prof) {
+if ( $config->sl_prof ) {
     require Apache::DProf;
 }
 
 # status
-if ($config->sl_status) {
+if ( $config->sl_status ) {
     require Apache2::Status;
 }
 
@@ -48,18 +45,20 @@ use Apache2::URI            ();
 use Apache2::Const          ();
 use APR::Table              ();
 
-use SL::Model             ();
-use SL::Model::Ad         ();
-use SL::Model::Subrequest ();
-use SL::Model::RateLimit  ();
-use SL::Model::URL        ();
+use SL::Model                ();
+use SL::Model::Ad            ();
+use SL::Model::Subrequest    ();
+use SL::Model::RateLimit     ();
+use SL::Model::URL           ();
+use SL::Model::Proxy::Router ();
 
-use SL::Apache::Proxy::TransHandler     ();
-use SL::Apache::Proxy::ResponseHandler  ();
-use SL::Apache::Proxy::BlacklistHandler ();
-use SL::Apache::Proxy::PostReadRequestHandler  ();
-use SL::Apache::Proxy::PingHandler      ();
-use SL::Apache::Proxy::LogHandler       ();
+use SL::Apache::Proxy::AccessHandler          ();
+use SL::Apache::Proxy::TransHandler           ();
+use SL::Apache::Proxy::ResponseHandler        ();
+use SL::Apache::Proxy::BlacklistHandler       ();
+use SL::Apache::Proxy::PostReadRequestHandler ();
+use SL::Apache::Proxy::PingHandler            ();
+use SL::Apache::Proxy::LogHandler             ();
 
 use SL::Cache         ();
 use SL::UserAgent     ();
@@ -84,9 +83,9 @@ print STDOUT "Modules loaded, initializing database connections\n";
 
 $Apache::DBI::DEBUG = $config->sl_db_debug;
 my $db_connect_params = SL::Model->connect_params;
-Apache::DBI->connect_on_init(@{$db_connect_params});
-Apache::DBI->setPingTimeOut($db_connect_params->[0],
-                            $config->sl_db_ping_timeout);
+Apache::DBI->connect_on_init( @{$db_connect_params} );
+Apache::DBI->setPingTimeOut( $db_connect_params->[0],
+    $config->sl_db_ping_timeout );
 
 print STDOUT "Startup.pl finished...\n";
 
