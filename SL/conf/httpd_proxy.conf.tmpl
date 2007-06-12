@@ -86,6 +86,7 @@ PerlTransHandler SL::Apache::Proxy::TransHandler
 <Location />
     SetHandler          modperl
  	PerlHeaderParserHandler Apache2::Const::OK
+    PerlAccessHandler       SL::Apache::Proxy::AccessHandler
     PerlAuthenHandler       Apache2::Const::OK
     PerlAuthzHandler        Apache2::Const::OK
     PerlTypeHandler         Apache2::Const::OK
@@ -116,6 +117,7 @@ Include [% cfg.sl_root %]/conf/deflate.conf
 [% END %]
 
 <Location /sl_secret_ping_button>
+  PerlAccessHandler Apache2::Const::OK
   PerlResponseHandler SL::Apache::Proxy::PingHandler
 </Location>
 <Location /sl_secret_blacklist_button>
