@@ -23,10 +23,6 @@ use constant DEFAULT_BUG_LINK =>
   'http://www.redhotpenguin.com/images/sl/free_wireless.gif';
 use constant DEFAULT_REG_ID  => 14;
 use constant OCC_IP          => '198.145.32.11';
-use constant LINKTOADS_IP    => '74.39.199.115';
-use constant LINKTOADS_AD_ID => 107;
-use constant LINKTOADS_CSS_URL =>
-  'http://www.redhotpenguin.com/css/linktoads.css';
 use constant SL_CSS_URL  => 'http://www.redhotpenguin.com/css/sl.css';
 use constant OCC_CSS_URL => 'http://www.redhotpenguin.com/css/occ.css';
 
@@ -137,36 +133,6 @@ sub stacked {
     return $decoded_content;
 }
 
-# choose from our selection of default ads
-sub _sl_default {
-    my $class = shift;
-
-    my $sql = <<SQL;
-SELECT 
-ad_sl.ad_id, 
-ad_sl.text,
-ad.md5, 
-ad_sl.uri
-FROM ad_sl
-INNER JOIN ad USING (ad_id)
-WHERE ad.active = 't'
-AND ad_sl.reg_id = ?
-ORDER BY RANDOM()
-LIMIT 1
-SQL
-
-    my $dbh = SL::Model->connect();
-    my $sth = $dbh->prepare($sql);
-    $sth->bind_param(1, DEFAULT_REG_ID);
-    my $rv = $sth->execute;
-    die "Problem executing query: $sql" unless $rv;
-
-    my $ad_data = $sth->fetchrow_hashref;
-    $sth->finish;
-    $ad_data->{'template'} = 'text_ad';
-    return $ad_data;
-}
-
 sub _sl_feed {
     my ($class, $ip) = @_;
 
@@ -177,15 +143,19 @@ ad_linkshare.ad_id,
 ad_linkshare.displaytext AS text,
 ad.md5,
 ad_linkshare.linkurl AS uri
-FROM ad_linkshare
-INNER JOIN ad USING(ad_id)
+FROM ad_linkshare, ad, router, ad__ad_group, router__ad_group
 WHERE ad.active = 't'
+AND ad_linkshare.ad_id = ad.ad_id
+AND ad__ad_group.ad_id = ad.ad_id
+AND router__ad_group.ad_group_id = ad__ad_group.ad_group_id
+AND router.ip = ?
 ORDER BY RANDOM()
 LIMIT 1
 SQL
 
     my $dbh = SL::Model->connect();
     my $sth = $dbh->prepare($sql);
+    $sth->bind_param(1, $ip);
     my $rv  = $sth->execute;
     die "Problem executing query: $sql" unless $rv;
 
@@ -200,15 +170,15 @@ sub _sl_ad {
 
     my $sql = <<SQL;
 SELECT
-ad_sl.ad_id, 
+ad_sl.ad_id,
 ad_sl.text,
-ad.md5, 
+ad.md5,
 ad_sl.uri
-FROM ad_sl
-INNER JOIN ad USING (ad_id)
-INNER JOIN reg USING (reg_id)
-INNER JOIN router USING (reg_id)                                                
+FROM ad_sl, ad, router, ad__ad_group, router__ad_group
 WHERE ad.active = 't'
+AND ad_sl.ad_id = ad.ad_id
+AND ad__ad_group.ad_id = ad.ad_id
+AND router__ad_group.ad_group_id = ad__ad_group.ad_group_id
 AND router.ip = ?
 ORDER BY RANDOM()
 LIMIT 1
@@ -228,6 +198,8 @@ SQL
 
 sub _bug_link {
     my ($class, $ip) = @_;
+
+    return DEFAULT_BUG_LINK;
 
     my $sql = <<SQL;
 SELECT reg_id FROM router WHERE router.ip = ?
@@ -259,7 +231,7 @@ sub random {
     # current logic says  use default/custom ad groups 25% of the time
     # and our feeds 75% of the time
     my $feed_threshold   = 100;
-    my $custom_threshold = 25;
+    my $custom_threshold = 0;
     my $ad_data;
     my $rand = rand(100);
     if ($rand >= $feed_threshold) {
@@ -270,7 +242,7 @@ sub random {
     }
 
     unless (exists $ad_data->{'text'}) {
-        $ad_data = $class->_sl_default();
+        return;
     }
 
     my %tmpl_vars = (
@@ -281,16 +253,8 @@ sub random {
 
     my $output;
 
-    # linktoads
-    if ($ip eq LINKTOADS_IP) {
-        $template->process('linktoads.tmpl', {%tmpl_vars, %sl_ad_data},
-                           \$output)
-          || die $template->error(), "\n";
-
-        return (LINKTOADS_AD_ID, \$output, LINKTOADS_CSS_URL);
-    }
     # OCC
-    elsif ($ip eq OCC_IP) {
+    if ($ip eq OCC_IP) {
         $template->process('occ.tmpl', {%tmpl_vars, %sl_ad_data}, \$output)
           || die $template->error(), "\n";
         return ($ad_data->{'ad_id'}, \$output, OCC_CSS_URL);
