@@ -5,7 +5,7 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
               NAME      => 'SL',
-              VERSION   => '0.7',
+              VERSION   => '0.8',
               PREREQ_PM => {
                             'Apache::DBI'          => 1.06,
                             'Cache::FastMmap'      => 1.14,
@@ -14,7 +14,6 @@ WriteMakefile(
                             'Data::FormValidator'  => 4.40,
                             'Digest::SHA1'         => 2.11,
                             'LWP'                  => 5.805,
-                            'Text::Template'       => 1.44,
                             'Template'             => 2.14,
                             'Regexp::Assemble'     => 0.24,
                             'Sys::Load'            => 0.2,
