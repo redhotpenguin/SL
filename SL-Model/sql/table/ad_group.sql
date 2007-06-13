@@ -1,6 +1,6 @@
 CREATE TABLE ad_group (
     ad_group_id serial NOT NULL,
-	active boolean DEFAULT false,
+	active boolean DEFAULT true,
     name character varying(256),
     cts timestamp without time zone default now ()
 );
