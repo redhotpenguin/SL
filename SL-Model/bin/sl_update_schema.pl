@@ -238,6 +238,8 @@ $sql = <<SQL;
 select view_id, ad_id, cts, ip from view
 SQL
 
+print "Starting view\n";
+
 $hashref = $dbh->selectall_arrayref( $sql, { Slice => {} } );
 $sql     = <<SQL;
 INSERT into view
@@ -257,6 +259,9 @@ foreach my $reg ( @{$hashref} ) {
 
 ##################
 ## everything else
+
+print "ad_groups\n";
+
 $dbh2->do("INSERT INTO ad_group (ad_group_id, name) values (1, 'default')");
 $dbh2->do("INSERT INTO ad_group (ad_group_id, name) values (2, 'fred home')");
 $dbh2->do("INSERT INTO ad_group (ad_group_id, name) values (3, 'linktoads')");
@@ -273,6 +278,8 @@ $dbh2->do("INSERT INTO ad_group (ad_group_id, name) values (13, 'todd home')");
 $dbh2->do("INSERT INTO ad_group (ad_group_id, name) values (14, 'color broadband')");
 
 
+print "ad__ad_groups\n";
+
 $dbh2->do("INSERT INTO ad__ad_group (ad_id, ad_group_id) values (13, 1)");
 
 $dbh2->do("INSERT INTO ad__ad_group (ad_id, ad_group_id) values (38, 2)");
@@ -285,7 +292,6 @@ $dbh2->do("INSERT INTO ad__ad_group (ad_id, ad_group_id) values (88, 2)");
 $dbh2->do("INSERT INTO ad__ad_group (ad_id, ad_group_id) values (94, 2)");
 $dbh2->do("INSERT INTO ad__ad_group (ad_id, ad_group_id) values (95, 2)");
 $dbh2->do("INSERT INTO ad__ad_group (ad_id, ad_group_id) values (97, 2)");
-$dbh2->do("INSERT INTO ad__ad_group (ad_id, ad_group_id) values (95, 2)");
 $dbh2->do("INSERT INTO ad__ad_group (ad_id, ad_group_id) values (53, 2)");
 
 $dbh2->do("INSERT INTO ad__ad_group (ad_id, ad_group_id) values (236, 3)");
