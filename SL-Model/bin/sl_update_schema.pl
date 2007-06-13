@@ -45,6 +45,9 @@ foreach my $reg ( @{$reg_hashref} ) {
     $sth->bind_param( 4, $reg->{active} );
     $sth->execute;
 }
+my $table = 'reg';
+my $max = $dbh2->selectcol_arrayref("select max($table\_id) from $table")->[0];
+$dbh2->do("SELECT setval('$table\_$table\_id_seq', $max)");
 
 ###############
 # ad
@@ -68,6 +71,12 @@ foreach my $reg ( @{$ad_hashref} ) {
     $sth->bind_param( 4, $reg->{cts} );
     $sth->execute;
 }
+
+$table = 'ad';
+$max = $dbh2->selectcol_arrayref("select max($table\_id) from $table")->[0];
+$dbh2->do("SELECT setval('$table\_$table\_id_seq', $max)");
+
+
 print STDERR "starting ad_sl\n";
 
 #####################
@@ -94,6 +103,12 @@ foreach my $reg ( @{$ad_sl_hashref} ) {
     $sth->bind_param( 6, $reg->{mts} );
     $sth->execute;
 }
+
+$table = 'ad_sl';
+$max = $dbh2->selectcol_arrayref("select max($table\_id) from $table")->[0];
+$dbh2->do("SELECT setval('$table\_$table\_id_seq', $max)");
+
+
 print STDERR "starting ad_linkshare\n";
 ############################
 # ad_linkshare
@@ -125,7 +140,15 @@ foreach my $reg ( @{$hashref} ) {
     $sth->execute;
 }
 
+$table = 'ad_linkshare';
+$max = $dbh2->selectcol_arrayref("select max($table\_id) from $table")->[0];
+$dbh2->do("SELECT setval('$table\_$table\_id_seq', $max)");
+
+
+##################
 # click
+
+print "Starting click\n";
 $sql = <<SQL;
 select click_id, cts, ad_id, ip from click
 SQL
@@ -147,7 +170,14 @@ foreach my $reg ( @{$hashref} ) {
     $sth->execute;
 }
 
+$table = 'click';
+$max = $dbh2->selectcol_arrayref("select max($table\_id) from $table")->[0];
+$dbh2->do("SELECT setval('$table\_$table\_id_seq', $max)");
+
+
+#########################
 # router
+print "Starting router\n";
 $sql = <<SQL;
 select router_id, ip, serial_number, macaddr from router
 SQL
@@ -169,7 +199,14 @@ foreach my $reg ( @{$hashref} ) {
     $sth->execute;
 }
 
+$table = 'router';
+$max = $dbh2->selectcol_arrayref("select max($table\_id) from $table")->[0];
+$dbh2->do("SELECT setval('$table\_$table\_id_seq', $max)");
+
+
+##################
 # subrequest
+print "Starting subrequest\n";
 $sql = <<SQL;
 select url, ts from subrequest
 SQL
@@ -189,7 +226,9 @@ foreach my $reg ( @{$hashref} ) {
     $sth->execute;
 }
 
+
 print STDERR "starting url\n";
+#############
 # url
 $sql = <<SQL;
 select url_id, url, blacklisted, reg_id, ts from url
@@ -212,6 +251,15 @@ foreach my $reg ( @{$hashref} ) {
     $sth->bind_param( 5, $reg->{ts} );
     $sth->execute;
 }
+
+
+$table = 'url';
+$max = $dbh2->selectcol_arrayref("select max($table\_id) from $table")->[0];
+$dbh2->do("SELECT setval('$table\_$table\_id_seq', $max)");
+
+
+
+#####################
 print STDERR "starting user_blacklist\n";
 # user_blacklist
 $sql = <<SQL;
@@ -235,7 +283,7 @@ foreach my $reg ( @{$hashref} ) {
 
 # view
 $sql = <<SQL;
-select view_id, ad_id, cts, ip from view
+select view_id, ad_id, cts, ip from view limit 1000
 SQL
 
 print "Starting view\n";
@@ -257,6 +305,12 @@ foreach my $reg ( @{$hashref} ) {
     $sth->execute;
 }
 
+
+$table = 'view';
+$max = $dbh2->selectcol_arrayref("select max($table\_id) from $table")->[0];
+$dbh2->do("SELECT setval('$table\_$table\_id_seq', $max)");
+
+
 ##################
 ## everything else
 
@@ -276,6 +330,11 @@ $dbh2->do("INSERT INTO ad_group (ad_group_id, name) values (11, 'hvh')");
 $dbh2->do("INSERT INTO ad_group (ad_group_id, name) values (12, 'text-links.com')");
 $dbh2->do("INSERT INTO ad_group (ad_group_id, name) values (13, 'todd home')");
 $dbh2->do("INSERT INTO ad_group (ad_group_id, name) values (14, 'color broadband')");
+
+
+$table = 'ad_group';
+$max = $dbh2->selectcol_arrayref("select max($table\_id) from $table")->[0];
+$dbh2->do("SELECT setval('$table\_$table\_id_seq', $max)");
 
 
 print "ad__ad_groups\n";
