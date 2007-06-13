@@ -281,14 +281,17 @@ foreach my $reg ( @{$hashref} ) {
     $sth->execute;
 }
 
+#################
 # view
 $sql = <<SQL;
-select view_id, ad_id, cts, ip from view limit 1000
+select view_id, ad_id, cts, ip from view
 SQL
 
 print "Starting view\n";
 
-$hashref = $dbh->selectall_arrayref( $sql, { Slice => {} } );
+my $sth1 = $dbh->prepare_cached( $sql, { Slice => {} } );
+$sth1->execute;
+
 $sql     = <<SQL;
 INSERT into view
 (view_id, ad_id, cts, ip)
@@ -297,7 +300,7 @@ VALUES
 SQL
 
 $sth = $dbh2->prepare($sql);
-foreach my $reg ( @{$hashref} ) {
+while  ( my $reg = $sth1->fetchrow_hashref ) {
     $sth->bind_param( 1, $reg->{view_id} );
     $sth->bind_param( 2, $reg->{ad_id} );
     $sth->bind_param( 3, $reg->{cts} );
