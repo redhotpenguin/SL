@@ -126,8 +126,8 @@ sub handler {
     }
 
     # allow /sl_secret_ping_button to pass through
-    if ($url =~ m!/sl_secret_ping_button$!) {
-        return Apache2::Const::DONE;
+    if ($url =~ m!/sl_secret_ping_button!) {
+        return Apache2::Const::OK;
     }
 
     # User and content driven handling
