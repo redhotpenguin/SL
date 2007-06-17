@@ -544,7 +544,7 @@ sub _generate_response {
     $r->log->debug("Ad content is \n$$ad_content_ref\n") if $VERBOSE_DEBUG;
     unless ($ad_content_ref) {
         $r->log->error("$$ Hmm, we didn't get an ad");
-        return $response->content;
+        return \$response->content;
     }
 
     my $url     = $r->pnotes('url');
@@ -568,7 +568,7 @@ sub _generate_response {
 
     if ($decoded_content =~ m/$SKIPS/is) {
         $r->log->info("Skipping ad insertion from skips regex");
-        return $response->content;
+        return \$response->content;
     }
     else {
         $TIMER->start('container insertion')
@@ -593,7 +593,7 @@ sub _generate_response {
                       );
         $r->log->error(
                     "$$ Munged response $decoded_content, ad $$ad_content_ref");
-        return $response->content;
+        return \$response->content;
     }
 
     # We've made it this far so we're looking good
