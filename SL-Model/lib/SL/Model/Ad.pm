@@ -179,6 +179,7 @@ WHERE ad.active = 't'
 AND ad_sl.ad_id = ad.ad_id
 AND ad__ad_group.ad_id = ad.ad_id
 AND router__ad_group.ad_group_id = ad__ad_group.ad_group_id
+AND router.router_id = router__ad_group.router_id
 AND router.ip = ?
 ORDER BY RANDOM()
 LIMIT 1
