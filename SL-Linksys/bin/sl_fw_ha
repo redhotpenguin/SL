@@ -1,6 +1,6 @@
 #!/usr/bin/microperl
 
-our $DEBUG                = 0;
+our $DEBUG                = 1;
 our $IPTABLES_FILE        = '/etc/firewall.user';
 our $SL_IPTABLES_FILE     = '/etc/firewall.user.sl';
 our $SL_IPTABLES_TEMPLATE = '/etc/firewall.user.sl.tmpl';
@@ -9,38 +9,36 @@ our $SL_CONF              = '/etc/sl_linksys.conf';
 our $FIREWALL             = '/etc/init.d/S35firewall';
 our $CURRENT_PROXY_FILE   = '/tmp/sl_current_proxy.txt';
 
-my ( $fh, @available_proxies );
-unless ( -e $CURRENT_PROXY_FILE ) {
+my ($fh, @available_proxies);
 
-    # grab the list of available proxies
-    open( $fh, '<', $SL_CONF ) or die $!;
-    while (<$fh>) {
-        next unless $_ =~ m/^proxy/;
-        chomp($_);
-        @available_proxies = split ( /\s+/, $_ );
-        shift @available_proxies;    # get rid of the label
-    }
-    close($fh) or die $!;
-
-    # set the current proxy to the first one in the list
-    open( $fh, '>', $CURRENT_PROXY_FILE ) or die $!;
-    print $fh $available_proxies[0] . "\n";
-    close($fh) or die $!;
+# grab the list of available proxies
+open($fh, '<', $SL_CONF) or die $!;
+while (<$fh>) {
+    next unless $_ =~ m/^proxy/;
+    chomp($_);
+    @available_proxies = split(/\s+/, $_);
+    shift @available_proxies;    # get rid of the label
 }
+close($fh) or die $!;
+
+# set the current proxy to the first one in the list
+open($fh, '>', $CURRENT_PROXY_FILE) or die $!;
+print $fh $available_proxies[0] . "\n";
+close($fh) or die $!;
 
 # grab the current proxy from the file
 my $current_proxy;
-open( $fh, '<', $CURRENT_PROXY_FILE ) or die $!;
+open($fh, '<', $CURRENT_PROXY_FILE) or die $!;
 while (<$fh>) {
     chomp($_);
     $current_proxy = $_;
 }
 
 # ping the proxy
-if ( ping_ok($current_proxy) ) {
-    print "Ping returned ok, server $current_proxy is up\n" if $DEBUG;
+if (ping_ok($current_proxy)) {
     unlink('sl_secret_ping_button');
     unless (-e $IPTABLES_FILE) {
+
         # gotta have that file
         update_current_proxy($current_proxy);
     }
@@ -50,11 +48,11 @@ if ( ping_ok($current_proxy) ) {
 
 # ping returned a 50x, handle the error
 foreach my $available_proxy (@available_proxies) {
-    if ( $available_proxy eq $current_proxy ) {
+    if ($available_proxy eq $current_proxy) {
         print "Skipping check for current proxy $current_proxy\n" if $DEBUG;
         next;
     }
-    if ( ping_ok($available_proxy) ) {
+    if (ping_ok($available_proxy)) {
 
         # this proxy is open, change the routing table
         print "Updating proxy to $available_proxy\n" if $DEBUG;
@@ -79,7 +77,7 @@ sub set_firewall {
     my $route = shift;
     chdir('/etc');
     unlink('firewall.user');
-    my $link = `ln -s firewall.user.$route firewall.user`;
+    my $link    = `ln -s firewall.user.$route firewall.user`;
     my $restart = `/bin/sh $FIREWALL stop && /bin/sh $FIREWALL start`;
     print "Firewall restarted: $link\n" if $DEBUG;
 }
@@ -90,11 +88,12 @@ sub update_current_proxy {
     # update the sl firewall rules
     my $fh;
     my $content = '';
-    open( $fh, '<', $SL_IPTABLES_TEMPLATE ) or die $!;
+    open($fh, '<', $SL_IPTABLES_TEMPLATE) or die $!;
     $content .= $_ while (<$fh>);
     close($fh) or die $!;
-    my $rule_content = sprintf( $content, $available_proxy );
-    open( $fh, '>', $SL_IPTABLES_FILE ) or die $!;
+    print "Available proxy is $available_proxy\n" if $DEBUG;
+    my $rule_content = sprintf("$content", $available_proxy);
+    open($fh, '>', $SL_IPTABLES_FILE) or die $!;
     print $fh $content;
     close($fh) or die $!;
 
@@ -107,9 +106,20 @@ sub update_current_proxy {
 
 sub ping_ok {
     my $proxy = shift;
-    my $ping  = `wget http://$proxy/sl_secret_ping_button`;
-    if ( $ping =~ m/error 50/i ) {
-        print STDERR "Proxy $proxy returned ping error:  $ping\n";
+
+    # grab the mac address
+    my $ifconfig = `ifconfig`;
+    my ($macaddr) = $ifconfig =~ m/(\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2})/;
+    print "Macaddr is $macaddr\n" if $DEBUG;
+
+    my $loc = "http://$proxy/sl_secret_ping_button/$macaddr";
+    print "Making request to $loc\n" if $DEBUG;
+    my $ping = `wget $loc 2>&1`;
+    if (   ($ping =~ m/error 50/i)
+        or ($ping =~ m/connection refused/i)
+        or ($ping =~ m/error/i))
+    {
+        print STDERR "Proxy $proxy returned ping error:\n  $ping\n";
         return;
     }
     print "Ping returned ok:  $ping\n" if $DEBUG;
