@@ -1,6 +1,6 @@
 #!/usr/bin/microperl
 
-our $DEBUG = 0;
+our $DEBUG = 1;
 
 # open the config file
 my $config_file = '/etc/sl_linksys.conf';
@@ -9,16 +9,57 @@ open($fh, '<', $config_file) or die $!;
 
 # parse it and grab the config file location
 my $url;
-while(<$fh>) {
+while (<$fh>) {
     next unless $_ =~ m/^config/;
     chomp($_);
     $url = (split(/\s+/, $_))[1];
 }
+close($fh) or die $!;
 
 my ($file) = $url =~ m/([^\/]+)$/;
 
 # change to tmp dir
 chdir('/tmp');
+
+# remove it if it already exists
+unlink($file) if -e $file;
+
+# grab the file
+my $grab = `wget $url`;
+if (-e $file) {
+    print "$file retrieved ok\n" if $DEBUG;
+
+    # see if the file has changed
+    my $existing_file_md5 = (split(/\s+/, `/usr/bin/md5sum /etc/$file`))[0];
+    my $new_file_md5      = (split(/\s+/, `/usr/bin/md5sum $file`))[0];
+    if ($existing_file_md5 eq $new_file_md5) {
+        print "New file matches existing config file, finished\n" if $DEBUG;
+        exit(0);
+    }
+
+    # files are different, put the new one in place
+    my $mv = `mv $file /etc/$file`;
+    print "$file moved to /etc\n" if $DEBUG;
+}
+else {
+    print STDERR "Couldn't retrieve $url\n";
+}
+
+# now open the new config file
+open($fh, '<', $config_file) or die $!;
+
+while (<$fh>) {
+    next unless $_ =~ m/^firewall/;
+    chomp($_);
+    $url = (split(/\s+/, $_))[1];
+}
+close($fh) or die $!;
+
+($file) = $url =~ m/([^\/]+)$/;
+
+# change to tmp dir
+chdir('/tmp');
+
 # remove it if it already exists
 unlink($file) if -e $file;
 
@@ -28,7 +69,8 @@ if (-e $file) {
     print "$file retrieved ok\n" if $DEBUG;
     my $mv = `mv $file /etc/$file`;
     print "$file moved to /etc\n" if $DEBUG;
-} else {
+}
+else {
     print STDERR "Couldn't retrieve $url\n";
 }
 
