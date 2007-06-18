@@ -1,6 +1,11 @@
 Revision history for Perl extension SL-Linksys.
 
-0.01  Sun Jun  3 10:40:04 2007
+0.02  Sun Jun  3 10:40:04 2007
+        - add sl_fw_ha, high availability firewall script monitor
+        - add sl_config_update, grabs configuration file from server
+        - created packaged firmware build
 	- original version; created by h2xs 1.23 with options
 		-X SL-Linksys
-
+0.01 Friday Mar 1 16:20:00 2007
+        - initial hacked version of script which downloads firewall config
+          the website

@@ -1,4 +1,4 @@
-SL-Linksys version 0.01
+SL-Linksys version 0.02
 =======================
 
 The README is used to introduce the module and provide instructions on
@@ -25,13 +25,11 @@ DEPENDENCIES
 
 This module requires these other modules and libraries:
 
-  blah blah blah
+microperl
 
 COPYRIGHT AND LICENCE
 
-Put the correct copyright and licence information here.
-
-Copyright (C) 2007 by A. U. Thor
+Copyright (C) 2007 by Red Hot Penguin Consulting LLC
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.8 or,
