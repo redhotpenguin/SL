@@ -5,6 +5,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME              => 'SL-Linksys',
     VERSION           => '0.02',
+    EXE_FILES         => [ qw( bin/sl_fw_ha bin/sl_config_update ) ],
     PREREQ_PM         => {}, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT       => 'Silver Lining linksys client software',
