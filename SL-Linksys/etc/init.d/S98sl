@@ -1,4 +1,0 @@
-#!/bin/sh
-. /etc/functions.sh
-/usr/bin/microperl /usr/bin/sl_config_update
-/usr/bin/microperl /usr/bin/sl_fw_ha

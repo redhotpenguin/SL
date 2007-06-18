@@ -1,5 +1,0 @@
-# ping the proxy server to see if it's alive
-*/10 * * * * /usr/bin/microperl /usr/bin/sl_fw_ha
-
-# grab the latest configuration data
-20 4,16 * * * /usr/bin/microperl /usr/bin/sl_config_update
