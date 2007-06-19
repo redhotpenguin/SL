@@ -1,5 +1,3 @@
-bin/sl_fw_ha
-bin/sl_config_update
 Changes
 Makefile.PL
 MANIFEST
