@@ -1,6 +1,7 @@
 Revision history for Perl extension SL-Linksys.
 0.03  Mon Jun 18 01:23:00 2007
         - replace symlinks in imagebuilder/files/* with real files (bugfix)
+        - move binary executables to /usr/bin instead of /bin
 
 0.02  Sun Jun  3 10:40:04 2007
         - add sl_fw_ha, high availability firewall script monitor
