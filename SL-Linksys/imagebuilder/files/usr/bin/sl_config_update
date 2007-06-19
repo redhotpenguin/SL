@@ -3,7 +3,7 @@
 our $DEBUG = 1;
 
 # open the config file
-my $config_file = '/etc/sl_linksys.conf';
+my $config_file = '/etc/sl.conf';
 my $fh;
 open($fh, '<', $config_file) or die $!;
 

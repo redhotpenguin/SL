@@ -5,7 +5,7 @@ our $IPTABLES_FILE    = '/etc/firewall.user';
 our $SL_IPTABLES_FILE = '/etc/firewall.user.sl';
 our $IPTABLES         = '/usr/sbin/iptables';
 our $FIREWALL         = '/etc/init.d/S35firewall';
-our $CONFIG_FILE      = '/etc/sl_linksys.conf';
+our $CONFIG_FILE      = '/etc/sl.conf';
 
 my ($fh, $config_proxy);
 open($fh, '<', $CONFIG_FILE) or die $!;
