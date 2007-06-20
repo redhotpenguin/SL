@@ -21,10 +21,12 @@ use constant CLICKSERVER_URL    => 'http://64.151.90.20:81/click/';
 use constant SILVERLINING_AD_ID => "/795da10ca01f942fd85157d8be9e832e";
 use constant DEFAULT_BUG_LINK =>
   'http://www.redhotpenguin.com/images/sl/free_wireless.gif';
-use constant DEFAULT_REG_ID  => 14;
+
 use constant OCC_IP          => '198.145.32.11';
 use constant SL_CSS_URL  => 'http://www.redhotpenguin.com/css/sl.css';
 use constant OCC_CSS_URL => 'http://www.redhotpenguin.com/css/occ.css';
+
+use constant DEFAULT_AD_GROUP_ID => 1;
 
 my ($template, $config);
 our ($log_view_sql, %sl_ad_data);
@@ -75,13 +77,13 @@ sub container {
 
     my $link = 
         qq{<link rel="stylesheet" href="$$css_url_ref" type="text/css" />};
-    
+
     # Insert the stylesheet link
     $$decoded_content_ref =~ s{$regex}{$1$link$2};
 
     # move the pointer - optimization, 0.5 milliseconds
     $$decoded_content_ref =~ m/$uber_match/;
-    
+
     # Insert the rest of the pieces
     $$decoded_content_ref =~ s{$second_regex}
                          {$1<body$2>$top$$ad_ref$container$3};
@@ -197,6 +199,44 @@ SQL
     return $ad_data;
 }
 
+
+
+sub _sl_default {
+    my ($class, $ip) = @_;
+
+    my $sql = <<SQL;
+SELECT
+ad_sl.ad_id,
+ad_sl.text,
+ad.md5,
+ad_sl.uri
+FROM ad_sl, ad, router, ad__ad_group, router__ad_group
+WHERE ad.active = 't'
+AND ad_sl.ad_id = ad.ad_id
+AND ad__ad_group.ad_id = ad.ad_id
+AND router.router_id = router__ad_group.router_id
+AND router__ad_group.ad_group_id = ad__ad_group.ad_group_id
+AND ad__ad_group.ad_group_id = ?
+AND router.ip = ?
+AND router.default_ok = 't'
+ORDER BY RANDOM()
+LIMIT 1
+SQL
+
+    my $dbh = SL::Model->connect();
+    my $sth = $dbh->prepare($sql);
+    $sth->bind_param(1, DEFAULT_AD_GROUP_ID);
+    $sth->bind_param(2, $ip);
+    my $rv = $sth->execute;
+    die "Problem executing query: $sql" unless $rv;
+
+    my $ad_data = $sth->fetchrow_hashref;
+    $sth->finish;
+    $ad_data->{'template'} = 'text_ad';
+    return $ad_data;
+}
+
+
 sub _bug_link {
     my ($class, $ip) = @_;
 
@@ -243,7 +283,8 @@ sub random {
     }
 
     unless (exists $ad_data->{'text'}) {
-        return;
+        $ad_data = $class->_sl_default($ip);
+        return unless exists $ad_data->{'text'}; # going to hell for this one
     }
 
     my %tmpl_vars = (

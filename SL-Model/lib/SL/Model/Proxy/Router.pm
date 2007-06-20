@@ -11,7 +11,7 @@ use constant ACTIVE_SQL =>
 sub is_active {
     my ( $class, $args_ref ) = @_;
 
-    my $sth = $class->connect->prepare_cached(ACTIVE_SQL);
+    my $sth = $class->connect->prepare(ACTIVE_SQL);
     $sth->bind_param( 1, $args_ref->{'ip'} );
     $sth->execute;
     return $sth->fetchrow_arrayref->[0];

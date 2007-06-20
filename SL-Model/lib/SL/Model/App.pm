@@ -15,13 +15,10 @@ __PACKAGE__->loader_options(
 );
 
 my $params_ref = SL::Model->connect_params();
+
 __PACKAGE__->connection(@{$params_ref});
 
-our $schema;
-
-BEGIN {
-	$schema = __PACKAGE__->connect(SL::Model->connect);
-}
+our $schema = __PACKAGE__->connect(SL::Model->connect);
 
 sub schema {
 	return $schema;
