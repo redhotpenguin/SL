@@ -14,6 +14,7 @@ WriteMakefile(
         'DBIx::Class::Schema::Loader' => 0.03007,
         'DBD::Pg'                     => 1.49,
         'Params::Validate'            => 0.76,
+        'Regexp::Assemble'            => 0.31, 
         'URI'                         => 1.35,
         'SOAP::Lite'                  => 0.69,
 

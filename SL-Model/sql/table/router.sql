@@ -30,6 +30,7 @@ CREATE TABLE router (
     mts timestamp without time zone DEFAULT now(),
     active boolean default 't',
     code integer,
+    default_ok boolean default 't',
     custom_rate_limit character varying(10)
 );
 

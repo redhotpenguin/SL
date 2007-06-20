@@ -1,7 +1,7 @@
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 9;
+use Test::More tests => 11;
 
 BEGIN {
 	use_ok('SL::Model::Ad');
@@ -49,6 +49,21 @@ diag("Time was $interval");
 cmp_ok($interval, '<', 0.010, 'HTML Ad inserted in less than 10 milliseconds');
 cmp_ok($interval, '<', 0.005, 'HTML Ad inserted in less than 5 milliseconds');
 cmp_ok($interval, '<', 0.002, 'HTML Ad inserted in less than 2 milliseconds');
+
+diag('check the default ad serving logic');
+# put a test router in place
+my $ip = '127.0.0.1';
+my $dbh = SL::Model->connect;
+my $sth = $dbh->prepare("insert into router (ip) values ('$ip')");
+$sth->execute;
+my $test_ad = SL::Model::Ad->_sl_default( $ip );
+ok(exists $test_ad->{'text'}, 'text present');
+
+# check the no_default feature
+$sth = $dbh->prepare("update router set default_ok = 'f' where ip = '$ip'");
+$sth->execute;
+$test_ad = SL::Model::Ad->_sl_default( $ip );
+ok(! exists $test_ad->{'text'}, 'text not present');
 
 1;
 

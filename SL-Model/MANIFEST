@@ -12,13 +12,14 @@ lib/SL/Model/RateLimit.pm
 lib/SL/Model/Subrequest.pm
 lib/SL/Model/Report.pm
 lib/SL/Model/Proxy/Router.pm
-META.yml                                 Module meta-data (added by MakeMaker)
 bin/sl_mail_global_reports.pl
 bin/sl_mail_user_reports.pl
 bin/sl_rate_limit_cleanup.pl
 bin/sl_report.pl
 bin/sl_report_graph.pl
 bin/sl_update_linkshare.pl
+bin/sl_update_schema.pl
+t/SL-Model-Proxy-Router.t
 t/SL-Ad-Group.t
 t/SL-Model-Ad-Group.t
 t/SL-Model-Ad.t
