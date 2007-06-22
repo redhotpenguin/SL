@@ -1,7 +1,7 @@
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 11;
+use Test::More tests => 14;
 
 BEGIN {
 	use_ok('SL::Model::Ad');
@@ -56,8 +56,16 @@ my $ip = '127.0.0.1';
 my $dbh = SL::Model->connect;
 my $sth = $dbh->prepare("insert into router (ip) values ('$ip')");
 $sth->execute;
+
+# make sure that the default feed works
 my $test_ad = SL::Model::Ad->_sl_default( $ip );
-ok(exists $test_ad->{'text'}, 'text present');
+cmp_ok(length($test_ad->{'text'}), '>', 5, 'text present');
+
+# which means random better work
+my ($ad_id, $ad_content_ref, $css_url) = SL::Model::Ad->random( $ip );
+like($ad_id, qr/^\d+$/, 'ad_id is a number');
+cmp_ok(ref $ad_content_ref, 'eq', 'SCALAR', 'ad_content_ref isa scalar');
+like($css_url, qr{^http\://}, 'css url like http');
 
 # check the no_default feature
 $sth = $dbh->prepare("update router set default_ok = 'f' where ip = '$ip'");
