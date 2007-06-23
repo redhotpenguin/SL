@@ -37,21 +37,25 @@ use SL::Model::RateLimit  ();
 use Data::Dumper          ();
 use Encode                ();
 use RHP::Timer            ();
+use Regexp::Assemble      ();
 
 my $TIMER = RHP::Timer->new();
 
 our $VERBOSE_DEBUG = 0;
-our %response_map = (
-                     200 => 'twohundred',
-                     404 => 'fourohfour',
-                     500 => 'bsod',
-                     400 => 'badrequest',
-                     401 => 'fourohone',
-                     302 => 'redirect',
-                     301 => 'redirect',
-                     304 => 'threeohfour',
-                     307 => 'redirect',
-                    );
+our %response_map  = (
+    200 => 'twohundred',
+    404 => 'fourohfour',
+    500 => 'bsod',
+    400 => 'badrequest',
+    401 => 'fourohone',
+    302 => 'redirect',
+    301 => 'redirect',
+    304 => 'threeohfour',
+    307 => 'redirect',
+);
+
+use constant REPLACE_LINKS => 1;
+use constant REPLACE_PORT  => 6969;
 
 ## Make a user agent
 my $SL_UA = SL::UserAgent->new;
@@ -146,7 +150,7 @@ sub handler {
     my $r = shift;
 
     $TIMER->start('build_remote_request')
-      if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
+      if ( $r->server->loglevel() == Apache2::Const::LOG_INFO );
 
     # Build the request
     my %headers;
@@ -159,61 +163,64 @@ sub handler {
         }
     );
 
-    my $proxy_request =
-      SL::HTTP::Request->new(
-                             {
-                              method  => $r->method,
-                              url     => $r->pnotes('url'),
-                              headers => \%headers,
-                             }
-                            );
+    my $proxy_request = SL::HTTP::Request->new(
+        {
+            method  => $r->method,
+            url     => $r->pnotes('url'),
+            headers => \%headers,
+        }
+    );
 
     # checkpoint
-    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+    if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {
         $r->log->info(
-             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
+            sprintf( "timer $$ %s %d %s %f",
+                @{ $TIMER->checkpoint }[ 0, 2 .. 4 ] )
+        );
         $TIMER->start('make_remote_request');
     }
 
-    $r->log->debug("$$ Remote proxy request: ",
-                   Data::Dumper::Dumper($proxy_request))
+    $r->log->debug( "$$ Remote proxy request: ",
+        Data::Dumper::Dumper($proxy_request) )
       if $VERBOSE_DEBUG;
 
     # Make the request to the remote server
     my $response = $SL_UA->request($proxy_request);
 
-    $r->log->debug("$$ Response from proxy request",
-                   Data::Dumper::Dumper($response))
+    $r->log->debug( "$$ Response from proxy request",
+        Data::Dumper::Dumper($response) )
       if $VERBOSE_DEBUG;
 
     # checkpoint
-    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+    if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {
         $r->log->info(
-             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
+            sprintf( "timer $$ %s %d %s %f",
+                @{ $TIMER->checkpoint }[ 0, 2 .. 4 ] )
+        );
     }
 
     # Dispatch the response
-    my $sub = $response_map{$response->code};
-    unless (defined $sub) {
+    my $sub = $response_map{ $response->code };
+    unless ( defined $sub ) {
         $r->log->error(
-                    sprintf(
-                            "No handler for response code %d, url %s, ua %s",
-                            $response->code, $r->pnotes('url'), $r->pnotes('ua')
-                           )
-                      );
+            sprintf(
+                "No handler for response code %d, url %s, ua %s",
+                $response->code, $r->pnotes('url'), $r->pnotes('ua')
+            )
+        );
         $sub = $response_map{'404'};
     }
     no strict 'refs';
-    $r->log->debug("Response code " . $response->code);
-    return &$sub($r, $response);
+    $r->log->debug( "Response code " . $response->code );
+    return &$sub( $r, $response );
 }
 
 sub bsod {
     my $r        = shift;
     my $response = shift;
 
-    $r->log->error("$$ Request returned 500, response ",
-                   Data::Dumper::Dumper($response));
+    $r->log->error( "$$ Request returned 500, response ",
+        Data::Dumper::Dumper($response) );
     return Apache2::Const::SERVER_ERROR;
 }
 
@@ -221,22 +228,22 @@ sub badrequest {
     my $r        = shift;
     my $response = shift;
 
-    $r->log->error("$$ Request returned 400, response ",
-                   Data::Dumper::Dumper($response));
+    $r->log->error( "$$ Request returned 400, response ",
+        Data::Dumper::Dumper($response) );
     return Apache2::Const::HTTP_BAD_REQUEST;
 }
 
 sub fourohfour {
-    my ($r, $res) = @_;
+    my ( $r, $res ) = @_;
 
     # FIXME - set the proper headers out
-    $r->log->debug("$$ Request returned 404, response ",
-                   Data::Dumper::Dumper($res));
-    $r->status_line($res->status_line);
+    $r->log->debug( "$$ Request returned 404, response ",
+        Data::Dumper::Dumper($res) );
+    $r->status_line( $res->status_line );
     my $content_type = $res->content_type;
     $r->content_type($content_type);
-    _err_cookies_out($r, $res);
-    $r->print($res->content);
+    _err_cookies_out( $r, $res );
+    $r->print( $res->content );
     return Apache2::Const::OK;
 }
 
@@ -245,19 +252,20 @@ sub fourohone {
     my $res = shift;
 
     # FIXME - set the proper headers out
-    $r->log->error("$$ Request returned 401, response ",
-                   Data::Dumper::Dumper($res));
-    $r->status_line($res->status_line);
+    $r->log->error( "$$ Request returned 401, response ",
+        Data::Dumper::Dumper($res) );
+    $r->status_line( $res->status_line );
     my $content_type = $res->content_type;
     $r->content_type($content_type);
-    _err_cookies_out($r, $res);
+    _err_cookies_out( $r, $res );
 
     # method specific headers
     my @auth_headers = $res->header('www-authenticate');
-    $r->log->debug("Auth headers are " . Data::Dumper::Dumper(\@auth_headers));
-    $r->err_headers_out->add('www-authenticate' => $_) for @auth_headers;
+    $r->log->debug(
+        "Auth headers are " . Data::Dumper::Dumper( \@auth_headers ) );
+    $r->err_headers_out->add( 'www-authenticate' => $_ ) for @auth_headers;
 
-    _add_x_headers($r, $res);
+    _add_x_headers( $r, $res );
 
     # this print causes the response to go out as a 200, not a 401.
     # No idea why...
@@ -267,14 +275,14 @@ sub fourohone {
 }
 
 sub _add_x_headers {
-    my ($r, $res) = @_;
+    my ( $r, $res ) = @_;
     my @x_header_names =
       grep { $_ =~ m{^x\-}i } $res->headers->header_field_names;
 
     $r->log->debug(
-              "Found x-... headers: " . Data::Dumper::Dumper(\@x_header_names));
+        "Found x-... headers: " . Data::Dumper::Dumper( \@x_header_names ) );
     foreach my $x_header (@x_header_names) {
-        $r->err_headers_out->add($x_header => $res->header($x_header));
+        $r->err_headers_out->add( $x_header => $res->header($x_header) );
     }
     return 1;
 }
@@ -284,26 +292,27 @@ sub redirect {
     my $response = shift;
 
     $r->log->info("$$ 302 redirect handler invoked");
-    $r->log->debug("$$ headers: ", Data::Dumper::Dumper($response->headers));
+    $r->log->debug( "$$ headers: ",
+        Data::Dumper::Dumper( $response->headers ) );
 
     # set the status line
-    $r->status_line($response->status_line);
-    $r->log->debug("status line is " . $response->status_line);
+    $r->status_line( $response->status_line );
+    $r->log->debug( "status line is " . $response->status_line );
 
     ## Handle the redirect for the client
-    $r->headers_out->set('Location' => $response->header('location'));
-    _err_cookies_out($r, $response);
-    $r->log->debug("$$ Request: \n" . $r->as_string) if $VERBOSE_DEBUG;
+    $r->headers_out->set( 'Location' => $response->header('location') );
+    _err_cookies_out( $r, $response );
+    $r->log->debug( "$$ Request: \n" . $r->as_string ) if $VERBOSE_DEBUG;
     return Apache2::Const::REDIRECT;
 }
 
 sub _err_cookies_out {
-    my ($r, $response) = @_;
-    if (my @cookies = $response->header('set-cookie')) {
+    my ( $r, $response ) = @_;
+    if ( my @cookies = $response->header('set-cookie') ) {
         foreach my $cookie (@cookies) {
             $r->log->debug("Adding cookie to headers_out: $cookie")
               if $VERBOSE_DEBUG;
-            $r->err_headers_out->add('Set-Cookie' => $cookie);
+            $r->err_headers_out->add( 'Set-Cookie' => $cookie );
         }
         $response->headers->remove_header('Set-Cookie');
     }
@@ -311,79 +320,72 @@ sub _err_cookies_out {
 }
 
 sub twohundred {
-    my ($r, $response) = @_;
+    my ( $r, $response ) = @_;
 
     $TIMER->start('twohundred')
-      if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
+      if ( $r->server->loglevel() == Apache2::Const::LOG_INFO );
 
     my $url = $response->request->uri;
     $r->log->debug("$$ Request to $url returned 200");
 
     # Cache the content_type
     my $response_content_ref;
-    SL::Cache::stash($url => $response->content_type);
+    SL::Cache::stash( $url => $response->content_type );
 
     # check to make sure it's HTML first
-    my $is_html = not SL::Util::not_html($response->content_type);
+    my $is_html = not SL::Util::not_html( $response->content_type );
     $r->log->debug("$$ ===> $url is_html: $is_html");
 
     # checkpoint
-    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+    if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {
         $r->log->info(
-             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
+            sprintf( "timer $$ %s %d %s %f",
+                @{ $TIMER->checkpoint }[ 0, 2 .. 4 ] )
+        );
         $TIMER->start('rate_limiter');
     }
 
-    my $rate_limit = SL::Model::RateLimit->new(r => $r);
+    my $rate_limit = SL::Model::RateLimit->new( r => $r );
     my $is_toofast;
     if ($is_html) {
         $is_toofast = $rate_limit->check_violation();
         $r->log->debug("$$ ===> $url check_violation: $is_toofast");
     }
 
-    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $r->log->info(
-             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
-        $TIMER->start('subrequest_check');
-    }
-
-    # check for sub-reqs if it passed the other tests
-    my $subrequest_tracker = SL::Model::Subrequest->new();
-    my $is_subreq;
-    if ($is_html and not $is_toofast) {
-        $is_subreq = $subrequest_tracker->is_subrequest(url => $url);
-        $r->log->debug("$$ ===> $url is_subreq: $is_subreq");
-    }
-
-    # checkpoint
-    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $r->log->info(
-             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
-    }
-
     # serve an ad if this is HTML and it's not a sub-request of an
     # ad-serving page, and it's not too soon after a previous ad was served
-    if ($is_html and not $is_toofast and not $is_subreq) {
+    my $subrequests_ref;
+    my $subrequest_tracker = SL::Model::Subrequest->new();
+    if ( $is_html and not $is_toofast ) {    # and not $is_subreq) {
 
         # note the ad-serving time for the rate-limitter
         $rate_limit->record_ad_serve();
 
-        # first grab the links from the page and stash them
-        $TIMER->start('collect_subrequests')
-          if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
-        $subrequest_tracker->collect_subrequests(
-                                             content_ref => \$response->content,
-                                             base_url    => $url);
-
-        # checkpoint
-        if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+        if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {
             $r->log->info(
-                          sprintf("timer $$ %s %d %s %f",
-                                  @{$TIMER->checkpoint}[0, 2 .. 4])
-                         );
+                sprintf( "timer $$ %s %d %s %f",
+                    @{ $TIMER->checkpoint }[ 0, 2 .. 4 ] )
+            );
+            $TIMER->start('collect_subrequests');
         }
 
-        $response_content_ref = _generate_response($r, $response);
+        # first grab the links from the page and stash them
+        $TIMER->start('collect_subrequests')
+          if ( $r->server->loglevel() == Apache2::Const::LOG_INFO );
+        $subrequests_ref = $subrequest_tracker->collect_subrequests(
+            content_ref => \$response->content,
+            base_url    => $url
+        );
+
+        # checkpoint
+        if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {
+            $r->log->info(
+                sprintf( "timer $$ %s %d %s %f",
+                    @{ $TIMER->checkpoint }[ 0, 2 .. 4 ] )
+            );
+        }
+
+        $response_content_ref = _generate_response( $r, $response );
     }
     else {
 
@@ -391,12 +393,23 @@ sub twohundred {
         $response_content_ref = \$response->content;
     }
 
+    # replace the links
+    if (REPLACE_LINKS) {
+        my $ok = $subrequest_tracker->replace_links(
+            {
+                port       => REPLACE_PORT,
+                subreq_ref => $subrequests_ref,
+                url        => $r->uri
+            }
+        );
+    }
+
     $TIMER->start('prepare_response_headers')
-      if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
+      if ( $r->server->loglevel() == Apache2::Const::LOG_INFO );
 
     # set the status line
-    $r->status_line($response->status_line);
-    $r->log->debug("status line is " . $response->status_line);
+    $r->status_line( $response->status_line );
+    $r->log->debug( "status line is " . $response->status_line );
 
     # This loops over the response headers and adds them to headers_out.
     # Override any headers with our own here
@@ -408,17 +421,17 @@ sub twohundred {
     # of dealing with headers that are returning multiple values per key,
     # we're covering the set-cookie header but I'm sure we're missing some
     # other headers that will bite us at some point, so FIXME TODO
-    foreach my $cookie ($response->header('set-cookie')) {
-        $r->headers_out->add('Set-Cookie' => $cookie);
+    foreach my $cookie ( $response->header('set-cookie') ) {
+        $r->headers_out->add( 'Set-Cookie' => $cookie );
 
         #$r->log->debug("$$ added set-cookie header: $cookie");
     }
     $response->headers->remove_header('Set-Cookie');
 
     # Create a hash with the HTTP::Response HTTP::Headers attributes
-    $response->scan(sub { $headers{$_[0]} = $_[1]; });
+    $response->scan( sub { $headers{ $_[0] } = $_[1]; } );
     $r->log->debug(
-               sprintf("Response headers: %s", Data::Dumper::Dumper(\%headers)))
+        sprintf( "Response headers: %s", Data::Dumper::Dumper( \%headers ) ) )
       if $VERBOSE_DEBUG;
 
     ## Set the response content type from the request, preserving charset
@@ -430,12 +443,13 @@ sub twohundred {
     # Mac when doing a google toolbar search the first time I used Opera 9
     # I saw this happen on IE first though
     # IE is very picky about it's content type so we use a hack here - FIXME
-    if (!$ua) { $r->log->error("UA $ua for url $url") }
-    if (($ua =~ m{(?:MSIE|opera)}i) && ($content_type =~ m{^text\/html})) {
+    if ( !$ua ) { $r->log->error("UA $ua for url $url") }
+    if ( ( $ua =~ m{(?:MSIE|opera)}i ) && ( $content_type =~ m{^text\/html} ) )
+    {
         $r->content_type('text/html');
         $r->log->debug("$$ MSIE content type set to text/html");
     }
-    elsif (!$content_type) {
+    elsif ( !$content_type ) {
         $r->content_type('text/html');
         $r->log->error("$$ Undefined content type, setting to text/html");
     }
@@ -450,24 +464,24 @@ sub twohundred {
     delete $headers{'Content-Encoding'};
 
     ## Content languages
-    if (defined $response->header('content-language')) {
-        $r->content_languages([$response->header('content-language')]);
-        $r->log->debug("$$ content languages set to "
-                       . $response->header('content_language'));
+    if ( defined $response->header('content-language') ) {
+        $r->content_languages( [ $response->header('content-language') ] );
+        $r->log->debug( "$$ content languages set to "
+              . $response->header('content_language') );
         delete $headers{'Content-Language'};
     }
 
-    $r->headers_out->add('X-SilverLining' => 1);
+    $r->headers_out->add( 'X-SilverLining' => 1 );
     $r->log->debug("$$ x-silverlining header set");
     delete $headers{'Client-Peer'};
     delete $headers{'Content-Encoding'};
 
-    foreach my $key (keys %headers) {
+    foreach my $key ( keys %headers ) {
         next if $key =~ m/^Client/;    # skip HTTP::Response inserted headers
 
         # some headers have an unecessary newline appended so chomp the value
-        chomp($headers{$key});
-        if ($headers{$key} =~ m/\n/) {
+        chomp( $headers{$key} );
+        if ( $headers{$key} =~ m/\n/ ) {
             $headers{$key} =~ s/\n/ /g;
         }
 
@@ -477,7 +491,7 @@ sub twohundred {
         #      . " to headers"
         #);
 
-        $r->headers_out->set($key => $headers{$key});
+        $r->headers_out->set( $key => $headers{$key} );
     }
 
     # FIXME
@@ -487,10 +501,10 @@ sub twohundred {
     # maybe someday but not today
     $r->no_cache(1);
 
-    $r->log->debug("$$ Request string before sending: " . $r->as_string)
+    $r->log->debug( "$$ Request string before sending: " . $r->as_string )
       if $VERBOSE_DEBUG;
 
-    $r->log->debug("$$ Response content: " . $$response_content_ref)
+    $r->log->debug( "$$ Response content: " . $$response_content_ref )
       if $VERBOSE_DEBUG;
 
     # rflush() flushes the headers to the client
@@ -498,9 +512,11 @@ sub twohundred {
     $r->rflush();
 
     # checkpoint
-    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+    if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {
         $r->log->info(
-             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
+            sprintf( "timer $$ %s %d %s %f",
+                @{ $TIMER->checkpoint }[ 0, 2 .. 4 ] )
+        );
 
         # Print the response content
         $TIMER->start('print_response');
@@ -508,9 +524,11 @@ sub twohundred {
     $r->print($$response_content_ref);
 
     # checkpoint
-    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+    if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {
         $r->log->info(
-             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
+            sprintf( "timer $$ %s %d %s %f",
+                @{ $TIMER->checkpoint }[ 0, 2 .. 4 ] )
+        );
     }
 
     return Apache2::Const::OK;
@@ -523,22 +541,24 @@ Puts the ad in the response
 =cut
 
 sub _generate_response {
-    my ($r, $response) = @_;
+    my ( $r, $response ) = @_;
 
     # yes this is ugly but it helps for testing
     #return $response->decoded_content;
 
     # put the ad in the response
     $TIMER->start('random_ad')
-      if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
+      if ( $r->server->loglevel() == Apache2::Const::LOG_INFO );
 
-    my ($ad_id, $ad_content_ref, $css_url) =
-      SL::Model::Ad->random($r->connection->remote_ip);
+    my ( $ad_id, $ad_content_ref, $css_url ) =
+      SL::Model::Ad->random( $r->connection->remote_ip );
 
     # checkpoint
-    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+    if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {
         $r->log->info(
-             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
+            sprintf( "timer $$ %s %d %s %f",
+                @{ $TIMER->checkpoint }[ 0, 2 .. 4 ] )
+        );
     }
 
     $r->log->debug("Ad content is \n$$ad_content_ref\n") if $VERBOSE_DEBUG;
@@ -556,7 +576,7 @@ sub _generate_response {
     my $decoded_content        = $response->decoded_content;
     my $content_needs_encoding = 1;
 
-    unless (defined $decoded_content) {
+    unless ( defined $decoded_content ) {
 
         # hmmm, in some cases decoded_content is null so we use regular content
         # https://www.redhotpenguin.com/bugzilla/show_bug.cgi?id=424
@@ -566,33 +586,34 @@ sub _generate_response {
         $content_needs_encoding = 0;
     }
 
-    if ($decoded_content =~ m/$SKIPS/is) {
+    if ( $decoded_content =~ m/$SKIPS/is ) {
         $r->log->info("Skipping ad insertion from skips regex");
         return \$response->content;
     }
     else {
         $TIMER->start('container insertion')
-          if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
+          if ( $r->server->loglevel() == Apache2::Const::LOG_INFO );
 
-        SL::Model::Ad::container(\$css_url, \$decoded_content, $ad_content_ref);
+        SL::Model::Ad::container( \$css_url, \$decoded_content,
+            $ad_content_ref );
 
         # checkpoint
-        if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+        if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {
             $r->log->info(
-                          sprintf("timer $$ %s %d %s %f",
-                                  @{$TIMER->checkpoint}[0, 2 .. 4])
-                         );
+                sprintf( "timer $$ %s %d %s %f",
+                    @{ $TIMER->checkpoint }[ 0, 2 .. 4 ] )
+            );
         }
     }
 
     # Check to see if the ad is inserted
-    unless (grep($$ad_content_ref, $decoded_content)) {
+    unless ( grep( $$ad_content_ref, $decoded_content ) ) {
         $r->log->error(
-                       sprintf("$$ Ad insertion failed, response: %s",
-                               Data::Dumper::Dumper($response))
-                      );
+            sprintf( "$$ Ad insertion failed, response: %s",
+                Data::Dumper::Dumper($response) )
+        );
         $r->log->error(
-                    "$$ Munged response $decoded_content, ad $$ad_content_ref");
+            "$$ Munged response $decoded_content, ad $$ad_content_ref");
         return \$response->content;
     }
 
@@ -602,7 +623,7 @@ sub _generate_response {
     $r->log->debug("Munged response is \n $decoded_content") if $VERBOSE_DEBUG;
 
     # Log the ad view later
-    $r->pnotes(log_data => [$r->connection->remote_ip, $ad_id]);
+    $r->pnotes( log_data => [ $r->connection->remote_ip, $ad_id ] );
 
     # re-encode content if needed
     if ($content_needs_encoding) {
@@ -614,7 +635,7 @@ sub _generate_response {
         # should have no problems round-tripping.  If an error does
         # occur the character will be replaced with a "subchar"
         # specific to the encoding.
-        $decoded_content = Encode::encode($charset, $decoded_content);
+        $decoded_content = Encode::encode( $charset, $decoded_content );
     }
 
     return \$decoded_content;
@@ -629,9 +650,9 @@ sub _response_charset {
     my $charset;
     my @ct =
       HTTP::Headers::Util::split_header_words(
-                                             $response->header("Content-Type"));
+        $response->header("Content-Type") );
     if (@ct) {
-        my (undef, undef, %ct_param) = @{$ct[-1]};
+        my ( undef, undef, %ct_param ) = @{ $ct[-1] };
         $charset = $ct_param{charset};
     }
 
