@@ -22,8 +22,8 @@ our $VERBOSE_DEBUG = 0;
 BEGIN {
     ## Extension based matching
     my @extensions = qw(
-      ad avi bz2 css doc exe fla gif gz ico jpeg jpg js pdf png ppt rar sit
-      rss tgz txt wmv vob xpi zip );
+      ad avi bin bz2 css doc exe fla gif gz ico jpeg jpg js pdf png ppt rar
+      sit rss tgz txt wmv vob xpi zip );
 
     $EXT_REGEX = Regexp::Assemble->new->add(@extensions)->re;
     print STDERR "Regex for static content match is $EXT_REGEX\n"
@@ -37,7 +37,6 @@ BEGIN {
 use Apache2::Const -compile =>
   qw( OK SERVER_ERROR NOT_FOUND DECLINED CONN_KEEPALIVE DONE LOG_INFO );
 use Apache2::Connection     ();
-use Apache2::ConnectionUtil ();
 use Apache2::RequestRec     ();
 use Apache2::RequestUtil    ();
 use Apache2::ServerRec      ();
@@ -46,6 +45,7 @@ use Apache2::URI            ();
 use SL::Cache               ();
 use SL::Util                ();
 use RHP::Timer              ();
+use SL::Model::Subrequest   ();
 
 my $TIMER = RHP::Timer->new();
 
@@ -63,26 +63,6 @@ sub static_content_uri {
     my $url = shift;
     if ($url =~ m{\.(?:$EXT_REGEX)$}i) {
         return 1;
-    }
-}
-
-sub not_a_main_request {
-    my $r = shift;
-
-    my $c      = $r->connection;
-    my $rlinks = $c->pnotes('rlinks');
-    unless (defined $rlinks) {
-
-        # this is a new connection so scan just return and grab the links later
-        $r->log->debug("$$ RLINKS undefined");
-        return;
-    }
-    $r->log->debug("Rlinks are " . join(', ', @{$rlinks}));
-
-    my $referer = $r->pnotes('referer');
-    if (grep { $_ =~ m/$referer/ } @{$r->connection->pnotes("rlinks")}) {
-        $r->log->debug("This request referer matches rlinks");
-        return;
     }
 }
 
@@ -152,9 +132,6 @@ sub handler {
     ## Handle non-browsers that use port 80
     return &proxy_request($r) if (_not_a_browser($r));
 
-    ## check for browser subrequests - UNDER CONSTRUCTION
-    return &proxy_request($r) if (not_a_main_request($r));
-
     # we only serve ads on GETs
     return &proxy_request($r) if ($r->method ne 'GET');
 
@@ -169,6 +146,12 @@ sub handler {
         $r->log->debug("$$ Url $url static content extension, proxying");
         return &proxy_request($r);
     }
+
+    # check for sub-reqs if it passed the other tests
+    my $subrequest_tracker = SL::Model::Subrequest->new();
+    my $is_subreq = $subrequest_tracker->is_subrequest(url => $url);
+    $r->log->debug("$$ ===> $url is_subreq: $is_subreq");
+    return &proxy_request($r) if $is_subreq;
 
     ## Check the cache for a static content match
     if (my $content_type = SL::Cache::grab($url)) {
