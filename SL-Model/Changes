@@ -1,12 +1,18 @@
 Revision history for Perl extension SL-Model.
 
+0.04  Fri June 22 21:20:01 2007
+    - add replace_subrequests() method to SL::Model::Subrequest which allows
+      us to change the port numbers of all subrequests in the page.
+
 0.03  Wed June 20 17:45:45 2007
     - add the default_ok feature to serve default ads unless otherwise said
     - for some reason having the connection routine in the BEGIN block
       in SL::Model::App was causing test failures
+
 0.02  Sun June 17 12:45:01 2007
     - reintroduce ad groups
     - make some sense out of this ball of mud, most tests passing
+
 0.01  Sat May 12 03:26:55 2007
     - Optimize SL::Model::Container, speedup from 500 ms to 8 ms latency
         [Stephen Edwards, Fred Moyer]

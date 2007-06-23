@@ -137,6 +137,15 @@ sub stacked {
     return $decoded_content;
 }
 
+sub replace_linkports {
+    my ($class, $args_ref) = @_;
+
+    my $port = $args_ref->{'port'} || die 'no port';
+    my $content_ref = $args_ref->{'content_ref'} || die 'no content_ref';
+
+
+}
+
 sub _sl_feed {
     my ( $class, $ip ) = @_;
 
