@@ -135,6 +135,7 @@ sub check_violation {
                             WHERE ip = ?');
     $custom_limit_sth->execute($r->connection->remote_ip);
     my ($limit) = $custom_limit_sth->fetchrow_array();
+    $custom_limit_sth->finish;
 
     # use the global limit if none set
     unless ($limit) {
@@ -147,6 +148,7 @@ sub check_violation {
                             WHERE user_id = ? AND (now() - ts) < ?');
     $check_sth->execute($user_id, $limit);
     my ($violation) = $check_sth->fetchrow_array();
+    $check_sth->finish;
 
     return $violation ? 1 : 0;
 }
