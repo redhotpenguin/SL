@@ -5,7 +5,7 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
               NAME      => 'SL',
-              VERSION   => '0.8',
+              VERSION   => '0.09',
               PREREQ_PM => {
                             'Apache::DBI'          => 1.06,
                             'Cache::FastMmap'      => 1.14,

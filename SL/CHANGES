@@ -1,11 +1,28 @@
-0.7
-- Pass response content by reference instead of by value
-- working makefile (yay!)
-- split the ball of mud up into manageable modules
-- chomp the response headers so they don't creep into the response [fred]
-- add http 1.1 headers [fred]
-- add rlinks which stashes page links in connection pnotes [fred]
-- add Changelog [fred]
+0.09 
+    - Move subrequest check to TransHandler
+    - Use replace_subrequest to alter the port numbers on subrequests
 
+0.08 Tue Jun 15 19:21:00 2007
+    - serve ads using ad groups
+
+0.07 Mon May 12 20:12:00 2007
+    - Pass response content by reference instead of by value
+    - working makefile (yay!)
+    - split the ball of mud up into manageable modules
+    - chomp the response headers so they don't creep into the response [fred]
+    - add http 1.1 headers [fred]
+    - add rlinks which stashes page links in connection pnotes [fred]
+    - add Changelog [fred]
+
+sl6
+- ??
 sl5
+- ??
+sl4
+- ??
+sl3
+- ??
+sl2
+- ??
+v1
 - ??
