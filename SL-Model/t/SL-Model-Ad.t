@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 14;
+use Test::More tests => 24;
 
 BEGIN {
 	use_ok('SL::Model::Ad');
@@ -53,27 +53,111 @@ cmp_ok($interval, '<', 0.005, 'HTML Ad inserted in less than 5 milliseconds');
 cmp_ok($interval, '<', 0.002, 'HTML Ad inserted in less than 2 milliseconds');
 
 diag('check the default ad serving logic');
-# put a test router in place
-my $ip = '127.0.0.1';
-my $dbh = SL::Model->connect;
-my $sth = $dbh->prepare("insert into router (ip) values ('$ip')");
-$sth->execute;
 
-# make sure that the default feed works
+diag('put a test router in place');
+use SL::Model::Proxy::Router::Location;
+use SL::Model;
+my $ip = '127.0.0.1';
+my $macaddr = '00:02:B3:4D:BD:87';
+
+# get rid of routers and locations
+my $dbh = SL::Model->connect;
+$dbh->do("DELETE FROM location WHERE ip = '$ip'") or die $DBI::errstr;
+$dbh->do("DELETE FROM router WHERE macaddr = '$macaddr'") or die $DBI::errstr;
+$dbh->do("DELETE FROM ad_group where ad_group_id > 1") or die $DGI::errstr;
+
+# get a registered router
+my $router;
+unless ($router = SL::Model::Proxy::Router::Location->get_registered(
+    {ip => $ip, macaddr => $macaddr})) {
+  $router = SL::Model::Proxy::Router::Location->register(
+    { ip => $ip, macaddr => $macaddr }) or die 'could not register';
+}
+
+diag('make sure that the default works');
 my $test_ad = SL::Model::Ad->_sl_default( $ip );
 cmp_ok(length($test_ad->{'text'}), '>', 5, 'text present');
+cmp_ok($test_ad->{'css'}, 'eq', 'default');
+cmp_ok($test_ad->{'template'}, 'eq', 'text_ad');
 
-# which means random better work
+diag('which means random better work');
 my ($ad_id, $ad_content_ref, $css_url) = SL::Model::Ad->random( $ip );
 like($ad_id, qr/^\d+$/, 'ad_id is a number');
 cmp_ok(ref $ad_content_ref, 'eq', 'SCALAR', 'ad_content_ref isa scalar');
 like($css_url, qr{^http\://}, 'css url like http');
 
-# check the no_default feature
-$sth = $dbh->prepare("update router set default_ok = 'f' where ip = '$ip'");
+diag('check the no_default feature');
+my $sth = $dbh->prepare("update location set default_ok = 'f' where ip = '$ip'");
 $sth->execute;
 $test_ad = SL::Model::Ad->_sl_default( $ip );
 ok(! exists $test_ad->{'text'}, 'text not present');
+
+diag('test the router sticky feature');
+# bring in dbix::class to save us some typing
+use SL::Model::App;
+
+# make an ad (cover your eyes unless you want to witness pain)
+$ad = SL::Model::App->resultset('Ad')->new( { active => 't' } )->insert->update;;
+my $reg = SL::Model::App->resultset('Reg')->new( { email => 'flimflam@foo.com' } )->insert->update;
+
+my $test_text = 'testzimzimfoobar';
+my $sl_ad = SL::Model::App->resultset('AdSl')->new( {
+                                                     ad_id => $ad->ad_id,
+                                                     text  => $test_text,
+                                                     uri   => 'http://foo.com',
+                                                     reg_id => $reg->reg_id, })->insert->update;
+print STDERR "created sl_ad id " . $sl_ad->ad_sl_id . "\n";;
+# make a new ad group
+my $css = 'foo';
+my $template = 'text_ad';
+my $name = 'testadgroup';
+my $ad_group = SL::Model::App->resultset('AdGroup')->new({
+                           name => $name,
+                           css => $css,
+                           template => $template,})->insert->update;
+print STDERR "created ad_group_id " . $ad_group->ad_group_id . "\n";
+
+# put the ad in the ad_group
+my $ad__ad_group = SL::Model::App->resultset('AdAdGroup')->new(
+                                        {ad_group_id => $ad_group->ad_group_id,
+                                         ad_id => $ad->ad_id})->insert->update;
+print STDERR "created ad__ad_group " . $ad__ad_group->ad_group_id . "\n";
+
+# put it in the ad group for this router
+print STDERR "router is " . $router->[0]->[0] . "\n";
+my $router__ad_group = SL::Model::App->resultset('RouterAdGroup')->new({
+                            router_id => $router->[0]->[0],
+                            ad_group_id => $ad_group->ad_group_id, })->insert->update;
+#### NOW WE RUN SOME TESTS
+# Now get the ad
+$test_ad = SL::Model::Ad->_sl_router( $ip );
+#use Data::Dumper;
+#print STDERR "obj is " . Dumper($test_ad) . "\n";
+cmp_ok($test_ad->{'text'}, 'eq', $test_text, 'ad text is what we put in');
+cmp_ok($test_ad->{'css'}, 'eq', $css, 'css oky doky');
+cmp_ok($test_ad->{'template'}, 'eq', $template, 'template came through ok');
+
+diag('test out location override');
+my $location__ad_group = SL::Model::App->resultset('LocationAdGroup')->new({
+                         location_id => $router->[0]->[1],
+                         ad_group_id => $ad_group->ad_group_id })->insert->update;
+# change the text
+$test_text = 'flooberflobber';
+$sl_ad->text($test_text);
+$sl_ad->update;
+$test_ad = SL::Model::Ad->_sl_location( $ip );
+cmp_ok($test_ad->{'text'}, 'eq', $test_text, 'ad text is what we put in');
+
+diag('random should return the location default');
+$test_text = 'bimbamboom';
+$sl_ad->text($test_text);
+$sl_ad->update;
+
+($ad_id, $ad_content_ref, $css_url) = SL::Model::Ad->random( $ip );
+is($ad_id, $ad->ad_id, 'ad_id is a number');
+cmp_ok(ref $ad_content_ref, 'eq', 'SCALAR', 'ad_content_ref isa scalar');
+like($css_url, qr{^http\://}, 'css url like http');
+like($$ad_content_ref, qr/$test_text/, 'ad text found');
 
 1;
 

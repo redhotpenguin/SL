@@ -4,7 +4,8 @@ CREATE TABLE ad_sl (
     reg_id INTEGER NOT NULL DEFAULT 1,
     text character varying(256),
     uri character varying(512),
-    mts timestamp without time zone default now ()
+    mts timestamp without time zone default now (),
+    template character varying(64) DEFAULT 'text_ad'
 );
  
 ALTER TABLE ONLY ad_sl

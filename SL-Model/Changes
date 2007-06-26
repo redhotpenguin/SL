@@ -1,6 +1,11 @@
 Revision history for Perl extension SL-Model.
 
 0.04  Fri June 22 21:20:01 2007
+    - remove much cruft from SL::Model::Ad
+    - css and template designation on ad_groups
+    - lots of unit tests
+    - add sticky ads by router then location
+    - use prepare_cached with $sth->finish
     - add replace_subrequests() method to SL::Model::Subrequest which allows
       us to change the port numbers of all subrequests in the page.
 

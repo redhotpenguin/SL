@@ -22,9 +22,7 @@ use constant SILVERLINING_AD_ID => "/795da10ca01f942fd85157d8be9e832e";
 use constant DEFAULT_BUG_LINK =>
   'http://www.redhotpenguin.com/images/sl/free_wireless.gif';
 
-use constant OCC_IP      => '198.145.32.11';
-use constant SL_CSS_URL  => 'http://www.redhotpenguin.com/css/sl.css';
-use constant OCC_CSS_URL => 'http://www.redhotpenguin.com/css/occ.css';
+use constant CSS_URL     => 'http://www.redhotpenguin.com/css/';
 
 use constant DEFAULT_AD_GROUP_ID => 1;
 
@@ -137,15 +135,6 @@ sub stacked {
     return $decoded_content;
 }
 
-sub replace_linkports {
-    my ($class, $args_ref) = @_;
-
-    my $port = $args_ref->{'port'} || die 'no port';
-    my $content_ref = $args_ref->{'content_ref'} || die 'no content_ref';
-
-
-}
-
 sub _sl_feed {
     my ( $class, $ip ) = @_;
 
@@ -155,8 +144,10 @@ SELECT
 ad_linkshare.ad_id,
 ad_linkshare.displaytext AS text,
 ad.md5,
-ad_linkshare.linkurl AS uri
-FROM ad_linkshare, ad, router, ad__ad_group, router__ad_group
+ad_linkshare.linkurl AS uri,
+ad_group.template,
+ad_group.css
+FROM ad_linkshare, ad, router, ad__ad_group, router__ad_group, ad_group
 WHERE ad.active = 't'
 AND ad_linkshare.ad_id = ad.ad_id
 AND ad__ad_group.ad_id = ad.ad_id
@@ -174,26 +165,29 @@ SQL
 
     my $ad_data = $sth->fetchrow_hashref;
     $sth->finish;
-    $ad_data->{'template'} = 'text_ad';
     return $ad_data;
 }
 
-sub _sl_ad {
+
+sub _sl_location {
     my ( $class, $ip ) = @_;
 
+    # first see if an ad exists for this location
     my $sql = <<SQL;
 SELECT
 ad_sl.ad_id,
 ad_sl.text,
 ad.md5,
-ad_sl.uri
-FROM ad_sl, ad, router, ad__ad_group, router__ad_group
+ad_sl.uri,
+ad_group.template,
+ad_group.css
+FROM ad_sl, ad, location, ad__ad_group, location__ad_group, ad_group
 WHERE ad.active = 't'
 AND ad_sl.ad_id = ad.ad_id
 AND ad__ad_group.ad_id = ad.ad_id
-AND router__ad_group.ad_group_id = ad__ad_group.ad_group_id
-AND router.router_id = router__ad_group.router_id
-AND router.ip = ?
+AND location__ad_group.ad_group_id = ad__ad_group.ad_group_id
+AND location.location_id = location__ad_group.location_id
+AND location.ip = ?
 ORDER BY RANDOM()
 LIMIT 1
 SQL
@@ -206,7 +200,47 @@ SQL
 
     my $ad_data = $sth->fetchrow_hashref;
     $sth->finish;
-    $ad_data->{'template'} = 'text_ad';
+    return $ad_data;
+}
+
+
+sub _sl_router {
+    my ( $class, $ip ) = @_;
+
+    # grab the routers associated with this location
+    my $router_id = SL::Model::Proxy::Router::Location->get_router_id_by_ip($ip);
+    return unless $router_id;
+
+    # get the ads specific to this router_id
+    my $sql = <<SQL;
+SELECT
+ad_sl.ad_id,
+ad_sl.text,
+ad.md5,
+ad_sl.uri,
+ad_group.template,
+ad_group.css
+FROM ad_sl, ad, router, ad__ad_group, router__ad_group, ad_group
+WHERE
+ad.active = 't'
+AND ad.ad_id = ad_sl.ad_id
+AND ad.ad_id = ad__ad_group.ad_id
+AND ad__ad_group.ad_group_id = ad_group.ad_group_id
+AND router__ad_group.ad_group_id = ad_group.ad_group_id
+AND (router.router_id = router__ad_group.router_id
+AND router.router_id = ? )
+ORDER BY RANDOM()
+LIMIT 1
+SQL
+
+    my $dbh = SL::Model->connect();
+    my $sth = $dbh->prepare($sql);
+    $sth->bind_param( 1, $router_id );
+    my $rv = $sth->execute;
+    die "Problem executing query: $sql" unless $rv;
+
+    my $ad_data = $sth->fetchrow_hashref;
+    $sth->finish;
     return $ad_data;
 }
 
@@ -218,20 +252,22 @@ SELECT
 ad_sl.ad_id,
 ad_sl.text,
 ad.md5,
-ad_sl.uri
-FROM ad_sl, ad, router, ad__ad_group, router__ad_group
+ad_sl.uri,
+ad_group.template,
+ad_group.css
+FROM ad_sl, ad, location, ad__ad_group, ad_group
 WHERE ad.active = 't'
 AND ad_sl.ad_id = ad.ad_id
 AND ad__ad_group.ad_id = ad.ad_id
 AND ad__ad_group.ad_group_id = ?
-AND router.ip = ?
-AND router.default_ok = 't'
+AND location.ip = ?
+AND location.default_ok = 't'
 ORDER BY RANDOM()
 LIMIT 1
 SQL
 
     my $dbh = SL::Model->connect();
-    my $sth = $dbh->prepare($sql);
+    my $sth = $dbh->prepare_cached($sql);
     $sth->bind_param( 1, DEFAULT_AD_GROUP_ID );
     $sth->bind_param( 2, $ip );
     my $rv = $sth->execute;
@@ -239,7 +275,6 @@ SQL
 
     my $ad_data = $sth->fetchrow_hashref;
     $sth->finish;
-    $ad_data->{'template'} = 'text_ad';
     return $ad_data;
 }
 
@@ -252,7 +287,7 @@ sub _bug_link {
 SELECT reg_id FROM router WHERE router.ip = ?
 SQL
     my $dbh = SL::Model->connect();
-    my $sth = $dbh->prepare($sql);
+    my $sth = $dbh->prepare_cached($sql);
     $sth->bind_param( 1, $ip );
     my $rv = $sth->execute;
     die "Problem executing query: $sql" unless $rv;
@@ -285,9 +320,17 @@ sub random {
         $ad_data = $class->_sl_feed($ip);
     }
     elsif ( $rand >= $custom_threshold ) {
-        $ad_data = $class->_sl_ad($ip);
+        # grab an ad for this location
+        $ad_data = $class->_sl_location($ip);
+
+        unless (exists $ad_data->{'text'}) {
+          # nothing for location, try router specific
+          $ad_data = $class->_sl_router($ip);
+        }
     }
 
+
+    # no ad returned?
     unless ( exists $ad_data->{'text'} ) {
         $ad_data = $class->_sl_default($ip);
         return unless exists $ad_data->{'text'};    # going to hell for this one
@@ -300,20 +343,15 @@ sub random {
     );
 
     my $output;
+    my $css_url = join('', CSS_URL, $ad_data->{'css'} . '.css');
 
-    # OCC
-    if ( $ip eq OCC_IP ) {
-        $template->process( 'occ.tmpl', { %tmpl_vars, %sl_ad_data }, \$output )
-          || die $template->error(), "\n";
-        return ( $ad_data->{'ad_id'}, \$output, OCC_CSS_URL );
-    }
-
-    # everybody else
+    # generate the ad
     $template->process( $ad_data->{'template'} . '.tmpl',
         { %tmpl_vars, %sl_ad_data }, \$output )
       || die $template->error(), "\n";
 
-    return ( $ad_data->{'ad_id'}, \$output, SL_CSS_URL );
+    # return the id, string output, and css url
+    return ( $ad_data->{'ad_id'}, \$output, $css_url );
 }
 
 sub log_view {
