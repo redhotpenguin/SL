@@ -41,6 +41,8 @@ use Regexp::Assemble      ();
 
 my $TIMER = RHP::Timer->new();
 
+use constant NOOP_RESPONSE => 0;
+
 our $VERBOSE_DEBUG = 0;
 our %response_map  = (
     200 => 'twohundred',
@@ -544,7 +546,7 @@ sub _generate_response {
     my ( $r, $response ) = @_;
 
     # yes this is ugly but it helps for testing
-    #return $response->decoded_content;
+    return $response->decoded_content if (NOOP_RESPONSE == 1);
 
     # put the ad in the response
     $TIMER->start('random_ad')

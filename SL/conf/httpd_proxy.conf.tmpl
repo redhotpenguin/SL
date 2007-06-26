@@ -120,6 +120,7 @@ Include [% cfg.sl_root %]/conf/deflate.conf
   PerlAccessHandler Apache2::Const::OK
   PerlResponseHandler SL::Apache::Proxy::PingHandler
 </Location>
+
 <Location /sl_secret_blacklist_button>
   PerlResponseHandler SL::Apache::Proxy::BlacklistHandler
 </Location>

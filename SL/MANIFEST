@@ -52,7 +52,6 @@ bin/sl_app_restart
 bin/configure_httpd_2_0
 bin/configure_httpd_2_2
 bin/firewall_bridge
-META.yml                                 Module meta-data (added by MakeMaker)
 src/Apache-Dispatch-0.10_01.tar.gz
 src/Text-Balanced-v2.0.0.tar.gz
 src/Class-C3-0.14.tar.gz

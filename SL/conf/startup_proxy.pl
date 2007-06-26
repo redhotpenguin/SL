@@ -51,6 +51,8 @@ use SL::Model::Subrequest    ();
 use SL::Model::RateLimit     ();
 use SL::Model::URL           ();
 use SL::Model::Proxy::Router ();
+use SL::Model::Proxy::Location ();
+use SL::Model::Proxy::Router::Location ();
 
 use SL::Apache::Proxy::AccessHandler          ();
 use SL::Apache::Proxy::TransHandler           ();
