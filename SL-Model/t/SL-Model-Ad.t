@@ -1,12 +1,12 @@
-#!perl
+#!dperl
 
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 24;
+use Test::More tests => 29;
 
 BEGIN {
-	use_ok('SL::Model::Ad');
+    use_ok('SL::Model::Ad');
 }
 my $HTML = <<HTML;
 <html>
@@ -27,137 +27,193 @@ HTML
 
 my $content = do { local $/ = undef; <DATA> };
 
-my $ad = 'Hoo haa biz bang';
+my $ad       = 'Hoo haa biz bang';
 my $css_link = 'http://www.redhotpenguin.com/css/sl.css';
+my $template = 'text_ad.tmpl';
 
 use Time::HiRes qw(tv_interval gettimeofday);
 
 my $start = [gettimeofday];
-SL::Model::Ad::container(\$css_link, \$content, \$ad);
-my $interval = tv_interval($start, [gettimeofday]);
+SL::Model::Ad::container( \$css_link, \$content, \$ad );
+my $interval = tv_interval( $start, [gettimeofday] );
 
-like($content, qr/$ad/, 'Yahoo ad inserted ok');
-like($content, qr/$css_link/, 'css link inserted ok');
+like( $content, qr/$ad/,       'Yahoo ad inserted ok' );
+like( $content, qr/$css_link/, 'css link inserted ok' );
 diag("Time was $interval");
-cmp_ok($interval, '<', 0.010, 'Yahoo Ad inserted in less than 10 milliseconds');
+cmp_ok( $interval, '<', 0.010,
+    'Yahoo Ad inserted in less than 10 milliseconds' );
 
 $start = [gettimeofday];
-SL::Model::Ad::container(\$css_link, \$HTML, \$ad);
-$interval = tv_interval($start, [gettimeofday]);
+SL::Model::Ad::container( \$css_link, \$HTML, \$ad );
+$interval = tv_interval( $start, [gettimeofday] );
 
-like($HTML, qr/$ad/, 'ad inserted ok');
-like($HTML, qr/$css_link/, 'css link inserted ok');
+like( $HTML, qr/$ad/,       'ad inserted ok' );
+like( $HTML, qr/$css_link/, 'css link inserted ok' );
 diag("Time was $interval");
-cmp_ok($interval, '<', 0.010, 'HTML Ad inserted in less than 10 milliseconds');
-cmp_ok($interval, '<', 0.005, 'HTML Ad inserted in less than 5 milliseconds');
-cmp_ok($interval, '<', 0.002, 'HTML Ad inserted in less than 2 milliseconds');
+cmp_ok( $interval, '<', 0.010,
+    'HTML Ad inserted in less than 10 milliseconds' );
+cmp_ok( $interval, '<', 0.005, 'HTML Ad inserted in less than 5 milliseconds' );
+cmp_ok( $interval, '<', 0.002, 'HTML Ad inserted in less than 2 milliseconds' );
 
 diag('check the default ad serving logic');
 
 diag('put a test router in place');
 use SL::Model::Proxy::Router::Location;
 use SL::Model;
-my $ip = '127.0.0.1';
+my $ip      = '127.0.0.1';
 my $macaddr = '00:02:B3:4D:BD:87';
 
 # get rid of routers and locations
 my $dbh = SL::Model->connect;
-$dbh->do("DELETE FROM location WHERE ip = '$ip'") or die $DBI::errstr;
+$dbh->do("DELETE FROM location WHERE ip = '$ip'")         or die $DBI::errstr;
 $dbh->do("DELETE FROM router WHERE macaddr = '$macaddr'") or die $DBI::errstr;
-$dbh->do("DELETE FROM ad_group where ad_group_id > 1") or die $DGI::errstr;
+$dbh->do("DELETE FROM ad_group where ad_group_id > 1")    or die $DBI::errstr;
 
 # get a registered router
 my $router;
-unless ($router = SL::Model::Proxy::Router::Location->get_registered(
-    {ip => $ip, macaddr => $macaddr})) {
-  $router = SL::Model::Proxy::Router::Location->register(
-    { ip => $ip, macaddr => $macaddr }) or die 'could not register';
+unless (
+    $router = SL::Model::Proxy::Router::Location->get_registered(
+        { ip => $ip, macaddr => $macaddr }
+    )
+  )
+{
+    $router =
+      SL::Model::Proxy::Router::Location->register(
+        { ip => $ip, macaddr => $macaddr } )
+      or die 'could not register';
 }
 
+##############################
+
 diag('make sure that the default works');
-my $test_ad = SL::Model::Ad->_sl_default( $ip );
-cmp_ok(length($test_ad->{'text'}), '>', 5, 'text present');
-cmp_ok($test_ad->{'css'}, 'eq', 'default');
-cmp_ok($test_ad->{'template'}, 'eq', 'text_ad');
+my $test_ad = SL::Model::Ad->_sl_default($ip);
+cmp_ok( length( $test_ad->{'text'} ), '>', 5, 'text present' );
+
+cmp_ok( $test_ad->{'css_url'}, 'eq',
+    'http://www.redhotpenguin.com/css/sl.css' );
+cmp_ok( $test_ad->{'template'}, 'eq', $template );
+
+################################
 
 diag('which means random better work');
-my ($ad_id, $ad_content_ref, $css_url) = SL::Model::Ad->random( $ip );
-like($ad_id, qr/^\d+$/, 'ad_id is a number');
-cmp_ok(ref $ad_content_ref, 'eq', 'SCALAR', 'ad_content_ref isa scalar');
-like($css_url, qr{^http\://}, 'css url like http');
+my ( $ad_id, $ad_content_ref, $css_url_ref ) = SL::Model::Ad->random($ip);
+like( $ad_id, qr/^\d+$/, 'ad_id is a number' );
+cmp_ok( ref $ad_content_ref, 'eq', 'SCALAR', 'ad_content_ref isa scalar' );
+cmp_ok( $$css_url_ref, 'eq', $css_link, 'css default link ok' );
+
+#############################
 
 diag('check the no_default feature');
-my $sth = $dbh->prepare("update location set default_ok = 'f' where ip = '$ip'");
+my $sth =
+  $dbh->prepare("update location set default_ok = 'f' where ip = '$ip'");
 $sth->execute;
-$test_ad = SL::Model::Ad->_sl_default( $ip );
-ok(! exists $test_ad->{'text'}, 'text not present');
+$test_ad = SL::Model::Ad->_sl_default($ip);
+ok( !exists $test_ad->{'text'}, 'text not present' );
+
+#################################
 
 diag('test the router sticky feature');
+
 # bring in dbix::class to save us some typing
 use SL::Model::App;
 
 # make an ad (cover your eyes unless you want to witness pain)
-$ad = SL::Model::App->resultset('Ad')->new( { active => 't' } )->insert->update;;
-my $reg = SL::Model::App->resultset('Reg')->new( { email => 'flimflam@foo.com' } )->insert->update;
+$ad = SL::Model::App->resultset('Ad')->new( { active => 't' } )->insert->update;
+my $reg =
+  SL::Model::App->resultset('Reg')->new( { email => 'flimflam@foo.com' } )
+  ->insert->update;
 
 my $test_text = 'testzimzimfoobar';
-my $sl_ad = SL::Model::App->resultset('AdSl')->new( {
-                                                     ad_id => $ad->ad_id,
-                                                     text  => $test_text,
-                                                     uri   => 'http://foo.com',
-                                                     reg_id => $reg->reg_id, })->insert->update;
-print STDERR "created sl_ad id " . $sl_ad->ad_sl_id . "\n";;
+my $sl_ad     = SL::Model::App->resultset('AdSl')->new(
+    {
+        ad_id  => $ad->ad_id,
+        text   => $test_text,
+        uri    => 'http://foo.com',
+        reg_id => $reg->reg_id,
+    }
+)->insert->update;
+print STDERR "created sl_ad id " . $sl_ad->ad_sl_id . "\n";
+
 # make a new ad group
-my $css = 'foo';
-my $template = 'text_ad';
-my $name = 'testadgroup';
-my $ad_group = SL::Model::App->resultset('AdGroup')->new({
-                           name => $name,
-                           css => $css,
-                           template => $template,})->insert->update;
+my $css      = 'http://example.com/sl.css';
+my $name     = 'testadgroup';
+my $ad_group = SL::Model::App->resultset('AdGroup')->new(
+    {
+        name     => $name,
+        css_url  => $css,
+        template => $template,
+    }
+)->insert->update;
 print STDERR "created ad_group_id " . $ad_group->ad_group_id . "\n";
 
 # put the ad in the ad_group
 my $ad__ad_group = SL::Model::App->resultset('AdAdGroup')->new(
-                                        {ad_group_id => $ad_group->ad_group_id,
-                                         ad_id => $ad->ad_id})->insert->update;
+    {
+        ad_group_id => $ad_group->ad_group_id,
+        ad_id       => $ad->ad_id
+    }
+)->insert->update;
 print STDERR "created ad__ad_group " . $ad__ad_group->ad_group_id . "\n";
 
 # put it in the ad group for this router
 print STDERR "router is " . $router->[0]->[0] . "\n";
-my $router__ad_group = SL::Model::App->resultset('RouterAdGroup')->new({
-                            router_id => $router->[0]->[0],
-                            ad_group_id => $ad_group->ad_group_id, })->insert->update;
-#### NOW WE RUN SOME TESTS
+my $router__ad_group = SL::Model::App->resultset('RouterAdGroup')->new(
+    {
+        router_id   => $router->[0]->[0],
+        ad_group_id => $ad_group->ad_group_id,
+    }
+)->insert->update;
+
+################################
+
 # Now get the ad
-$test_ad = SL::Model::Ad->_sl_router( $ip );
+my $limit = 0.01;
+$start = [gettimeofday];
+$test_ad = SL::Model::Ad->_sl_router($ip);
+$interval = tv_interval( $start, [gettimeofday] );
+cmp_ok( $interval, '<', $limit, "_sl_router() took $interval seconds" );
 #use Data::Dumper;
 #print STDERR "obj is " . Dumper($test_ad) . "\n";
-cmp_ok($test_ad->{'text'}, 'eq', $test_text, 'ad text is what we put in');
-cmp_ok($test_ad->{'css'}, 'eq', $css, 'css oky doky');
-cmp_ok($test_ad->{'template'}, 'eq', $template, 'template came through ok');
+cmp_ok( $test_ad->{'text'},     'eq', $test_text, 'ad text is what we put in' );
+cmp_ok( $test_ad->{'css_url'},  'eq', $css,       'css oky doky' );
+cmp_ok( $test_ad->{'template'}, 'eq', $template,  'template came through ok' );
+
+###############################
 
 diag('test out location override');
-my $location__ad_group = SL::Model::App->resultset('LocationAdGroup')->new({
-                         location_id => $router->[0]->[1],
-                         ad_group_id => $ad_group->ad_group_id })->insert->update;
+my $location__ad_group = SL::Model::App->resultset('LocationAdGroup')->new(
+    {
+        location_id => $router->[0]->[1],
+        ad_group_id => $ad_group->ad_group_id
+    }
+)->insert->update;
+
 # change the text
 $test_text = 'flooberflobber';
 $sl_ad->text($test_text);
 $sl_ad->update;
-$test_ad = SL::Model::Ad->_sl_location( $ip );
-cmp_ok($test_ad->{'text'}, 'eq', $test_text, 'ad text is what we put in');
+$start    = [gettimeofday];
+$test_ad  = SL::Model::Ad->_sl_location($ip);
+$interval = tv_interval( $start, [gettimeofday] );
+cmp_ok( $interval, '<', $limit, "_sl_location took $interval seconds" );
+cmp_ok( $test_ad->{'text'}, 'eq', $test_text, 'ad text is what we put in' );
+cmp_ok( $test_ad->{template}, 'eq', $template );
+cmp_ok( $test_ad->{css_url},  'eq', $css );
+
+############################
 
 diag('random should return the location default');
 $test_text = 'bimbamboom';
 $sl_ad->text($test_text);
 $sl_ad->update;
-
-($ad_id, $ad_content_ref, $css_url) = SL::Model::Ad->random( $ip );
-is($ad_id, $ad->ad_id, 'ad_id is a number');
-cmp_ok(ref $ad_content_ref, 'eq', 'SCALAR', 'ad_content_ref isa scalar');
-like($css_url, qr{^http\://}, 'css url like http');
-like($$ad_content_ref, qr/$test_text/, 'ad text found');
+$start = [gettimeofday];
+( $ad_id, $ad_content_ref, $css_url_ref ) = SL::Model::Ad->random($ip);
+$interval = tv_interval( $start, [gettimeofday] );
+cmp_ok( $interval, '<', $limit, "random() took $interval seconds" );
+is( $ad_id, $ad->ad_id, 'ad_id is a number' );
+cmp_ok( ref $ad_content_ref, 'eq', 'SCALAR', 'ad_content_ref isa scalar' );
+cmp_ok( $$css_url_ref, 'eq', $css, 'css url ok' );
+like( $$ad_content_ref, qr/$test_text/, 'ad text found' );
 
 1;
 
@@ -2896,7 +2952,7 @@ window.yzq_d[\'RJavKNGDJG4-\']=\'&U=13bvc1j3p%2fN%3dRJavKNGDJG4-%2fC%3d592793.10
 
 <li class="tt3"><a href="r/dy/*-http://search.yahoo.com/search?p=georgia+rule&cs=bz&fr=fp-buzzmod">Georgia Rule</a></li>
 
-<li class="tt4"><a href="r/dy/*-http://search.yahoo.com/search?p=mother%E2%80%99s+day+recipes&cs=bz&fr=fp-buzzmod">Mother’s Day Recipes</a></li>
+<li class="tt4"><a href="r/dy/*-http://search.yahoo.com/search?p=mother%E2%80%99s+day+recipes&cs=bz&fr=fp-buzzmod">Mother?s Day Recipes</a></li>
 
 <li class="tt5"><a href="r/dy/*-http://search.yahoo.com/search?p=lily+allen&cs=bz&fr=fp-buzzmod">Lily Allen</a></li>
 

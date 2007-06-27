@@ -19,7 +19,7 @@ SET default_with_oids = false;
 CREATE TABLE location (
     location_id SERIAL NOT NULL,
     ip inet NOT NULL,
-    name character varying(128) DEFAULT '' NOT NULL,
+    name text DEFAULT '' NOT NULL,
     description text DEFAULT '' NOT NULL,
     street_addr character varying(64),
     apt_suite character varying(5),

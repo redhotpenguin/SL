@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-SET client_encoding = 'SQL_ASCII';
+SET client_encoding = 'UTF8';
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 
@@ -122,7 +122,9 @@ CREATE TABLE ad_group (
     ad_group_id serial NOT NULL,
     active boolean DEFAULT true,
     name character varying(256),
-    cts timestamp without time zone DEFAULT now()
+    cts timestamp without time zone DEFAULT now(),
+    css character varying(32) DEFAULT 'sl'::character varying,
+    "template" character varying(32) DEFAULT 'text_ad'::character varying
 );
 
 
@@ -185,8 +187,7 @@ CREATE TABLE ad_sl (
     text character varying(256),
     reg_id integer DEFAULT 1 NOT NULL,
     uri character varying(512),
-    mts timestamp without time zone DEFAULT now(),
-    "template" character varying(32) DEFAULT 'text'::character varying
+    mts timestamp without time zone DEFAULT now()
 );
 
 
@@ -224,6 +225,7 @@ ALTER TABLE public.click OWNER TO phred;
 --
 
 CREATE SEQUENCE forgot_forgot_id_seq
+    START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
     NO MINVALUE
@@ -246,6 +248,54 @@ CREATE TABLE forgot (
 
 
 ALTER TABLE public.forgot OWNER TO phred;
+
+--
+-- Name: location; Type: TABLE; Schema: public; Owner: phred; Tablespace: 
+--
+
+CREATE TABLE "location" (
+    location_id serial NOT NULL,
+    ip inet NOT NULL,
+    name character varying(128),
+    description text,
+    street_addr character varying(64),
+    apt_suite character varying(5),
+    zip character varying(9),
+    city character varying(128),
+    state character varying(2),
+    cts timestamp without time zone DEFAULT now(),
+    mts timestamp without time zone DEFAULT now(),
+    active boolean DEFAULT true,
+    default_ok boolean DEFAULT true,
+    custom_rate_limit character varying(10)
+);
+
+
+ALTER TABLE public."location" OWNER TO phred;
+
+--
+-- Name: location__ad_group; Type: TABLE; Schema: public; Owner: phred; Tablespace: 
+--
+
+CREATE TABLE location__ad_group (
+    location_id integer NOT NULL,
+    ad_group_id integer NOT NULL
+);
+
+
+ALTER TABLE public.location__ad_group OWNER TO phred;
+
+--
+-- Name: macaddr__ad_group; Type: TABLE; Schema: public; Owner: phred; Tablespace: 
+--
+
+CREATE TABLE macaddr__ad_group (
+    macaddr macaddr NOT NULL,
+    ad_group_id integer NOT NULL
+);
+
+
+ALTER TABLE public.macaddr__ad_group OWNER TO phred;
 
 --
 -- Name: rate_limit; Type: TABLE; Schema: public; Owner: phred; Tablespace: 
@@ -323,6 +373,7 @@ ALTER TABLE public.reg__ad_group OWNER TO phred;
 --
 
 CREATE SEQUENCE root_root_id_seq
+    START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
     NO MINVALUE
@@ -364,20 +415,11 @@ ALTER TABLE public.router_router_id_seq OWNER TO phred;
 
 CREATE TABLE router (
     router_id integer DEFAULT nextval('router_router_id_seq'::regclass) NOT NULL,
-    ip inet NOT NULL,
     serial_number character(12),
     macaddr macaddr,
-    name character varying(128),
-    description text,
-    street_addr character varying(64),
-    apt_suite character varying(5),
-    referer character varying(32),
     cts timestamp without time zone DEFAULT now(),
     mts timestamp without time zone DEFAULT now(),
-    active boolean DEFAULT true,
-    code integer,
-    custom_rate_limit character varying(10),
-    feed_enabled boolean DEFAULT true
+    active boolean DEFAULT true
 );
 
 
@@ -394,6 +436,18 @@ CREATE TABLE router__ad_group (
 
 
 ALTER TABLE public.router__ad_group OWNER TO phred;
+
+--
+-- Name: router__location; Type: TABLE; Schema: public; Owner: phred; Tablespace: 
+--
+
+CREATE TABLE router__location (
+    router_id integer NOT NULL,
+    location_id integer NOT NULL
+);
+
+
+ALTER TABLE public.router__location OWNER TO phred;
 
 --
 -- Name: router__reg; Type: TABLE; Schema: public; Owner: phred; Tablespace: 
@@ -413,7 +467,8 @@ ALTER TABLE public.router__reg OWNER TO phred;
 
 CREATE TABLE subrequest (
     url character varying(1024) NOT NULL,
-    ts timestamp without time zone DEFAULT now()
+    ts timestamp without time zone DEFAULT now(),
+    tag character varying(10) DEFAULT ''::character varying NOT NULL
 );
 
 
@@ -495,6 +550,14 @@ ALTER TABLE ONLY ad__ad_group
 
 
 --
+-- Name: ad_group_pkey; Type: CONSTRAINT; Schema: public; Owner: phred; Tablespace: 
+--
+
+ALTER TABLE ONLY ad_group
+    ADD CONSTRAINT ad_group_pkey PRIMARY KEY (ad_group_id);
+
+
+--
 -- Name: ad_linkshare_pkey; Type: CONSTRAINT; Schema: public; Owner: phred; Tablespace: 
 --
 
@@ -517,6 +580,7 @@ ALTER TABLE ONLY ad
 ALTER TABLE ONLY ad_sl
     ADD CONSTRAINT ad_sl_pkey PRIMARY KEY (ad_sl_id);
 
+
 --
 -- Name: click_pkey; Type: CONSTRAINT; Schema: public; Owner: phred; Tablespace: 
 --
@@ -531,6 +595,30 @@ ALTER TABLE ONLY click
 
 ALTER TABLE ONLY forgot
     ADD CONSTRAINT forgot_pkey PRIMARY KEY (forgot_id);
+
+
+--
+-- Name: location__ad_group__pkey; Type: CONSTRAINT; Schema: public; Owner: phred; Tablespace: 
+--
+
+ALTER TABLE ONLY location__ad_group
+    ADD CONSTRAINT location__ad_group__pkey PRIMARY KEY (location_id, ad_group_id);
+
+
+--
+-- Name: location_pkey; Type: CONSTRAINT; Schema: public; Owner: phred; Tablespace: 
+--
+
+ALTER TABLE ONLY "location"
+    ADD CONSTRAINT location_pkey PRIMARY KEY (location_id);
+
+
+--
+-- Name: macaddr__ad_group__pkey; Type: CONSTRAINT; Schema: public; Owner: phred; Tablespace: 
+--
+
+ALTER TABLE ONLY macaddr__ad_group
+    ADD CONSTRAINT macaddr__ad_group__pkey PRIMARY KEY (macaddr, ad_group_id);
 
 
 --
@@ -563,6 +651,14 @@ ALTER TABLE ONLY reg
 
 ALTER TABLE ONLY root
     ADD CONSTRAINT root_id_pkey PRIMARY KEY (root_id);
+
+
+--
+-- Name: router__location__pkey; Type: CONSTRAINT; Schema: public; Owner: phred; Tablespace: 
+--
+
+ALTER TABLE ONLY router__location
+    ADD CONSTRAINT router__location__pkey PRIMARY KEY (router_id, location_id);
 
 
 --
@@ -619,12 +715,6 @@ ALTER TABLE ONLY user_blacklist
 
 ALTER TABLE ONLY "view"
     ADD CONSTRAINT view_pkey PRIMARY KEY (view_id);
-
--- Name: ad_sl_reg_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
---
-ALTER TABLE ONLY ad_sl
-    ADD CONSTRAINT ad_sl_reg_id_fkey FOREIGN KEY (reg_id) REFERENCES reg(reg_id) ON UPDATE CASCADE ON DELETE CASCADE;
-
 
 
 --
@@ -701,7 +791,39 @@ ALTER TABLE ONLY ad__ad_group
     ADD CONSTRAINT ad_id_fkey FOREIGN KEY (ad_id) REFERENCES ad(ad_id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
----
+--
+-- Name: ad_sl_reg_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
+--
+
+ALTER TABLE ONLY ad_sl
+    ADD CONSTRAINT ad_sl_reg_id_fkey FOREIGN KEY (reg_id) REFERENCES reg(reg_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: location__ad_group__ad_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
+--
+
+ALTER TABLE ONLY location__ad_group
+    ADD CONSTRAINT location__ad_group__ad_group_id_fkey FOREIGN KEY (ad_group_id) REFERENCES ad_group(ad_group_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: location__ad_group__location_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
+--
+
+ALTER TABLE ONLY location__ad_group
+    ADD CONSTRAINT location__ad_group__location_id_fkey FOREIGN KEY (location_id) REFERENCES "location"(location_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: macaddr__ad_group__ad_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
+--
+
+ALTER TABLE ONLY macaddr__ad_group
+    ADD CONSTRAINT macaddr__ad_group__ad_group_id_fkey FOREIGN KEY (ad_group_id) REFERENCES ad_group(ad_group_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
 -- Name: reg_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
 --
 
@@ -731,6 +853,22 @@ ALTER TABLE ONLY url
 
 ALTER TABLE ONLY reg__ad_group
     ADD CONSTRAINT reg_id_fkey FOREIGN KEY (reg_id) REFERENCES reg(reg_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: router__location__location_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
+--
+
+ALTER TABLE ONLY router__location
+    ADD CONSTRAINT router__location__location_id_fkey FOREIGN KEY (location_id) REFERENCES "location"(location_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: router__location__router_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
+--
+
+ALTER TABLE ONLY router__location
+    ADD CONSTRAINT router__location__router_id_fkey FOREIGN KEY (router_id) REFERENCES router(router_id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --

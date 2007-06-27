@@ -22,8 +22,6 @@ use constant SILVERLINING_AD_ID => "/795da10ca01f942fd85157d8be9e832e";
 use constant DEFAULT_BUG_LINK =>
   'http://www.redhotpenguin.com/images/sl/free_wireless.gif';
 
-use constant CSS_URL     => 'http://www.redhotpenguin.com/css/';
-
 use constant DEFAULT_AD_GROUP_ID => 1;
 
 my ( $template, $config );
@@ -146,7 +144,7 @@ ad_linkshare.displaytext AS text,
 ad.md5,
 ad_linkshare.linkurl AS uri,
 ad_group.template,
-ad_group.css
+ad_group.css_url
 FROM ad_linkshare, ad, router, ad__ad_group, router__ad_group, ad_group
 WHERE ad.active = 't'
 AND ad_linkshare.ad_id = ad.ad_id
@@ -169,37 +167,56 @@ SQL
 }
 
 
-sub _sl_location {
-    my ( $class, $ip ) = @_;
-
-    # first see if an ad exists for this location
-    my $sql = <<SQL;
-SELECT
-ad_sl.ad_id,
-ad_sl.text,
-ad.md5,
-ad_sl.uri,
-ad_group.template,
-ad_group.css
-FROM ad_sl, ad, location, ad__ad_group, location__ad_group, ad_group
-WHERE ad.active = 't'
-AND ad_sl.ad_id = ad.ad_id
-AND ad__ad_group.ad_id = ad.ad_id
-AND location__ad_group.ad_group_id = ad__ad_group.ad_group_id
-AND location.location_id = location__ad_group.location_id
+    our $RANDOM_ADGROUP_FROM_IP = <<SQL;
+SELECT ad_group.ad_group_id, css_url, template 
+FROM ad_group, location, location__ad_group
+WHERE location__ad_group.ad_group_id =  ad_group.ad_group_id
+AND location__ad_group.location_id = location.location_id
 AND location.ip = ?
 ORDER BY RANDOM()
 LIMIT 1
 SQL
 
-    my $dbh = SL::Model->connect();
-    my $sth = $dbh->prepare($sql);
-    $sth->bind_param( 1, $ip );
-    my $rv = $sth->execute;
-    die "Problem executing query: $sql" unless $rv;
+    our $SL_LOCATION = <<SQL;
+SELECT ad_sl.ad_id, ad_sl.text, ad.md5, ad_sl.uri
+FROM ad_sl, ad, ad__ad_group
+WHERE ad.active = 't'
+AND ad__ad_group.ad_group_id = ?
+AND ad__ad_group.ad_id = ad.ad_id
+AND ad_sl.ad_id = ad.ad_id
+ORDER BY RANDOM()
+LIMIT 1
+SQL
 
-    my $ad_data = $sth->fetchrow_hashref;
-    $sth->finish;
+sub _sl_location {
+    my ( $class, $ip ) = @_;
+
+    die 'no ip' unless $ip;
+
+    my $dbh = SL::Model->connect();
+    # are there any location__ad_groups for this location?
+    my $random_adgroup_sth = $dbh->prepare_cached($RANDOM_ADGROUP_FROM_IP);
+    $random_adgroup_sth->bind_param(1, $ip);
+    $random_adgroup_sth->execute or die $DBI::errstr;
+
+    # grab the ad_group data
+    my $ad_group_ary_ref = $random_adgroup_sth->fetchrow_arrayref;
+    $random_adgroup_sth->finish;
+
+    # no ad groups?
+    return unless $ad_group_ary_ref;
+
+    # grab the ad data
+    my $location_sth = $dbh->prepare_cached($SL_LOCATION);
+    $location_sth->bind_param( 1, $ad_group_ary_ref->[0] );
+    $location_sth->execute or die $DBI::errstr;
+
+    my $ad_data = $location_sth->fetchrow_hashref;
+    $location_sth->finish;
+
+    # merge in the ad_group data
+    $ad_data->{css_url} = $ad_group_ary_ref->[1];
+    $ad_data->{template} = $ad_group_ary_ref->[2];
     return $ad_data;
 }
 
@@ -219,7 +236,7 @@ ad_sl.text,
 ad.md5,
 ad_sl.uri,
 ad_group.template,
-ad_group.css
+ad_group.css_url
 FROM ad_sl, ad, router, ad__ad_group, router__ad_group, ad_group
 WHERE
 ad.active = 't'
@@ -254,7 +271,7 @@ ad_sl.text,
 ad.md5,
 ad_sl.uri,
 ad_group.template,
-ad_group.css
+ad_group.css_url
 FROM ad_sl, ad, location, ad__ad_group, ad_group
 WHERE ad.active = 't'
 AND ad_sl.ad_id = ad.ad_id
@@ -342,16 +359,14 @@ sub random {
         bug_link => $class->_bug_link($ip)
     );
 
-    my $output;
-    my $css_url = join('', CSS_URL, $ad_data->{'css'} . '.css');
-
     # generate the ad
-    $template->process( $ad_data->{'template'} . '.tmpl',
+    my $output;
+    $template->process( $ad_data->{'template'},
         { %tmpl_vars, %sl_ad_data }, \$output )
       || die $template->error(), "\n";
 
     # return the id, string output, and css url
-    return ( $ad_data->{'ad_id'}, \$output, $css_url );
+    return ( $ad_data->{'ad_id'}, \$output, \$ad_data->{'css_url'}, );
 }
 
 sub log_view {

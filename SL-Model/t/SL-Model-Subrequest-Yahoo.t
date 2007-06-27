@@ -42,7 +42,7 @@ ok(
     )
 );
 $interval = tv_interval( $start, [gettimeofday] );
-$limit = 0.020;    # 20 milliseconds
+$limit = 0.025;    # 25 milliseconds
 diag("replacement took $interval seconds");
 cmp_ok( $interval, '<', $limit, "replace_subrequests took $interval seconds" );
 
