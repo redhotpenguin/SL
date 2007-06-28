@@ -87,11 +87,20 @@ unless (
 
 diag('make sure that the default works');
 my $test_ad = SL::Model::Ad->_sl_default($ip);
-cmp_ok( length( $test_ad->{'text'} ), '>', 5, 'text present' );
 
-cmp_ok( $test_ad->{'css_url'}, 'eq',
-    'http://www.redhotpenguin.com/css/sl.css' );
-cmp_ok( $test_ad->{'template'}, 'eq', $template );
+# evil evil copied from Ad.pm
+use constant AD_ID_IDX       => 0;
+use constant TEXT_IDX        => 1;
+use constant MD5_IDX         => 2;
+use constant URI_IDX         => 3;
+use constant TEMPLATE_IDX    => 4;
+use constant CSS_URL_IDX     => 5;
+use constant IMAGE_HREF_IDX  => 6;
+use constant LINK_HREF_IDX   => 7;
+
+like( $test_ad->[TEXT_IDX], qr/\w+/, 'text present' );
+cmp_ok( $test_ad->[CSS_URL_IDX], 'eq', $css_link );
+cmp_ok( $test_ad->[TEMPLATE_IDX], 'eq', $template );
 
 ################################
 
@@ -108,7 +117,7 @@ my $sth =
   $dbh->prepare("update location set default_ok = 'f' where ip = '$ip'");
 $sth->execute;
 $test_ad = SL::Model::Ad->_sl_default($ip);
-ok( !exists $test_ad->{'text'}, 'text not present' );
+ok( !exists $test_ad->[TEXT_IDX], 'text not present' );
 
 #################################
 
@@ -167,16 +176,16 @@ my $router__ad_group = SL::Model::App->resultset('RouterAdGroup')->new(
 ################################
 
 # Now get the ad
-my $limit = 0.01;
+my $limit = 0.015;
 $start = [gettimeofday];
 $test_ad = SL::Model::Ad->_sl_router($ip);
 $interval = tv_interval( $start, [gettimeofday] );
 cmp_ok( $interval, '<', $limit, "_sl_router() took $interval seconds" );
 #use Data::Dumper;
 #print STDERR "obj is " . Dumper($test_ad) . "\n";
-cmp_ok( $test_ad->{'text'},     'eq', $test_text, 'ad text is what we put in' );
-cmp_ok( $test_ad->{'css_url'},  'eq', $css,       'css oky doky' );
-cmp_ok( $test_ad->{'template'}, 'eq', $template,  'template came through ok' );
+cmp_ok( $test_ad->[TEXT_IDX],   'eq', $test_text, 'ad text is what we put in' );
+cmp_ok( $test_ad->[CSS_URL_IDX],  'eq', $css,       'css oky doky' );
+cmp_ok( $test_ad->[TEMPLATE_IDX], 'eq', $template, 'template came through ok' );
 
 ###############################
 
@@ -195,10 +204,11 @@ $sl_ad->update;
 $start    = [gettimeofday];
 $test_ad  = SL::Model::Ad->_sl_location($ip);
 $interval = tv_interval( $start, [gettimeofday] );
+$limit = 0.01;
 cmp_ok( $interval, '<', $limit, "_sl_location took $interval seconds" );
-cmp_ok( $test_ad->{'text'}, 'eq', $test_text, 'ad text is what we put in' );
-cmp_ok( $test_ad->{template}, 'eq', $template );
-cmp_ok( $test_ad->{css_url},  'eq', $css );
+cmp_ok( $test_ad->[TEXT_IDX], 'eq', $test_text, 'ad text is what we put in' );
+cmp_ok( $test_ad->[TEMPLATE_IDX], 'eq', $template );
+cmp_ok( $test_ad->[CSS_URL_IDX],  'eq', $css );
 
 ############################
 

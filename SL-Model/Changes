@@ -1,6 +1,7 @@
 Revision history for Perl extension SL-Model.
 
 0.04  Fri June 22 21:20:01 2007
+    - per ad group bug images
     - remove much cruft from SL::Model::Ad
     - css and template designation on ad_groups
     - lots of unit tests

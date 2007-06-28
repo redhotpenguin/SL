@@ -43,6 +43,22 @@ sub add_router_from_mac {
     return $router_id;
 }
 
+use constant => REPLACE_PORT_SQL => q{
+SELECT router.router_id, router.replace_port
+FROM router, location, router__location
+WHERE location.ip = ?
+AND router__location.location_id = location.location_id
+AND router.router_id = router__location.router_id
+};
 
+sub replace_port {
+    my ($class, $ip) = @_;
+    my $sth = $class->constant->prepare_cached(REPLACE_PORT_SQL);
+    $sth->bind_param( 1, $ip );
+    $sth->execute or return;
+    my $ary_ref = $sth->fetchall_arrayref;
+    return unless (scalar(@{$ary_ref}) > 0);
+    return $ary_ref;
+}
 
 1;

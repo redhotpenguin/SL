@@ -17,35 +17,30 @@ This serves ads, ya see?
 
 =cut
 
-use constant CLICKSERVER_URL    => 'http://64.151.90.20:81/click/';
-use constant SILVERLINING_AD_ID => "/795da10ca01f942fd85157d8be9e832e";
-use constant DEFAULT_BUG_LINK =>
-  'http://www.redhotpenguin.com/images/sl/free_wireless.gif';
-
 use constant DEFAULT_AD_GROUP_ID => 1;
-
-my ( $template, $config );
-our ( $log_view_sql, %sl_ad_data );
-
-BEGIN {
-    require SL::Config;
-    $config = SL::Config->new;
-
-    $log_view_sql = <<SQL;
+use constant LOG_VIEW_SQL        => q{
 INSERT INTO view
 ( ad_id, ip ) values ( ?, ? )
-SQL
+};
 
-    my $path = $config->sl_root . '/tmpl/';
-    die "Template include path $path doesn't exist!\n" unless -d $path;
-    my $tmpl_config = {
-        ABSOLUTE     => 1,
-        INCLUDE_PATH => $config->sl_root . '/tmpl/',
-    };
-    $template = Template->new($tmpl_config) || die $Template::ERROR, "\n";
-    %sl_ad_data = ( sl_link => CLICKSERVER_URL . SILVERLINING_AD_ID );
+use constant AD_ID_IDX       => 0;
+use constant TEXT_IDX        => 1;
+use constant MD5_IDX         => 2;
+use constant URI_IDX         => 3;
+use constant TEMPLATE_IDX    => 4;
+use constant CSS_URL_IDX     => 5;
+use constant IMAGE_HREF_IDX  => 6;
+use constant LINK_HREF_IDX   => 7;
 
-}
+use SL::Config;
+our $CONFIG = SL::Config->new;
+our $PATH   = $CONFIG->sl_root . '/tmpl/';
+die "Template include path $PATH doesn't exist!\n" unless -d $PATH;
+my $TMPL_CONFIG = {
+    ABSOLUTE     => 1,
+    INCLUDE_PATH => $PATH,
+};
+our $TEMPLATE = Template->new($TMPL_CONFIG) || die $Template::ERROR, "\n";
 
 =head1 METHODS
 
@@ -57,8 +52,8 @@ Method for ad insertion which wraps the whole page in a stylesheet
 
 =cut
 
-our ( $regex, $second_regex, $uber_match, $end_body_match );
-our ( $top, $container, $tail );
+our( $regex, $second_regex, $uber_match, $end_body_match );
+our( $top,   $container,    $tail );
 
 BEGIN {
     $top            = qq{<div id="sl_top">};
@@ -129,45 +124,43 @@ inline with the original request response.
 sub stacked {
     my ( $decoded_content, $ad ) = @_;
     my $html = qq{<html><body>$$ad</body></html>};
-    $decoded_content = join( "\n", $html, $decoded_content );
+    $decoded_content = join ( "\n", $html, $decoded_content );
     return $decoded_content;
 }
+
+use constant SL_FEED_SQL => q{
+SELECT
+ad_linkshare.ad_id,    ad_linkshare.displaytext AS text,
+ad.md5,                ad_linkshare.linkurl AS uri,
+ad_group.template,     ad_group.css_url,
+bug.image_href,        bug.link_href
+FROM ad_linkshare, ad, router, ad__ad_group, router__ad_group, ad_group, bug
+WHERE ad.active = 't'
+AND ad_linkshare.ad_id = ad.ad_id
+AND ad__ad_group.ad_id = ad.ad_id
+AND router__ad_group.ad_group_id = ad__ad_group.ad_group_id
+AND ad_group.bug_id = bug.bug_id
+AND router.ip = ?
+ORDER BY RANDOM()
+LIMIT 1
+};
 
 sub _sl_feed {
     my ( $class, $ip ) = @_;
 
     # only linkshare for right now
-    my $sql = <<SQL;
-SELECT
-ad_linkshare.ad_id,
-ad_linkshare.displaytext AS text,
-ad.md5,
-ad_linkshare.linkurl AS uri,
-ad_group.template,
-ad_group.css_url
-FROM ad_linkshare, ad, router, ad__ad_group, router__ad_group, ad_group
-WHERE ad.active = 't'
-AND ad_linkshare.ad_id = ad.ad_id
-AND ad__ad_group.ad_id = ad.ad_id
-AND router__ad_group.ad_group_id = ad__ad_group.ad_group_id
-AND router.ip = ?
-ORDER BY RANDOM()
-LIMIT 1
-SQL
-
     my $dbh = SL::Model->connect();
-    my $sth = $dbh->prepare($sql);
+    my $sth = $dbh->prepare(SL_FEED_SQL);
     $sth->bind_param( 1, $ip );
     my $rv = $sth->execute;
-    die "Problem executing query: $sql" unless $rv;
+    die "Problem executing query: " . SL_FEED_SQL unless $rv;
 
-    my $ad_data = $sth->fetchrow_hashref;
+    my $ad_data = $sth->fetchrow_arrayref;
     $sth->finish;
     return $ad_data;
 }
 
-
-    our $RANDOM_ADGROUP_FROM_IP = <<SQL;
+use constant RANDOM_ADGROUP_FROM_IP => q{
 SELECT ad_group.ad_group_id, css_url, template 
 FROM ad_group, location, location__ad_group
 WHERE location__ad_group.ad_group_id =  ad_group.ad_group_id
@@ -175,18 +168,22 @@ AND location__ad_group.location_id = location.location_id
 AND location.ip = ?
 ORDER BY RANDOM()
 LIMIT 1
-SQL
+};
 
-    our $SL_LOCATION = <<SQL;
-SELECT ad_sl.ad_id, ad_sl.text, ad.md5, ad_sl.uri
-FROM ad_sl, ad, ad__ad_group
+use constant SL_LOCATION_SQL => q{
+SELECT
+ad_sl.ad_id,         ad_sl.text,         ad.md5,     ad_sl.uri,
+ad_group.template,   ad_group.css_url, 
+bug.image_href,      bug.link_href
+FROM ad_sl, ad, ad__ad_group, ad_group, bug
 WHERE ad.active = 't'
 AND ad__ad_group.ad_group_id = ?
 AND ad__ad_group.ad_id = ad.ad_id
 AND ad_sl.ad_id = ad.ad_id
+AND ad_group.bug_id = bug.bug_id
 ORDER BY RANDOM()
 LIMIT 1
-SQL
+};
 
 sub _sl_location {
     my ( $class, $ip ) = @_;
@@ -194,9 +191,10 @@ sub _sl_location {
     die 'no ip' unless $ip;
 
     my $dbh = SL::Model->connect();
+
     # are there any location__ad_groups for this location?
-    my $random_adgroup_sth = $dbh->prepare_cached($RANDOM_ADGROUP_FROM_IP);
-    $random_adgroup_sth->bind_param(1, $ip);
+    my $random_adgroup_sth = $dbh->prepare_cached(RANDOM_ADGROUP_FROM_IP);
+    $random_adgroup_sth->bind_param( 1, $ip );
     $random_adgroup_sth->execute or die $DBI::errstr;
 
     # grab the ad_group data
@@ -207,119 +205,87 @@ sub _sl_location {
     return unless $ad_group_ary_ref;
 
     # grab the ad data
-    my $location_sth = $dbh->prepare_cached($SL_LOCATION);
+    my $location_sth = $dbh->prepare_cached(SL_LOCATION_SQL);
     $location_sth->bind_param( 1, $ad_group_ary_ref->[0] );
     $location_sth->execute or die $DBI::errstr;
 
-    my $ad_data = $location_sth->fetchrow_hashref;
+    my $ad_data = $location_sth->fetchrow_arrayref;
     $location_sth->finish;
 
     # merge in the ad_group data
-    $ad_data->{css_url} = $ad_group_ary_ref->[1];
-    $ad_data->{template} = $ad_group_ary_ref->[2];
+    $ad_data->[CSS_URL_IDX]  = $ad_group_ary_ref->[1];
+    $ad_data->[TEMPLATE_IDX] = $ad_group_ary_ref->[2];
     return $ad_data;
 }
 
-
-sub _sl_router {
-    my ( $class, $ip ) = @_;
-
-    # grab the routers associated with this location
-    my $router_id = SL::Model::Proxy::Router::Location->get_router_id_by_ip($ip);
-    return unless $router_id;
-
-    # get the ads specific to this router_id
-    my $sql = <<SQL;
+use constant SL_ROUTER_SQL => q{
 SELECT
-ad_sl.ad_id,
-ad_sl.text,
-ad.md5,
-ad_sl.uri,
-ad_group.template,
-ad_group.css_url
-FROM ad_sl, ad, router, ad__ad_group, router__ad_group, ad_group
-WHERE
-ad.active = 't'
+ad_sl.ad_id,      ad_sl.text,        ad.md5,
+ad_sl.uri,        ad_group.template, ad_group.css_url,
+bug.image_href,   bug.link_href
+FROM ad_sl, ad, router, ad__ad_group, router__ad_group, ad_group, bug
+WHERE ad.active = 't'
 AND ad.ad_id = ad_sl.ad_id
 AND ad.ad_id = ad__ad_group.ad_id
 AND ad__ad_group.ad_group_id = ad_group.ad_group_id
+AND ad_group.bug_id = bug.bug_id
 AND router__ad_group.ad_group_id = ad_group.ad_group_id
 AND (router.router_id = router__ad_group.router_id
 AND router.router_id = ? )
 ORDER BY RANDOM()
 LIMIT 1
-SQL
+};
 
+sub _sl_router {
+    my ( $class, $ip ) = @_;
+
+    # grab the routers associated with this location
+    my $router_id =
+      SL::Model::Proxy::Router::Location->get_router_id_by_ip($ip);
+    return unless $router_id;
+
+    # get the ads specific to this router_id
     my $dbh = SL::Model->connect();
-    my $sth = $dbh->prepare($sql);
+    my $sth = $dbh->prepare(SL_ROUTER_SQL);
     $sth->bind_param( 1, $router_id );
     my $rv = $sth->execute;
-    die "Problem executing query: $sql" unless $rv;
+    die "Problem executing query: " . SL_ROUTER_SQL unless $rv;
 
-    my $ad_data = $sth->fetchrow_hashref;
+    my $ad_data = $sth->fetchrow_arrayref;
     $sth->finish;
     return $ad_data;
 }
 
-sub _sl_default {
-    my ( $class, $ip ) = @_;
-
-    my $sql = <<SQL;
-SELECT
-ad_sl.ad_id,
-ad_sl.text,
-ad.md5,
-ad_sl.uri,
-ad_group.template,
-ad_group.css_url
-FROM ad_sl, ad, location, ad__ad_group, ad_group
+use constant SL_DEFAULT_SQL => q{
+SELECT 
+ad_sl.ad_id,       ad_sl.text,        ad.md5,
+ad_sl.uri,         ad_group.template, ad_group.css_url,
+bug.image_href,    bug.link_href
+FROM ad_sl, ad, location, ad__ad_group, ad_group, bug
 WHERE ad.active = 't'
 AND ad_sl.ad_id = ad.ad_id
 AND ad__ad_group.ad_id = ad.ad_id
+AND ad_group.bug_id = bug.bug_id
 AND ad__ad_group.ad_group_id = ?
 AND location.ip = ?
 AND location.default_ok = 't'
 ORDER BY RANDOM()
 LIMIT 1
-SQL
+};
+
+sub _sl_default {
+    my ( $class, $ip ) = @_;
 
     my $dbh = SL::Model->connect();
-    my $sth = $dbh->prepare_cached($sql);
+    my $sth = $dbh->prepare_cached(SL_DEFAULT_SQL);
     $sth->bind_param( 1, DEFAULT_AD_GROUP_ID );
     $sth->bind_param( 2, $ip );
     my $rv = $sth->execute;
-    die "Problem executing query: $sql" unless $rv;
+    die "Problem executing query: " . SL_DEFAULT_SQL unless $rv;
 
-    my $ad_data = $sth->fetchrow_hashref;
+    my $ad_data = $sth->fetchrow_arrayref;
     $sth->finish;
     return $ad_data;
-}
-
-sub _bug_link {
-    my ( $class, $ip ) = @_;
-
-    return DEFAULT_BUG_LINK;
-
-    my $sql = <<SQL;
-SELECT reg_id FROM router WHERE router.ip = ?
-SQL
-    my $dbh = SL::Model->connect();
-    my $sth = $dbh->prepare_cached($sql);
-    $sth->bind_param( 1, $ip );
-    my $rv = $sth->execute;
-    die "Problem executing query: $sql" unless $rv;
-    my $ary_ref = $sth->fetchrow_arrayref;
-    return DEFAULT_BUG_LINK unless $ary_ref;    # unregistered router
-
-    my $reg_id = $ary_ref->[0];
-    if ( -e join( '/', $config->sl_data_root, $reg_id, $ip, 'img/logo.gif' ) ) {
-        my $link = join( '/',
-            $config->get('sl_app_static_host'),
-            'images/sl/user', $reg_id, $ip, 'logo.gif' );
-        return $link;
-    }
-
-    return DEFAULT_BUG_LINK;
 }
 
 # this method returns a random ad, given the ip of the router
@@ -337,43 +303,46 @@ sub random {
         $ad_data = $class->_sl_feed($ip);
     }
     elsif ( $rand >= $custom_threshold ) {
+
         # grab an ad for this location
         $ad_data = $class->_sl_location($ip);
 
-        unless (exists $ad_data->{'text'}) {
-          # nothing for location, try router specific
-          $ad_data = $class->_sl_router($ip);
+        unless ( defined $ad_data->[TEXT_IDX] ) {
+
+            # nothing for location, try router specific
+            $ad_data = $class->_sl_router($ip);
         }
     }
 
-
     # no ad returned?
-    unless ( exists $ad_data->{'text'} ) {
+    unless ( defined $ad_data->[TEXT_IDX] ) {
         $ad_data = $class->_sl_default($ip);
-        return unless exists $ad_data->{'text'};    # going to hell for this one
-    }
 
+        # going to hell for this one
+        return unless defined $ad_data->[TEXT_IDX];
+    }
+    
     my %tmpl_vars = (
-        ad_link  => CLICKSERVER_URL . $ad_data->{'md5'},
-        ad_text  => $ad_data->{'text'},
-        bug_link => $class->_bug_link($ip)
+        ad_link    => $CONFIG->sl_clickserver_url . $ad_data->[MD5_IDX],
+        ad_text    => $ad_data->[TEXT_IDX],
+        image_href => $ad_data->[IMAGE_HREF_IDX],
+        link_href  => $ad_data->[LINK_HREF_IDX],
     );
 
     # generate the ad
     my $output;
-    $template->process( $ad_data->{'template'},
-        { %tmpl_vars, %sl_ad_data }, \$output )
-      || die $template->error(), "\n";
+    $TEMPLATE->process( $ad_data->[TEMPLATE_IDX], \%tmpl_vars, \$output )
+      || die $TEMPLATE->error();
 
     # return the id, string output, and css url
-    return ( $ad_data->{'ad_id'}, \$output, \$ad_data->{'css_url'}, );
+    return ( $ad_data->[AD_ID_IDX], \$output, \$ad_data->[CSS_URL_IDX], );
 }
 
 sub log_view {
     my ( $class, $ip, $ad_id ) = @_;
 
     my $dbh = SL::Model->db_Main();
-    my $sth = $dbh->prepare($log_view_sql);
+    my $sth = $dbh->prepare(LOG_VIEW_SQL);
     $sth->bind_param( 1, $ad_id );
     $sth->bind_param( 2, $ip );
     my $rv = $sth->execute;
