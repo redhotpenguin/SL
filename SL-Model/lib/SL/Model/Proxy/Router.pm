@@ -53,12 +53,13 @@ AND router.router_id = router__location.router_id
 
 sub replace_port {
     my ($class, $ip) = @_;
-    my $sth = $class->constant->prepare_cached(REPLACE_PORT_SQL);
+    my $sth = $class->connect->prepare_cached(REPLACE_PORT_SQL);
     $sth->bind_param( 1, $ip );
     $sth->execute or return;
     my $ary_ref = $sth->fetchall_arrayref;
     return unless (scalar(@{$ary_ref}) > 0);
-    return $ary_ref;
+    return unless defined $ary_ref->[1] && ($ary_ref->[1] =~ m/^\d+$/);
+	return $ary_ref;
 }
 
 1;

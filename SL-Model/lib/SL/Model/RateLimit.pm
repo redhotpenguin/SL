@@ -131,7 +131,7 @@ sub check_violation {
 
     # check for a custom rate-limit for this router
     my $custom_limit_sth = 
-      $dbh->prepare_cached('SELECT custom_rate_limit FROM router 
+      $dbh->prepare_cached('SELECT custom_rate_limit FROM location
                             WHERE ip = ?');
     $custom_limit_sth->execute($r->connection->remote_ip);
     my ($limit) = $custom_limit_sth->fetchrow_array();

@@ -180,6 +180,7 @@ WHERE ad.active = 't'
 AND ad__ad_group.ad_group_id = ?
 AND ad__ad_group.ad_id = ad.ad_id
 AND ad_sl.ad_id = ad.ad_id
+AND ad_group.ad_group_id = ad__ad_group.ad_group_id
 AND ad_group.bug_id = bug.bug_id
 ORDER BY RANDOM()
 LIMIT 1
