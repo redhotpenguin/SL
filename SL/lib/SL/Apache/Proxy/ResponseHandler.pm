@@ -34,6 +34,7 @@ use SL::UserAgent         ();
 use SL::Model::Ad         ();
 use SL::Model::Subrequest ();
 use SL::Model::RateLimit  ();
+use SL::Model::Proxy::Router  ();
 use Data::Dumper          ();
 use Encode                ();
 use RHP::Timer            ();
@@ -55,9 +56,6 @@ our %response_map  = (
     304 => 'threeohfour',
     307 => 'redirect',
 );
-
-use constant REPLACE_LINKS => 1;
-use constant REPLACE_PORT  => 6969;
 
 ## Make a user agent
 my $SL_UA = SL::UserAgent->new;
@@ -396,13 +394,22 @@ sub twohundred {
     }
 
     # replace the links
-    if (REPLACE_LINKS) {
+    my $rep_ref = SL::Model::Proxy::Router->replace_port( $r->connection->ip );
+    if ( scalar( @{$rep_ref} ) == 1 ) {
         my $ok = $subrequest_tracker->replace_links(
             {
-                port       => REPLACE_PORT,
+                port       => $rep_ref->[0]->[1],    # r_id, port
                 subreq_ref => $subrequests_ref,
                 url        => $r->uri
             }
+        );
+    }
+    else {
+        my @replace =
+          map { $rep_ref->[$_]->[1] } ( 0 .. scalar( @{$rep_ref} ) - 1 );
+        warn(
+            sprintf( "router_ids %s different replace_port settings",
+                join ( ',', @replace ) )
         );
     }
 
