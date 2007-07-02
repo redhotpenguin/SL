@@ -43,7 +43,7 @@ sub add_router_from_mac {
     return $router_id;
 }
 
-use constant => REPLACE_PORT_SQL => q{
+use constant REPLACE_PORT_SQL => q{
 SELECT router.router_id, router.replace_port
 FROM router, location, router__location
 WHERE location.ip = ?
