@@ -30,13 +30,13 @@ sub handler {
     }
 
     # Grab any registered routers for this location
-    my $router_location = 
+    my $active_router_ref = 
       SL::Model::Proxy::Router::Location->get_registered( \%args );
 
-    unless ( defined $router_location && (scalar( @{$active_router_ref} ) > 0 )) {
+    unless ( defined $active_router_ref && (scalar( @{$active_router_ref} ) > 0 )) {
 
         # no routers at this ip, register this one
-        $router_location = SL::Model::Proxy::Router::Location->register( \%args );
+        my $router_location = SL::Model::Proxy::Router::Location->register( \%args );
         unless ($router_location) {
             $r->log->error(
                 sprintf("Error registering router_location ip %s, macaddr %s "),

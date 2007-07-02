@@ -1,4 +1,3 @@
-
 package SL::Apache::App;
 
 use strict;

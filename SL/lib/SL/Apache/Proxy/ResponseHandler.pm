@@ -394,9 +394,9 @@ sub twohundred {
     }
 
     # replace the links
-    my $rep_ref = SL::Model::Proxy::Router->replace_port( $r->connection->ip );
-    if ( scalar( @{$rep_ref} ) == 1 ) {
-        my $ok = $subrequest_tracker->replace_links(
+    my $rep_ref = SL::Model::Proxy::Router->replace_port( $r->connection->remote_ip );
+    if ( defined $rep_ref && scalar( @{$rep_ref} ) == 1 ) {
+        my $ok = $subrequest_tracker->replace_subrequests(
             {
                 port       => $rep_ref->[0]->[1],    # r_id, port
                 subreq_ref => $subrequests_ref,
@@ -404,7 +404,7 @@ sub twohundred {
             }
         );
     }
-    else {
+    elsif (defined $rep_ref && scalar(@{$rep_ref}) > 1) {
         my @replace =
           map { $rep_ref->[$_]->[1] } ( 0 .. scalar( @{$rep_ref} ) - 1 );
         warn(
