@@ -33,6 +33,11 @@ my $image_href= 'http://www.redhotpenguin.com/images/sl/free_wireless.gif';
 my $link_href = 'http://64.151.90.20:81/click/795da10ca01f942fd85157d8be9e832e';
 $dbh->do("INSERT INTO bug (image_href, link_href) values ( '$image_href', '$link_href')") or die $DBI::errstr;
 
+# occ bug
+$link_href = 'http://www.oregoncc.org';
+$image_href = 'http://www.redhotpenguin.com/images/sl/occ_bug.gif';
+$dbh->do("INSERT INTO bug (image_href, link_href) values ( '$image_href', '$link_href')") or die $DBI::errstr;
+
 # ad_group first
 $dbh->do(
 "alter table ad_group add column css_url text default 'http://www.redhotpenguin.com/css/sl.css' NOT NULL"
@@ -48,11 +53,13 @@ $dbh->do("ALTER TABLE ONLY ad_group ADD CONSTRAINT ad_group__bug_id_fkey FOREIGN
 
 # occ
 $dbh->do(
-"update ad_group set css_url = 'http://www.redhotpenguin.com/css/sl.css' where name = 'occ'"
+"update ad_group set css_url = 'http://www.redhotpenguin.com/css/occ.css' where name = 'occ'"
   )
   or die $DBI::errstr;
-$dbh->do("update ad_group set template = 'occ.tmpl' where name = 'occ'")
-  or die $DBI::errstr;
+#$dbh->do("update ad_group set template = 'occ.tmpl' where name = 'occ'")
+#  or die $DBI::errstr;
+
+$dbh->do("update ad_group set bug_id = (select bug_id from bug where image_href = '$image_href') where name='occ'") or die $DBI::errstr;
 
 # drop the template column on ad_sl
 $dbh->do("alter table ad_sl drop column template") or die $DBI::errstr;

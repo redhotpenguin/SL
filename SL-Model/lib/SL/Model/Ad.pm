@@ -325,8 +325,8 @@ sub random {
     my %tmpl_vars = (
         ad_link    => $CONFIG->sl_clickserver_url . $ad_data->[MD5_IDX],
         ad_text    => $ad_data->[TEXT_IDX],
-        image_href => $ad_data->[IMAGE_HREF_IDX],
-        link_href  => $ad_data->[LINK_HREF_IDX],
+        bug_image_href => $ad_data->[IMAGE_HREF_IDX],
+        bug_link_href  => $ad_data->[LINK_HREF_IDX],
     );
 
     # generate the ad
