@@ -5,7 +5,8 @@ use warnings;
 
 use base 'SL::Model';
 
-use Template;
+use Template ();
+use SL::Model::Proxy::Router::Location ();
 
 =head1 NAME
 

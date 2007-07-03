@@ -27,6 +27,7 @@ sub get_router_id_from_mac {
     $sth->bind_param( 1, $macaddr );
     $sth->execute or return;
     my $router_id = $sth->fetchall_arrayref->[0]->[0];
+	$sth->finish;
 
     return unless $router_id;
     return $router_id;
@@ -37,6 +38,7 @@ sub add_router_from_mac {
     my $sth = $class->connect->prepare_cached(INSERT_ROUTER_SQL);
     $sth->bind_param( 1, $macaddr );
     $sth->execute or return;
+	$sth->finish;
 
     my $router_id = $class->get_router_id_from_mac($macaddr);
     die "router add for macaddr $macaddr failed!" unless $router_id;
@@ -56,9 +58,10 @@ sub replace_port {
     my $sth = $class->connect->prepare_cached(REPLACE_PORT_SQL);
     $sth->bind_param( 1, $ip );
     $sth->execute or return;
-    my $ary_ref = $sth->fetchall_arrayref;
-    return unless (scalar(@{$ary_ref}) > 0);
-    return unless defined $ary_ref->[1] && ($ary_ref->[1] =~ m/^\d+$/);
+    my $ary_ref = $sth->fetchrow_arrayref;
+	$sth->finish;
+	return unless (scalar(@{$ary_ref}) > 0);
+    return unless defined $ary_ref->[1];
 	return $ary_ref;
 }
 
