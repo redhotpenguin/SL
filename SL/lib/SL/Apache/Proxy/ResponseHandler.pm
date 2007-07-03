@@ -361,6 +361,8 @@ sub twohundred {
         # note the ad-serving time for the rate-limitter
         $rate_limit->record_ad_serve();
 
+		$response_content_ref = _generate_response( $r, $response );
+
         if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {
             $r->log->info(
                 sprintf( "timer $$ %s %d %s %f",
@@ -373,7 +375,7 @@ sub twohundred {
         $TIMER->start('collect_subrequests')
           if ( $r->server->loglevel() == Apache2::Const::LOG_INFO );
         $subrequests_ref = $subrequest_tracker->collect_subrequests(
-            content_ref => \$response->content,
+            content_ref => $response_content_ref,
             base_url    => $url
         );
 
@@ -385,35 +387,36 @@ sub twohundred {
             );
         }
 
-        $response_content_ref = _generate_response( $r, $response );
+    # replace the links
+    my $rep_ref = SL::Model::Proxy::Router->replace_port( $r->connection->remote_ip );
+    if ( defined $rep_ref ) { # && scalar( @{$rep_ref} ) == 1 ) {
+        my $ok = $subrequest_tracker->replace_subrequests(
+            {
+                port       => $rep_ref->[1],    # r_id, port
+                subreq_ref => $subrequests_ref,
+				content_ref => $response_content_ref,
+            }
+        );
+		$r->log->error("could not replace subrequests") unless $ok;
     }
+#    elsif (defined $rep_ref && scalar(@{$rep_ref}) > 1) {
+#        my @replace =
+#          map { $rep_ref->[$_]->[1] } ( 0 .. scalar( @{$rep_ref} ) - 1 );
+#        warn(
+#            sprintf( "router_ids %s different replace_port settings",
+#                join ( ',', @replace ) )
+#        );
+#    }
+
+
+	}
     else {
 
         # this is not html
         $response_content_ref = \$response->content;
     }
 
-    # replace the links
-    my $rep_ref = SL::Model::Proxy::Router->replace_port( $r->connection->remote_ip );
-    if ( defined $rep_ref && scalar( @{$rep_ref} ) == 1 ) {
-        my $ok = $subrequest_tracker->replace_subrequests(
-            {
-                port       => $rep_ref->[0]->[1],    # r_id, port
-                subreq_ref => $subrequests_ref,
-                url        => $r->uri
-            }
-        );
-    }
-    elsif (defined $rep_ref && scalar(@{$rep_ref}) > 1) {
-        my @replace =
-          map { $rep_ref->[$_]->[1] } ( 0 .. scalar( @{$rep_ref} ) - 1 );
-        warn(
-            sprintf( "router_ids %s different replace_port settings",
-                join ( ',', @replace ) )
-        );
-    }
-
-    $TIMER->start('prepare_response_headers')
+ 	$TIMER->start('prepare_response_headers')
       if ( $r->server->loglevel() == Apache2::Const::LOG_INFO );
 
     # set the status line
