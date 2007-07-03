@@ -603,7 +603,7 @@ sub _generate_response {
         $TIMER->start('container insertion')
           if ( $r->server->loglevel() == Apache2::Const::LOG_INFO );
 
-        SL::Model::Ad::container( \$css_url, \$decoded_content,
+        SL::Model::Ad::container( $css_url, \$decoded_content,
             $ad_content_ref );
 
         # checkpoint
