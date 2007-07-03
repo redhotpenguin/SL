@@ -16,8 +16,8 @@ iptables -t nat -F prerouting_wan
 
 ### Open port to WAN
 ## -- This allows port 22 to be answered by (dropbear on) the router
-# iptables -t nat -A prerouting_wan -p tcp --dport 22 -j ACCEPT 
-# iptables        -A input_wan      -p tcp --dport 22 -j ACCEPT
+iptables -t nat -A prerouting_wan -p tcp --dport 22 -j ACCEPT 
+iptables        -A input_wan      -p tcp --dport 22 -j ACCEPT
 
 ### Port forwarding
 ## -- This forwards port 8080 on the WAN to port 80 on 192.168.1.2
