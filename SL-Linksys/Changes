@@ -1,4 +1,9 @@
 Revision history for Perl extension SL-Linksys.
+
+0.04  Tue Jul 03 13:00:00 2007
+        - add firewall rule for port change speedup
+        - add default wireless network isolation for user privacy
+
 0.03  Mon Jun 18 01:23:00 2007
         - replace symlinks in imagebuilder/files/* with real files (bugfix)
         - move binary executables to /usr/bin instead of /bin
