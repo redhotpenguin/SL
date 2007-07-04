@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 95;
+use Test::More tests => 93;
 
 BEGIN { use_ok('SL::Model::Subrequest') or die }
 
@@ -21,16 +21,17 @@ my $subreq_ref = $subreq->collect_subrequests(
 );
 my $interval = tv_interval( $start, [gettimeofday] );
 
-is( scalar( @{$subreq_ref} ), 30, '30 subrequests extracted' );
+is( scalar( @{$subreq_ref} ), 29, '29 subrequests extracted' );
 diag("extraction took $interval seconds");
 my $limit = 0.1;
 cmp_ok( $interval, '<', $limit,
     "subrequests extracted in $interval seconds" );
 
 diag("check correct subrequests were extracted");
-my $i = 0;
+# unique subrequests
+my %subreq_hash = map { $_->[0] => 1 } @{$subreq_ref};
 foreach my $test_url ( @{ test_urls() } ) {
-    cmp_ok( $test_url, 'eq', $subreq_ref->[ $i++ ]->[0] );
+    ok(exists $subreq_hash{$test_url});
 }
 
 diag('test replacing the links');
@@ -52,7 +53,7 @@ my $subrequests_ref = $subreq->collect_subrequests(
 );
 
 # sanity check the replaced subrequest urls
-$i = 0;
+my $i = 0;
 foreach my $subrequest_ref ( @{$subrequests_ref} ) {
     like( $subrequest_ref->[0], qr/$port/ );
     cmp_ok( $subreq_ref->[ $i++ ]->[2], 'eq', $subrequest_ref->[2] );

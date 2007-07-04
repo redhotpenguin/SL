@@ -77,7 +77,7 @@ sub collect_subrequests {
     my $sth = $dbh->prepare_cached('INSERT INTO subrequest (url, tag) VALUES (?, ?)');
 
     # look for tags that can house sub-reqs
-    my @subrequests;
+    my (@subrequests, %found);
     while ( my $token = $parser->get_tag(qw(iframe frame src script img)) ) {
         my $attrs = $token->[1];
         my $url   = $attrs->{src};
@@ -88,6 +88,10 @@ sub collect_subrequests {
         # get a normalized URL
         my $normalized_url = _normalize_url( $url, $base_url );
         next unless $normalized_url;
+
+        # skip ones that we have found already
+        next if exists $found{$normalized_url};
+        $found{$normalized_url} = 1;
 
         # log for return
         push @subrequests, [ $url, $normalized_url, $token->[0], ];
@@ -122,7 +126,7 @@ sub replace_subrequests {
         print STDERR "=> orig url is $orig_url\n" if $DEBUG;
         print STDERR "==> replacement url is $replacement_url\n\n" if $DEBUG;
         # run the substitution
-        $$content_ref =~ s/\Q$orig_url\E/$replacement_url/gs;
+        $$content_ref =~ s/\Q$orig_url\E/$replacement_url/sg;
     }
 
     return 1;
