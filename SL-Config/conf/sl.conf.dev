@@ -1,12 +1,12 @@
-sl_root  /home/phred/dev/sl/trunk/SL
-sl_httpd_root  /home/phred/dev/sl/httpd2
+sl_root  /Users/phred/dev/sl/trunk/SL
+sl_httpd_root  /Users/phred/dev/sl/httpd2
 sl_version  trunk
 
 sl_data_root /tmp/data/sl
 sl_ip_cache_file	/tmp/sl_ips
 
 # configure the database connection
-sl_db_name  sl
+sl_db_name  sl5
 sl_db_host  localhost
 sl_db_user  phred
 sl_db_pass  
@@ -38,6 +38,7 @@ sl_proxy_rate_limit '5 sec'
 sl_proxy_apache_listen  0.0.0.0:8000
 
 sl_clickserver_uri  http://localhost:9000
+sl_clickserver_url  http://localhost:9000/click/
 sl_whitelist  Off
 sl_method  Container
 #sl_method  Stacked
