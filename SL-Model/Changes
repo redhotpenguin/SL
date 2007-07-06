@@ -1,5 +1,13 @@
 Revision history for Perl extension SL-Model.
 
+0.05  Tue July 03 17:28:35 2007
+    - fix SL::Model::Subrequest::replace_subrequest bug where mixed absolute
+      and relative urls were being troublesome
+    - fix a bug where the default sql was returning indeterminate bug images
+    - collect_subrequests now only returns unique subrequests, fixing a
+      bug with the image offloading and a slight speedup
+    - fix a few bugs found when rolling 0.04 out to production
+
 0.04  Fri June 22 21:20:01 2007
     - per ad group bug images
     - remove much cruft from SL::Model::Ad

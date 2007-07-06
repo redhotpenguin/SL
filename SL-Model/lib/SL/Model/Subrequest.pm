@@ -130,8 +130,9 @@ sub replace_subrequests {
         $replacement_url = $replacement_url->canonical->as_string;
         print STDERR "=> orig url is $orig_url\n" if $DEBUG;
         print STDERR "==> replacement url is $replacement_url\n\n" if $DEBUG;
-        # run the substitution
-        $$content_ref =~ s/\Q$orig_url\E/$replacement_url/sg;
+        # run the substitution, match surrounding quotes to handle
+        # mixed and absolute urls
+        $$content_ref =~ s/['"]\Q$orig_url\E['"]/$replacement_url/sg;
     }
 
     return 1;

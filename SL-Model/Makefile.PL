@@ -5,7 +5,7 @@ use ExtUtils::MakeMaker;
 # the contents of the Makefile that is written.
 WriteMakefile(
     NAME      => 'SL::Model',
-    VERSION   => '0.04',
+    VERSION   => '0.05',
     PREREQ_PM => {
         'DBI'                         => 1.50,
         'GD::Graph'                   => 1.44,

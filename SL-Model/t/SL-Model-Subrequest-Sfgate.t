@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 140;
+use Test::More tests => 141;
 
 BEGIN { use_ok('SL::Model::Subrequest') or die }
 
@@ -23,7 +23,7 @@ my $interval = tv_interval( $start, [gettimeofday] );
 
 is( scalar( @{$subreq_ref} ), 45, '45 subrequests extracted' );
 diag("extraction took $interval seconds");
-my $limit = 0.11;
+my $limit = 0.12;
 cmp_ok( $interval, '<', $limit,
     "subrequests extracted in $interval seconds" );
 
@@ -60,6 +60,10 @@ foreach my $subrequest_ref ( @{$subrequests_ref} ) {
     # compare the tags
     cmp_ok( $subreq_ref->[ $i++ ]->[2], 'eq', $subrequest_ref->[2] );
 }
+
+##
+diag("Check for mixed relative/absolute url contamination");
+unlike($content, qr{sfgate\.comhttp}, 'no mixed absolute and relative urls');
 
 sub test_urls {
 
