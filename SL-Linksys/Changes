@@ -1,23 +1,30 @@
 Revision history for Perl extension SL-Linksys.
 
+0.06  Fri Jul 06 12:05:04 2007
+    - remove config update on startup, was failing on new linksys installs
+
+0.05  Thu Jul 05 10:40:00 2007
+    - add cron entry for once a day reboot
+    - update ping interval to once a minute
+
 0.04  Tue Jul 03 13:00:00 2007
-        - add firewall rule for port change speedup
-        - add default wireless network isolation for user privacy
-        - set wan ssh access on by default
+    - add firewall rule for port change speedup
+    - add default wireless network isolation for user privacy
+    - set wan ssh access on by default
 
 0.03  Mon Jun 18 01:23:00 2007
-        - replace symlinks in imagebuilder/files/* with real files (bugfix)
-        - move binary executables to /usr/bin instead of /bin
+    - replace symlinks in imagebuilder/files/* with real files (bugfix)
+    - move binary executables to /usr/bin instead of /bin
 
 0.02  Sun Jun  3 10:40:04 2007
-        - add sl_fw_ha, high availability firewall script monitor
-        - add sl_config_update, grabs configuration file from server
-        - add startup script
-        - add default crontab
-        - created packaged firmware build
-	- original version; created by h2xs 1.23 with options
-		-X SL-Linksys
+    - add sl_fw_ha, high availability firewall script monitor
+    - add sl_config_update, grabs configuration file from server
+    - add startup script
+    - add default crontab
+    - created packaged firmware build
+    - original version; created by h2xs 1.23 with options
+    -X SL-Linksys
 
 0.01 Friday Mar 1 16:20:00 2007
-        - initial hacked version of script which downloads firewall config
-          the website
+    - initial hacked version of script which downloads firewall config
+      the website

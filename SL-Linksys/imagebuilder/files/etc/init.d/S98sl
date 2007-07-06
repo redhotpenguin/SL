@@ -2,5 +2,4 @@
 . /etc/functions.sh
 /usr/sbin/nvram set wl0_ap_isolate=1
 /usr/sbin/nvram commit
-/usr/bin/microperl /usr/bin/sl_config_update
 /usr/bin/microperl /usr/bin/sl_fw_ha
