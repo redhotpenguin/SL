@@ -259,18 +259,19 @@ sub _sl_router {
 }
 
 use constant SL_DEFAULT_SQL => q{
-SELECT 
+SELECT                                           
 ad_sl.ad_id,       ad_sl.text,        ad.md5,
 ad_sl.uri,         ad_group.template, ad_group.css_url,
 bug.image_href,    bug.link_href
-FROM ad_sl, ad, location, ad__ad_group, ad_group, bug
+FROM ad_sl, ad, location, ad_group, bug, ad__ad_group
 WHERE ad.active = 't'
-AND ad_sl.ad_id = ad.ad_id
-AND ad__ad_group.ad_id = ad.ad_id
+AND ad.ad_id = ad_sl.ad_id
+AND ad.ad_id = ad__ad_group.ad_id
+AND ad__ad_group.ad_group_id = ad_group.ad_group_id
+AND ad_group.ad_group_id = ?
 AND ad_group.bug_id = bug.bug_id
-AND ad__ad_group.ad_group_id = ?
-AND location.ip = ?
-AND location.default_ok = 't'
+AND (location.ip = ?
+AND location.default_ok = 't')
 ORDER BY RANDOM()
 LIMIT 1
 };

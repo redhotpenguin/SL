@@ -102,7 +102,12 @@ sub collect_subrequests {
         # send to the DB
         $sth->bind_param( 1, $normalized_url );
         $sth->bind_param( 2, $token->[0] );       # tag type
-        $sth->execute;
+		# something is crashing the query here
+		eval { $sth->execute; };
+		if ($@) {
+			warn(sprintf("Exception thrown adding subrequest for url %s, token %s, error: $@", $normalized_url, $token->[0], $@));
+			next;
+		}
     }
 
     $sth->finish;
