@@ -44,12 +44,16 @@ sub new {
         $conf_dir = "$FindBin::Bin/../conf";
         @config_files = ("$conf_dir/$file", "$conf_dir/../$file");
     }
-    elsif (-d "/etc/sl") {
+    elsif (-e "/etc/sl/$file") {
         $conf_dir = "/etc/sl";
         @config_files = ("$conf_dir/$file");
     }
+    elsif (-e "/etc/$file") {
+        $conf_dir = "/etc";
+        @config_files = ( "$conf_dir/$file" );
+    }
     else {
-        die "No file $file found in  " . 
+        die "\nNo file $file found in  " . 
             "$FindBin::Bin/../conf/ or /etc/sl/!\n";
     }
 
@@ -57,12 +61,11 @@ sub new {
     $config = $class->SUPER::new();
     my $read;
     foreach my $config_file (@config_files) {
-$DB::single = 1;
         next unless (-e $config_file);
         $config->read($config_file);
         $read++;
     }
-    die "No config files read! conf_dir $conf_dir\n" unless $read;
+    die "\nNo config files read! conf_dir $conf_dir\n" unless $read;
 
     $config->autoload_support(1);
     return $config;
