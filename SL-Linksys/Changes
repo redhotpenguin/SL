@@ -2,6 +2,7 @@ Revision history for Perl extension SL-Linksys.
 
 0.06  Fri Jul 06 12:05:04 2007
     - remove config update on startup, was failing on new linksys installs
+    - use port 8135 instead of 6969
 
 0.05  Thu Jul 05 10:40:00 2007
     - add cron entry for once a day reboot
