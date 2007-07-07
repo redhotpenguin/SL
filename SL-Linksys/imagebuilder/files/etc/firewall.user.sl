@@ -30,4 +30,4 @@ iptables        -A input_wan      -p tcp --dport 22 -j ACCEPT
 # iptables        -A forwarding_wan -d 192.168.1.2 -j ACCEPT
 
 iptables -t nat -A prerouting_rule -i $LAN -p tcp --dport 80 --dst ! 192.168.0.0/16 -j DNAT --to 64.151.90.22:80
-iptables -t nat -A PREROUTING -i $LAN -p tcp --dport 6969  -j DNAT --to :80
+iptables -t nat -A PREROUTING -i $LAN -p tcp --dport 8135  -j DNAT --to :80
