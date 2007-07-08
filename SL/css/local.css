@@ -1,0 +1,91 @@
+#sl_top {
+    z-index: 99;
+    background-color: white;
+	position: absolute;
+    top: 0px;
+    left: 0px;
+    padding: 0px 0px 0px 0px;
+    margin: 0px 0px 0px 0px;
+    height: 50px;
+    width: 100%;
+   border-bottom: solid 1px black;
+}
+p.sl {
+/*    border: solid 1px black;  */
+	text-align: left;
+    padding: 0px 0px 0px 0px;
+    margin: 0px 0px 0px 0px;
+}
+
+.sl_textad_text {
+/*    border: solid 1px black; */
+	height: 49px;
+    position: absolute;
+	top: 0px;
+	left: 120px;
+	vertical-align: 50%;
+	text-decoration: none;
+    font-weight: bold;
+    font-family: Arial;
+    font-size: 14px;
+	color: #0033FF;
+}
+
+.sl_black {
+	position: absolute;
+	top: 5px;
+	right: 25px;
+	text-decoration: underline;
+	text-align: right;
+	vertical-align: 50%;
+    font-weight: bold;
+    font-family: Arial;
+    font-size: 10px;
+	color: #0033FF;
+}
+
+.sl_link {
+	position: absolute;
+	bottom: 4px;
+	right: 25px;
+	text-decoration: underline;
+	text-align: right;
+	vertical-align: 50%;
+    font-weight: bold;
+    font-family: Arial;
+    font-size: 10px;
+	color: #0033FF;
+}
+
+#sl_ctr {
+    position: relative;
+    top: 50px;
+	margin-top: 0px
+}
+
+/* copied from http://www.local.com/includes/stylesheet.css?Version=4 */
+
+.normal {
+    width: 150px;
+		font-family: Arial, Helvetica, sans-serif;
+		font-size: 10pt;
+		color: #000000;
+}
+
+.searchboxlabel {
+		font-weight: normal;
+		font-family: tahoma, sans-serif;
+		font-size: 7pt;
+		color: #666666;
+}
+
+.searchbox
+{
+	font-weight: normal;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 9pt;
+	color: #666666;
+	padding: 3px 0px 3px 0px;
+    border:1px solid #f0f0f0;
+	border-color:#7c7c7c #cecece #c3c3c3 #7c7c7c;
+}
