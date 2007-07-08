@@ -6,13 +6,13 @@
 <!-- SEARCH FORM -->
 <table><tr><td>
   <table cellpadding="0" cellspacing="0" border="0" style="margin-top: 5px;margin-left: none; margin-right: auto;">
-<form id="mainform" action="http://www.local.com/results.aspx" method="get">
+<form id="mainform" action="http://www.local.com/results.aspx" method="get"  onSubmit="if(location.value=='Where')location.value=''; if(searchbox.value='What')searchbox.value='';" >
 	<tr>
 	<td class="normal"  align="left">
     <input class="searchbox" id="keyword" maxlength="50" name="keyword" onfocus="this.select();" type="text" onFocus="if(this.value=='What')this.value='';" onBlur="if(this.value=='')this.value='What';" value="What" /></td>
 		
 	<td class="normal" align="left">
-    <input id="location" class="searchbox" maxlength="50" name="location" onfocus="this.select();" style="" type="text" onFocus="if(this.value=='Where')this.value='';" onBlur="if(this.value=='')this.value='Where';" value="Where" /></td>
+    <input id="location" class="searchbox" maxlength="50" name="location" onfocus="this.select();" style="" type="text" onFocus="if(this.value=='Where')this.value='';" onBlur="if(this.value=='')this.value='Where';" value="Where"/></td>
     </tr>
     <tr>
 	<td class="searchboxlabel" align="left">Business and Services</td>
@@ -21,7 +21,7 @@
 	<input id="cid" name="cid" type="hidden" value="26" />
 </table></td><td>
 <table><tr><td>
-	<input type="submit" id="Submit" value="Local Search" style="width:110px" />&nbsp;&nbsp;</td>
+	<input type="submit" id="Submit" value="Local Search" />&nbsp;&nbsp;</td>
 </form>
     <td>&nbsp;&nbsp;<a href="http://www.local.com/?referer=silverlining"><img border="0" src="http://www.redhotpenguin.com/images/sl/local_logo.gif"></a>
   </td></tr></table>
