@@ -21,8 +21,8 @@ p.sl {
 /*    border: solid 1px black; */
 	height: 49px;
     position: absolute;
-	top: 0px;
-	left: 120px;
+	top: 12px;
+	left: 150px;
 	vertical-align: 50%;
 	text-decoration: none;
     font-weight: bold;
@@ -75,13 +75,14 @@ p.sl {
 .searchboxlabel {
 		font-weight: normal;
 		font-family: tahoma, sans-serif;
-		font-size: 7pt;
+		font-size: 9pt;
 		color: #666666;
 }
 
 .searchbox
 {
-	font-weight: normal;
+    width: 200px;
+    font-weight: normal;
 	font-family: Arial, Helvetica, sans-serif;
 	font-size: 9pt;
 	color: #666666;
