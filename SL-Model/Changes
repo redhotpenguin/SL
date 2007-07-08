@@ -1,6 +1,7 @@
 Revision history for Perl extension SL-Model.
 
 0.05  Tue July 03 17:28:35 2007
+    - allow for multiple default ad_groups by adding is_default attribute
     - fix SL::Model::Subrequest::replace_subrequest bug where mixed absolute
       and relative urls were being troublesome
     - fix a bug where the default sql was returning indeterminate bug images

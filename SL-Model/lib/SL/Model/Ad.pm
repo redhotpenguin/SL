@@ -18,7 +18,6 @@ This serves ads, ya see?
 
 =cut
 
-use constant DEFAULT_AD_GROUP_ID => 1;
 use constant LOG_VIEW_SQL        => q{
 INSERT INTO view
 ( ad_id, ip ) values ( ?, ? )
@@ -268,7 +267,7 @@ WHERE ad.active = 't'
 AND ad.ad_id = ad_sl.ad_id
 AND ad.ad_id = ad__ad_group.ad_id
 AND ad__ad_group.ad_group_id = ad_group.ad_group_id
-AND ad_group.ad_group_id = ?
+AND ad_group.is_default = 't'
 AND ad_group.bug_id = bug.bug_id
 AND (location.ip = ?
 AND location.default_ok = 't')
@@ -281,8 +280,7 @@ sub _sl_default {
 
     my $dbh = SL::Model->connect();
     my $sth = $dbh->prepare_cached(SL_DEFAULT_SQL);
-    $sth->bind_param( 1, DEFAULT_AD_GROUP_ID );
-    $sth->bind_param( 2, $ip );
+    $sth->bind_param( 1, $ip );
     my $rv = $sth->execute;
     die "Problem executing query: " . SL_DEFAULT_SQL unless $rv;
 

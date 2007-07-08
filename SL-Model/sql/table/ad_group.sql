@@ -6,6 +6,7 @@ CREATE TABLE ad_group (
     mts timestamp without time zone default now (),
     css_url text default 'http://www.redhotpenguin.com/css/sl.css' NOT NULL,
     template text default 'text_ad.tmpl' NOT NULL,
+    is_default boolean default 'f',
     bug_id integer not null default 1
 );
 
