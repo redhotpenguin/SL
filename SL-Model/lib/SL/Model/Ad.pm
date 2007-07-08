@@ -59,7 +59,7 @@ BEGIN {
     $top            = qq{<div id="sl_top">};
     $container      = qq{</div><div id="sl_ctr">};
     $tail           = qq{</div>};
-    $regex          = qr{^(.*?<\s*?head\s*?>)(.*)$}is;
+    $regex          = qr{^(.*?<\s*?head\s*?[^>]*?>)(.*)$}is;
     $second_regex   = qr{\G(.*?)<body([^>]*?)>(.*)$}is;
     $uber_match     = qr{\G(?:</\s*?head\s*?>)}i;
     $end_body_match = qr{^(.*)(<\s*?/body\s*?>.*)$}i;
@@ -67,7 +67,7 @@ BEGIN {
 
 sub container {
     my ( $css_url_ref, $decoded_content_ref, $ad_ref ) = @_;
-
+    $DB::single = 1;
     my $link =
       qq{<link rel="stylesheet" href="$$css_url_ref" type="text/css" />};
 

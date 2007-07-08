@@ -1,9 +1,13 @@
 Revision history for Perl extension SL-Model.
 
-0.05  Tue July 03 17:28:35 2007
+0.06  Sun July 08 12:50:23 2007
+    - fix a bug where stylesheet was not being inserted correctly for certain
+      body tags, thanks to jeff for the spot
     - allow for multiple default ad_groups by adding is_default attribute
     - fix SL::Model::Subrequest::replace_subrequest bug where mixed absolute
       and relative urls were being troublesome
+
+0.05  Tue July 03 17:28:35 2007
     - fix a bug where the default sql was returning indeterminate bug images
     - collect_subrequests now only returns unique subrequests, fixing a
       bug with the image offloading and a slight speedup
