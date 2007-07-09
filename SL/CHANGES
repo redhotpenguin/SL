@@ -1,4 +1,5 @@
 0.09 
+	- Fix a security bug where the Access handler was not getting invoked
     - Move subrequest check to TransHandler
     - Use replace_subrequest to alter the port numbers on subrequests
 
