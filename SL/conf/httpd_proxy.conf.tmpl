@@ -10,7 +10,7 @@ Group                [% cfg.sl_proxy_apache_group %]
 KeepAlive            [% cfg.sl_proxy_apache_keepalive %]
 MaxKeepAliveRequests 0
 KeepAliveTimeout     300
-ServerLimit          512
+ServerLimit          768
 MinSpareServers      [% cfg.sl_proxy_apache_min_spare_servers %]
 MaxSpareServers      [% cfg.sl_proxy_apache_max_spare_servers %]
 StartServers         [% cfg.sl_proxy_apache_start_servers %]
@@ -32,7 +32,10 @@ AllowEncodedSlashes On
     ProxyRequests On
 	
     Listen [% cfg.sl_proxy_apache_listen %]
-    
+    [% IF cfg.sl_proxy_apache_listen2 %]
+		Listen [% cfg.sl_proxy_apache_listen2 %]
+	[% END %]    
+
     <IfModule mod_cache.c>
         <IfModule mod_mem_cache.c>
             CacheEnable mem /
@@ -79,14 +82,15 @@ PerlSetVar           SLCssUri [% cfg.sl_css_uri %]
 PerlSetVar           SLProxy [% cfg.sl_proxy %]
 PerlSetVar           SLRateLimit "[% cfg.sl_proxy_rate_limit %]"
 
-PerlPostReadRequestHandler SL::Apache::Proxy::PostReadRequestHandler
+# handle dummy connections then security
+PerlPostReadRequestHandler SL::Apache::Proxy::PostReadRequestHandler SL::Apache::Proxy::AccessHandler
 PerlMapToStorageHandler    Apache2::Const::OK
 PerlTransHandler SL::Apache::Proxy::TransHandler
 
 <Location />
     SetHandler          modperl
  	PerlHeaderParserHandler Apache2::Const::OK
-    PerlAccessHandler       SL::Apache::Proxy::AccessHandler
+    PerlAccessHandler       Apache2::Const::OK
     PerlAuthenHandler       Apache2::Const::OK
     PerlAuthzHandler        Apache2::Const::OK
     PerlTypeHandler         Apache2::Const::OK
