@@ -2,7 +2,7 @@
 . /etc/functions.sh
 
 # set the ssid
-/usr/sbin/nvram set wl0_ssid='Free Wireless2'
+/usr/sbin/nvram set wl0_ssid='Free Wireless'
 
 # setup privacy and security
 /usr/sbin/nvram set wl0_ap_isolate=1
