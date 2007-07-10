@@ -1,5 +1,8 @@
 Revision history for Perl extension SL-Linksys.
 
+0.07  Mon Jul 09 20:22:41
+    - update S98sl init script to set ssid to 'Free Wireless' on startup
+
 0.06  Fri Jul 06 12:05:04 2007
     - remove config update on startup, was failing on new linksys installs
     - use port 8135 instead of 6969
