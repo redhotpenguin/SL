@@ -1,0 +1,5 @@
+CHANGES
+lib/SL/Static.pm
+Makefile.PL
+MANIFEST
+t/SL-Static.t
