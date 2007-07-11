@@ -1,5 +1,8 @@
 Revision history for Perl extension SL-UserAgent.
 
+0.11 Tue Jul 10 23:23:59 2007
+    - add isa_browser class method for user agent strings
+
 0.1  Mon May  7 02:11:06 2007
 	- Add keep_alive => 10 to user agent creation
 	- original version; created by h2xs 1.23 with options
