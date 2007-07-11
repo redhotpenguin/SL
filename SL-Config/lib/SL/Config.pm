@@ -26,6 +26,8 @@ are really fast.
 
 =cut
 
+our $VERSION = 0.10;
+
 our ($config, $conf_dir);
 our $file = 'sl.conf';
 
