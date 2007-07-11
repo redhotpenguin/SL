@@ -4,4 +4,3 @@ MANIFEST
 README
 t/SL-UserAgent.t
 lib/SL/UserAgent.pm
-META.yml                                 Module meta-data (added by MakeMaker)
