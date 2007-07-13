@@ -38,7 +38,10 @@ elsif ( $res->code == 200 ) {
     $CACHE->set( 'if_last_modified_blacklist' => time2str( time() ) );
     warn( "200 received, content is " . $res->content ) if $DEBUG;
     my $ads_hashref = _process_response( $res->content );
-    $CACHE->set( 'ads' => $ads_hashref );
+    foreach my $ip ( keys %{$ads_hashref} ) {
+      $CACHE->set( $ip => $ads_hashref->{$ip});
+    }
+
     exit(0);
 }
 else {
@@ -51,13 +54,12 @@ sub _process_response {
     my $content = shift;
 
     my %ads;
-    foreach my $line (
-        split ( "\n", $content ) {
-            chomp($line);
-              my ( $ad_id, $text, $css_url, $ip ) = split ( "\t", $line );
-              push $ads{$ip}, [ $ad_id, $text, $css_url ];
-        };
+    foreach my $line ( split ( "\n", $content ) ) {
+        chomp($line);
+        my ( $ad_id, $text, $css_url, $ip ) = split ( "\t", $line );
+        push @{$ads{$ip}}, [ $ad_id, $text, $css_url ];
     }
+
     return \%ads;
 }
 

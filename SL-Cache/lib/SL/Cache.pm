@@ -105,4 +105,15 @@ sub is_known_html {
     return 1;
 }
 
+sub random_ad {
+  my ($self, $ip) = @_;
+
+  my $ads_arrayref = $self->ad_cache->get($ip);
+  return unless $ads_arrayref;
+
+  # grab a random ad
+  my $ad = $ads_arrayref->[int(rand(scalar(@{$ads_arrayref})))];
+  return $ad;
+}
+
 1;
