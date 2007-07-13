@@ -67,7 +67,6 @@ BEGIN {
 
 sub container {
     my ( $css_url_ref, $decoded_content_ref, $ad_ref ) = @_;
-    $DB::single = 1;
     my $link =
       qq{<link rel="stylesheet" href="$$css_url_ref" type="text/css" />};
 
@@ -258,7 +257,7 @@ sub _sl_router {
 }
 
 use constant SL_DEFAULT_SQL => q{
-SELECT                                           
+SELECT
 ad_sl.ad_id,       ad_sl.text,        ad.md5,
 ad_sl.uri,         ad_group.template, ad_group.css_url,
 bug.image_href,    bug.link_href
@@ -322,7 +321,7 @@ sub random {
         # going to hell for this one
         return unless defined $ad_data->[TEXT_IDX];
     }
-    
+
     my %tmpl_vars = (
         ad_link    => $CONFIG->sl_clickserver_url . $ad_data->[MD5_IDX],
         ad_text    => $ad_data->[TEXT_IDX],
@@ -337,6 +336,85 @@ sub random {
 
     # return the id, string output, and css url
     return ( $ad_data->[AD_ID_IDX], \$output, \$ad_data->[CSS_URL_IDX], );
+}
+
+
+use constant ADGROUPS_FROM_LOCATION => q{
+SELECT ad_group.ad_group_id, css_url, template 
+FROM ad_group, location, location__ad_group
+WHERE location__ad_group.ad_group_id =  ad_group.ad_group_id
+AND location__ad_group.location_id = location.location_id
+AND location.ip = ?
+};
+
+sub ad_groups_from_location {
+  my ($class, $ip) = @_;
+   my $dbh = SL::Model->connect();
+   # are there any location__ad_groups for this location?
+    my $adgroup_sth = $dbh->prepare_cached(ADGROUPS_FROM_LOCATION);
+    $adgroup_sth->bind_param( 1, $ip );
+    $adgroup_sth->execute or die $DBI::errstr;
+
+    # grab the ad_group data
+    my $ad_group_ary_ref = $adgroup_sth->fetchall_arrayref;
+    $adgroup_sth->finish;
+    return unless $ad_group_ary_ref;
+    return $ad_group_ary_ref;
+}
+
+use constant ADGROUPS_FROM_ROUTER => q{
+SELECT ad_group.ad_group_id, css_url, template
+FROM ad_group, router, router__ad_group
+WHERE router__ad_group.ad_group_id =  ad_group.ad_group_id
+AND router__ad_group.router_id = router.router_id = ?
+};
+
+sub ad_groups_from_router {
+  my ($class, $ip) = @_;
+
+    # grab the routers associated with this location
+    my $router_id =
+      SL::Model::Proxy::Router::Location->get_router_id_by_ip($ip);
+    return unless $router_id;
+
+   my $dbh = SL::Model->connect();
+   # are there any location__ad_groups for this location?
+    my $adgroup_sth = $dbh->prepare_cached(ADGROUPS_FROM_ROUTER);
+    $adgroup_sth->bind_param( 1, $router_id );
+    $adgroup_sth->execute or die $DBI::errstr;
+
+    # grab the ad_group data
+    my $ad_group_ary_ref = $adgroup_sth->fetchall_arrayref;
+    $adgroup_sth->finish;
+    return unless $ad_group_ary_ref;
+    return $ad_group_ary_ref;
+}
+
+use constant ADGROUPS_FROM_DEFAULT => q{
+SELECT ad_group.ad_group_id, css_url, template 
+FROM ad_group, location, location__ad_group
+WHERE ad_group.is_default = 't'
+AND (location.ip = ?
+AND location.default_ok = 't')
+};
+
+# this method returns an array reference of serialized ads for an ip
+sub serialize_ads {
+  my ($class, $ip) = @_;
+  die 'no ip' unless $ip;
+
+  my $ad_group_ary_ref;
+  if ($ad_group_ary_ref = $class->ad_groups_from_location($ip)) {
+    # location based
+  } elsif ($ad_group_ary_ref = $class->ad_groups_from_router($ip)) {
+    # router based
+  } elsif ($ad_group_ary_ref = $class->ad_groups_from_default($ip)) {
+    # default
+  } else {
+    # none available
+    return;
+  }
+
 }
 
 sub log_view {
