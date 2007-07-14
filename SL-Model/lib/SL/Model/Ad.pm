@@ -5,7 +5,7 @@ use warnings;
 
 use base 'SL::Model';
 
-use Template ();
+use Template                           ();
 use SL::Model::Proxy::Router::Location ();
 
 =head1 NAME
@@ -18,19 +18,19 @@ This serves ads, ya see?
 
 =cut
 
-use constant LOG_VIEW_SQL        => q{
+use constant LOG_VIEW_SQL => q{
 INSERT INTO view
 ( ad_id, ip ) values ( ?, ? )
 };
 
-use constant AD_ID_IDX       => 0;
-use constant TEXT_IDX        => 1;
-use constant MD5_IDX         => 2;
-use constant URI_IDX         => 3;
-use constant TEMPLATE_IDX    => 4;
-use constant CSS_URL_IDX     => 5;
-use constant IMAGE_HREF_IDX  => 6;
-use constant LINK_HREF_IDX   => 7;
+use constant AD_ID_IDX      => 0;
+use constant TEXT_IDX       => 1;
+use constant MD5_IDX        => 2;
+use constant URI_IDX        => 3;
+use constant TEMPLATE_IDX   => 4;
+use constant CSS_URL_IDX    => 5;
+use constant IMAGE_HREF_IDX => 6;
+use constant LINK_HREF_IDX  => 7;
 
 use SL::Config;
 our $CONFIG = SL::Config->new;
@@ -322,9 +322,20 @@ sub random {
         return unless defined $ad_data->[TEXT_IDX];
     }
 
+    my $output_scalar_ref = $class->process_ad_template($ad_data);
+
+    # return the id, string output, and css url
+    return ( $ad_data->[AD_ID_IDX], $output_scalar_ref,
+        \$ad_data->[CSS_URL_IDX], );
+}
+
+# takes ad_data, returns scalar reference of output
+sub process_ad_template {
+    my ( $class, $ad_data ) = @_;
+
     my %tmpl_vars = (
-        ad_link    => $CONFIG->sl_clickserver_url . $ad_data->[MD5_IDX],
-        ad_text    => $ad_data->[TEXT_IDX],
+        ad_link        => $CONFIG->sl_clickserver_url . $ad_data->[MD5_IDX],
+        ad_text        => $ad_data->[TEXT_IDX],
         bug_image_href => $ad_data->[IMAGE_HREF_IDX],
         bug_link_href  => $ad_data->[LINK_HREF_IDX],
     );
@@ -334,10 +345,8 @@ sub random {
     $TEMPLATE->process( $ad_data->[TEMPLATE_IDX], \%tmpl_vars, \$output )
       || die $TEMPLATE->error();
 
-    # return the id, string output, and css url
-    return ( $ad_data->[AD_ID_IDX], \$output, \$ad_data->[CSS_URL_IDX], );
+    return \$output;
 }
-
 
 use constant ADGROUPS_FROM_LOCATION => q{
 SELECT ad_group.ad_group_id, css_url, template 
@@ -348,9 +357,10 @@ AND location.ip = ?
 };
 
 sub ad_groups_from_location {
-  my ($class, $ip) = @_;
-   my $dbh = SL::Model->connect();
-   # are there any location__ad_groups for this location?
+    my ( $class, $ip ) = @_;
+    my $dbh = SL::Model->connect();
+
+    # are there any location__ad_groups for this location?
     my $adgroup_sth = $dbh->prepare_cached(ADGROUPS_FROM_LOCATION);
     $adgroup_sth->bind_param( 1, $ip );
     $adgroup_sth->execute or die $DBI::errstr;
@@ -370,15 +380,14 @@ AND router__ad_group.router_id = router.router_id = ?
 };
 
 sub ad_groups_from_router {
-  my ($class, $ip) = @_;
+    my ( $class, $ip ) = @_;
 
     # grab the routers associated with this location
     my $router_id =
       SL::Model::Proxy::Router::Location->get_router_id_by_ip($ip);
     return unless $router_id;
 
-   my $dbh = SL::Model->connect();
-   # are there any location__ad_groups for this location?
+    my $dbh         = SL::Model->connect();
     my $adgroup_sth = $dbh->prepare_cached(ADGROUPS_FROM_ROUTER);
     $adgroup_sth->bind_param( 1, $router_id );
     $adgroup_sth->execute or die $DBI::errstr;
@@ -398,23 +407,96 @@ AND (location.ip = ?
 AND location.default_ok = 't')
 };
 
+sub ad_groups_from_default {
+    my ( $class, $ip ) = @_;
+
+    my $dbh         = SL::Model->connect();
+    my $adgroup_sth = $dbh->prepare_cached(ADGROUPS_FROM_DEFAULT);
+    $adgroup_sth->bind_param( 1, $ip );
+    $adgroup_sth->execute or die $DBI::errstr;
+
+    # grab the ad_group data
+    my $ad_group_ary_ref = $adgroup_sth->fetchall_arrayref;
+    $adgroup_sth->finish;
+    return unless $ad_group_ary_ref;
+    return $ad_group_ary_ref;
+}
+
+use constant ADS_FROM_ADGROUP_SQL_ONE => q{
+SELECT
+ad_sl.ad_id,       ad_sl.text,        ad.md5,
+ad_sl.uri,         ad_group.template, ad_group.css_url,
+bug.image_href,    bug.link_href
+FROM ad_sl, ad, ad_group, bug, ad__ad_group
+WHERE ad.active = 't'
+AND ad.ad_id = ad_sl.ad_id
+AND ad.ad_id = ad__ad_group.ad_id
+AND ad__ad_group.ad_group_id IN ( 
+};
+
+use constant ADS_FROM_ADGROUP_SQL_TWO => q{
+ ) AND ad_group.bug_id = bug.bug_id
+ORDER BY RANDOM()
+LIMIT 1
+};
+
+sub ads_from_ad_groups {
+    my ( $self, $ad_groups_ary_ref ) = @_;
+
+    my @ad_group_ids = map { $_->[0] } @{$ad_groups_ary_ref};
+    my $qs          = join ( ',', '?' x scalar(@ad_group_ids) );
+    my $dbh         = SL::Model->connect();
+    my $sql         = ADS_FROM_ADGROUP_SQL_ONE . $qs . ADS_FROM_ADGROUP_SQL_TWO;
+    my $adgroup_sth = $dbh->prepare_cached($sql);
+
+    my $i = 1;
+    foreach my $id (@ad_group_ids) {
+        $adgroup_sth->bind_param( $i++, $id );
+    }
+    $adgroup_sth->execute or die $DBI::errstr;
+
+    # grab the ad_group data
+    my $ad_group_ary_ref = $adgroup_sth->fetchall_arrayref;
+    $adgroup_sth->finish;
+    return unless $ad_group_ary_ref;
+
+    return $ad_group_ary_ref;
+}
+
 # this method returns an array reference of serialized ads for an ip
 sub serialize_ads {
-  my ($class, $ip) = @_;
-  die 'no ip' unless $ip;
+    my ( $class, $ip ) = @_;
+    die 'no ip' unless $ip;
 
-  my $ad_group_ary_ref;
-  if ($ad_group_ary_ref = $class->ad_groups_from_location($ip)) {
-    # location based
-  } elsif ($ad_group_ary_ref = $class->ad_groups_from_router($ip)) {
-    # router based
-  } elsif ($ad_group_ary_ref = $class->ad_groups_from_default($ip)) {
-    # default
-  } else {
-    # none available
-    return;
-  }
+    my $ad_groups_ary_ref;
+    if ( $ad_groups_ary_ref = $class->ad_groups_from_location($ip) ) {
 
+        # location based
+    }
+    elsif ( $ad_groups_ary_ref = $class->ad_groups_from_router($ip) ) {
+
+        # router based
+    }
+    elsif ( $ad_groups_ary_ref = $class->ad_groups_from_default($ip) ) {
+
+        # default
+    }
+    else {
+
+        # none available
+        return;
+    }
+
+    my $serialized       = '';
+    my $ads_data_ary_ref = $class->ads_from_ad_groups($ad_groups_ary_ref);
+    foreach my $ad_data ( @{$ads_data_ary_ref} ) {
+        my $output_scalar_ref = $class->process_ad_template($ad_data);
+        $serialized .= join ( "\t",
+            $ad_data->[AD_ID_IDX], $$output_scalar_ref,
+            $ad_data->[CSS_URL_IDX], $ip );
+    }
+
+    return \$serialized;
 }
 
 sub log_view {
