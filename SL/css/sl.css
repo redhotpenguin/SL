@@ -43,7 +43,7 @@ p.sl {
 .sl_black {
 	position: absolute;
 	top: 5px;
-	right: 25px;
+	right: 10px;
 	text-decoration: underline;
 	text-align: right;
 	vertical-align: 50%;
@@ -56,7 +56,7 @@ p.sl {
 .sl_link {
 	position: absolute;
 	bottom: 4px;
-	right: 25px;
+	right: 10px;
 	text-decoration: underline;
 	text-align: right;
 	vertical-align: 50%;
