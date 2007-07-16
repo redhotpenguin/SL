@@ -47,8 +47,6 @@ use APR::Table              ();
 
 use SL::Model                ();
 use SL::Model::Ad            ();
-use SL::Model::Subrequest    ();
-use SL::Model::RateLimit     ();
 use SL::Model::URL           ();
 use SL::Model::Proxy::Router ();
 use SL::Model::Proxy::Location ();
@@ -63,6 +61,8 @@ use SL::Apache::Proxy::PingHandler            ();
 use SL::Apache::Proxy::LogHandler             ();
 
 use SL::Cache         ();
+use SL::Cache::Subrequest ();
+use SL::Cache::RateLimit ();
 use SL::UserAgent     ();
 use SL::HTTP::Request ();
 use SL::Util          ();
