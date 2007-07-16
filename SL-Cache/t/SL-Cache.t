@@ -26,8 +26,9 @@ ok($cache->blacklist_user($user));
 cmp_ok($cache->is_user_blacklisted($user), '==', 1);
 
 my $subrequest = 'http://foobar.com/something.jpg';
-ok($cache->add_subrequest($subrequest));
-cmp_ok($cache->is_subrequest($subrequest), '==', 1);
+ok($cache->add_known_html($subrequest, 'image/jpg'));
+cmp_ok($cache->is_known_not_html($subrequest), '==', 1);
 
+$subrequest = 'http://foo.bar.com/foo.html';
 ok($cache->add_known_html($subrequest, 'text/html'));
-cmp_ok($cache->is_known_html($subrequest), '==', 1);
+ok(!$cache->is_known_not_html($subrequest));
