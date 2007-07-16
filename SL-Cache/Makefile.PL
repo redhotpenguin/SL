@@ -5,7 +5,7 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
     NAME      => 'SL-Cache',
-    VERSION   => '0.10',
+    VERSION_FROM   => 'lib/SL/Cache.pm',
     PREREQ_PM => {
         'Cache::FastMmap' => 1.14,
         'SL::Config'      => 0.10,

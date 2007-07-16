@@ -100,7 +100,7 @@ sub check_violation {
     my $last_known = $self->{cache}->get(join('|', 'ratelimit', $user_id));
     return unless $last_known;
 
-    ( ( time() - $last_known ) > $RATE_LIMIT ) ? return 1 : return;
+    ( ( time() - $last_known ) < $RATE_LIMIT ) ? return 1 : return;
 }
 
 1;
