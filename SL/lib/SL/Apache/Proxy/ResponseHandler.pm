@@ -32,7 +32,9 @@ use APR::Table            ();
 use SL::HTTP::Request     ();
 use SL::UserAgent         ();
 use SL::Model::Ad         ();
-use SL::Model::Subrequest ();
+use SL::Cache			  ();
+use SL::Cache::Subrequest ();
+use SL::Cache::RateLimit  ();
 use SL::Model::RateLimit  ();
 use SL::Model::Proxy::Router  ();
 use Data::Dumper          ();
@@ -59,6 +61,10 @@ our %response_map  = (
 
 ## Make a user agent
 my $SL_UA = SL::UserAgent->new;
+
+our $CACHE = SL::Cache->new( type => 'raw' );
+our $RATE_LIMIT = SL::Cache::RateLimit->new;
+our $SUBREQUEST_TRACKER = SL::Cache::Subrequest->new;
 
 =head1 AD SERVING
 
@@ -330,7 +336,7 @@ sub twohundred {
 
     # Cache the content_type
     my $response_content_ref;
-    SL::Cache::stash( $url => $response->content_type );
+    $CACHE->add_known_html( $url => $response->content_type );
 
     # check to make sure it's HTML first
     my $is_html = not SL::Util::not_html( $response->content_type );
@@ -345,21 +351,19 @@ sub twohundred {
         $TIMER->start('rate_limiter');
     }
 
-    my $rate_limit = SL::Model::RateLimit->new( r => $r );
     my $is_toofast;
     if ($is_html) {
-        $is_toofast = $rate_limit->check_violation();
-        $r->log->debug("$$ ===> $url check_violation: $is_toofast");
+        $is_toofast = $RATE_LIMIT->check_violation($r->connection->remote_ip, $r->pnotes('ua'));
+		#$r->log->debug("$$ ===> $url check_violation: $is_toofast");
     }
 
     # serve an ad if this is HTML and it's not a sub-request of an
     # ad-serving page, and it's not too soon after a previous ad was served
     my $subrequests_ref;
-    my $subrequest_tracker = SL::Model::Subrequest->new();
     if ( $is_html and not $is_toofast ) {    # and not $is_subreq) {
 
         # note the ad-serving time for the rate-limitter
-        $rate_limit->record_ad_serve();
+        $RATE_LIMIT->record_ad_serve($r->connection->remote_ip, $r->pnotes('ua'));
 
 		$response_content_ref = _generate_response( $r, $response );
 
@@ -374,7 +378,7 @@ sub twohundred {
         # first grab the links from the page and stash them
         $TIMER->start('collect_subrequests')
           if ( $r->server->loglevel() == Apache2::Const::LOG_INFO );
-        $subrequests_ref = $subrequest_tracker->collect_subrequests(
+        $subrequests_ref = $SUBREQUEST_TRACKER->collect_subrequests(
             content_ref => $response_content_ref,
             base_url    => $url
         );
@@ -390,7 +394,7 @@ sub twohundred {
     # replace the links
     my $rep_ref = SL::Model::Proxy::Router->replace_port( $r->connection->remote_ip );
     if ( defined $rep_ref ) { # && scalar( @{$rep_ref} ) == 1 ) {
-        my $ok = $subrequest_tracker->replace_subrequests(
+        my $ok = $SUBREQUEST_TRACKER->replace_subrequests(
             {
                 port       => $rep_ref->[1],    # r_id, port
                 subreq_ref => $subrequests_ref,

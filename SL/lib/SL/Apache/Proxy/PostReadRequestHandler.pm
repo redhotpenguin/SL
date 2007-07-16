@@ -13,7 +13,10 @@ sub handler {
 	my $r = shift;
 
     my $ua      = $r->headers_in->{'user-agent'};
-    $r->pnotes('ua'      => $ua);
+	unless ($ua) {
+		$ua = 'none';
+	}
+	$r->pnotes('ua'      => $ua);
 	if ($ua eq 'Apache (internal dummy connection)') {
 		$r->subprocess_env(SL_URL => 'sl_dummy');
 		return Apache2::Const::DONE;

@@ -45,7 +45,11 @@ use Apache2::URI            ();
 use SL::Cache               ();
 use SL::Util                ();
 use RHP::Timer              ();
-use SL::Model::Subrequest   ();
+use SL::Cache				();
+use SL::Cache::Subrequest   ();
+
+our $CACHE = SL::Cache->new( type => 'raw' );
+our $SUBREQUEST_TRACKER = SL::Cache::Subrequest->new;
 
 my $TIMER = RHP::Timer->new();
 
@@ -73,6 +77,7 @@ sub handler {
     $TIMER->start('initialization')
       if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
 
+	return &proxy_request($r) if ($r->pnotes('ua') eq 'none');
     my $url = $r->construct_url($r->unparsed_uri);
     my $referer = $r->headers_in->{'referer'} || 'no_referer';
 
@@ -97,6 +102,9 @@ sub handler {
     }
 
     # our secret namespace
+    if ($url =~ m!/sl_secret_ping_button!) {
+        return Apache2::Const::OK;
+    }
     # allow /sl_secret_blacklist_button to pass through
     if ($url =~ m!/sl_secret_blacklist_button$!) {
         return Apache2::Const::OK;
@@ -105,14 +113,13 @@ sub handler {
         return Apache2::Const::OK;
     }
 
-    # allow /sl_secret_ping_button to pass through
-    if ($url =~ m!/sl_secret_ping_button!) {
-        return Apache2::Const::OK;
-    }
-
-    # User and content driven handling
+	# User and content driven handling
     # Close this bar
-    return &proxy_request($r) if (user_blacklisted($r, $dbh));
+    return &proxy_request($r) if  $CACHE->is_user_blacklisted(join("|",
+			                       # the unique user id 
+								   $r->connection->remote_ip, 
+								   $r->pnotes('ua'),
+								   $r->construct_server()));
 
     if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
         $r->log->info(
@@ -121,7 +128,8 @@ sub handler {
     }
 
     # blacklisted urls
-    return &proxy_request($r) if (url_blacklisted($url));
+	return &proxy_request($r) if (url_blacklisted($url));
+	#return &proxy_request($r) if$CACHE->url_blacklisted($url);
 
     if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
         $r->log->info(
@@ -148,30 +156,13 @@ sub handler {
     }
 
     # check for sub-reqs if it passed the other tests
-    my $subrequest_tracker = SL::Model::Subrequest->new();
-    my $is_subreq = $subrequest_tracker->is_subrequest(url => $url);
-    $r->log->debug("$$ ===> $url is_subreq: $is_subreq");
+    my $is_subreq = $SUBREQUEST_TRACKER->is_subrequest(url => $url);
+	#$r->log->debug("$$ ===> $url is_subreq: $is_subreq");
     return &proxy_request($r) if $is_subreq;
 
     ## Check the cache for a static content match
-    if (my $content_type = SL::Cache::grab($url)) {
-
-        $r->log->debug("$$ SL::Cache hit for url $url, type $content_type");
-
-        if (SL::Util::not_html($content_type)) {
-            ## Cache returned static content
-            $r->log->debug("$$ Proxying static $url, type $content_type");
-            return &proxy_request($r);
-        }
-        else {
-
-            # Cache returned dynamic html
-            $r->log->debug("$$ SL::Cache $url HTML type $content_type");
-            $r->pnotes('content_type' => $content_type);
-        }
-    }
-
-    $r->log->debug("EndTranshandler");
+    return mod_proxy($r) if $CACHE->is_known_not_html($url);
+	$r->log->debug("EndTranshandler");
 
     if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
         $r->log->info(
