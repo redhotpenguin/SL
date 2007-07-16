@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 10;
+use Test::More tests => 11;
 
 my $pkg;
 BEGIN {
@@ -11,10 +11,15 @@ BEGIN {
     use_ok($pkg);
 }
 
-my $cache = $pkg->new();
+my $cache = $pkg->new( type => 'obj' );
 isa_ok($cache, 'SL::Cache');
-isa_ok($cache->data_cache, 'Cache::FastMmap');
-isa_ok($cache->ad_cache, 'Cache::FastMmap');
+isa_ok($cache->{cache}, 'Cache::FastMmap');
+
+$cache = $pkg->new( type => 'raw' );
+isa_ok($cache, 'SL::Cache');
+isa_ok($cache->{cache}, 'Cache::FastMmap');
+
+$cache->{cache}->clear;
 
 my $user = 'mr_foo';
 ok($cache->blacklist_user($user));

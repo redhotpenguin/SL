@@ -1,0 +1,12 @@
+bin/sl_update_ads.pl
+bin/sl_update_blacklist.pl
+CHANGES
+lib/SL/Cache/RateLimit.pm
+lib/SL/Cache/Subrequest.pm
+lib/SL/Cache.pm
+Makefile.PL
+MANIFEST
+t/SL-Cache-Subrequest-Sfgate.t
+t/SL-Cache-Subrequest-Yahoo.t
+t/SL-Cache-Subrequest.t
+t/SL-Cache.t

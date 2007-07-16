@@ -34,13 +34,10 @@ if ( $res->code == 304 ) {
     exit(0);
 }
 elsif ( $res->code == 200 ) {
-    $CACHE->set( blacklist_regex              => $res->content );
-    $CACHE->set( 'if_last_modified_blacklist' => time2str( time() ) );
+    $CACHE->set( 'if_last_modified_ads' => time2str( time() ) );
     warn( "200 received, content is " . $res->content ) if $DEBUG;
-    my $ads_hashref = _process_response( $res->content );
-    foreach my $ip ( keys %{$ads_hashref} ) {
-      $CACHE->set( $ip => $ads_hashref->{$ip});
-    }
+    my $ads_hashref = $CACHE->deserialize( $res->content );
+    $CACHE->update_ads( $ads_hashref );
 
     exit(0);
 }
@@ -48,19 +45,6 @@ else {
     warn( "received response code " . $res->code );
     warn( "received response content " . $res->content );
     exit(1);
-}
-
-sub _process_response {
-    my $content = shift;
-
-    my %ads;
-    foreach my $line ( split ( "\n", $content ) ) {
-        chomp($line);
-        my ( $ad_id, $text, $css_url, $ip ) = split ( "\t", $line );
-        push @{$ads{$ip}}, [ $ad_id, $text, $css_url ];
-    }
-
-    return \%ads;
 }
 
 1;

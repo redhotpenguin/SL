@@ -1,5 +1,6 @@
 Revision history for SL::Cache
 
-0.10 Fri Jul 06 01:18:00 2007
+0.10 Mon Jul 16 01:18:00 2007
+    - Moved subrequest and ratelimit functionality here
     - forked from SL-0.09
 
