@@ -83,14 +83,14 @@ sub add_known_html {
     return 1;
 }
 
-sub is_known_html {
+sub is_known_not_html {
     my ( $self, $url ) = @_;
     die unless $url;
 
     my $content_type =
       $self->{cache}->get( join ( '|', 'known_html', $url ) );
-    return unless ( $content_type =~ m/text\/html/ );
-    return 1;
+	return 1 if ($content_type && ($content_type !~ m/text\/html/ ));
+    return;
 }
 
 sub deserialize_ads {
