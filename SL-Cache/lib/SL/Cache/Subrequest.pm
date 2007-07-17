@@ -151,9 +151,10 @@ sub _normalize_url {
         # full url
         $canonical_url = URI->new($url)->canonical->as_string;
     }
-    elsif ( $url =~ m!^(w+):! ) {
+    elsif ( $url =~ m!^(\w+):! ) {
 
-        # ignore fully-qualified non-http links such as ftp://..., irc://...
+        # ignore fully-qualified non-http links such as ftp://..., irc://...,
+        # file://...
         return "";
     }
 

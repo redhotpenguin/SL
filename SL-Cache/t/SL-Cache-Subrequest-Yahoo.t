@@ -12,7 +12,7 @@ my $content = do { local $/; <DATA> };
 
 use Time::HiRes qw(tv_interval gettimeofday);
 
-my $base_url   = 'http://wwww.yahoo.com';
+my $base_url   = 'http://www.yahoo.com';
 my $subreq     = SL::Cache::Subrequest->new();
 
 # clear out the cache

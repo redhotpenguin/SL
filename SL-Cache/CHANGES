@@ -1,5 +1,9 @@
 Revision history for SL::Cache
 
+0.12 Mon Jul 16 17:23:31 2007
+    - fix busted regex which was causing bad things to happen when file://
+      links were normalized twice, thanks to jeff for the spot
+
 0.11 Mon Jul 16 12:03:00 2007
     - fixed broken ratelimit such that check_violation always returned true,
       thanks to jeff for the spot

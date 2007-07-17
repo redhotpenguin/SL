@@ -95,6 +95,8 @@ __DATA__
 <p>
 <a href="not_subreq.cgi">bar</a>
 <img src="http://imagefarm.com/pig.jpg">
+  <!-- file:// link to trip up our tests -->
+<p><img src="file:///C:/DOCUME~1/Jeff/LOCALS~1/Temp/moz-screenshot-24.jpg" /></p>
 <img src="/img/cow.gif">
 <iframe src="javascript:false;"></iframe>
 <frame src="about:blank"></frame>
