@@ -115,11 +115,7 @@ sub handler {
 
 	# User and content driven handling
     # Close this bar
-    return &proxy_request($r) if  $CACHE->is_user_blacklisted(join("|",
-			                       # the unique user id 
-								   $r->connection->remote_ip, 
-								   $r->pnotes('ua'),
-								   $r->construct_server()));
+    return &proxy_request($r) if user_blacklisted($r, $dbh);
 
     if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
         $r->log->info(

@@ -146,7 +146,7 @@ The question at hand for container is 'will it work?'
 our $SKIPS;
 
 BEGIN {
-    my @skips = qw( framset adwords.google.com );
+    my @skips = qw( framset adwords.google.com MM_executeFlashDetection );
     push @skips, 'Ads by Goooooogle';
     $SKIPS = Regexp::Assemble->new->add(@skips)->re;
     print STDERR "Regex for content insertion skips ", $SKIPS, "\n";
@@ -336,7 +336,9 @@ sub twohundred {
 
     # Cache the content_type
     my $response_content_ref;
-    $CACHE->add_known_html( $url => $response->content_type );
+	if (defined $response->content_type) {
+		$CACHE->add_known_html( $url => $response->content_type );
+	}
 
     # check to make sure it's HTML first
     my $is_html = not SL::Util::not_html( $response->content_type );
@@ -610,8 +612,9 @@ sub _generate_response {
         $TIMER->start('container insertion')
           if ( $r->server->loglevel() == Apache2::Const::LOG_INFO );
 
-        SL::Model::Ad::container( $css_url, \$decoded_content,
+        my $ok = SL::Model::Ad::container( $css_url, \$decoded_content,
             $ad_content_ref );
+		return \$response->content unless $ok;
 
         # checkpoint
         if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {
