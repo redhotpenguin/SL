@@ -1,5 +1,10 @@
 Revision history for Perl extension SL-Model.
 
+0.07  Weds Jul 18 00:38:00 2007
+    - fix a bug where the closing div was not being applied.
+    - test the decoded content to make sure all container regexes match
+      before applying them to prevent mangled adbar
+
 0.06  Sun July 08 12:50:23 2007
     - fix a bug where stylesheet was not being inserted correctly for certain
       body tags, thanks to jeff for the spot

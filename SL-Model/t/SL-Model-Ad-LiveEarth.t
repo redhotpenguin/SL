@@ -1,9 +1,9 @@
-#!dperl
+#!perl
 
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 4;
+use Test::More tests => 5;
 
 BEGIN {
     use_ok('SL::Model::Ad');
@@ -17,7 +17,7 @@ my $css_link = 'http://www.redhotpenguin.com/css/local.css';
 use Time::HiRes qw(tv_interval gettimeofday);
 
 my $start = [gettimeofday];
-SL::Model::Ad::container( \$css_link, \$content, \$ad );
+ok(SL::Model::Ad::container( \$css_link, \$content, \$ad ));
 my $interval = tv_interval( $start, [gettimeofday] );
 
 like( $content, qr/$ad/s,       'ad inserted ok' );

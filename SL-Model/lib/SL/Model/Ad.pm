@@ -58,33 +58,42 @@ our( $top,   $container,    $tail );
 BEGIN {
     $top            = qq{<div id="sl_top">};
     $container      = qq{</div><div id="sl_ctr">};
-    $tail           = qq{</div>};
+    $tail           = qq{</divlolcat>};
+
     $regex          = qr{^(.*?<\s*?head\s*?[^>]*?>)(.*)$}is;
-    $second_regex   = qr{\G(.*?)<body([^>]*?)>(.*)$}is;
     $uber_match     = qr{\G(?:</\s*?head\s*?>)}i;
-    $end_body_match = qr{^(.*)(<\s*?/body\s*?>.*)$}i;
+    $second_regex   = qr{\G(.*?)<body([^>]*?)>(.*)$}is;
+    $end_body_match = qr{^(.*)(<\s*?/body\s*?>.*)$}is;
 }
 
 sub container {
     my ( $css_url_ref, $decoded_content_ref, $ad_ref ) = @_;
+
+    # check to make sure that we can insert all parts of the ad
+    return unless (($$decoded_content_ref =~ m/$regex/) &&
+                   ($$decoded_content_ref =~ m/$second_regex/) &&
+                   ($$decoded_content_ref =~ m/$end_body_match/));
+
     my $link =
       qq{<link rel="stylesheet" href="$$css_url_ref" type="text/css" />};
 
     # Insert the stylesheet link
-    $$decoded_content_ref =~ s{$regex}{$1$link$2};
+    my $matched = $$decoded_content_ref =~ s{$regex}{$1$link$2};
+    warn('failed to insert stylesheet link') unless $matched;
 
     # move the pointer - optimization, 0.5 milliseconds
     $$decoded_content_ref =~ m/$uber_match/;
 
     # Insert the rest of the pieces
-    $$decoded_content_ref =~ s{$second_regex}
+    $matched = $$decoded_content_ref =~ s{$second_regex}
                          {$1<body$2>$top$$ad_ref$container$3};
+    warn('failed to insert ad content ' . $$ad_ref) unless $matched;
 
     # insert the tail
-    $end_body_match = qr{^(.*)(<\s*?/body\s*?>.*)$}i;
-    $$decoded_content_ref =~ s{$end_body_match}{$1$tail$2};
+    $matched = $$decoded_content_ref =~ s{$end_body_match}{$1$tail$2};
+    warn('failed to insert closing div') unless $matched;
 
-    return $decoded_content_ref;
+    return 1;
 }
 
 =item C<body_regex> 

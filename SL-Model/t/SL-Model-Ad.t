@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 29;
+use Test::More tests => 30;
 
 BEGIN {
     use_ok('SL::Model::Ad');
@@ -34,7 +34,7 @@ my $template = 'text_ad.tmpl';
 use Time::HiRes qw(tv_interval gettimeofday);
 
 my $start = [gettimeofday];
-SL::Model::Ad::container( \$css_link, \$content, \$ad );
+ok(SL::Model::Ad::container( \$css_link, \$content, \$ad ));
 my $interval = tv_interval( $start, [gettimeofday] );
 
 like( $content, qr/$ad/,       'Yahoo ad inserted ok' );
