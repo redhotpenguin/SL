@@ -5,7 +5,7 @@
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 32;
+use Test::More tests => 37;
 
 BEGIN { use_ok('SL::Cache::Subrequest') or die }
 
@@ -59,7 +59,7 @@ cmp_ok( $subreq_ref->[4]->[0], 'eq', '/img/cow.gif' );
 cmp_ok( $subreq_ref->[4]->[1], 'eq', $urls[5] );
 
 diag('replace the links now');
-my $port = '6969';
+my $port = '8135';
 
 ok(
     $subreq->replace_subrequests(
@@ -77,11 +77,17 @@ my $subrequests_ref = $subreq->collect_subrequests(
 );
 
 # sanity check the replaced subrequest urls
+
 my $i = 0;
 foreach my $subrequest_ref ( @{$subrequests_ref} ) {
+    # make sure the port was replaced
     like($subrequest_ref->[0], qr/$port/);
+    # ??
     cmp_ok($subreq_ref->[$i++]->[2], 'eq', $subrequest_ref->[2]);
-  }
+    # check to make sure quotes were preserved
+    my $testurl = $subrequest_ref->[1];
+    like($content, qr/\"$testurl\"/, 'quotes preserved');
+}
 
 1;
 __DATA__

@@ -1,5 +1,9 @@
 Revision history for SL::Cache
 
+0.13 Wed Jul 18 09:02:00 2007
+    - replace quotes also when replacing the subrequest with canonicalized
+      request and port number
+
 0.12 Mon Jul 16 17:23:31 2007
     - fix busted regex which was causing bad things to happen when file://
       links were normalized twice, thanks to jeff for the spot

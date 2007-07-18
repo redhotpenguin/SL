@@ -122,7 +122,11 @@ sub replace_subrequests {
 
         # run the substitution, match surrounding quotes to handle
         # mixed and absolute urls
-        $$content_ref =~ s/['"]\Q$orig_url\E['"]/$replacement_url/sg;
+        my $matched = $$content_ref =~ 
+            s/(['"])\Q$orig_url\E(['"])/$1$replacement_url$2/sg;
+        
+        warn("did not replace $orig_url with $replacement_url ok")
+            unless $matched;
     }
 
     return 1;
