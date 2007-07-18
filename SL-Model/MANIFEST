@@ -22,9 +22,7 @@ lib/SL/Model/App.pm
 lib/SL/Model/Proxy/Location.pm
 lib/SL/Model/Proxy/Router/Location.pm
 lib/SL/Model/Proxy/Router.pm
-lib/SL/Model/RateLimit.pm
 lib/SL/Model/Report/Graph.pm
 lib/SL/Model/Report.pm
-lib/SL/Model/Subrequest.pm
 lib/SL/Model/URL.pm
 lib/SL/Model.pm
