@@ -58,7 +58,7 @@ our( $top,   $container,    $tail );
 BEGIN {
     $top            = qq{<div id="sl_top">};
     $container      = qq{</div><div id="sl_ctr">};
-    $tail           = qq{</divlolcat>};
+    $tail           = qq{</div>};
 
     $regex          = qr{^(.*?<\s*?head\s*?[^>]*?>)(.*)$}is;
     $uber_match     = qr{\G(?:</\s*?head\s*?>)}i;
