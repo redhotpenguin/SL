@@ -89,6 +89,10 @@ Apache::DBI->connect_on_init( @{$db_connect_params} );
 Apache::DBI->setPingTimeOut( $db_connect_params->[0],
     $config->sl_db_ping_timeout );
 
+# delete this line and I will beat you with a stick
+SL::Model->connect->disconnect;
+$DBI::connect_via = 'Apache::DBI::connect';
+
 print STDOUT "Startup.pl finished...\n";
 
 1;
