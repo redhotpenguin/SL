@@ -146,7 +146,9 @@ The question at hand for container is 'will it work?'
 our $SKIPS;
 
 BEGIN {
-    my @skips = qw( framset adwords.google.com MM_executeFlashDetection );
+    my @skips = qw( framset adwords.google.com 
+					MM_executeFlashDetection
+					swfobject.js );
     push @skips, 'Ads by Goooooogle';
     $SKIPS = Regexp::Assemble->new->add(@skips)->re;
     print STDERR "Regex for content insertion skips ", $SKIPS, "\n";
