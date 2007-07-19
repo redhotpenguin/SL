@@ -3,13 +3,13 @@
 <div id="list_center">
 <div class="content">
 
-<h2><a href="/sl/app">Dashboard</a> > Manage Your Ads > [% count %] Ads Total</h2>
+<h2><a href="[% base_uri %]/app">Dashboard</a> > Manage Your Ads > [% count %] Ads Total</h2>
 [% IF status == 'added' %]
 <p><font color="red">Ad '[% ad_text %]' was successfully added.</font></p>
 [% ELSIF  status == 'updated' %]
 <p><font color="red">Ad '[% ad_text %]' was successfully updated.</font></p>
 [% END %]
-<p style="text-align: right; padding-bottom: 5px;"><a href="/sl/app/ad/edit/?id=-1">Create a New Ad</a></span></p>
+<p style="text-align: right; padding-bottom: 5px;"><a href="[% base_uri %]/app/ad/edit/?id=-1">Create a New Ad</a></span></p>
 <table class="list">
 <tr class="list_header">
 <td>&nbsp;&nbsp;Ad&nbsp;&nbsp;</td><td>Text</td>
@@ -24,7 +24,7 @@
   <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
 	
   <td style="color: #639D63">&nbsp;&nbsp;
-<a href="/sl/app/ad/edit/?id=[% ad.id %]">[% ad.id %]</a></td>
+<a href="[% base_uri %]/app/ad/edit/?id=[% ad.id %]">[% ad.id %]</a></td>
 <td>[% ad.text %]</a></td>
 [% IF root == 1 %]
   <td>[% ad.email %]
@@ -33,7 +33,7 @@
 <td>[% ad.cts %]</td>
 
 <td style="text-align: center;">[% IF ad.active %]Yes[% ELSE %]No[% END %]</td>
-<td><a href="/sl/app/ad/edit/?id=[% ad.id %]">Edit</a></td>
+<td><a href="[% base_uri %]/app/ad/edit/?id=[% ad.id %]">Edit</a></td>
 </tr>
 [% END %]
 </table>

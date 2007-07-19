@@ -32,7 +32,7 @@ sub dispatch_index {
     my $is_registered = grep { $_->ip eq $r->connection->remote_ip } @routers;
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
-            
+
             root    => $r->pnotes('root'),
             reg     => $r->pnotes( $r->user ),
             status  => $req->param('status') || '',
@@ -52,7 +52,7 @@ sub dispatch_index {
 sub dispatch_account {
     my ( $self, $r, $errors ) = @_;
     my $req = Apache2::Request->new($r);
-    $r->log->error("IN !");
+
     my %tmpl_data = (
         root             => $r->pnotes('root'),
         reg              => $r->pnotes( $r->user ),
@@ -108,7 +108,7 @@ sub dispatch_account {
         }
 
         my $redir = $r->construct_url( $r->uri . "$path" );
-        $r->log->error("REDIR is $redir");
+
         $r->internal_redirect($redir);
         return Apache2::Const::OK;
     }

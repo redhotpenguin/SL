@@ -18,10 +18,23 @@ print STDOUT "Starting SL::App server on port " . $config->sl_app_http_port
     . "\n";
 print STDOUT "Loading modules...\n";
 
-# FIXME - link to sl_debug option
-#use APR::Pool ();
-#use Apache::DB ();
-#Apache::DB->init();
+# single user mode
+if ( $config->sl_debug or $config->sl_small_prof ) {
+  require APR::Pool;
+  require Apache::DB;
+  Apache::DB->init();
+}
+
+# profiling
+if ( $config->sl_prof ) {
+  require Apache::DProf;
+}
+
+# status
+if ( $config->sl_status ) {
+  require Apache2::Status;
+}
+
 
 # Preload these modules during httpd startup, don't import any symbols
 use Apache::DBI             ();
@@ -38,6 +51,8 @@ use Apache2::ServerUtil    ();
 use Apache2::SubRequest    ();
 use Apache2::Upload        ();
 use APR::Table             ();
+
+use SL::App::Template ();
 use SL::Apache::App::Click ();
 use SL::Apache::App         ();
 use SL::Apache::App::Ad     ();
@@ -52,11 +67,14 @@ use SL::Model::Report           ();
 use SL::Cache                   ();
 use DBI                         ();
 use DBD::Pg                     ();
+DBI->install_driver('Pg');
+
 use Data::Dumper qw(Dumper);
 use Data::FormValidator         ();
 use DBIx::Class                 ();
 use DBIx::Class::Schema::Loader ();
 use Crypt::CBC                  ();
+use Crypt::DES                  ();
 
 print STDOUT "Modules loaded, initializing database connections\n";
 
@@ -71,5 +89,3 @@ SL::Model->connect->disconnect;
 $DBI::connect_via = 'Apache::DBI::connect';
 
 print STDOUT "Startup.pl finished...\n";
-
-1;

@@ -3,7 +3,7 @@
 <div id="list_center">
 	<div class="content">
 
-<h2><a href="/sl/app">Dashboard</a> > <a href="/sl/app/ad/list">Manage Your Ads</a> > [% IF ad.id == -1 %]Create a New Ad[% ELSIF ad.id != -1 %]Edit an Existing Ad[% END %]</h2>
+<h2><a href="[% base_uri %]/app">Dashboard</a> > <a href="[% base_uri %]/app/ad/list">Manage Your Ads</a> > [% IF ad.id == -1 %]Create a New Ad[% ELSIF ad.id != -1 %]Edit an Existing Ad[% END %]</h2>
 <hr size=1 color="#CCCCCC">
 <div id="edit_form">
 
@@ -23,7 +23,7 @@
 [% END %]
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
-<form method="POST" action="/sl/app/ad/edit/?id=[% ad.id %]">
+<form method="POST" action="[% base_uri %]/app/ad/edit/?id=[% ad.id %]">
 <tr><td>
 [% IF errors.missing.text %]<font color="red">Ad Text:</font>[% ELSE %]
 Ad Text:
