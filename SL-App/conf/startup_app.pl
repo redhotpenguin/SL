@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!perl
 
 use strict;
 use warnings;
@@ -14,6 +14,8 @@ use lib "$FindBin::Bin/../lib";
 use SL::Config;
 my $config = SL::Config->new();
 
+print STDOUT "Starting SL::App server on port " . $config->sl_app_http_port
+    . "\n";
 print STDOUT "Loading modules...\n";
 
 # FIXME - link to sl_debug option
@@ -47,10 +49,7 @@ use SL::Apache::App::CookieAuth ();
 use SL::Model                   ();
 use SL::Model::Ad               ();
 use SL::Model::Report           ();
-use SL::Model::Subrequest       ();
 use SL::Cache                   ();
-use SL::UserAgent               ();
-use SL::Util                    ();
 use DBI                         ();
 use DBD::Pg                     ();
 use Data::Dumper qw(Dumper);
@@ -66,6 +65,10 @@ my $db_connect_params = SL::Model->connect_params;
 Apache::DBI->connect_on_init( @{$db_connect_params} );
 Apache::DBI->setPingTimeOut( $db_connect_params->[0],
     $config->sl_db_ping_timeout );
+
+# delete this line and I will beat you with a stick
+SL::Model->connect->disconnect;
+$DBI::connect_via = 'Apache::DBI::connect';
 
 print STDOUT "Startup.pl finished...\n";
 

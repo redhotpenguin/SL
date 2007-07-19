@@ -28,10 +28,10 @@ BEGIN {
         -cipher => 'Blowfish',
     );
 
-    require Template;
-    my %tmpl_config = ( INCLUDE_PATH => $CONFIG->tmpl_root . '/app' );
-    $TEMPLATE = Template->new( \%tmpl_config ) || die $Template::ERROR;
 }
+
+use SL::App::Template ();
+our $TEMPLATE = SL::App::Template->template();
 
 sub authenticate {
     my ( $class, $r ) = @_;

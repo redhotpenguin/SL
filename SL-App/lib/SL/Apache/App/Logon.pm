@@ -3,16 +3,15 @@ package SL::Apache::App::Logon;
 use strict;
 use warnings;
 
-use Apache2::Const -compile => qw( NOT_FOUND SERVER_ERROR REDIRECT );
+use Apache2::Const -compile => qw( NOT_FOUND SERVER_ERROR REDIRECT OK );
 use Apache2::Log;
 use Apache2::RequestIO;
 use Apache2::RequestRec ();
 use DBD::Pg qw(:pg_types);
 use SL::Model;
-use Template;
 
-my %tmpl_config = ( INCLUDE_PATH => '/tmpl' );    # or list ref
-my $tmpl = Template->new( \%tmpl_config ) || die $Template::ERROR;
+use SL::App::Template ();
+our $tmpl = SL::App::Template->template();
 
 my $insert = <<INSERT;
 INSERT INTO reg

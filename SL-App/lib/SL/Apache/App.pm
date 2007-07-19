@@ -3,16 +3,13 @@ package SL::Apache::App;
 use strict;
 use warnings;
 
+our $VERSION = 0.10;
+
 use Apache2::Const -compile => qw(OK SERVER_ERROR NOT_FOUND M_GET M_POST);
 use Apache2::Log ();
 
-# setup our template object
-use SL::Config;
-my $config = SL::Config->new;
-
-use Template;
-my %tmpl_config = ( INCLUDE_PATH => $config->tmpl_root . '/app' );
-my $tmpl = Template->new( \%tmpl_config) || die $Template::ERROR;
+use SL::App::Template ();
+our $tmpl = SL::App::Template->template();
 
 =head1 METHODS
 

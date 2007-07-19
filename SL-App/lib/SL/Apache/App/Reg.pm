@@ -9,16 +9,10 @@ use Apache2::Log        ();
 use Apache2::Const -compile => qw( OK SERVER_ERROR );
 use Apache2::Connection     ();
 use Apache2::ConnectionUtil ();
-use Template;
 
-my $tmpl;
+use SL::App::Template ();
+our $tmpl = SL::App::Template->template();
 
-BEGIN {
-    my $tmpl_root = $ENV{SL_ROOT} . '/proxyserver/tmpl';
-    my %config = ( INCLUDE_PATH => $tmpl_root );    # or list ref
-    $tmpl = Template->new( \%config ) || die $Template::ERROR;
-    require Data::Dumper;
-}
 
 sub handler {
     my $r = shift;

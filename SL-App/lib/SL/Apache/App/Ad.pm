@@ -12,13 +12,8 @@ use Apache2::SubRequest ();
 
 use base 'SL::Apache::App';
 
-# setup our template object
-use SL::Config ();
-my $config = SL::Config->new;
-
-use Template ();
-my %tmpl_config = ( INCLUDE_PATH => $config->tmpl_root . '/app' );
-my $tmpl = Template->new( \%tmpl_config ) || die $Template::ERROR;
+use SL::App::Template ();
+our $tmpl = SL::App::Template->template();
 
 # this specific template logic
 use Data::Dumper;

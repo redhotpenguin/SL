@@ -17,9 +17,8 @@ use SL::Config;
 my $config    = SL::Config->new();
 my $DATA_ROOT = $config->sl_data_root;
 
-use Template;
-my %tmpl_config = ( INCLUDE_PATH => $config->tmpl_root . '/app' );
-my $tmpl = Template->new( \%tmpl_config ) || $Template::ERROR;
+use SL::App::Template ();
+our $tmpl = SL::App::Template->template();
 
 sub dispatch_index {
     my ( $self, $r ) = @_;

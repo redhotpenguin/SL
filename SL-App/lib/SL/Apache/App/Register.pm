@@ -3,7 +3,7 @@ package SL::Apache::App::Register;
 use strict;
 use warnings;
 
-use Apache2::Const -compile => qw( OK HTTP_NOT_MODFIED );
+use Apache2::Const -compile => qw( OK HTTP_NOT_MODIFIED );
 use Apache2::RequestRec ();
 use Apache2::Connection ();
 use SL::Model::App;
