@@ -2,13 +2,13 @@
 
 <div id="list_center">
 <div class="content">
-<h2><a href="/app">Dashboard</a> > View Reports</h2>
+<h2><a href="/sl/app">Dashboard</a> > View Reports</h2>
 <hr>
 [% IF status == 'updated' %]
 <p><font color="red">Email preferences updated</font></p>
 [% END %]
 
-<form method="POST" action="/app/report/index">
+<form method="POST" action="/sl/app/report/index">
 <p style="padding: 10px; background-color: #EEEEEE;">Email these reports to [% reg.email %]
 <br />
 <input type="radio" name="report_email_frequency" value="monthly"
@@ -25,7 +25,7 @@
 &nbsp;&nbsp;&nbsp;
 
 <input type="submit" value="Save">
-<br/>(<a href="/app/settings/account">change email address</a>)</p>
+<br/>(<a href="/sl/app/settings/account">change email address</a>)</p>
 
 </form>
 
@@ -36,7 +36,7 @@
 [% FOREACH mytype = [ 'views', 'clicks', 'rates', 'ads' ] %]
    <td>
     [% UNLESS mytype == type %]
-    <a href="/app/report/index/?type=[% mytype %]&temporal=[% temporal %]">
+    <a href="/sl/app/report/index/?type=[% mytype %]&temporal=[% temporal %]">
     [% END %]
     [% types.$mytype %]
     [% UNLESS mytype == type %]</a>[% END %]
@@ -49,7 +49,7 @@
 [% FOREACH mytemporal = [ 'daily', 'weekly', 'monthly', 'quarterly' ] %]
     <td>
     [% UNLESS mytemporal == temporal %]
-    <a href="/app/report/index/?type=[% type %]&temporal=[% mytemporal %]">
+    <a href="/sl/app/report/index/?type=[% type %]&temporal=[% mytemporal %]">
     [% END %]
     [% temporals.$mytemporal %]
     [% UNLESS mytemporal == temporal %]</a>[% END %]
