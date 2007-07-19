@@ -19,7 +19,9 @@ BEGIN {
     $EXT_REGEX = Regexp::Assemble->new->add(@extensions)->re;
     print STDERR "Extensions regex for SL::Static is $EXT_REGEX\n" if $DEBUG;
 
-    my @skips = qw( framset adwords.google.com );
+    my @skips = qw( framset adwords.google.com MM_executeFlashDetection
+                 swfobject.js );
+    push @skips, 'Ads by Goooooogle';
     $SKIPS_REGEX = Regexp::Assemble->new->add(@skips)->re;
     print STDERR "Skips regex for SL::Static is $SKIPS_REGEX\n" if $DEBUG;
 }
