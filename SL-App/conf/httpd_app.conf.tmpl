@@ -61,10 +61,18 @@ PerlPostReadRequestHandler Apache2::Const::OK
 PerlLoadModule Apache2::Dispatch
 
 ## the public facing page
-#<Location />
-#	SetHandler modperl
-#	PerlResponseHandler SL::Apache::App::Root
-#</Location>
+## FIXME - apache dispatch bug
+<Location />
+	SetHandler modperl
+
+    # dispatch directives
+	DispatchPrefix SL::Apache::App
+	[% IF dispatch_debug %]DispatchDebug [% dispatchdebug %][% END %]
+	DispatchRequire On
+	DispatchUpperCase On
+
+	PerlResponseHandler Apache2::Dispatch
+</Location>
 
 <Location /css>
     SetHandler default-handler
@@ -77,13 +85,7 @@ PerlLoadModule Apache2::Dispatch
 	SetHandler modperl
 	PerlAuthenHandler SL::Apache::App::CookieAuth->authenticate
 	PerlAuthzHandler Apache2::Const::OK
-	require valid-user
-	
-	DispatchPrefix SL::Apache::App
-	#DispatchDebug 2
-	DispatchRequire On
-	DispatchUpperCase On
-	PerlResponseHandler Apache2::Dispatch
+	require valid-use
 </Location>
 
 <Location /login>
