@@ -6,7 +6,7 @@ use warnings;
 use SL::Config;
 use Cache::FastMmap;
 
-our $VERSION = 0.13;
+our $VERSION = 0.14;
 
 our ($RAW_CACHE, $OBJ_CACHE);
 BEGIN {
@@ -77,7 +77,10 @@ sub is_user_blacklisted {
 
 sub add_known_html {
     my ( $self, $url, $content_type ) = @_;
-    die unless ( $url && $content_type );
+    unless ( $url && $content_type ) {
+		warn("url $url or content type $content_type missing");
+		return;
+	}
 
     $self->{cache}->set(
         join ('|', 'known_html', $url) => $content_type

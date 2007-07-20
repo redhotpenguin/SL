@@ -1,5 +1,8 @@
 Revision history for SL::Cache
 
+0.14 Thu Jul 19 20:22:53 2007
+	- warn if no content_type is passed to add_known_html instead of dying
+
 0.13 Wed Jul 18 09:02:00 2007
     - replace quotes also when replacing the subrequest with canonicalized
       request and port number
