@@ -1,9 +1,9 @@
-[% INCLUDE header.tmpl %]
+[% PROCESS header.tmpl %]
 
 <div id="list_center">
 	<div class="content">
 
-<h2><a href="[% base_uri %]/app">Dashboard</a> > <a href="[% base_uri %]/app/settings/index"> Manage Settings</a> > Manage Router
+<h2>[% PROCESS dashboard.tmpl %] > <a href="[% base_uri %]/app/settings/index"> Manage Settings</a> > Manage Router
 [% IF router.name %] [% router.name %] 
 [% ELSE %] [% router.ip %]
 [% END %]</h2>
@@ -68,6 +68,6 @@ Upload New Image[% IF status == 'missing' %]</font>[% END %]
 </div>
 </div>
 </div>
-[% INCLUDE right.tmpl %]
-[% INCLUDE footer.tmpl %]
+[% PROCESS right.tmpl %]
+[% PROCESS footer.tmpl %]
 

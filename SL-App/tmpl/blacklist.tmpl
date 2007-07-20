@@ -1,9 +1,9 @@
-[% INCLUDE header.tmpl %]
+[% PROCESS header.tmpl %]
 
 <div id="list_center">
 <div class="content">
 
-<h2><a href="[% base_uri %]/app">Dashboard</a> > Blacklist Websites</h2>
+<h2>[% PROCESS dashboard.tmpl %] > Blacklist Websites</h2>
 
 [% IF status == 'exists' %]
 <p><font color="red">Url '[% url %]' has already been blacklisted :-)</font></p>
@@ -38,7 +38,7 @@
     <td>[% url.ts %]</td>
 
     [% IF root == 1 %]
-    <td><a href="[% base_uri %]/app/blacklist/delete/?url_id=[% url.url_id %]">Delete</a></td>
+    <td><a href="[% base_uri %]/app/home/blacklist/delete/?url_id=[% url.url_id %]">Delete</a></td>
     [% END %]
   </tr>
 [% END %]
@@ -46,6 +46,6 @@
 </div>
 </div>
 
-[% INCLUDE footer.tmpl %]
+[% PROCESS footer.tmpl %]
 
 

@@ -1,9 +1,9 @@
-[% INCLUDE header.tmpl %]
+[% PROCESS header.tmpl %]
 
 <div id="list_center">
 <div class="content">
 
-<h2><a href="[% base_uri %]/app">Dashboard</a> > Manage Your Ads > [% count %] Ads Total</h2>
+<h2>[% PROCESS dashboard.tmpl %] > Manage Your Ads > [% count %] Ads Total</h2>
 [% IF status == 'added' %]
 <p><font color="red">Ad '[% ad_text %]' was successfully added.</font></p>
 [% ELSIF  status == 'updated' %]
@@ -39,4 +39,4 @@
 </table>
 </div>
 </div>
-[% INCLUDE footer.tmpl %]
+[% PROCESS footer.tmpl %]
