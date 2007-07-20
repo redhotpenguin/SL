@@ -10,7 +10,9 @@ use Apache2::Upload     ();
 use Apache2::ServerUtil ();
 use Data::FormValidator ();
 use Digest::MD5         ();
+
 use SL::Model::App      ();
+our $SCHEMA = SL::Model::App->schema;
 
 use base 'SL::Apache::App';
 use SL::Config;
@@ -24,23 +26,26 @@ sub dispatch_index {
     my ( $self, $r ) = @_;
 
     my $req     = Apache2::Request->new($r);
-    my @routers =
-      SL::Model::App->resultset('Router')
-      ->search( { reg_id => $r->pnotes( $r->user )->reg_id } );
+    # get all routers for this user
+
+   my @router__regs = $r->pnotes( $r->user )->router__regs;
+   my @routers = map { $_->router_id } @router__regs;
+
+   # TODO
+   #my @routers = $r->pnotes( $r->user )->router__regs->get_column('router_id')->all;
+
 
     # see if this ip is currently unregistered;
-    my $is_registered = grep { $_->ip eq $r->connection->remote_ip } @routers;
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
-
             root    => $r->pnotes('root'),
             reg     => $r->pnotes( $r->user ),
             status  => $req->param('status') || '',
-            routers => \@routers
         );
-        unless ($is_registered) {
-          $tmpl_data{'unregistered_ip'} = $r->connection->remote_ip;
+        if (scalar(@routers) > 0 ) {
+          $tmpl_data{routers} = \@routers;
         }
+
         my $output;
         my $ok = $tmpl->process( 'settings/index.tmpl', \%tmpl_data, \$output );
         $ok
@@ -119,7 +124,7 @@ sub dispatch_router {
 
     my $req = Apache2::Request->new( $r, TEMP_DIR => '/tmp' );
 
-    my $router;
+    my ($router, @locations);
     if ($req->param('id') == -1) {
       # adding a new router
       $router = SL::Model::App->resultset('Router')->new( 
@@ -128,28 +133,20 @@ sub dispatch_router {
       $router->insert;
       $router->update;
     } elsif ($req->param('id')) {
-      ($router) = SL::Model::App->resultset('Router')->search(
-        {
-            router_id => $req->param('id'),
-            reg_id    => $r->pnotes( $r->user )->reg_id,
-        });
-    }
 
+      # using existing router
+      ($router) = $SCHEMA->resultset('Router')->search({
+            router_id => $req->param('id'),
+        });
+      my @router__locations = $router->router__locations;
+      @locations = map { $_->location_id } @router__locations;
+    }
     return Apache2::Const::NOT_FOUND unless $router;
 
-    my $subdir = $r->pnotes( $r->user )->reg_id . "/" . $router->ip;
-    my $dir    = "$DATA_ROOT/$subdir";
-    unless ( -d $dir ) {
-        ( system("mkdir -p $dir") == 0 ) or die "DIR IS $dir " . $!;
-    }
+    # grab the locations where this router has been 
 
-    my %img = ( file => "$dir/logo.gif", link => "/img/user/$subdir/logo.gif" );
-    unless ( -e $img{'file'} ) {
-        $img{'link'} =
-          'http://www.redhotpenguin.com/images/sl/free_wireless.gif';
-    }
     my $status;
-
+    # GET
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
             root         => $r->pnotes('root'),
@@ -157,8 +154,10 @@ sub dispatch_router {
             status       => $req->param('status') || '',
             updated_name => $req->param('updated_name') || '',
             router       => $router,
-            file         => $img{'link'}
         );
+        if (scalar(@locations) > 0) {
+          $tmpl_data{locations} = \@locations;
+        }
 
         my $output;
         my $ok =
@@ -166,48 +165,8 @@ sub dispatch_router {
         $ok
           ? return $self->ok( $r, $output )
           : return $self->error( $r, "Template error: " . $tmpl->error() );
-    }
-    elsif ( $r->method_number == Apache2::Const::M_POST ) {
+    }   elsif ( $r->method_number == Apache2::Const::M_POST ) {
         $r->method_number(Apache2::Const::M_GET);
-        my $upload = $req->upload('bug');
-        if ($upload) {
-
-            # save the file
-            if ( -e $img{'file'} ) {
-                unlink $img{'file'}
-                  or die "Could not unlink $img{'file'}, $!";
-            }
-            my $new = $img{'file'} . '.new';
-            unlink($new) if -e $new;
-            $upload->link($new) or die "Could not link $img{'file'}, $!";
-
-            # convert the image
-            my $convert = `convert -sample 90x45 $new $img{'file'}`;
-            if ($convert) {
-                $r->log->error("$$ $self image conversion error: $convert");
-                die;
-            }
-
-            # push it to the image server
-            my $system_user = getpwuid( Apache2::ServerUtil->user_id );
-            my $static_host = $config->get('sl_app_static_host_ip');
-            my $static_path = $config->get('sl_app_static_path');
-            my $static_user = $config->get('sl_app_static_user');
-            my $cmd         =
-"rsync -avze ssh $DATA_ROOT/ $static_user\@$static_host:/$static_path/user/";
-            my $push = `$cmd`;
-            $r->log->debug("cmd $cmd push is $push");
-
-            if ( $push =~ m/timed out/i ) {
-                $r->log->error("$$ $self rsync failure: $push");
-                die;
-            }
-            if ( $push =~ m/permission denied/i ) {
-                $r->log->error("$$ $self rsync failure: $push");
-                die;
-            }
-            $status = 'ok';
-        }
 
         my $updated_name;
         if ( $req->param('name') && ( $req->param('name') ne $router->name ) ) {
@@ -216,9 +175,7 @@ sub dispatch_router {
             $updated_name = 'ok';
         }
         my $uri = '?';
-        if ($status) {
-            $uri .= "status=$status&";
-        }
+
         if ($updated_name) {
             $uri .= "updated_name=$updated_name&";
         }

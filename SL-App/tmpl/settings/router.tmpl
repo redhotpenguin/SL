@@ -17,14 +17,6 @@
 <p><font color="red">Name has been updated</font></p>
 [% END %]
 
-[% IF status == 'ok'%]
-<p><font color="red">Image has been uploaded</font></p>
-[% ELSIF status == 'not_gif' %]
-<p><font color="red">Sorry that wasn't a gif! Please upload a 80 pixel wide by 50 pixel high gif.</font></p>
-[% ELSIF status == 'not_sized' %]
-<p><font color="red">Sorry that gif image was too big!  It needs to be smaller than 80 pixels wide and 50 pixels high.</font></p>
-[% END %]
-
 <table class="edit">
 
 <tr><td>
@@ -38,31 +30,35 @@ Name this router:
 <input type="hidden" name="id" value="[% router.router_id %]">
 </td></tr>
 
-<tr><td colspan="2">This router is located at ip <b>[% router.ip %]</b></td></tr>
-
-[% IF file != '' %]
-<tr><td>Current Sponsor Image:&nbsp;</td><td><img src='[% file %]'></td></tr>
-[% END %]
-
 
 <tr><td>
-[% IF errors.missing %]<font color="red">[% END %]
-Upload New Image[% IF status == 'missing' %]</font>[% END %]
+[% IF errors.missing.macaddr %]<font color="red">Mac address:</font>
+[% ELSE %]
+Mac address:
+[% END %]
 </td>
-<td><input type=file name=bug></td></tr>
-<tr style="margin: 0px; padding: 0px;"><td colspan=2><font color="#CCCCCC">
-(Image will be resized to a 90px wide by 45 px tall gif)</font></td></tr>
-
-<hr size=1 color="#CCCCCC">
-<tr><td><input type="submit" value="Save"></td></tr>
-</form>
-
-[% IF img_file != '' %]
-<tr><td>
-<img src="[% img_file %]">
+<td>
+<input type="text" name = "name" size="17" maxlength="17" value='[% router.macaddr %]'>
 </td></tr>
+
+<tr><td>
+[% IF errors.missing.serial_number %]<font color="red">Serial number:</font>
+[% ELSE %]
+Serial number:
+[% END %]
+</td>
+<td>
+<input type="text" name = "name" size="25" maxlength="25" value='[% router.serial_number %]'>
+</td></tr>
+
+[% IF locations %]
+<tr><td colspan="2">This router has been registered at the following locations:</td></tr>
+
+[% FOREACH location = locations %]
+  <tr><td><ul><li>[% IF location.name %][% location.name %][% ELSE %]Unnamed location[% END %] - [% location.ip %]</li></ul></td></tr>
 [% END %]
 
+[% END %]
   </table>
 
 </div>
