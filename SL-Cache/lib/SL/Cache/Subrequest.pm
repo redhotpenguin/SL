@@ -3,6 +3,7 @@ package SL::Cache::Subrequest;
 use strict;
 use warnings;
 
+use String::Strip ();
 use HTML::TokeParser ();
 use URI              ();
 use SL::Cache        ();
@@ -72,6 +73,7 @@ sub collect_subrequests {
     my ( $content_ref, $base_url ) = @args{qw(content_ref base_url)};
 
     my $parser = HTML::TokeParser->new($content_ref);
+    $parser->attr_encoded(1);
 
     # look for tags that can house sub-reqs
     my ( @subrequests, %found );
@@ -81,6 +83,9 @@ sub collect_subrequests {
 
         # skip these iframe and frame invalid targets
         next unless $url;
+
+        # strip whitespace from the url (html::parser leaves it in)
+        String::Strip::StripLTSpace($url);
 
         # get a normalized URL
         my $normalized_url = _normalize_url( $url, $base_url );
@@ -122,9 +127,12 @@ sub replace_subrequests {
 
         # run the substitution, match surrounding quotes to handle
         # mixed and absolute urls
-        my $matched = $$content_ref =~ 
-            s/(['"])\Q$orig_url\E(['"])/$1$replacement_url$2/sg;
-        
+        # change this regex and I will beat you with a stick
+        my $matched = $$content_ref =~
+            s/((['"]|\=)\s{0,3}?)\Q$orig_url\E(['"]?)/$1$replacement_url$2/sg;
+#           s/(['"\=]\s{0,3}?)\Q$orig_url\E(['"]?)/$1$replacement_url$2/sg;
+        # match leading "
+
         warn("did not replace $orig_url with $replacement_url ok")
             unless $matched;
     }

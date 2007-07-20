@@ -32,7 +32,7 @@ my $i = 0;
 # unique subrequests
 my %subreq_hash = map { $_->[0] => 1 } @{$subreq_ref};
 foreach my $test_url ( @{ test_urls() } ) {
-    ok(exists $subreq_hash{$test_url});
+    ok(exists $subreq_hash{$test_url}, "checking $test_url");
 }
 
 diag('test replacing the links');
@@ -40,6 +40,11 @@ my $port = '6969';
 $start = [gettimeofday];
 my $ok = $subreq->replace_subrequests(
         { port => $port, content_ref => \$content, subreq_ref => $subreq_ref });
+
+no strict 'refs';
+open(FH, '>', '/tmp/replace') or die;
+print FH $content;
+close(FH);
 
 ok($ok, 'replace_subrequests ok');
 $interval = tv_interval( $start, [gettimeofday] );
@@ -75,7 +80,7 @@ sub test_urls {
 '/templates/types/homepage/graphics/sub_podcasts.gif',
 '/templates/types/homepage/graphics/block_red.gif',
 '/templates/types/homepage/graphics/dashes215x5.gif',
-'http://pagead2.googlesyndication.com/pagead/imp.gif?client=ca-sfgate-home_js&event=noscript',
+'http://pagead2.googlesyndication.com/pagead/imp.gif?client=ca-sfgate-home_js&amp;event=noscript',
 '/templates/types/object/graphics/dip_t.gif',
 '/templates/types/homepage/graphics/dashes210x5.gif',
 '/c/pictures/2007/07/03_t/ga_AsianBirdFluEricsueyoshi_t.gif',
@@ -1135,7 +1140,7 @@ face="geneva,arial,sans-serif"><b><a href="/mexico/">Mazatl&aacute;n Miracles</a
 <!-- google afc -->
 <!-- begin google/afc/javascript/placead.shtml -->
 <script type="text/javascript" language="JavaScript"
-src="http://pagead2.googlesyndication.com/pagead/show_ads.js"></script>
+src=" http://pagead2.googlesyndication.com/pagead/show_ads.js "></script>
 <noscript>
   <img height="1"
        alt="google ad"

@@ -46,6 +46,7 @@ ok(
         { port => $port, content_ref => \$content, subreq_ref => $subreq_ref }
     )
 );
+
 $interval = tv_interval( $start, [gettimeofday] );
 $limit = 0.025;    # 25 milliseconds
 diag("replacement took $interval seconds");
@@ -99,6 +100,8 @@ __DATA__
 <!-- begin AdBrite conversion tracking code -->
 
 <img border=0 hspace=0 vspace=0 width=1 height=1 src=http://stats.adbrite.com/stats/stats.gif?_cpid=conversion&_uid=207319>
+<img border=0 hspace=0 vspace=0 width=1 height=1 src= http://stats.adbrite.com/stats/stats.gif?_cpid=conversion&_uid=207319>
+<img border=0 hspace=0 vspace=0 width=1 height=1 src =  http://stats.adbrite.com/stats/stats.gif?_cpid=conversion&_uid=207319 ">
 
 <!-- end AdBrite conversion tracking code -->
 <div id="container">

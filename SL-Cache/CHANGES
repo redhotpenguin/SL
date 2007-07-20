@@ -1,5 +1,10 @@
 Revision history for SL::Cache
 
+0.15 Fri Jul 20 14:22:22 2007
+    - fix a few broken edge cases in subrequest replacement where various 
+      incantations of src attributes with quotes, no quotes, spaces, and 
+      such was causing subrequests not to be replaced
+
 0.14 Thu Jul 19 20:22:53 2007
 	- warn if no content_type is passed to add_known_html instead of dying
 

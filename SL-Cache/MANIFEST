@@ -6,6 +6,10 @@ lib/SL/Cache/Subrequest.pm
 lib/SL/Cache.pm
 Makefile.PL
 MANIFEST
+src/Cache-FastMmap-1.14.tar.gz
+src/String-Strip-1.01.tar.gz
+t/SL-Cache-RateLimit.t
+t/SL-Cache-Subrequest-Leknott.t
 t/SL-Cache-Subrequest-Sfgate.t
 t/SL-Cache-Subrequest-Yahoo.t
 t/SL-Cache-Subrequest.t
