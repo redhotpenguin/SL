@@ -3,7 +3,7 @@ package SL::Apache::Proxy::AccessHandler;
 use strict;
 use warnings;
 
-use Apache2::Const -compile => qw( OK FORBIDDEN DONE );
+use Apache2::Const -compile => qw( OK FORBIDDEN HTTP_SERVICE_UNAVAILABLE );
 use Apache2::RequestRec        ();
 use Apache2::Log               ();
 use Apache2::Connection        ();
@@ -19,15 +19,26 @@ sub handler {
     }
 
     # see if we know this ip is registered
-    if (
-        SL::Model::Proxy::Location->get_location_id_from_ip(
-            $r->connection->remote_ip
-        )
-      )
-    {
-        return Apache2::Const::OK;
-    }
-    return Apache2::Const::FORBIDDEN;
+    my $location = eval { SL::Model::Proxy::Location->get_location_id_from_ip(
+            $r->connection->remote_ip ); };
+
+	if ($@) {
+		
+		# db connect failed, run and hide!  can't do much else without auth
+		$r->log->error(sprintf("get_location_id_from_ip for ip %s failed, err %s",
+				$r->connection->remote_ip, $@ ));
+		return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
+    } elsif ($location) {
+		
+		# authorized client, let them pass        
+		return Apache2::Const::OK;
+    } elsif (!$location) {
+		
+		# unauthorized attempt
+		$r->log->error(sprintf("client ip %s unregistered access attempt to url %s",
+				$r->connection->remote_ip, $url));
+		return Apache2::Const::FORBIDDEN
+	} 
 }
 
 1;
