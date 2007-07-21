@@ -64,8 +64,8 @@ sub _redirect {
 	if (($r->pnotes('referer') eq 'no_referer') or ( !$r->pnotes('referer'))) {
 		# if no referer redirect to the root url
 		$r->log->error(sprintf("no referer, uid %s sending to base domain %s",
-				$user_id, $r->construct_url));
-		$r->headers_out->set(Location => $r->construct_url);
+				$user_id, $r->construct_url('/')));
+		$r->headers_out->set(Location => $r->construct_url('/'));
 	} else {
 		# redirect back to the referring page
 		$r->headers_out->set(Location => $r->pnotes('referer'));
