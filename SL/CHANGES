@@ -1,3 +1,7 @@
+0.10 Sat Jul 21 15:37:41 2007
+	- fix internal server error when url is blacklisted more than once
+	- 500 => 503 when access handler cannot connect to database
+	- refactor a ton of stuff out of this distro into separate modules
 0.09 
 	- Fix a security bug where the Access handler was not getting invoked
     - Move subrequest check to TransHandler
