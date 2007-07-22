@@ -37,7 +37,7 @@ use SL::Cache::Subrequest ();
 use SL::Cache::RateLimit  ();
 use SL::Model::RateLimit  ();
 use SL::Model::Proxy::Router  ();
-use Data::Dumper          ();
+use Data::Dumper          qw(Dumper);
 use Encode                ();
 use RHP::Timer            ();
 use Regexp::Assemble      ();
@@ -47,7 +47,7 @@ my $TIMER = RHP::Timer->new();
 use constant NOOP_RESPONSE => 0;
 use constant SL_XHEADER    => 0;
 
-our $VERBOSE_DEBUG = 0;
+our $VERBOSE_DEBUG = 1;
 our %response_map  = (
     200 => 'twohundred',
     206 => 'twoohsix',
@@ -227,9 +227,10 @@ sub handler {
     return &$sub( $r, $response );
 }
 
-sub twoohsix {
+sub _translate_headers {
 	my ($r, $res) = @_;
 
+	# clear the current headers
     my %headers;
     $r->headers_out->clear();
  
@@ -250,14 +251,32 @@ sub twoohsix {
             $headers{$key} =~ s/\n/ /g;
         }
 
-        #$r->log->debug(
-        #        "Setting key $key, value "
-        #      . $headers{$key}
-        #      . " to headers"
-        #);
+        $r->log->debug(
+                "Setting key $key, value "
+              . $headers{$key}
+              . " to headers"
+        );
 
+		# set the headers out
         $r->headers_out->set( $key => $headers{$key} );
     }
+
+	return 1;
+}
+ 
+sub twoohsix {
+	my ($r, $res) = @_;
+    
+	$r->log->debug( "$$ Request returned 206 response ",
+        Data::Dumper::Dumper($res) );
+
+	# status line '206 response
+	$r->status_line( $res->status_line );
+
+	# translate the headers from the remote response to the proxy response
+	my $translated = _translate_headers($r, $res);
+	$r->log->error(sprintf("header translation error \$r: %s, \$res %s",
+			$r->as_string, Dumper($res))) unless $translated;
 
     # rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
@@ -285,25 +304,6 @@ sub bsod {
     return Apache2::Const::OK;
 }
 
-sub threeohthree {
-	my ($r, $res) = @_;
-
-	############################################
-	# NOTE - this is a copy of sub redirect
-	$r->log->debug( "$$ threeohthree: ",
-        Data::Dumper::Dumper( $res ) );
-
-    # set the status line
-    $r->status_line( $res->status_line );
-    
-	## Handle the redirect for the client
-    _err_cookies_out( $r, $res );
-    $r->headers_out->set( 'Location' => $res->header('location') );
-    $r->log->debug( "$$ Request: \n" . $r->as_string ) if $VERBOSE_DEBUG;
-    return Apache2::Const::REDIRECT;
-	##########################################
-}
-
 sub badrequest {
     my ($r, $res) = @_;
 
@@ -317,24 +317,6 @@ sub badrequest {
     _err_cookies_out( $r, $res );
 	
 	# send the response (400 in status line)
-    $r->print( $res->content );
-    return Apache2::Const::OK;
-}
-
-sub fourohfour {
-    my ( $r, $res ) = @_;
-
-    # FIXME - set the proper headers out
-    $r->log->debug( "$$ Request returned 404, response ",
-        Data::Dumper::Dumper($res) );
-
-	# setup response
-	$r->status_line( $res->status_line );
-    my $content_type = $res->content_type;
-    $r->content_type($content_type);
-    _err_cookies_out( $r, $res );
-
-	# send the response (404 in status line)
     $r->print( $res->content );
     return Apache2::Const::OK;
 }
@@ -382,6 +364,25 @@ sub fourohthree {
     return Apache2::Const::OK;
 }
 
+sub fourohfour {
+    my ( $r, $res ) = @_;
+
+    # FIXME - set the proper headers out
+    $r->log->debug( "$$ Request returned 404, response ",
+        Data::Dumper::Dumper($res) );
+
+	# setup response
+	$r->status_line( $res->status_line );
+    my $content_type = $res->content_type;
+    $r->content_type($content_type);
+    _err_cookies_out( $r, $res );
+
+	# send the response (404 in status line)
+    $r->print( $res->content );
+    return Apache2::Const::OK;
+}
+
+
 sub _add_x_headers {
     my ( $r, $res ) = @_;
     my @x_header_names =
@@ -396,22 +397,29 @@ sub _add_x_headers {
 }
 
 sub redirect {
-    my $r        = shift;
-    my $response = shift;
+    my ($r, $res) = @_;
 
-    $r->log->info("$$ 302 redirect handler invoked");
-    $r->log->debug( "$$ headers: ",
-        Data::Dumper::Dumper( $response->headers ) );
+    $r->log->debug(sprintf( "$$ status line %s, response: %s", 
+			$res->status_line, Dumper( $res ) ));
 
     # set the status line
-    $r->status_line( $response->status_line );
-    $r->log->debug( "status line is " . $response->status_line );
+    $r->status_line( $res->status_line );
+    $r->log->debug( "status line is " . $res->status_line );
 
-    ## Handle the redirect for the client
-    $r->headers_out->set( 'Location' => $response->header('location') );
-    _err_cookies_out( $r, $response );
+	# translate the headers from the remote response to the proxy response
+	my $translated = _translate_headers($r, $res);
+	$r->log->error(sprintf("header translation error \$r: %s, \$res %s",
+			$r->as_string, Dumper($res))) unless $translated;
+
     $r->log->debug( "$$ Request: \n" . $r->as_string ) if $VERBOSE_DEBUG;
     return Apache2::Const::REDIRECT;
+}
+
+# same as a 302 just different status line
+sub threeohthree {
+	my ($r, $res) = @_;
+
+	return redirect($r, $res);
 }
 
 sub _err_cookies_out {
@@ -457,19 +465,23 @@ sub twohundred {
 
     my $is_toofast;
     if ($is_html) {
-        $is_toofast = $RATE_LIMIT->check_violation($r->connection->remote_ip, $r->pnotes('ua'));
-		#$r->log->debug("$$ ===> $url check_violation: $is_toofast");
+        $is_toofast = $RATE_LIMIT->check_violation($r->connection->remote_ip, $r->pnotes('ua')) || 0;
+		$r->log->debug("$$ ===> $url check_violation: $is_toofast");
     }
 
     # serve an ad if this is HTML and it's not a sub-request of an
     # ad-serving page, and it's not too soon after a previous ad was served
     my $subrequests_ref;
-    if ( $is_html and not $is_toofast ) {    # and not $is_subreq) {
+	my $unset_content_length = 0;
+    if ( $is_html and 
+		(not $is_toofast) and 
+		(not $SUBREQUEST_TRACKER->is_subrequest(url => $r->pnotes('url')))) {
 
         # note the ad-serving time for the rate-limitter
         $RATE_LIMIT->record_ad_serve($r->connection->remote_ip, $r->pnotes('ua'));
 
 		$response_content_ref = _generate_response( $r, $response );
+		$unset_content_length = 1;
 
         if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {
             $r->log->info(
@@ -495,38 +507,28 @@ sub twohundred {
             );
         }
 
-    # replace the links
-    my $rep_ref = eval { SL::Model::Proxy::Router->replace_port( $r->connection->remote_ip ); };
-	if ($@) {
-		$r->log->error(sprintf("error getting replace_port for ip %s", $@));
-	}
+		# replace the links
+		my $rep_ref = 
+			eval { SL::Model::Proxy::Router->replace_port( $r->connection->remote_ip ); };
+		if ($@) {
+			$r->log->error(sprintf("error getting replace_port for ip %s", $@));
+		}
 
-    if ( defined $rep_ref ) { # && scalar( @{$rep_ref} ) == 1 ) {
-        my $ok = $SUBREQUEST_TRACKER->replace_subrequests(
-            {
+		if ( defined $rep_ref ) { # && scalar( @{$rep_ref} ) == 1 ) {
+			my $ok = $SUBREQUEST_TRACKER->replace_subrequests({
                 port       => $rep_ref->[1],    # r_id, port
                 subreq_ref => $subrequests_ref,
 				content_ref => $response_content_ref,
-            }
-        );
-		$r->log->error("could not replace subrequests") unless $ok;
-    }
-#    elsif (defined $rep_ref && scalar(@{$rep_ref}) > 1) {
-#        my @replace =
-#          map { $rep_ref->[$_]->[1] } ( 0 .. scalar( @{$rep_ref} ) - 1 );
-#        warn(
-#            sprintf( "router_ids %s different replace_port settings",
-#                join ( ',', @replace ) )
-#        );
-#    }
+            });
+			$r->log->error("could not replace subrequests") unless $ok;
+		}
 
-
-	}
+    } # end 'if ( $is_html and...' 
     else {
 
         # this is not html
         $response_content_ref = \$response->content;
-    }
+	}
 
  	$TIMER->start('prepare_response_headers')
       if ( $r->server->loglevel() == Apache2::Const::LOG_INFO );
@@ -595,10 +597,20 @@ sub twohundred {
         delete $headers{'Content-Language'};
     }
 
-    $r->headers_out->add( 'X-SilverLining' => 1 ) if (SL_XHEADER == 1);
-    $r->log->debug("$$ x-silverlining header set");
-    delete $headers{'Client-Peer'};
+	if (SL_XHEADER == 1) {
+		$r->headers_out->add( 'X-SilverLining' => 1 );
+		$r->log->debug("$$ x-silverlining header set");
+	}
+
+	delete $headers{'Client-Peer'};
     delete $headers{'Content-Encoding'};
+	
+	# unset the content length header if we changed the content length
+	if ((exists $headers{'Content-Length'}) && ($unset_content_length == 1)) {
+		$r->log->debug(sprintf("unsetting Content-Length header, currval %s",
+				$headers{'Content-Length'}));
+		delete $headers{'Content-Length'};
+	}
 
     foreach my $key ( keys %headers ) {
         next if $key =~ m/^Client/;    # skip HTTP::Response inserted headers
@@ -609,12 +621,12 @@ sub twohundred {
             $headers{$key} =~ s/\n/ /g;
         }
 
-        #$r->log->debug(
-        #        "Setting key $key, value "
-        #      . $headers{$key}
-        #      . " to headers"
-        #);
-
+        $r->log->debug(
+                "Setting key $key, value "
+              . $headers{$key}
+              . " to headers"
+        );
+		
         $r->headers_out->set( $key => $headers{$key} );
     }
 

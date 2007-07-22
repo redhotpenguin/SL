@@ -1,4 +1,6 @@
 0.10 Sat Jul 21 15:37:41 2007
+	- unset the Content-Length header if we served an ad.  thanks to garrett
+	  for the spot when searching wikipedia.com
 	- we do not throw our own internal server error anymore when we get one from
 	  the remote website (yay!), we pass their exception to the browser
 	- pass the 404 error back to the browser as well for custom pages
