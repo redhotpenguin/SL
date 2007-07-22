@@ -1,4 +1,11 @@
 0.10 Sat Jul 21 15:37:41 2007
+	- we do not throw our own internal server error anymore when we get one from
+	  the remote website (yay!), we pass their exception to the browser
+	- pass the 404 error back to the browser as well for custom pages
+	- 206 partial response handler
+	- 303 'See Other' response handler
+	- 403 response handler
+	- handle lost connection during fetch replace_port
 	- fix internal server error when url is blacklisted more than once
 	- 500 => 503 when access handler cannot connect to database
 	- refactor a ton of stuff out of this distro into separate modules

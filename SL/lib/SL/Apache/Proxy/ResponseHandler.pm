@@ -45,18 +45,22 @@ use Regexp::Assemble      ();
 my $TIMER = RHP::Timer->new();
 
 use constant NOOP_RESPONSE => 0;
+use constant SL_XHEADER    => 0;
 
 our $VERBOSE_DEBUG = 0;
 our %response_map  = (
     200 => 'twohundred',
-    404 => 'fourohfour',
+    206 => 'twoohsix',
+    301 => 'redirect',
+    302 => 'redirect',
+	300 => 'threeohthree',
+    304 => 'threeohfour',
+    307 => 'redirect',
     500 => 'bsod',
     400 => 'badrequest',
     401 => 'fourohone',
-    302 => 'redirect',
-    301 => 'redirect',
-    304 => 'threeohfour',
-    307 => 'redirect',
+    403 => 'fourohthree',
+    404 => 'fourohfour',
 );
 
 ## Make a user agent
@@ -223,22 +227,98 @@ sub handler {
     return &$sub( $r, $response );
 }
 
-sub bsod {
-    my $r        = shift;
-    my $response = shift;
+sub twoohsix {
+	my ($r, $res) = @_;
 
-    $r->log->error( "$$ Request returned 500, response ",
-        Data::Dumper::Dumper($response) );
-    return Apache2::Const::SERVER_ERROR;
+    my %headers;
+    $r->headers_out->clear();
+ 
+    # Create a hash with the HTTP::Response HTTP::Headers attributes
+    $res->scan( sub { $headers{ $_[0] } = $_[1]; } );
+
+	$r->log->debug(
+        sprintf( "Response headers: %s", Data::Dumper::Dumper( \%headers ) ) )
+      if $VERBOSE_DEBUG;
+
+    # now output the headers to the $r->headers_out->set
+	foreach my $key ( keys %headers ) {
+        next if $key =~ m/^Client/;    # skip HTTP::Response inserted headers
+
+        # some headers have an unecessary newline appended so chomp the value
+        chomp( $headers{$key} );
+        if ( $headers{$key} =~ m/\n/ ) {
+            $headers{$key} =~ s/\n/ /g;
+        }
+
+        #$r->log->debug(
+        #        "Setting key $key, value "
+        #      . $headers{$key}
+        #      . " to headers"
+        #);
+
+        $r->headers_out->set( $key => $headers{$key} );
+    }
+
+    # rflush() flushes the headers to the client
+    # thanks to gozer's mod_perl for speed presentation
+    $r->rflush();
+
+    $r->print($res->content);
+
+    return Apache2::Const::OK;
+}
+
+sub bsod {
+    my ($r, $res) = @_;
+
+    $r->log->debug( "$$ Request returned 500, response ",
+        Data::Dumper::Dumper($res) );
+		
+	# setup response
+	$r->status_line( $res->status_line );
+	my $content_type = $res->content_type;
+	$r->content_type($content_type);
+	_err_cookies_out( $r, $res );
+
+	# send the response (400 in status line)
+    $r->print( $res->content );
+    return Apache2::Const::OK;
+}
+
+sub threeohthree {
+	my ($r, $res) = @_;
+
+	############################################
+	# NOTE - this is a copy of sub redirect
+	$r->log->debug( "$$ threeohthree: ",
+        Data::Dumper::Dumper( $res ) );
+
+    # set the status line
+    $r->status_line( $res->status_line );
+    
+	## Handle the redirect for the client
+    _err_cookies_out( $r, $res );
+    $r->headers_out->set( 'Location' => $res->header('location') );
+    $r->log->debug( "$$ Request: \n" . $r->as_string ) if $VERBOSE_DEBUG;
+    return Apache2::Const::REDIRECT;
+	##########################################
 }
 
 sub badrequest {
-    my $r        = shift;
-    my $response = shift;
+    my ($r, $res) = @_;
 
-    $r->log->error( "$$ Request returned 400, response ",
-        Data::Dumper::Dumper($response) );
-    return Apache2::Const::HTTP_BAD_REQUEST;
+    $r->log->debug( "$$ Request returned 400, response ",
+        Data::Dumper::Dumper($res) );
+	
+	# setup response
+	$r->status_line( $res->status_line );
+    my $content_type = $res->content_type;
+    $r->content_type($content_type);
+    _err_cookies_out( $r, $res );
+	
+	# send the response (400 in status line)
+    $r->print( $res->content );
+    return Apache2::Const::OK;
 }
 
 sub fourohfour {
@@ -247,10 +327,14 @@ sub fourohfour {
     # FIXME - set the proper headers out
     $r->log->debug( "$$ Request returned 404, response ",
         Data::Dumper::Dumper($res) );
-    $r->status_line( $res->status_line );
+
+	# setup response
+	$r->status_line( $res->status_line );
     my $content_type = $res->content_type;
     $r->content_type($content_type);
     _err_cookies_out( $r, $res );
+
+	# send the response (404 in status line)
     $r->print( $res->content );
     return Apache2::Const::OK;
 }
@@ -260,9 +344,11 @@ sub fourohone {
     my $res = shift;
 
     # FIXME - set the proper headers out
-    $r->log->error( "$$ Request returned 401, response ",
+    $r->log->debug( "$$ Request returned 401, response ",
         Data::Dumper::Dumper($res) );
-    $r->status_line( $res->status_line );
+
+	# setup response
+	$r->status_line( $res->status_line );
     my $content_type = $res->content_type;
     $r->content_type($content_type);
     _err_cookies_out( $r, $res );
@@ -273,13 +359,27 @@ sub fourohone {
         "Auth headers are " . Data::Dumper::Dumper( \@auth_headers ) );
     $r->err_headers_out->add( 'www-authenticate' => $_ ) for @auth_headers;
 
-    _add_x_headers( $r, $res );
+	# print the custom response content, and return OK (401 in status_line)
+	$r->print($res->content);
+    return Apache2::Const::OK;
+}
 
-    # this print causes the response to go out as a 200, not a 401.
-    # No idea why...
-    # $r->print($res->content);
+sub fourohthree {
+	my ($r, $res) = @_;
+    
+	# FIXME - set the proper headers out
+    $r->log->debug( "$$ Request returned 403, response ",
+        Data::Dumper::Dumper($res) );
+	
+	# set the status line
+	$r->status_line( $res->status_line );
+    my $content_type = $res->content_type;
+    $r->content_type($content_type);
+    _err_cookies_out( $r, $res );
 
-    return Apache2::Const::HTTP_UNAUTHORIZED;
+	# print the custom response content, and return OK (401 in status_line)
+	$r->print($res->content);
+    return Apache2::Const::OK;
 }
 
 sub _add_x_headers {
@@ -396,7 +496,11 @@ sub twohundred {
         }
 
     # replace the links
-    my $rep_ref = SL::Model::Proxy::Router->replace_port( $r->connection->remote_ip );
+    my $rep_ref = eval { SL::Model::Proxy::Router->replace_port( $r->connection->remote_ip ); };
+	if ($@) {
+		$r->log->error(sprintf("error getting replace_port for ip %s", $@));
+	}
+
     if ( defined $rep_ref ) { # && scalar( @{$rep_ref} ) == 1 ) {
         my $ok = $SUBREQUEST_TRACKER->replace_subrequests(
             {
@@ -491,7 +595,7 @@ sub twohundred {
         delete $headers{'Content-Language'};
     }
 
-    $r->headers_out->add( 'X-SilverLining' => 1 );
+    $r->headers_out->add( 'X-SilverLining' => 1 ) if (SL_XHEADER == 1);
     $r->log->debug("$$ x-silverlining header set");
     delete $headers{'Client-Peer'};
     delete $headers{'Content-Encoding'};
