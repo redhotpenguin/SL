@@ -39,6 +39,8 @@ AllowEncodedSlashes On
     <IfModule mod_cache.c>
         <IfModule mod_mem_cache.c>
             CacheEnable mem /
+			# /ig is for igoogle.com, disable
+			CacheDisable /ig
             MCacheSize 65536
             MCacheMaxObjectCount 1024
             MCacheMinObjectSize 1
