@@ -1,4 +1,6 @@
 0.10 Sat Jul 21 15:37:41 2007
+	- return HTTP_MOVED_PERMANENTLY in the 301 handler
+	- replace links on pages that we scrape even if no ad is inserted
 	- unset the Content-Length header if we served an ad.  thanks to garrett
 	  for the spot when searching wikipedia.com
 	- we do not throw our own internal server error anymore when we get one from

@@ -19,7 +19,7 @@ Mostly Apache2 and HTTP class based.
 
 use Apache2::Const -compile => qw( OK SERVER_ERROR NOT_FOUND DECLINED
   REDIRECT LOG_DEBUG LOG_ERR LOG_INFO CONN_KEEPALIVE HTTP_BAD_REQUEST
-  HTTP_UNAUTHORIZED );
+  HTTP_UNAUTHORIZED HTTP_SEE_OTHER HTTP_MOVED_PERMANENTLY );
 use Apache2::Connection   ();
 use Apache2::Log          ();
 use Apache2::RequestRec   ();
@@ -51,10 +51,10 @@ our $VERBOSE_DEBUG = 1;
 our %response_map  = (
     200 => 'twohundred',
     206 => 'twoohsix',
-    301 => 'redirect',
+    301 => 'threeohone',
     302 => 'redirect',
-	300 => 'threeohthree',
-    304 => 'threeohfour',
+	303 => 'threeohthree',
+	304 => 'threeohfour',
     307 => 'redirect',
     500 => 'bsod',
     400 => 'badrequest',
@@ -396,6 +396,27 @@ sub _add_x_headers {
     return 1;
 }
 
+sub threeohone {
+    my ($r, $res) = @_;
+
+    $r->log->debug(sprintf( "$$ status line %s, response: %s", 
+			$res->status_line, Dumper( $res ) ));
+
+    # set the status line
+    $r->status_line( $res->status_line );
+    $r->log->debug( "status line is " . $res->status_line );
+
+	# translate the headers from the remote response to the proxy response
+	my $translated = _translate_headers($r, $res);
+	$r->log->error(sprintf("header translation error \$r: %s, \$res %s",
+			$r->as_string, Dumper($res))) unless $translated;
+
+    $r->log->debug( "$$ Request: \n" . $r->as_string ) if $VERBOSE_DEBUG;
+	
+	# do not change this line
+	return Apache2::Const::HTTP_MOVED_PERMANENTLY;
+}
+
 sub redirect {
     my ($r, $res) = @_;
 
@@ -412,14 +433,31 @@ sub redirect {
 			$r->as_string, Dumper($res))) unless $translated;
 
     $r->log->debug( "$$ Request: \n" . $r->as_string ) if $VERBOSE_DEBUG;
-    return Apache2::Const::REDIRECT;
+	
+	# do not change this line
+	return Apache2::Const::REDIRECT;
 }
 
-# same as a 302 just different status line
+# same as a 302 just different status line and constants
 sub threeohthree {
 	my ($r, $res) = @_;
 
-	return redirect($r, $res);
+    $r->log->debug(sprintf( "$$ status line %s, response: %s", 
+			$res->status_line, Dumper( $res ) ));
+
+    # set the status line
+    $r->status_line( $res->status_line );
+    $r->log->debug( "status line is " . $res->status_line );
+
+	# translate the headers from the remote response to the proxy response
+	my $translated = _translate_headers($r, $res);
+	$r->log->error(sprintf("header translation error \$r: %s, \$res %s",
+			$r->as_string, Dumper($res))) unless $translated;
+
+    $r->log->debug( "$$ Request: \n" . $r->as_string ) if $VERBOSE_DEBUG;
+	
+	# do not change this line
+	return Apache2::Const::HTTP_SEE_OTHER;
 }
 
 sub _err_cookies_out {
@@ -507,27 +545,32 @@ sub twohundred {
             );
         }
 
-		# replace the links
-		my $rep_ref = 
-			eval { SL::Model::Proxy::Router->replace_port( $r->connection->remote_ip ); };
-		if ($@) {
-			$r->log->error(sprintf("error getting replace_port for ip %s", $@));
-		}
-
-		if ( defined $rep_ref ) { # && scalar( @{$rep_ref} ) == 1 ) {
-			my $ok = $SUBREQUEST_TRACKER->replace_subrequests({
-                port       => $rep_ref->[1],    # r_id, port
-                subreq_ref => $subrequests_ref,
-				content_ref => $response_content_ref,
-            });
-			$r->log->error("could not replace subrequests") unless $ok;
-		}
 
     } # end 'if ( $is_html and...' 
     else {
 
         # this is not html
         $response_content_ref = \$response->content;
+	}
+
+	###########
+	# we replace the links even on pages that we don't serve ads on to
+	# speed things up
+	# replace the links if this router/location has a replace_port setting
+	my $rep_ref = eval { 
+		SL::Model::Proxy::Router->replace_port( $r->connection->remote_ip ); };
+	if ($@) {
+		$r->log->error(sprintf("error getting replace_port for ip %s", $@));
+	}
+	
+	if ( (defined $rep_ref) && (! $@) && ( defined $subrequests_ref)) {
+		# setting in place, replace the links
+		my $ok = $SUBREQUEST_TRACKER->replace_subrequests({
+               port       => $rep_ref->[1],    # r_id, port
+               subreq_ref => $subrequests_ref,
+	 		   content_ref => $response_content_ref,
+           });
+		$r->log->error("could not replace subrequests") unless $ok;
 	}
 
  	$TIMER->start('prepare_response_headers')
