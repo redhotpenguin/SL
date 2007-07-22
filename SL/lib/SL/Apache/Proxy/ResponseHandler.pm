@@ -19,7 +19,8 @@ Mostly Apache2 and HTTP class based.
 
 use Apache2::Const -compile => qw( OK SERVER_ERROR NOT_FOUND DECLINED
   REDIRECT LOG_DEBUG LOG_ERR LOG_INFO CONN_KEEPALIVE HTTP_BAD_REQUEST
-  HTTP_UNAUTHORIZED HTTP_SEE_OTHER HTTP_MOVED_PERMANENTLY );
+  HTTP_UNAUTHORIZED HTTP_SEE_OTHER HTTP_MOVED_PERMANENTLY
+  HTTP_NO_CONTENT HTTP_PARTIAL_CONTENT);
 use Apache2::Connection   ();
 use Apache2::Log          ();
 use Apache2::RequestRec   ();
@@ -50,6 +51,7 @@ use constant SL_XHEADER    => 0;
 our $VERBOSE_DEBUG = 1;
 our %response_map  = (
     200 => 'twohundred',
+    204 => 'twoohfour',
     206 => 'twoohsix',
     301 => 'threeohone',
     302 => 'redirect',
@@ -192,9 +194,8 @@ sub handler {
         $TIMER->start('make_remote_request');
     }
 
-    $r->log->debug( "$$ Remote proxy request: ",
-        Data::Dumper::Dumper($proxy_request) )
-      if $VERBOSE_DEBUG;
+    $r->log->debug( sprintf("$$ Remote proxy request: %s",
+			$proxy_request->as_string)) if $VERBOSE_DEBUG;
 
     # Make the request to the remote server
     my $response = $SL_UA->request($proxy_request);
@@ -230,40 +231,77 @@ sub handler {
 sub _translate_headers {
 	my ($r, $res) = @_;
 
+	$r->log->debug(sprintf( "Response headers: %s", $res->headers)); 
+	
 	# clear the current headers
-    my %headers;
     $r->headers_out->clear();
- 
-    # Create a hash with the HTTP::Response HTTP::Headers attributes
+
+	# first the cookies
+	if ( my @cookies = $res->header('set-cookie') ) {
+        foreach my $cookie (@cookies) {
+            $r->log->debug(sprintf("err_headers_out add cookie %s", $cookie));
+            $r->err_headers_out->add( 'Set-Cookie' => $cookie );
+        }
+		# and remove it from the response headers
+        $res->headers->remove_header('Set-Cookie');
+    }
+
+	# auth headers	
+    if ( my @auth_headers = $res->header('www-authenticate') ) {
+		$r->log->debug("Auth headers are " . Dumper( \@auth_headers ) );
+		$r->err_headers_out->add( 'www-authenticate' => $_ ) for @auth_headers;
+
+		# remove from response	
+		$res->headers->remove_header('www-authenticate');
+	}
+
+    # Create a hash with the remaining HTTP::Response HTTP::Headers attributes
+    my %headers;
     $res->scan( sub { $headers{ $_[0] } = $_[1]; } );
 
-	$r->log->debug(
-        sprintf( "Response headers: %s", Data::Dumper::Dumper( \%headers ) ) )
-      if $VERBOSE_DEBUG;
-
-    # now output the headers to the $r->headers_out->set
+	# now output the headers to the $r->headers_out->set
 	foreach my $key ( keys %headers ) {
         next if $key =~ m/^Client/;    # skip HTTP::Response inserted headers
 
         # some headers have an unecessary newline appended so chomp the value
         chomp( $headers{$key} );
-        if ( $headers{$key} =~ m/\n/ ) {
+        
+		# not sure why chomp doesn't fix this
+		if ( $headers{$key} =~ m/\n/ ) {
             $headers{$key} =~ s/\n/ /g;
         }
 
-        $r->log->debug(
-                "Setting key $key, value "
-              . $headers{$key}
-              . " to headers"
-        );
+        $r->log->debug(sprintf("Setting key %s, value %s to headers",
+			$key, $headers{$key}));
 
-		# set the headers out
-        $r->headers_out->set( $key => $headers{$key} );
+		$r->headers_out->set( $key => $headers{$key} );
     }
 
 	return 1;
 }
- 
+
+sub twoohfour {
+	my ($r, $res) = @_;
+    
+	$r->log->debug( "$$ Request returned 204 response ", Dumper($res) );
+
+	# status line 204 response
+	$r->status($res->code);
+
+	# translate the headers from the remote response to the proxy response
+	my $translated = _translate_headers($r, $res);
+	$r->log->error(sprintf("header translation error \$r: %s, \$res %s",
+			$r->as_string, Dumper($res))) unless $translated;
+
+    # rflush() flushes the headers to the client
+    # thanks to gozer's mod_perl for speed presentation
+    $r->rflush();
+
+	# no content sent for a 204
+	return Apache2::Const::OK;
+}
+
+
 sub twoohsix {
 	my ($r, $res) = @_;
     
@@ -271,8 +309,11 @@ sub twoohsix {
         Data::Dumper::Dumper($res) );
 
 	# status line '206 response
-	$r->status_line( $res->status_line );
+	$r->status($res->code);
 
+	my $content_type = $res->content_type;
+	$r->content_type($content_type) if $content_type;
+	
 	# translate the headers from the remote response to the proxy response
 	my $translated = _translate_headers($r, $res);
 	$r->log->error(sprintf("header translation error \$r: %s, \$res %s",
@@ -290,16 +331,21 @@ sub twoohsix {
 sub bsod {
     my ($r, $res) = @_;
 
-    $r->log->debug( "$$ Request returned 500, response ",
-        Data::Dumper::Dumper($res) );
+    $r->log->debug( "$$ Request returned 500, response ", Dumper($res) );
 		
 	# setup response
-	$r->status_line( $res->status_line );
-	my $content_type = $res->content_type;
-	$r->content_type($content_type);
-	_err_cookies_out( $r, $res );
+	$r->status($res->code);
 
-	# send the response (400 in status line)
+	my $content_type = $res->content_type;
+	$r->content_type($content_type) if $content_type;
+	
+	# translate the headers from the remote response to the proxy response
+	my $translated = _translate_headers($r, $res);
+
+    # rflush() flushes the headers to the client
+    # thanks to gozer's mod_perl for speed presentation
+    
+	$r->rflush();
     $r->print( $res->content );
     return Apache2::Const::OK;
 }
@@ -307,40 +353,44 @@ sub bsod {
 sub badrequest {
     my ($r, $res) = @_;
 
-    $r->log->debug( "$$ Request returned 400, response ",
-        Data::Dumper::Dumper($res) );
+    $r->log->debug( "$$ Request returned 400, response ", Dumper($res) );
 	
 	# setup response
-	$r->status_line( $res->status_line );
-    my $content_type = $res->content_type;
-    $r->content_type($content_type);
-    _err_cookies_out( $r, $res );
+	$r->status($res->code);
+    
+	my $content_type = $res->content_type;
+    $r->content_type($content_type) if $content_type;
 	
+	# translate the headers from the remote response to the proxy response
+	my $translated = _translate_headers($r, $res);
+    
+	# rflush() flushes the headers to the client
+    # thanks to gozer's mod_perl for speed presentation
+    $r->rflush();
+
 	# send the response (400 in status line)
     $r->print( $res->content );
     return Apache2::Const::OK;
 }
 
 sub fourohone {
-    my $r   = shift;
-    my $res = shift;
+    my ($r, $res) = @_;
 
-    # FIXME - set the proper headers out
-    $r->log->debug( "$$ Request returned 401, response ",
-        Data::Dumper::Dumper($res) );
+    $r->log->debug( "$$ Request returned 401, response ", Dumper($res) );
 
 	# setup response
-	$r->status_line( $res->status_line );
-    my $content_type = $res->content_type;
-    $r->content_type($content_type);
-    _err_cookies_out( $r, $res );
+	$r->status($res->code);
 
-    # method specific headers
-    my @auth_headers = $res->header('www-authenticate');
-    $r->log->debug(
-        "Auth headers are " . Data::Dumper::Dumper( \@auth_headers ) );
-    $r->err_headers_out->add( 'www-authenticate' => $_ ) for @auth_headers;
+	my $content_type = $res->content_type;
+    $r->content_type($content_type) if $content_type;
 
+    $r->rflush();
+	my $translated = _translate_headers($r, $res);
+
+    # rflush() flushes the headers to the client
+    # thanks to gozer's mod_perl for speed presentation
+    
+	$r->rflush();
 	# print the custom response content, and return OK (401 in status_line)
 	$r->print($res->content);
     return Apache2::Const::OK;
@@ -349,16 +399,20 @@ sub fourohone {
 sub fourohthree {
 	my ($r, $res) = @_;
     
-	# FIXME - set the proper headers out
-    $r->log->debug( "$$ Request returned 403, response ",
-        Data::Dumper::Dumper($res) );
+    $r->log->debug( "$$ Request returned 403, response ", Dumper($res) );
 	
-	# set the status line
-	$r->status_line( $res->status_line );
-    my $content_type = $res->content_type;
-    $r->content_type($content_type);
-    _err_cookies_out( $r, $res );
+	# set the status
+	$r->status($res->code);
+    
+	my $content_type = $res->content_type;
+    $r->content_type($content_type) if $content_type;
+	
+	my $translated = _translate_headers($r, $res);
 
+    # rflush() flushes the headers to the client
+    # thanks to gozer's mod_perl for speed presentation
+    $r->rflush();
+	
 	# print the custom response content, and return OK (401 in status_line)
 	$r->print($res->content);
     return Apache2::Const::OK;
@@ -367,33 +421,23 @@ sub fourohthree {
 sub fourohfour {
     my ( $r, $res ) = @_;
 
-    # FIXME - set the proper headers out
-    $r->log->debug( "$$ Request returned 404, response ",
-        Data::Dumper::Dumper($res) );
+    $r->log->debug( "$$ Request returned 404, response ", Dumper($res) );
 
 	# setup response
-	$r->status_line( $res->status_line );
-    my $content_type = $res->content_type;
-    $r->content_type($content_type);
-    _err_cookies_out( $r, $res );
+	$r->status($res->code);
 
+    my $content_type = $res->content_type;
+    $r->content_type($content_type) if $content_type;
+
+	my $translated = _translate_headers($r, $res);
+
+    # rflush() flushes the headers to the client
+    # thanks to gozer's mod_perl for speed presentation
+    $r->rflush();
+	
 	# send the response (404 in status line)
     $r->print( $res->content );
     return Apache2::Const::OK;
-}
-
-
-sub _add_x_headers {
-    my ( $r, $res ) = @_;
-    my @x_header_names =
-      grep { $_ =~ m{^x\-}i } $res->headers->header_field_names;
-
-    $r->log->debug(
-        "Found x-... headers: " . Data::Dumper::Dumper( \@x_header_names ) );
-    foreach my $x_header (@x_header_names) {
-        $r->err_headers_out->add( $x_header => $res->header($x_header) );
-    }
-    return 1;
 }
 
 sub threeohone {
@@ -403,18 +447,25 @@ sub threeohone {
 			$res->status_line, Dumper( $res ) ));
 
     # set the status line
-    $r->status_line( $res->status_line );
+	$r->status($res->code);
     $r->log->debug( "status line is " . $res->status_line );
+
+    my $content_type = $res->content_type;
+    $r->content_type($content_type) if $content_type;
 
 	# translate the headers from the remote response to the proxy response
 	my $translated = _translate_headers($r, $res);
 	$r->log->error(sprintf("header translation error \$r: %s, \$res %s",
 			$r->as_string, Dumper($res))) unless $translated;
+    
+	# rflush() flushes the headers to the client
+    # thanks to gozer's mod_perl for speed presentation
+    $r->rflush();
 
     $r->log->debug( "$$ Request: \n" . $r->as_string ) if $VERBOSE_DEBUG;
 	
 	# do not change this line
-	return Apache2::Const::HTTP_MOVED_PERMANENTLY;
+	return Apache2::Const::OK;
 }
 
 sub redirect {
@@ -424,18 +475,23 @@ sub redirect {
 			$res->status_line, Dumper( $res ) ));
 
     # set the status line
-    $r->status_line( $res->status_line );
+	$r->status($res->code);
     $r->log->debug( "status line is " . $res->status_line );
 
 	# translate the headers from the remote response to the proxy response
 	my $translated = _translate_headers($r, $res);
+	
+	# rflush() flushes the headers to the client
+    # thanks to gozer's mod_perl for speed presentation
+    $r->rflush();
+	
 	$r->log->error(sprintf("header translation error \$r: %s, \$res %s",
 			$r->as_string, Dumper($res))) unless $translated;
 
     $r->log->debug( "$$ Request: \n" . $r->as_string ) if $VERBOSE_DEBUG;
 	
 	# do not change this line
-	return Apache2::Const::REDIRECT;
+	return Apache2::Const::OK;
 }
 
 # same as a 302 just different status line and constants
@@ -446,32 +502,25 @@ sub threeohthree {
 			$res->status_line, Dumper( $res ) ));
 
     # set the status line
-    $r->status_line( $res->status_line );
+	$r->status($res->code);
     $r->log->debug( "status line is " . $res->status_line );
 
 	# translate the headers from the remote response to the proxy response
 	my $translated = _translate_headers($r, $res);
+	
+	# rflush() flushes the headers to the client
+    # thanks to gozer's mod_perl for speed presentation
+    $r->rflush();
+	
 	$r->log->error(sprintf("header translation error \$r: %s, \$res %s",
 			$r->as_string, Dumper($res))) unless $translated;
 
     $r->log->debug( "$$ Request: \n" . $r->as_string ) if $VERBOSE_DEBUG;
 	
 	# do not change this line
-	return Apache2::Const::HTTP_SEE_OTHER;
+	return Apache2::Const::OK;
 }
 
-sub _err_cookies_out {
-    my ( $r, $response ) = @_;
-    if ( my @cookies = $response->header('set-cookie') ) {
-        foreach my $cookie (@cookies) {
-            $r->log->debug("Adding cookie to headers_out: $cookie")
-              if $VERBOSE_DEBUG;
-            $r->err_headers_out->add( 'Set-Cookie' => $cookie );
-        }
-        $response->headers->remove_header('Set-Cookie');
-    }
-    return 1;
-}
 
 sub twohundred {
     my ( $r, $response ) = @_;
@@ -664,12 +713,7 @@ sub twohundred {
             $headers{$key} =~ s/\n/ /g;
         }
 
-        $r->log->debug(
-                "Setting key $key, value "
-              . $headers{$key}
-              . " to headers"
-        );
-		
+        $r->log->debug("Setting header key $key, value " . $headers{$key});
         $r->headers_out->set( $key => $headers{$key} );
     }
 
