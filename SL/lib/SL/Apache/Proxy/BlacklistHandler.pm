@@ -70,6 +70,7 @@ sub _redirect {
 		# redirect back to the referring page
 		$r->headers_out->set(Location => $r->pnotes('referer'));
 	}
+    $r->no_cache(1);
 	return Apache2::Const::REDIRECT;
 }
 

@@ -8,6 +8,7 @@ use Apache2::Log             ();
 use Sys::Load                ();
 use SL::Model                ();
 use SL::Model::Proxy::Router ();
+use Data::Dumper     qw(Dumper);
 
 our $MAX_LOAD = 2;
 
@@ -16,9 +17,14 @@ sub handler {
 
     # check the database
     my $minute_avg = [ Sys::Load::getload() ]->[0];
-    my $dbh        = SL::Model->connect();
-    unless ($dbh) {
-        $r->log->error("Database is not responding: sysload $minute_avg");
+    my $dbh        = eval { SL::Model->connect() };
+    if (!$dbh or $@) {
+		if ($@) {
+			$r->log->error(sprintf("exception thrown in ping check: %s", $@));
+		}
+		my $post_count = `ps ax | grep -c post`;
+        $r->log->error(sprintf("ping db failure: sysload %s, pg_count %s",
+				$minute_avg, $post_count));
         return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
     }
 
@@ -31,18 +37,26 @@ sub handler {
 
     # Grab any registered routers for this location
     my $active_router_ref = 
-      SL::Model::Proxy::Router::Location->get_registered( \%args );
+      eval {SL::Model::Proxy::Router::Location->get_registered( \%args )};
+	if ($@) {
+		$r->log->error("db exception grabbing registered routers for %s",
+			Dumper(\%args));
+	}
 
     unless ( defined $active_router_ref && (scalar( @{$active_router_ref} ) > 0 )) {
 
         # no routers at this ip, register this one
-        my $router_location = SL::Model::Proxy::Router::Location->register( \%args );
-        unless ($router_location) {
-            $r->log->error(
-                sprintf("Error registering router_location ip %s, macaddr %s "),
-                $r->connection->remote_ip, $macaddr );
-            return Apache2::Const::SERVER_ERROR;
-        }
+        my $router_location = 
+			eval {SL::Model::Proxy::Router::Location->register( \%args ); };
+		if ($@ or (!$router_location)) {
+			# handle registration failure
+			if ($@) {
+				$r->log->error(sprintf("error $@ registering router"));
+			}
+			$r->log->error(sprintf("error registering router args %s",
+				Dumper(\%args)));
+			return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
+		}
     } 
     # some routers exist at this location
     elsif (scalar(@{$active_router_ref}) == 1) {
@@ -50,11 +64,14 @@ sub handler {
     }
     elsif (scalar(@{$active_router_ref}) > 1) {
         # more than one router registered here
+		$r->log->error("more than one router registered here: %w",
+			Dumper($active_router_ref));
     }
 
     # check the load now
     return Apache2::Const::DONE if $minute_avg < $MAX_LOAD;
-    $r->log->error("System max load $MAX_LOAD exceeded: $minute_avg");
+    
+	$r->log->error("System max load $MAX_LOAD exceeded: $minute_avg");
     return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
 }
 

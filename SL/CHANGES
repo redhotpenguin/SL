@@ -1,4 +1,6 @@
 0.10 Sat Jul 21 15:37:41 2007
+	- eval any db call in pinghandler to catch problems and recover
+	- set $r->no_cache(1) for the user blacklist handler to fix caching issues
 	- return HTTP_MOVED_PERMANENTLY in the 301 handler
 	- replace links on pages that we scrape even if no ad is inserted
 	- unset the Content-Length header if we served an ad.  thanks to garrett
