@@ -6,7 +6,7 @@ use warnings;
 use SL::Config;
 use Cache::FastMmap;
 
-our $VERSION = 0.15;
+our $VERSION = 0.16;
 
 our ($RAW_CACHE, $OBJ_CACHE);
 BEGIN {

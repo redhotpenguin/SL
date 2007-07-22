@@ -110,9 +110,17 @@ sub collect_subrequests {
 
 sub replace_subrequests {
     my ( $self, $args_ref ) = @_;
-    my $port        = $args_ref->{'port'}        || die 'no port';
-    my $content_ref = $args_ref->{'content_ref'} || die 'no content_ref';
-    my $subreq_ref  = $args_ref->{'subreq_ref'}  || die 'no subreq_ref';
+
+    foreach my $param qw( port subreq_ref content_ref ) {
+        unless (exists $args_ref->{$param}) {
+            warn("replace_subrequests() called with empty param $param");
+            return;
+        }
+    }
+
+    my $port        = $args_ref->{'port'};
+    my $content_ref = $args_ref->{'content_ref'};
+    my $subreq_ref  = $args_ref->{'subreq_ref'};
 
     foreach my $subrequest ( @{$subreq_ref} ) {
 

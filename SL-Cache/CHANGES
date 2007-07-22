@@ -1,5 +1,9 @@
 Revision history for SL::Cache
 
+0.16 Sat Jul 21 20:17:00 2007
+    - warn and return instead of dying when calling replace_subrequests
+      with missing params
+
 0.15 Fri Jul 20 14:22:22 2007
     - fix a few broken edge cases in subrequest replacement where various 
       incantations of src attributes with quotes, no quotes, spaces, and 
