@@ -56,7 +56,6 @@ our %response_map  = (
     301 => 'threeohone',
     302 => 'redirect',
 	303 => 'threeohthree',
-	304 => 'threeohfour',
     307 => 'redirect',
     500 => 'bsod',
     400 => 'badrequest',
@@ -491,7 +490,7 @@ sub redirect {
     $r->log->debug( "$$ Request: \n" . $r->as_string ) if $VERBOSE_DEBUG;
 	
 	# do not change this line
-	return Apache2::Const::OK;
+	return Apache2::Const::REDIRECT;
 }
 
 # same as a 302 just different status line and constants
@@ -518,7 +517,7 @@ sub threeohthree {
     $r->log->debug( "$$ Request: \n" . $r->as_string ) if $VERBOSE_DEBUG;
 	
 	# do not change this line
-	return Apache2::Const::OK;
+	return Apache2::Const::HTTP_SEE_OTHER;
 }
 
 

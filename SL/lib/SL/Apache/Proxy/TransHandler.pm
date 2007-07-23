@@ -22,8 +22,8 @@ our $VERBOSE_DEBUG = 0;
 BEGIN {
     ## Extension based matching
     my @extensions = qw(
-      ad avi bin bz2 css doc exe fla flv gif gz ico jpeg jpg js pdf png ppt rar
-      sit rss tgz txt wmv vob xpi zip );
+      ad avi bin bz2 css doc exe fla flv gif gz ico jpeg jpg js pdf png ppt 
+	  rar sit swf rss tgz txt wmv vob xpi zip );
 
     $EXT_REGEX = Regexp::Assemble->new->add(@extensions)->re;
     print STDERR "Regex for static content match is $EXT_REGEX\n"
