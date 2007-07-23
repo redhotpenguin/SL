@@ -129,6 +129,7 @@ sub replace_subrequests {
         my $replacement_url = URI->new( $subrequest->[1] );
         $replacement_url->port($port);
         $replacement_url = $replacement_url->canonical->as_string;
+
         print STDERR "=> orig url is $orig_url\n" if $DEBUG;
         print STDERR "==> replacement url is $replacement_url\n\n"
           if $DEBUG;
@@ -137,9 +138,7 @@ sub replace_subrequests {
         # mixed and absolute urls
         # change this regex and I will beat you with a stick
         my $matched = $$content_ref =~
-            s/((['"]|\=)\s{0,3}?)\Q$orig_url\E(['"]?)/$1$replacement_url$2/sg;
-#           s/(['"\=]\s{0,3}?)\Q$orig_url\E(['"]?)/$1$replacement_url$2/sg;
-        # match leading "
+            s/((\=|['"])\s{0,3}?)\Q$orig_url\E/$1$replacement_url/sg;
 
         warn("did not replace $orig_url with $replacement_url ok")
             unless $matched;
