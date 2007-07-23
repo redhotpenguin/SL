@@ -14,9 +14,18 @@ my $TIMER = RHP::Timer->new();
 sub handler {
     my $r = shift;
 
-    my $request_time = sprintf( "sl_request_timer|%f", 
-		@{ $r->pnotes('request_timer')->checkpoint }[4] );
-    $r->subprocess_env("SL_TIMER" => $request_time); 
+    my $proxy_req_time;
+	if (defined $r->pnotes('proxy_req_timer')) {
+		$proxy_req_time = sprintf("sl_request_remote|%f",
+			$r->pnotes('proxy_req_timer')->last_interval);
+	}
+
+    my $request_time = sprintf( "sl_request_total|%f", 
+		@{ $r->pnotes('request_timer')->checkpoint }[4]);
+	if ($proxy_req_time) {
+		$request_time = join(' ', $request_time, $proxy_req_time);
+	}
+	$r->subprocess_env("SL_TIMER" => $request_time); 
     $r->subprocess_env("SL_URL" => sprintf('sl_url|%s', $r->pnotes('url')));    
     # for subrequests we don't have any log_data since no ad was inserted
     return Apache2::Const::DECLINED unless 

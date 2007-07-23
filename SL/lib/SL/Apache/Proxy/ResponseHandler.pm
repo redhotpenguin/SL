@@ -44,6 +44,7 @@ use RHP::Timer            ();
 use Regexp::Assemble      ();
 
 my $TIMER = RHP::Timer->new();
+my $REMOTE_TIMER = RHP::Timer->new();
 
 use constant NOOP_RESPONSE => 0;
 use constant SL_XHEADER    => 0;
@@ -197,11 +198,12 @@ sub handler {
 			$proxy_request->as_string)) if $VERBOSE_DEBUG;
 
     # Make the request to the remote server
-    my $response = $SL_UA->request($proxy_request);
+	$r->pnotes('proxy_req_timer' => $REMOTE_TIMER);
+	$r->pnotes('proxy_req_timer')->start('make_remote_request');
+	my $response = $SL_UA->request($proxy_request);
+	$r->pnotes('proxy_req_timer')->stop;
 
-    $r->log->debug( "$$ Response from proxy request",
-        Data::Dumper::Dumper($response) )
-      if $VERBOSE_DEBUG;
+    $r->log->debug( "$$ Response from proxy request", Dumper($response) );
 
     # checkpoint
     if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {
