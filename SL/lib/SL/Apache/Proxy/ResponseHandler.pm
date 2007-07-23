@@ -465,7 +465,7 @@ sub threeohone {
     $r->log->debug( "$$ Request: \n" . $r->as_string ) if $VERBOSE_DEBUG;
 	
 	# do not change this line
-	return Apache2::Const::OK;
+	return Apache2::Const::HTTP_MOVED_PERMANENTLY;
 }
 
 sub redirect {
@@ -662,7 +662,8 @@ sub twohundred {
     # I saw this happen on IE first though
     # IE is very picky about it's content type so we use a hack here - FIXME
     if ( !$ua ) { $r->log->error("UA $ua for url $url") }
-    if ( ( $ua =~ m{(?:MSIE|opera)}i ) && ( $content_type =~ m{^text\/html} ) )
+    if ( ( $ua =~ m{(?:MSIE|opera)}i ) && ( 
+			(defined $content_type) && ($content_type =~ m{^text\/html} )) )
     {
         $r->content_type('text/html');
         $r->log->debug("$$ MSIE content type set to text/html");

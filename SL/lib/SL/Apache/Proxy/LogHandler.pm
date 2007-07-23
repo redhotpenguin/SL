@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use SL::Model::Ad ();
-use Apache2::Const -compile => qw( DECLINED );
+use Apache2::Const -compile => qw( DECLINED LOG_INFO);
 use Apache2::RequestUtil ();
 use Apache2::Log ();
 use RHP::Timer ();
@@ -14,6 +14,9 @@ my $TIMER = RHP::Timer->new();
 sub handler {
     my $r = shift;
 
+    my $request_time = sprintf( "sl_request_timer|%f", 
+		@{ $r->pnotes('request_timer')->checkpoint }[4] );
+    $r->subprocess_env("SL_TIMER" => $request_time); 
     $r->subprocess_env("SL_URL" => sprintf('sl_url|%s', $r->pnotes('url')));    
     # for subrequests we don't have any log_data since no ad was inserted
     return Apache2::Const::DECLINED unless 

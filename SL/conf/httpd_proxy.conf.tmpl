@@ -19,7 +19,7 @@ MaxClients           [% cfg.sl_proxy_apache_maxclients %]
 ErrorLog             [% cfg.sl_root %]/logs/httpd_proxy_error_log
 TransferLog          [% cfg.sl_root %]/logs/httpd_proxy_access_log
 MaxRequestsPerChild  [% cfg.sl_proxy_apache_max_requests_per_child %]
-LogFormat "%h %l %u %t (%{User-agent}i) \"%r\" %>s %b %{SL_URL}e"
+LogFormat "%h %l %u %t (%{User-agent}i) \"%r\" %>s %b %{SL_URL}e %{SL_TIMER}e"
 UseCanonicalName     Off
 HostNameLookups      Off
 Timeout              300

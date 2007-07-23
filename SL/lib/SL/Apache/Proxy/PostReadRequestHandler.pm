@@ -9,6 +9,8 @@ use Apache2::Log ();
 use APR::Table ();
 use Apache2::RequestUtil ();
 
+my $TIMER = RHP::Timer->new();
+
 sub handler {
 	my $r = shift;
 
@@ -21,6 +23,9 @@ sub handler {
 		$r->subprocess_env(SL_URL => 'sl_dummy');
 		return Apache2::Const::DONE;
 	}
+
+    $TIMER->start('request_timer');
+	$r->pnotes('request_timer' => $TIMER);
 	return Apache2::Const::OK;
 }
 
