@@ -1,5 +1,9 @@
 Revision history for SL::Cache
 
+0.18 Tue Jul 24 02:48:00 2007
+    - extract <link> elements, google load time analyzer shows we are
+      bogging down on those
+
 0.17 Sun Jul 22 16:52:10 2007
     - fix replace_subrequests to match unquoted src attributes, thanks
       to steve for the help

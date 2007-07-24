@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 141;
+use Test::More tests => 157;
 
 BEGIN { use_ok('SL::Cache::Subrequest') or die }
 
@@ -21,7 +21,7 @@ my $subreq_ref = $subreq->collect_subrequests(
 );
 my $interval = tv_interval( $start, [gettimeofday] );
 
-is( scalar( @{$subreq_ref} ), 45, '45 subrequests extracted' );
+is( scalar( @{$subreq_ref} ), 53, '53 subrequests extracted' );
 diag("extraction took $interval seconds");
 my $limit = 0.12;
 cmp_ok( $interval, '<', $limit,

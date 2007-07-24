@@ -77,9 +77,15 @@ sub collect_subrequests {
 
     # look for tags that can house sub-reqs
     my ( @subrequests, %found );
-    while ( my $token = $parser->get_tag(qw(iframe frame src script img)) ) {
+    while ( my $token = $parser->get_tag(qw(script iframe frame src script 
+                                            img link)) ) {
         my $attrs = $token->[1];
-        my $url   = $attrs->{src};
+        my $url;
+        if ($token->[0] eq 'link') {
+             $url = $attrs->{href};
+         } else { # everything else    
+             $url = $attrs->{src};
+        }
 
         # skip these iframe and frame invalid targets
         next unless $url;
