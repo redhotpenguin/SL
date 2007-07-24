@@ -1,5 +1,9 @@
 Revision history for Perl extension SL-Linksys.
 
+0.08  Mon Jul 23 22:10:10
+    - the dhcp script is broken in calculating the dhcp lease time, so set
+      the default to 12 hours on startup
+
 0.07  Mon Jul 09 20:22:41
     - update S98sl init script to set ssid to 'Free Wireless' on startup
 

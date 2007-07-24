@@ -7,5 +7,8 @@
 # setup privacy and security
 /usr/sbin/nvram set wl0_ap_isolate=1
 
+# set the lease time
+/usr/sbin/nvram set dhcp_lease=42200
+
 /usr/sbin/nvram commit
 /usr/bin/microperl /usr/bin/sl_fw_ha
