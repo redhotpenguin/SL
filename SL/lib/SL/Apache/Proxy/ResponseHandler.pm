@@ -26,6 +26,7 @@ use Apache2::Log          ();
 use Apache2::RequestRec   ();
 use Apache2::RequestUtil  ();
 use Apache2::RequestIO    ();
+use Apache2::Response     ();
 use Apache2::ServerRec    ();
 use Apache2::ServerUtil   ();
 use Apache2::URI          ();
@@ -42,6 +43,9 @@ use Data::Dumper          qw(Dumper);
 use Encode                ();
 use RHP::Timer            ();
 use Regexp::Assemble      ();
+
+use SL::Config;
+my $CONFIG = SL::Config->new;
 
 my $TIMER = RHP::Timer->new();
 my $REMOTE_TIMER = RHP::Timer->new();
@@ -445,10 +449,10 @@ sub threeohone {
     my ($r, $res) = @_;
 
     $r->log->debug(sprintf( "$$ status line %s, response: %s", 
-			$res->status_line, Dumper( $res ) ));
+		$res->status_line, Dumper( $res ) ));
 
     # set the status line
-	$r->status($res->code);
+	#$r->status($res->code);
     $r->log->debug( "status line is " . $res->status_line );
 
     my $content_type = $res->content_type;
@@ -461,7 +465,7 @@ sub threeohone {
     
 	# rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
-    $r->rflush();
+	#$r->rflush();
 
     $r->log->debug( "$$ Request: \n" . $r->as_string ) if $VERBOSE_DEBUG;
 	
@@ -476,7 +480,7 @@ sub redirect {
 			$res->status_line, Dumper( $res ) ));
 
     # set the status line
-	$r->status($res->code);
+	#$r->status($res->code);
     $r->log->debug( "status line is " . $res->status_line );
 
 	# translate the headers from the remote response to the proxy response
@@ -484,7 +488,7 @@ sub redirect {
 	
 	# rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
-    $r->rflush();
+	#$r->rflush();
 	
 	$r->log->error(sprintf("header translation error \$r: %s, \$res %s",
 			$r->as_string, Dumper($res))) unless $translated;
@@ -503,7 +507,7 @@ sub threeohthree {
 			$res->status_line, Dumper( $res ) ));
 
     # set the status line
-	$r->status($res->code);
+	#$r->status($res->code);
     $r->log->debug( "status line is " . $res->status_line );
 
 	# translate the headers from the remote response to the proxy response
@@ -560,7 +564,6 @@ sub twohundred {
     # serve an ad if this is HTML and it's not a sub-request of an
     # ad-serving page, and it's not too soon after a previous ad was served
     my $subrequests_ref;
-	my $unset_content_length = 0;
     if ( $is_html and 
 		(not $is_toofast) and 
 		(not $SUBREQUEST_TRACKER->is_subrequest(url => $r->pnotes('url')))) {
@@ -569,7 +572,6 @@ sub twohundred {
         $RATE_LIMIT->record_ad_serve($r->connection->remote_ip, $r->pnotes('ua'));
 
 		$response_content_ref = _generate_response( $r, $response );
-		$unset_content_length = 1;
 
         if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {
             $r->log->info(
@@ -698,13 +700,7 @@ sub twohundred {
 
 	delete $headers{'Client-Peer'};
     delete $headers{'Content-Encoding'};
-	
-	# unset the content length header if we changed the content length
-	if ((exists $headers{'Content-Length'}) && ($unset_content_length == 1)) {
-		$r->log->debug(sprintf("unsetting Content-Length header, currval %s",
-				$headers{'Content-Length'}));
-		delete $headers{'Content-Length'};
-	}
+	delete $headers{'Content-Length'};
 
     foreach my $key ( keys %headers ) {
         next if $key =~ m/^Client/;    # skip HTTP::Response inserted headers
@@ -718,6 +714,13 @@ sub twohundred {
         $r->log->debug("Setting header key $key, value " . $headers{$key});
         $r->headers_out->set( $key => $headers{$key} );
     }
+
+	# set the content-length
+	if (!$CONFIG->sl_proxy_apache_deflate)
+	{
+		no strict 'refs';
+		$r->set_content_length(length($$response_content_ref));
+	}
 
     # FIXME
     # this is not setting the Keep-Alive header at all for some reason

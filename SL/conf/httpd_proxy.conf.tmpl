@@ -110,7 +110,7 @@ PerlTransHandler SL::Apache::Proxy::TransHandler
 <Directory />
     AllowOverride None
 </Directory>
-[% IF cfg.sl_proxy_deflate %]
+[% IF cfg.sl_proxy_apache_deflate %]
 Include [% cfg.sl_root %]/conf/deflate.conf
 [% END %]
 
