@@ -1,9 +1,15 @@
 #!perl:
 
 use strict;
-use ExtUtils::MakeMaker;
+use warnings FATAL => 'all';
 
-WriteMakefile(
+use Apache::TestMM;
+Apache::TestMM->import(qw(test clean));
+Apache::TestMM::filter_args();
+Apache::TestMM::generate_script('t/TEST');
+
+use ModPerl::MM;
+ModPerl::MM::WriteMakefile(
     NAME         => 'SL-App',
     VERSION_FROM => 'lib/SL/Apache/App.pm',
     PREREQ_PM    => {

@@ -1,0 +1,71 @@
+LoadModule apreq_module '/Users/phred/dev/sl/httpd2/modules/mod_apreq2.so'
+
+PerlLoadModule Apache2::Dispatch
+
+## the public facing page
+## FIXME - apache dispatch bug
+<Location />
+	SetHandler modperl
+
+    # dispatch directives
+	DispatchPrefix SL::Apache::App
+	
+	DispatchRequire On
+	DispatchUpperCase On
+
+	PerlResponseHandler Apache2::Dispatch
+</Location>
+
+<Location /css>
+    SetHandler default-handler
+</Location>
+
+## the user application, need to be logged in
+<Location  /app>
+	AuthType SL::Apache::App::CookieAuth
+	AuthName SLApp
+	SetHandler modperl
+	PerlAuthenHandler SL::Apache::App::CookieAuth->authenticate
+	PerlAuthzHandler Apache2::Const::OK
+	require valid-use
+</Location>
+
+<Location /login>
+	SetHandler modperl
+	PerlResponseHandler SL::Apache::App::CookieAuth->login
+</Location>
+
+<Location /forgot>
+	SetHandler modperl
+	PerlResponseHandler SL::Apache::App::CookieAuth->forgot
+</Location>
+
+<Location /forgot/reset>
+    SetHandler modperl
+    PerlResponseHandler SL::Apache::App::CookieAuth->forgot_reset
+</Location>
+
+## registration
+<Location /reg>
+	SetHandler modperl
+	PerlResponseHandler SL::Apache::App::reg
+</Location>
+
+## handle click requests
+<Location /click>
+    SetHandler          modperl
+ 	PerlHeaderParserHandler Apache2::Const::OK
+    PerlAccessHandler       Apache2::Const::OK
+    PerlAuthenHandler       Apache2::Const::OK
+    PerlAuthzHandler        Apache2::Const::OK
+    PerlTypeHandler         Apache2::Const::OK
+
+    PerlFixupHandler        Apache2::Const::OK
+
+    PerlResponseHandler     SL::Apache::App::Click
+</Location>
+
+<Directory />
+    AllowOverride None
+</Directory>
+
