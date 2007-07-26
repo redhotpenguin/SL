@@ -1,5 +1,5 @@
 bin/sl_app
-bin/sl_app_restart
+bin/sl_apprestart
 CHANGES
 conf/httpd_app.conf.tmpl
 conf/mime.types
@@ -18,7 +18,7 @@ lib/SL/Apache/App.pm
 lib/SL/App/Template.pm
 Makefile.PL
 MANIFEST
-src/Apache-Dispatch-0.10_01.tar.gz
+src/Apache-Dispatch-0.10_02.tar.gz
 src/Crypt-CBC-2.22.tar.gz
 src/Data-FormValidator-4.50.tar.gz
 src/Template-Toolkit-2.14.tar.gz

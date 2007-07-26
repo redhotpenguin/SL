@@ -11,8 +11,7 @@ use Apache2::ServerUtil ();
 use Data::FormValidator ();
 use Digest::MD5         ();
 
-use SL::Model::App      ();
-our $SCHEMA = SL::Model::App->schema;
+use SL::Model::App ();
 
 use base 'SL::Apache::App';
 use SL::Config;
@@ -25,25 +24,24 @@ our $tmpl = SL::App::Template->template();
 sub dispatch_index {
     my ( $self, $r ) = @_;
 
-    my $req     = Apache2::Request->new($r);
+    my $req = Apache2::Request->new($r);
+
     # get all routers for this user
+    my @router__regs = $r->pnotes( $r->user )->router__regs;
+    my @routers      = map { $_->router_id } @router__regs;
 
-   my @router__regs = $r->pnotes( $r->user )->router__regs;
-   my @routers = map { $_->router_id } @router__regs;
-
-   # TODO
-   #my @routers = $r->pnotes( $r->user )->router__regs->get_column('router_id')->all;
-
+# TODO
+#my @routers = $r->pnotes( $r->user )->router__regs->get_column('router_id')->all;
 
     # see if this ip is currently unregistered;
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
-            root    => $r->pnotes('root'),
-            reg     => $r->pnotes( $r->user ),
-            status  => $req->param('status') || '',
+            root   => $r->pnotes('root'),
+            reg    => $r->pnotes( $r->user ),
+            status => $req->param('status') || '',
         );
-        if (scalar(@routers) > 0 ) {
-          $tmpl_data{routers} = \@routers;
+        if ( scalar(@routers) > 0 ) {
+            $tmpl_data{routers} = \@routers;
         }
 
         my $output;
@@ -120,70 +118,103 @@ sub dispatch_account {
 }
 
 sub dispatch_router {
-    my ( $self, $r ) = @_;
+    my ( $self, $r, $args_ref ) = @_;
 
-    my $req = Apache2::Request->new( $r, TEMP_DIR => '/tmp' );
+    # use an existing request if we have one
+    my $req = $args_ref->{req} || Apache2::Request->new($r);
 
-    my ($router, @locations);
-    if ($req->param('id') == -1) {
-      # adding a new router
-      $router = SL::Model::App->resultset('Router')->new( 
-          { ip => $r->connection->remote_ip, 
-            reg_id => $r->pnotes($r->user)->reg_id, });
-      $router->insert;
-      $router->update;
-    } elsif ($req->param('id')) {
+    my ( $router, @locations );
+    if ( $req->param('id') ) {
 
-      # using existing router
-      ($router) = $SCHEMA->resultset('Router')->search({
-            router_id => $req->param('id'),
-        });
-      my @router__locations = $router->router__locations;
-      @locations = map { $_->location_id } @router__locations;
+        # grab existing router
+        ($router) =
+          SL::Model::App->resultset('Router')
+          ->search( { router_id => $req->param('id'), } );
+        return Apache2::Const::NOT_FOUND unless $router;
+        my @router__locations = $router->router__locations;
+        @locations = map { $_->location_id } @router__locations;
     }
-    return Apache2::Const::NOT_FOUND unless $router;
 
-    # grab the locations where this router has been 
-
-    my $status;
     # GET
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
-            root         => $r->pnotes('root'),
-            reg          => $r->pnotes( $r->user ),
-            status       => $req->param('status') || '',
-            updated_name => $req->param('updated_name') || '',
-            router       => $router,
+            root   => $r->pnotes('root'),
+            reg    => $r->pnotes( $r->user ),
+            router => $router,
+            errors => $args_ref->{errors},
+            status => $args_ref->{status},
+            req    => $req,
         );
-        if (scalar(@locations) > 0) {
-          $tmpl_data{locations} = \@locations;
+        if ( scalar(@locations) > 0 ) {
+            $tmpl_data{locations} = \@locations;
         }
-
         my $output;
         my $ok =
           $tmpl->process( 'settings/router.tmpl', \%tmpl_data, \$output );
+
         $ok
           ? return $self->ok( $r, $output )
           : return $self->error( $r, "Template error: " . $tmpl->error() );
-    }   elsif ( $r->method_number == Apache2::Const::M_POST ) {
-        $r->method_number(Apache2::Const::M_GET);
-
-        my $updated_name;
-        if ( $req->param('name') && ( $req->param('name') ne $router->name ) ) {
-            $router->name( $req->param('name') );
-            $router->update;
-            $updated_name = 'ok';
-        }
-        my $uri = '?';
-
-        if ($updated_name) {
-            $uri .= "updated_name=$updated_name&";
-        }
-        $uri .= "id=" . $router->router_id;
-        $r->log->error("URI is $uri");
-        $r->internal_redirect( $r->construct_url( $r->uri . $uri ) );
-        return Apache2::Const::OK;
     }
+    elsif ( $r->method_number == Apache2::Const::M_POST ) {
+
+        # reset method to get for redirect
+        $r->method_number(Apache2::Const::M_GET);
+        my %router_profile = (
+            required           => [qw( name macaddr )],
+            constraint_methods => { macaddr => valid_macaddr() }
+        );
+        my $results = Data::FormValidator->check( $req, \%router_profile );
+
+        # handle form errors
+        if ( $results->has_missing or $results->has_invalid ) {
+            my $errors = $self->SUPER::_results_to_errors($results);
+            return $self->dispatch_router(
+                $r,
+                {
+                    errors => $errors,
+                    req    => $req
+                }
+            );
+        }
+
+        if ( not defined $router ) {
+
+            # adding a new router
+            $router =
+              SL::Model::App->resultset('Router')->new( { active => 't' } );
+            $router->insert;
+            $router->update;
+
+            # new router__reg
+            my $router__reg = SL::Model::App->resultset('RouterReg')->new(
+                {
+                    reg_id    => $r->pnotes( $r->user )->reg_id,
+                    router_id => $router->router_id,
+                }
+            );
+            $router__reg->insert;
+            $router__reg->update;
+        }
+
+        # no errors update the router
+        foreach my $param qw( name macaddr serial_number ) {
+            $router->$param( $req->param($param) );
+        }
+        $router->update;
+
+        return $self->dispatch_router( $r, { status => 'update_ok' } );
+    }
+}
+
+sub valid_macaddr {
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+
+        return $val if ( $val =~ m/^([0-9a-f]{2}([:-]|$)){6}$/i );
+        return;
+      }
 }
 
 1;

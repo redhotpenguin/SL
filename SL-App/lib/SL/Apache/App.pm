@@ -7,6 +7,7 @@ our $VERSION = 0.10;
 
 use Apache2::Const -compile => qw(OK SERVER_ERROR NOT_FOUND M_GET M_POST);
 use Apache2::Log ();
+use Apache2::RequestIO ();
 
 use SL::App::Template ();
 our $tmpl = SL::App::Template->template();
@@ -49,5 +50,20 @@ sub error {
     $r->log->error($error);
     return Apache2::Const::SERVER_ERROR;
 }
+
+
+sub _results_to_errors {
+    my ($self, $results) = @_;
+    my %errors;
+
+    if ( $results->has_missing ) {
+        %{ $errors{missing} } = map { $_ => 1 } $results->missing;
+    }
+    if ( $results->has_invalid ) {
+        %{ $errors{invalid} } = map { $_ => 1 } $results->invalid;
+    }
+    return \%errors;
+}
+
 
 1;

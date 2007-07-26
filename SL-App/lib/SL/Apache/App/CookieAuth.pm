@@ -8,6 +8,7 @@ use Apache2::Const -compile =>
 use Apache2::Log    ();
 use Apache2::Cookie ();
 use Apache2::URI    ();
+use Apache2::Request ();
 
 use base 'SL::Apache::App';
 use SL::Model::App ();
