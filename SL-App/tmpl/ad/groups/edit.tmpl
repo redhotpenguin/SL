@@ -16,56 +16,89 @@
 [% ELSE %]
 <h2>Create a New Ad Group</h2></td></tr>
 [% END %]
+
+[% IF status == 'update_ok' %]
+<p><font color="red">Your Ad Group has been updated.</font></p>
+[% END %]
+
 [% IF errors.missing %]
-<p><font color="red">Please complete the missing fields</font></p>
+<p><font color="red">Please fill in the missing fields</font></p>
 [% END %]
 [% IF errors.invalid %]
 <p><font color="red">Some fields were invalid, please correct them</font></p>
 [% END %]
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
-<form method="POST" action="[% base_uri %]/app/ad/group/edit/?id=[% ad_group.ad_group_id %]">
+<form method="POST" action="[% base_uri %]/app/ad/groups/edit">
 
 <!-- name -->
 <tr><td>[% IF errors.missing.name %]<font color="red">[% END %]
 Ad Group name:
 [% IF errors.missing.name %]</font>[% END %]</td>
-<td><input type="text" name="text" size="50" maxlength="100" value='[% ad_group.name %]'>
+<td><input type="text" name="name" size="50" maxlength="100" value='[% req.param('name') or ad_group.name %]'>
 </td></tr>
 <tr><td colspan=2><font color="#CCCCCC">(100 character limit)</font></td></tr>
 <!-- /name -->
 
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
-<!-- bug image href -->
-<tr><td>
-[% IF errors.missing.bug_image_href %]<font color="red">[% END %]
-Bug image url:
-[% IF errors.missing.bug_image_href %]</font>[% END %]</td>
-<td><input type="text" name="uri" size="50" maxlength="512" value="[% bug.image_href %]"></td></tr>
-<tr><td colspan=2><font color="#CCCCCC">
-(example http://anywebsite.com/images/mybug.gif)</font></td></tr>
+<!-- bug selection -->
 
-<!-- end bug image href -->
+<tr><td colspan="2">
+[% IF errors.missing.bug_id %]<font color="red">[% END %]
+Select a bug to associate the ad group with:</td></tr>
+[% IF errors.missing.bug_id %]</font>[% END %]
+<tr>[% FOREACH bug = bugs %]
+<td><img src="[% bug.image_href %]"><input type="radio" name="bug_id" 
+value="[% bug.bug_id %]"
+[% IF (req.param('bug_id') == bug.bug_id ) %]checked
+[% ELSIF (ad_group.bug_id == bug.bug_id) %]checked[% END %]>&nbsp;</td>
+[% END %]</tr>
+
+<!-- end bug selection -->
+
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+
+
+<!-- link for ad group css stylesheet -->
+<tr><td>
+[% IF errors.missing.css_url or errors.invalid.css_url %]
+<font color="red">[% END %]
+Link to stylesheet used by the ad group:
+[% IF errors.missing.css_url or errors.invalid.css_url %]</font>[% END %]</td>
+<td><input disabled="true" type="text" name="css_url" size="50" maxlength="512" 
+value="[% req.param('css_url') or ad_group.css_url or 'http://www.redhotpenguin.com/css/sl.css' %]"></td></tr>
+<tr><td colspan=2><font color="#CCCCCC">
+(defaults to http://www.redhotpenguin.com/css/sl.css)<br />To customize the look and feel of your ad group you can implement your own style sheet here.</font></td></tr>
+
+<!-- end stylesheet link -->
 
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
-<!-- bug image links to -->
-<tr><td>
-[% IF errors.missing.bug_link_href %]<font color="red">[% END %]
-Bug image links to:
-[% IF errors.missing.bug_link_href %]</font>[% END %]</td>
-<td><input type="text" name="uri" size="50" maxlength="512" value="[% bug.link_href %]"></td></tr>
-<tr><td colspan=2><font color="#CCCCCC">
-(example http://anywebsite.com/?referer=myfrewireess)</font></td></tr>
 
-<!-- end bug link href -->
+<!-- link for template -->
+<tr><td>
+[% IF errors.missing.template or errors.invalid.template %]
+<font color="red">[% END %]
+Template used by the ad group:
+[% IF errors.missing.template or errors.invalid.template %]</font>[% END %]
+</td>
+<td><input disabled="true" type="text" name="template" size="50" maxlength="512" 
+value="[% req.param('template') or ad_group.template or 'text_ad.tmpl' %]">
+</td></tr>
+<tr><td colspan=2><font color="#CCCCCC">
+(defaults to text_ad.tmpl)<br />Contact 
+<a href="mailto:support@silverliningnetworks.com">support@silverliningnetworks.com</a> for help customizing this field.</font></td></tr>
+
+<!-- end template link -->
 
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+
+
 
 <!-- active -->
 <tr><td>Active:</font></td><td>
-Yes<input type="radio" name="active" value="1" [% IF ad.active == 1 ||  ! ad_group.active %] checked [% END %]>
+Yes<input type="radio" name="active" value="1" [% IF (ad_group.active == 1) or ! ad_group %]checked[% END %]>&nbsp;
 No<input type="radio" name="active" value="0" [% IF ad.active == 0 %] checked [% END %]></td></tr>
 <tr><td colspan=3><font color="#CCCCCC">
 Deactivating the ad group removes it from the ad serving rotation.<br />To ensure consistency in reporting, ad groups cannot be deleted.
@@ -75,7 +108,7 @@ Deactivating the ad group removes it from the ad serving rotation.<br />To ensur
 
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
-<tr><td><input type="submit" value="Save"></td></tr>
+<tr><td><input type="submit" value="Save Ad Group"></td></tr>
 </form>
 
 </table>
