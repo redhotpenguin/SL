@@ -3,16 +3,17 @@
 <div id="list_center">
 	<div class="content">
 
-<h2>[% PROCESS dashboard.tmpl %] > <a href="[% base_uri %]/app/ad/list">Manage Your Ads</a> > [% IF ad.id == -1 %]Create a New Ad[% ELSIF ad.id != -1 %]Edit an Existing Ad[% END %]</h2>
+<h2>[% PROCESS ad/ads/nav.tmpl %] > 
+[% UNLESS ad.id  %]Create a New Ad[% ELSE %]Edit an Existing Ad[% END %]</h2>
 <hr size=1 color="#CCCCCC">
 <div id="edit_form">
 
 <table class="edit"> 
 
 <tr><td colspan=2>
-	[% IF ad.id != -1 %]
+	[% IF ad.id %]
 	<h2>Edit Existing Ad Id '[% ad.id %]'</h2>
-[% ELSIF ad.id == -1 %]
+[% ELSE %]
 <h2>Create a New Ad</h2></td></tr>
 [% END %]
 [% IF errors.missing %]

@@ -1,4 +1,4 @@
-package SL::Apache::App::Ad;
+package SL::Apache::App::Ad::Ads;
 
 use strict;
 use warnings;
@@ -35,7 +35,7 @@ sub dispatch_index {
     my %tmpl_data = ( root => $r->pnotes('root'),
                        email => $r->user);
     my $output;
-    my $ok = $tmpl->process('ad/index.tmpl', \%tmpl_data, \$output);
+    my $ok = $tmpl->process('ad/ads/index.tmpl', \%tmpl_data, \$output);
     $ok ? return $self->ok($r, $output) 
         : return $self->error($r, "Template error: " . $tmpl->error());
 }
@@ -102,7 +102,7 @@ sub dispatch_list {
     }
 
     my $output;
-    my $ok = $tmpl->process( 'ad/list.tmpl', \%tmpl_data, \$output );
+    my $ok = $tmpl->process( 'ad/ads/list.tmpl', \%tmpl_data, \$output );
     $ok
       ? return $self->ok( $r, $output )
       : return $self->error( $r, "Template error: " . $tmpl->error() );
@@ -114,11 +114,9 @@ sub dispatch_edit {
     my ( $self, $r, $errors ) = @_;
 
     my $req = Apache2::Request->new($r);
-    my $id  = $req->param('id');
 
     my ( %tmpl_data, $ad, $output, $link );
-    if ( $id > 0 ) {    # edit existing ad
-                        # grab the ad
+    if ( $req->param('id') ) {    # edit existing ad
         my %search;
 
         # restrict search params for nonroot
@@ -126,7 +124,7 @@ sub dispatch_edit {
             $search{reg_id} = $r->pnotes( $r->user )->reg_id;
         }
 
-        $search{ad_sl_id} = $id;
+        $search{ad_sl_id} = $req->param('id');
         ($ad) = SL::Model::App->resultset('AdSl')->search( \%search );
         return Apache2::Const::NOT_FOUND unless $ad;
         $tmpl_data{'ad'} = {
@@ -136,16 +134,14 @@ sub dispatch_edit {
             active => $ad->ad_id->active
         };
     }
-    elsif ( $id == -1 ) {
-        $tmpl_data{'ad'}->{'id'} = $id;
-    }
+
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
         if ( keys %{$errors} ) {
             $tmpl_data{'errors'} = $errors;
         }
 
-        my $ok = $tmpl->process( 'ad/edit.tmpl', \%tmpl_data, \$output );
+        my $ok = $tmpl->process( 'ad/ads/edit.tmpl', \%tmpl_data, \$output );
         $ok
           ? return $self->ok( $r, $output )
           : return $self->error( $r, "Template error: " . $tmpl->error() );
@@ -159,10 +155,12 @@ sub dispatch_edit {
     }
 
     my ( $status, $base_ad );
-    if ( $id == -1 ) {
+    if  ( not defined $ad ) {
+        # make the base ad first
         $base_ad = SL::Model::App->resultset('Ad')->new( { active => 't' } );
         $base_ad->insert();
 
+        # make the sl_ad
         $ad = SL::Model::App->resultset('AdSl')->new(
             {
                 ad_id  => $base_ad->ad_id,
