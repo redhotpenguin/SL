@@ -1,0 +1,86 @@
+[% PROCESS header.tmpl %]
+
+<div id="list_center">
+	<div class="content">
+
+<h2>[% PROCESS ad/groups/nav.tmpl %] > 
+[% UNLESS ad_group.ad_group_id  %]Create a New Ad Group[% ELSE %]Edit an Existing Ad Group[% END %]</h2>
+<hr size=1 color="#CCCCCC">
+<div id="edit_form">
+
+<table class="edit"> 
+
+<tr><td colspan=2>
+[% IF ad_group.ad_group_id %]
+	<h2>Edit Existing Ad Group Id '[% ad_group.ad_group_id %]'</h2>
+[% ELSE %]
+<h2>Create a New Ad Group</h2></td></tr>
+[% END %]
+[% IF errors.missing %]
+<p><font color="red">Please complete the missing fields</font></p>
+[% END %]
+[% IF errors.invalid %]
+<p><font color="red">Some fields were invalid, please correct them</font></p>
+[% END %]
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+
+<form method="POST" action="[% base_uri %]/app/ad/group/edit/?id=[% ad_group.ad_group_id %]">
+
+<!-- name -->
+<tr><td>[% IF errors.missing.name %]<font color="red">[% END %]
+Ad Group name:
+[% IF errors.missing.name %]</font>[% END %]</td>
+<td><input type="text" name="text" size="50" maxlength="100" value='[% ad_group.name %]'>
+</td></tr>
+<tr><td colspan=2><font color="#CCCCCC">(100 character limit)</font></td></tr>
+<!-- /name -->
+
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+
+<!-- bug image href -->
+<tr><td>
+[% IF errors.missing.bug_image_href %]<font color="red">[% END %]
+Bug image url:
+[% IF errors.missing.bug_image_href %]</font>[% END %]</td>
+<td><input type="text" name="uri" size="50" maxlength="512" value="[% bug.image_href %]"></td></tr>
+<tr><td colspan=2><font color="#CCCCCC">
+(example http://anywebsite.com/images/mybug.gif)</font></td></tr>
+
+<!-- end bug image href -->
+
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+
+<!-- bug image links to -->
+<tr><td>
+[% IF errors.missing.bug_link_href %]<font color="red">[% END %]
+Bug image links to:
+[% IF errors.missing.bug_link_href %]</font>[% END %]</td>
+<td><input type="text" name="uri" size="50" maxlength="512" value="[% bug.link_href %]"></td></tr>
+<tr><td colspan=2><font color="#CCCCCC">
+(example http://anywebsite.com/?referer=myfrewireess)</font></td></tr>
+
+<!-- end bug link href -->
+
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+
+<!-- active -->
+<tr><td>Active:</font></td><td>
+Yes<input type="radio" name="active" value="1" [% IF ad.active == 1 ||  ! ad_group.active %] checked [% END %]>
+No<input type="radio" name="active" value="0" [% IF ad.active == 0 %] checked [% END %]></td></tr>
+<tr><td colspan=3><font color="#CCCCCC">
+Deactivating the ad group removes it from the ad serving rotation.<br />To ensure consistency in reporting, ad groups cannot be deleted.
+</font></td></tr>
+
+<!-- end active -->
+
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+
+<tr><td><input type="submit" value="Save"></td></tr>
+</form>
+
+</table>
+</div>
+</div>
+</div>
+[% PROCESS right.tmpl %]
+[% PROCESS footer.tmpl %]
