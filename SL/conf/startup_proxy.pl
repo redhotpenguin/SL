@@ -61,6 +61,7 @@ use SL::Apache::Proxy::PostReadRequestHandler ();
 use SL::Apache::Proxy::PingHandler            ();
 use SL::Apache::Proxy::LogHandler             ();
 
+use SL::Static        ();
 use SL::Cache         ();
 use SL::Cache::Subrequest ();
 use SL::Cache::RateLimit ();
