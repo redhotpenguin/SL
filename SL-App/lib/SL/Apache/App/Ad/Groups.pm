@@ -43,15 +43,12 @@ sub dispatch_index {
       : return $self->error( $r, "Template error: " . $tmpl->error() );
 }
 
-my %ad_group_profile =
-  ( required => [qw( name bug_image_link bug_image_href )], );
-
 sub dispatch_edit {
     my ( $self, $r, $args_ref ) = @_;
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
 
-    my ( $ad_group, $bug, $output, $link );
+    my ( $ad_group, $output, $link );
     if ( $req->param('id') ) {    # edit existing ad group
         my %search;
 
@@ -63,15 +60,16 @@ sub dispatch_edit {
         $search{ad_group_id} = $req->param('id');
         ($ad_group) = SL::Model::App->resultset('AdGroup')->search( \%search );
         return Apache2::Const::NOT_FOUND unless $ad_group;
-        $bug = $ad_group->bug_id;
     }
 
+    # get the bugs
+    my @bugs = SL::Model::App->resultset('Bug')->search;
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
             root     => $r->pnotes('root'),
             reg      => $r->pnotes( $r->user ),
+            bugs     => \@bugs,
             ad_group => $ad_group,
-            bug      => $bug,
             errors   => $args_ref->{errors},
             status   => $args_ref->{status},
             req      => $req,
@@ -84,7 +82,15 @@ sub dispatch_edit {
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
         $r->method_number(Apache2::Const::M_GET);
+
+        # validate input
+        my %ad_group_profile = (
+            required           => [qw( name  bug_id active )],
+            constraint_methods => { css_url => valid_link(), }
+        );
+
         my $results = Data::FormValidator->check( $req, \%ad_group_profile );
+
         if ( $results->has_missing or $results->has_invalid ) {
             my $errors = $self->SUPER::_results_to_errors($results);
 
@@ -97,21 +103,57 @@ sub dispatch_edit {
             );
         }
     }
-    my $status;
+
     if ( not defined $ad_group ) {
 
         # make the ad_group
-        $ad_group = SL::Model::App->resultset('AdGroup')->new( {} );
+        $ad_group =
+          SL::Model::App->resultset('AdGroup')->new( { active => 't' } );
         $ad_group->insert();
-        $status = 'added';
         $ad_group->update;
     }
-    foreach my $param qw( name ) {
+
+    # add arguments
+    foreach my $param qw( name css_url bug_id active ) {
         $ad_group->$param( $req->param($param) );
     }
     $ad_group->update;
 
-    return $self->dispatch_edit( $r, { status => 'update_ok' } );
+    $r->internal_redirect("/app/ad/groups/list");
+    return Apache2::Const::OK;
+}
+
+sub dispatch_list {
+    my ( $self, $r, $args_ref ) = @_;
+
+    my %tmpl_data = (
+        root  => $r->pnotes('root'),
+        email => $r->user
+    );
+    my $output;
+    my $ok = $tmpl->process( 'ad/groups/list.tmpl', \%tmpl_data, \$output );
+    $ok
+      ? return $self->ok( $r, $output )
+      : return $self->error( $r, "Template error: " . $tmpl->error() );
+}
+
+
+
+use LWP::UserAgent;
+use URI;
+my $UA = LWP::UserAgent->new;
+$UA->timeout(10);    # needs to respond somewhat quickly
+
+sub valid_link {
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+
+        my $response = $UA->get( URI->new($val) );
+
+        return $val if $response->is_success;
+        return;      # oops didn't validate
+      }
 }
 
 1;

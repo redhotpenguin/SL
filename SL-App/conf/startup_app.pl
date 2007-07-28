@@ -69,6 +69,7 @@ use DBI                         ();
 use DBD::Pg                     ();
 DBI->install_driver('Pg');
 
+use Apache::Session::DB_File    ();
 use Data::Dumper qw(Dumper);
 use Data::FormValidator         ();
 use DBIx::Class                 ();

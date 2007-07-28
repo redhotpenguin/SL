@@ -15,6 +15,7 @@ use SL::Model::App ();
 
 use Digest::MD5 ();
 use MIME::Lite  ();
+use Apache::Session::DB_File ();
 
 our $CONFIG;
 my ( $CIPHER, $TEMPLATE );
@@ -74,8 +75,21 @@ sub authenticate {
             "Nonexistent reg email " . $state{email}, $dest );
     }
 
+    # session
+    my $lock_dir = '/tmp/app/sessions';
+    my $lock_filename = 'app_sessions.db';
+    my %session;
+    my $session_id = (exists $state{_session_id}) ? 
+        $state{_session_id} : undef;
+
+    tie %session, 'Apache::Session::DB_File', $session_id, {
+                                    FileName => $lock_filename,
+                                   LockDirectory => $lock_dir, };
+
+    $r->pnotes(session => \%session);
+
 	# give them a cookie
-	$class->send_cookie($r, $reg);
+	$class->send_cookie($r, $reg, $session{_session_id});
 
     return $class->auth_ok( $r, $reg );
 }
@@ -141,14 +155,17 @@ sub login {
 }
 
 sub send_cookie {
-	my ($class, $r, $reg) = @_;
+	my ($class, $r, $reg, $session_id) = @_;
 
     # Give the user a new cookie
-    my $last_seen = DateTime->now( time_zone => 'local' )->epoch;
     my %state = (
         email     => $reg->email,
-        last_seen => $last_seen,
+        last_seen => time(),
     );
+    if (defined $session_id) {
+      $state{session_id} = $session_id;
+    }
+
     my $cookie = Apache2::Cookie->new(
         $r,
         -name  => $CONFIG->sl_app_cookie_name,
@@ -161,10 +178,10 @@ sub send_cookie {
 	# they're ok
 	$r->log->debug( "$class user "
           . $state{email}
-          . ", last seen "
-          . $state{last_seen}
+          . ", last seen " . $state{last_seen}
+          . ", session_id " . $state{session_id}
           . ", authenticated ok, cookie sent" );
- 
+
 	return 1;
 }
 

@@ -148,10 +148,12 @@ sub dispatch_edit {
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
 
+      $r->method_number(Apache2::Const::M_GET);
         my $results = Data::FormValidator->check( $req, \%ad_profile );
         my $errors = $self->SUPER::_results_to_errors($results);
-        $r->method_number(Apache2::Const::M_GET);
+      if ($errors) {
         return $self->dispatch_edit( $r, $errors );
+      }
     }
 
     my ( $status, $base_ad );
@@ -183,9 +185,8 @@ sub dispatch_edit {
         $ad->update;
     }
 
-    $r->method_number(Apache2::Const::M_GET);
-    $r->internal_redirect(
-        "/app/ad/list/?status=$status&ad_text=" . $ad->text );
+    # set session msg
+    $r->internal_redirect("/app/ad/ads/list");
     return Apache2::Const::OK;
 }
 
