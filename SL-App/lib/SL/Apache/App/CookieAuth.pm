@@ -101,7 +101,7 @@ sub logout {
 
     $class->expire_cookie($r);
     my $output;
-    my $ok = $TEMPLATE->process('home.tmpl', {}, \$output);
+    my $ok = $TEMPLATE->process('index.tmpl', {}, \$output);
     $ok ? return $class->ok($r, $output) 
         : return $class->error($r, "Template error: " . $TEMPLATE->error());
 }
