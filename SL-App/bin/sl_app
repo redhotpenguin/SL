@@ -13,9 +13,10 @@ my $config = SL::Config->new();
 
 # FIll out the httpd.conf
 my $httpd_conf = "httpd_$server.conf";
-my $conf_tmpl   = sprintf("%s/$httpd_conf.tmpl", $config->conf_dir);
-my $tmpl_out    = sprintf("%s/$httpd_conf", $config->conf_dir);
-my %tmpl_config = (ABSOLUTE => 1, INCLUDE_PATH => $config->conf_dir . '/');
+my $conf_dir = sprintf("%s/conf", $config->sl_app_root);
+my $conf_tmpl   = sprintf("%s/$httpd_conf.tmpl", $conf_dir);
+my $tmpl_out    = sprintf("%s/$httpd_conf", $conf_dir);
+my %tmpl_config = (ABSOLUTE => 1, INCLUDE_PATH => $conf_dir . '/');
 my $template    = Template->new(\%tmpl_config) || die $Template::ERROR, "\n";
 $template->process($conf_tmpl, { cfg => $config }, $tmpl_out)
   || die $template->error, "\n";
@@ -27,7 +28,7 @@ my $cmd = sprintf("%s/bin/httpd", $config->$attr);
 
 $cmd .= "-X " if ( $config->sl_debug);
 
-$cmd .= sprintf(" -f %s/$httpd_conf -k start", $config->conf_dir);
+$cmd .= sprintf(" -f %s/$httpd_conf -k start", $conf_dir);
 print "Starting with command: $cmd\n";
 my $started = `$cmd`;
 print $started;
