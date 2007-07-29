@@ -28,7 +28,7 @@ are really fast.
 
 our $VERSION = 0.11;
 
-our ($config, $conf_dir);
+our( $config, $conf_dir );
 our $file = 'sl.conf';
 
 use base 'Config::ApacheFormat';
@@ -38,32 +38,37 @@ sub new {
     my $class = shift;
 
     return $config if $config;
-    
+
     my @config_files;
-    if (-d "$FindBin::Bin/../conf") {
+    if ( -e "/etc/sl/$file" ) {
+
+        # global sl dir
+        $conf_dir     = "/etc/sl";
+        @config_files = ("$conf_dir/$file");
+    }
+    elsif ( -e "/etc/$file" ) {
+
+        # global etc
+        $conf_dir     = "/etc";
+        @config_files = ("$conf_dir/$file");
+    }
+    elsif ( -d "$FindBin::Bin/../conf" && ( -e "$FindBin::Bin/../conf/$file" ) )
+    {
 
         # development
         $conf_dir = "$FindBin::Bin/../conf";
-        @config_files = ("$conf_dir/$file", "$conf_dir/../$file");
-    }
-    elsif (-e "/etc/sl/$file") {
-        $conf_dir = "/etc/sl";
-        @config_files = ("$conf_dir/$file");
-    }
-    elsif (-e "/etc/$file") {
-        $conf_dir = "/etc";
-        @config_files = ( "$conf_dir/$file" );
+        @config_files = ( "$conf_dir/$file", "$conf_dir/../$file" );
     }
     else {
-        die "\nNo file $file found in  " . 
-            "$FindBin::Bin/../conf/ or /etc/sl/!\n";
+        die "\nNo file $file found in  "
+          . "$FindBin::Bin/../conf/ or /etc/sl/!\n";
     }
 
     # we have a configuration file to work with, so get to work
     $config = $class->SUPER::new();
     my $read;
     foreach my $config_file (@config_files) {
-        next unless (-e $config_file);
+        next unless ( -e $config_file );
         $config->read($config_file);
         $read++;
     }
