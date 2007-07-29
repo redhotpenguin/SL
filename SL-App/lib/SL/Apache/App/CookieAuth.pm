@@ -53,8 +53,7 @@ sub authenticate {
     my $jar    = Apache2::Cookie::Jar->new($r);
     my $cookie = $jar->cookies( $CONFIG->sl_app_cookie_name );
 
-    my $dest = $r->construct_url( $CONFIG->sl_app_base_uri .
-                                  $CONFIG->sl_app_auth_uri );
+    my $dest = $r->construct_url($CONFIG->sl_app_auth_uri );
     return $class->redirect_auth( $r, 'No Cookie', $dest ) unless ($cookie);
 
     # decode the cookie
@@ -77,7 +76,7 @@ sub authenticate {
 
     # session
     my $lock_dir = '/tmp/app/sessions';
-    my $lock_filename = 'app_sessions.db';
+    my $lock_filename = '/tmp/app/sessions/app_sessions.db';
     my %session;
     my $session_id = (exists $state{_session_id}) ? 
         $state{_session_id} : undef;
@@ -119,7 +118,6 @@ sub login {
         unless ( $req->param('email') && $req->param('password') ) {
             my $dest =
               $r->construct_url(
-                $CONFIG->sl_app_base_uri .
                 $CONFIG->sl_app_auth_uri . '/?error=incomplete' );
             return $class->redirect_auth( $r, "username, password missing",
                 $dest );
@@ -136,8 +134,7 @@ sub login {
         # send them back to the login page if pass is invalid
         unless ($reg) {
             my $dest =
-              $r->construct_url( $CONFIG->sl_app_base_uri .
-                                 $CONFIG->sl_app_auth_uri .
+              $r->construct_url(        $CONFIG->sl_app_auth_uri .
                                  '/?error=invalid' );
             return $class->redirect_auth( $r, "username, password missing",
                 $dest );
