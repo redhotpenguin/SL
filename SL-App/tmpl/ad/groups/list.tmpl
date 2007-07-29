@@ -1,0 +1,41 @@
+[% PROCESS header.tmpl %]
+
+<div id="list_center">
+<div class="content">
+
+<h2>[% PROCESS ad/groups/nav.tmpl %] > [% count %] Ad Groups Total</h2>
+
+[% IF msg %]
+<p><font color="red">[% msg %]</font></p>
+[% END %]
+
+<p style="text-align: right; padding-bottom: 5px;"><a href="[% base_uri %]/app/ad/groups/edit">Create a New Ad Group</a></span></p>
+<table class="list"
+<tr class="list_header">
+<td>&nbsp;&nbsp;Ad&nbsp;&nbsp;</td><td>Text</td>
+[% IF root == 1 %]
+<td>Creator</td>
+[% END %]
+<td>Creation Time</td>
+<td>Active&nbsp;&nbsp;</td>
+<td>Edit</td>
+</tr>
+[% FOREACH ad_group = ad_groups %]
+  <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
+	
+  <td style="color: #639D63">&nbsp;&nbsp;
+<a href="[% base_uri %]/app/ad/groups/edit/?id=[% ad_group.ad_group_id %]">[% ad_group.ad_group_id %]</a></td>
+<td>[% ad_group.name %]</a></td>
+
+<td>[% ad_group.cts %]</td>
+
+<td style="text-align: center;">
+[% IF ad_group.active %]Yes[% ELSE %]No[% END %]</td>
+<td><a href="[% base_uri %]/app/ad/groups/edit/?id=[% ad_group.ad_group_id %]">
+Edit</a></td>
+</tr>
+[% END %]
+</table>
+</div>
+</div>
+[% PROCESS footer.tmpl %]
