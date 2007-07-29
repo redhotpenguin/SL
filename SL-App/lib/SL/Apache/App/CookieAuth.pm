@@ -17,8 +17,7 @@ use Digest::MD5 ();
 use MIME::Lite  ();
 use Apache::Session::DB_File ();
 
-our $CONFIG;
-my ( $CIPHER, $TEMPLATE );
+our ($CONFIG, $CIPHER);
 
 BEGIN {
     require SL::Config;
@@ -45,6 +44,11 @@ sub authenticate {
         $r->pnotes($r->user => $r->prev->pnotes($r->prev->user));
         if ($r->prev->pnotes('root')) {
             $r->pnotes('root' => 1);
+        }
+
+        # pass the session from the subrequest
+        if ($r->prev->pnotes('session')) {
+          $r->pnotes('session' => $r->prev->pnotes('session'));
         }
         return Apache2::Const::OK;
     }
@@ -84,13 +88,22 @@ sub authenticate {
     tie %session, 'Apache::Session::DB_File', $session_id, {
                                     FileName => $lock_filename,
                                    LockDirectory => $lock_dir, };
-
     $r->pnotes(session => \%session);
 
 	# give them a cookie
 	$class->send_cookie($r, $reg, $session{_session_id});
 
     return $class->auth_ok( $r, $reg );
+}
+
+sub logout {
+    my ($class, $r ) = @_;
+
+    $class->expire_cookie($r);
+    my $output;
+    my $ok = $TEMPLATE->process('home.tmpl', {}, \$output);
+    $ok ? return $class->ok($r, $output) 
+        : return $class->error($r, "Template error: " . $TEMPLATE->error());
 }
 
 sub login {
@@ -149,6 +162,20 @@ sub login {
     else {
         return Apache2::Const::HTTP_METHOD_NOT_ALLOWED;
     }
+}
+
+sub expire_cookie {
+  my ($class, $r) = @_;
+
+  my $cookie = Apache2::Cookie->new(
+        $r,
+        -name  => $CONFIG->sl_app_cookie_name,
+        -value => '',
+        -expires => 'Mon, 21-May-1971 00:00:00 GMT',
+    );
+
+    $cookie->bake($r);
+  return 1;
 }
 
 sub send_cookie {

@@ -10,13 +10,13 @@ use Apache2::Upload     ();
 use Apache2::ServerUtil ();
 use Data::FormValidator ();
 use Digest::MD5         ();
-
-use SL::Model::App ();
+use SL::Model::App      ();
+use Data::Dumper;
 
 use base 'SL::Apache::App';
 use SL::Config;
-my $config    = SL::Config->new();
-my $DATA_ROOT = $config->sl_data_root;
+my $CONFIG    = SL::Config->new();
+my $DATA_ROOT = $CONFIG->sl_data_root;
 
 use SL::App::Template ();
 our $tmpl = SL::App::Template->template();
@@ -32,13 +32,15 @@ sub dispatch_index {
 
 # TODO
 #my @routers = $r->pnotes( $r->user )->router__regs->get_column('router_id')->all;
+    $r->log->debug( "session: " . Dumper( $r->pnotes('session') ) );
 
     # see if this ip is currently unregistered;
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
-            root   => $r->pnotes('root'),
-            reg    => $r->pnotes( $r->user ),
-            status => $req->param('status') || '',
+            session => $r->pnotes('session'),
+            root    => $r->pnotes('root'),
+            reg     => $r->pnotes( $r->user ),
+            status  => $req->param('status') || '',
         );
         if ( scalar(@routers) > 0 ) {
             $tmpl_data{routers} = \@routers;
@@ -177,34 +179,52 @@ sub dispatch_router {
                 }
             );
         }
+    }
+    if ( not defined $router ) {
 
-        if ( not defined $router ) {
+        # see if there is a router we don't know about
+        ($router) =
+          SL::Model::App->resultset('Router')
+          ->search( { macaddr => $req->param('macaddr') } );
+        unless ($router) {
 
             # adding a new router
             $router =
               SL::Model::App->resultset('Router')->new( { active => 't' } );
             $router->insert;
             $router->update;
-
-            # new router__reg
-            my $router__reg = SL::Model::App->resultset('RouterReg')->new(
-                {
-                    reg_id    => $r->pnotes( $r->user )->reg_id,
-                    router_id => $router->router_id,
-                }
-            );
-            $router__reg->insert;
-            $router__reg->update;
         }
 
-        # no errors update the router
-        foreach my $param qw( name macaddr serial_number ) {
-            $router->$param( $req->param($param) );
-        }
-        $router->update;
+        # see if a router reg exists
+        my %router__reg_args = (
+            reg_id    => $r->pnotes( $r->user )->reg_id,
+            router_id => $router->router_id,
+        );
+        my ($router__reg) =
+          SL::Model::App->resultset('RouterReg')->search( \%router__reg_args );
 
-        return $self->dispatch_router( $r, { status => 'update_ok' } );
+        unless ($router__reg) {
+
+            # nothing so make a new one
+            $router__reg =
+              SL::Model::App->resultset('RouterReg')->new( \%router__reg_args );
+        }
+        $router__reg->insert;
+        $router__reg->update;
     }
+
+    # no errors update the router
+    foreach my $param qw( name macaddr serial_number ) {
+        $router->$param( $req->param($param) );
+    }
+    $router->update;
+
+    # set session msg
+    $r->pnotes('session')->{msg} =
+      sprintf( "Router '%s' has been updated", $req->param('name') );
+
+    $r->internal_redirect( $CONFIG->sl_app_base_uri . "/app/settings/index" );
+    return Apache2::Const::OK;
 }
 
 sub valid_macaddr {

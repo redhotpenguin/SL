@@ -16,6 +16,7 @@
 [% ELSE %]
 <h2>Create a New Ad</h2></td></tr>
 [% END %]
+
 [% IF errors.missing %]
 <p><font color="red">Please complete the missing fields</font></p>
 [% END %]
@@ -24,11 +25,12 @@
 [% END %]
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
-<form method="POST" action="[% base_uri %]/app/ad/edit/?id=[% ad.id %]">
+<form method="POST" action="[% base_uri %]/app/ad/ads/edit">
+<input type="hidden" name="id" value="[% ad.ad_sl_id %]">
 <tr><td>
-[% IF errors.missing.text %]<font color="red">Ad Text:</font>[% ELSE %]
+[% IF errors.missing.text %]<font color="red">[% END %]
 Ad Text:
-[% END %]
+[% IF errors.missing.text %]</font>[% END %]
 </td>
 <td><input type="text" name="text" size="50" maxlength="100" value='[% ad.text %]'></td></tr>
 
@@ -37,9 +39,9 @@ Ad Text:
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
 <tr><td>
-[% IF errors.missing.link %]<font color="red">Ad Links To:</font>[% ELSE %]
-[% END %]
+[% IF errors.missing.uri %]<font color="red">[% END %]
 Ad Links To:
+[% IF errors.missing.uri %]</font>[% END %]
 </td>
 
 <td><input type="text" name="uri" size="50" maxlength="512" value="[% IF ad.id == -1 %]http://[% ELSE %][% ad.uri %][% END %]"></td></tr>
@@ -49,9 +51,9 @@ Ad Links To:
 [% IF ad.uri %]<tr><td colspan=2><a href="[% ad.uri %]">Link</a></td></tr>[% END %]
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
-<tr><td>Active:</font></td><td>
-Yes<input type="radio" name="active" value="1" [% IF ad.active == 1 ||  ad.id == -1 %] checked [% END %]>
-No<input type="radio" name="active" value="0" [% IF ad.active == 0 %] checked [% END %]></td></tr>
+<tr><td>Active:</td><td>
+Yes<input type="radio" name="active" value="1" [% IF ad.ad_id.active == 1 ||  ! ad.ad_id %] checked [% END %]>
+No<input type="radio" name="active" value="0" [% IF ad.ad_id.active == 0 %] checked [% END %]></td></tr>
 <tr><td colspan=3><font color="#CCCCCC">
 Deactivating the ad removes it from the ad serving rotation.<br />To ensure consistency in reporting, ads cannot be deleted.
 </font></td></tr>

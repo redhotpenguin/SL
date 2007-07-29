@@ -34,4 +34,4 @@ sub dispatch_index {
         : return $self->error($r, "Template error: " . $tmpl->error());
 }
 
-return 1;
+1;

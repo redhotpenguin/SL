@@ -5,11 +5,11 @@
 
 <h2>[% PROCESS ad/ads/nav.tmpl %] > [% count %] Ads Total</h2>
 
-[% IF status == 'added' %]
-<p><font color="red">Ad '[% ad_text %]' was successfully added.</font></p>
-[% ELSIF  status == 'updated' %]
-<p><font color="red">Ad '[% ad_text %]' was successfully updated.</font></p>
+[% IF session.msg %]
+<tr><td colspan=2><hr size=1 color="#CCCCCC" width=600px></td></tr>
+<tr><td><font color="red">[% session.msg %]</td></tr>
 [% END %]
+
 <p style="text-align: right; padding-bottom: 5px;"><a href="[% base_uri %]/app/ad/ads/edit">Create a New Ad</a></span></p>
 <table class="list">
 <tr class="list_header">

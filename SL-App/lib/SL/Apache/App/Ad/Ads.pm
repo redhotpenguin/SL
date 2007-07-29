@@ -12,6 +12,9 @@ use Apache2::SubRequest ();
 
 use base 'SL::Apache::App';
 
+use SL::Config;
+our $CONFIG = SL::Config->new;
+
 use SL::App::Template ();
 our $tmpl = SL::App::Template->template();
 
@@ -19,8 +22,6 @@ our $tmpl = SL::App::Template->template();
 use Data::Dumper;
 use SL::Model;
 use SL::Model::App;    # works for now
-
-use DateTime;
 
 sub shrink {
     my $string = shift;
@@ -30,14 +31,17 @@ sub shrink {
 }
 
 sub dispatch_index {
-    my ($self, $r) = @_;
+    my ( $self, $r ) = @_;
 
-    my %tmpl_data = ( root => $r->pnotes('root'),
-                       email => $r->user);
+    my %tmpl_data = (
+        root  => $r->pnotes('root'),
+        email => $r->user
+    );
     my $output;
-    my $ok = $tmpl->process('ad/ads/index.tmpl', \%tmpl_data, \$output);
-    $ok ? return $self->ok($r, $output) 
-        : return $self->error($r, "Template error: " . $tmpl->error());
+    my $ok = $tmpl->process( 'ad/ads/index.tmpl', \%tmpl_data, \$output );
+    $ok
+      ? return $self->ok( $r, $output )
+      : return $self->error( $r, "Template error: " . $tmpl->error() );
 }
 
 =head1 METHODS
@@ -94,13 +98,7 @@ sub dispatch_list {
     }
     $tmpl_data{'count'} = scalar( @{ $tmpl_data{'ads'} } );
 
-    # set the status, if any
-    my $req = Apache2::Request->new($r);
-    if ( $req->param('status') ) {
-        $tmpl_data{'status'}  = $req->param('status');
-        $tmpl_data{'ad_text'} = $req->param('ad_text');
-    }
-
+    $tmpl_data{session} = $r->pnotes('session');
     my $output;
     my $ok = $tmpl->process( 'ad/ads/list.tmpl', \%tmpl_data, \$output );
     $ok
@@ -108,17 +106,15 @@ sub dispatch_list {
       : return $self->error( $r, "Template error: " . $tmpl->error() );
 }
 
-my %ad_profile = ( required => [qw( uri text active )], );
-
 sub dispatch_edit {
-    my ( $self, $r, $errors ) = @_;
+    my ( $self, $r, $args_ref ) = @_;
 
-    my $req = Apache2::Request->new($r);
+    my $req = $args_ref->{req} || Apache2::Request->new($r);
 
     my ( %tmpl_data, $ad, $output, $link );
     if ( $req->param('id') ) {    # edit existing ad
         my %search;
-
+$r->log->debug("ID IS " . $req->param('id'));
         # restrict search params for nonroot
         if ( !$r->pnotes('root') ) {
             $search{reg_id} = $r->pnotes( $r->user )->reg_id;
@@ -136,11 +132,13 @@ sub dispatch_edit {
     }
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
-
-        if ( keys %{$errors} ) {
-            $tmpl_data{'errors'} = $errors;
-        }
-
+        %tmpl_data = (
+            ad => $ad,
+            session => $r->pnotes('session'),
+            root    => $r->pnotes('root'),
+            req     => $req,
+            errors => $args_ref->{errors},
+        );
         my $ok = $tmpl->process( 'ad/ads/edit.tmpl', \%tmpl_data, \$output );
         $ok
           ? return $self->ok( $r, $output )
@@ -148,16 +146,19 @@ sub dispatch_edit {
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
 
-      $r->method_number(Apache2::Const::M_GET);
+        $r->method_number(Apache2::Const::M_GET);
+        my %ad_profile = ( required => [qw( uri text active )], );
         my $results = Data::FormValidator->check( $req, \%ad_profile );
-        my $errors = $self->SUPER::_results_to_errors($results);
-      if ($errors) {
-        return $self->dispatch_edit( $r, $errors );
-      }
+
+        if ($results->has_missing or $results->has_invalid) {
+          my $errors = $self->SUPER::_results_to_errors($results);
+          return $self->dispatch_edit( $r, { errors => $errors, req => $req } );
+        }
     }
 
-    my ( $status, $base_ad );
-    if  ( not defined $ad ) {
+    my ($base_ad, $action);
+    unless ($ad ) {
+
         # make the base ad first
         $base_ad = SL::Model::App->resultset('Ad')->new( { active => 't' } );
         $base_ad->insert();
@@ -172,21 +173,25 @@ sub dispatch_edit {
             }
         );
         $ad->insert();
-        $status = 'added';
         $base_ad->update;
         $ad->update;
+        $action = 'added';
     }
     else {
         $ad->ad_id->active( $req->param('active') );
         $ad->text( $req->param('text') );
         $ad->uri( $req->param('uri') );
-        $status = 'updated';
         $ad->ad_id->update;
         $ad->update;
+        $action = 'updated';
     }
 
     # set session msg
-    $r->internal_redirect("/app/ad/ads/list");
+    $r->pnotes('session')->{msg} =
+      sprintf( "Ad '%s' has been %s", $req->param('text'), $action );
+
+    # set session msg
+    $r->internal_redirect( $CONFIG->sl_app_base_uri . "/app/ad/ads/list" );
     return Apache2::Const::OK;
 }
 

@@ -94,6 +94,11 @@ PerlLoadModule Apache2::Dispatch
 	PerlResponseHandler SL::Apache::App::CookieAuth->login
 </Location>
 
+<Location /logout>
+	SetHandler modperl
+	PerlResponseHandler SL::Apache::App::CookieAuth->logout
+</Location>
+
 <Location /forgot>
 	SetHandler modperl
 	PerlResponseHandler SL::Apache::App::CookieAuth->forgot
