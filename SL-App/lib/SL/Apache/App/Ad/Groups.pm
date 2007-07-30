@@ -126,10 +126,17 @@ sub dispatch_edit {
 sub dispatch_list {
     my ( $self, $r, $args_ref ) = @_;
 
+    my @reg__ad_groups = SL::Model::App->resultset('RegAdGroup')->search({
+             reg_id => $r->pnotes($r->user)->reg_id });
+    my @ad_groups      = map { $_->ad_group_id } @reg__ad_groups;
+
     my %tmpl_data = (
         root  => $r->pnotes('root'),
-        email => $r->user
+        session => $r->pnotes('session'),
+        ad_groups => \@ad_groups,
+        count => scalar(@ad_groups),
     );
+
     my $output;
     my $ok = $tmpl->process( 'ad/groups/list.tmpl', \%tmpl_data, \$output );
     $ok
