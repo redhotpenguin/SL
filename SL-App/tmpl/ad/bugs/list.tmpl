@@ -1,0 +1,40 @@
+[% PROCESS header.tmpl %]
+
+<div id="list_center">
+<div class="content">
+
+<h2>[% PROCESS ad/bugs/nav.tmpl %] > <a href="[% base_uri %]/app/ad/bugs/list">[% count %] Bugs Total</a></h2>
+
+[% IF session.msg %]
+<tr><td colspan=2><hr size=1 color="#CCCCCC" width=600px></td></tr>
+<tr><td><font color="red">[% session.msg %]</td></tr>
+[% END %]
+
+<p style="text-align: right; padding-bottom: 5px;">
+<a href="[% base_uri %]/app/ad/bugs/edit">Create a New Bug Image</a></span></p>
+<table class="list">
+<tr class="list_header">
+<td>&nbsp;&nbsp;Id&nbsp;&nbsp;</td>
+<td>Name</td>
+<td>Image</td>
+<td>Creation Time</td>
+<td>Active&nbsp;&nbsp;</td>
+<td>Edit</td>
+</tr>
+[% FOREACH bug = bugs %]
+  <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
+	
+  <td style="color: #639D63">&nbsp;&nbsp;
+<a href="[% base_uri %]/app/ad/bugs/edit/?id=[% bug.bug_id %]">[% bug.bug_id %]</a></td>
+<td>[% bug.name %]</a></td>
+<td><a href="[% bug.link_href %]"><img src="[% bug.image_href %]"></a></td>
+<td>[% bug.cts %]</td>
+
+<td style="text-align: center;">[% IF bug.active %]Yes[% ELSE %]No[% END %]</td>
+<td><a href="[% base_uri %]/app/ad/bugs/edit/?id=[% bug.bug_id %]">Edit</a></td>
+</tr>
+[% END %]
+</table>
+</div>
+</div>
+[% PROCESS footer.tmpl %]

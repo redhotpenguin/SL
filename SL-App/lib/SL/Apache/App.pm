@@ -65,5 +65,22 @@ sub _results_to_errors {
     return \%errors;
 }
 
+use LWP::UserAgent;
+use URI;
+my $UA = LWP::UserAgent->new;
+$UA->timeout(10);    # needs to respond somewhat quickly
+
+sub valid_link {
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+
+        my $response = $UA->get( URI->new($val) );
+        return $val if $response->is_success;
+        return;      # oops didn't validate
+      }
+}
+
+
 
 1;

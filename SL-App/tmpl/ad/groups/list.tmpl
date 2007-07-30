@@ -3,16 +3,17 @@
 <div id="list_center">
 <div class="content">
 
-<h2>[% PROCESS ad/groups/nav.tmpl %] > [% count %] Ad Groups Total</h2>
+<h2>[% PROCESS ad/groups/nav.tmpl %] > <a href="[% base_uri %]/app/ad/groups/list">[% count %] Ad Groups Total</a></h2>
 
-[% IF msg %]
-<p><font color="red">[% msg %]</font></p>
+[% IF session.msg %]
+<p><font color="red">[% session.msg %]</font></p>
 [% END %]
 
 <p style="text-align: right; padding-bottom: 5px;"><a href="[% base_uri %]/app/ad/groups/edit">Create a New Ad Group</a></span></p>
 <table class="list"
 <tr class="list_header">
 <td>&nbsp;&nbsp;Id&nbsp;&nbsp;</td><td>Name</td>
+<td># of ads</td>
 <td>Creation Time</td>
 <td>Active&nbsp;&nbsp;</td>
 <td>Edit</td>
@@ -24,6 +25,7 @@
 <a href="[% base_uri %]/app/ad/groups/edit/?id=[% ad_group.ad_group_id %]">[% ad_group.ad_group_id %]</a></td>
 <td>[% ad_group.name %]</a></td>
 
+<td>[% ad_group.ad_count %]</td>
 <td>[% ad_group.cts %]</td>
 
 <td style="text-align: center;">

@@ -20,15 +20,6 @@ use Data::Dumper;
 use SL::Model;
 use SL::Model::App;    # works for now
 
-use DateTime;
-
-sub shrink {
-    my $string = shift;
-    my $length = 25;
-    return $string if ( length($string) - 3 ) < $length;
-    return substr( $string, -length($string), $length ) . '...';
-}
-
 sub dispatch_index {
     my ( $self, $r ) = @_;
 
@@ -50,20 +41,17 @@ sub dispatch_edit {
 
     my ( $ad_group, $output, $link );
     if ( $req->param('id') ) {    # edit existing ad group
-        my %search;
-
-        # restrict search params for nonroot
-        if ( !$r->pnotes('root') ) {
-            $search{reg_id} = $r->pnotes( $r->user )->reg_id;
-        }
-
-        $search{ad_group_id} = $req->param('id');
-        ($ad_group) = SL::Model::App->resultset('AdGroup')->search( \%search );
+        my ($reg__ad_group) = SL::Model::App->resultset('RegAdGroup')->search({
+                                      reg_id => $r->pnotes($r->user)->reg_id,
+                                      ad_group_id => $req->param('id')});
+        $ad_group = $reg__ad_group->ad_group_id;
         return Apache2::Const::NOT_FOUND unless $ad_group;
     }
 
-    # get the bugs
-    my @bugs = SL::Model::App->resultset('Bug')->search;
+    # get the bugs which this user owns, plus default bugs
+    my @bugs = SL::Model::App->resultset('Bug')->search([{
+        reg_id => $r->pnotes($r->user)->reg_id, }, { is_default => 't' }]);
+
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
             root     => $r->pnotes('root'),
@@ -86,7 +74,7 @@ sub dispatch_edit {
         # validate input
         my %ad_group_profile = (
             required           => [qw( name  bug_id active )],
-            constraint_methods => { css_url => valid_link(), }
+            constraint_methods => { css_url => SL::Apache::App::valid_link(), }
         );
 
         my $results = Data::FormValidator->check( $req, \%ad_group_profile );
@@ -104,21 +92,23 @@ sub dispatch_edit {
         }
     }
 
-    if ( not defined $ad_group ) {
-
-        # make the ad_group
-        $ad_group =
-          SL::Model::App->resultset('AdGroup')->new( { active => 't' } );
-        $ad_group->insert();
-        $ad_group->update;
+    unless ($req->param('id')) {
+      # create a new ad group
+      $ad_group = SL::Model::App->resultset('AdGroup')->create({ active => 't'});
     }
-
     # add arguments
     foreach my $param qw( name css_url bug_id active ) {
         $ad_group->$param( $req->param($param) );
     }
     $ad_group->update;
 
+    my $reg__ad_group = SL::Model::App->resultset('RegAdGroup')->update_or_create({
+             reg_id => $r->pnotes($r->user)->reg_id,
+             ad_group_id => $ad_group->ad_group_id });
+
+    my $status = $req->param('id') ? 'updated' : 'created';
+    $r->pnotes('session')->{msg} = sprintf("Ad group '%s' was %s",
+                                             $ad_group->name, $status);
     $r->internal_redirect("/app/ad/groups/list");
     return Apache2::Const::OK;
 }
@@ -129,6 +119,11 @@ sub dispatch_list {
     my @reg__ad_groups = SL::Model::App->resultset('RegAdGroup')->search({
              reg_id => $r->pnotes($r->user)->reg_id });
     my @ad_groups      = map { $_->ad_group_id } @reg__ad_groups;
+    # count up the ads in the group
+    foreach my $group ( @ad_groups) {
+      $group->{ad_count} = SL::Model::App->resultset('AdAdGroup')->search({
+                          ad_group_id => $group->ad_group_id});
+    }
 
     my %tmpl_data = (
         root  => $r->pnotes('root'),
@@ -142,25 +137,6 @@ sub dispatch_list {
     $ok
       ? return $self->ok( $r, $output )
       : return $self->error( $r, "Template error: " . $tmpl->error() );
-}
-
-
-
-use LWP::UserAgent;
-use URI;
-my $UA = LWP::UserAgent->new;
-$UA->timeout(10);    # needs to respond somewhat quickly
-
-sub valid_link {
-    return sub {
-        my $dfv = shift;
-        my $val = $dfv->get_current_constraint_value;
-
-        my $response = $UA->get( URI->new($val) );
-
-        return $val if $response->is_success;
-        return;      # oops didn't validate
-      }
 }
 
 1;

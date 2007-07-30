@@ -52,9 +52,8 @@ Select a bug to associate the ad group with:</td></tr>
 <td><img src="[% bug.image_href %]"><input type="radio" name="bug_id" 
 value="[% bug.bug_id %]"
 [% IF (req.param('bug_id') == bug.bug_id ) %]checked
-[% ELSIF (ad_group.bug_id == bug.bug_id) %]checked[% END %]>&nbsp;</td>
+[% ELSIF (ad_group.bug_id.bug_id == bug.bug_id) %]checked[% END %]>&nbsp;</td>
 [% END %]</tr>
-
 <!-- end bug selection -->
 
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
@@ -98,8 +97,8 @@ value="[% req.param('template') or ad_group.template or 'text_ad.tmpl' %]">
 
 <!-- active -->
 <tr><td>Active:</font></td><td>
-Yes<input type="radio" name="active" value="1" [% IF (ad_group.active == 1) or ! ad_group %]checked[% END %]>&nbsp;
-No<input type="radio" name="active" value="0" [% IF ad.active == 0 %] checked [% END %]></td></tr>
+Yes<input type="radio" name="active" value="1" [% IF (ad_group.active == 1) or (! ad_group) %]checked[% END %]>&nbsp;
+No<input type="radio" name="active" value="0" [% IF ad_group.active == 0 %] checked [% END %]></td></tr>
 <tr><td colspan=3><font color="#CCCCCC">
 Deactivating the ad group removes it from the ad serving rotation.<br />To ensure consistency in reporting, ad groups cannot be deleted.
 </font></td></tr>
@@ -109,6 +108,7 @@ Deactivating the ad group removes it from the ad serving rotation.<br />To ensur
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
 <tr><td><input type="submit" value="Save Ad Group"></td></tr>
+<input type="hidden" name="id" value="[% ad_group.ad_group_id %]">
 </form>
 
 </table>
