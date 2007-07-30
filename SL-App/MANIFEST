@@ -17,6 +17,10 @@ tmpl/ad/ads/edit.tmpl
 tmpl/ad/ads/index.tmpl
 tmpl/ad/ads/list.tmpl
 tmpl/ad/ads/nav.tmpl
+tmpl/ad/bugs/edit.tmpl
+tmpl/ad/bugs/index.tmpl
+tmpl/ad/bugs/list.tmpl
+tmpl/ad/bugs/nav.tmpl
 tmpl/ad/groups/edit.tmpl
 tmpl/ad/groups/index.tmpl
 tmpl/ad/groups/list.tmpl
@@ -35,12 +39,14 @@ tmpl/home.tmpl
 tmpl/index.tmpl
 tmpl/left.tmpl
 tmpl/login.tmpl
+tmpl/logout.tmpl
 tmpl/report.tmpl
 tmpl/right.tmpl
 tmpl/settings/account.tmpl
 tmpl/settings/index.tmpl
 tmpl/settings/router.tmpl
 lib/SL/Apache/App/Ad/Ads.pm
+lib/SL/Apache/App/Ad/Bugs.pm
 lib/SL/Apache/App/Ad/Groups.pm
 lib/SL/Apache/App/Ad.pm
 lib/SL/Apache/App/Blacklist.pm
