@@ -1,5 +1,10 @@
 Revision history for SL::App
 
+0.11 Mon Jul 30 17:15:00 2007
+    - Add bug handling
+    - ad group handling
+    - lots of goodness
+
 0.10 Wed Jul 19 01:18:00 2007
     - SL::App::Template to ease some pain
     - the app is separate again

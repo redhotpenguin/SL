@@ -13,6 +13,9 @@ src/Apache-Dispatch-0.10_02.tar.gz
 src/Crypt-CBC-2.22.tar.gz
 src/Data-FormValidator-4.50.tar.gz
 src/Template-Toolkit-2.14.tar.gz
+tmpl/ad/adgroups/index.tmpl
+tmpl/ad/adgroups/list.tmpl
+tmpl/ad/adgroups/nav.tmpl
 tmpl/ad/ads/edit.tmpl
 tmpl/ad/ads/index.tmpl
 tmpl/ad/ads/list.tmpl
@@ -45,6 +48,7 @@ tmpl/right.tmpl
 tmpl/settings/account.tmpl
 tmpl/settings/index.tmpl
 tmpl/settings/router.tmpl
+lib/SL/Apache/App/Ad/Adgroups.pm
 lib/SL/Apache/App/Ad/Ads.pm
 lib/SL/Apache/App/Ad/Bugs.pm
 lib/SL/Apache/App/Ad/Groups.pm

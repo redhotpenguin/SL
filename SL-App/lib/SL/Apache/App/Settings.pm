@@ -30,8 +30,6 @@ sub dispatch_index {
     my @router__regs = $r->pnotes( $r->user )->router__regs;
     my @routers      = map { $_->router_id } @router__regs;
 
-# TODO
-#my @routers = $r->pnotes( $r->user )->router__regs->get_column('router_id')->all;
     $r->log->debug( "session: " . Dumper( $r->pnotes('session') ) );
 
     # see if this ip is currently unregistered;

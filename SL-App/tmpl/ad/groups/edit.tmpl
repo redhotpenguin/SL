@@ -44,14 +44,14 @@ Ad Group name:
 
 <!-- bug selection -->
 
-<tr><td colspan="2">
+<tr><td colspan="[% bugs.max %]">
 [% IF errors.missing.bug_id %]<font color="red">[% END %]
-Select a bug to associate the ad group with:</td></tr>
+Select a bug to associate the ad group with:
 [% IF errors.missing.bug_id %]</font>[% END %]
+</td></tr>
 <tr>[% FOREACH bug = bugs %]
 <td><img src="[% bug.image_href %]"><input type="radio" name="bug_id" 
-value="[% bug.bug_id %]"
-[% IF (req.param('bug_id') == bug.bug_id ) %]checked
+value="[% bug.bug_id %]"[% IF (req.param('bug_id') == bug.bug_id ) %]checked
 [% ELSIF (ad_group.bug_id.bug_id == bug.bug_id) %]checked[% END %]>&nbsp;[% bug.name %]</td>
 [% END %]</tr>
 <!-- end bug selection -->
