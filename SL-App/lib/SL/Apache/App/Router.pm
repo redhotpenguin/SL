@@ -55,21 +55,27 @@ sub dispatch_edit {
 
       # get the locations for the router
       @locations = map { $_->location_id } $router->router__locations;
+   }
 
+    # ugh this code sucks, but it basically populates which ad groups are
+    # selected for the router, and also handles the case of adding new
+    # ad groups to routers
+    my @router__ad_groups;
+    if ($router) {
       # current associations for this router
-      my @router__ad_groups = map { $_->ad_group_id }
-        $router->router__ad_groups;
-
+      @router__ad_groups = map { $_->ad_group_id } $router->router__ad_groups;
+    }
       # ad groups allowed for this user
-      @reg__ad_groups = map { $_->ad_group_id } $reg->reg__ad_groups;
+    @reg__ad_groups = map { $_->ad_group_id } $reg->reg__ad_groups;
 
+    if ($router) {
       # mark the already associated ad groups as selected
       foreach my $reg__ad_group ( @reg__ad_groups ) {
         if ( grep { $reg__ad_group->ad_group_id eq $_ } @router__ad_groups ) {
           $reg__ad_group->{selected} = 1;
         }
       }
-   }
+    }
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (

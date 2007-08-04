@@ -80,6 +80,10 @@ sub authenticate {
 
     # session
     my $lock_dir = '/tmp/app/sessions';
+
+    unless (-d $lock_dir) {
+       system("mkdir -p $lock_dir") == 0 or die  $!;
+    }
     my $lock_filename = '/tmp/app/sessions/app_sessions.db';
     my %session;
     my $session_id = (exists $state{_session_id}) ? 

@@ -5,6 +5,7 @@
 <div class="content">
 
 <h2>[% PROCESS router/nav.tmpl %] > <a href="[% base_uri %]/app/router/list">[% count %] Routers Total</a></h2>
+<hr size=1 color="#CCCCCC">
 
 <p style="text-align: left; padding-bottom: 5px; width: 500px;">
 <a href="[% base_uri %]/app/router/edit">Add a new Router</a></span></p>
@@ -12,7 +13,6 @@
 [% IF session.msg %]
 <p><font color="red">[% session.msg %]</font></p>
 [% END %]
-<br />
 
 <table class="list">
 <tr class="list_header">

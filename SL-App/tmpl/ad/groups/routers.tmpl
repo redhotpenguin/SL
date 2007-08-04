@@ -4,7 +4,8 @@
 <div id="list_center">
 <div class="content">
 
-<h2>[% PROCESS ad/groups/nav.tmpl %] > <a href="[% base_uri %]/app/ad/groups/ads">[% count %] Ads for Ad Group '[% ad_group.name %]'</a></h2>
+<h2>[% PROCESS ad/groups/nav.tmpl %] > <a href="[% base_uri %]/app/ad/groups/routers">Routers serving Ad Group '[% ad_group.name %]'</a></h2>
+<hr size=1 color="#CCCCCC">
 
 [% IF session.msg %]
 <p><font color="red">[% session.msg %]</font></p>
@@ -16,12 +17,13 @@
 <tr class="list_header">
 <td class="header">Router (click to change ad group assignments)</td>
 </tr>
-[% FOREACH ad_sl = ad_sls %]
+[% FOREACH router = routers %]
   <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
 
 <!-- name -->	
-  <td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
-<a href="[% base_uri %]/app/ad/ads/edit/?id=[% ad_sl.ad_sl_id %]">[% ad_sl.text %]</a></td>
+<td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
+<a href="[% base_uri %]/app/router/edit/?id=[% router.router_id %]">
+[% router.name %]</a></td>
 
 </tr>
 [% END %]

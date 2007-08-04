@@ -5,7 +5,7 @@
 <div class="content">
 
 <h2>[% PROCESS ad/groups/nav.tmpl %] > <a href="[% base_uri %]/app/ad/groups/list">[% count %] Ad Groups Total</a></h2>
-
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
 <p style="text-align: left; padding-bottom: 5px; width: 500px;">
 <a href="[% base_uri %]/app/ad/groups/edit">Create a New Ad Group</a></span></p>
@@ -13,7 +13,6 @@
 [% IF session.msg %]
 <p><font color="red">[% session.msg %]</font></p>
 [% END %]
-<br />
 
 <table class="list">
 <tr class="list_header">
@@ -41,16 +40,21 @@
 
 <!-- ad count -->	
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% IF ad_group.ad_count == 'NA' %][% ad_group.ad_count %]
-[% ELSE %]
-<a href="[% base_uri %]/app/ad/groups/ads/?ad_group_id=[% ad_group.ad_group_id %]">
+[% IF ad_group.ad_count == 'NA' %]
+  [% ad_group.ad_count %]
+[% ELSIF ad_group.ad_count != 0 %]
+  <a href="[% base_uri %]/app/ad/groups/ads/?ad_group_id=[% ad_group.ad_group_id %]">
 [% ad_group.ad_count %]</a>
+[% ELSIF ad_group.ad_count == 0 %]
+  <a href="[% base_uri %]/app/ad/ads/list">
+  [% ad_group.ad_count %] (add ads)</a>
 [% END %]</td>
+
 
 <!-- routers -->
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
 [% IF ad_group.router_count == 0 %]
-<a href="[% base_uri %]/app/router/edit">
+<a href="[% base_uri %]/app/router/list">
 [% ad_group.router_count %] (add routers)</a>
 [% ELSE %]
 <a href="[% base_uri %]/app/ad/groups/routers/?ad_group_id=[% ad_group.ad_group_id %]">

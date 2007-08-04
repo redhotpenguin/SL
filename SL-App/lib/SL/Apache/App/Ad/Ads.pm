@@ -205,7 +205,7 @@ sub dispatch_edit {
 
     # handle the ad group associations
     # delete the old ones first
-    SL::Model::App-resultset('AdAdGroup')->search({
+    SL::Model::App->resultset('AdAdGroup')->search({
           ad_id => $ad->ad_id })->delete_all;
     foreach my $ad_group_id ( $req->param('ad_group') ) {
       SL::Model::App->resultset('AdAdGroup')->find_or_create({

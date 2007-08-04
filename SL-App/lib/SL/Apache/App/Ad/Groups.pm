@@ -133,7 +133,7 @@ sub dispatch_list {
        my @router_ids = map { $_->router_id->router_id }
          SL::Model::App->resultset('RouterReg')->search({
            reg_id => $reg->reg_id });
-       $ad_group->{router_count} = 
+       $ad_group->{router_count} =
          SL::Model::App->resultset('RouterAdGroup')->search({
             router_id => { -in =>  \@router_ids },
             ad_group_id => $ad_group->ad_group_id, })->count;
@@ -198,21 +198,22 @@ sub dispatch_routers {
   my ($ad_group) = SL::Model::App->resultset('AdGroup')->search({
                           ad_group_id => $req->param('ad_group_id') });
 
-  # all routers assigned to this group
-  my @router__ad_groups = SL::Model::App->resultset('RouterAdGroup')->search({
+    # all routers assigned to this group
+    my @router__ad_groups = SL::Model::App->resultset('RouterAdGroup')->search({
           ad_group_id => $ad_group->ad_group_id, });
 
     my @router_ids = map { $_->router_id->router_id } @router__ad_groups;
 
     # all the routers for this user
-   my  @router__regs = SL::Model::App->resultset('RouterReg')->search({
+   my  @routers = map { $_->router_id }
+     SL::Model::App->resultset('RouterReg')->search({
               reg_id => $r->pnotes($r->user)->reg_id,
               router_id => { -in => \@router_ids }, });
 
     my %tmpl_data = (
         root  => $r->pnotes('root'),
         session => $r->pnotes('session'),
-        router__regs => \@router__regs,
+        routers => \@routers,
         ad_group => $ad_group,
     );
 

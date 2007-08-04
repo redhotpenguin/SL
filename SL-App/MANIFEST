@@ -13,9 +13,6 @@ src/Apache-Dispatch-0.10_02.tar.gz
 src/Crypt-CBC-2.22.tar.gz
 src/Data-FormValidator-4.50.tar.gz
 src/Template-Toolkit-2.14.tar.gz
-tmpl/ad/adgroups/index.tmpl
-tmpl/ad/adgroups/list.tmpl
-tmpl/ad/adgroups/nav.tmpl
 tmpl/ad/ads/edit.tmpl
 tmpl/ad/ads/index.tmpl
 tmpl/ad/ads/list.tmpl
@@ -24,10 +21,12 @@ tmpl/ad/bugs/edit.tmpl
 tmpl/ad/bugs/index.tmpl
 tmpl/ad/bugs/list.tmpl
 tmpl/ad/bugs/nav.tmpl
+tmpl/ad/groups/ads.tmpl
 tmpl/ad/groups/edit.tmpl
 tmpl/ad/groups/index.tmpl
 tmpl/ad/groups/list.tmpl
 tmpl/ad/groups/nav.tmpl
+tmpl/ad/groups/routers.tmpl
 tmpl/ad/index.tmpl
 tmpl/ad/nav.tmpl
 tmpl/blacklist/edit.tmpl
@@ -45,6 +44,10 @@ tmpl/login.tmpl
 tmpl/logout.tmpl
 tmpl/report.tmpl
 tmpl/right.tmpl
+tmpl/router/edit.tmpl
+tmpl/router/index.tmpl
+tmpl/router/list.tmpl
+tmpl/router/nav.tmpl
 tmpl/settings/account.tmpl
 tmpl/settings/index.tmpl
 tmpl/settings/router.tmpl
@@ -61,6 +64,7 @@ lib/SL/Apache/App/Logon.pm
 lib/SL/Apache/App/Reg.pm
 lib/SL/Apache/App/Register.pm
 lib/SL/Apache/App/Report.pm
+lib/SL/Apache/App/Router.pm
 lib/SL/Apache/App/Settings.pm
 lib/SL/Apache/App.pm
 lib/SL/App/Template.pm

@@ -1,9 +1,11 @@
 [% PROCESS header.tmpl %]
+[% PROCESS left.tmpl %]
 
 <div id="list_center">
 <div class="content">
 <h2>[% PROCESS dashboard.tmpl %] > View Reports</h2>
-<hr>
+<hr size=1 color="#CCCCCC">
+
 [% IF status == 'updated' %]
 <p><font color="red">Email preferences updated</font></p>
 [% END %]
