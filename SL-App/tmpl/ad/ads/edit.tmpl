@@ -1,4 +1,5 @@
 [% PROCESS header.tmpl %]
+[% PROCESS left.tmpl %]
 
 <div id="list_center">
 	<div class="content">
@@ -27,31 +28,44 @@
 
 <form method="POST" action="[% base_uri %]/app/ad/ads/edit">
 <input type="hidden" name="id" value="[% ad.ad_sl_id %]">
+
+<!-- text -->
 <tr><td>
 [% IF errors.missing.text %]<font color="red">[% END %]
 Ad Text:
 [% IF errors.missing.text %]</font>[% END %]
 </td>
 <td><input type="text" name="text" size="50" maxlength="100" value='[% ad.text %]'></td></tr>
-
 <tr><td colspan=2><font color="#CCCCCC">(100 character limit)</font></td></tr>
-
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
+<!-- uri -->
 <tr><td>
 [% IF errors.missing.uri %]<font color="red">[% END %]
 Ad Links To:
 [% IF errors.missing.uri %]</font>[% END %]
 </td>
-
 <td><input type="text" name="uri" size="50" maxlength="512" value="[% IF ad.id == -1 %]http://[% ELSE %][% ad.uri %][% END %]"></td></tr>
-
-<tr><td colspan=2><font color="#CCCCCC">
+<tr><td colspan=4><font color="#CCCCCC">
 (example http://anywebsite.com/)</font></td></tr>
 [% IF ad.uri %]<tr><td colspan=2><a href="[% ad.uri %]">Link</a></td></tr>[% END %]
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
-<tr><td>Active:</td><td>
+<!-- ad groups -->
+<tr><td colspan="2">Ad Groups for this Ad</td></tr>
+<tr><td colspan="4">
+[% FOREACH reg__ad_group = reg__ad_groups %]
+    <input type="checkbox" name="ad_group" value="[% reg__ad_group.ad_group_id.ad_group_id %]" [% IF reg__ad_group.selected %]CHECKED[% END %]>
+[% reg__ad_group.ad_group_id.name %]&nbsp;&nbsp;
+[% END %]
+</td></tr>
+<tr><td colspan=4><font color="#CCCCCC">
+Click checkbox to add Ad to checked Ad Group</font></td></tr>
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+
+<!-- active -->
+<tr><td>Active:</td>
+<td>
 Yes<input type="radio" name="active" value="1" [% IF ad.ad_id.active == 1 ||  ! ad.ad_id %] checked [% END %]>
 No<input type="radio" name="active" value="0" [% IF ad.ad_id.active == 0 %] checked [% END %]></td></tr>
 <tr><td colspan=3><font color="#CCCCCC">
@@ -65,5 +79,5 @@ Deactivating the ad removes it from the ad serving rotation.<br />To ensure cons
 </div>
 </div>
 </div>
-[% PROCESS right.tmpl %]
+
 [% PROCESS footer.tmpl %]

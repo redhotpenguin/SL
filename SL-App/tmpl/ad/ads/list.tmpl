@@ -1,4 +1,5 @@
 [% PROCESS header.tmpl %]
+[% PROCESS left.tmpl %]
 
 <div id="list_center">
 <div class="content">
@@ -10,31 +11,22 @@
 <tr><td><font color="red">[% session.msg %]</td></tr>
 [% END %]
 
-<p style="text-align: right; padding-bottom: 5px;"><a href="[% base_uri %]/app/ad/ads/edit">Create a New Ad</a></span></p>
+<p style="text-align: left; padding-bottom: 5px;"><a href="[% base_uri %]/app/ad/ads/edit">Create a New Ad</a></span></p>
 <table class="list">
 <tr class="list_header">
-<td>&nbsp;&nbsp;Ad&nbsp;&nbsp;</td><td>Text</td>
-[% IF root == 1 %]
-<td>Creator</td>
-[% END %]
-<td>Creation Time</td>
-<td>Active&nbsp;&nbsp;</td>
-<td>Edit</td>
+<td class="header">Ad</td>
+<td class="header">Active</td>
 </tr>
 [% FOREACH ad = ads %]
+
   <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
-	
-  <td style="color: #639D63">&nbsp;&nbsp;
-<a href="[% base_uri %]/app/ad/ads/edit/?id=[% ad.id %]">[% ad.id %]</a></td>
-<td>[% ad.text %]</a></td>
-[% IF root == 1 %]
-  <td>[% ad.email %]
-[% END %]
 
-<td>[% ad.cts %]</td>
+<td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
+  <a href="[% base_uri %]/app/ad/ads/edit/?id=[% ad.id %]">[% ad.text %]</a></td>
 
-<td style="text-align: center;">[% IF ad.active %]Yes[% ELSE %]No[% END %]</td>
-<td><a href="[% base_uri %]/app/ad/ads/edit/?id=[% ad.id %]">Edit</a></td>
+<td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+[% IF ad.active %]Yes[% ELSE %]No[% END %]</td>
+
 </tr>
 [% END %]
 </table>

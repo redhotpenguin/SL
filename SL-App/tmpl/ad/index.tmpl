@@ -1,4 +1,5 @@
 [% PROCESS header.tmpl %]
+[% PROCESS left.tmpl %]
 
 <div id="list_center">
 <div class="content">
@@ -6,14 +7,10 @@
 <h2>[% PROCESS dashboard.tmpl %] > <a href="[% base_uri %]/app/ad/index">Manage Your Ads</a></h2>
 <p>This page is for managing ads and ad groups.
   <ul>
-  <li><a href="[% base_uri %]/app/ad/ads/index">Add and edit ads</a></li>
-  <li><a href="[% base_uri %]/app/ad/groups/index">Add and edit ad groups</a></li>
-  <li><a href="[% base_uri %]/app/ad/bugs/index">Manage image bugs</a></li>
-  <li><a href="[% base_uri %]/app/ad/adgroups/index">Associate ads with ad groups</a></li>
-  <li><a href="[% base_uri %]/app/ad/routeradgroups/index">Associate ad groups with routers</a></li>
-  <li><a href="[% base_uri %]/app/ad/locationadgroups/index">Associate ad groups with locations</a></li>
-
-  </ul>
+  <li><a href="[% base_uri %]/app/ad/ads/list">Add and edit ads</a></li>
+  <li><a href="[% base_uri %]/app/ad/groups/list">Add and edit ad groups</a></li>
+  <li><a href="[% base_uri %]/app/ad/bugs/list">Manage image bugs</a></li>
+</ul>
 </p>
 </div>
 </div>

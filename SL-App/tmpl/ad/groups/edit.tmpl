@@ -1,4 +1,5 @@
 [% PROCESS header.tmpl %]
+[% PROCESS left.tmpl %]
 
 <div id="list_center">
 	<div class="content">
@@ -43,23 +44,39 @@ Ad Group name:
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
 <!-- bug selection -->
-
-<tr><td colspan="[% bugs.max %]">
+<tr>
+<td colspan="2"><table>
+<tr>
+<td colspan="[% bugs.max %]">
 [% IF errors.missing.bug_id %]<font color="red">[% END %]
 Select a bug to associate the ad group with:
 [% IF errors.missing.bug_id %]</font>[% END %]
 </td></tr>
-<tr>[% FOREACH bug = bugs %]
-<td><img src="[% bug.image_href %]"><input type="radio" name="bug_id" 
-value="[% bug.bug_id %]"[% IF (req.param('bug_id') == bug.bug_id ) %]checked
-[% ELSIF (ad_group.bug_id.bug_id == bug.bug_id) %]checked[% END %]>&nbsp;[% bug.name %]</td>
-[% END %]</tr>
+<tr>
+[% FOREACH bug = bugs %]
+<td><img src="[% bug.image_href %]"></td>
+[% END %]
+</tr>
+<tr>
+[% FOREACH bug = bugs %]
+<td><input type="radio" name="bug_id" 
+value="[% bug.bug_id %]"
+[% IF (req.param('bug_id') == bug.bug_id ) %]checked
+[% ELSIF (ad_group.bug_id.bug_id == bug.bug_id) %]checked[% END %]>
+&nbsp;[% bug.name %]</td>
+[% END %]
+</tr>
+</table>
+</td></tr>
+<tr><td colspan=3><font color="#CCCCCC">
+<a href="[% base_uri %]/app/ad/bugs/index">Add a new Bug</a>
+</font></td></tr>
+
 <!-- end bug selection -->
 
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
-
-<!-- link for ad group css stylesheet -->
+<!--
 <tr><td>
 [% IF errors.missing.css_url or errors.invalid.css_url %]
 <font color="red">[% END %]
@@ -70,12 +87,8 @@ value="[% req.param('css_url') or ad_group.css_url or 'http://www.redhotpenguin.
 <tr><td colspan=2><font color="#CCCCCC">
 (defaults to http://www.redhotpenguin.com/css/sl.css)<br />To customize the look and feel of your ad group you can implement your own style sheet here.</font></td></tr>
 
-<!-- end stylesheet link -->
-
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
-
-<!-- link for template -->
 <tr><td>
 [% IF errors.missing.template or errors.invalid.template %]
 <font color="red">[% END %]
@@ -88,17 +101,12 @@ value="[% req.param('template') or ad_group.template or 'text_ad.tmpl' %]">
 <tr><td colspan=2><font color="#CCCCCC">
 (defaults to text_ad.tmpl)<br />Contact 
 <a href="mailto:support@silverliningnetworks.com">support@silverliningnetworks.com</a> for help customizing this field.</font></td></tr>
-
-<!-- end template link -->
-
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
-
-
+-->
 
 <!-- active -->
 <tr><td>Active:</font></td><td>
-Yes<input type="radio" name="active" value="1" [% IF (ad_group.active == 1) or (! ad_group) %]checked[% END %]>&nbsp;
-No<input type="radio" name="active" value="0" [% IF ad_group.active == 0 %] checked [% END %]></td></tr>
+Yes<input type="radio" name="active" value="t" [% IF (ad_group.active == 1) or (! ad_group) %]checked[% END %]>&nbsp;
+No<input type="radio" name="active" value="f" [% IF ad_group.active == 0 %] checked [% END %]></td></tr>
 <tr><td colspan=3><font color="#CCCCCC">
 Deactivating the ad group removes it from the ad serving rotation.<br />To ensure consistency in reporting, ad groups cannot be deleted.
 </font></td></tr>
@@ -115,5 +123,5 @@ Deactivating the ad group removes it from the ad serving rotation.<br />To ensur
 </div>
 </div>
 </div>
-[% PROCESS right.tmpl %]
+
 [% PROCESS footer.tmpl %]

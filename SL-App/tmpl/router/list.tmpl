@@ -1,0 +1,57 @@
+[% PROCESS header.tmpl %]
+[% PROCESS left.tmpl %]
+
+<div id="list_center">
+<div class="content">
+
+<h2>[% PROCESS router/nav.tmpl %] > <a href="[% base_uri %]/app/router/list">[% count %] Routers Total</a></h2>
+
+<p style="text-align: left; padding-bottom: 5px; width: 500px;">
+<a href="[% base_uri %]/app/router/edit">Add a new Router</a></span></p>
+
+[% IF session.msg %]
+<p><font color="red">[% session.msg %]</font></p>
+[% END %]
+<br />
+
+<table class="list">
+<tr class="list_header">
+<td class="header">Name</td>
+<td class="header">Mac Address</td>
+<td class="header">Serial Number</td>
+<td class="header">Registered Locations</td>
+<td class="header">Ad Groups</td>
+</tr>
+[% FOREACH router = routers %]
+  <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
+
+<!-- name -->	
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+<a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">
+[% router.name %]</a></td>
+
+<!-- mac address -->
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+[% router.macaddr %]</td>
+
+<!-- serial number -->	
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+[% router.serial_number %]</td>
+
+<!-- location count -->
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+[% router.location_count %]</td>
+
+<!-- Ad group count -->
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+[% router.ad_group_count %]</td>
+
+</tr>
+
+[% END %]
+</table>
+
+</div>
+</div>
+
+[% PROCESS footer.tmpl %]

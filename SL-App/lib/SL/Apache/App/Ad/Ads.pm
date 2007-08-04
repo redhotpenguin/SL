@@ -25,7 +25,7 @@ use SL::Model::App;    # works for now
 
 sub shrink {
     my $string = shift;
-    my $length = 25;
+    my $length = 60;
     return $string if ( length($string) - 3 ) < $length;
     return substr( $string, -length($string), $length ) . '...';
 }
@@ -111,10 +111,10 @@ sub dispatch_edit {
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
 
-    my ( %tmpl_data, $ad, $output, $link );
+    my ( %tmpl_data, $ad, $output, $link, @reg__ad_groups );
     if ( $req->param('id') ) {    # edit existing ad
         my %search;
-$r->log->debug("ID IS " . $req->param('id'));
+
         # restrict search params for nonroot
         if ( !$r->pnotes('root') ) {
             $search{reg_id} = $r->pnotes( $r->user )->reg_id;
@@ -123,6 +123,21 @@ $r->log->debug("ID IS " . $req->param('id'));
         $search{ad_sl_id} = $req->param('id');
         ($ad) = SL::Model::App->resultset('AdSl')->search( \%search );
         return Apache2::Const::NOT_FOUND unless $ad;
+
+        # get the ad groups for this ad
+        my @ad__ad_groups = SL::Model::App->resultset('AdAdGroup')->search({
+             ad_id => $ad->ad_id->ad_id });
+        my %ad_group_hash = map { $_->ad_group_id->ad_group_id => 1 } @ad__ad_groups;
+
+        # get the allowed ad groups for this user, and mark the ones selected for this ad
+        @reg__ad_groups = SL::Model::App->resultset('RegAdGroup')->search({
+             reg_id => $r->pnotes($r->user)->reg_id });
+        foreach my $reg__ad_group ( @reg__ad_groups ) {
+          if (exists $ad_group_hash{$reg__ad_group->ad_group_id->ad_group_id}) {
+            $reg__ad_group->{selected} = 1;
+          }
+        }
+
         $tmpl_data{'ad'} = {
             uri    => $ad->uri,
             id     => $ad->ad_sl_id,
@@ -134,6 +149,7 @@ $r->log->debug("ID IS " . $req->param('id'));
     if ( $r->method_number == Apache2::Const::M_GET ) {
         %tmpl_data = (
             ad => $ad,
+            reg__ad_groups => \@reg__ad_groups,
             session => $r->pnotes('session'),
             root    => $r->pnotes('root'),
             req     => $req,
@@ -179,11 +195,22 @@ $r->log->debug("ID IS " . $req->param('id'));
     }
     else {
         $ad->ad_id->active( $req->param('active') );
-        $ad->text( $req->param('text') );
-        $ad->uri( $req->param('uri') );
+        foreach my $param qw( text uri ) {
+          $ad->$param( $req->param($param) );
+        }
         $ad->ad_id->update;
         $ad->update;
         $action = 'updated';
+    }
+
+    # handle the ad group associations
+    # delete the old ones first
+    SL::Model::App-resultset('AdAdGroup')->search({
+          ad_id => $ad->ad_id })->delete_all;
+    foreach my $ad_group_id ( $req->param('ad_group') ) {
+      SL::Model::App->resultset('AdAdGroup')->find_or_create({
+           ad_id => $ad->ad_id,
+           ad_group_id => $ad_group_id, });
     }
 
     # set session msg

@@ -6,6 +6,7 @@ use warnings;
 use SL::Config;
 
 use Template;
+use Template::Plugin::Date;
 use base 'Template';
 
 our ($TEMPLATE, %TMPL_DATA);
@@ -17,7 +18,8 @@ BEGIN {
   $TEMPLATE = __PACKAGE__->SUPER::new( \%tmpl_config) || die $Template::ERROR;
 
   %TMPL_DATA = ( base_uri => $config->sl_app_base_uri,
-                   home_uri => $config->sl_app_home_uri, );
+                 home_uri => $config->sl_app_home_uri,
+                 css_uri  => $config->sl_app_css_uri, );
 }
 
 sub process {

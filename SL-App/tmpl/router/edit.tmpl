@@ -1,0 +1,96 @@
+[% PROCESS header.tmpl %]
+[% PROCESS left.tmpl %]
+
+<div id="list_center">
+	<div class="content">
+
+<h2>[% PROCESS router/nav.tmpl %] > 
+[% UNLESS router.router_id  %]
+<a href="[% base_uri %]/app/router/edit">Add a New Router</a>[% ELSE %]
+<a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">Edit existing Router '[% router.name %]'</a>[% END %]</h2>
+<hr size=1 color="#CCCCCC">
+
+<p>Use this page to edit the settings for this router</p>
+<div id="edit_form">
+
+[% IF errors.missing %]
+<p><font color="red">Please complete the missing fields</font></p>
+[% END %]
+[% IF errors.invalid %]
+<p><font color="red">Some fields were invalid, please correct them</font></p>
+[% END %]
+
+<table class="edit">
+<tr><td colspan="2"><hr></td></tr>
+
+<form method="POST" action="[% base_uri %]/app/router/edit">
+<input type="hidden" name="router_id" value="[% router.router_id %]">
+
+<!-- name -->
+<tr><td>
+[% IF errors.missing.name %]<font color="red">[% END %]
+Name this router:
+[% IF errors.missing.name %]<font color="red">[% END %]
+</td>
+<td>
+<input type="text" name = "name" size="25" maxlength="25" value='[% req.param('name') or router.name %]'>
+</td></tr>
+<tr><td colspan="2"><font color="#CCCCCC">(100 character limit)</font></td></tr>
+<tr><td colspan="2"><hr size=1 color="#CCCCCC"></td></tr>
+
+<!-- macaddr -->
+<tr><td>
+[% IF errors.missing.macaddr or errors.invalid.macaddr %]<font color="red">[% END %]
+Mac Address:
+[% IF errors.missing.macaddr or errors.invalid.macaddr %]</font>[% END %]
+</td>
+<td>
+<input type="text" name = "macaddr" size="17" maxlength="17" value='[% req.param('macaddr') or router.macaddr%]'>
+</td></tr>
+<tr><td colspan="2">
+<font color="#CCCCCC">(example <b>00:17:f2:43:38:bd</b>)</font></td></tr>
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+
+<!-- serial number -->
+<tr><td>Serial number:</td>
+<td>
+<input type="text" name="serial_number" size="25" maxlength="25" value='[% router.serial_number %]'>
+</td></tr>
+<tr><td colspan="2">
+<font color="#CCCCCC">(example <b>CL7A0F318014</b>)</font></td></tr>
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+
+<!-- ad groups -->
+<tr><td colspan="2">Ad Groups associated with this Router</td></tr>
+<tr><td colspan="4">
+[% FOREACH ad_group = ad_groups %]
+    <input type="checkbox" name="ad_group" value="[% ad_group.ad_group_id %]" 
+[% IF ad_group.selected %]CHECKED[% END %]>
+[% ad_group.name %]&nbsp;&nbsp;
+[% END %]
+</td></tr>
+<tr><td colspan=4><font color="#CCCCCC">
+Click checkbox to add the Ad Group to the Router</font></td></tr>
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+
+<tr><td colspan="2"><input type="Submit" value="Save Router Settings"></td></tr>
+
+[% IF locations != '' %]
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+<tr><td colspan="2">
+This router has been registered at the following locations:</td></tr>
+
+[% FOREACH location = locations %]
+  <tr><td colspan="2"><ul>
+      <li>[% IF location.name %][% location.name %] - [% ELSE %][% END %]
+          [% location.ip %]</li>
+  </ul></td></tr>
+[% END %]
+
+[% END %]
+  </table>
+
+</div>
+</div>
+</div>
+[% PROCESS footer.tmpl %]

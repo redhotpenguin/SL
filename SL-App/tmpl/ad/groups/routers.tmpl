@@ -1,0 +1,33 @@
+[% PROCESS header.tmpl %]
+[% PROCESS left.tmpl %]
+
+<div id="list_center">
+<div class="content">
+
+<h2>[% PROCESS ad/groups/nav.tmpl %] > <a href="[% base_uri %]/app/ad/groups/ads">[% count %] Ads for Ad Group '[% ad_group.name %]'</a></h2>
+
+[% IF session.msg %]
+<p><font color="red">[% session.msg %]</font></p>
+[% END %]
+
+<p>The following routers are serving Ad Group '[% ad_group.name %]':</p>
+<br />
+<table class="list">
+<tr class="list_header">
+<td class="header">Router (click to change ad group assignments)</td>
+</tr>
+[% FOREACH ad_sl = ad_sls %]
+  <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
+
+<!-- name -->	
+  <td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
+<a href="[% base_uri %]/app/ad/ads/edit/?id=[% ad_sl.ad_sl_id %]">[% ad_sl.text %]</a></td>
+
+</tr>
+[% END %]
+</table>
+
+</div>
+</div>
+
+[% PROCESS footer.tmpl %]
