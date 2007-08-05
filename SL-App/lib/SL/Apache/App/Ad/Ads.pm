@@ -218,7 +218,7 @@ sub dispatch_edit {
       sprintf( "Ad '%s' has been %s", $req->param('text'), $action );
 
     # set session msg
-    $r->internal_redirect( $CONFIG->sl_app_base_uri . "/app/ad/ads/list" );
+    $r->internal_redirect(  "/app/ad/ads/list" );
     return Apache2::Const::OK;
 }
 

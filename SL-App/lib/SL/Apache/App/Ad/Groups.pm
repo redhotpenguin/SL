@@ -139,8 +139,6 @@ sub dispatch_list {
 	  }
        $ad_group->{router_count} =
          SL::Model::App->resultset('RouterAdGroup')->search(\%args)->count;
-#            router_id => { -in =>  \@router_ids },
-#            ad_group_id => $ad_group->ad_group_id, })->count;
 
        # Hack
        if ($ad_group->template eq 'text_ad.tmpl') {
@@ -178,7 +176,6 @@ sub dispatch_ads {
 
   # all the ads for this user
   my @ad_sls = SL::Model::App->resultset('AdSl')->search({
-              reg_id => $r->pnotes($r->user)->reg_id,
               ad_id => { -in => \@ad_ids }, });
 
     my %tmpl_data = (
