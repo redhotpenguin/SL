@@ -133,10 +133,14 @@ sub dispatch_list {
        my @router_ids = map { $_->router_id->router_id }
          SL::Model::App->resultset('RouterReg')->search({
            reg_id => $reg->reg_id });
+	   my %args = ( ad_group_id => $ad_group->ad_group_id );
+	   if (scalar(@router_ids)) {
+		   $args{router_id} = { -in => \@router_ids };
+	  }
        $ad_group->{router_count} =
-         SL::Model::App->resultset('RouterAdGroup')->search({
-            router_id => { -in =>  \@router_ids },
-            ad_group_id => $ad_group->ad_group_id, })->count;
+         SL::Model::App->resultset('RouterAdGroup')->search(\%args)->count;
+#            router_id => { -in =>  \@router_ids },
+#            ad_group_id => $ad_group->ad_group_id, })->count;
 
        # Hack
        if ($ad_group->template eq 'text_ad.tmpl') {
@@ -144,7 +148,7 @@ sub dispatch_list {
         } else {
           $ad_group->{type} = 'Other';
        }
-     }
+	}
 
     my %tmpl_data = (
         root  => $r->pnotes('root'),
