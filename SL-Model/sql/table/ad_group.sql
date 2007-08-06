@@ -7,14 +7,20 @@ CREATE TABLE ad_group (
     css_url text default 'http://www.redhotpenguin.com/css/sl.css' NOT NULL,
     template text default 'text_ad.tmpl' NOT NULL,
     is_default boolean default 'f',
-    bug_id integer not null default 1
+    bug_id integer not null default 1,
+    reg_id integer not null default 14
 );
 
 ALTER TABLE ONLY ad_group
     ADD CONSTRAINT ad_group_pkey PRIMARY KEY (ad_group_id);
 
-ALTER TABLE ONLY ad__group
+ALTER TABLE ONLY ad_group
     ADD CONSTRAINT ad_group__bug_id_fkey 
 	FOREIGN KEY (bug_id) REFERENCES bug(bug_id) 
+	ON UPDATE CASCADE;
+
+ALTER TABLE ONLY ad_group
+    ADD CONSTRAINT ad_group__reg_id_fkey 
+	FOREIGN KEY (reg_id) REFERENCES reg(reg_id) 
 	ON UPDATE CASCADE;
 
