@@ -175,16 +175,9 @@ sub dispatch_list {
     my ( $self, $r, $args_ref ) = @_;
 
     my $reg = $r->pnotes($r->user);
-    # get the routers this user has access to
-    my @routers = map { $_->router_id }
-         SL::Model::App->resultset('RouterReg')->search({
-           reg_id => $reg->reg_id });
+    my $req = Apache2::Request->new($r);
 
-    # also get the location count where this router has been seen
-    foreach my $router ( @routers ) {
-      $router->{location_count} = $router->router__locations->count;
-      $router->{ad_group_count} = $router->router__ad_groups->count;
-    }
+    my @routers = $reg->get_routers( $req->param('ad_group_id') );
 
     my %tmpl_data = (
         root  => $r->pnotes('root'),

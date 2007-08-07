@@ -28,7 +28,7 @@
 <!-- name -->	
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
 <a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">
-[% router.name %]</a></td>
+[% router.name or 'unnamed' %]</a></td>
 
 <!-- mac address -->
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">

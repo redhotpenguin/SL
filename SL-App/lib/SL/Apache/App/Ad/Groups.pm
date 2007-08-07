@@ -157,7 +157,7 @@ sub dispatch_edit {
     }
 
     # done with argument processing
-    my $status = $req->param('id') ? 'updated' : 'created';
+   my $status = $req->param('id') ? 'updated' : 'created';
     $r->pnotes('session')->{msg} =
       sprintf( "Ad group '%s' was %s", $ad_group->name, $status );
     $r->internal_redirect("/app/ad/groups/list");
@@ -192,44 +192,6 @@ sub dispatch_list {
 
     my $output;
     my $ok = $tmpl->process( 'ad/groups/list.tmpl', \%tmpl_data, \$output );
-    $ok
-      ? return $self->ok( $r, $output )
-      : return $self->error( $r, "Template error: " . $tmpl->error() );
-}
-
-sub dispatch_routers {
-    my ( $self, $r ) = @_;
-
-    my $req = Apache2::Request->new($r);
-    my ($ad_group) =
-      SL::Model::App->resultset('AdGroup')
-      ->search( { ad_group_id => $req->param('ad_group_id') } );
-
-    # all routers assigned to this group
-    my @router__ad_groups =
-      SL::Model::App->resultset('RouterAdGroup')
-      ->search( { ad_group_id => $ad_group->ad_group_id, } );
-
-    my @router_ids = map { $_->router_id->router_id } @router__ad_groups;
-
-    # all the routers for this user
-    my @routers =
-      map { $_->router_id } SL::Model::App->resultset('RouterReg')->search(
-        {
-            reg_id    => $r->pnotes( $r->user )->reg_id,
-            router_id => { -in => \@router_ids },
-        }
-      );
-
-    my %tmpl_data = (
-        root     => $r->pnotes('root'),
-        session  => $r->pnotes('session'),
-        routers  => \@routers,
-        ad_group => $ad_group,
-    );
-
-    my $output;
-    my $ok = $tmpl->process( 'ad/groups/routers.tmpl', \%tmpl_data, \$output );
     $ok
       ? return $self->ok( $r, $output )
       : return $self->error( $r, "Template error: " . $tmpl->error() );

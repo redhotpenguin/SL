@@ -50,14 +50,13 @@
   [% ad_group.ad_count %] (add ads)</a>
 [% END %]</td>
 
-
 <!-- routers -->
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
 [% IF ad_group.router_count == 0 %]
-<a href="[% base_uri %]/app/router/list">
+<a href="[% base_uri %]/app/router/edit?ad_group_id=[% ad_group.ad_group_id %]">
 [% ad_group.router_count %] (add routers)</a>
 [% ELSE %]
-<a href="[% base_uri %]/app/ad/groups/routers/?ad_group_id=[% ad_group.ad_group_id %]">
+<a href="[% base_uri %]/app/router/list?ad_group_id=[% ad_group.ad_group_id %]">
 [% ad_group.router_count %]</a>
 [% END %]
 </td>

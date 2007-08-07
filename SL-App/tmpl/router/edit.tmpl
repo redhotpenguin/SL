@@ -65,7 +65,7 @@ Mac Address:
 <tr><td colspan="4">
 [% FOREACH ad_group = ad_groups %]
     <input type="checkbox" name="ad_group" value="[% ad_group.ad_group_id %]" 
-[% IF ad_group.selected %]CHECKED[% END %]>
+[% IF ad_group.selected or (req.param('ad_group_id') == ad_group.ad_group_id) %]CHECKED[% END %]>
 [% ad_group.name %]&nbsp;&nbsp;
 [% END %]
 </td></tr>
