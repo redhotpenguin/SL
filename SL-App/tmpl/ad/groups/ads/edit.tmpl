@@ -4,16 +4,15 @@
 <div id="list_center">
 	<div class="content">
 
-<h2>[% PROCESS ad/ads/nav.tmpl %] > 
-[% UNLESS ad.id  %]Create a New Ad[% ELSE %]Edit an Existing Ad[% END %]</h2>
+<h2>[% PROCESS ad/groups/ads/nav.tmpl %] > [% UNLESS ad_sl.ad_sl_id  %]Create New Ad[% ELSE %]Edit Existing Ad[% END %]</h2>
 <hr size=1 color="#CCCCCC">
 <div id="edit_form">
 
 <table class="edit"> 
 
 <tr><td colspan=2>
-	[% IF ad.id %]
-	<h2>Edit Existing Ad Id '[% ad.id %]'</h2>
+	[% IF ad_sl.ad_sl_id %]
+	<h2>Edit Existing Ad</h2>
 [% ELSE %]
 <h2>Create a New Ad</h2></td></tr>
 [% END %]
@@ -26,8 +25,8 @@
 [% END %]
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
-<form method="POST" action="[% base_uri %]/app/ad/ads/edit">
-<input type="hidden" name="id" value="[% ad.ad_sl_id %]">
+<form method="POST" action="[% base_uri %]/app/ad/groups/ads/edit">
+<input type="hidden" name="ad_sl_id" value="[% ad_sl.ad_sl_id %]">
 
 <!-- text -->
 <tr><td>
@@ -35,7 +34,7 @@
 Ad Text:
 [% IF errors.missing.text %]</font>[% END %]
 </td>
-<td><input type="text" name="text" size="50" maxlength="100" value='[% ad.text %]'></td></tr>
+<td><input type="text" name="text" size="50" maxlength="100" value='[% ad_sl.text %]'></td></tr>
 <tr><td colspan=2><font color="#CCCCCC">(100 character limit)</font></td></tr>
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
@@ -45,29 +44,23 @@ Ad Text:
 Ad Links To:
 [% IF errors.missing.uri %]</font>[% END %]
 </td>
-<td><input type="text" name="uri" size="50" maxlength="512" value="[% IF ad.id == -1 %]http://[% ELSE %][% ad.uri %][% END %]"></td></tr>
+<td><input type="text" name="uri" size="50" maxlength="512" value="[% IF ad.id == -1 %]http://[% ELSE %][% ad_sl.uri %][% END %]"></td></tr>
 <tr><td colspan=4><font color="#CCCCCC">
 (example http://anywebsite.com/)</font></td></tr>
-[% IF ad.uri %]<tr><td colspan=2><a href="[% ad.uri %]">Link</a></td></tr>[% END %]
+[% IF ad_sl.uri %]<tr><td colspan=2><a href="[% ad_sl.uri %]">Link</a></td></tr>[% END %]
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
-<!-- ad groups -->
-<tr><td colspan="2">Ad Groups for this Ad</td></tr>
-<tr><td colspan="4">
-[% FOREACH reg__ad_group = reg__ad_groups %]
-    <input type="checkbox" name="ad_group" value="[% reg__ad_group.ad_group_id.ad_group_id %]" [% IF reg__ad_group.selected %]CHECKED[% END %]>
-[% reg__ad_group.ad_group_id.name %]&nbsp;&nbsp;
+[% IF ad_sl.reg_id %]
+<!-- creator -->
+<tr><td colspan="2">Ad created by <b>[% ad_sl.reg_id.email %]</b></td></tr>
+<tr><td colspan="2"><hr size=1 color="#CCCCCC"></td></tr>
 [% END %]
-</td></tr>
-<tr><td colspan=4><font color="#CCCCCC">
-Click checkbox to add Ad to checked Ad Group</font></td></tr>
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
 <!-- active -->
 <tr><td>Active:</td>
 <td>
-Yes<input type="radio" name="active" value="1" [% IF ad.ad_id.active == 1 ||  ! ad.ad_id %] checked [% END %]>
-No<input type="radio" name="active" value="0" [% IF ad.ad_id.active == 0 %] checked [% END %]></td></tr>
+Yes<input type="radio" name="active" value="1" [% IF ad_sl.ad_id.active == 1 ||  ! ad_sl.ad_sl_id %] checked [% END %]>
+No<input type="radio" name="active" value="0" [% IF ad_sl.ad_id.active == 0 %] checked [% END %]></td></tr>
 <tr><td colspan=3><font color="#CCCCCC">
 Deactivating the ad removes it from the ad serving rotation.<br />To ensure consistency in reporting, ads cannot be deleted.
 </font></td></tr>

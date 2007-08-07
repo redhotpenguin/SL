@@ -13,7 +13,7 @@
 
 <tr><td colspan=2>
 [% IF ad_group.ad_group_id %]
-	<h2>You are Editing Ad Group Id '[% ad_group.ad_group_id %]'</h2>
+	<h2>You are Editing Ad Group '[% ad_group.name %]'</h2>
 [% ELSE %]
 <h2>You are creating a new Ad Group</h2></td></tr>
 [% END %]
@@ -76,32 +76,30 @@ value="[% bug.bug_id %]"
 
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
-<!--
-<tr><td>
-[% IF errors.missing.css_url or errors.invalid.css_url %]
-<font color="red">[% END %]
-Link to stylesheet used by the ad group:
-[% IF errors.missing.css_url or errors.invalid.css_url %]</font>[% END %]</td>
-<td><input disabled="true" type="text" name="css_url" size="50" maxlength="512" 
-value="[% req.param('css_url') or ad_group.css_url or 'http://www.redhotpenguin.com/css/sl.css' %]"></td></tr>
-<tr><td colspan=2><font color="#CCCCCC">
-(defaults to http://www.redhotpenguin.com/css/sl.css)<br />To customize the look and feel of your ad group you can implement your own style sheet here.</font></td></tr>
+<!-- friends -->
+[% IF ad_group.ad_group_id %]
+<tr><td colspan="2">This Ad Group was created by <b>[% ad_group.reg_id.email %]</b></td></tr>
+[% END %]
 
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+[% UNLESS friends %]
 
-<tr><td>
-[% IF errors.missing.template or errors.invalid.template %]
-<font color="red">[% END %]
-Template used by the ad group:
-[% IF errors.missing.template or errors.invalid.template %]</font>[% END %]
-</td>
-<td><input disabled="true" type="text" name="template" size="50" maxlength="512" 
-value="[% req.param('template') or ad_group.template or 'text_ad.tmpl' %]">
+<tr><td colspan="4"><a href="[% base_uri %]/app/settings/friends">
+Set up other users to share permissions</a></td></tr>
+
+[% ELSIF friends %]
+
+<tr><td colspan="2">Users who have access to this Ad Group:</td></tr>
+<tr><td colspan="4">
+[% FOREACH friend = friends %]
+    <input [% IF ad_group.reg_id.reg_id != reg.reg_id %]disabled="1"[% END %]type="checkbox" name="friends" value="[% friend.reg_id %]" [% IF friend.selected %]CHECKED[% END %]>
+[% friend.email %]&nbsp;&nbsp;
+[% END %]
 </td></tr>
-<tr><td colspan=2><font color="#CCCCCC">
-(defaults to text_ad.tmpl)<br />Contact 
-<a href="mailto:support@silverliningnetworks.com">support@silverliningnetworks.com</a> for help customizing this field.</font></td></tr>
--->
+<tr><td colspan=4><font color="#CCCCCC">
+Click checkbox to give users access to this ad</font></td></tr>
+
+[% END %]
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
 <!-- active -->
 <tr><td>Active:</font></td><td>

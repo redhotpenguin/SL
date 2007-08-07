@@ -43,7 +43,7 @@
 [% IF ad_group.ad_count == 'NA' %]
   [% ad_group.ad_count %]
 [% ELSIF ad_group.ad_count != 0 %]
-  <a href="[% base_uri %]/app/ad/groups/ads/?ad_group_id=[% ad_group.ad_group_id %]">
+  <a href="[% base_uri %]/app/ad/groups/ads/list?ad_group_id=[% ad_group.ad_group_id %]">
 [% ad_group.ad_count %]</a>
 [% ELSIF ad_group.ad_count == 0 %]
   <a href="[% base_uri %]/app/ad/ads/list">

@@ -16,14 +16,18 @@
 <table class="list">
 <tr class="list_header">
 <td class="header">Ad</td>
+<td class="header">Creator</td>
 <td class="header">Active</td>
 </tr>
-[% FOREACH ad = ads %]
+[% FOREACH ad_sl = ad_sls %]
 
   <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
 
 <td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
-  <a href="[% base_uri %]/app/ad/ads/edit/?id=[% ad.id %]">[% ad.text %]</a></td>
+  <a href="[% base_uri %]/app/ad/ads/edit/?ad_sl_id=[% ad_sl.ad_sl_id %]">[% ad_sl.text %]</a></td>
+
+<td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
+[% ad_sl.reg_id.email %]</td>
 
 <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
 [% IF ad.active %]Yes[% ELSE %]No[% END %]</td>

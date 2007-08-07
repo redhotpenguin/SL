@@ -7,6 +7,7 @@ conf/startup_app.pl
 htdocs/500.html
 Makefile.PL
 MANIFEST
+htdocs/css/app.css
 t/TEST.PL
 t/01.t
 src/Apache-Dispatch-0.10_02.tar.gz

@@ -38,19 +38,35 @@ sub dispatch_edit {
     my ( $self, $r, $args_ref ) = @_;
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
+    my $reg = $r->pnotes( $r->user );
 
-    my ( $ad_group, $output, $link );
-    if ( $req->param('id') ) {    # edit existing ad group
-        my ($reg__ad_group) = SL::Model::App->resultset('RegAdGroup')->search({
-                                      reg_id => $r->pnotes($r->user)->reg_id,
-                                      ad_group_id => $req->param('id')});
-        $ad_group = $reg__ad_group->ad_group_id;
+    # get the list of friends
+    my @friends = $reg->friends;
+    my ( $ad_group, $output);
+
+    if ( my $ad_group_id = $req->param('id') ) {
+
+        # edit existing ad group
+
+        $ad_group = $reg->get_ad_group($ad_group_id);
         return Apache2::Const::NOT_FOUND unless $ad_group;
+
+        # i can has ad_group
+        foreach my $friend (@friends) {
+            if ( my $has_ad_group = $friend->get_ad_group($ad_group_id) ) {
+
+                # friend has access to this ad group
+                $friend->{selected} = 1;
+            }
+        }
     }
 
     # get the bugs which this user owns, plus default bugs
-    my @bugs = SL::Model::App->resultset('Bug')->search([{
-        reg_id => $r->pnotes($r->user)->reg_id, }, { is_default => 't' }]);
+    my @bugs = SL::Model::App->resultset('Bug')->search(
+        [
+            { reg_id => $r->pnotes( $r->user )->reg_id, }, { is_default => 't' }
+        ]
+    );
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
@@ -92,23 +108,58 @@ sub dispatch_edit {
         }
     }
 
-    unless ($req->param('id')) {
-      # create a new ad group
-      $ad_group = SL::Model::App->resultset('AdGroup')->create({ active => 't'});
+    unless ( $req->param('id') ) {
+
+        # create a new ad group
+        $ad_group =
+          SL::Model::App->resultset('AdGroup')->create( { active => 't' } );
     }
+
     # add arguments
     foreach my $param qw( name css_url bug_id active ) {
         $ad_group->$param( $req->param($param) );
     }
     $ad_group->update;
 
-    my $reg__ad_group = SL::Model::App->resultset('RegAdGroup')->update_or_create({
-             reg_id => $r->pnotes($r->user)->reg_id,
-             ad_group_id => $ad_group->ad_group_id });
+    my $reg__ad_group =
+      SL::Model::App->resultset('RegAdGroup')->update_or_create(
+        {
+            reg_id      => $r->pnotes( $r->user )->reg_id,
+            ad_group_id => $ad_group->ad_group_id
+        }
+      );
 
+    # add the permissions for this ad
+    if (
+        ( $ad_group->reg_id->reg_id == $reg->reg_id ) &&    # creator
+        ( $req->param('friends') )  # friends args
+      )
+    {
+
+        my %update_friends = map { $_ => 1 } $req->param('friends');
+        foreach my $friend (@friends) {
+            my %search = (
+                ad_group_id => $ad_group->ad_group_id,
+                reg_id      => $friend->reg_id
+            );
+            if ( exists $update_friends{ $friend->reg_id } ) {
+
+                # give access
+                SL::Model::App->resultset('RegAdGroup')
+                  ->find_or_create( \%search );
+
+            }
+            else {
+                SL::Model::App->resultset('RegAdGroup')->search( \%search )
+                  ->delete;
+            }
+        }
+    }
+
+    # done with argument processing
     my $status = $req->param('id') ? 'updated' : 'created';
-    $r->pnotes('session')->{msg} = sprintf("Ad group '%s' was %s",
-                                             $ad_group->name, $status);
+    $r->pnotes('session')->{msg} =
+      sprintf( "Ad group '%s' was %s", $ad_group->name, $status );
     $r->internal_redirect("/app/ad/groups/list");
     return Apache2::Const::OK;
 }
@@ -116,43 +167,27 @@ sub dispatch_edit {
 sub dispatch_list {
     my ( $self, $r, $args_ref ) = @_;
 
-    my $reg = $r->pnotes($r->user);
+    my $reg = $r->pnotes( $r->user );
+
     # get the ad groups this user has access to
-    my @ad_groups = map { $_->ad_group_id }
-      SL::Model::App->resultset('RegAdGroup')->search({
-             reg_id => $reg->reg_id});
+    my @ad_groups = $reg->get_ad_groups;
 
     foreach my $ad_group (@ad_groups) {
-      # count of ads in this ad group
-       $ad_group->{ad_count} =
-         SL::Model::App->resultset('AdAdGroup')->search({
-           ad_group_id => $ad_group->ad_group_id })->count();
 
-       # get count of all of the routers that the user has access to
-       # and have ads in this ad group
-       my @router_ids = map { $_->router_id->router_id }
-         SL::Model::App->resultset('RouterReg')->search({
-           reg_id => $reg->reg_id });
-	   my %args = ( ad_group_id => $ad_group->ad_group_id );
-	   if (scalar(@router_ids)) {
-		   $args{router_id} = { -in => \@router_ids };
-	  }
-       $ad_group->{router_count} =
-         SL::Model::App->resultset('RouterAdGroup')->search(\%args)->count;
-
-       # Hack
-       if ($ad_group->template eq 'text_ad.tmpl') {
-          $ad_group->{type} = 'Static Text';
-        } else {
-          $ad_group->{type} = 'Other';
-       }
-	}
+        # Hack
+        if ( $ad_group->template eq 'text_ad.tmpl' ) {
+            $ad_group->{type} = 'Static Text';
+        }
+        else {
+            $ad_group->{type} = 'Other';
+        }
+    }
 
     my %tmpl_data = (
-        root  => $r->pnotes('root'),
-        session => $r->pnotes('session'),
+        root      => $r->pnotes('root'),
+        session   => $r->pnotes('session'),
         ad_groups => \@ad_groups,
-        count => scalar(@ad_groups),
+        count     => scalar(@ad_groups),
     );
 
     my $output;
@@ -162,59 +197,34 @@ sub dispatch_list {
       : return $self->error( $r, "Template error: " . $tmpl->error() );
 }
 
-sub dispatch_ads {
-  my ($self, $r) = @_;
-
-  my $req = Apache2::Request->new($r);
-  my ($ad_group) = SL::Model::App->resultset('AdGroup')->search({ 
-                          ad_group_id => $req->param('ad_group_id') });
-
-  # all ads assigned to this group
-  my @ad__ad_groups = SL::Model::App->resultset('AdAdGroup')->search({
-          ad_group_id => $ad_group->ad_group_id });
-  my @ad_ids = map { $_->ad_id->ad_id } @ad__ad_groups;
-
-  # all the ads for this user
-  my @ad_sls = SL::Model::App->resultset('AdSl')->search({
-              ad_id => { -in => \@ad_ids }, });
-
-    my %tmpl_data = (
-        root  => $r->pnotes('root'),
-        session => $r->pnotes('session'),
-        ad_sls => \@ad_sls,
-        ad_group => $ad_group,
-    );
-
-    my $output;
-    my $ok = $tmpl->process( 'ad/groups/ads.tmpl', \%tmpl_data, \$output );
-    $ok
-      ? return $self->ok( $r, $output )
-      : return $self->error( $r, "Template error: " . $tmpl->error() );
-}
-
 sub dispatch_routers {
-  my ($self, $r) = @_;
+    my ( $self, $r ) = @_;
 
-  my $req = Apache2::Request->new($r);
-  my ($ad_group) = SL::Model::App->resultset('AdGroup')->search({
-                          ad_group_id => $req->param('ad_group_id') });
+    my $req = Apache2::Request->new($r);
+    my ($ad_group) =
+      SL::Model::App->resultset('AdGroup')
+      ->search( { ad_group_id => $req->param('ad_group_id') } );
 
     # all routers assigned to this group
-    my @router__ad_groups = SL::Model::App->resultset('RouterAdGroup')->search({
-          ad_group_id => $ad_group->ad_group_id, });
+    my @router__ad_groups =
+      SL::Model::App->resultset('RouterAdGroup')
+      ->search( { ad_group_id => $ad_group->ad_group_id, } );
 
     my @router_ids = map { $_->router_id->router_id } @router__ad_groups;
 
     # all the routers for this user
-   my  @routers = map { $_->router_id }
-     SL::Model::App->resultset('RouterReg')->search({
-              reg_id => $r->pnotes($r->user)->reg_id,
-              router_id => { -in => \@router_ids }, });
+    my @routers =
+      map { $_->router_id } SL::Model::App->resultset('RouterReg')->search(
+        {
+            reg_id    => $r->pnotes( $r->user )->reg_id,
+            router_id => { -in => \@router_ids },
+        }
+      );
 
     my %tmpl_data = (
-        root  => $r->pnotes('root'),
-        session => $r->pnotes('session'),
-        routers => \@routers,
+        root     => $r->pnotes('root'),
+        session  => $r->pnotes('session'),
+        routers  => \@routers,
         ad_group => $ad_group,
     );
 
