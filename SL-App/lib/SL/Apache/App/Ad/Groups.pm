@@ -53,11 +53,10 @@ sub dispatch_edit {
 
         # i can has ad_group
         foreach my $friend (@friends) {
-            if ( my $has_ad_group = $friend->get_ad_group($ad_group_id) ) {
-
-                # friend has access to this ad group
-                $friend->{selected} = 1;
-            }
+          my ($has_adgroup) = SL::Model::App->resultset('RegAdGroup')->search({
+                       ad_group_id => $ad_group_id,
+                       reg_id => $friend->reg_id });
+          $friend->{selected} = 1 if $has_adgroup;
         }
     }
 
@@ -73,6 +72,7 @@ sub dispatch_edit {
             root     => $r->pnotes('root'),
             reg      => $r->pnotes( $r->user ),
             bugs     => \@bugs,
+            friends  => \@friends,
             ad_group => $ad_group,
             errors   => $args_ref->{errors},
             status   => $args_ref->{status},
@@ -90,7 +90,6 @@ sub dispatch_edit {
         # validate input
         my %ad_group_profile = (
             required           => [qw( name  bug_id active )],
-            constraint_methods => { css_url => SL::Apache::App::valid_link(), }
         );
 
         my $results = Data::FormValidator->check( $req, \%ad_group_profile );
@@ -112,13 +111,16 @@ sub dispatch_edit {
 
         # create a new ad group
         $ad_group =
-          SL::Model::App->resultset('AdGroup')->create( { active => 't' } );
+          SL::Model::App->resultset('AdGroup')->create( {
+                is_default => 'f', reg_id => $reg->reg_id } );
     }
 
     # add arguments
-    foreach my $param qw( name css_url bug_id active ) {
+    foreach my $param qw( name bug_id active ) {
         $ad_group->$param( $req->param($param) );
     }
+    $r->log->debug("ISA: " . join(',', @SL::Model::App::AdGroup::ISA));
+
     $ad_group->update;
 
     my $reg__ad_group =
@@ -129,23 +131,24 @@ sub dispatch_edit {
         }
       );
 
+
     # add the permissions for this ad
     if (
         ( $ad_group->reg_id->reg_id == $reg->reg_id ) &&    # creator
         ( $req->param('friends') )  # friends args
       )
     {
-
         my %update_friends = map { $_ => 1 } $req->param('friends');
         foreach my $friend (@friends) {
             my %search = (
                 ad_group_id => $ad_group->ad_group_id,
                 reg_id      => $friend->reg_id
             );
+
             if ( exists $update_friends{ $friend->reg_id } ) {
 
                 # give access
-                SL::Model::App->resultset('RegAdGroup')
+                my $rs = SL::Model::App->resultset('RegAdGroup')
                   ->find_or_create( \%search );
 
             }

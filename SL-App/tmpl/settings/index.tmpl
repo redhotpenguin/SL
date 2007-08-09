@@ -4,7 +4,7 @@
 <div id="list_center">
 	<div class="content">
 
-<h2>[% PROCESS dashboard.tmpl %] > Settings</h2>
+<h2>[% PROCESS settings/nav.tmpl %]</h2>
 <hr size=1 color="#CCCCCC"></td>
 <div id="edit_form">
 
@@ -19,11 +19,13 @@
 
 <tr><td colspan=2><hr size=1 color="#CCCCCC" width=600px></td></tr>
 <tr><td><a href="[% base_uri %]/app/settings/account">Email and Password</a> - Manage your account information</td></tr>
+<tr><td><a href="[% base_uri %]/app/settings/friends">Friends</a> - Manage users to share your account with</td></tr>
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
 </table>
     </div>
     </div>
 </div>
+[% PROCESS right.tmpl %]
 [% PROCESS footer.tmpl %]
 

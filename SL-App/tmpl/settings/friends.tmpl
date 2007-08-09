@@ -1,0 +1,49 @@
+[% PROCESS header.tmpl %]
+[% PROCESS left.tmpl %]
+
+<div id="list_center">
+	<div class="content">
+
+<h2>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/friends">Manage Friends</a></h2>
+<hr size=1 color="#CCCCCC">
+
+<p style="text-align: left; padding-bottom: 5px; width: 500px;">
+Use this page to add existing users to share ad groups and routers</h2>
+</p>
+<hr size=1 color="#CCCCCC">
+
+<table class="list">
+<tr class="list_header">
+<td class="header">Existing Friends</td>
+</tr>
+
+[% FOREACH friend = friends %]
+  <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
+  <td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
+[% friend.email %]</td></tr>
+[% END %]
+</table>
+
+<hr size=1 color="#CCCCCC">
+<div id="edit_form">
+<form method="POST" action="[% base_uri %]/app/settings/friends">
+<table class="edit">
+[% IF errors %]
+<tr><td colspan="2"><font color="red">Please correct the form errors shown below</font></td></tr>
+[% END %]
+<tr><td>[% IF errors.missing.friend %]<font color="red">[% END %]
+User email:
+[% IF errors.missing.friend %]</font>[% END %]</td>
+<td><input type="text" name="friend" size="25" maxlength="100" value="[% user  %]">
+</td></tr>
+
+<tr><td><input type="submit" value="Add user"></td></tr>
+
+</table>
+</form>
+</div>
+</div>
+
+</div>
+</div>
+[% PROCESS footer.tmpl %]

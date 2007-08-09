@@ -26,7 +26,7 @@
 	
   <td style="color: #639D63">&nbsp;&nbsp;
 <!-- name -->
-<a href="[% base_uri %]/app/ad/bugs/edit/?id=[% bug.bug_id %]">[% bug.name %]</a></td>
+<a href="[% base_uri %]/app/ad/bugs/edit/?id=[% bug.bug_id %]">[% bug.name or 'unnamed' %]</a></td>
 
 <!-- image href -->
 <td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">

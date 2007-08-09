@@ -117,4 +117,81 @@ sub dispatch_account {
     }
 }
 
+sub dispatch_friends {
+    my ( $self, $r, $args_ref ) = @_;
+
+    my $reg = $r->pnotes( $r->user );
+    my $req = $args_ref->{req} || Apache2::Request->new($r);
+
+    my @friends = $reg->friends;
+
+    my $friend = $req->param('friend'); # weird libapreq bug
+    # see if this ip is currently unregistered;
+    if ( $r->method_number == Apache2::Const::M_GET ) {
+        my %tmpl_data = (
+            session => $r->pnotes('session'),
+            root    => $r->pnotes('root'),
+            friends => \@friends,
+            reg     => $reg,
+            errors  => $args_ref->{errors},
+            user  => $friend,
+        );
+
+        my $output;
+        my $ok =
+          $tmpl->process( 'settings/friends.tmpl', \%tmpl_data, \$output );
+        $ok
+          ? return $self->ok( $r, $output )
+          : return $self->error( $r, "Template error: " . $tmpl->error() );
+    }
+    elsif ( $r->method_number == Apache2::Const::M_POST ) {
+
+        $r->method_number(Apache2::Const::M_GET);
+        my %friend_profile = (
+            required           => [qw( friend )],
+            constraint_methods => { friend => valid_friend() }
+        );
+$r->log->debug("AAAAA " . $req->param('friend') );
+        my $results = Data::FormValidator->check( $req, \%friend_profile );
+
+        if ( $results->has_missing or $results->has_invalid ) {
+            my $errors = $self->SUPER::_results_to_errors($results);
+            return $self->dispatch_friends(
+                $r,
+                {
+                    errors => $errors,
+                    req    => $req
+                }
+            );
+        }
+    }
+
+    # create the relationship
+    my ($friend_obj) = SL::Model::App->resultset('Reg')->search({
+          email => $req->param('friend') });
+    my ($reg__reg) =
+      SL::Model::App->resultset('RegReg')
+      ->create( { first_reg_id => $friend_obj->reg_id,
+                  sec_reg_id => $reg->reg_id } );
+
+    # done with argument processing
+    $r->pnotes('session')->{msg} =
+      sprintf( "User %s was added to your list", $req->param('friend') );
+    $r->internal_redirect("/app/settings/friends");
+    return Apache2::Const::OK;
+}
+
+sub valid_friend {
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+
+        my ($is_friend) =
+          SL::Model::App->resultset('Reg')->search( { email => $val } );
+
+        return $val if $is_friend;
+        return;
+      }
+}
+
 1;

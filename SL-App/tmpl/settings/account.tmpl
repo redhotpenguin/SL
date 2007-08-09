@@ -4,7 +4,7 @@
 <div id="list_center">
 	<div class="content">
 
-<h2>[% PROCESS dashboard.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage Settings</a> > Manage Account</h2>
+<h2>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/account">Manage Account</a></h2>
 <hr size=1 color="#CCCCCC">
 <div id="edit_form">
 
@@ -26,10 +26,9 @@
 
 <form method="POST" action="[% base_uri %]/app/settings/account">
 <tr><td>
-[% IF errors.email %]<font color="red">
-Email Address:</font>[% ELSE %]
+[% IF errors.email %]<font color="red">[% END %]
 Email Address:
-[% END %]
+[% IF errors.email %]</font>[% END %]
 </td><td>[% reg.email %]</td>
 </tr>
 
