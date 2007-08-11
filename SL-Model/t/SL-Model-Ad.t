@@ -33,6 +33,9 @@ my $template = 'text_ad.tmpl';
 
 use Time::HiRes qw(tv_interval gettimeofday);
 
+# bring in dbix::class to save us some typing
+use SL::Model::App;
+
 my $start = [gettimeofday];
 ok(SL::Model::Ad::container( \$css_link, \$content, \$ad ));
 my $interval = tv_interval( $start, [gettimeofday] );
@@ -86,6 +89,23 @@ unless (
 ##############################
 
 diag('make sure that the default works');
+
+# make sure we have a default ad
+my ($default_adgroup) = SL::Model::App->resultset('AdGroup')->search({
+        is_default => 't' });
+unless ($default_adgroup) {
+  $default_adgroup = SL::Model::App->resultset('AdGroup')->find_or_create({
+       name => 'default_test',
+       is_default => 't',});
+  my $test_ad = SL::Model::App->resultset('Ad')->find_or_create({ 
+        active => 't',
+        ad_group_id => $default_adgroup->ad_group_id });
+  my $ad_sl = SL::Model::App->resultset('AdSl')->create({
+         ad_id => $test_ad->ad_id,
+        text => 'default test ad',
+        uri => 'http://www.redhotpenguin.com/', });
+}
+
 my $test_ad = SL::Model::Ad->_sl_default($ip);
 
 # evil evil copied from Ad.pm
@@ -123,55 +143,47 @@ ok( !exists $test_ad->[TEXT_IDX], 'text not present' );
 
 diag('test the router sticky feature');
 
-# bring in dbix::class to save us some typing
-use SL::Model::App;
+# make a new ad group
+my $css      = 'http://example.com/sl.css';
+my $name     = 'testadgroup';
+my $ad_group = SL::Model::App->resultset('AdGroup')->create(
+    {
+        name     => $name,
+        css_url  => $css,
+        template => $template,
+    }
+);
+print STDERR "created ad_group_id " . $ad_group->ad_group_id . "\n";
 
 # make an ad (cover your eyes unless you want to witness pain)
-$ad = SL::Model::App->resultset('Ad')->new( { active => 't' } )->insert->update;
+$ad = SL::Model::App->resultset('Ad')->create( { 
+    active => 't',
+    ad_group_id => $ad_group->ad_group_id,
+ } );
+
 my $reg =
   SL::Model::App->resultset('Reg')->new( { email => 'flimflam@foo.com' } )
   ->insert->update;
 
 my $test_text = 'testzimzimfoobar';
-my $sl_ad     = SL::Model::App->resultset('AdSl')->new(
+my $sl_ad     = SL::Model::App->resultset('AdSl')->create(
     {
         ad_id  => $ad->ad_id,
         text   => $test_text,
         uri    => 'http://foo.com',
         reg_id => $reg->reg_id,
     }
-)->insert->update;
+);
 print STDERR "created sl_ad id " . $sl_ad->ad_sl_id . "\n";
-
-# make a new ad group
-my $css      = 'http://example.com/sl.css';
-my $name     = 'testadgroup';
-my $ad_group = SL::Model::App->resultset('AdGroup')->new(
-    {
-        name     => $name,
-        css_url  => $css,
-        template => $template,
-    }
-)->insert->update;
-print STDERR "created ad_group_id " . $ad_group->ad_group_id . "\n";
-
-# put the ad in the ad_group
-my $ad__ad_group = SL::Model::App->resultset('AdAdGroup')->new(
-    {
-        ad_group_id => $ad_group->ad_group_id,
-        ad_id       => $ad->ad_id
-    }
-)->insert->update;
-print STDERR "created ad__ad_group " . $ad__ad_group->ad_group_id . "\n";
 
 # put it in the ad group for this router
 print STDERR "router is " . $router->[0]->[0] . "\n";
-my $router__ad_group = SL::Model::App->resultset('RouterAdGroup')->new(
+my $router__ad_group = SL::Model::App->resultset('RouterAdGroup')->create(
     {
         router_id   => $router->[0]->[0],
         ad_group_id => $ad_group->ad_group_id,
     }
-)->insert->update;
+);
 
 ################################
 

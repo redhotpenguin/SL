@@ -1,5 +1,8 @@
 Revision history for Perl extension SL-Model.
 
+0.08 Tues Aug 8 23:12:22 2007
+    - add external classes and methods for AdGroup and Reg
+
 0.07  Weds Jul 18 00:38:00 2007
     - fix a bug where the closing div was not being applied.
     - test the decoded content to make sure all container regexes match

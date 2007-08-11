@@ -142,11 +142,10 @@ ad_linkshare.ad_id,    ad_linkshare.displaytext AS text,
 ad.md5,                ad_linkshare.linkurl AS uri,
 ad_group.template,     ad_group.css_url,
 bug.image_href,        bug.link_href
-FROM ad_linkshare, ad, router, ad__ad_group, router__ad_group, ad_group, bug
+FROM ad_linkshare, ad, router, router__ad_group, ad_group, bug
 WHERE ad.active = 't'
 AND ad_linkshare.ad_id = ad.ad_id
-AND ad__ad_group.ad_id = ad.ad_id
-AND router__ad_group.ad_group_id = ad__ad_group.ad_group_id
+AND router__ad_group.ad_group_id = ad_group.ad_group_id
 AND ad_group.bug_id = bug.bug_id
 AND router.ip = ?
 ORDER BY RANDOM()
@@ -183,12 +182,11 @@ SELECT
 ad_sl.ad_id,         ad_sl.text,         ad.md5,     ad_sl.uri,
 ad_group.template,   ad_group.css_url, 
 bug.image_href,      bug.link_href
-FROM ad_sl, ad, ad__ad_group, ad_group, bug
+FROM ad_sl, ad, ad_group, bug
 WHERE ad.active = 't'
-AND ad__ad_group.ad_group_id = ?
-AND ad__ad_group.ad_id = ad.ad_id
+AND ad_group.ad_group_id = ?
+AND ad_group.ad_group_id = ad.ad_group_id
 AND ad_sl.ad_id = ad.ad_id
-AND ad_group.ad_group_id = ad__ad_group.ad_group_id
 AND ad_group.bug_id = bug.bug_id
 ORDER BY RANDOM()
 LIMIT 1
@@ -232,11 +230,10 @@ SELECT
 ad_sl.ad_id,      ad_sl.text,        ad.md5,
 ad_sl.uri,        ad_group.template, ad_group.css_url,
 bug.image_href,   bug.link_href
-FROM ad_sl, ad, router, ad__ad_group, router__ad_group, ad_group, bug
+FROM ad_sl, ad, router, router__ad_group, ad_group, bug
 WHERE ad.active = 't'
 AND ad.ad_id = ad_sl.ad_id
-AND ad.ad_id = ad__ad_group.ad_id
-AND ad__ad_group.ad_group_id = ad_group.ad_group_id
+AND ad.ad_group_id = ad_group.ad_group_id
 AND ad_group.bug_id = bug.bug_id
 AND router__ad_group.ad_group_id = ad_group.ad_group_id
 AND (router.router_id = router__ad_group.router_id
@@ -270,11 +267,10 @@ SELECT
 ad_sl.ad_id,       ad_sl.text,        ad.md5,
 ad_sl.uri,         ad_group.template, ad_group.css_url,
 bug.image_href,    bug.link_href
-FROM ad_sl, ad, location, ad_group, bug, ad__ad_group
+FROM ad_sl, ad, location, ad_group, bug
 WHERE ad.active = 't'
 AND ad.ad_id = ad_sl.ad_id
-AND ad.ad_id = ad__ad_group.ad_id
-AND ad__ad_group.ad_group_id = ad_group.ad_group_id
+AND ad.ad_group_id = ad_group.ad_group_id
 AND ad_group.is_default = 't'
 AND ad_group.bug_id = bug.bug_id
 AND (location.ip = ?
@@ -436,11 +432,11 @@ SELECT
 ad_sl.ad_id,       ad_sl.text,        ad.md5,
 ad_sl.uri,         ad_group.template, ad_group.css_url,
 bug.image_href,    bug.link_href
-FROM ad_sl, ad, ad_group, bug, ad__ad_group
+FROM ad_sl, ad, ad_group, bug
 WHERE ad.active = 't'
 AND ad.ad_id = ad_sl.ad_id
-AND ad.ad_id = ad__ad_group.ad_id
-AND ad__ad_group.ad_group_id IN ( 
+AND ad.ad_group_id = ad_group.ad_group_id
+AND ad_group.ad_group_id IN (
 };
 
 use constant ADS_FROM_ADGROUP_SQL_TWO => q{
