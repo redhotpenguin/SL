@@ -81,6 +81,8 @@ sub handler {
     my $url = $r->construct_url($r->unparsed_uri);
     my $referer = $r->headers_in->{'referer'} || 'no_referer';
 
+	return &proxy_request($r) if ($referer =~ m/googlesyndication/);
+
     $r->pnotes('url'     => $url);
     $r->pnotes('referer' => $referer);
 
