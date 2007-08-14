@@ -1,7 +1,10 @@
 Revision history for SL::App
 
+0.13 Mon Aug 13 21:19:19 2007
+    - fix login bug
     - ugh, fix the ui again
     - add friend functionality
+
 0.12 Sat Aug 04 16:31:00 2007
     - group and router handling
     - reports still broken
