@@ -56,15 +56,21 @@ sub authenticate {
     # grab the cookies
     my $jar    = Apache2::Cookie::Jar->new($r);
     my $cookie = $jar->cookies( $CONFIG->sl_app_cookie_name );
-
     my $dest = $r->construct_url($CONFIG->sl_app_auth_uri );
-    return $class->redirect_auth( $r, 'No Cookie', $dest ) unless ($cookie);
+
+    # user doesn't have a cookie?
+    unless ($cookie) {
+        $dest .= "/?dest=" . $r->unparsed_uri;
+        return $class->redirect_auth( $r, 'No Cookie', $dest );
+    }
 
     # decode the cookie
     my %state = $class->decode( $cookie->value );
 
     # check for malformed cookie
     unless ( grep { exists $state{$_} } qw(email last_seen) ) {
+        $r->log->error(sprintf("malformed cookie seen, ua %s, url %s", $r->headers_in->{'user-agent'},
+                             $r->construct_url( $r->unparsed_uri )));
         return $class->redirect_auth( $r, 'Malformed Cookie', $dest );
     }
 
@@ -118,9 +124,10 @@ sub login {
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my $output;
         my $ok =
-          $TEMPLATE->process( 'login.tmpl', 
+          $TEMPLATE->process( 'login.tmpl',
          { status => $req->param('status') || '',
-           error => $req->param('error') || '' },
+           error => $req->param('error') || '',
+           dest  => $req->param('dest') || ''},
             \$output );
 
         $ok
@@ -161,7 +168,8 @@ sub login {
 		$class->send_cookie($r, $reg);
 
         # they're ok
-        return $class->redirect_auth( $r, 'successful auth', $r->construct_url('/app') );
+        my $destination = $req->param('dest') || '/app/home/index';
+        return $class->redirect_auth( $r, 'successful auth', $r->construct_url($destination) );
     }
     else {
         return Apache2::Const::HTTP_METHOD_NOT_ALLOWED;

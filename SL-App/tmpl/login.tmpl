@@ -9,6 +9,7 @@
 [% END %]
 [% IF error == 'invalid' %]<p><font color="red">Invalid email or password, please try again</font></p>[% END %]
 [% IF error == 'incomplete' %]<p><font color="red">Please fill out all fields to login</font></p>[% END %]
+<input type="hidden" name="dest" value="[% dest %]">
 <form method="POST" action="[% base_uri %]/login">
 <p>Email Address:</p><p><input type="text" name="email"></p>
 <p>Password:</p><p><input type="password" name="password"></p>

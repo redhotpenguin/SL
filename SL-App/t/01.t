@@ -6,15 +6,20 @@ use Test::More;
 use Apache::TestRequest qw(GET GET_OK POST POST_OK);
 use Apache::TestUtil;
 
-plan tests => 22, need_lwp;
+# don't follow redirects
+Apache::TestRequest::user_agent(requests_redirectable => 0, cookie_jar => {});
+
+plan tests => 36, need_lwp;
 
 # Test Apache2::Foo->dispatch_index
 my $uri = '/';
 ok GET_OK $uri;
 
 # Test Apache2::Foo->dispatch_foo
-$uri = '/app';
-ok GET_OK $uri;
+$uri = '/app/home/index';
+my $res = GET $uri;
+cmp_ok($res->code, '==', 302);
+like($res->header('Location'), qr/\Q\/login\/?dest=\/app\E/);
 
 # now login
 $uri = '/login';
@@ -22,10 +27,10 @@ ok GET_OK $uri;
 
 my $email = 'phredwolf@yahoo.com';
 my $password = 'yomaing420';
-my $res = POST $uri, [email => $email, password => $password ];
+$res = POST $uri, [email => $email, password => $password ];
 
 t_cmp($res->code, 302, '302 on successful post');
-like($res->headers->header('Location'), qr{/app$}, 'redirect to /app ok');
+like($res->header('Location'), qr{/app/home/index}, 'redirect to /app ok');
 
 # run through all the website links to first make sure we don't get
 # any 404s or 500s
@@ -42,14 +47,9 @@ my @uris = qw(
               /app/router/list
               /app/router/edit
 
-              /app/ad/ads/index
-              /app/ad/ads/edit
-              /app/ad/ads/list
-
               /app/ad/groups/index
               /app/ad/groups/edit
               /app/ad/groups/list
-
 
               /app/ad/bugs/index
               /app/ad/bugs/list
@@ -57,5 +57,13 @@ my @uris = qw(
 );
 
 foreach my $uri ( @uris ) {
+  diag("grabbing uri $uri");
  ok  GET_OK $uri;
+}
+
+# test the reporting links
+foreach my $type qw( views clicks rates ads) {
+  foreach my $temporal qw( daily weekly monthly quarterly ) {
+    ok GET_OK "/app/report/index/?type=$type&temporal=$temporal";
+  }
 }
