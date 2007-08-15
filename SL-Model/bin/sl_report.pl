@@ -107,8 +107,14 @@ $mailer->open(
 
 use Number::Format;
 my $de  = Number::Format->new();
-my $cnt = "This is the global report of views and clicks\n";
-$cnt .= "Percent change indicates growth or loss from previous average\n\n";
+my $cnt = <<CNT;
+This is the global report of views and clicks
+Percent change indicates growth or loss from previous average
+0% change means that traffic didn't change relative to the previous entry
++% means traffic levels went up
+-% means traffic levels went down.
+CNT
+
 my $total = 0;
 $cnt .= "------------------------------------------------------\n";
 $cnt .= "|  Days  |    Views (% change) |  Clicks      | Rate  |\n";
