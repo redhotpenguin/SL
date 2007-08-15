@@ -11,7 +11,7 @@ bin/sl_update_linkshare.pl
 bin/sl_update_schema.pl
 lib/SL/Model/Ad/Group.pm
 lib/SL/Model/Ad.pm
-lib/SL/Model/App/AdGroup.pm
+lib/SL/Model/App/Location.pm
 lib/SL/Model/App/Reg.pm
 lib/SL/Model/App.pm
 lib/SL/Model/Proxy/Location.pm
@@ -30,5 +30,6 @@ t/SL-Model-Ad.t
 t/SL-Model-App.t
 t/SL-Model-Proxy-Location.t
 t/SL-Model-Proxy-Router-Location.t
+t/SL-Model-Report.t
 t/SL-Model-URL.t
 t/SL-Model.t

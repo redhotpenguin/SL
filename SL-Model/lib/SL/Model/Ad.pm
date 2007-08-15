@@ -237,7 +237,13 @@ AND ad.ad_group_id = ad_group.ad_group_id
 AND ad_group.bug_id = bug.bug_id
 AND router__ad_group.ad_group_id = ad_group.ad_group_id
 AND (router.router_id = router__ad_group.router_id
-AND router.router_id = ? )
+AND router.active = 't'
+AND router.router_id IN (
+  SELECT router_id
+  FROM router__location
+  INNER JOIN location USING(location_id)
+  WHERE location.ip = ? )
+)
 ORDER BY RANDOM()
 LIMIT 1
 };
@@ -245,15 +251,10 @@ LIMIT 1
 sub _sl_router {
     my ( $class, $ip ) = @_;
 
-    # grab the routers associated with this location
-    my $router_id =
-      SL::Model::Proxy::Router::Location->get_router_id_by_ip($ip);
-    return unless $router_id;
-
     # get the ads specific to this router_id
     my $dbh = SL::Model->connect();
     my $sth = $dbh->prepare(SL_ROUTER_SQL);
-    $sth->bind_param( 1, $router_id );
+    $sth->bind_param( 1, $ip );
     my $rv = $sth->execute;
     die "Problem executing query: " . SL_ROUTER_SQL unless $rv;
 
@@ -381,20 +382,19 @@ use constant ADGROUPS_FROM_ROUTER => q{
 SELECT ad_group.ad_group_id, css_url, template
 FROM ad_group, router, router__ad_group
 WHERE router__ad_group.ad_group_id =  ad_group.ad_group_id
-AND router__ad_group.router_id = router.router_id = ?
+AND router__ad_group.router_id = router.router_id IN (
+  SELECT router_id
+  FROM router__location
+  INNER JOIN location USING(location_id)
+  WHERE location.ip = ? )
 };
 
 sub ad_groups_from_router {
     my ( $class, $ip ) = @_;
 
-    # grab the routers associated with this location
-    my $router_id =
-      SL::Model::Proxy::Router::Location->get_router_id_by_ip($ip);
-    return unless $router_id;
-
     my $dbh         = SL::Model->connect();
     my $adgroup_sth = $dbh->prepare_cached(ADGROUPS_FROM_ROUTER);
-    $adgroup_sth->bind_param( 1, $router_id );
+    $adgroup_sth->bind_param( 1, $ip );
     $adgroup_sth->execute or die $DBI::errstr;
 
     # grab the ad_group data

@@ -66,7 +66,7 @@ foreach my $temporal ( @intervals ) {
         # make the directory to store the reporting data
         my $dir = "$DATA_ROOT/" . $reg->reg_id . "/$temporal";
         mkpath($dir) unless ( -d $dir );
-       
+
         # grab all the routers for this registration
         my @routers = SL::Model::App->resultset('Router')->search({
              reg_id => $reg->reg_id });

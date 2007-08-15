@@ -14,119 +14,6 @@ SELECT ad.ad_id, ad.text
 FROM ad
 SQL
 
-my $link_sql = <<SQL;
-SELECT link.link_id, link.uri
-FROM link
-WHERE link.ad_id = ?
-SQL
-
-# clicks for a given time period
-my $click_sql = <<SQL;
-SELECT click.click_id, click.cts
-FROM click
-INNER JOIN link
-USING(link_id)
-WHERE link_id = ? AND
-click.ts BETWEEN ? AND ?
-SQL
-
-# views for a given time period
-my $view_sql = <<SQL;
-SELECT ip, count(ip) FROM view
-WHERE view.cts between
-? and  ?
-GROUP BY ip
-ORDER BY count(ip) DESC
-SQL
-
-# what adss were clicked for a given time period
-my $clicks = <<SQL;
-SELECT ad_id, count(click_id) FROM click
-WHERE cts BETWEEN ? AND ?
-GROUP BY ad_id
-SQL
-
-my $ad_ids_clicked_by_ip = <<SQL;
-SELECT ad_id, count(click_id) FROM click
-WHERE cts BETWEEN ? AND ?
-AND ip = ?
-GROUP BY ad_id
-SQL
-
-# queries for the reporting page
-my $ip_views = <<SQL;
-SELECT ad_id, count(view_id) 
-FROM view
-WHERE view.cts BETWEEN ? AND ?
-AND ip = ?
-GROUP BY ad_id
-SQL
-
-my $ip_count_views = <<SQL;
-SELECT count(ad_id) 
-FROM view
-WHERE view.cts BETWEEN ? AND ?
-AND ip = ?
-SQL
-
-my $ip_count_clicks = <<SQL;
-SELECT count(click_id)
-FROM click
-WHERE cts BETWEEN ? AND ?
-AND ip = ?
-SQL
-
-my $ip_clicks = <<SQL;
-SELECT click_id, count(click_id)
-FROM click
-WHERE cts BETWEEN ? AND ?
-AND ip = ?
-GROUP BY click_id
-SQL
-
-sub run_query {
-    my ( $class, $sql, $start, $end, $ip ) = @_;
-
-    die unless $sql && $start && $end;
-
-    unless ( $start->isa('DateTime') && $end->isa('DateTime') ) {
-        croak('No start and end times passed!');
-    }
-    my $dbh = SL::Model->db_Main();
-    my $sth = $dbh->prepare_cached($sql);
-
-    $sth->bind_param( 1, DateTime::Format::Pg->format_datetime($start) );
-    $sth->bind_param( 2, DateTime::Format::Pg->format_datetime($end) );
-    $sth->bind_param( 3, $ip ) if $ip;
-    my $rv      = $sth->execute;
-    my $ary_ref = $sth->fetchall_arrayref;
-    return $ary_ref;
-}
-
-sub views {
-    my ( $class, $start, $end ) = @_;
-    my $ary_ref = $class->run_query( $view_sql, $start, $end );
-    my $dbh = SL::Model->db_Main();
-    my $sql = <<SQL;
-SELECT reg.email, router.ip, router.name
-FROM router
-LEFT JOIN reg using (reg_id)
-WHERE ip = ?
-SQL
-    my $sth = $dbh->prepare($sql);
-    foreach my $entry ( @{$ary_ref} ) {
-        # add the email and router name/ip to the entry
-        $sth->bind_param(1, $entry->[0]);
-        $sth->execute;
-        my $reg_ary_ref = $sth->fetchrow_arrayref;
-        if ($reg_ary_ref) {
-            $entry->[0] = join(' - ', @{$reg_ary_ref}[0..1], 
-                               $reg_ary_ref->[2] || '');
-        }
-    }
-    return $ary_ref;
-}
-
 sub _ad_text_from_id {
   my ($class, $ad_id) = @_;
   # look in linkshare first;
@@ -143,95 +30,79 @@ sub _ad_text_from_id {
   }
 }
 
-sub clicks {
-    my ( $class, $start, $end ) = @_;
-    
-    my $clicks_ref = $class->run_query( $clicks, $start, $end );
+#####################################
 
-    foreach my $c (@{$clicks_ref}) {
-      $c->[0] = $class->_ad_text_from_id($c->[0]);
-    }
-    return $clicks_ref;
-}
+# queries for the reporting page
+my $ip_views = <<SQL;
+SELECT ad_id, count(view_id) 
+FROM view
+WHERE view.cts BETWEEN ? AND ?
+AND ip = ?
+GROUP BY ad_id
+SQL
 
 # returns views for an ip within for $start to $end
 sub ip_views {
     my ( $class, $start, $end, $ip ) = @_;
-    return $class->run_query( $ip_views, $start, $end, $ip );
+    die unless $start->isa('DateTime');
+    die unless $end->isa('DateTime');
+    die unless $end > $start;
+
+    my $ary_ref = $class->run_query( $ip_views, $start, $end, $ip );
+
+    my @ary = map { { ad_id => $_->[0], count => $_->[1] } } @{$ary_ref};
+    return \@ary;
 }
 
 sub ip_count_views {
     my ( $class, $start, $end, $ip ) = @_;
-    return $class->run_query( $ip_count_views, $start, $end, $ip );
+
+    my $ip_views = $class->ip_views( $start, $end, $ip );
+    my $count = 0;
+    foreach my $view (@{$ip_views}) {
+      $count += $view->{count};
+    }
+    return $count;
 }
+
+
+########################################
+
+
+my $ip_clicks = <<SQL;
+SELECT ad_id, count(click_id)
+FROM click
+WHERE cts BETWEEN ? AND ?
+AND ip = ?
+GROUP BY click_id
+SQL
 
 # returns clicks for an ip within for $start to $end
 sub ip_clicks {
     my ( $class, $start, $end, $ip ) = @_;
-    my $clicks_ref = 
-      $class->run_query( $ad_ids_clicked_by_ip, $start, $end, $ip );
-    foreach my $c (@{$clicks_ref}) {
-      $c->[0] = $class->_ad_text_from_id($c->[0]);
-    }
-    return $clicks_ref;
+
+    die unless $start->isa('DateTime');
+    die unless $end->isa('DateTime');
+    die unless $end > $start;
+
+    my $ary_ref = $class->run_query( $ip_views, $start, $end, $ip );
+
+    my @ary = map { { ad_id => $_->[0], count => $_->[1] } } @{$ary_ref};
+    return \@ary;
 }
 
 sub ip_count_clicks {
     my ( $class, $start, $end, $ip ) = @_;
-    return $class->run_query( $ip_count_clicks, $start, $end, $ip );
-}
 
-sub interval_by_ts {
-    my ( $class, $ts ) = @_;
-
-    croak('No start and end times passed!')
-      unless (
-        ( ref $ts->{'start'} && UNIVERSAL::isa( $ts->{'start'}, 'DateTime' ) )
-        && ( ref $ts->{'end'} && UNIVERSAL::isa( $ts->{'end'}, 'DateTime' ) ) );
-
-    my %return;
-    my $dbh = SL::Model->db_Main();
-
-    my $ad_sth = $dbh->prepare_cached($ad_sql);
-    my $rv     = $ad_sth->execute;
-    die print STDERR "Doh something bad happened during ad fetch\n" unless $rv;
-
-    while ( my $ad = $ad_sth->fetchrow_hashref ) {
-        my $link_sth = $dbh->prepare_cached($link_sql);
-        $link_sth->bind_param( 1, $ad->{'ad_id'} )
-          ;    #, { pg_type => PG_INTEGER } );
-        $rv = $link_sth->execute;
-        die print STDERR "Something bad happened in link fetch\n" unless $rv;
-
-        while ( my $link = $link_sth->fetchrow_hashref ) {
-            my $click_sth = $dbh->prepare_cached($click_sql);
-            $click_sth->bind_param( 1, $link->{'link_id'} )
-              ;    #, { pg_type => PG_INTEGER });
-            $click_sth->bind_param( 2,
-                DateTime::Format::Pg->format_datetime( $ts->{'start'} ) );
-
-            #, { pg_type => PG_TIMESTAMP });
-            $click_sth->bind_param( 3,
-                DateTime::Format::Pg->format_datetime( $ts->{'end'} ) );
-
-            #, { pg_type => PG_TIMESTAMP });
-            $rv = $click_sth->execute;
-            if ( $rv == 0 ) {
-                $return{ $ad->{'name'} }{ $link->{'uri'} }{'count'} = 0;
-            }
-            else {
-                while ( my $click = $click_sth->fetchrow_arrayref ) {
-                    push
-                      @{ $return{ $ad->{'name'} }{ $link->{'uri'} }{'times'} },
-                      $click->[1];
-                    $return{ $ad->{'name'} }{ $link->{'uri'} }{'count'}++;
-                }
-
-            }
-        }
+    my $ip_clicks = $class->ip_clicks( $start, $end, $ip );
+    my $count = 0;
+    foreach my $clicks (@{$ip_clicks}) {
+      $count += $clicks->{count};
     }
-    return \%return;
+    return $count;
 }
+
+###############################################################
 
 # set the DateTime object minute to the previous 15 minute interval
 sub last_fifteen {

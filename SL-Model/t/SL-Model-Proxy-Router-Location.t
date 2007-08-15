@@ -10,6 +10,6 @@ BEGIN {
     use_ok($pkg);
 }
 
-can_ok( $pkg, qw( get_registered register get_router_id_by_ip) );
+can_ok( $pkg, qw( get_registered register ) );
 
 1;

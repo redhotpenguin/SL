@@ -1,26 +1,98 @@
 #!perl
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 
-use lib '../lib';
+use SL::Model::App;
 use DateTime;
-use SL::Model::Report;
+use DateTime::Format::Pg;
 use Mail::Mailer;
 
-#my $ADMIN = 'phredwolf@yahoo.com';
-my $ADMIN = 'info@redhotpenguin.com';
-my @DAYS  = qw( 1 3 7 14 30 );
+our $location = 0;
+our $DEBUG    = 0;
 
-# generate the results
-my $start = DateTime->now;
+my $ADMIN = 'sl_reports@redhotpenguin.com';
+my $FROM  = "SL Reporting Daemon <fred\@redhotpenguin.com>";
+my @DAYS  = qw( 1 3 7 14 30 45 90 135 180 225 270);
 
-my $end = DateTime->now;
-my %results;
+my %results = ();
+
+my @locations =
+  SL::Model::App->resultset('Location')->search( { active => 't' } );
+
+my ( $prev, $prev_day );
 foreach my $day (@DAYS) {
-    my $end = DateTime->now->subtract( days => $day );
-    $results{$day}{views}  = SL::Model::Report->views( $end,  $start );
-    $results{$day}{clicks} = SL::Model::Report->clicks( $end, $start );
+    print STDERR "processing day $day...\n" if $DEBUG;
+
+    my $end   = DateTime->now;
+    my $start = $end->clone->subtract( days => $day );
+
+    $start = DateTime::Format::Pg->format_datetime($start);
+    $end   = DateTime::Format::Pg->format_datetime($end);
+
+    my $views_count =
+      SL::Model::App->resultset('View')
+      ->search( { cts => { -between => [ $start, $end ] } } )->count;
+
+    my $clicks_count =
+      SL::Model::App->resultset('Click')
+      ->search( { cts => { -between => [ $start, $end ] } } )->count;
+
+    $results{$day}{views}  = $views_count;
+    $results{$day}{clicks} = $clicks_count;
+
+    if ($prev) {
+        $prev->{views_diff} =
+          ( $results{$day}{views} == 0 )
+          ? 0
+          : ( $prev->{views} / $prev_day - $results{$day}{views} / $day ) /
+          ( $results{$day}{views} / $day ) * 100;
+
+        $prev->{clicks_diff} =
+          ( $results{$day}{clicks} == 0 )
+          ? 0
+          : ( $prev->{clicks} / $prev_day - $results{$day}{clicks} / $day ) /
+          ( $results{$day}{clicks} / $day ) * 100;
+    }
+
+    #############################
+    # fix me later, this is pretty slow
+    if ($location) {
+        foreach my $location (@locations) {
+            print STDERR "==> processing location " . $location->ip . "\n"
+              if $DEBUG;
+            my ( $views_count, $views_ary_ref ) =
+              $location->views( $start, $end );
+            my ( $clicks_count, $clicks_ary_ref ) =
+              $location->clicks( $start, $end );
+
+            if (   ( $views_count > 0 )
+                or ( $clicks_count > 0 ) )
+            {
+
+                $results{$day}{data} ||= [];
+                push @{ $results{$day}{data} },
+                  {
+                    ip     => $location->ip,
+                    views  => $views_count,
+                    clicks => $clicks_count,
+                    rate   => ( $views_count == 0 )
+                    ? 0
+                    : ( ( $clicks_count / $views_count ) * 100 ),
+                  };
+                $results{$day}{views}  += $views_count;
+                $results{$day}{clicks} += $clicks_count;
+            }
+        }
+    }
+    ###############################
+
+    $results{$day}{rate} =
+      ( $results{$day}{views} == 0 )
+      ? 0
+      : ( ( $results{$day}{clicks} / $results{$day}{views} ) * 100 );
+    $prev     = $results{$day};
+    $prev_day = $day;
 }
 
 # Generate the email
@@ -28,48 +100,35 @@ my $mailer = Mail::Mailer->new('qmail');
 $mailer->open(
     {
         'To'      => $ADMIN,
-        'From'    => "silverlining reporting daemon <fred\@redhotpenguin.com>",
-        'Subject' => 'Latest silverlining reporting stats'
+        'From'    => $FROM,
+        'Subject' => 'SL global daily stats'
     }
 );
 
-my $cnt = '';
-foreach my $day (@DAYS) {
-    my $total = 0;
-    $cnt .= "-------------------------------\n";
-    $cnt .= "Last $day days worth of ad views by ip\n";
-    $cnt .= "       IP        |   Ad Views  \n";
-    $cnt .= "-------------------------------\n";
-    foreach my $row ( @{ $results{$day}{views} } ) {
-        $cnt .= $row->[0] . ' => ' . $row->[1] . "\n";
-        $total += $row->[1];
-    }
-    $cnt .= "-------------------------------\n";
-    $cnt .= "Total views for the last $day days: $total\n";
-    $cnt .= "-------------------------------\n";
-    $cnt .= "-------------------------------\n";
+use Number::Format;
+my $de  = Number::Format->new();
+my $cnt = "This is the global report of views and clicks\n";
+$cnt .= "Percent change indicates growth or loss from previous average\n\n";
+my $total = 0;
+$cnt .= "------------------------------------------------------\n";
+$cnt .= "|  Days  |    Views (% change) |  Clicks      | Rate  |\n";
+$cnt .= "------------------------------------------------------\n";
 
-    $total = 0;
-    $cnt .= "Last $day days of clicks by link\n";
-    $cnt .= "     Link     |    Clicks \n";
-    $cnt .= "-------------------------------\n";
-    if ( @{ $results{$day}{clicks} } ) {
-        foreach my $row ( @{ $results{$day}{clicks} } ) {
-            $cnt .= $row->[0] . " => " . $row->[1] . "\n";
-            $total += $row->[1];
-        }
-        $cnt .= "-------------------------------\n";
-        $cnt .= "Total clicks for the last $day days: $total\n";
-        $cnt .= "-------------------------------\n";
-        $cnt .= "-------------------------------\n";
-    }
-    else {
-        $cnt .= "uh oh, no clicks for you monkeys in the last $day days\n";
-        $cnt .= "Time to get to work or no banana\n";
-        $cnt .= "-------------------------------\n\n";
-    }
+foreach my $day (@DAYS) {
+    $cnt .= sprintf(
+        "|   %3s  |  %8s (%.1f%%) | %3s (%.1f%%) |  %.2f%%  |\n",
+        $day,
+        $de->format_number( $results{$day}{views} ),
+        $results{$day}{views_diff} || '0',
+        $results{$day}{clicks},
+        $results{$day}{clicks_diff} || '0',
+        $results{$day}{rate},
+    );
+    $cnt .= "------------------------------------------------------\n";
 }
 
 $cnt .= "\nHave a nice day :)\n";
+
+print STDERR $cnt if $DEBUG;
 print $mailer $cnt;
 $mailer->close;

@@ -6,7 +6,7 @@ use warnings;
 use DBI;
 use SL::Config;
 
-our $VERSION = 0.08;
+our $VERSION = 0.09;
 
 my $db_options = {
                   RaiseError         => 0,

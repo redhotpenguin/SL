@@ -24,4 +24,15 @@ sub schema {
 	return $schema;
 }
 
+sub validate_dt {
+    my (  $start, $end ) = @_;
+
+    return unless $start->isa('DateTime');
+    return unless $end->isa('DateTime');
+    return unless $end > $start;
+
+    return 1;
+}
+
+
 1;

@@ -23,31 +23,6 @@ VALUES
 (?,?)
 };
 
-use constant ACTIVE_BY_IP => q{
-SELECT router_id
-FROM router__location
-INNER JOIN location USING(location_id)
-WHERE location.ip = ?
-LIMIT 1
-};
-
-sub get_router_id_by_ip {
-    my ($class, $ip) = @_;
-    die 'no ip' unless $ip;
-
-    my $sth = $class->connect->prepare_cached(ACTIVE_BY_IP);
-    $sth->bind_param(1, $ip);
-    $sth->execute or return;
-
-    my $ary_ref = $sth->fetchall_arrayref;
-
-    # no results
-    return if scalar( @{$ary_ref}) == 0;
-
-    # return the first router_id
-    return $ary_ref->[0]->[0];
-}
-
 sub get_registered {
     my ( $class, $args_ref ) = @_;
 

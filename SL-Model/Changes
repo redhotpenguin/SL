@@ -1,5 +1,10 @@
 Revision history for Perl extension SL-Model.
 
+0.09 Weds Aug 15 00:44:00 2007
+    - fix the global reports
+    - in the case of more than one router at a location, return all routers
+      for that location
+
 0.08 Tues Aug 8 23:12:22 2007
     - add external classes and methods for AdGroup and Reg
 
