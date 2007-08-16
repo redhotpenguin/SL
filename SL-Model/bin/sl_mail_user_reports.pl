@@ -1,4 +1,4 @@
-use strict;
+
 use warnings;
 
 =head1 NAME
@@ -10,7 +10,7 @@ use warnings;
  perl sl_mail_user_reports.pl --to=specific_user_email --interval=daily --interval=weekly --interval=monthly --interval=quarterly
 
  perl sl_mail_user_reports.pl --help
- 
+
  perl sl_mail_user_reports.pl --man
 
 =cut
@@ -48,13 +48,16 @@ if ($to) {
     }
 } else {
 	my %where;
-	foreach my $int (@intervals) {
-        $where{"send_reports_$int"} = 1;
-	}
-    @users = SL::Model::App->resultset('Reg')->search( -or => [ %where ] );
+    @users = SL::Model::App->resultset('Reg')->search( { active => 't'} );
 }
 
 foreach my $user (@users) {
+	my $dir     = $user->report_dir_base;
+    opendir(DIR, $dir) || die "could not open $dir: $!";
+    my $has_pngs = () = grep { $_ =~ m/\.png$/  } readdir(DIR);
+    closedir(DIR);
+    next unless $has_pngs;
+
     my $msg = MIME::Lite->new(
         From    => $FROM,
         To      => $user->email,
@@ -62,16 +65,16 @@ foreach my $user (@users) {
         Type    => 'TEXT',
         Data    => "SilverLining Reporting Graphs attached"
     );
-	my $dir     = "/tmp/data/sl/" . $user->reg_id . "/" . $user->ip;
+    
     foreach my $temporal ( @intervals ) {
-        my $method = "send_reports_$temporal";
-        next unless $user->$method;
 
         foreach my $type qw( views clicks rates ads ) {
+          my $filename = "$type\_$temporal.png";
+          next unless -e "$dir/$filename";
             $msg->attach(
                 Type     => 'image/png',
-                Path     => "$dir/$temporal/$type.png",
-                Filename => "$temporal\_$type.png",
+                Path     => "$dir/$filename",
+                Filename => $filename,
             ) if (-e "$dir/$temporal/$type.png");
         }
     }
