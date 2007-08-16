@@ -1,4 +1,7 @@
-#!perl
+#!/home/phred/dev/perl/bin/perl
+
+eval 'exec /home/phred/dev/perl/bin/perl  -S $0 ${1+"$@"}'
+    if 0; # not running under some shell
 
 use strict;
 use warnings FATAL => 'all';
@@ -110,9 +113,11 @@ my $de  = Number::Format->new();
 my $cnt = <<CNT;
 This is the global report of views and clicks
 Percent change indicates growth or loss from previous average
+
 0% change means that traffic didn't change relative to the previous entry
 +% means traffic levels went up
 -% means traffic levels went down.
+
 CNT
 
 my $total = 0;
