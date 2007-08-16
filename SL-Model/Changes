@@ -1,5 +1,8 @@
 Revision history for Perl extension SL-Model.
 
+	- style fixes for graphs
+	- add router names to ip
+
 0.10 Weds Aug 15 21:08:39 2007
     - fix the per user reports, and the graphs.  less painful to work with now.
 

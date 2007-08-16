@@ -103,6 +103,29 @@ sub validate {
     return ( $reg, $temporal, $locations_aryref );
 }
 
+sub series_from_locations {
+	my ($class, $locations_aryref) = @_;
+
+	my @series;
+	foreach my $location (@{$locations_aryref}) {
+		# see if there are any router names
+		my @routers = map { $_->router_id } $location->router__locations;
+		my @names;
+		foreach my $router ( @routers ) {
+			if (defined $router->name) {
+				push @names, $router->name;
+			}
+		}
+		my $id = $location->ip;
+		if (@names) {
+			$id = join(' - ', $id, @names);
+		}
+		push @series, $id;
+	}
+	return \@series;
+}
+
+
 # generates the graph data for view counts
 #
 # return data structure, first array index is headers, rest are data
@@ -129,9 +152,9 @@ sub views {
     $end->truncate( to => 'hour' );
 
     # create the series
-    @{ $results->{series} } = map { $_->ip } @{$locations_aryref};
+	$results->{series} = $class->series_from_locations( $locations_aryref );
 
-    for ( @{ $time_hash{$temporal}->{range} } ) {
+	for ( @{ $time_hash{$temporal}->{range} } ) {
 
         print STDERR "processing time slice $_\n" if $DEBUG;
 
@@ -177,7 +200,7 @@ sub clicks {
     $end->truncate( to => 'hour' );
 
     # create the series
-    @{ $results->{series} } = map { $_->ip } @{$locations_aryref};
+	$results->{series} = $class->series_from_locations( $locations_aryref );
 
     for ( @{ $time_hash{$temporal}->{range} } ) {
 

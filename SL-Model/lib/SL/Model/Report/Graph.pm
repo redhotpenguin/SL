@@ -10,7 +10,7 @@ use GD::Graph::hbars;
 our $WIDTH  = 600;
 our $HEIGHT = 500;
 
-our @TITLE_FONT   = ( '/usr/share/fonts/corefonts/verdanab.ttf', 14 );
+our @TITLE_FONT   = ( '/usr/share/fonts/corefonts/verdanab.ttf', 12 );
 our @X_AXIS_FONT  = ( '/usr/share/fonts/corefonts/verdana.ttf',  10 );
 our @Y_AXIS_FONT  = ( '/usr/share/fonts/corefonts/verdana.ttf',  10 );
 our @Y_LABEL_FONT = ( '/usr/share/fonts/corefonts/verdanab.ttf', 12 );
@@ -163,6 +163,17 @@ my %duration_hash = (
 
 ##################################################
 
+sub title {
+	my ($class, $args) = @_;
+	my $temporal = $args->{temporal} or die;
+	my $lead     = $args->{lead} or die;
+	my $time = 
+		DateTime->now( time_zone => "local" )->strftime("%a %b %e,%l:%m %p");
+
+	my $title = sprintf("%s for %s - %s", $lead, $temporal, $time);
+	return $title;	
+}
+
 sub views {
     my ( $class, $params_ref ) = @_;
 
@@ -172,18 +183,17 @@ sub views {
     my $data_hashref = $params_ref->{data_hashref} or die;
     my $temporal     = $params_ref->{temporal}     or die;
 
-    my $duration = join ( ' - ',
-        $duration_hash{ $params_ref->{temporal} },
-        DateTime->now( time_zone => "local" )->strftime("%a %b %e,%l:%m %p") );
+	my $title = $class->title({ 
+			temporal => $duration_hash{ $temporal},
+			lead => 'Ad Views' });
 
-    # burn the graph
+	# burn the graph
     eval {
         $class->bars_many(
             {
                 filename => $filename,
-                title    =>
-                  sprintf( "Ad Views for %s, last %s", $reg->email, $duration ),
-                y_max_value   => $data_hashref->{max},
+                title    => $title,
+				y_max_value   => $data_hashref->{max},
                 y_tick_number => 10,
                 y_label       => 'Number of ad views',
                 data_ref      => [
@@ -208,17 +218,15 @@ sub clicks {
     my $data_hashref = $params_ref->{data_hashref} or die;
     my $temporal     = $params_ref->{temporal}     or die;
 
-    my $duration = join ( ' - ',
-        $duration_hash{ $params_ref->{temporal} },
-        DateTime->now( time_zone => "local" )->strftime("%a %b %e,%l:%m %p") );
+	my $title = $class->title({ 
+			temporal => $duration_hash{ $temporal},
+			lead => 'Ad Clicks' });
 
     eval {
         SL::Model::Report::Graph->bars_many(
             {
                 filename => $filename,
-                title    => sprintf(
-                    "Ad Clicks for %s, last %s", $reg->email, $duration
-                ),
+                title    => $title,
                 y_max_value   => $data_hashref->{max},
                 y_tick_number => 10,
                 y_label       => 'Number of ad clicks',
@@ -243,19 +251,16 @@ sub ads_by_click {
     my $data_hashref = $params_ref->{data_hashref} or die;
     my $temporal     = $params_ref->{temporal}     or die;
 
-    my $duration = join ( ' - ',
-        $duration_hash{ $params_ref->{temporal} },
-        DateTime->now( time_zone => "local" )->strftime("%a %b %e,%l:%m %p") );
+	my $title = $class->title({ 
+			temporal => $duration_hash{ $temporal},
+			lead => 'Clicks by Ad' });
 
     # burn the graph
     eval {
         $class->hbars(
             {
                 filename => $filename,
-                title    => sprintf(
-                    "Clicks by Ad for %s, last %s",
-                    $reg->email, $duration
-                ),
+                title    => $title,
                 y_max_value   => $data_hashref->{max},
                 y_tick_number => 10,
                 y_label       => 'Clicks',
@@ -281,19 +286,16 @@ sub click_rates {
     my $data_hashref = $params_ref->{data_hashref} or die;
     my $temporal     = $params_ref->{temporal}     or die;
 
-    my $duration = join ( ' - ',
-        $duration_hash{ $params_ref->{temporal} },
-        DateTime->now( time_zone => "local" )->strftime("%a %b %e,%l:%m %p") );
+	my $title = $class->title({ 
+			temporal => $duration_hash{ $temporal},
+			lead => 'Ad Click Rate' });
 
     # burn the graph
     eval {
         SL::Model::Report::Graph->hbars(
             {
                 filename => $filename,
-                title    => sprintf(
-                    "Ad Click Rates for %s, last %s",
-                    $reg->email, $duration
-                ),
+                title    => $title,
                 y_max_value   => $data_hashref->{max},
                 y_tick_number => 2.5,
                 data_ref      => [
