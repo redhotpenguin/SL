@@ -58,12 +58,24 @@ foreach my $user (@users) {
     closedir(DIR);
     next unless $has_pngs;
 
-    my $msg = MIME::Lite->new(
+	my $email = $user->email;
+
+	my $data = <<DATA;
+Hi $email,
+
+Attached are the reporting graphs for your Silver Lining routers.
+
+To edit your report delivery settings visit the Silver Lining dashboard:
+
+https://www.redhotpenguin.com/sl/app/home/index
+DATA
+
+	my $msg = MIME::Lite->new(
         From    => $FROM,
         To      => $user->email,
         Subject => $SUBJECT,
         Type    => 'TEXT',
-        Data    => "SilverLining Reporting Graphs attached"
+        Data    => $data,
     );
    
 	my $attached_something = 0;	
