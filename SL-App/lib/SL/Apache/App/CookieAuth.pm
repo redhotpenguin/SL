@@ -207,7 +207,6 @@ sub send_cookie {
         -name  => $CONFIG->sl_app_cookie_name,
         -value => $class->encode( \%state ),
         -expires => '14D',
-        -path  => '/app',
     );
 
     $cookie->bake($r);
