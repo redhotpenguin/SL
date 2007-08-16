@@ -1,4 +1,4 @@
-
+use strict;
 use warnings;
 
 =head1 NAME
@@ -65,20 +65,24 @@ foreach my $user (@users) {
         Type    => 'TEXT',
         Data    => "SilverLining Reporting Graphs attached"
     );
-    
+   
+	my $attached_something = 0;	
     foreach my $temporal ( @intervals ) {
 
         foreach my $type qw( views clicks rates ads ) {
           my $filename = "$type\_$temporal.png";
-          next unless -e "$dir/$filename";
-            $msg->attach(
+		  next unless -e "$dir/$filename";
+		  
+		  $msg->attach(
                 Type     => 'image/png',
                 Path     => "$dir/$filename",
                 Filename => $filename,
-            ) if (-e "$dir/$temporal/$type.png");
+            );
+			$attached_something = 1;
         }
     }
-
+	
+	next unless $attached_something; # no reports
     $msg->send;
 }
 
