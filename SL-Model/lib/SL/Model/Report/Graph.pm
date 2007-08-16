@@ -23,9 +23,8 @@ sub bars {
     $graph->set(
         title             => $args_ref->{title},
         x_labels_vertical => 1,
-        y_max_value => sprintf( "%d", ( $args_ref->{y_max_value} * 1.1 ) + 1 ),
-        y_tick_number =>
-          sprintf( "%d", ( $args_ref->{y_tick_number} * 1.1 + 1 ) ) || 5,
+        y_max_value => $args_ref->{y_max_value},
+        y_tick_number => $args_ref->{y_tick_number},
         y_number_format => $args_ref->{y_number_format} || '%d',
         y_label         => $args_ref->{y_label},
         y_long_ticks    => 1,
@@ -55,9 +54,8 @@ sub bars_many {
     $graph->set(
         title             => $args_ref->{title},
         x_labels_vertical => 1,
-        y_max_value => sprintf( "%d", ( $args_ref->{y_max_value} * 1.1 ) + 1 ),
-        y_tick_number =>
-          sprintf( "%d", ( $args_ref->{y_tick_number} * 1.1 + 1 ) ) || 5,
+        y_max_value => $args_ref->{y_max_value},
+        y_tick_number => $args_ref->{y_tick_number},
         y_number_format => $args_ref->{y_number_format} || '%d',
         y_label         => $args_ref->{y_label},
         y_long_ticks    => 1,
@@ -93,9 +91,8 @@ sub hbars_many {
         title => $args_ref->{title},
 
         #        x_labels_vertical => 1,
-        y_max_value => sprintf( "%d", ( $args_ref->{y_max_value} * 1.1 ) + 1 ),
-        y_tick_number =>
-          sprintf( "%d", ( $args_ref->{y_tick_number} * 1.1 + 1 ) ) || 5,
+        y_max_value => $args_ref->{y_max_value},
+        y_tick_number => $args_ref->{y_tick_number},
         y_number_format => $args_ref->{y_number_format} || '%d',
         y_label         => $args_ref->{y_label},
         y_long_ticks    => 1,
@@ -128,9 +125,8 @@ sub hbars {
         title => $args_ref->{title},
 
         #x_labels_vertical => 1,
-        y_max_value => sprintf( "%d", ( $args_ref->{y_max_value} * 1.1 ) + 1 ),
-        y_tick_number =>
-          sprintf( "%d", ( $args_ref->{y_tick_number} * 1.1 + 1 ) ) || 5,
+        y_max_value => $args_ref->{y_max_value},
+        y_tick_number => $args_ref->{y_tick_number},
         y_number_format => $args_ref->{y_number_format} || '%d',
         y_label         => $args_ref->{y_label},
         y_long_ticks    => 1,
@@ -144,8 +140,8 @@ sub hbars {
     $graph->set_y_axis_font(@Y_AXIS_FONT);
     $graph->set_y_label_font(@Y_LABEL_FONT);
     $graph->set_values_font(@VALUES_FONT);
-
-    my $gd = $graph->plot( $args_ref->{data_ref} )
+    
+	my $gd = $graph->plot( $args_ref->{data_ref} )
       or die $graph->error;
 
     my $fh;
@@ -193,8 +189,8 @@ sub views {
             {
                 filename => $filename,
                 title    => $title,
-				y_max_value   => $data_hashref->{max},
-                y_tick_number => 10,
+				y_max_value   => $class->max($data_hashref->{max}),
+                y_tick_number => $class->tick($data_hashref->{max}),
                 y_label       => 'Number of ad views',
                 data_ref      => [
                     [ @{ $data_hashref->{headers} } ],
@@ -227,9 +223,9 @@ sub clicks {
             {
                 filename => $filename,
                 title    => $title,
-                y_max_value   => $data_hashref->{max},
-                y_tick_number => 10,
-                y_label       => 'Number of ad clicks',
+				y_max_value   => $class->max($data_hashref->{max}),
+                y_tick_number => $class->tick($data_hashref->{max}),
+                y_label       => 'Number of Ad Clicks',
                 data_ref      => [
                     [ @{ $data_hashref->{headers} } ],
                     @{ $data_hashref->{data} }
@@ -253,7 +249,7 @@ sub ads_by_click {
 
 	my $title = $class->title({ 
 			temporal => $duration_hash{ $temporal},
-			lead => 'Clicks by Ad' });
+			lead => 'Ads by Clicks' });
 
     # burn the graph
     eval {
@@ -261,12 +257,12 @@ sub ads_by_click {
             {
                 filename => $filename,
                 title    => $title,
-                y_max_value   => $data_hashref->{max},
-                y_tick_number => 10,
+				y_max_value   => $class->max($data_hashref->{max}),
+                y_tick_number => $class->tick($data_hashref->{max}),
                 y_label       => 'Clicks',
                 data_ref      => [
                     [ @{ $data_hashref->{headers} } ],
-                    @{ $data_hashref->{data} }
+                    $data_hashref->{data},
                 ],
                 legend => $data_hashref->{series},
             }
@@ -296,11 +292,11 @@ sub click_rates {
             {
                 filename => $filename,
                 title    => $title,
-                y_max_value   => $data_hashref->{max},
-                y_tick_number => 2.5,
+				y_max_value   => $class->max($data_hashref->{max}),
+                y_tick_number => $class->tick($data_hashref->{max}),
                 data_ref      => [
                     [ @{ $data_hashref->{headers} } ],
-                    @{ $data_hashref->{data} }
+                    $data_hashref->{data},
                 ],
                 legend          => $data_hashref->{series},
                 y_number_format => '%.1f%%',
@@ -311,6 +307,23 @@ sub click_rates {
     die $@ if $@;
 
     return 1;
+}
+
+sub max {
+	my ($class, $data) = @_;
+	my $max = int($data*1.25)+1;
+	return $max;
+}
+
+sub tick {
+	my ($class, $data) = @_;
+	my $max = $class->max($data);
+
+	if ($max < 5) {
+		return $max ;
+	} else {
+		return 5;
+	}	
 }
 
 ##########################################

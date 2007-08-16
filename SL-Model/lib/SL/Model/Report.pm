@@ -260,7 +260,7 @@ sub ads_by_click {
     # get the ads grcouped
     my $ads_by_click = $reg->ads_by_click( $start, $end, $locations_aryref );
 
-    $results->{max} = $ads_by_click->{total};
+    $results->{max} = $ads_by_click->{max};
 
     foreach my $ad_id ( keys %{ $ads_by_click->{ads} } ) {
 
@@ -277,7 +277,7 @@ sub ads_by_click {
     # handle race condition
     if ( scalar( @{ $results->{headers} } ) == 0 ) {
         $results->{headers} = ['No Ad Clicks'];
-        $results->{data} = [ [0] ];
+        $results->{data} = [ 0 ];
     }
 
     # create the series
@@ -314,7 +314,7 @@ sub click_rates {
     # handle race condition
     if ( scalar( @{ $results->{headers} } ) == 0 ) {
         $results->{headers} = ['No Ad Clicks'];
-        $results->{data} = [ [0] ];
+        $results->{data} = [ 0 ];
     }
 
     # create the series
