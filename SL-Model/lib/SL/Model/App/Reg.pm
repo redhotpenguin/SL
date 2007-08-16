@@ -209,7 +209,37 @@ __PACKAGE__->has_many( "urls", "SL::Model::App::Url",
     { "foreign.reg_id" => "self.reg_id" },
 );
 
+use File::Path qw(mkpath);
+
 use SL::Model::App;
+use SL::Config;
+my $config = SL::Config->new();
+
+sub report_dir_base {
+    my $self = shift;
+
+    return $self->{report_dir_base} if $self->{report_dir_base};
+
+    # make the directory to store the reporting data
+     my $dir = join ( '/', $config->sl_data_root, $self->report_base );
+
+    mkpath($dir) unless ( -d $dir );
+
+    $self->{report_dir_base} = $dir;
+    return $dir;
+}
+
+sub _happy_email {
+  my $self = shift;
+    my $email = $self->email;
+  $email =~ s/(\@|\.)/_/g;
+  return $email;
+}
+
+sub report_base {
+  my $self = shift;
+  return join('/', $self->_happy_email, 'report');
+}
 
 sub friends {
     my $self = shift;
@@ -347,20 +377,36 @@ sub get_routers {
 }
 
 # get the list of overall ad views in a time range for this user
-sub views {
-    my ( $self, $start, $end ) = @_;
-    die unless SL::Model::App::validate_dt( $start, $end );
+# $views_hashref = {
+#         total => 'total_for_all_locations',
+#         locations => {
+#                   location_id1 => {
+#                                   views => [
+#                         { ad => $ad_one_obj, count => '5' },
+#                         { ad => $ad_two_obj, count => '3' },
+#                                            ],
+#                                    count => '8',
+#                                    },
+#                      },
+#         }
 
-    # get all the routers for this user;
-    my @locations = map { $_->location_id }
-      map { $_->router__locations } $self->get_routers;
+sub views {
+    my ( $self, $start, $end, $locations_aryref ) = @_;
+    die 'start and end invalid'
+      unless SL::Model::App::validate_dt( $start, $end );
+    die 'please specify locations' unless $locations_aryref;
 
     my $views_hashref;
     my $total = 0;
-    foreach my $location (@locations) {
+    foreach my $location ( @{$locations_aryref} ) {
         my ( $count, $views_ary_ref ) = $location->views( $start, $end );
         $total += $count;
-        $views_hashref->{ $location->location_id }->{views} = $views_ary_ref;
+
+        $views_hashref->{locations}->{ $location->location_id }->{views} =
+          $views_ary_ref || [ { ad => undef, count => 0 } ];
+
+        $views_hashref->{locations}->{ $location->location_id }->{count} =
+          $count || 0;
     }
     $views_hashref->{total} = $total;
 
@@ -368,24 +414,135 @@ sub views {
 }
 
 sub clicks {
-    my ( $self, $start, $end ) = @_;
-    die unless SL::Model::App::validate_dt( $start, $end );
-
-    # get all the routers for this user;
-    my @locations = map { $_->location_id }
-      map { $_->router__locations } $self->get_routers;
+    my ( $self, $start, $end, $locations_aryref ) = @_;
+    die 'start and end invalid'
+      unless SL::Model::App::validate_dt( $start, $end );
+    die 'please specify locations' unless $locations_aryref;
 
     my $clicks_hashref;
     my $total = 0;
-    foreach my $location (@locations) {
+    foreach my $location ( @{$locations_aryref} ) {
         my ( $count, $clicks_ary_ref ) = $location->clicks( $start, $end );
         $total += $count;
-        $clicks_hashref->{ $location->location_id }->{clicks} =
-          $clicks_ary_ref;
+        $clicks_hashref->{ $location->location_id }->{clicks} = $clicks_ary_ref;
+        $clicks_hashref->{locations}->{ $location->location_id }->{count} =
+          $count || 0;
     }
     $clicks_hashref->{total} = $total;
 
     return $clicks_hashref;
+}
+
+# $ads_hashref = {
+#           ads => {
+#              ad_id => { count => 45, ad => SL::Model::App::Ad },
+#              ad_id2...
+#           },
+#           total => '153',
+# };
+
+sub ads_by_click {
+    my ( $self, $start, $end, $locations_aryref ) = @_;
+    die 'start and end invalid'
+      unless SL::Model::App::validate_dt( $start, $end );
+    die 'please specify locations' unless $locations_aryref;
+
+    my $ads_hashref;
+    my $total = 0;
+    foreach my $location ( @{$locations_aryref} ) {
+        my ( $count, $clicks_ary_ref ) = $location->clicks( $start, $end );
+        $total += $count;
+
+        foreach my $click ( @{$clicks_ary_ref} ) {
+
+            # init the count
+            unless ( exists $ads_hashref->{ $click->{ad}->ad_id }->{count} ) {
+                $ads_hashref->{ $click->{ad}->ad_id }->{count} = 0;
+            }
+
+            # this insures that we get ad counts added from diff locations
+            $ads_hashref->{ads}->{ $click->{ad}->ad_id }->{count} +=
+              $click->{count};
+            $ads_hashref->{ads}->{ $click->{ad}->ad_id }->{ad} = $click->{ad};
+
+        }
+    }
+    $ads_hashref->{total} = $total;
+
+    return $ads_hashref;
+}
+
+sub click_rates {
+    my ( $self, $start, $end, $locations_aryref ) = @_;
+    die 'start and end invalid'
+      unless SL::Model::App::validate_dt( $start, $end );
+    die 'please specify locations' unless $locations_aryref;
+
+    my $rates_hashref;
+    my ( $click_total, $view_total ) = ( 0, 0 );
+    foreach my $location ( @{$locations_aryref} ) {
+        my ( $click_count, $clicks_ary_ref ) =
+          $location->clicks( $start, $end );
+        my ( $view_count, $views_ary_ref ) = $location->views( $start, $end );
+
+        $click_total += $click_count;
+        $view_total  += $view_count;
+
+        # tally up the views
+        foreach my $view ( @{$views_ary_ref} ) {
+
+            # init the count
+            unless (
+                exists $rates_hashref->{ $view->{ad}->ad_id }->{view_count} )
+            {
+                $rates_hashref->{ $view->{ad}->ad_id }->{view_count} = 0;
+            }
+
+            # this insures that we get ad counts added from diff locations
+            $rates_hashref->{ads}->{ $view->{ad}->ad_id }->{view_count} +=
+              $view->{count};
+            $rates_hashref->{ads}->{ $view->{ad}->ad_id }->{ad} = $view->{ad};
+
+        }
+
+        # tally up the clicks
+        foreach my $click ( @{$clicks_ary_ref} ) {
+
+            # init the count
+            unless (
+                exists $rates_hashref->{ $click->{ad}->ad_id }->{click_count} )
+            {
+                $rates_hashref->{ $click->{ad}->ad_id }->{click_count} = 0;
+            }
+
+            # this insures that we get ad counts added from diff locations
+            $rates_hashref->{ads}->{ $click->{ad}->ad_id }->{click_count} +=
+              $click->{count};
+            $rates_hashref->{ads}->{ $click->{ad}->ad_id }->{ad} = $click->{ad};
+        }
+    }
+    my $max_rate = 0;
+
+    # now calculate the rates
+    foreach my $ad_id ( keys %{$rates_hashref} ) {
+
+        if ( $rates_hashref->{ads}->{$ad_id}->{views} == 0 ) {
+
+            # no divide by zero
+            $rates_hashref->{ads}->{$ad_id}->{rate} = 0;
+        }
+        else {
+            $rates_hashref->{ads}->{$ad_id}->{rate} =
+              ( $rates_hashref->{ads}->{$ad_id}->{clicks} /
+                  $rates_hashref->{ads}->{$ad_id}->{views} ) * 100;
+            if ( $rates_hashref->{ads}->{$ad_id}->{rate} > $max_rate ) {
+                $max_rate = $rates_hashref->{ads}->{$ad_id}->{rate};
+            }
+        }
+    }
+
+    $rates_hashref->{max} = $max_rate;
+    return $rates_hashref;
 }
 
 1;

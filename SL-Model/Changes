@@ -1,5 +1,8 @@
 Revision history for Perl extension SL-Model.
 
+0.10 Weds Aug 15 21:08:39 2007
+    - fix the per user reports, and the graphs.  less painful to work with now.
+
 0.09 Weds Aug 15 00:44:00 2007
     - fix the global reports
     - in the case of more than one router at a location, return all routers

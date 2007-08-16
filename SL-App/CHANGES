@@ -1,5 +1,8 @@
 Revision history for SL::App
 
+0.14 Wed Aug 15 21:43:00 2007
+    - fix links to reports
+
 0.13 Mon Aug 13 21:19:19 2007
     - fix login bug
     - ugh, fix the ui again

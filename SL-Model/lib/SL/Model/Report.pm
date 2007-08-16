@@ -4,31 +4,341 @@ use strict;
 use warnings;
 
 use base 'SL::Model';
+use SL::Model::App;
+
 use Carp qw/croak/;
 use DateTime::Format::Pg;
 use DBD::Pg qw(:pg_types);
-use SL::Model::App;
+use Text::Wrap;
+$Text::Wrap::columns = 25;
 
-my $ad_sql = <<SQL;
-SELECT ad.ad_id, ad.text
-FROM ad
-SQL
+our $DEBUG = 1;
 
 sub _ad_text_from_id {
-  my ($class, $ad_id) = @_;
-  # look in linkshare first;
-  my $return;
-  my $ad;
-  if (($ad) = SL::Model::App->resultset('AdLinkshare')->search({ 
-                  ad_id => $ad_id})) {
-    return $ad->displaytext;
-  } else {
-    # it's an sl ad
-    ($ad) = SL::Model::App->resultset('AdSl')->search({ ad_id => $ad_id});
-    die "Couldn't find ad $ad_id" unless $ad;
-    return $ad->text;
-  }
+    my ( $class, $ad_id ) = @_;
+
+    my ($return, $ad_text, $ad);
+    if (($ad) = SL::Model::App->resultset('AdLinkshare')->search( { ad_id => $ad_id }))
+    {
+
+        # look in linkshare first;
+        $ad_text = $ad->displaytext;
+    }
+    else {
+
+        # it's an sl ad
+        ($ad) =
+          SL::Model::App->resultset('AdSl')->search( { ad_id => $ad_id } );
+        die "Couldn't find ad $ad_id" unless $ad;
+        $ad_text = $ad->text;
+    }
+
+    # wrap the text if the length is greater than the wrap length
+    if ( length($ad_text) >= $Text::Wrap::columns ) {
+        $ad_text = wrap( "", "", $ad_text );
+    }
+    return $ad_text;
 }
+
+# set the DateTime object minute to the previous 15 minute interval
+sub last_fifteen {
+    my ( $class, $dt ) = @_;
+    die unless ( $class->isa(__PACKAGE__) && $dt->isa('DateTime') );
+    my $dt_start = $dt->clone;
+    $dt_start->truncate( to => 'hour' );
+    my $minutes = 15;
+    for ( 1 .. 4 ) {
+        $dt_start->add( minutes => $minutes );
+        if ( $dt < $dt_start ) {
+            $dt->set_minute(
+                $dt_start->subtract( minutes => $minutes )->minute );
+            return 1;
+        }
+    }
+    die "Could not calculate last_fifteen";
+}
+
+# hash to facilitate reporting
+my %time_hash = (
+    daily => {
+        range    => [ 0 .. 23 ],
+        interval => [ hours => 1 ],
+        format   => "%a %l %p",
+        subtract => { days => 1 },
+    },
+    weekly => {
+        range    => [ 0 .. 6 ],
+        interval => [ days => 1 ],
+        format   => "%a %e, %l %p",
+        subtract => { weeks => 1 },
+    },
+    monthly => {
+        range    => [ 0 .. 29 ],
+        interval => [ days => 1 ],
+        format   => "%a %b %e",
+        subtract => { months => 1 },
+    },
+    quarterly => {
+        range    => [ 0 .. 11 ],
+        interval => [ weeks => 1 ],
+        format   => "%a %b %e",
+        subtract => { months => 3 },
+    },
+);
+
+sub validate {
+    my ( $class, $params ) = @_;
+
+    # validate
+    my $reg              = $params->{reg}       or die;
+    my $temporal         = $params->{temporal}  or die;
+    my $locations_aryref = $params->{locations} or die;
+
+    die 'not a location object'
+      unless $locations_aryref->[0]->isa('SL::Model::App::Location');
+
+    die "Invalid temporal parameter passed"
+      unless grep { $temporal eq $_ } keys %time_hash;
+
+    return ( $reg, $temporal, $locations_aryref );
+}
+
+# generates the graph data for view counts
+#
+# return data structure, first array index is headers, rest are data
+# $results = {
+#          headers => [ 'Sun May 5th', 'Mon May 6th' ], # x values
+#          data    => [                                 # y values
+#                       [  '100', '420' ],              # location one
+#                       [  '150', '120' ],              # location two
+#                     ],
+#          series  => [ 'location one desc', 'location two desc' ],
+#          max     => [ '420' ]  # used to determine max y value
+# };
+
+sub views {
+    my ( $class, $params ) = @_;
+    my ( $reg, $temporal, $locations_aryref ) = $class->validate($params);
+
+    # init
+    my $results = { max => 0, headers => [], data => [], series => [] };
+    my $max     = 0;
+
+    # report end time
+    my $end = DateTime->now( time_zone => 'local' );
+    $end->truncate( to => 'hour' );
+
+    # create the series
+    @{ $results->{series} } = map { $_->ip } @{$locations_aryref};
+
+    for ( @{ $time_hash{$temporal}->{range} } ) {
+
+        print STDERR "processing time slice $_\n" if $DEBUG;
+
+        # add the date in the format specified, this is the header
+        my $start =
+          $end->clone->subtract( @{ $time_hash{$temporal}->{interval} } );
+        push @{ $results->{headers} },
+          $start->strftime( $time_hash{$temporal}->{format} ) . ' - '
+          . $end->strftime( $time_hash{$temporal}->{format} );
+
+        # Ads viewed data for locations
+        my $views_hashref = $reg->views( $start, $end, $locations_aryref );
+
+        # add the data
+        my $i = 0;    # location1, location2, etc
+        foreach my $location_id ( keys %{ $views_hashref->{locations} } ) {
+            push @{ $results->{data}->[ $i++ ] },
+              $views_hashref->{locations}->{$location_id}->{count};
+        }
+
+        # update the max
+        if ( $views_hashref->{total} > $results->{max} ) {
+            $results->{max} = $views_hashref->{total};
+        }
+
+        # shift the end point
+        $end = $start->clone;
+    }
+
+    return $results;
+}
+
+sub clicks {
+    my ( $class, $params ) = @_;
+    my ( $reg, $temporal, $locations_aryref ) = $class->validate($params);
+
+    # init
+    my $results = { max => 0, headers => [], data => [], series => [] };
+    my $max     = 0;
+
+    # report end time
+    my $end = DateTime->now( time_zone => 'local' );
+    $end->truncate( to => 'hour' );
+
+    # create the series
+    @{ $results->{series} } = map { $_->ip } @{$locations_aryref};
+
+    for ( @{ $time_hash{$temporal}->{range} } ) {
+
+        print STDERR "processing time slice $_\n" if $DEBUG;
+
+        # add the date in the format specified, this is the header
+        my $start =
+          $end->clone->subtract( @{ $time_hash{$temporal}->{interval} } );
+        push @{ $results->{headers} },
+          $start->strftime( $time_hash{$temporal}->{format} ) . ' - '
+          . $end->strftime( $time_hash{$temporal}->{format} );
+
+        # Ads clicks data for locations
+        my $clicks_hashref = $reg->clicks( $start, $end, $locations_aryref );
+
+        # add the data
+        my $i = 0;    # location1, location2, etc
+        foreach my $location_id ( keys %{ $clicks_hashref->{locations} } ) {
+            push @{ $results->{data}->[ $i++ ] },
+              $clicks_hashref->{locations}->{$location_id}->{count};
+        }
+
+        # update the max
+        if ( $clicks_hashref->{total} > $results->{max} ) {
+            $results->{max} = $clicks_hashref->{total};
+        }
+
+        # shift the end point
+        $end = $start->clone;
+    }
+    return $results;
+}
+
+# $results = {
+#          headers => [ 'Sun May 5th', 'Mon May 6th' ], # x values
+#          data    => [                                 # y values
+#                       [  '100', '420' ],              # location one
+#                       [  '150', '120' ],              # location two
+#                     ],
+#          series  => [ 'location one desc', 'location two desc' ],
+#          max     => [ '420' ]  # used to determine max y value
+# };
+
+sub ads_by_click {
+    my ( $class, $params ) = @_;
+    my ( $reg, $temporal, $locations_aryref ) = $class->validate($params);
+
+    # init
+    my $results = { max => 0, headers => [], data => [], series => [] };
+    my $max     = 0;
+
+    # report times
+    my $end = DateTime->now( time_zone => 'local' );
+    $end->truncate( to => 'hour' );
+    my $start = $end->clone->subtract( $time_hash{$temporal}->{subtract} );
+
+    # get the ads grcouped
+    my $ads_by_click = $reg->ads_by_click( $start, $end, $locations_aryref );
+
+    $results->{max} = $ads_by_click->{total};
+
+    foreach my $ad_id ( keys %{ $ads_by_click->{ads} } ) {
+
+        push @{ $results->{headers} },
+          $class->_ad_text_from_id($ad_id);           # header
+        push @{ $results->{data} },
+          $ads_by_click->{ads}->{$ad_id}->{count};    # data
+
+        if ( $ads_by_click->{ads}->{$ad_id}->{count} > $max ) {
+            $max = $ads_by_click->{ads}->{$ad_id};
+        }
+    }
+
+    # handle race condition
+    if ( scalar( @{ $results->{headers} } ) == 0 ) {
+        $results->{headers} = ['No Ad Clicks'];
+        $results->{data} = [ [0] ];
+    }
+
+    # create the series
+    @{ $results->{series} } = ('Ad Clicks for all locations');
+
+    return $results;
+}
+
+sub click_rates {
+    my ( $class, $params ) = @_;
+    my ( $reg, $temporal, $locations_aryref ) = $class->validate($params);
+
+    # init
+    my $results = { max => 0, headers => [], data => [], series => [] };
+    my $max     = 0;
+
+    # report times
+    my $end = DateTime->now( time_zone => 'local' );
+    $end->truncate( to => 'hour' );
+    my $start = $end->clone->subtract( $time_hash{$temporal}->{subtract} );
+
+    # get the click rates
+    my $click_rates = $reg->click_rates( $start, $end, $locations_aryref );
+
+    $results->{max} = $click_rates->{max};
+
+    foreach my $ad_id ( keys %{ $click_rates->{rate} } ) {
+        push @{ $results->{headers} },
+          $class->_ad_text_from_id($ad_id);         # header
+        push @{ $results->{data} },
+          $click_rates->{ads}->{$ad_id}->{rate};    # data
+    }
+
+    # handle race condition
+    if ( scalar( @{ $results->{headers} } ) == 0 ) {
+        $results->{headers} = ['No Ad Clicks'];
+        $results->{data} = [ [0] ];
+    }
+
+    # create the series
+    @{ $results->{series} } = ('Ad Clicks for all locations');
+
+    return $results;
+}
+
+1;
+
+__END__
+
+
+# SL::Model::Report
+# build the ad summary
+sub ad_summary {
+    my ( $class, $ip, $start_date, $now ) = @_;
+    my $ad_clicks_ref = SL::Model::Report->ip_clicks( $start_date, $now, $ip );
+
+    my @ad_clicks_data;
+    my $max_ad_clicks = 0;
+    # sort by count of ad_id
+    foreach my $ref ( sort { $a->[1] <=> $b->[1] } @{$ad_clicks_ref} ) {
+
+        my $ad_text = $ref->[0];
+
+        unshift @{ $ad_clicks_data[0] }, $ad_text;
+        unshift @{ $ad_clicks_data[1] }, $ref->[1];
+
+        # set the max number of ad clicks
+        if ( $ref->[1] > $max_ad_clicks ) {
+            $max_ad_clicks = $ref->[1];
+        }
+    }
+
+    # handle those unfortunately empty report entries
+    $max_ad_clicks ||= 1;
+    $ad_clicks_data[0] ||= [0];
+    $ad_clicks_data[1] ||= [0];
+
+    my %return = (
+                  max => $max_ad_clicks,
+                  data => \@ad_clicks_data,
+                  );
+    return \%return;
+}
+
 
 #####################################
 
@@ -102,168 +412,6 @@ sub ip_count_clicks {
     return $count;
 }
 
-###############################################################
-
-# set the DateTime object minute to the previous 15 minute interval
-sub last_fifteen {
-    my ( $class, $dt ) = @_;
-    die unless ( $class->isa(__PACKAGE__) && $dt->isa('DateTime') );
-    my $dt_start = $dt->clone;
-    $dt_start->truncate( to => 'hour' );
-    my $minutes = 15;
-    for ( 1 .. 4 ) {
-        $dt_start->add( minutes => $minutes );
-        if ( $dt < $dt_start ) {
-            $dt->set_minute(
-                $dt_start->subtract( minutes => $minutes )->minute );
-            return 1;
-        }
-    }
-    die "Could not calculate last_fifteen";
-}
-
-# SL::Model::Report
-# build the ad summary
-sub ad_summary {
-    my ( $class, $ip, $start_date, $now ) = @_;
-    my $ad_clicks_ref = SL::Model::Report->ip_clicks( $start_date, $now, $ip );
-
-    # wrap the text if too long
-    use Text::Wrap;
-    $Text::Wrap::columns = 25;
-
-    my @ad_clicks_data;
-    my $max_ad_clicks = 0;
-    # sort by count of ad_id
-    foreach my $ref ( sort { $a->[1] <=> $b->[1] } @{$ad_clicks_ref} ) {
-
-        my $ad_text = $ref->[0];
-
-        # wrap the text if the length is greater than the wrap length
-        if ( length( $ad_text ) >= $Text::Wrap::columns ) {
-            $ad_text = wrap( "", "", $ad_text );
-        }
-        unshift @{ $ad_clicks_data[0] }, $ad_text;
-        unshift @{ $ad_clicks_data[1] }, $ref->[1];
-
-        # set the max number of ad clicks
-        if ( $ref->[1] > $max_ad_clicks ) {
-            $max_ad_clicks = $ref->[1];
-        }
-    }
-
-    # handle those unfortunately empty report entries
-    $max_ad_clicks ||= 1;
-    $ad_clicks_data[0] ||= [0];
-    $ad_clicks_data[1] ||= [0];
-
-    my %return = (
-                  max => $max_ad_clicks,
-                  data => \@ad_clicks_data,
-                  );
-    return \%return;
-}
-
-# Last 24 hours of data for an ip and a given temporal range
-# ( daily, weekly, monthly, quarterly )
-sub data_for_ip {
-    my ( $class, $ip, $temporal ) = @_;
-
-    die "No IP passed to data_for_ip" unless $ip;
-    die "No temporal param passed"    unless $temporal;
-
-    my (
-        $max_view_results, @view_results,   $max_click_results,
-        @click_results,    $max_click_rate, @click_rates
-    );
-    $max_view_results = $max_click_results = $max_click_rate = 0;
-
-    my $now = DateTime->now( time_zone => 'local' );
-    $now->truncate( to => 'hour' );
-
-    my %time_hash = (
-        daily => {
-            range    => [ 0 .. 23 ],
-            interval => [ hours => 1],
-            format   => "%a %l %p"
-        },
-        weekly =>
-          { range => [ 0 .. 6 ], interval => [ days => 1 ], format => "%a %e, %l %p" },
-        monthly => { range => [ 0 .. 29 ], interval => [ days => 1 ], format => "%a %b %e" },
-        quarterly =>
-          { range => [ 0 .. 11 ], interval => [ weeks => 1 ], format => "%a %b %e" },
-    );
-    die "Invalid temporal parameter passed"
-      unless grep { $temporal eq $_ } keys %time_hash;
-
-    for ( @{ $time_hash{$temporal}->{range} } ) {
-        my $previous =
-          $now->clone->subtract( @{$time_hash{$temporal}->{interval}} );
-
-        # Ads viewed
-        my $views_count =
-          SL::Model::Report->ip_count_views( $previous, $now, $ip );
-
-        # add the date in the format specified
-        unshift @{ $view_results[0] },
-          $previous->strftime( $time_hash{$temporal}->{format} ) . ' - '
-          . $now->strftime( $time_hash{$temporal}->{format} );
-
-        # then the data
-        unshift @{ $view_results[1] }, $views_count->[0]->[0];
-        if ( $views_count->[0]->[0] > $max_view_results ) {
-            $max_view_results = $views_count->[0]->[0];
-        }
-
-        # Ads clicked
-        my $clicks_count =
-          SL::Model::Report->ip_count_clicks( $previous, $now, $ip );
-
-        # date
-        unshift @{ $click_results[0] },
-          $previous->strftime( $time_hash{$temporal}->{format} ) . ' - '
-          . $now->strftime( $time_hash{$temporal}->{format} );
-
-        # data
-        unshift @{ $click_results[1] }, $clicks_count->[0]->[0];
-        if ( $clicks_count->[0]->[0] > $max_click_results ) {
-            $max_click_results = $clicks_count->[0]->[0];
-        }
-
-        # Click rate
-        unshift @{ $click_rates[0] },
-          $previous->strftime( $time_hash{$temporal}->{format} ) . ' - '
-          . $now->strftime( $time_hash{$temporal}->{format} );
-        my $click_rate;
-        if ( $views_count->[0]->[0] == 0 ) {
-
-            # sometimes the view count is zero, and can't divide by zero
-            $click_rate = 0;
-        }
-        else {
-            $click_rate =
-              100 * $clicks_count->[0]->[0] / $views_count->[0]->[0];
-        }
-        unshift @{ $click_rates[1] }, $click_rate;
-        if ( $click_rate > $max_click_rate ) {
-            $max_click_rate = $click_rate;
-        }
-
-        $now = $previous->clone;
-    }
-
-    my %return = (
-        max_views        => $max_view_results,
-        views_data       => \@view_results,
-        max_clicks       => $max_click_results,
-        clicks_data      => \@click_results,
-        max_rates  => $max_click_rate,
-        rates_data => \@click_rates,
-    );
-
-    return \%return;
-}
-
 sub data_weekly_ip {
     my ( $class, $ip ) = @_;
 
@@ -294,5 +442,3 @@ sub data_weekly_ip {
     }
 
 }
-
-1;

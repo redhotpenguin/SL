@@ -152,6 +152,11 @@ AND ip = ?
 GROUP BY ad_id
 SQL
 
+
+# @views = (
+#         { ad => $ad_one_obj, count => '5' },
+#         { ad => $ad_two_obj, count => '3' }, );
+
 sub views {
     my ( $self, $start, $end) = @_;
     die unless SL::Model::App::validate_dt( $start, $end );
@@ -159,6 +164,7 @@ sub views {
     my $ary_ref = $self->run_query( $views_sql, $start, $end, $self->ip );
 
     my @views;
+
     foreach my $ary ( @{$ary_ref} ) {
         my ($ad) =
           SL::Model::App->resultset('Ad')->search( { ad_id => $ary->[0] } );
@@ -180,6 +186,10 @@ WHERE cts BETWEEN ? AND ?
 AND ip = ?
 GROUP BY ad_id
 SQL
+
+# @clicks = (
+#         { ad => $ad_one_obj, count => '5' },
+#         { ad => $ad_two_obj, count => '3' }, );
 
 sub clicks {
     my ( $self, $start, $end) = @_;

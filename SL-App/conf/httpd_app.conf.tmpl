@@ -79,6 +79,11 @@ PerlLoadModule Apache2::Dispatch
     SetHandler default-handler
 </Location>
 
+<Location /img>
+    SetHandler default-handler
+</Location>
+
+
 ## the user application, need to be logged in
 <Location  /app>
 	AuthType SL::Apache::App::CookieAuth

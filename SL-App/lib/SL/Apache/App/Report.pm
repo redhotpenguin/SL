@@ -24,6 +24,9 @@ our %TEMPORALS = (
 use SL::App::Template ();
 our $tmpl = SL::App::Template->template();
 
+use SL::Config;
+my $config = SL::Config->new;
+
 sub dispatch_index {
     my ( $self, $r ) = @_;
 
@@ -31,17 +34,19 @@ sub dispatch_index {
     my $temporal = $req->param('temporal') || 'daily';
     my $type     = $req->param('type') || 'views';
     my $accessor = "send_reports_$temporal";
+    my $reg = $r->pnotes($r->user);
+
+    my $report_uri = join('/', $config->sl_app_report_uri, $reg->report_base);
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
             types                  => \%TYPES,
             temporals              => \%TEMPORALS,
-            root                   => $r->pnotes('root'),
-            reg                    => $r->pnotes( $r->user ),
+            report_uri             => $report_uri,
+            reg                    => $reg,
             status                 => $req->param('status') || '',
-            send_report            => $r->pnotes( $r->user )->$accessor,
-            report_email_frequency =>
-              $r->pnotes( $r->user )->report_email_frequency,
+            send_report            => $reg->$accessor,
+            report_email_frequency => $reg->report_email_frequency,
             temporal => $temporal,
             type     => $type,
         );
