@@ -155,6 +155,8 @@ my %duration_hash = (
     weekly    => '7 days',
     monthly   => '30 days',
     quarterly => '90 days',
+    biannually => '6 months',
+    annually => '12 months',
 );
 
 ##################################################
@@ -181,7 +183,8 @@ sub views {
 
 	my $title = $class->title({ 
 			temporal => $duration_hash{ $temporal},
-			lead => 'Ad Views' });
+			lead => sprintf("%s total Ad Views", $data_hashref->{total}),
+	});
 
 	# burn the graph
     eval {
@@ -216,7 +219,8 @@ sub clicks {
 
 	my $title = $class->title({ 
 			temporal => $duration_hash{ $temporal},
-			lead => 'Ad Clicks' });
+			lead => sprintf("%s total Ad Clicks", $data_hashref->{total}),
+	});
 
     eval {
         SL::Model::Report::Graph->bars_many(
@@ -292,7 +296,8 @@ sub click_rates {
             {
                 filename => $filename,
                 title    => $title,
-				y_max_value   => $class->max($data_hashref->{max}),
+				y_max_value   => ($class->max($data_hashref->{max}) > 100) ? 
+					100 : $class->max($data_hashref->{max}),
                 y_tick_number => $class->tick($data_hashref->{max}),
                 data_ref      => [
                     [ @{ $data_hashref->{headers} } ],
@@ -311,7 +316,7 @@ sub click_rates {
 
 sub max {
 	my ($class, $data) = @_;
-	my $max = int($data*1.25)+1;
+	my $max = int($data*1.1)+1;
 	return $max;
 }
 
@@ -319,10 +324,10 @@ sub tick {
 	my ($class, $data) = @_;
 	my $max = $class->max($data);
 
-	if ($max < 5) {
+	if ($max < 4) {
 		return $max ;
 	} else {
-		return 5;
+		return 4;
 	}	
 }
 

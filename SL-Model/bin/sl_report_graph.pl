@@ -34,7 +34,7 @@ pod2usage(1) if $help;
 pod2usage( -verbose => 2 ) if $man;
 
 die "Bad interval"
-  unless grep { $_ =~ m/(?:daily|weekly|monthly|quarterly)/ } @intervals;
+  unless grep { $_ =~ m/(?:daily|weekly|monthly|quarterly|annually|biannually)/ } @intervals;
 
 use DateTime;
 
@@ -48,6 +48,8 @@ our %duration_hash = (
     weekly    => '7 days',
     monthly   => '30 days',
     quarterly => '90 days',
+    biannually => '180 days',
+    annually   => '365 days',
 );
 
 my @regs = SL::Model::App->resultset('Reg')->search( { active => 1 } );

@@ -12,6 +12,9 @@ use DBD::Pg qw(:pg_types);
 use Text::Wrap;
 $Text::Wrap::columns = 25;
 
+use Number::Format;
+my $de = Number::Format->new;
+
 our $DEBUG = 1;
 
 sub _ad_text_from_id {
@@ -84,6 +87,18 @@ my %time_hash = (
         format   => "%a %b %e",
         subtract => { months => 3 },
     },
+    biannually => {
+        range    => [ 0 .. 5 ],
+        interval => [ months => 1 ],
+        format   => "%a %b %e",
+        subtract => { months => 6 },
+    },
+    annually => {
+        range    => [ 0 .. 11 ],
+        interval => [ months => 1 ],
+        format   => "%a %b %e",
+        subtract => { months => 12 },
+    },
 );
 
 sub validate {
@@ -137,6 +152,7 @@ sub series_from_locations {
 #                     ],
 #          series  => [ 'location one desc', 'location two desc' ],
 #          max     => [ '420' ]  # used to determine max y value
+#          total  =>  '15235' # total number of views
 # };
 
 sub views {
@@ -144,8 +160,7 @@ sub views {
     my ( $reg, $temporal, $locations_aryref ) = $class->validate($params);
 
     # init
-    my $results = { max => 0, headers => [], data => [], series => [] };
-    my $max     = 0;
+    my $results = { max => 0, headers => [], data => [], series => [], total => 0 };
 
     # report end time
     my $end = DateTime->now( time_zone => 'local' );
@@ -166,7 +181,7 @@ sub views {
           . $end->strftime( $time_hash{$temporal}->{format} );
 
         # Ads viewed data for locations
-        my $views_hashref = $reg->views( $start, $end, $locations_aryref );
+        my $views_hashref = $reg->views_count( $start, $end, $locations_aryref );
 
         # add the data
         my $i = 0;    # location1, location2, etc
@@ -180,10 +195,13 @@ sub views {
             $results->{max} = $views_hashref->{total};
         }
 
-        # shift the end point
+		$results->{total} += $views_hashref->{total};
+
+		# shift the end point
         $end = $start->clone;
     }
 
+	$results->{total} = $de->format_number($results->{total});
     return $results;
 }
 
@@ -192,8 +210,7 @@ sub clicks {
     my ( $reg, $temporal, $locations_aryref ) = $class->validate($params);
 
     # init
-    my $results = { max => 0, headers => [], data => [], series => [] };
-    my $max     = 0;
+    my $results = { max => 0, headers => [], data => [], series => [], total => 0 };
 
     # report end time
     my $end = DateTime->now( time_zone => 'local' );
@@ -214,7 +231,7 @@ sub clicks {
           . $end->strftime( $time_hash{$temporal}->{format} );
 
         # Ads clicks data for locations
-        my $clicks_hashref = $reg->clicks( $start, $end, $locations_aryref );
+        my $clicks_hashref = $reg->clicks_count( $start, $end, $locations_aryref );
 
         # add the data
         my $i = 0;    # location1, location2, etc
@@ -228,9 +245,12 @@ sub clicks {
             $results->{max} = $clicks_hashref->{total};
         }
 
-        # shift the end point
+		$results->{total} += $clicks_hashref->{total};
+
+		# shift the end point
         $end = $start->clone;
     }
+	$results->{total} = $de->format_number($results->{total});
     return $results;
 }
 
@@ -304,7 +324,7 @@ sub click_rates {
 
     $results->{max} = $click_rates->{max};
 
-    foreach my $ad_id ( keys %{ $click_rates->{rate} } ) {
+    foreach my $ad_id ( keys %{ $click_rates->{ads} } ) {
         push @{ $results->{headers} },
           $class->_ad_text_from_id($ad_id);         # header
         push @{ $results->{data} },

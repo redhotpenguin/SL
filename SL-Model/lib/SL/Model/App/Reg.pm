@@ -209,6 +209,7 @@ __PACKAGE__->has_many( "urls", "SL::Model::App::Url",
     { "foreign.reg_id" => "self.reg_id" },
 );
 
+use Data::Dumper;
 use File::Path qw(mkpath);
 
 use SL::Model::App;
@@ -526,63 +527,70 @@ sub click_rates {
       unless SL::Model::App::validate_dt( $start, $end );
     die 'please specify locations' unless $locations_aryref;
 
-    my $rates_hashref;
-    my ( $click_total, $view_total ) = ( 0, 0 );
+	my $ads_hashref;
     foreach my $location ( @{$locations_aryref} ) {
-        my ( $click_count, $clicks_ary_ref ) =
-          $location->clicks( $start, $end );
         my ( $view_count, $views_ary_ref ) = $location->views( $start, $end );
-
-        $click_total += $click_count;
-        $view_total  += $view_count;
 
         # tally up the views
         foreach my $view ( @{$views_ary_ref} ) {
 
             # init the count
             unless (
-                exists $rates_hashref->{ $view->{ad}->ad_id }->{view_count} )
+                exists $ads_hashref->{ $view->{ad}->ad_id }->{view_count} )
             {
-                $rates_hashref->{ $view->{ad}->ad_id }->{view_count} = 0;
+                $ads_hashref->{ $view->{ad}->ad_id }->{view_count} = 0;
             }
 
             # this insures that we get ad counts added from diff locations
-            $rates_hashref->{ads}->{ $view->{ad}->ad_id }->{view_count} +=
-              $view->{count};
-            $rates_hashref->{ads}->{ $view->{ad}->ad_id }->{ad} = $view->{ad};
+            $ads_hashref->{ $view->{ad}->ad_id }->{view_count} += $view->{count};
+            $ads_hashref->{ $view->{ad}->ad_id }->{ad} = $view->{ad};
 
         }
 
         # tally up the clicks
+        my ( $click_count, $clicks_ary_ref ) = $location->clicks( $start, $end );
         foreach my $click ( @{$clicks_ary_ref} ) {
 
             # init the count
             unless (
-                exists $rates_hashref->{ $click->{ad}->ad_id }->{click_count} )
+                exists $ads_hashref->{ $click->{ad}->ad_id }->{click_count} )
             {
-                $rates_hashref->{ $click->{ad}->ad_id }->{click_count} = 0;
+                $ads_hashref->{ $click->{ad}->ad_id }->{click_count} = 0;
             }
 
             # this insures that we get ad counts added from diff locations
-            $rates_hashref->{ads}->{ $click->{ad}->ad_id }->{click_count} +=
-              $click->{count};
-            $rates_hashref->{ads}->{ $click->{ad}->ad_id }->{ad} = $click->{ad};
+            $ads_hashref->{ $click->{ad}->ad_id }->{click_count} += $click->{count};
+            $ads_hashref->{ $click->{ad}->ad_id }->{ad} = $click->{ad};
         }
     }
-    my $max_rate = 0;
-
+    
+	my $max_rate = 0;
     # now calculate the rates
-    foreach my $ad_id ( keys %{$rates_hashref} ) {
+    my $rates_hashref;
+    foreach my $ad_id ( keys %{$ads_hashref} ) {
 
-        if ( $rates_hashref->{ads}->{$ad_id}->{views} == 0 ) {
+		if (not exists $ads_hashref->{$ad_id}->{view_count}) {
+			# hrm clicks but no views
+			print STDERR sprintf("orphaned clicks found: %s\n",
+				Dumper($ads_hashref->{$ad_id}));
+
+			# skip to next ad
+            next;
+		} elsif ($ads_hashref->{$ad_id}->{view_count} == 0)  {
 
             # no divide by zero
-            $rates_hashref->{ads}->{$ad_id}->{rate} = 0;
-        }
-        else {
-            $rates_hashref->{ads}->{$ad_id}->{rate} =
-              ( $rates_hashref->{ads}->{$ad_id}->{clicks} /
-                  $rates_hashref->{ads}->{$ad_id}->{views} ) * 100;
+			# skip to next ad
+            next;
+		} elsif ( (not exists $ads_hashref->{$ad_id}->{click_count} ) or
+		          ( $ads_hashref->{$ad_id}->{click_count} == 0 ) )	{
+			# no clicks for this ad?
+			next;
+	   } else {
+		# positive click rate
+        $rates_hashref->{ads}->{$ad_id}->{rate} =
+              ( $ads_hashref->{$ad_id}->{click_count} /
+                  $ads_hashref->{$ad_id}->{view_count} ) * 100;
+
             if ( $rates_hashref->{ads}->{$ad_id}->{rate} > $max_rate ) {
                 $max_rate = $rates_hashref->{ads}->{$ad_id}->{rate};
             }
