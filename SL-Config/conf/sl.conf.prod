@@ -64,6 +64,7 @@ sl_app_static_host_ip 10.0.0.1
 sl_app_static_user fred
 sl_app_static_path '/var/www/redhotpenguin.com/images/sl'
 sl_app_static_host 'http://www.redhotpenguin.com'
-sl_app_base_uri ''
+sl_app_base_uri '/sl'
 sl_app_home_uri http://www.silverliningnetworks.com/
-
+sl_app_css_uri http://www.redhotpenguin.com/css/app.css
+sl_app_report_uri http://www.redhotpenguin.com/img/data
