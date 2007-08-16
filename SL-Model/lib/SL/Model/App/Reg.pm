@@ -413,6 +413,28 @@ sub views {
     return $views_hashref;
 }
 
+# same as views but just count
+sub views_count {
+    my ( $self, $start, $end, $locations_aryref ) = @_;
+    die 'start and end invalid'
+      unless SL::Model::App::validate_dt( $start, $end );
+    die 'please specify locations' unless $locations_aryref;
+
+    my $views_hashref;
+    my $total = 0;
+    foreach my $location ( @{$locations_aryref} ) {
+        my $count = $location->views_count( $start, $end );
+        $total += $count;
+
+        $views_hashref->{locations}->{ $location->location_id }->{count} =
+          $count || 0;
+    }
+    $views_hashref->{total} = $total;
+
+    return $views_hashref;
+}
+
+
 sub clicks {
     my ( $self, $start, $end, $locations_aryref ) = @_;
     die 'start and end invalid'
@@ -433,12 +455,35 @@ sub clicks {
     return $clicks_hashref;
 }
 
+# same as clicks but just count
+sub clicks_count {
+    my ( $self, $start, $end, $locations_aryref ) = @_;
+    die 'start and end invalid'
+      unless SL::Model::App::validate_dt( $start, $end );
+    die 'please specify locations' unless $locations_aryref;
+
+    my $clicks_hashref;
+    my $total = 0;
+    foreach my $location ( @{$locations_aryref} ) {
+        my $count = $location->clicks_count( $start, $end );
+        $total += $count;
+
+        $clicks_hashref->{locations}->{ $location->location_id }->{count} =
+          $count || 0;
+    }
+    $clicks_hashref->{total} = $total;
+
+    return $clicks_hashref;
+}
+
+
+# ads_by_click
 # $ads_hashref = {
 #           ads => {
 #              ad_id => { count => 45, ad => SL::Model::App::Ad },
 #              ad_id2...
 #           },
-#           total => '153',
+#           max => '45',
 # };
 
 sub ads_by_click {
@@ -448,10 +493,9 @@ sub ads_by_click {
     die 'please specify locations' unless $locations_aryref;
 
     my $ads_hashref;
-    my $total = 0;
+    my $max = 0;
     foreach my $location ( @{$locations_aryref} ) {
         my ( $count, $clicks_ary_ref ) = $location->clicks( $start, $end );
-        $total += $count;
 
         foreach my $click ( @{$clicks_ary_ref} ) {
 
@@ -465,9 +509,13 @@ sub ads_by_click {
               $click->{count};
             $ads_hashref->{ads}->{ $click->{ad}->ad_id }->{ad} = $click->{ad};
 
+            # calculate maximum
+            if ($ads_hashref->{ads}->{ $click->{ad}->ad_id }->{count} > $max) {
+              $max = $ads_hashref->{ads}->{ $click->{ad}->ad_id }->{count};
+            }
         }
     }
-    $ads_hashref->{total} = $total;
+    $ads_hashref->{max} = $max;
 
     return $ads_hashref;
 }

@@ -262,7 +262,7 @@ sub ads_by_click {
                 y_label       => 'Clicks',
                 data_ref      => [
                     [ @{ $data_hashref->{headers} } ],
-                    $data_hashref->{data},
+                    $data_hashref->{data}, # ref of one element
                 ],
                 legend => $data_hashref->{series},
             }

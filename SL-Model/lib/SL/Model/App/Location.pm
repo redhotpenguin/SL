@@ -179,6 +179,20 @@ sub views {
     return ( $count, \@views );
 }
 
+sub views_count {
+    my ( $self, $start, $end) = @_;
+    die unless SL::Model::App::validate_dt( $start, $end );
+
+    my $ary_ref = $self->run_query( $views_sql, $start, $end, $self->ip );
+
+    my $count = 0;
+    foreach my $ary ( @{$ary_ref} ) {
+      $count += $ary->[1];
+    }
+
+    return $count;
+}
+
 our $clicks_sql = <<SQL;
 SELECT ad_id, count(click_id)
 FROM click
@@ -212,5 +226,18 @@ sub clicks {
     return ( $count, \@clicks );
 }
 
+sub clicks_count {
+    my ( $self, $start, $end) = @_;
+    die unless SL::Model::App::validate_dt( $start, $end );
+
+    my $ary_ref = $self->run_query( $clicks_sql, $start, $end, $self->ip );
+
+    my $count = 0;
+    foreach my $ary ( @{$ary_ref} ) {
+      $count += $ary->[1];
+    }
+
+    return $count;
+}
 
 1;
