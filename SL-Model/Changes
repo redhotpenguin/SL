@@ -1,5 +1,8 @@
 Revision history for Perl extension SL-Model.
 
+0.11
+	- fix user report mailing
+	- fix a bunch of broken shit in the click rates
 	- style fixes for graphs
 	- add router names to ip
 
