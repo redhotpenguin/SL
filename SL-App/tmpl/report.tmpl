@@ -31,39 +31,34 @@
 
 </form>
 
-<table>
-<tr>
-<td style="text-align: right;">Select a type of report:&nbsp;&nbsp;</td>
+<p>Select a type of report:&nbsp;&nbsp;
 
 [% FOREACH mytype = [ 'views', 'clicks', 'rates', 'ads' ] %]
-   <td>
     [% UNLESS mytype == type %]
     <a href="[% base_uri %]/app/report/index/?type=[% mytype %]&temporal=[% temporal %]">
     [% END %]
     [% types.$mytype %]
     [% UNLESS mytype == type %]</a>[% END %]
-    &nbsp;</td>
+    &nbsp;
 [% END %]
-</tr>
-<tr>
-<td style="text-align: right;">For this date range:&nbsp;&nbsp;</td>
+</p>
+<p>For this date range:&nbsp;&nbsp;
 
-[% FOREACH mytemporal = [ 'daily', 'weekly', 'monthly', 'quarterly' ] %]
-    <td>
+[% FOREACH mytemporal = [ 'daily', 'weekly', 'monthly', 'quarterly', 'biannually', 'annually' ] %]
     [% UNLESS mytemporal == temporal %]
     <a href="[% base_uri %]/app/report/index/?type=[% type %]&temporal=[% mytemporal %]">
     [% END %]
     [% temporals.$mytemporal %]
     [% UNLESS mytemporal == temporal %]</a>[% END %]
-    &nbsp;</td>
+    &nbsp;
 [% END %]
-</tr>
-</table>
+</[>
 <hr>
 <h2>Viewing reports for [% types.$type %] in the last [% temporals.$temporal %]</h2>
 
 <p style="width: 600px;">
 <img width="600" src="[% report_uri %]/[% type %]_[% temporal %].png"></p>
+<hr>
 </div>
 </div>
 

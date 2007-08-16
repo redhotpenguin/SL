@@ -19,6 +19,8 @@ our %TEMPORALS = (
     'weekly'    => '7 days',
     'monthly'   => '30 days',
     'quarterly' => '90 days',
+    'biannually' => '6 months',
+    'annually' => '12 months',
 );
 
 use SL::App::Template ();
@@ -33,7 +35,6 @@ sub dispatch_index {
     my $req      = Apache2::Request->new($r);
     my $temporal = $req->param('temporal') || 'daily';
     my $type     = $req->param('type') || 'views';
-    my $accessor = "send_reports_$temporal";
     my $reg = $r->pnotes($r->user);
 
     my $report_uri = join('/', $config->sl_app_report_uri, $reg->report_base);
@@ -45,7 +46,6 @@ sub dispatch_index {
             report_uri             => $report_uri,
             reg                    => $reg,
             status                 => $req->param('status') || '',
-            send_report            => $reg->$accessor,
             report_email_frequency => $reg->report_email_frequency,
             temporal => $temporal,
             type     => $type,
