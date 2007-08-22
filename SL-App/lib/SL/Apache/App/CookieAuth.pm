@@ -313,7 +313,7 @@ sub forgot {
                               { url => $url, email => $reg->email }, \$output );
           
            my $msg = MIME::Lite->new(
-               From => "SilverLining <support\@silverliningnetworks.com>",
+               From => "Silver Lining Networks <support\@silverliningnetworks.com>",
                To   => $reg->email,
                Subject => "Your password reset request",
                Data => $output,
