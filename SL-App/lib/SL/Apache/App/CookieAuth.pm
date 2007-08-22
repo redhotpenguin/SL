@@ -13,6 +13,9 @@ use Apache2::Request ();
 use base 'SL::Apache::App';
 use SL::Model::App ();
 
+use SL::Config;
+our $CONFIG = SL::Config->new;
+
 use Digest::MD5 ();
 use MIME::Lite  ();
 use Apache::Session::DB_File ();
@@ -303,7 +306,7 @@ sub forgot {
            $forgot->update;
            $forgot->discard_changes;
            my $output;
-           my $url = $r->construct_url('/forgot/reset/?key=' . 
+		   my $url = join('', $CONFIG->sl_app_server, $CONFIG->sl_app_base_uri, '/forgot/reset/?key=' . 
                                        $forgot->link_md5());
 
            my $ok = $TEMPLATE->process( 'forgot_email.tmpl', 
