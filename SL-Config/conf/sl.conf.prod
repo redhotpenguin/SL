@@ -68,3 +68,5 @@ sl_app_base_uri '/sl'
 sl_app_home_uri http://www.silverliningnetworks.com/
 sl_app_css_uri http://www.redhotpenguin.com/css/app.css
 sl_app_report_uri http://www.redhotpenguin.com/img/data
+sl_app_server https://www.redhotpenguin.com
+

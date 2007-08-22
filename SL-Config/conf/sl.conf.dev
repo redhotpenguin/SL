@@ -67,4 +67,4 @@ sl_app_home_uri http://www.silverliningnetworks.com/
 sl_app_css_uri http://127.0.0.1:7777/css/app.css
 sl_app_report_uri http://127.0.0.1:7777/img/data
 
-
+sl_app_server https://www.redhotpenguin.com
