@@ -1,5 +1,8 @@
 Revision history for SL::App
 
+0.l5
+    - fix broken link to forum (thanks todd for the spot)
+
 0.14 Wed Aug 15 21:43:00 2007
     - fix links to reports
 
