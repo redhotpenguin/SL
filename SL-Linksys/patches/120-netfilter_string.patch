@@ -43,11 +43,22 @@ diff -X .ignore -Nru linux.old/include/linux/netfilter_ipv4/ipt_string.h linux.d
 +};
 +
 +#endif /* _IPT_STRING_H */
+diff -X .ignore -Nru linux.old/net/ipv4/netfilter/Makefile linux.dev/net/ipv4/netfilter/Makefile
+--- linux.old/net/ipv4/netfilter/Makefile       2003-08-25 15:44:44.000000000 +0400
++++ linux.dev/net/ipv4/netfilter/Makefile       2007-08-15 14:24:32.000000000 +0400
+@@ -86,6 +85,7 @@
+ obj-$(CONFIG_IP_NF_MATCH_STATE) += ipt_state.o
+ obj-$(CONFIG_IP_NF_MATCH_CONNTRACK) += ipt_conntrack.o
+ obj-$(CONFIG_IP_NF_MATCH_UNCLEAN) += ipt_unclean.o
++obj-$(CONFIG_IP_NF_MATCH_STRING) += ipt_string.o
+ obj-$(CONFIG_IP_NF_MATCH_TCPMSS) += ipt_tcpmss.o
+ 
+ # targets
+
 diff -X .ignore -Nru linux.old/net/ipv4/netfilter/Config.in linux.dev/net/ipv4/netfilter/Config.in
 --- linux.old/net/ipv4/netfilter/Config.in	2003-08-25 15:44:44.000000000 +0400
 +++ linux.dev/net/ipv4/netfilter/Config.in	2007-08-15 14:24:32.000000000 +0400
-@@ -42,6 +42,7 @@
-   fi
+@@ -42,5 +42,6 @@
    if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
      dep_tristate '  Unclean match support (EXPERIMENTAL)' CONFIG_IP_NF_MATCH_UNCLEAN $CONFIG_IP_NF_IPTABLES
 +    dep_tristate '  String match support (EXPERIMENTAL) ' CONFIG_IP_NF_MATCH_STRING $CONFIG_IP_NF_IPTABLES
@@ -55,14 +66,18 @@ diff -X .ignore -Nru linux.old/net/ipv4/netfilter/Config.in linux.dev/net/ipv4/n
    fi
  # The targets
 diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ipt_string.c linux.dev/net/ipv4/netfilter/ipt_string.c
---- linux.old/net/ipv4/netfilter/ipt_string.c	1970-01-01 03:00:00.000000000 +0300
-+++ linux.dev/net/ipv4/netfilter/ipt_string.c	2007-08-15 14:55:46.000000000 +0400
-@@ -0,0 +1,280 @@
+--- linux.old/net/ipv4/netfilter/ipt_string.c	Wed Dec 31 16:00:00 1969
++++ linux.dev/net/ipv4/netfilter/ipt_string.c	Mon Sep  3 20:01:32 2007
+@@ -0,0 +1,319 @@
 +/* Kernel module to match a string into a packet.
 + *
 + * Copyright (C) 2000 Emmanuel Roger  <winfield@freegates.be>
 + * 
 + * ChangeLog
++ *	02.09.2007: Fred Moyer <fred@redhotpenguin.com>, 
++ *		Evgeniy Polyakov <johnpol@2ka.mipt.ru>	
++ * 		Added ability to remove a matching string from the packet
++ *      	     
 + *	22.03.2004: Michael Rash <mbr@cipherdyne.org>
 + *		Added ability to replace a matching string in packet data
 + *		with a new string (checksum automatically recalculated for
@@ -179,26 +194,19 @@ diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ipt_string.c linux.dev/net/ipv
 +	const struct ipt_string_info *info = matchinfo;
 +	struct iphdr *ip = skb->nh.iph;
 +	struct tcphdr *tcph;
-+	/* struct udphdr *udph; */
-+	int hlen, nlen, rlen, rctr;
-+	char *needle, *haystack, *repl_str, *repl_ptr;
++	int hlen, nlen,newlen  ;
++	char *needle, *haystack, *repl_ptr;
 +	proc_ipt_search search=search_linear;
++	int result;
 +
 +	if ( !ip ) return 0;
-+ 
++
 +	/* get lengths, and validate them */
 +	nlen=info->len;
-+	rlen=info->replace_len;
 +	hlen=ntohs(ip->tot_len)-(ip->ihl*4);
 +	if ( nlen > hlen ) return 0;
 +
-+	/* if we are altering packet data, make absolutely sure
-+	 * replace length is less than or equal to needle length.
-+	 * We cannot start breaking protocols! */
-+	if ( rlen > 0 && rlen > nlen ) return 0;
-+
 +	needle=(char *)&info->string;
-+	repl_str=(char *)&info->replace_str;
 +	haystack=(char *)ip+(ip->ihl*4);
 +
 +	/* The sublinear search comes in to its own
@@ -214,54 +222,96 @@ diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ipt_string.c linux.dev/net/ipv
 +					"(%d bytes)\n", hlen );
 +		}
 +	}
-+	
-+	repl_ptr = search(needle, haystack, nlen, hlen);
++				/* this copies the remaining bits to the offset where the replacement
++			   string is.  example, if we replace 
++			 		
++			   	    host: foo.com\r\ncontent-type: text/html\r\nl\r\n
++			   		host: foo.com\r\ncontent-type: text/html\r\n
++			   		host: foo.com:8135\r\ncontent-type: text/html\r\n
++								 ^    ^ 							^
++								 |	  |-------- rest_len -----------|
++								 |    |
++								 |	  |- offset	
++								 |
++								 |-- repl_ptr
++								 
++					using --string ":8135" --replace-string ""   */
 +
-+	if (repl_ptr != NULL && rlen > 0) {
++	repl_ptr = search(needle, haystack, nlen, hlen);
++	if (repl_ptr != NULL ) {
++	printk(KERN_INFO "==================\n");
++		printk(KERN_INFO "skb->nh.iph->tot_len: %u\n", skb->nh.iph->tot_len);
++		printk(KERN_INFO "ip->tot_len: %u\n", ip->tot_len);
++		//printk(KERN_INFO "==> repl_ptr '%s'\n", repl_ptr);
 +		/* if we change the data portion of the packet we recalculate
 +		 * the transport layer checksum (mandatory for TCP). */
 +		if (skb->nh.iph->protocol == IPPROTO_TCP) {
 +			int offset, rest_len;
-+			int diff = nlen - rlen;
-+			/* char *end = (char *)(skb->nh.iph + htons(ntohs(ip->tot_len))); */
-+			unsigned int tcplen = skb->len - (skb->nh.iph->ihl<<2) - diff;
-+			/* repl_ptr points to the start of the needle
-+			 * in the packet, and we know the entire needle
-+			 * is there so we can just replace. */
-+			for (rctr=0; rctr < rlen; rctr++)
-+				repl_ptr[rctr] = repl_str[rctr];
 +
-+			rest_len = ((char *)skb->tail - repl_ptr) - nlen;
-+			offset = (unsigned char *)&repl_ptr[nlen] - skb->data;
-+			if (skb_copy_bits(skb, offset, repl_ptr, rest_len))
-+				return 0;
-+           if (___pskb_trim(skb, skb->len-diff, 1)) return 0; //skb->len = skb->len - diff;
-+			skb->nh.iph->tot_len = ntohs(ip->tot_len) - diff;
-+			ip_fast_csum((unsigned char *)skb->nh.iph, skb->nh.iph->ihl);
++			/* pointer to the end of the packet */
++			//char *end = (char *)(skb->nh.iph + ip->tot_len);
++			//char *end = (char *)(skb->nh.iph + ntohs(ip->tot_len));
++			unsigned int tcplen;
 +
++			
++		printk(KERN_INFO "skb->nh.iph  %u:\n", skb->nh.iph);
++		printk(KERN_INFO "skb->head:   %u\n", skb->head);
++		printk(KERN_INFO "skb->data:   %u\n", skb->data);
++		printk(KERN_INFO "skb->tail:   %u\n", skb->tail);
++		printk(KERN_INFO "skb->end:    %u\n", skb->end);
++		printk(KERN_INFO "repl_ptr:    %u\n", repl_ptr);
++			// distance from the end to the replacement pointer beginning 
++			//rest_len = (end - repl_ptr) - nlen;
++			rest_len = (unsigned int)((char *)skb->tail - repl_ptr)-nlen;
++			// distance from the end of the repl_ptr to the start of the skb data
++			offset = (int)((char *)&repl_ptr[nlen] - (char *)skb->data);
++			printk(KERN_INFO "offset:    %d\n", offset);
++		printk(KERN_INFO "rest_len:    %d\n", rest_len);
++		printk(KERN_INFO "skb->len:    %d\n", (int)skb->len);
++//		printk(KERN_INFO "data out  %s\n", (char*)&repl_ptr[nlen]);	
++
++		printk(KERN_INFO ">>>>>>>>>>>>>>>>>>>>>>\n");
++		newlen = skb->len - nlen;	  
++		if (skb_copy_bits(skb, offset, repl_ptr, rest_len))
++					return 0;
++		repl_ptr[rest_len+1] = '\0';
++		repl_ptr[rest_len+2] = '\0';
++		repl_ptr[rest_len+3] = '\0';
++		repl_ptr[rest_len+4] = '\0';
++		repl_ptr[rest_len+5] = '\0';
++		printk(KERN_INFO "repl_ptr %s\n", repl_ptr);
++		printk(KERN_INFO "trim amount %d\n", newlen);
++			printk(KERN_INFO "skb->data %s\n", (char *)skb->data);
++		skb_trim(skb, newlen);
++		skb = skb_pad(skb, nlen);
++		printk(KERN_INFO "skb->tail %u\n", skb->tail);
++		printk(KERN_INFO "skb->len %u\n", skb->len);
++			
++		printk(KERN_INFO "skb->data %s\n", (char *)skb->data);
++		printk(KERN_INFO "ip->tot_len:     %u\n", ntohs(ip->tot_len) - nlen);
++		skb->nh.iph->tot_len = htons(ntohs(ip->tot_len) - nlen);
++		
++		printk(KERN_INFO "skb->nh.iph->tot_len: %u\n", skb->nh.iph->tot_len);
++		printk(KERN_INFO "ip->tot_len:     %u\n", ip->tot_len);
++		
++		printk(KERN_INFO "skb->head:   %u\n", skb->head);
++		printk(KERN_INFO "skb->data:   %u\n", skb->data);
++		printk(KERN_INFO "skb->tail:   %u\n", skb->tail);
++		printk(KERN_INFO "skb->end:    %u\n", skb->end);
++			printk(KERN_INFO "dkb->nh.iph->check:    %u\n", skb->nh.iph->check);
++			skb->nh.iph->check = 0;
++			skb->nh.iph->check = ip_fast_csum((unsigned char *)skb->nh.iph, skb->nh.iph->ihl);
++			printk(KERN_INFO "dkb->nh.iph->check:    %u\n", skb->nh.iph->check);
++	printk(KERN_INFO "_________________________\n");
++		   	tcplen = skb->len - (skb->nh.iph->ihl<<2);
++		printk(KERN_INFO "tcplen:   %u\n", tcplen);
 +			tcph = (struct tcphdr *)((u_int32_t*)skb->nh.iph + skb->nh.iph->ihl);
++		printk(KERN_INFO "tcplensizeof:   %u\n", sizeof(tcph));
 +			tcph->check = 0;
 +			tcph->check = tcp_v4_check(tcph, tcplen, skb->nh.iph->saddr,
 +							skb->nh.iph->daddr,
 +							csum_partial((char *)tcph, tcplen, 0));
-+		} /* else if (skb->nh.iph->protocol == IPHPROTO_UDP) { */
-+			/* repl_ptr points to the start of the needle
-+			 * in the packet, and we know the entire needle
-+			 * is there so we can just replace. */
-+			/* for (rctr=0; rctr < rlen; rctr++)
-+				repl_ptr[rctr] = repl_str[rctr]; */
-+			/* recalculate UDP checksum only if it was previously
-+			 * calculated */
-+		/*	udph = (struct udphdr *)((char *)skb->nh.iph + (skb->nh.iph->ihl<<2));
-+			unsigned int udplen = skb->len - (skb->nh.iph->ihl<<2);
-+			if (udph->check) {
-+				udph->check = 0;
-+				udph->check = csum_tcpudp_magic(skb->nh.iph->saddr,
-+								skb->nh.iph->daddr,
-+								udplen, IPPROTO_UDP,
-+								csum_partial((char *)udph, udplen, 0));
-+			}
-+		}*/
++		} 
 +	}
 +    return ((repl_ptr!=NULL) ^ info->invert);
 +}
@@ -338,15 +388,3 @@ diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ipt_string.c linux.dev/net/ipv
 +
 +module_init(init);
 +module_exit(fini);
-diff -X .ignore -Nru linux.old/net/ipv4/netfilter/Makefile linux.dev/net/ipv4/netfilter/Makefile
---- linux.old/net/ipv4/netfilter/Makefile	2003-08-25 15:44:44.000000000 +0400
-+++ linux.dev/net/ipv4/netfilter/Makefile	2007-08-15 14:24:32.000000000 +0400
-@@ -86,6 +85,7 @@
- obj-$(CONFIG_IP_NF_MATCH_STATE) += ipt_state.o
- obj-$(CONFIG_IP_NF_MATCH_CONNTRACK) += ipt_conntrack.o
- obj-$(CONFIG_IP_NF_MATCH_UNCLEAN) += ipt_unclean.o
-+obj-$(CONFIG_IP_NF_MATCH_STRING) += ipt_string.o
- obj-$(CONFIG_IP_NF_MATCH_TCPMSS) += ipt_tcpmss.o
- 
- # targets
-
