@@ -27,6 +27,7 @@
 
 <form method="POST" action="[% base_uri %]/app/ad/groups/ads/edit">
 <input type="hidden" name="ad_sl_id" value="[% ad_sl.ad_sl_id %]">
+<input type="hidden" name="ad_group_id" value="[% req.param('ad_group_id')  %]">
 
 <!-- text -->
 <tr><td>
@@ -34,7 +35,7 @@
 Ad Text:
 [% IF errors.missing.text %]</font>[% END %]
 </td>
-<td><input type="text" name="text" size="50" maxlength="100" value='[% ad_sl.text %]'></td></tr>
+<td><input type="text" name="text" size="50" maxlength="100" value='[% ad_sl.text or req.param('text') %]'></td></tr>
 <tr><td colspan=2><font color="#CCCCCC">(100 character limit)</font></td></tr>
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 

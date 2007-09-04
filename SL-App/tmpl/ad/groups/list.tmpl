@@ -46,7 +46,7 @@
   <a href="[% base_uri %]/app/ad/groups/ads/list?ad_group_id=[% ad_group.ad_group_id %]">
 [% ad_group.ad_count %]</a>
 [% ELSIF ad_group.ad_count == 0 %]
-  <a href="[% base_uri %]/app/ad/ads/list">
+  <a href="[% base_uri %]/app/ad/groups/ads/edit?ad_group_id=[% ad_group.ad_group_id %]">
   [% ad_group.ad_count %] (add ads)</a>
 [% END %]</td>
 

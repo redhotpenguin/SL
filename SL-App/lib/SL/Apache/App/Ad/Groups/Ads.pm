@@ -111,7 +111,7 @@ sub dispatch_edit {
     unless ($ad_sl ) {
 
         # make the base ad first
-        $base_ad = SL::Model::App->resultset('Ad')->new( { active => 't' } );
+        $base_ad = SL::Model::App->resultset('Ad')->new( { active => 't', ad_group_id => $req->param('ad_group_id')  } );
         $base_ad->insert();
 
         # make the sl_ad

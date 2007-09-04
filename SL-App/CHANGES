@@ -1,6 +1,7 @@
 Revision history for SL::App
 
 0.l5
+	- fix missing ad_group_id from ad creation page
     - fix broken link to forum (thanks todd for the spot)
 
 0.14 Wed Aug 15 21:43:00 2007
