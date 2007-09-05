@@ -1,0 +1,28 @@
+#!/bin/sh
+. /etc/functions.sh
+
+###################################################
+#
+# You can edit this file to control the behavior
+# of some specific startup actions on your router
+#
+###################################################
+
+# set the ssid
+/usr/sbin/nvram set wl0_ssid='Free Wireless'
+
+# setup privacy and security
+/usr/sbin/nvram set wl0_ap_isolate=1
+
+# set the lease time
+/usr/sbin/nvram set dhcp_lease=42200
+
+# commit changes to nvram
+/usr/sbin/nvram commit
+
+# high availability check
+/usr/bin/microperl /usr/bin/sl_fw_ha
+
+# run the configuration update check
+/usr/bin/microperl /usr/bin/sl_config_update
+
