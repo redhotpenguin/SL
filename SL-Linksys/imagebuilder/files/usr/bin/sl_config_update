@@ -2,76 +2,149 @@
 
 our $DEBUG = 1;
 
-# open the config file
-my $config_file = '/etc/sl.conf';
-my $fh;
-open($fh, '<', $config_file) or die $!;
-
-# parse it and grab the config file location
-my $url;
-while (<$fh>) {
-    next unless $_ =~ m/^config/;
-    chomp($_);
-    $url = (split(/\s+/, $_))[1];
+my $default_wget = '/usr/bin/wget';
+unless (-e $default_wget) {
+    print STDERR "wget not found at $default_wget\n";
+    exit(1);
 }
-close($fh) or die $!;
 
-my ($file) = $url =~ m/([^\/]+)$/;
+my $config_file =  '/etc/sl.conf';
+my $reboot;
 
-# change to tmp dir
-chdir('/tmp');
+#############################################
+# gather up the files that need to be updated
 
-# remove it if it already exists
-unlink($file) if -e $file;
+my $updated = _update_config_file($config_file);
+$reboot = 1 if $updated;
+my $urls_ref = _http_urls_from_config($config_file);
 
-# grab the file
-my $grab = `wget $url`;
-if (-e $file) {
-    print "$file retrieved ok\n" if $DEBUG;
+foreach my $url (@{$urls_ref}) {
+    my $updated = _grab_and_update($url);
+    print "File from url $url updated: $updated\n" if $DEBUG;
+    $reboot = 1 if $updated;
+}
 
-    # see if the file has changed
-    my $existing_file_md5 = (split(/\s+/, `/usr/bin/md5sum /etc/$file`))[0];
-    my $new_file_md5      = (split(/\s+/, `/usr/bin/md5sum $file`))[0];
-    if ($existing_file_md5 eq $new_file_md5) {
-        print "New file matches existing config file, finished\n" if $DEBUG;
-        exit(0);
+# reboot if files have been updated
+if ($reboot) {
+    print STDERR "rebooting due to config update\n";
+    `/sbin/reboot`;
+}
+
+exit(0);
+
+#################################################
+
+sub _http_urls_from_config {
+    my $config_file = shift;
+    my $fh;
+    open($fh, '<', $config_file) or die $!;
+
+    my @urls;
+    while (my $line = <$fh>) {
+        chomp($line);
+        # already did this one
+        next if ($line =~ m/^config/);
+
+        my $url = (split(/\s+/, $line))[1];
+        # grab the http links
+        if ($url =~ m/http\:\/\//i) {
+            push @urls, $url;
+            next;
+        }
     }
+    close($fh) or die $!;
 
-    # files are different, put the new one in place
-    my $mv = `mv $file /etc/$file`;
-    print "$file moved to /etc\n" if $DEBUG;
-}
-else {
-    print STDERR "Couldn't retrieve $url\n";
+    return unless @urls;
+    return \@urls;
 }
 
-# now open the new config file
-open($fh, '<', $config_file) or die $!;
+sub _update_config_file {
+    my $config_file = shift;
 
-while (<$fh>) {
-    next unless $_ =~ m/^firewall/;
-    chomp($_);
-    $url = (split(/\s+/, $_))[1];
+    my $fh;
+    open($fh, '<', $config_file) or die $!;
+
+    my $url;
+    while (my $line = <$fh>) {
+        chomp($line);
+        next unless ($line =~ m/^config/);
+        $url = (split(/\s+/, $line))[1];
+        last; 
+    }
+    close($fh) or die $!;
+
+    my $updated = _grab_and_update($url, $config_file);
+    return 1 if $updated;
+    return;
 }
-close($fh) or die $!;
 
-($file) = $url =~ m/([^\/]+)$/;
+sub _grab_and_update {
+    my ($url, $dest_file) = @_;
 
-# change to tmp dir
-chdir('/tmp');
+    my ($file) = $url =~ m/([^\/]+)$/;
 
-# remove it if it already exists
-unlink($file) if -e $file;
+    # change to tmp dir
+    chdir('/tmp');
 
-# grab the file
-my $grab = `wget $url`;
-if (-e $file) {
-    print "$file retrieved ok\n" if $DEBUG;
-    my $mv = `mv $file /etc/$file`;
-    print "$file moved to /etc\n" if $DEBUG;
-}
-else {
-    print STDERR "Couldn't retrieve $url\n";
+    # remove it if it already exists
+    unlink($file) if -e $file;
+
+    # grab the updated file
+    my $grab = `wget $url`;
+    if (-e $file) {
+        print "$file retrieved ok\n" if $DEBUG;
+
+        # figure out where it should go
+        my ($etc_base) = $url =~ m/\/etc\/(.*)$/;
+        unless ($etc_base) {
+            print STDERR "oops no etc base extracted from $url\n";
+            next;
+        }
+
+        # see if the file has changed
+        my $existing_file_md5 = `/usr/bin/md5sum /etc/$etc_base`;
+        ($existing_file_md5) = $existing_file_md5 =~ m/([aA-zZ0-9]{32})/;
+        $DB::single = 1;
+        my $force_update;
+        unless ($existing_file_md5) {
+            print STDERR "unable to md5 existing file /etc/$etc_base\n";
+            if (! -e "/etc/$file") {
+                # file is missing, force the update
+                $force_update = 1;
+            } else {
+                return; # return if md5 is broken somehow
+            }
+        }
+        my $new_file_md5    = `/usr/bin/md5sum $file`;
+        ($new_file_md5) = $new_file_md5 =~ m/([aA-zZ0-9]{32})/;
+        unless ($new_file_md5) {
+            print STDERR "unable to md5 new file $file\n";
+            # if we can't md5 the new one then we are really in trouble
+            return;
+        }
+        if (! $force_update && ($existing_file_md5 eq $new_file_md5)) {
+            print "New file $file matches existing file /etc/$etc_base\n" if $DEBUG;
+            return;
+        }
+
+        # files are different, put the new one in place
+        my $mv = `mv $file /etc/$etc_base`;
+
+        # safety check to make sure the move went ok
+        $existing_file_md5 = `/usr/bin/md5sum /etc/$etc_base`;
+        ($existing_file_md5) = $existing_file_md5 =~ m/([aA-zZ0-9]{32})/;
+        if ($existing_file_md5 eq $new_file_md5) {
+            print "$file moved to /etc\n" if $DEBUG;
+            return 1;
+        } else {
+            print STDERR "file $file could not be moved to /etc/$etc_base\n";
+            return;
+        }
+    }
+    else {
+        print STDERR "Couldn't retrieve url $url\n";
+        return;
+    }
 }
 
 1;
