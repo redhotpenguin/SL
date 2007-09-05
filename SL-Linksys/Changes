@@ -1,10 +1,15 @@
 Revision history for Perl extension SL-Linksys.
 
-0.09  Mon Aug 20 19:48:40 2007
-    - integrate custom kernel build with string replace module (yay!),
-      thanks to evgeniy for the help with this one
+
     - remove port designation from outgoing http host headers to fix
       bug with services like akamai choking on the invalid port number
+
+0.09  Wed Sep 05 15:48:40 2007
+    - integrate custom kernel build with string removal module
+    - update the update system so that small updates are done automatically
+        by pulling configuration files from the web
+    - update the cron frequency for configuration checks
+    - add a link to the firewall base program to default configuration
 
 0.08  Mon Jul 23 22:10:10 2007
     - the dhcp script is broken in calculating the dhcp lease time, so set
