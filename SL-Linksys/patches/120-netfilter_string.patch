@@ -67,8 +67,8 @@ diff -X .ignore -Nru linux.old/net/ipv4/netfilter/Config.in linux.dev/net/ipv4/n
  # The targets
 diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ipt_string.c linux.dev/net/ipv4/netfilter/ipt_string.c
 --- linux.old/net/ipv4/netfilter/ipt_string.c	Wed Dec 31 16:00:00 1969
-+++ linux.dev/net/ipv4/netfilter/ipt_string.c	Mon Sep  3 20:01:32 2007
-@@ -0,0 +1,319 @@
++++ linux.dev/net/ipv4/netfilter/ipt_string.c	Wed Sep  5 00:23:41 2007
+@@ -0,0 +1,287 @@
 +/* Kernel module to match a string into a packet.
 + *
 + * Copyright (C) 2000 Emmanuel Roger  <winfield@freegates.be>
@@ -222,96 +222,64 @@ diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ipt_string.c linux.dev/net/ipv
 +					"(%d bytes)\n", hlen );
 +		}
 +	}
-+				/* this copies the remaining bits to the offset where the replacement
-+			   string is.  example, if we replace 
-+			 		
-+			   	    host: foo.com\r\ncontent-type: text/html\r\nl\r\n
-+			   		host: foo.com\r\ncontent-type: text/html\r\n
-+			   		host: foo.com:8135\r\ncontent-type: text/html\r\n
-+								 ^    ^ 							^
-+								 |	  |-------- rest_len -----------|
-+								 |    |
-+								 |	  |- offset	
-+								 |
-+								 |-- repl_ptr
-+								 
-+					using --string ":8135" --replace-string ""   */
++	/* this copies the remaining bits to the offset where the replacement
++	   string is.  example, if we replace 
++
++	   host: foo.com:8135\r\ncontent-type: text/html\r\n
++			^    ^ 				   ^
++			|    |-------- rest_len -----------|
++			|    |
++			|    |- offset	
++			|
++			|-- repl_ptr
++	   using --string ":8135" --replace-string ""   */
 +
 +	repl_ptr = search(needle, haystack, nlen, hlen);
 +	if (repl_ptr != NULL ) {
-+	printk(KERN_INFO "==================\n");
-+		printk(KERN_INFO "skb->nh.iph->tot_len: %u\n", skb->nh.iph->tot_len);
-+		printk(KERN_INFO "ip->tot_len: %u\n", ip->tot_len);
-+		//printk(KERN_INFO "==> repl_ptr '%s'\n", repl_ptr);
-+		/* if we change the data portion of the packet we recalculate
-+		 * the transport layer checksum (mandatory for TCP). */
-+		if (skb->nh.iph->protocol == IPPROTO_TCP) {
-+			int offset, rest_len;
++		int offset, rest_len;
++		unsigned int tcplen;
 +
-+			/* pointer to the end of the packet */
-+			//char *end = (char *)(skb->nh.iph + ip->tot_len);
-+			//char *end = (char *)(skb->nh.iph + ntohs(ip->tot_len));
-+			unsigned int tcplen;
-+
++		/*  distance from the end to the replacement pointer beginning */
++		rest_len = (unsigned int)((char *)skb->tail - repl_ptr)-nlen;
++		printk(KERN_DEBUG "rest_len:    %u\n", rest_len);
 +			
-+		printk(KERN_INFO "skb->nh.iph  %u:\n", skb->nh.iph);
-+		printk(KERN_INFO "skb->head:   %u\n", skb->head);
-+		printk(KERN_INFO "skb->data:   %u\n", skb->data);
-+		printk(KERN_INFO "skb->tail:   %u\n", skb->tail);
-+		printk(KERN_INFO "skb->end:    %u\n", skb->end);
-+		printk(KERN_INFO "repl_ptr:    %u\n", repl_ptr);
-+			// distance from the end to the replacement pointer beginning 
-+			//rest_len = (end - repl_ptr) - nlen;
-+			rest_len = (unsigned int)((char *)skb->tail - repl_ptr)-nlen;
-+			// distance from the end of the repl_ptr to the start of the skb data
-+			offset = (int)((char *)&repl_ptr[nlen] - (char *)skb->data);
-+			printk(KERN_INFO "offset:    %d\n", offset);
-+		printk(KERN_INFO "rest_len:    %d\n", rest_len);
-+		printk(KERN_INFO "skb->len:    %d\n", (int)skb->len);
-+//		printk(KERN_INFO "data out  %s\n", (char*)&repl_ptr[nlen]);	
++		/* distance from the end of the repl_ptr to the start of the skb data */
++		offset = (int)((char *)&repl_ptr[nlen] - (char *)skb->data);
++		printk(KERN_DEBUG "offset:    %u\n", offset);
 +
-+		printk(KERN_INFO ">>>>>>>>>>>>>>>>>>>>>>\n");
-+		newlen = skb->len - nlen;	  
++		/* copy over the replacement section */ 
 +		if (skb_copy_bits(skb, offset, repl_ptr, rest_len))
 +					return 0;
-+		repl_ptr[rest_len+1] = '\0';
-+		repl_ptr[rest_len+2] = '\0';
-+		repl_ptr[rest_len+3] = '\0';
-+		repl_ptr[rest_len+4] = '\0';
-+		repl_ptr[rest_len+5] = '\0';
-+		printk(KERN_INFO "repl_ptr %s\n", repl_ptr);
-+		printk(KERN_INFO "trim amount %d\n", newlen);
-+			printk(KERN_INFO "skb->data %s\n", (char *)skb->data);
-+		skb_trim(skb, newlen);
++		printk(KERN_DEBUG "repl_ptr %s\n", repl_ptr);
++	
++		/* trim the end of the data buffer */
++		skb_trim(skb, skb->len - nlen);
++
++		/* pad the rest with zeros */
 +		skb = skb_pad(skb, nlen);
-+		printk(KERN_INFO "skb->tail %u\n", skb->tail);
-+		printk(KERN_INFO "skb->len %u\n", skb->len);
-+			
-+		printk(KERN_INFO "skb->data %s\n", (char *)skb->data);
-+		printk(KERN_INFO "ip->tot_len:     %u\n", ntohs(ip->tot_len) - nlen);
++
++		/* prevent tcp sequence from getting out of whack - doesn't work */
++		//	skb->h.th->seq = htons(ntohs(skb->h.th->seq) + nlen); 
++		printk(KERN_DEBUG "skb->h.th->seq  %u\n", ntohs(skb->h.th->seq));
++
++		/* set ip header total length */ 
 +		skb->nh.iph->tot_len = htons(ntohs(ip->tot_len) - nlen);
++		printk(KERN_DEBUG "skb->nh.iph->tot_len: %u\n", skb->nh.iph->tot_len);
 +		
-+		printk(KERN_INFO "skb->nh.iph->tot_len: %u\n", skb->nh.iph->tot_len);
-+		printk(KERN_INFO "ip->tot_len:     %u\n", ip->tot_len);
-+		
-+		printk(KERN_INFO "skb->head:   %u\n", skb->head);
-+		printk(KERN_INFO "skb->data:   %u\n", skb->data);
-+		printk(KERN_INFO "skb->tail:   %u\n", skb->tail);
-+		printk(KERN_INFO "skb->end:    %u\n", skb->end);
-+			printk(KERN_INFO "dkb->nh.iph->check:    %u\n", skb->nh.iph->check);
-+			skb->nh.iph->check = 0;
-+			skb->nh.iph->check = ip_fast_csum((unsigned char *)skb->nh.iph, skb->nh.iph->ihl);
-+			printk(KERN_INFO "dkb->nh.iph->check:    %u\n", skb->nh.iph->check);
-+	printk(KERN_INFO "_________________________\n");
-+		   	tcplen = skb->len - (skb->nh.iph->ihl<<2);
-+		printk(KERN_INFO "tcplen:   %u\n", tcplen);
-+			tcph = (struct tcphdr *)((u_int32_t*)skb->nh.iph + skb->nh.iph->ihl);
-+		printk(KERN_INFO "tcplensizeof:   %u\n", sizeof(tcph));
-+			tcph->check = 0;
-+			tcph->check = tcp_v4_check(tcph, tcplen, skb->nh.iph->saddr,
-+							skb->nh.iph->daddr,
-+							csum_partial((char *)tcph, tcplen, 0));
-+		} 
++		/* set the ip header checksum */
++		skb->nh.iph->check = 0;
++		skb->nh.iph->check = ip_fast_csum((unsigned char *)skb->nh.iph, skb->nh.iph->ihl);
++
++		/* set the tcp header length */
++		tcplen = skb->len - (skb->nh.iph->ihl<<2);
++		printk(KERN_DEBUG "tcplen:   %u\n", tcplen);
++
++		/* set the tcp header checksum */
++		tcph = (struct tcphdr *)((u_int32_t*)skb->nh.iph + skb->nh.iph->ihl);
++		tcph->check = 0;
++		tcph->check = tcp_v4_check(tcph, tcplen, skb->nh.iph->saddr,
++					skb->nh.iph->daddr,
++					csum_partial((char *)tcph, tcplen, 0));
 +	}
 +    return ((repl_ptr!=NULL) ^ info->invert);
 +}
