@@ -1,5 +1,0 @@
-#!/bin/sh
-. /etc/functions.sh
-REALM=$(nvram get wan_hostname)
-REALM=${REALM%%.*}
-httpd -p 80 -h /www -r ${REALM:-OpenWrt}
