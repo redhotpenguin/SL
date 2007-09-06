@@ -80,8 +80,7 @@ sub dispatch_edit {
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
-            root     => $r->pnotes('root'),
-            reg      => $r->pnotes( $r->user ),
+            reg      => $reg,
             bugs     => \@bugs,
             friends  => \@friends,
             ad_group => $ad_group,
@@ -90,7 +89,7 @@ sub dispatch_edit {
             req      => $req,
         );
 
-        my $ok = $tmpl->process( 'ad/groups/edit.tmpl', \%tmpl_data, \$output );
+        my $ok = $tmpl->process( 'ad/groups/edit.tmpl', \%tmpl_data, \$output, $r );
         $ok
           ? return $self->ok( $r, $output )
           : return $self->error( $r, "Template error: " . $tmpl->error() );

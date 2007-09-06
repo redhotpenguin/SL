@@ -78,7 +78,7 @@ value="[% bug.bug_id %]"
 
 <!-- friends -->
 [% IF ad_group.ad_group_id %]
-<tr><td colspan="2">This Ad Group was created by <b>[% ad_group.reg_id.email %]</b></td></tr>
+<tr><td colspan="2">This Ad Group was created by <b><a href="mailto:[% ad_group.reg_id.email %]">[% ad_group.reg_id.email %]</b></td></tr>
 [% END %]
 
 [% UNLESS friends %]
@@ -92,7 +92,7 @@ Set up other users to share permissions</a></td></tr>
 <tr><td colspan="4">
 [% FOREACH friend = friends %]
     <input [% IF ad_group.reg_id.reg_id != reg.reg_id %]disabled="1"[% END %]type="checkbox" name="friends" value="[% friend.reg_id %]" [% IF friend.selected %]CHECKED[% END %]>
-[% friend.email %]&nbsp;&nbsp;
+<a href="mailto:[% friend.email %]">[% friend.email %]</a>&nbsp;&nbsp;
 [% END %]
 </td></tr>
 <tr><td colspan=4><font color="#CCCCCC">
