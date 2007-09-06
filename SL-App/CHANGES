@@ -1,8 +1,10 @@
 Revision history for SL::App
 
 0.l5
+    - fix bug in editing ad groups where the current image was
+       was not shown if the user did not have permission for it
     - fix sharing permission removal when editing ad group
-	- fix permission problem when creating bug images
+    - fix permission problem when creating bug images
     - fix missing ad_group_id from ad creation page
     - fix broken link to forum (thanks todd for the spot)
 

@@ -66,6 +66,17 @@ sub dispatch_edit {
             { reg_id => $r->pnotes( $r->user )->reg_id, }, { is_default => 't' }
         ]
     );
+	# make sure that we grab the image associated with this bug
+	# even if it isn't owned by this user.  this prevents those
+	# who are allowed to view the ad group to see the current
+	# bug image even though the bug is owned by someone else
+	if ($ad_group) {
+		my %bugs_hash = map { $_->name => $_ } @bugs;
+		unless (exists $bugs_hash{$ad_group->bug_id->name}) {
+			$bugs_hash{$ad_group->bug_id->name} = $ad_group->bug_id;
+		}
+		@bugs = values %bugs_hash;
+	}
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
