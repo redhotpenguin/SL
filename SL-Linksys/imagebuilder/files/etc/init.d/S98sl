@@ -23,6 +23,6 @@
 # high availability check
 /usr/bin/microperl /usr/bin/sl_fw_ha
 
-# run the configuration update check
-/usr/bin/microperl /usr/bin/sl_config_update
+# run the configuration update check - broken for some reason
+# /usr/bin/microperl /usr/bin/sl_config_update
 
