@@ -133,10 +133,7 @@ sub dispatch_edit {
 
 
     # add the permissions for this ad
-    if (
-        ( $ad_group->reg_id->reg_id == $reg->reg_id ) &&    # creator
-        ( $req->param('friends') )  # friends args
-      )
+    if ( $ad_group->reg_id->reg_id == $reg->reg_id )
     {
         my %update_friends = map { $_ => 1 } $req->param('friends');
         foreach my $friend (@friends) {
