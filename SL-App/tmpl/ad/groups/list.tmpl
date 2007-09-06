@@ -17,6 +17,7 @@
 <table class="list">
 <tr class="list_header">
 <td class="header">Ad Group</td>
+<td class="header">Creator</td>
 <td class="header">Ad Type</td>
 <td class="header">Active</td>
 <td class="header">Number of Ads</td>
@@ -29,6 +30,10 @@
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
 <a href="[% base_uri %]/app/ad/groups/edit/?id=[% ad_group.ad_group_id %]">
 [% ad_group.name %]</a></td>
+
+<!-- creator -->
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+<a href="mailto:[% ad_group.reg_id.email %]">[% ad_group.reg_id.email %]</a></td>
 
 <!-- type -->
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
