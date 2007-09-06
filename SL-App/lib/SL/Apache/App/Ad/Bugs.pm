@@ -38,7 +38,7 @@ sub dispatch_edit {
     my ( $self, $r, $args_ref ) = @_;
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
-
+    my $reg = $r->pnotes( $r->user );
     my ( $bug, $output, $link );
     if ( $req->param('id') ) {    # edit existing ad group
         ($bug) = SL::Model::App->resultset('Bug')->search(
@@ -55,7 +55,7 @@ sub dispatch_edit {
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
             root   => $r->pnotes('root'),
-            reg    => $r->pnotes( $r->user ),
+            reg    => $reg,
             bug    => $bug,
             errors => $args_ref->{errors},
             status => $args_ref->{status},
@@ -101,9 +101,10 @@ sub dispatch_edit {
     }
 
     # add arguments
-    foreach my $param qw( name link_href image_href reg_id bug_id active ) {
+    foreach my $param qw( name link_href image_href bug_id active ) {
         $bug->$param( $req->param($param) );
     }
+    $bug->reg_id( $reg->reg_id );
     $bug->update;
 
     my $status = $req->param('id') ? 'updated' : 'created';
