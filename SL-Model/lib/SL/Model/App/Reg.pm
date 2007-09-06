@@ -363,18 +363,21 @@ sub get_routers {
     return @routers unless $ad_group_id;
 
     # filter the routers which have this ad group
-    my @router_ids = map { $_->router_id } @routers;
-    my @filtered_routers =
-      map { $_->router_id } SL::Model::App->resultset('RouterAdGroup')->search(
-        {
-            ad_group_id => $ad_group_id,
-            router_id   => { -in => \@router_ids }
-        }
-      );
+	my %router_hash = map { $_->router_id => $_ } @routers;
+	my @filtered_routers;
+	foreach my $router_id ( keys %router_hash ) {
+		if (my ($exists) = SL::Model::App->resultset('RouterAdGroup')->search(
+				{
+					ad_group_id => $ad_group_id,
+					router_id   => $router_id, })) {
+				push @filtered_routers, $router_hash{$router_id};
+			}
+	}
+
 
     return unless ( scalar(@filtered_routers) > 0 );
-    $self->process_router($_) for @routers;
-    return @routers;
+    $self->process_router($_) for @filtered_routers;
+    return @filtered_routers;
 }
 
 # get the list of overall ad views in a time range for this user
