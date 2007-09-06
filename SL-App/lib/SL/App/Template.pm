@@ -25,9 +25,11 @@ BEGIN {
 sub process {
   my ($self, $tmpl_name, $data_hashref, $output_ref, $r) = @_;
 
-  my $bug_url = $r->unparsed_uri;
+  if ($r) {
+	my $bug_url = $r->unparsed_uri;
   $data_hashref->{bug_url} = $bug_url;
-  my $ok = $self->SUPER::process( $tmpl_name, { %{$data_hashref}, %TMPL_DATA },
+	}
+my $ok = $self->SUPER::process( $tmpl_name, { %{$data_hashref}, %TMPL_DATA },
                            $output_ref);
 
   return $ok if defined $ok;
