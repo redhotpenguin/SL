@@ -6,6 +6,7 @@ use warnings;
 use GD::Graph;
 use GD::Graph::bars;
 use GD::Graph::hbars;
+use Carp;
 
 our $WIDTH  = 600;
 our $HEIGHT = 500;
@@ -50,7 +51,10 @@ sub bars {
 sub bars_many {
     my ( $class, $args_ref ) = @_;
 
-    my $graph = GD::Graph::bars->new( $WIDTH, $HEIGHT );
+    # HACK - on routers which register with too many ips the height of the graph
+    # gets out of control so we recalulate
+    my $graph = GD::Graph::bars->new( $WIDTH, 
+                                 $HEIGHT + (4 * scalar(@{$args_ref->{legend}})) );
     $graph->set(
         title             => $args_ref->{title},
         x_labels_vertical => 1,
@@ -73,8 +77,9 @@ sub bars_many {
     unless ( defined $args_ref->{data_ref} ) {
         $args_ref->{data_ref} = [ [ 0, 0 ], [ 0, 0 ] ];
     }
-    my $gd = $graph->plot( $args_ref->{data_ref} )
-      or die $graph->error;
+
+    my $gd = $graph->plot( $args_ref->{data_ref}, correct_width => 0 )
+      or Carp::confess($graph->error);
 
     my $fh;
     open( $fh, ">", $args_ref->{filename} ) or die $!;
@@ -140,7 +145,7 @@ sub hbars {
     $graph->set_y_axis_font(@Y_AXIS_FONT);
     $graph->set_y_label_font(@Y_LABEL_FONT);
     $graph->set_values_font(@VALUES_FONT);
-    
+
 	my $gd = $graph->plot( $args_ref->{data_ref} )
       or die $graph->error;
 

@@ -201,6 +201,36 @@ sub views {
         $end = $start->clone;
     }
 
+    # now weed out the series that don't have any data other than 0
+    my @series = @{$results->{series}};
+    my @remove_indices;
+    for (0.. $#series) {
+         my $row_aryref = $results->{data}->[$_];
+         my $only_zeros = 1;
+         foreach my $col (@{$row_aryref}) {
+             if ($col != 0) {
+               $only_zeros = 0;
+               last;
+             }
+         }
+         if ($only_zeros == 1) {
+             # this series only has zeros, so splice the arrays
+             push @remove_indices, $_;
+         }
+    }
+    my $num_splices = 0;
+    foreach my $index (@remove_indices) {
+         $index -= $num_splices++;
+         splice(@{$results->{series}}, $index, 1);
+         splice(@{$results->{data}}, $index, 1);
+
+    }
+    # make sure we are left with something
+    if (scalar(@{$results->{data}}) == 0) {
+        push @{$results->{data}}, [0] for 0..scalar(@{$results->{headers}});
+        $results->{series}->[0] = 'empty dataset';
+      }
+
 	$results->{total} = $de->format_number($results->{total});
     return $results;
 }
