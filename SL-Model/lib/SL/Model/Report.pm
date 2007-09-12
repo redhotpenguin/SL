@@ -176,7 +176,7 @@ sub views {
         # add the date in the format specified, this is the header
         my $start =
           $end->clone->subtract( @{ $time_hash{$temporal}->{interval} } );
-        push @{ $results->{headers} },
+		unshift @{ $results->{headers} },
           $start->strftime( $time_hash{$temporal}->{format} ) . ' - '
           . $end->strftime( $time_hash{$temporal}->{format} );
 
@@ -186,7 +186,7 @@ sub views {
         # add the data
         my $i = 0;    # location1, location2, etc
         foreach my $location_id ( keys %{ $views_hashref->{locations} } ) {
-            push @{ $results->{data}->[ $i++ ] },
+            unshift @{ $results->{data}->[ $i++ ] },
               $views_hashref->{locations}->{$location_id}->{count};
         }
 
