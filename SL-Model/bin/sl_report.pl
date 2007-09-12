@@ -16,7 +16,7 @@ our $DEBUG    = 0;
 
 my $ADMIN = 'sl_reports@redhotpenguin.com';
 my $FROM  = "SL Reporting Daemon <fred\@redhotpenguin.com>";
-my @DAYS  = qw( 1 3 7 14 30 45 90 135 180 225 270);
+my @DAYS  = qw( 1 3 7 14 30 45 90 135 180 225 270 315 360);
 
 my %results = ();
 
