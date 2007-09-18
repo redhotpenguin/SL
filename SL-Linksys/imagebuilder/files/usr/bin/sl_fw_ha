@@ -38,7 +38,8 @@ sub set_firewall {
     my $route_md5 =
       (split(/\s+/, `/usr/bin/md5sum /etc/firewall.user.$route`))[0];
 
-    if ($default_md5 eq $route_md5) {
+    # check for file existence as well as equivalence
+    if (($default_md5 && $route_md5) && ($default_md5 eq $route_md5)) {
 
         # files are identical
         print "set_firewall on existing firewall $route\n" if $DEBUG;
@@ -46,10 +47,21 @@ sub set_firewall {
     }
 
     # files are different go ahead with the update
+    # stop the firewall
+    my @args = ('/bin/sh', $FIREWALL, 'stop');
+    system(@args) == 0 or die "system @args failed: $?";
+
+    # unlink the old file
     chdir('/etc');
-    unlink('firewall.user') or die $!;
-    my $link    = `ln -s firewall.user.$route firewall.user`;
-    my $restart = `/bin/sh $FIREWALL stop && /bin/sh $FIREWALL start`;
+    unlink('firewall.user') or warn $!;
+
+    # symlink the new file
+    my $link = `ln -s firewall.user.$route firewall.user`;
+    
+    # start the firewall
+    @args = ('/bin/sh', $FIREWALL, 'start');
+    system(@args) == 0 or die "system @args failed: $?";
+    
     print "Firewall restarted: $link\n" if $DEBUG;
     return 1;
 }
