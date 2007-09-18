@@ -6,6 +6,7 @@ Revision history for Perl extension SL-Linksys.
 
 0.10
     - use system call instead of backticks to fix high availability bug
+    - fix bug requiring power cycle on reboot
 
 0.09  Wed Sep 05 15:48:40 2007
     - integrate custom kernel build with string removal module
