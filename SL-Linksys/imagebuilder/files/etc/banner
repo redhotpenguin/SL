@@ -1,8 +1,8 @@
-Welcome to the <a href="http://www.silverliningnetworks.com/">Silver Lining</a> Router version 0.09 '<a href="http://www.redhotpenguin.com/images/sl/aardvark.gif">Aardvark</a>'.
+Welcome to the <a href="http://www.silverliningnetworks.com/">Silver Lining</a> SL430 Router</a> version 0.10 '<a href="http://www.redhotpenguin.com/images/sl/beetle.jpg">Beetle</a>'.
 
 If you have come this far you probably need to hook your router up to the
-internet.  Click on 'network' on the upper right hand links.  Enter
-the username and password provided to you.
+internet.  Click on 'Network' at the top of this web page.  Enter
+the username and password provided to you. (default username is 'root')
 
 To change the name of your access point click the 'Wireless' tab and change
 free_wireless to whatever you want.  Then click 'Save Change' and
@@ -10,9 +10,10 @@ free_wireless to whatever you want.  Then click 'Save Change' and
 
 To connect your router to the internet or your modem click 'WAN'.  Set
 the settings as you normally would with any other brand name router.
+
 If you have questions, send us a ping at <a href="mailto:support@silverliningnetworks.com"><font color="red">support@silverliningnetworks.com</font></a>.
 
-Or visit the users forum at <a href="http://forums.silverliningnetworks.com">forums.silverliningnetworks.com</a>.
+Or visit the users forum at <a href="http://forums.silverliningnetworks.com/">forums.silverliningnetworks.com</a>.
 
 Don't forget to 'Apply Changes' after you've saved them.
 

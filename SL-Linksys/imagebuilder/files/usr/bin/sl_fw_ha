@@ -38,30 +38,37 @@ sub set_firewall {
     my $route_md5 =
       (split(/\s+/, `/usr/bin/md5sum /etc/firewall.user.$route`))[0];
 
-    # check for file existence as well as equivalence
-    if (($default_md5 && $route_md5) && ($default_md5 eq $route_md5)) {
+    if ($default_md5 eq $route_md5) {
 
         # files are identical
         print "set_firewall on existing firewall $route\n" if $DEBUG;
         return 1;
     }
 
+    # race condition after firmware update, the default routing table is
+    # used so we make sure to check for the existence of a DNAT target
+    if ($route eq 'sl') {
+    	# better have a DNAT target
+	my $has_dnat = grep { /^DNAT/ } ( `iptables -t nat --list` );
+	return 1 if ($has_dnat > 0);
+    }
+
     # files are different go ahead with the update
     # stop the firewall
     my @args = ('/bin/sh', $FIREWALL, 'stop');
-    system(@args) == 0 or die "system @args failed: $?";
+    system(@args) == 0 or die "system @args failed: $?";    
 
-    # unlink the old file
+    # remove the existing file
     chdir('/etc');
-    unlink('firewall.user') or warn $!;
+    unlink('firewall.user') or die $!;
 
-    # symlink the new file
-    my $link = `ln -s firewall.user.$route firewall.user`;
-    
+    # relink the files
+    my $link    = `ln -s firewall.user.$route firewall.user`;
+
     # start the firewall
-    @args = ('/bin/sh', $FIREWALL, 'start');
-    system(@args) == 0 or die "system @args failed: $?";
-    
+    my @args = ('/bin/sh', $FIREWALL, 'start');
+    system(@args) == 0 or die "system @args failed: $?";    
+
     print "Firewall restarted: $link\n" if $DEBUG;
     return 1;
 }
