@@ -11,7 +11,8 @@ use DateTime;
 use DateTime::Format::Pg;
 use Mail::Mailer;
 
-our $location = 0;
+our $FULL_LOCATION_DATA = 0;
+our $LOCATIONS = 1;
 our $DEBUG    = 0;
 
 my $ADMIN = 'sl_reports@redhotpenguin.com';
@@ -30,16 +31,16 @@ foreach my $day (@DAYS) {
     my $end   = DateTime->now;
     my $start = $end->clone->subtract( days => $day );
 
-    $start = DateTime::Format::Pg->format_datetime($start);
-    $end   = DateTime::Format::Pg->format_datetime($end);
+    my $start_string = DateTime::Format::Pg->format_datetime($start);
+    my $end_string   = DateTime::Format::Pg->format_datetime($end);
 
     my $views_count =
       SL::Model::App->resultset('View')
-      ->search( { cts => { -between => [ $start, $end ] } } )->count;
+      ->search( { cts => { -between => [ $start_string, $end_string ] } } )->count;
 
     my $clicks_count =
       SL::Model::App->resultset('Click')
-      ->search( { cts => { -between => [ $start, $end ] } } )->count;
+      ->search( { cts => { -between => [ $start_string, $end_string ] } } )->count;
 
     $results{$day}{views}  = $views_count;
     $results{$day}{clicks} = $clicks_count;
@@ -60,31 +61,43 @@ foreach my $day (@DAYS) {
 
     #############################
     # fix me later, this is pretty slow
-    if ($location) {
+    if ($LOCATIONS) {
         foreach my $location (@locations) {
             print STDERR "==> processing location " . $location->ip . "\n"
               if $DEBUG;
-            my ( $views_count, $views_ary_ref ) =
+            my ( $loc_views_count, $views_ary_ref ) =
               $location->views( $start, $end );
-            my ( $clicks_count, $clicks_ary_ref ) =
+            my ( $loc_clicks_count, $clicks_ary_ref ) =
               $location->clicks( $start, $end );
 
-            if (   ( $views_count > 0 )
-                or ( $clicks_count > 0 ) )
+            if (   ( $loc_views_count > 0 )
+                or ( $loc_clicks_count > 0 ) )
             {
 
+
+                # get the routers registered to this location
+                my @router__locations = $location->router__locations;
+                my $router_names = join(' - ',
+                      map { $_->router_id->name || $location->ip }
+                      @router__locations);
+
+                push @{$results{$day}{locations}}, 
+                  [ $router_names, $loc_views_count ];
+
+                if ($FULL_LOCATION_DATA) {
                 $results{$day}{data} ||= [];
                 push @{ $results{$day}{data} },
                   {
                     ip     => $location->ip,
-                    views  => $views_count,
-                    clicks => $clicks_count,
-                    rate   => ( $views_count == 0 )
+                    views  => $loc_views_count,
+                    clicks => $loc_clicks_count,
+                    rate   => ( $loc_views_count == 0 )
                     ? 0
                     : ( ( $clicks_count / $views_count ) * 100 ),
                   };
                 $results{$day}{views}  += $views_count;
                 $results{$day}{clicks} += $clicks_count;
+              }
             }
         }
     }
@@ -138,8 +151,17 @@ foreach my $day (@DAYS) {
     $cnt .= "------------------------------------------------------\n";
 }
 
+$cnt .= "\nBreakdown of most active routers\n\n";
+foreach my $day (@DAYS) {
+        $cnt .= "Last $day days\n";
+      foreach my $location ( sort { $b->[1] <=> $a->[1] } @{$results{$day}{locations}} ) {
+        $cnt .= sprintf("  Router %s had %u views\n", $location->[0], $location->[1]);
+      }
+        $cnt .= "\n";
+}
+
 $cnt .= "\nHave a nice day :)\n";
 
 print STDERR $cnt if $DEBUG;
-print $mailer $cnt;
-$mailer->close;
+print $mailer $cnt unless $DEBUG;
+$mailer->close unless $DEBUG;
