@@ -23,6 +23,12 @@ CREATE TABLE router (
     cts timestamp without time zone DEFAULT now(),
     mts timestamp without time zone DEFAULT now(),
     active boolean default 't',
+    proxy inet,
+    replace_port smallint default 8135,
+    description text default '',
+    name text default '',
+    feed_linkshare boolean default 'f',
+    feed_google boolean default 'f',
 );
 
 ALTER TABLE ONLY router
