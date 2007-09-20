@@ -1,6 +1,7 @@
 Revision history for SL::App
 
 0.l5
+    - add controls for ad feeds to router edit page
     - fix bug in editing ad groups where the current image was
        was not shown if the user did not have permission for it
     - fix sharing permission removal when editing ad group

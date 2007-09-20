@@ -149,6 +149,10 @@ sub dispatch_edit {
       }
 
     # no errors update the router
+    my $feed_google = ($req->param('feed_google') == 1) ? 1 : 0;
+    my $feed_linkshare = ($req->param('feed_linkshare') == 1) ? 1 : 0;
+    $router->feed_google($feed_google);
+    $router->feed_linkshare($feed_linkshare);
     foreach my $param qw( name macaddr serial_number ) {
         $router->$param( $req->param($param) );
       }
@@ -158,6 +162,7 @@ sub dispatch_edit {
     # first get rid of the old associations
     SL::Model::App->resultset('RouterAdGroup')->search(
           {router_id => $router->router_id })->delete_all;
+
     foreach my $ad_group_id ( $req->param('ad_group') ) {
       SL::Model::App->resultset('RouterAdGroup')->find_or_create({
           router_id => $router->router_id,
