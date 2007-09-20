@@ -1,0 +1,6 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/SL-Page-Cache.t
+lib/SL/Page/Cache.pm
