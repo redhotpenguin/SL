@@ -5,6 +5,7 @@ use warnings;
 
 use base 'SL::Model';
 
+use List::Util   ();
 use Template                           ();
 use SL::Model::Proxy::Router::Location ();
 
@@ -31,16 +32,23 @@ use constant TEMPLATE_IDX   => 4;
 use constant CSS_URL_IDX    => 5;
 use constant IMAGE_HREF_IDX => 6;
 use constant LINK_HREF_IDX  => 7;
+use constant OUTPUT_REF     => 8;
 
 use SL::Config;
 our $CONFIG = SL::Config->new;
 our $PATH   = $CONFIG->sl_root . '/tmpl/';
+our $DEBUG = 0;
+
 die "Template include path $PATH doesn't exist!\n" unless -d $PATH;
+
 my $TMPL_CONFIG = {
     ABSOLUTE     => 1,
     INCLUDE_PATH => $PATH,
 };
 our $TEMPLATE = Template->new($TMPL_CONFIG) || die $Template::ERROR, "\n";
+
+our $GOOGLE_RE = qr/(?:google|gmail|googlepages)/;
+our $GOOGLE_AD_GROUP_ID = $CONFIG->sl_google_ad_group_id || die 'no google ad_group_id set';
 
 =head1 METHODS
 
@@ -136,7 +144,7 @@ sub stacked {
     return $decoded_content;
 }
 
-use constant SL_FEED_SQL => q{
+use constant SL_LINKSHARE_SQL => q{
 SELECT
 ad_linkshare.ad_id,    ad_linkshare.displaytext AS text,
 ad.md5,                ad_linkshare.linkurl AS uri,
@@ -152,18 +160,21 @@ ORDER BY RANDOM()
 LIMIT 1
 };
 
-sub _sl_feed {
-    my ( $class, $ip ) = @_;
+sub _linkshare {
+    my ( $class, $ip, $url ) = @_;
 
     # only linkshare for right now
     my $dbh = SL::Model->connect();
-    my $sth = $dbh->prepare(SL_FEED_SQL);
+    my $sth = $dbh->prepare(SL_LINKSHARE_SQL);
     $sth->bind_param( 1, $ip );
     my $rv = $sth->execute;
-    die "Problem executing query: " . SL_FEED_SQL unless $rv;
+    die "Problem executing query: " . SL_LINKSHARE_SQL unless $rv;
 
     my $ad_data = $sth->fetchrow_arrayref;
     $sth->finish;
+
+    return unless defined $ad_data->[AD_ID_IDX];
+
     return $ad_data;
 }
 
@@ -193,7 +204,7 @@ LIMIT 1
 };
 
 sub _sl_location {
-    my ( $class, $ip ) = @_;
+    my ( $class, $ip, $url ) = @_;
 
     die 'no ip' unless $ip;
 
@@ -249,7 +260,7 @@ LIMIT 1
 };
 
 sub _sl_router {
-    my ( $class, $ip ) = @_;
+    my ( $class, $ip, $url ) = @_;
 
     # get the ads specific to this router_id
     my $dbh = SL::Model->connect();
@@ -281,7 +292,7 @@ LIMIT 1
 };
 
 sub _sl_default {
-    my ( $class, $ip ) = @_;
+    my ( $class, $ip, $url ) = @_;
 
     my $dbh = SL::Model->connect();
     my $sth = $dbh->prepare_cached(SL_DEFAULT_SQL);
@@ -291,47 +302,146 @@ sub _sl_default {
 
     my $ad_data = $sth->fetchrow_arrayref;
     $sth->finish;
+
+    return unless defined $ad_data->[AD_ID_IDX];
+
+    return $ad_data;
+}
+
+use constant SL_GOOGLE_SQL => q{
+SELECT
+ad_sl.ad_id,         ad_sl.text,         ad.md5,     ad_sl.uri,
+ad_group.template,   ad_group.css_url,
+bug.image_href,      bug.link_href
+FROM ad_sl, ad, ad_group, bug
+WHERE ad.active = 't'
+AND ad_group.ad_group_id = ?
+AND ad_group.ad_group_id = ad.ad_group_id
+AND ad_sl.ad_id = ad.ad_id
+AND ad_group.bug_id = bug.bug_id
+ORDER BY RANDOM()
+LIMIT 1
+};
+
+# google ad
+sub _google {
+    my ($class, $ip, $url) = @_;
+
+    # we don't run google ads on certain urls;
+    return if ($url =~ m/$GOOGLE_RE/i);
+
+    my $dbh = SL::Model->connect();
+    my $sth = $dbh->prepare_cached(SL_GOOGLE_SQL);
+    $sth->bind_param( 1, $GOOGLE_AD_GROUP_ID );
+    my $rv = $sth->execute;
+    die "Problem executing query: " . SL_GOOGLE_SQL unless $rv;
+
+    my $ad_data = $sth->fetchrow_arrayref;
+    $sth->finish;
+
+    return unless defined $ad_data->[AD_ID_IDX];
+
+    return $ad_data;
+}
+
+use constant ROUTERS_FROM_IP => q{
+SELECT router_id, feed_google, feed_linkshare
+FROM router
+WHERE router_id IN ( SELECT router_id
+                     FROM router__location
+                     INNER JOIN location USING(location_id)
+                     WHERE location.ip = ? )
+};
+
+# returns the router data for a given ip
+sub _routers_from_ip {
+    my ($class, $ip) = @_;
+
+    my $dbh = SL::Model->connect();
+    my $sth = $dbh->prepare_cached(ROUTERS_FROM_IP);
+    $sth->bind_param( 1, $ip );
+    my $rv = $sth->execute;
+    die "Problem executing query: " . ROUTERS_FROM_IP unless $rv;
+
+    my $routers_aryref = $sth->fetchall_arrayref;
+    $sth->finish;
+
+    return $routers_aryref;
+}
+
+# returns the possible methods for an ad given an ip
+sub _ad_methods_from_ip {
+    my ($class, $ip) = @_;
+
+    my @methods;
+    my $routers_aryref = $class->_routers_from_ip($ip);
+
+    # see if this ip can serve google ads
+    if ( grep { $_->[1] == 1 } @{$routers_aryref} ) {
+        push @methods, '_google';
+    }
+
+    # see if this ip can serve linkshare ads
+    if ( grep { $_->[2] == 1 } @{$routers_aryref} ) {
+        push @methods, '_linkshare';
+    }
+
+    # assume it has sl ad groups
+    push @methods, '_sl';
+
+    my @shuffled = List::Util::shuffle(@methods);
+
+    return \@shuffled;
+}
+
+# silverlining ad dispatcher
+
+sub _sl {
+    my ($class, $ip, $url) = @_;
+
+    # grab an ad for this location
+    my $ad_data = $class->_sl_location($ip);
+
+    unless ( defined $ad_data->[TEXT_IDX] ) {
+
+            # nothing for location, try router specific
+            $ad_data = $class->_sl_router($ip);
+    }
+
+    return unless defined $ad_data->[TEXT_IDX];
+
     return $ad_data;
 }
 
 # this method returns a random ad, given the ip of the router
 sub random {
-    my ( $class, $ip ) = @_;
+    my ( $class, $ip, $url ) = @_;
 
-    # figure out what ad to serve.
-    # current logic says  use default/custom ad groups 25% of the time
-    # and our feeds 75% of the time
-    my $feed_threshold   = 100;
-    my $custom_threshold = 0;
+    # get the list of ad types we can serve for this ip
+    my $ad_methods_ref = $class->_ad_methods_from_ip($ip);
+
+    # loop over them, apply conditions until we have an ad
     my $ad_data;
-    my $rand = rand(100);
-    if ( $rand >= $feed_threshold ) {
-        $ad_data = $class->_sl_feed($ip);
-    }
-    elsif ( $rand >= $custom_threshold ) {
 
-        # grab an ad for this location
-        $ad_data = $class->_sl_location($ip);
-
-        unless ( defined $ad_data->[TEXT_IDX] ) {
-
-            # nothing for location, try router specific
-            $ad_data = $class->_sl_router($ip);
-        }
+    foreach my $ad_method (@{$ad_methods_ref}) {
+      warn("calling method $ad_method") if $DEBUG;
+        $ad_data = $class->$ad_method($ip, $url);
+        last if defined $ad_data->[AD_ID_IDX];
     }
 
-    # no ad returned?
-    unless ( defined $ad_data->[TEXT_IDX] ) {
-        $ad_data = $class->_sl_default($ip);
+    # no ad returned?  try the default ad which should not fail
+    unless ( defined $ad_data->[AD_ID_IDX] ) {
+        $ad_data = $class->_sl_default($ip, $url);
 
         # going to hell for this one
-        return unless defined $ad_data->[TEXT_IDX];
+        return unless defined $ad_data->[AD_ID_IDX];
     }
 
-    my $output_scalar_ref = $class->process_ad_template($ad_data);
+    # process the template
+    my $output_ref = $class->process_ad_template($ad_data);
 
-    # return the id, string output, and css url
-    return ( $ad_data->[AD_ID_IDX], $output_scalar_ref,
+    # return the id, string output ref, and css url
+    return ( $ad_data->[AD_ID_IDX], $output_ref,
         \$ad_data->[CSS_URL_IDX], );
 }
 

@@ -10,6 +10,7 @@ bin/sl_update_linkshare.pl
 bin/sl_update_schema.pl
 lib/SL/Model/Ad/Group.pm
 lib/SL/Model/Ad.pm
+lib/SL/Model/Ad/Google.pm
 lib/SL/Model/App/Location.pm
 lib/SL/Model/App/Reg.pm
 lib/SL/Model/App.pm
@@ -26,6 +27,7 @@ t/SL-Model-Ad-Hogwild.t
 t/SL-Model-Ad-LiveEarth.t
 t/SL-Model-Ad-Wsj.t
 t/SL-Model-Ad.t
+t/SL-Model-Ad-Google.t
 t/SL-Model-App.t
 t/SL-Model-Proxy-Location.t
 t/SL-Model-Proxy-Router-Location.t

@@ -69,6 +69,7 @@ my $macaddr = '00:02:B3:4D:BD:87';
 # get rid of routers and locations
 my $dbh = SL::Model->connect;
 $dbh->do("DELETE FROM location WHERE ip = '$ip'")         or die $DBI::errstr;
+diag('putting a test router in place');
 $dbh->do("DELETE FROM router WHERE macaddr = '$macaddr'") or die $DBI::errstr;
 $dbh->do("DELETE FROM ad_group where ad_group_id > 1")    or die $DBI::errstr;
 
