@@ -19,6 +19,13 @@ sl_db_pass
 sl_db_ping_timeout 5
 sl_db_debug 0
 
+# google ad stuff
+sl_google_client_id 578595112578004
+sl_google_base_url  http://pagead1.googlesyndication.com
+sl_google_client_id_offset 62
+sl_google_ad_group_id 16
+sl_google_ad_id 255
+
 # debugging levels, etc.  debug is single user mode
 #sl_devel  1
 #sl_debug  1

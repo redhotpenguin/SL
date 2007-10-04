@@ -1,5 +1,8 @@
 Revision history for SL-Config
 
+0.12 Wed Oct 02 01:44:00 2007
+    - add google ad options
+
 0.11 Thu Jul 26 11:47:35 2007
     - add directives for SL-App 0.10
 

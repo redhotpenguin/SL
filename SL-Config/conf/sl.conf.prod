@@ -20,39 +20,46 @@ sl_db_debug 0
 #sl_prof  1
 #sl_status 1
 
+# google ad stuff
+sl_google_client_id 578595112578004
+sl_google_base_url  http://pagead2.googlesyndication.com
+sl_google_client_id_offset 62
+sl_google_ad_group_id 16
+sl_google_ad_id 255
+
 # proxy server settings
-sl_proxy_apache_deflate  1
+sl_proxy_apache_deflate  0
 sl_proxy_apache_maxclients  384
 sl_proxy_apache_start_servers  192
-sl_proxy_apache_max_spare_servers  64
-sl_proxy_apache_min_spare_servers  32
+sl_proxy_apache_max_spare_servers  32
+sl_proxy_apache_min_spare_servers  16
 sl_proxy_apache_loglevel  error
 sl_proxy_apache_keepalive  On
 sl_proxy_apache_user  phred
 sl_proxy_apache_group  users
 sl_proxy_admin support@silverliningnetworks.com
-sl_proxy_apache_listen  64.151.90.20:80
-sl_proxy_apache_listen2  64.151.90.22:80
+sl_proxy_apache_listen  69.36.240.29:80
+sl_proxy_apache_listen2  69.36.240.30:80
 sl_proxy_apache_max_requests_per_child 250
 
 sl_proxy_servername  app2.redhotpenguin.com
 sl_proxy_rate_limit '5'
 
-sl_clickserver_url http://64.151.90.20:81/click/
-sl_clickserver_uri  http://localhost:81/ad
+sl_clickserver_url http://69.36.240.29:81/click/
 sl_whitelist  Off
 sl_method  Container
 sl_proxy  mod_proxy
 sl_css_uri  http://www.redhotpenguin.com/css/sl.css
 
 # app server settings
+sl_app_root /home/phred/dev/sl/sl_app_root
 sl_app_servername  www.redhotpenguin.com
 sl_app_apache_deflate  1
-sl_app_apache_loglevel  debug
+sl_app_apache_loglevel  error
 sl_app_apache_maxclients  32
 sl_app_apache_start_servers  16
-sl_app_apache_min_spare_servers  8
 sl_app_apache_max_spare_servers  16
+sl_app_apache_min_spare_servers  8
 sl_app_apache_keepalive  On
 sl_app_apache_user  phred
 sl_app_apache_group  users
@@ -60,13 +67,10 @@ sl_app_http_port  81
 sl_app_cookie_name SLApp
 sl_app_auth_uri '/login'
 sl_app_auth_secret kEa+!&MrJ=EzTjup@YWB-bF#&KLmxSH$bj=W#rkn_c?wem+BP!BxLmVWr@#XP#@$
-sl_app_static_host_ip 10.0.0.1
-sl_app_static_user fred
-sl_app_static_path '/var/www/redhotpenguin.com/images/sl'
-sl_app_static_host 'http://www.redhotpenguin.com'
 sl_app_base_uri '/sl'
 sl_app_home_uri http://www.silverliningnetworks.com/
 sl_app_css_uri http://www.redhotpenguin.com/css/app.css
-sl_app_report_uri http://www.redhotpenguin.com/img/data
+sl_app_report_uri https://www.redhotpenguin.com/img/data
 sl_app_server https://www.redhotpenguin.com
+
 

@@ -25,6 +25,16 @@ sl_devel  1
 sl_status 1
 #sl_small_prof  1
 
+# google ad stuff
+sl_google_client_id 578595112578004
+sl_google_base_url  http://pagead2.googlesyndication.com
+sl_google_client_id_offset 62
+sl_google_ad_group_id 16
+sl_google_ad_id 255
+
+# mogilefs
+sl_mogile_host  127.0.0.1:6969
+
 # proxy server settings
 sl_proxy_apache_deflate  1
 sl_proxy_apache_maxclients  2
@@ -35,7 +45,7 @@ sl_proxy_apache_min_spare_servers  1
 sl_proxy_apache_loglevel  info
 sl_proxy_apache_keepalive  On
 sl_proxy_apache_user  phred
-sl_proxy_apache_group  apache
+sl_proxy_apache_group  phred
 sl_proxy_admin support@silverliningnetworks.com
 sl_proxy_servername  sl_proxy
 sl_proxy_rate_limit '3'
