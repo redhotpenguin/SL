@@ -11,6 +11,7 @@ WriteMakefile(
         'String::Strip'    => 1.01,
         'Cache::FastMmap'  => 1.14,
         'SL::Config'       => 0.10,
+        'SL::Static'       => 0.10,
     },
     ABSTRACT => 'Caching abstraction for SL',
     AUTHOR   => 'Fred Moyer <fred@redhotpenguin.com>',

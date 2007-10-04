@@ -8,6 +8,7 @@ use HTML::TokeParser ();
 use URI              ();
 use SL::Cache        ();
 use base 'SL::Cache';
+use SL::Static       ();
 
 our $DEBUG = 0;
 
@@ -77,13 +78,18 @@ sub collect_subrequests {
 
     # look for tags that can house sub-reqs
     my ( @subrequests, %found );
-    while ( my $token = $parser->get_tag(qw(script iframe frame src script 
+    while ( my $token = $parser->get_tag(qw(script iframe frame src script
                                             img link)) ) {
         my $attrs = $token->[1];
         my $url;
         if ($token->[0] eq 'link') {
              $url = $attrs->{href};
-         } else { # everything else    
+            # only handle static content links
+            if (defined $url) {
+                next unless SL::Static::is_static_content({
+                                url => $url, type => $attrs->{type} });
+            }
+         } else { # everything else
              $url = $attrs->{src};
         }
 
