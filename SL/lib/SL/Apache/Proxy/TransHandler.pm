@@ -151,7 +151,7 @@ sub handler {
                                                ip => $r->connection->remote_ip })) 
     {
         $r->log->debug("$$ google ad click match for url $url, ip " .
-                       $r->connection->remote_ip . ", new url $new_url");
+                       $r->connection->remote_ip . ", new uri $new_uri");
         $r->construct_url( $new_uri );
         return &proxy_request($r);
     }
