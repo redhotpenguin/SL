@@ -1,2 +1,0 @@
-SL_APP_PID=$HOME/dev/sl/tmp/sl_app.pid
-kill `cat $SL_APP_PID` && sleep 5 && perl bin/sl_app

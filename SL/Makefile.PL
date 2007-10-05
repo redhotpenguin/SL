@@ -5,7 +5,7 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
               NAME      => 'SL',
-              VERSION   => '0.09',
+              VERSION   => '0.11',
               PREREQ_PM => {
                             'Apache::DBI'          => 1.06,
                             'Cache::FastMmap'      => 1.14,
@@ -22,7 +22,7 @@ WriteMakefile(
                             'SL::HTTP::Request'    => 0.1,
                             'RHP::Timer'           => 0.1,
                            },
-              EXE_FILES => [qw( bin/sl_proxy bin/sl_app )],
+              EXE_FILES => [qw( bin/sl_proxy )],
               ABSTRACT  => 'An ad serving proxy server',
               AUTHOR    => 'Fred Moyer <fred@redhotpenguin.com>',
              );

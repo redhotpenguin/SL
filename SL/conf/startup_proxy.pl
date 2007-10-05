@@ -48,6 +48,7 @@ use APR::Table              ();
 
 use SL::Model                ();
 use SL::Model::Ad            ();
+use SL::Model::Ad::Google    ();
 use SL::Model::URL           ();
 use SL::Model::Proxy::Router ();
 use SL::Model::Proxy::Location ();

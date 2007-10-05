@@ -1,4 +1,4 @@
-package SL::Apache::Proxy::ResponseHandler;
+zxsxzfgxbpackage SL::Apache::Proxy::ResponseHandler;
 
 use strict;
 use warnings;
@@ -75,6 +75,9 @@ my $SL_UA = SL::UserAgent->new;
 our $CACHE = SL::Cache->new( type => 'raw' );
 our $RATE_LIMIT = SL::Cache::RateLimit->new;
 our $SUBREQUEST_TRACKER = SL::Cache::Subrequest->new;
+
+use SL::Page::Cache;
+my $PAGE_CACHE = SL::Page::Cache->new;
 
 =head1 AD SERVING
 
@@ -774,12 +777,16 @@ sub _generate_response {
     # yes this is ugly but it helps for testing
     return $response->decoded_content if (NOOP_RESPONSE == 1);
 
+    my $url     = $r->pnotes('url');
+    my $ua      = $r->pnotes('ua');
+    my $referer = $r->pnotes('referer');
+
     # put the ad in the response
     $TIMER->start('random_ad')
       if ( $r->server->loglevel() == Apache2::Const::LOG_INFO );
 
-    my ( $ad_id, $ad_content_ref, $css_url ) =
-      SL::Model::Ad->random( $r->connection->remote_ip );
+    my ( $ad_id, $ad_content_ref, $css_url, $isa_google_ad ) =
+      SL::Model::Ad->random( $r->connection->remote_ip, $url );
 
     # checkpoint
     if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {
@@ -794,10 +801,6 @@ sub _generate_response {
         $r->log->error("$$ Hmm, we didn't get an ad");
         return \$response->content;
     }
-
-    my $url     = $r->pnotes('url');
-    my $ua      = $r->pnotes('ua');
-    my $referer = $r->pnotes('referer');
 
     # Skip ad insertion if $skips regex match on decoded_content
     # It is a fix for sites like google, yahoo who send encoded UTF-8 et al
@@ -822,9 +825,33 @@ sub _generate_response {
         $TIMER->start('container insertion')
           if ( $r->server->loglevel() == Apache2::Const::LOG_INFO );
 
+        if ($isa_google_ad) {
+            # create a dynamic page for this content unless one exists
+            my $cached_page_url = $PAGE_CACHE->exists($url);
+
+            unless ($cached_page_url) {
+                # new virtual page, create that shit holmes!
+                my $new_page_url = $PAGE_CACHE->insert({
+                    url => $url,
+                    content_ref => \$response->content });
+
+                unless ($new_page_url) {
+                    $r->log->error("Could not create new cached page $url");
+                    return \$response->content;
+                }
+
+                $r->log->debug("created virtual page for url $url");
+            }
+        }
+
+        # put the ad in the page
         my $ok = SL::Model::Ad::container( $css_url, \$decoded_content,
             $ad_content_ref );
-		return \$response->content unless $ok;
+
+        unless ($ok) {
+            warn("could not insert ad into page!");
+            return \$response->content;
+        }
 
         # checkpoint
         if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {

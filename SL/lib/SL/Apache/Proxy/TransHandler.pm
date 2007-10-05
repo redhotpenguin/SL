@@ -47,6 +47,7 @@ use SL::Util                ();
 use RHP::Timer              ();
 use SL::Cache				();
 use SL::Cache::Subrequest   ();
+use SL::Model::Ad::Google   ();
 
 our $CACHE = SL::Cache->new( type => 'raw' );
 our $SUBREQUEST_TRACKER = SL::Cache::Subrequest->new;
@@ -125,22 +126,13 @@ sub handler {
         $TIMER->start('url_blacklisted');
     }
 
-    # blacklisted urls
-	return &proxy_request($r) if (url_blacklisted($url));
-	#return &proxy_request($r) if$CACHE->url_blacklisted($url);
-
-    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $r->log->info(
-             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
-        $TIMER->start('not_a_browser');
-    }
-
     ## Handle non-browsers that use port 80
     return &proxy_request($r) if (_not_a_browser($r));
 
     # we only serve ads on GETs
     return &proxy_request($r) if ($r->method ne 'GET');
 
+    # start the timer holmes
     if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
         $r->log->info(
              sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
@@ -153,9 +145,28 @@ sub handler {
         return &proxy_request($r);
     }
 
+    # if this is one of our google ads then log it and pass it
+    # this needs to be before the blacklist check
+    if (my $new_uri = SL::Model::Ad::Google->match_and_log({ url => $url,
+                                               ip => $r->connection->remote_ip })) 
+    {
+        $r->log->debug("$$ google ad click match for url $url, ip " .
+                       $r->connection->remote_ip . ", new url $new_url");
+        $r->construct_url( $new_uri );
+        return &proxy_request($r);
+    }
+
+    # blacklisted urls
+	return &proxy_request($r) if (url_blacklisted($url));
+
+    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+        $r->log->info(
+             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
+        $TIMER->start('not_a_browser');
+    }
+
     # check for sub-reqs if it passed the other tests
     my $is_subreq = $SUBREQUEST_TRACKER->is_subrequest(url => $url);
-	#$r->log->debug("$$ ===> $url is_subreq: $is_subreq");
     return &proxy_request($r) if $is_subreq;
 
     ## Check the cache for a static content match
