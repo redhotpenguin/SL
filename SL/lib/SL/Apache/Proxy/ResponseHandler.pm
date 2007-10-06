@@ -37,7 +37,6 @@ use SL::Model::Ad         ();
 use SL::Cache			  ();
 use SL::Cache::Subrequest ();
 use SL::Cache::RateLimit  ();
-use SL::Model::RateLimit  ();
 use SL::Model::Proxy::Router  ();
 use Data::Dumper          qw(Dumper);
 use Encode                ();
@@ -53,7 +52,7 @@ my $REMOTE_TIMER = RHP::Timer->new();
 use constant NOOP_RESPONSE => 0;
 use constant SL_XHEADER    => 0;
 
-our $VERBOSE_DEBUG = 1;
+our $VERBOSE_DEBUG = 0;
 our %response_map  = (
     200 => 'twohundred',
     204 => 'twoohfour',
