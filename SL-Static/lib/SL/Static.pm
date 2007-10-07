@@ -15,7 +15,7 @@ BEGIN {
     $CONFIG = SL::Config->new();
     # TODO - need to parse javascript files
     my @extensions = qw( ad avi bin bz2 css doc exe fla gif gz ico jpeg 
-        jpg js pdf png ppt rar sit rss tgz txt wmv vob xpi zip );
+        jpg js pdf png ppt rar rdf sit rss tgz txt wmv vob xpi zip );
     $EXT_REGEX = Regexp::Assemble->new->add(@extensions)->re;
     print STDERR "Extensions regex for SL::Static is $EXT_REGEX\n" if $DEBUG;
 
@@ -27,10 +27,22 @@ BEGIN {
 }
 
 sub is_static_content {
-    my $url = shift;
-    die "no url!\n" unless $url;
+    my $args_ref = shift;
+    unless ((exists $args_ref->{url}) or (exists $args_ref->{type})) {
+        warn(sprintf("is_static_content called without args, url %s, type %s",
+                    $args_ref->{url}, $args_ref->{type}));
+        return;
+    }
 
-    return 1 if ( $url =~ m{\.(?:$EXT_REGEX)$}i );
+    if ($args_ref->{type}) {
+        # check the type first, everything is static except html
+        return 1 if ($args_ref->{type} ne 'text/html');
+    }
+
+    if ($args_ref->{url}) {
+      return 1 if ( $args_ref->{url} =~ m{\.(?:$EXT_REGEX)$}i );
+    }
+
     return;
 }
 
