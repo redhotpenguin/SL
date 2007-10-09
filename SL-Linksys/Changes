@@ -4,7 +4,11 @@ Revision history for Perl extension SL-Linksys.
     - remove port designation from outgoing http host headers to fix
       bug with services like akamai choking on the invalid port number
 
-0.10
+0.11 Mon Oct 8 20:50:04 2007
+    - fix a bug with sl_config_update that was causing the config file
+      to disappear.  Affected high availability and new registrations
+
+0.10 Mon Oct 1 20:11:03 2007
     - use system call instead of backticks to fix high availability bug
     - fix bug requiring power cycle on reboot
 

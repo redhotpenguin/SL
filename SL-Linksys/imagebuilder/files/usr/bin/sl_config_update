@@ -1,22 +1,25 @@
 #!/usr/bin/microperl
 
-our $DEBUG = 1;
-
 my $default_wget = '/usr/bin/wget';
 unless (-e $default_wget) {
     print STDERR "wget not found at $default_wget\n";
     exit(1);
 }
 
-my $config_file =  '/etc/sl.conf';
+our $DEBUG = 0;
+our $CONFIG_FILE =  '/etc/sl.conf';
+our $DEFAULT_CONFIG_URL = 'http://www.redhotpenguin.com/sl/linksys/etc/sl.conf';
+
 my $reboot;
 
 #############################################
 # gather up the files that need to be updated
 
-my $updated = _update_config_file($config_file);
+print STDERR "==> updating config file\n" if $DEBUG;
+my $updated = _update_config_file($CONFIG_FILE);
+print STDERR "<== config file updated\n" if $DEBUG;
 $reboot = 1 if $updated;
-my $urls_ref = _http_urls_from_config($config_file);
+my $urls_ref = _http_urls_from_config($CONFIG_FILE);
 
 foreach my $url (@{$urls_ref}) {
     my $updated = _grab_and_update($url);
@@ -65,7 +68,9 @@ sub _update_config_file {
     open($fh, '<', $config_file) or die $!;
 
     my $url;
+    my $line_count = 0;
     while (my $line = <$fh>) {
+    	$line_count++;
         chomp($line);
         next unless ($line =~ m/^config/);
         $url = (split(/\s+/, $line))[1];
@@ -73,6 +78,11 @@ sub _update_config_file {
     }
     close($fh) or die $!;
 
+
+    if ($line_count == 0) {
+    	# bad news, config file got nuked
+	$url = $DEFAULT_CONFIG_URL;
+    }    	
     my $updated = _grab_and_update($url, $config_file);
     return 1 if $updated;
     return;
