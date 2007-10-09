@@ -1,15 +1,25 @@
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl SL-Page-Cache.t'
+use strict;
+use warnings FATAL => 'all';
 
-#########################
+use Test::More tests => 4;
+my $pkg;
+BEGIN { 
+    $pkg = 'SL::Page::Cache';
+    use_ok($pkg);
+};
 
-# change 'tests => 1' to 'tests => last_test_to_print';
+my $cache = $pkg->new;
+isa_ok($cache, $pkg);
 
-use Test::More tests => 1;
-BEGIN { use_ok('SL::Page::Cache') };
+my $content = 'fizzbin';
 
-#########################
+my $url = 'http%3A%2F%2Fbar.com';
+my $cache_url;
+$cache_url = $cache->insert({ url => $url,
+                                     content_ref => \$content });
 
-# Insert your test code below, the Test::More module is use()ed here so read
-# its man page ( perldoc Test::More ) for help writing this test script.
+ok($cache_url, "cache_url is $cache_url");
+
+my $new_cache_url = $cache->cache_url({ url => $url });
+cmp_ok($new_cache_url, 'eq', $cache_url, 'cache url ok');
 

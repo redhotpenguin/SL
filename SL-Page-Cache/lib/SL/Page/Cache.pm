@@ -27,7 +27,9 @@ sub new {
 }
 
 sub cache_url {
-    my ( $self, $url ) = @_;
+    my ( $self, $args_ref ) = @_;
+
+    my $url = $args_ref->{url} || die 'no url passed';
 
     my @cache_urls = $self->{mogc}->get_paths($url);
 
@@ -44,14 +46,9 @@ sub insert {
     my $content_ref = $args_ref->{content_ref};
     unless ($content_ref) { warn 'no content_ref passed' && return }
 
-    my $fh = $self->{mogc}->new_file( $url, __PACKAGE__ );
-
-    print $fh $$content_ref;
-
-    unless ( $fh->close ) {
-        warn( "Error writing url $url: "
-              . $self->{mogc}->errcode . ": "
-              . $self->{mogc}->errstr );
+    my $bytes = $self->{mogc}->store_content( $url, undef, $$content_ref );
+    unless ($bytes) {
+        warn("store_content() error: " . $self->{mogc}->errstr);
         return;
     }
 
