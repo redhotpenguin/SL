@@ -1,5 +1,8 @@
 Revision history for Perl extension SL-Page-Cache.
 
+0.02  Tue Oct 09 13:07:08 2007
+    - md5_hex the url before storing it in mogfs so it is under 255
+
 0.01  Tue Sep 19 22:11:03 2007
     - created middleware for MogileFS::Client
 	- original version; created by h2xs 1.23 with options
