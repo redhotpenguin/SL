@@ -2,6 +2,4 @@ Changes
 Makefile.PL
 MANIFEST
 README
-t/request.t
 lib/SL/HTTP/Request.pm
-META.yml                                 Module meta-data (added by MakeMaker)
