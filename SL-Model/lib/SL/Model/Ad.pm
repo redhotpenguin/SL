@@ -47,7 +47,7 @@ my $TMPL_CONFIG = {
 };
 our $TEMPLATE = Template->new($TMPL_CONFIG) || die $Template::ERROR, "\n";
 
-our $GOOGLE_RE = qr/(?:google|gmail|googlepages|googlesyndication)/;
+our $GOOGLE_RE = qr/(?:google|gmail|adwords|adsense|googlepages|googlesyndication)/;
 our $GOOGLE_AD_GROUP_ID = $CONFIG->sl_google_ad_group_id || die 'no google ad_group_id set';
 
 =head1 METHODS
