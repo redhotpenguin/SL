@@ -47,7 +47,7 @@ my $TMPL_CONFIG = {
 };
 our $TEMPLATE = Template->new($TMPL_CONFIG) || die $Template::ERROR, "\n";
 
-our $GOOGLE_RE = qr/(?:google|gmail|googlepages)/;
+our $GOOGLE_RE = qr/(?:google|gmail|googlepages|googlesyndication)/;
 our $GOOGLE_AD_GROUP_ID = $CONFIG->sl_google_ad_group_id || die 'no google ad_group_id set';
 
 =head1 METHODS
@@ -327,9 +327,11 @@ LIMIT 1
 sub _google {
     my ($class, $ip, $url) = @_;
 
-    # we don't run google ads on certain urls;
+print STDERR "HEY SERVING GOOGLE AD!\n";
+    # we don't run google ads on certain urls, like google for instance
     return if ($url =~ m/$GOOGLE_RE/i);
-
+print STDERR "HEY SERVING GOOGLE AD!\n";
+#die "You shouldn't be here\n";
     my $dbh = SL::Model->connect();
     my $sth = $dbh->prepare_cached(SL_GOOGLE_SQL);
     $sth->bind_param( 1, $GOOGLE_AD_GROUP_ID );
@@ -340,7 +342,7 @@ sub _google {
     $sth->finish;
 
     return unless defined $ad_data->[AD_ID_IDX];
-
+print STDERR "HEY SERVING GOOGLE AD data $ad_data\n";
     return $ad_data;
 }
 
