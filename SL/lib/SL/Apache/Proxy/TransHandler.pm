@@ -55,12 +55,12 @@ our $SUBREQUEST_TRACKER = SL::Cache::Subrequest->new;
 my $TIMER = RHP::Timer->new();
 
 sub proxy_request {
-    my $r = shift;
+    my ($r, $uri) = @_;
     if ($r->dir_config('SLProxy') eq 'perlbal') {
-        return &perlbal($r);
+        return &perlbal($r, $uri);
     }
     elsif ($r->dir_config('SLProxy') eq 'mod_proxy') {
-        return &mod_proxy($r);
+        return &mod_proxy($r, $uri);
     }
 }
 
@@ -152,8 +152,8 @@ sub handler {
     {
         $r->log->debug("$$ google ad click match for url $url, ip " .
                        $r->connection->remote_ip . ", new uri $new_uri");
-        $r->construct_url( $new_uri );
-        return &proxy_request($r);
+
+        return &proxy_request($r, $new_uri);
     }
 
     # blacklisted urls
@@ -222,19 +222,32 @@ sub _not_a_browser {
 }
 
 sub mod_proxy {
-    my $r = shift;
+    my ($r, $uri) = @_;
 
     ## Don't change this next line even if you think you should
     my $url = $r->construct_url;
 
     ## Use mod_proxy to do the proxying
-    $r->log->debug("$$ mod_proxy handling request for $url");
-    $r->uri($url);
+    $r->log->debug("$$ mod_proxy handling request for $url,");
+    $r->log->debug("$$ new uri is $uri");
+    $r->log->debug("$$ unparsed uri " . $r->unparsed_uri);
+
+    if ($uri) {
+      $r->uri($uri);
+      $r->unparsed_uri($uri);
+
+      $r->log->debug("$$ 2222unparsed uri " . $r->unparsed_uri);
+      $r->log->debug("$$ uri " . $r->uri);
+    }
 
     # Don't change this stuff either unless you are on a desert island alone
-    $r->filename("proxy:$url");
+      $r->filename("proxy:$url");
+
+    $r->log->debug("filename is " . $r->filename);
     $r->handler('proxy-server');
     $r->proxyreq(1);
+        $r->log->error("URI is " . $r->as_string);
+        $r->log->error("\nTHE REQUEST " . $r->the_request);
     return Apache2::Const::DECLINED;
 }
 

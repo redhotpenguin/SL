@@ -46,6 +46,8 @@ use Regexp::Assemble      ();
 use SL::Config;
 my $CONFIG = SL::Config->new;
 
+our $GOOGLE_AD_ID = $CONFIG->sl_google_ad_id;
+
 my $TIMER = RHP::Timer->new();
 my $REMOTE_TIMER = RHP::Timer->new();
 
@@ -76,7 +78,7 @@ our $RATE_LIMIT = SL::Cache::RateLimit->new;
 our $SUBREQUEST_TRACKER = SL::Cache::Subrequest->new;
 
 use SL::Page::Cache;
-my $PAGE_CACHE = SL::Page::Cache->new;
+use Data::Dumper;
 
 =head1 AD SERVING
 
@@ -663,7 +665,7 @@ sub twohundred {
     my $ua = $r->pnotes('ua');
 
     # Cleanse the content-type.  I first noticed this with Opera 9.0 on the
-    # Mac when doing a google toolbar search the first time I used Opera 9
+    # Mac when doing a googl etoolbar search the first time I used Opera 9
     # I saw this happen on IE first though
     # IE is very picky about it's content type so we use a hack here - FIXME
     if ( !$ua ) { $r->log->error("UA $ua for url $url") }
@@ -784,9 +786,8 @@ sub _generate_response {
     $TIMER->start('random_ad')
       if ( $r->server->loglevel() == Apache2::Const::LOG_INFO );
 
-    my ( $ad_id, $ad_content_ref, $css_url, $isa_google_ad ) =
+    my ( $ad_id, $ad_content_ref, $css_url ) =
       SL::Model::Ad->random( $r->connection->remote_ip, $url );
-
     # checkpoint
     if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {
         $r->log->info(
@@ -824,11 +825,14 @@ sub _generate_response {
         $TIMER->start('container insertion')
           if ( $r->server->loglevel() == Apache2::Const::LOG_INFO );
 
-        if ($isa_google_ad) {
-            # create a dynamic page for this content unless one exists
-            my $cached_page_url = $PAGE_CACHE->exists($url);
+        if ( $ad_id eq $GOOGLE_AD_ID) {
+           my $PAGE_CACHE = SL::Page::Cache->new;
+
+           # create a dynamic page for this content unless one exists
+            my $cached_page_url = $PAGE_CACHE->cache_url({ url => $url});
 
             unless ($cached_page_url) {
+              $r->log->debug("Cache page content for $cached_page_url");
                 # new virtual page, create that shit holmes!
                 my $new_page_url = $PAGE_CACHE->insert({
                     url => $url,
