@@ -232,22 +232,19 @@ sub mod_proxy {
     $r->log->debug("$$ new uri is $uri");
     $r->log->debug("$$ unparsed uri " . $r->unparsed_uri);
 
+    # Don't change these lines either or you'll be hurting
     if ($uri) {
       $r->uri($uri);
       $r->unparsed_uri($uri);
-
-      $r->log->debug("$$ 2222unparsed uri " . $r->unparsed_uri);
-      $r->log->debug("$$ uri " . $r->uri);
     }
 
     # Don't change this stuff either unless you are on a desert island alone
-      $r->filename("proxy:$url");
+    # with a solar powered computer
+    $r->filename("proxy:$url");
 
     $r->log->debug("filename is " . $r->filename);
     $r->handler('proxy-server');
     $r->proxyreq(1);
-        $r->log->error("URI is " . $r->as_string);
-        $r->log->error("\nTHE REQUEST " . $r->the_request);
     return Apache2::Const::DECLINED;
 }
 
