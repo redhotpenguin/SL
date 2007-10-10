@@ -3,7 +3,7 @@ package SL::Apache::App;
 use strict;
 use warnings;
 
-our $VERSION = 0.14;
+our $VERSION = 0.15;
 
 use Apache2::Const -compile => qw(OK SERVER_ERROR NOT_FOUND M_GET M_POST);
 use Apache2::Log ();
