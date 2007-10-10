@@ -1,5 +1,5 @@
-sl_root  /home/phred/dev/sl
-sl_httpd_root  /home/phred/dev/httpd2
+sl_root  /home/phred/dev/sl/trunk/SL
+sl_httpd_root  /home/phred/dev/sl/httpd2
 sl_version  trunk
 
 sl_data_root /tmp/data/sl
@@ -11,7 +11,7 @@ sl_report_admin info@redhotpenguin.com
 
 #########################
 # configure the database connection
-sl_db_name  sl2
+sl_db_name  sl
 sl_db_host	localhost
 sl_db_user  sl
 sl_db_user  phred
@@ -21,39 +21,44 @@ sl_db_debug 0
 
 # google ad stuff
 sl_google_client_id 578595112578004
-sl_google_base_url  http://pagead1.googlesyndication.com
+sl_google_base_url  http://pagead(\d+)\.googlesyndication.com
+sl_google_base_url_length  36
 sl_google_client_id_offset 62
 sl_google_ad_group_id 16
 sl_google_ad_id 255
 
+# mogilefs
+sl_mogile_host  127.0.0.1:7001
+
 # debugging levels, etc.  debug is single user mode
-#sl_devel  1
+sl_devel  1
 #sl_debug  1
 #sl_prof  1
 #sl_status 1
 #sl_small_prof
 
 # proxy server settings
-sl_proxy_apache_deflate  1
+# sl_proxy_apache_deflate  1 # deflate breaks youtube
 sl_proxy_apache_maxclients  128
 sl_proxy_apache_start_servers  64
 sl_proxy_apache_max_spare_servers  16
 sl_proxy_apache_min_spare_servers  8
-sl_proxy_apache_loglevel  info
+sl_proxy_apache_loglevel  debug
 sl_proxy_apache_keepalive  On
 sl_proxy_apache_user  phred
 sl_proxy_apache_group  users
 sl_proxy_admin support@silverliningnetworks.com
-sl_proxy_apache_listen  0.0.0.0:8000
+sl_proxy_apache_listen  0.0.0.0:8888
 sl_proxy_apache_max_requests_per_child 250
 
 sl_proxy_servername  app2.redhotpenguin.com
 sl_proxy_rate_limit '3'
 
-sl_clickserver_uri  http://localhost:81/ad
+sl_clickserver_url  http://localhost:9001/
 sl_whitelist  Off
 sl_method  Container
 sl_proxy  mod_proxy
+sl_css_uri http://www.redhotpenguin.com/css/sl.css
 
 # app server settings
 sl_app_servername  10.0.0.2

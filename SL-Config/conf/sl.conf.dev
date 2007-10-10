@@ -27,13 +27,14 @@ sl_status 1
 
 # google ad stuff
 sl_google_client_id 578595112578004
-sl_google_base_url  http://pagead2.googlesyndication.com
+sl_google_base_url  http://pagead(\d+)\.googlesyndication.com
+sl_google_base_url_length  36
 sl_google_client_id_offset 62
 sl_google_ad_group_id 16
 sl_google_ad_id 255
 
 # mogilefs
-sl_mogile_host  127.0.0.1:6969
+sl_mogile_host  127.0.0.1:7001
 
 # proxy server settings
 sl_proxy_apache_deflate  1
