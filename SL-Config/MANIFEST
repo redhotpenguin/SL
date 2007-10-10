@@ -5,3 +5,6 @@ conf/sl.conf.dev
 conf/sl.conf.qa
 conf/sl.conf.prod
 lib/SL/Config.pm
+conf/mogilefs/mogilefs.conf
+conf/mogilefs/mogilefsd.conf
+conf/mogilefs/mogstored.conf
