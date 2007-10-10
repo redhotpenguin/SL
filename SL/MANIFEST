@@ -40,7 +40,7 @@ src/IO-Compress-Base-2.001.tar.gz
 src/MIME-Types-1.18.tar.gz
 src/IO-Compress-Zlib-2.001.tar.gz
 src/Class-Accessor-0.30.tar.gz
-src/mod_perl-2.0-current.tar.gz
+src/modperl.tgz
 src/Image-Size-3.01.tar.gz
 src/Bit-Vector-6.4.tar.gz
 src/Regexp-Common-2.120.tar.gz
