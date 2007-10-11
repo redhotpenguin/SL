@@ -48,7 +48,6 @@ sub match_and_log {
 
     # huzzah! we have a match, hit it yo
     SL::Model::Ad->log_view( $ip, $GOOGLE_AD_ID);
-    warn("google ad view logged for ip $ip") if $DEBUG;
 
     # fixup the urls in the ad
     my $escaped_scheme = 'http%3A%2F%2F';
@@ -59,24 +58,23 @@ sub match_and_log {
     # unescape the url
     my $unescaped_site_url = URI::Escape::uri_unescape($escaped_site_url);
     if ($slash) {
-      warn("appending slash $slash") if $DEBUG;
       $unescaped_site_url .= '/';
     }
 
-    warn("FOund unescaped_site_url $unescaped_site_url") if $DEBUG;
     # see if we have a copy of this page in the page cache
     my $unescaped_cached_page_url = $PAGE_CACHE->cache_url({ url => $unescaped_site_url });
     unless ($unescaped_cached_page_url) {
-        require Carp && Carp::cluck("ad request for $unescaped_site_url, but no cached page present\n");
+        warn "ad request for $unescaped_site_url, but no cached page present\n";
         return;
     }
-    warn("FOUND unescaped_cache_page_url  $unescaped_cached_page_url") if $DEBUG;
    my $escaped_cached_page_url = URI::Escape::uri_escape($unescaped_cached_page_url);
-    warn(" escaped page cache_url  $escaped_cached_page_url") if $DEBUG;
     # good, we have this page cached, fixup the request
-    $url =~ s/$escaped_site_url/$escaped_cached_page_url/;
+    if ($slash) {
+        $url =~ s/$escaped_site_url$slash/$escaped_cached_page_url/;
+      } else {
+        $url =~ s/$escaped_site_url/$escaped_cached_page_url/;
+   }
 
-    warn("substituted url is $url") if $DEBUG;
     # remove the http://host.com so that we can return the modified uri /boo/bar?foo=1
     substr($url, 0, $BASE_LENGTH, '');
 
@@ -85,21 +83,26 @@ sub match_and_log {
     return $url unless $escaped_site_referer_url;
     my $unescaped_site_referer_url = URI::Escape::uri_unescape($escaped_site_referer_url);
     if ($r_slash) {
-      warn("appending slash to referer") if $DEBUG;
       $unescaped_site_referer_url .= '/';
     }
 
-    warn("FOUND unescaped site_referer_url $escaped_site_referer_url") if $DEBUG;
     # we have a refering url, grab the mirror page url from the cache
     $unescaped_cached_page_url = $PAGE_CACHE->cache_url({ url => $unescaped_site_referer_url });
     unless ($unescaped_cached_page_url) {
        print STDERR "google ad request referer $url, but no $unescaped_cached_page_url\n";
        return;
     }
-    warn("FOUND cached referer page url $unescaped_cached_page_url") if $DEBUG;
+
     # good, we have this page cached, fixup the request
     $escaped_cached_page_url = URI::Escape::uri_escape($unescaped_cached_page_url);
-    $url =~ s/$escaped_site_referer_url/$escaped_cached_page_url/;
+
+    if ($r_slash) {
+           $url =~ s/$escaped_site_referer_url$r_slash/$escaped_cached_page_url/;
+      } else {
+           $url =~ s/$escaped_site_referer_url/$escaped_cached_page_url/;
+   }
+
+
 
     return $url;
 }
