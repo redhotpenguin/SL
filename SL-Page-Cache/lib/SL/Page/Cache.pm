@@ -36,7 +36,10 @@ sub cache_url {
 
     return if (scalar(@cache_urls) == 0);
 
-    return $cache_urls[0];
+	# substitute 127.0.0.1 for 69.36.240.30 HACK
+	my $return = $cache_urls[0];
+	$return =~ s/127\.0\.0\.1\:7500/app2\.redhotpenguin\.com/g;
+	return $return;
 }
 
 sub insert {
