@@ -18,8 +18,9 @@ sl_db_pass
 sl_db_ping_timeout 5
 sl_db_debug 1
 
-# debugging levels, etc.  debug is single user mode
+# debugging levels, etc.  debug is single user mode for apache -DONE_PROCESS
 sl_devel  1
+sl_mod_debug 1 # debugging in SL::* modules
 #sl_debug  1
 #sl_prof 1
 sl_status 1
@@ -52,12 +53,10 @@ sl_proxy_servername  sl_proxy
 sl_proxy_rate_limit '3'
 sl_proxy_apache_listen  0.0.0.0:8000
 
-sl_clickserver_uri  http://localhost:9000
 sl_clickserver_url  http://localhost:9000/click/
 sl_whitelist  Off
 sl_method  Container
 sl_proxy  mod_proxy
-
 # app server settings
 sl_app_root  /Users/phred/dev/sl/trunk/SL-App
 sl_app_servername  dev.silverliningnetworks.com
