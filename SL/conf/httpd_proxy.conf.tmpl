@@ -26,12 +26,12 @@ Timeout              300
 AllowEncodedSlashes On
 #ProxyVia On # don't enable this
 
+Listen [% cfg.sl_proxy_apache_listen %]
 [% IF cfg.sl_proxy == 'mod_proxy' %]
 <IfModule mod_proxy.c>
     # If mod_proxy is used for proxy forwarding
     ProxyRequests On
 	
-    Listen [% cfg.sl_proxy_apache_listen %]
 
     <IfModule mod_cache.c>
         <IfModule mod_mem_cache.c>

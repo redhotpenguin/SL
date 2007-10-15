@@ -163,7 +163,7 @@ BEGIN {
     my @skips = qw( framset adwords.google.com 
 					MM_executeFlashDetection
 					swfobject.js );
-    push @skips, 'Ads by Goooooogle';
+    push @skips, 'Ads by Goo';
     $SKIPS = Regexp::Assemble->new->add(@skips)->re;
     print STDERR "Regex for content insertion skips ", $SKIPS, "\n";
 }
@@ -184,7 +184,7 @@ sub handler {
             return 1;    # don't remove me
         }
     );
-
+	$headers{'referer'} = $r->pnotes('referer');
     my $proxy_request = SL::HTTP::Request->new(
         {
             method  => $r->method,
@@ -203,7 +203,7 @@ sub handler {
     }
 
     $r->log->debug( sprintf("$$ Remote proxy request: %s",
-			$proxy_request->as_string)) if $VERBOSE_DEBUG;
+			$proxy_request->as_string));
 
     # Make the request to the remote server
 	$r->pnotes('proxy_req_timer' => $REMOTE_TIMER);
@@ -568,7 +568,7 @@ sub twohundred {
     # serve an ad if this is HTML and it's not a sub-request of an
     # ad-serving page, and it's not too soon after a previous ad was served
     my $subrequests_ref;
-    if ( $is_html and 
+    if ( (! defined $r->pnotes('google_override')) && $is_html and 
 		(not $is_toofast) and 
 		(not $SUBREQUEST_TRACKER->is_subrequest(url => $r->pnotes('url')))) {
 
@@ -613,6 +613,7 @@ sub twohundred {
 	# we replace the links even on pages that we don't serve ads on to
 	# speed things up
 	# replace the links if this router/location has a replace_port setting
+	if (! defined $r->pnotes('google_override')) {
 	my $rep_ref = eval { 
 		SL::Model::Proxy::Router->replace_port( $r->connection->remote_ip ); };
 	if ($@) {
@@ -628,7 +629,7 @@ sub twohundred {
            });
 		$r->log->error("could not replace subrequests") unless $ok;
 	}
-
+}
  	$TIMER->start('prepare_response_headers')
       if ( $r->server->loglevel() == Apache2::Const::LOG_INFO );
 
@@ -777,6 +778,8 @@ sub _generate_response {
 
     # yes this is ugly but it helps for testing
     return $response->decoded_content if (NOOP_RESPONSE == 1);
+	return $response->decoded_content if ((defined $r->pnotes('google_override'))
+	   && ($r->pnotes('google_override') == 1));
 
     my $url     = $r->pnotes('url');
     my $ua      = $r->pnotes('ua');
@@ -832,7 +835,7 @@ sub _generate_response {
             my $cached_page_url = $PAGE_CACHE->cache_url({ url => $url});
 
             unless ($cached_page_url) {
-              $r->log->debug("Cache page content for $cached_page_url");
+              $r->log->debug("Caching page $url");
                 # new virtual page, create that shit holmes!
                 my $new_page_url = $PAGE_CACHE->insert({
                     url => $url,
