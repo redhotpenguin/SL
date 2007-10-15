@@ -44,16 +44,25 @@ sub match_and_log {
 
     # ok it's a google ad, see if the client id matches
     # return 1 here since this is some form of google ad and mod_proxy should blabla
-    return 1 unless (substr($url, $CLIENT_ID_OFFSET, $CLIENT_ID_LENGTH) eq $CLIENT_ID);
+	unless (substr($url, $CLIENT_ID_OFFSET, $CLIENT_ID_LENGTH) eq $CLIENT_ID) {
+		warn("non sl google ad encountered, url $url") if $CONFIG->sl_mod_debug;
+		return 1;
+	}
 
     # huzzah! we have a match, hit it yo
     SL::Model::Ad->log_view( $ip, $GOOGLE_AD_ID);
+
+	# return if we are not in stealth mode
+	unless ($CONFIG->sl_google_stealth == 1) {
+		warn("not in google stealth mode, returning") if $CONFIG->sl_mod_debug;
+		return 1;
+	}
 
     # fixup the urls in the ad
     my $escaped_scheme = 'http%3A%2F%2F';
 
     # first grab the site url param from the google ad query string
-    my ($escaped_site_url, $slash) = $url =~ m/url\=($escaped_scheme.*?)(\%2F)?\&(?:ga_vid|ref|cc)/;
+    my ($escaped_site_url, $slash) = $url =~ m/url\=($escaped_scheme.*?)(\%2F)?\&/;
 
     # unescape the url
     my $unescaped_site_url = URI::Escape::uri_unescape($escaped_site_url);
@@ -79,7 +88,7 @@ sub match_and_log {
     substr($url, 0, $BASE_LENGTH, '');
 
     # see if there is a refering url 
-   my ($escaped_site_referer_url, $r_slash) = $url =~ m/ref\=($escaped_scheme.*?)(\%2F)?\&(?:ga_vid|ref|cc)/;
+   my ($escaped_site_referer_url, $r_slash) = $url =~ m/ref\=($escaped_scheme.*?)(\%2F)?\&/;
     return $url unless $escaped_site_referer_url;
     my $unescaped_site_referer_url = URI::Escape::uri_unescape($escaped_site_referer_url);
     if ($r_slash) {
@@ -90,7 +99,7 @@ sub match_and_log {
     $unescaped_cached_page_url = $PAGE_CACHE->cache_url({ url => $unescaped_site_referer_url });
     unless ($unescaped_cached_page_url) {
        print STDERR "google ad request referer $url, but no $unescaped_cached_page_url\n";
-       return;
+       return $url;
     }
 
     # good, we have this page cached, fixup the request
@@ -101,8 +110,6 @@ sub match_and_log {
       } else {
            $url =~ s/$escaped_site_referer_url/$escaped_cached_page_url/;
    }
-
-
 
     return $url;
 }
