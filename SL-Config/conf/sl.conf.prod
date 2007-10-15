@@ -14,8 +14,9 @@ sl_db_pass
 sl_db_ping_timeout 5
 sl_db_debug 0
 
-# debugging levels, etc.  debug is single user mode
+# debugging levels, etc.  debug is single user mode for apache -DONE_PROCESS
 #sl_devel  1
+# sl_mod_debug 1 # SL::* module debugging
 #sl_debug  1
 #sl_prof  1
 #sl_status 1
@@ -27,9 +28,10 @@ sl_google_base_url_length  36
 sl_google_client_id_offset 62
 sl_google_ad_group_id 16
 sl_google_ad_id 255
+#sl_google_stealth 1
 
 # mogilefs
-sl_mogile_host  69.36.240.30:7001
+sl_mogile_host 127.0.0.1:7001
 
 # proxy server settings
 sl_proxy_apache_deflate  0
@@ -43,10 +45,9 @@ sl_proxy_apache_user  phred
 sl_proxy_apache_group  users
 sl_proxy_admin support@silverliningnetworks.com
 sl_proxy_apache_listen  69.36.240.29:80
-sl_proxy_apache_listen2  69.36.240.30:80
 sl_proxy_apache_max_requests_per_child 250
 
-sl_proxy_servername  app2.redhotpenguin.com
+sl_proxy_servername  app.redhotpenguin.com
 sl_proxy_rate_limit '5'
 
 sl_clickserver_url http://69.36.240.29:81/click/
@@ -57,7 +58,7 @@ sl_css_uri  http://www.redhotpenguin.com/css/sl.css
 
 # app server settings
 sl_app_root /home/phred/dev/sl/sl_app_root
-sl_app_servername  www.redhotpenguin.com
+sl_app_servername  app.redhotpenguin.com
 sl_app_apache_deflate  1
 sl_app_apache_loglevel  error
 sl_app_apache_maxclients  32
