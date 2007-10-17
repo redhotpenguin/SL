@@ -317,9 +317,6 @@ sub twoohsix {
 	$r->log->debug( "$$ Request returned 206 response ",
         Data::Dumper::Dumper($res) );
 
-	# status line '206 response
-	$r->status($res->code);
-
 	my $content_type = $res->content_type;
 	$r->content_type($content_type) if $content_type;
 	
@@ -334,7 +331,8 @@ sub twoohsix {
 
     $r->print($res->content);
 
-    return Apache2::Const::OK;
+	# we send a 200 here so don't change this or mess with the status line!
+	return Apache2::Const::OK;
 }
 
 sub bsod {
