@@ -833,7 +833,7 @@ sub _generate_response {
             $ad_content_ref );
 
         unless ($ok) {
-            warn("could not insert ad into page!");
+			$r->log->error("could not insert ad into page url $url, css $css_url, ad " . Data::Dumper::Dumper($ad_content_ref));
             return \$response->content;
         }
 
