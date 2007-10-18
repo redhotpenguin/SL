@@ -10,6 +10,7 @@ use Apache2::Log ();
 use RHP::Timer ();
 
 my $TIMER = RHP::Timer->new();
+our $THRESHOLD = 2;
 
 sub handler {
     my $r = shift;
@@ -20,13 +21,19 @@ sub handler {
 			$r->pnotes('proxy_req_timer')->last_interval);
 	}
 
-    my $request_time = sprintf( "sl_request_total|%f", 
-		@{ $r->pnotes('request_timer')->checkpoint }[4]);
+	my $total = @{ $r->pnotes('request_timer')->checkpoint }[4];
+    my $request_time = sprintf( "sl_request_total|%f", $total); 
+	
+	my $url = $r->pnotes('url');
+	if (($total > $THRESHOLD) or ( $r->server->loglevel() == Apache2::Const::LOG_INFO)) {
+		$r->log->error("***** SL_REQUEST_TIME $total for url $url");
+	}
 	if ($proxy_req_time) {
 		$request_time = join(' ', $request_time, $proxy_req_time);
 	}
-	$r->subprocess_env("SL_TIMER" => $request_time); 
-    $r->subprocess_env("SL_URL" => sprintf('sl_url|%s', $r->pnotes('url')));    
+	$r->subprocess_env("SL_TIMER" => $request_time);
+
+    $r->subprocess_env("SL_URL" => sprintf('sl_url|%s', $url));    
     # for subrequests we don't have any log_data since no ad was inserted
     return Apache2::Const::DECLINED unless 
         (defined $r->pnotes('log_data') && $r->pnotes('log_data')->[0] && $r->pnotes('log_data')->[1]);

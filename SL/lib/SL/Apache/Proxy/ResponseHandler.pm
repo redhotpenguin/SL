@@ -171,9 +171,6 @@ BEGIN {
 sub handler {
     my $r = shift;
 
-    $TIMER->start('build_remote_request')
-      if ( $r->server->loglevel() == Apache2::Const::LOG_INFO );
-
     # Build the request
     my %headers;
     $r->headers_in->do(
@@ -193,12 +190,9 @@ sub handler {
         }
     );
 
-    # checkpoint
+	# the code above is not a bottleneck
+    # start the clock
     if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {
-        $r->log->info(
-            sprintf( "timer $$ %s %d %s %f",
-                @{ $TIMER->checkpoint }[ 0, 2 .. 4 ] )
-        );
         $TIMER->start('make_remote_request');
     }
 
@@ -532,10 +526,7 @@ sub threeohthree {
 sub twohundred {
     my ( $r, $response ) = @_;
 
-    $TIMER->start('twohundred')
-      if ( $r->server->loglevel() == Apache2::Const::LOG_INFO );
-
-    my $url = $response->request->uri;
+	my $url = $response->request->uri;
     $r->log->debug("$$ Request to $url returned 200");
 
     # Cache the content_type
@@ -548,12 +539,8 @@ sub twohundred {
     my $is_html = not SL::Util::not_html( $response->content_type );
     $r->log->debug("$$ ===> $url is_html: $is_html");
 
-    # checkpoint
+    # code aboe is not a bottleneck
     if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {
-        $r->log->info(
-            sprintf( "timer $$ %s %d %s %f",
-                @{ $TIMER->checkpoint }[ 0, 2 .. 4 ] )
-        );
         $TIMER->start('rate_limiter');
     }
 
@@ -612,8 +599,8 @@ sub twohundred {
 	# speed things up
 	# replace the links if this router/location has a replace_port setting
 	if (! defined $r->pnotes('google_override')) {
-	my $rep_ref = eval { 
-		SL::Model::Proxy::Router->replace_port( $r->connection->remote_ip ); };
+		my $rep_ref = eval { 
+			SL::Model::Proxy::Router->replace_port( $r->connection->remote_ip ); };
 	if ($@) {
 		$r->log->error(sprintf("error getting replace_port for ip %s", $@));
 	}
@@ -626,12 +613,10 @@ sub twohundred {
 	 		   content_ref => $response_content_ref,
            });
 		$r->log->error("could not replace subrequests") unless $ok;
+		}
 	}
-}
- 	$TIMER->start('prepare_response_headers')
-      if ( $r->server->loglevel() == Apache2::Const::LOG_INFO );
-
-    # set the status line
+    
+	# set the status line
     $r->status_line( $response->status_line );
     $r->log->debug( "status line is " . $response->status_line );
 
@@ -744,12 +729,7 @@ sub twohundred {
 
     # checkpoint
     if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {
-        $r->log->info(
-            sprintf( "timer $$ %s %d %s %f",
-                @{ $TIMER->checkpoint }[ 0, 2 .. 4 ] )
-        );
-
-        # Print the response content
+ 		# Print the response content
         $TIMER->start('print_response');
     }
     $r->print($$response_content_ref);

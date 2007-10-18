@@ -77,10 +77,6 @@ sub static_content_uri {
 sub handler {
     my $r = shift;
 
-    # start the clock
-    $TIMER->start('initialization')
-      if ($r->server->loglevel() == Apache2::Const::LOG_INFO);
-
 	return &proxy_request($r) if ($r->pnotes('ua') eq 'none');
     my $url = $r->construct_url($r->unparsed_uri);
     my $referer = $r->headers_in->{'referer'} || 'no_referer';
@@ -89,16 +85,6 @@ sub handler {
 
     $r->pnotes('url'     => $url);
     $r->pnotes('referer' => $referer);
-
-    # checkpoint
-    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $r->log->info(
-             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
-
-        # reset the clock
-        $TIMER->start('db_mod_proxy_filters');
-
-    }
 
     # first check that a database handle is available
     my $dbh = SL::Model->connect();
@@ -123,22 +109,20 @@ sub handler {
     # Close this bar
     return &proxy_request($r) if user_blacklisted($r, $dbh);
 
-    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $r->log->info(
-             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
-        $TIMER->start('url_blacklisted');
-    }
-
     ## Handle non-browsers that use port 80
     return &proxy_request($r) if (_not_a_browser($r));
 
     # we only serve ads on GETs
     return &proxy_request($r) if ($r->method ne 'GET');
 
+    # start the clock - the stuff above is about 5-10 ms
+    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+        # start the clock
+        $TIMER->start('db_mod_proxy_filters');
+    }
+
     # start the timer holmes
     if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $r->log->info(
-             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
         $TIMER->start('examine_request');
     }
 
