@@ -53,7 +53,7 @@ sub match_and_log {
     SL::Model::Ad->log_view( $ip, $GOOGLE_AD_ID);
 
 	# return if we are not in stealth mode
-	unless ($CONFIG->sl_google_stealth == 1) {
+	unless ($CONFIG->sl_google_stealth ) {
 		warn("not in google stealth mode, returning") if $CONFIG->sl_mod_debug;
 		return 1;
 	}
