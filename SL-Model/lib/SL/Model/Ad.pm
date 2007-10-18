@@ -327,12 +327,10 @@ LIMIT 1
 sub _google {
     my ($class, $ip, $url) = @_;
 
-print STDERR "HEY SERVING GOOGLE AD!\n";
     # we don't run google ads on certain urls, like google for instance
     return if ($url =~ m/$GOOGLE_RE/i);
-print STDERR "HEY SERVING GOOGLE AD!\n";
-#die "You shouldn't be here\n";
-    my $dbh = SL::Model->connect();
+    
+	my $dbh = SL::Model->connect();
     my $sth = $dbh->prepare_cached(SL_GOOGLE_SQL);
     $sth->bind_param( 1, $GOOGLE_AD_GROUP_ID );
     my $rv = $sth->execute;
@@ -342,7 +340,6 @@ print STDERR "HEY SERVING GOOGLE AD!\n";
     $sth->finish;
 
     return unless defined $ad_data->[AD_ID_IDX];
-print STDERR "HEY SERVING GOOGLE AD data $ad_data\n";
     return $ad_data;
 }
 
