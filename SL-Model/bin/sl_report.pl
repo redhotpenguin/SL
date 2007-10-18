@@ -17,7 +17,10 @@ our $DEBUG    = 0;
 
 my $ADMIN = 'sl_reports@redhotpenguin.com';
 my $FROM  = "SL Reporting Daemon <fred\@redhotpenguin.com>";
-my @DAYS  = qw( 1 3 7 14 30 45 90 135 180 225 270 315 360);
+my @DAYS  = qw( 1 3 7 14 30 );
+unless ($DEBUG) {
+	push @DAYS, qw( 45 90 135 180 225 270 315 360);
+}
 
 my %results = ();
 
@@ -28,7 +31,7 @@ my ( $prev, $prev_day );
 foreach my $day (@DAYS) {
     print STDERR "processing day $day...\n" if $DEBUG;
 
-    my $end   = DateTime->now;
+    my $end = DateTime->now( time_zone => 'local' );
     my $start = $end->clone->subtract( days => $day );
 
     my $start_string = DateTime::Format::Pg->format_datetime($start);
