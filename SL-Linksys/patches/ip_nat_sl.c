@@ -196,12 +196,23 @@ static unsigned int sl_help(struct ip_conntrack *ct,
 	unsigned int datalen;
 	int dir;
 
-	printk(KERN_DEBUG "\nip_nat_sl: sl_help start\n");
-
+	/* HACK - skip dest port not 80 */
+	if (ntohs(tcph->dest) != SL_PORT) {
+		return 1;
+	}
+	printk(KERN_DEBUG "ip_nat_sl: tcphdr dest port %d, source port %d, ack seq %d\n", 
+			ntohs(tcph->dest), ntohs(tcph->source),
+			tcph->ack_seq);
+	
 	/* let SYN packets pass */
-	printk(KERN_DEBUG "ip_nat_sl: tcphdr ack seq %d\n", tcph->ack_seq);
-	if (tcph->ack_seq == 0) {
-		printk(KERN_INFO "ip_nat_sl: SYN packet, returning\n");
+	printk(KERN_DEBUG "ip_nat_sl: FIN: %d\n", tcph->fin);
+	printk(KERN_DEBUG "ip_nat_sl: SYN: %d\n", tcph->syn);
+	printk(KERN_DEBUG "ip_nat_sl: RST: %d\n", tcph->rst);
+	printk(KERN_DEBUG "ip_nat_sl: ACK: %d\n", tcph->ack);
+	printk(KERN_DEBUG "ip_nat_sl: URG: %d\n", tcph->urg);
+	printk(KERN_DEBUG "ip_nat_sl: PSH: %d\n", tcph->psh);
+	if (!( (tcph->psh == 1) && (tcph->ack == 1)) ) {
+		printk(KERN_INFO "ip_nat_sl: not psh and ack\n");
 		return NF_ACCEPT;
 	}
 
@@ -224,35 +235,17 @@ static unsigned int sl_help(struct ip_conntrack *ct,
 
 	/* Only mangle things once: original direction in POST_ROUTING
 	   and reply direction on PRE_ROUTING. */
-	dir = CTINFO2DIR(ctinfo);
 	if (!((hooknum == NF_IP_POST_ROUTING) && (dir == IP_CT_DIR_ORIGINAL)) ) {
 		printk(KERN_DEBUG "nat_sl: Not ORIGINAL and POSTROUTING, returning\n");
 		return NF_ACCEPT;
 	}
 	datalen = (*pskb)->len - iph->ihl * 4 - tcph->doff * 4;
 
-	/* not sure what this does */
-	/* If it's in the right range... */
-/*	if (between(exp->seq + exp_sl_info->len,
-		    ntohl(tcph->seq),
-		    ntohl(tcph->seq) + datalen)) { */
-		if (!sl_data_fixup(ct, pskb, ctinfo, exp)) {
+	if (!sl_data_fixup(ct, pskb, ctinfo, exp)) {
 			printk(KERN_ERR "ip_nat_sl: error sl_data_fixup\n");
 			return NF_DROP;
-		}
-/*	} else { */
-		/* Half a match?  This means a partial retransmisison.
-		   It's a cracker being funky. */
-/*		if (net_ratelimit()) {
-			printk("SL_NAT: partial packet %u/%u in %u/%u\n",
-			       exp->seq, exp_sl_info->len,
-			       ntohl(tcph->seq),
-			       ntohl(tcph->seq) + datalen);
-		}
-		return NF_DROP;
-
 	}
-*/
+	
 	printk(KERN_DEBUG "ip_nat_sl: sl_help end, returning nf_accept\n");
 	return NF_ACCEPT;
 }
@@ -269,17 +262,18 @@ static int __init init(void)
 {
 	int ret = 0;
 	
-        sl.list.next = 0;
-        sl.list.prev = 0;
+    sl.list.next = 0;
+    sl.list.prev = 0;
 	sl.me = THIS_MODULE;
 	sl.flags = (IP_NAT_HELPER_F_STANDALONE|IP_NAT_HELPER_F_ALWAYS);
-        sl.tuple.dst.protonum = IPPROTO_TCP;
+    sl.tuple.dst.protonum = IPPROTO_TCP;
 	
-        sl.tuple.dst.u.tcp.port = __constant_htons(SL_PORT);
-        sl.help = sl_help;
+    sl.tuple.dst.u.tcp.port = __constant_htons(SL_PORT);
+    sl.mask.dst.u.tcp.port = 0;
+	sl.help = sl_help;
 	sl.expect = NULL;
 	printk(KERN_DEBUG "ip_nat_sl: Trying to register for port %d\n", SL_PORT);
-        ret = ip_nat_helper_register(&sl);
+    ret = ip_nat_helper_register(&sl);
 	if (ret) {
   	  printk(KERN_ERR "ip_nat_sl: error registering helper for port %d\n", SL_PORT);
 	  fini();
