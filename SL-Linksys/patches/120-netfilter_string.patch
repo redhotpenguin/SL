@@ -232,7 +232,7 @@ diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ipt_string.c linux.dev/net/ipv
 +			|    |- offset	
 +			|
 +			|-- repl_ptr
-+	   using --string ":8135" --replace-string ""   */
++	   using --string ":8135" --replace-string "_"   */
 +
 +	repl_ptr = search(needle, haystack, nlen, hlen);
 +	if (repl_ptr != NULL ) {
