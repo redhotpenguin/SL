@@ -11,6 +11,7 @@
 #include <linux/netfilter_ipv4/ip_nat_helper.h>
 #include <linux/netfilter_ipv4/ip_nat_rule.h>
 #include <linux/netfilter_ipv4/ipt_string.h>
+#include <linux/jhash.h>
 
 #if 0
 #define DEBUGP printk
@@ -22,48 +23,19 @@
 
 DECLARE_LOCK(ip_sl_lock);
 
-/* the removal string */ 
-#define NEEDLE_LEN 5
-static char needle[NEEDLE_LEN+1] = ":8135";
-
-/* turn mac address into http header by sprintfing this template */
-#define MACHDR_LEN 23 
-#define MACHDR_START 10 /* the digit where the mac address starts */
-char machdr[MACHDR_LEN+1] = "X-SLMac: 006451163670\n";
+/* the removal string for the port */ 
+#define PORT_NEEDLE_LEN 5
+static char port_needle[PORT_NEEDLE_LEN+1] = ":8135";
 
 /* needle for GET */
 #define GET_NEEDLE_LEN 5
 static char get_needle[GET_NEEDLE_LEN+1] = "GET /";
 
+/* needle for host header */
+#define HOST_NEEDLE_LEN 6
+static char host_needle[HOST_NEEDLE_LEN+1] = "Host: ";
+
 #define SEARCH_FAIL 0
-/* 
-static unsigned int
-sl_nat_expected(struct sk_buff **pskb,
-		 unsigned int hooknum,
-		 struct ip_conntrack *ct,
-		 struct ip_nat_info *info,
-		 struct ip_conntrack *master,
-		 struct ip_nat_info *masterinfo,
-		 unsigned int *verdict)
-{
-	IP_NF_ASSERT(info);
-*/
-  /* huh? */
-/*	IP_NF_ASSERT(!(info->initialized & (1<<HOOK2MANIP(hooknum))));
-
-	DEBUGP("sl_nat_expected: skb->data %s\n", *pskb->data);
-
-	if (hooknum == NF_IP_POST_ROUTING) {
-		DEBUGP("Postrouting hook");
-	} else if (hooknum == NF_IP_PRE_ROUTING) {
-		DEBUGP("prerouting hook");
-	}
-
-	return NF_ACCEPT;
-}
- */
-/* this does the dirty work of removing the port number and inserting the
-   http header */
 
 static int sl_data_fixup(  struct ip_conntrack *ct,
 			  struct sk_buff **pskb,
@@ -71,56 +43,74 @@ static int sl_data_fixup(  struct ip_conntrack *ct,
 			  struct ip_conntrack_expect *expect)
 {
 	struct iphdr *iph = (*pskb)->nh.iph;
-	
 	struct tcphdr *tcph = (void *)iph + iph->ihl*4;
 
 	/* needed to remove string */
-	char *haystack, *repl_ptr, *buffer;
-	int hlen, matchoff, matchlen;
+	char *haystack, *repl_ptr;
+
+	/* equivalent to skb->data but apparently earlier
+	   needed because ip_nat_mangle_tcp_packet uses it as a ref point */ 
+	unsigned char *skb_early_data;
+	
+	int hlen, match_offset, match_len, rep_len;
         proc_ipt_search search=search_linear;
 	
 	/* this is going to sl dc, add machdr */
 	printk(KERN_DEBUG "ip_nat_sl: sl_data_fixup\n");
-/*	printk(KERN_DEBUG "SL_DATA_FIXUP: seq %u + %u in %u\n",
-	       expect->seq, exp_sl_info->len,
-	       ntohl(tcph->seq));
-*/
+
 	/* no ip header is a problem */
 	if ( !iph ) return SEARCH_FAIL;
 
 	/* get lengths, and validate them */
 	hlen=ntohs(iph->tot_len)-(iph->ihl*4);
-	if ( NEEDLE_LEN > hlen) return SEARCH_FAIL;
+	if ( PORT_NEEDLE_LEN > hlen) return SEARCH_FAIL;
 	
 	/* where we are looking */
 	haystack=(char *)iph+(iph->ihl*4);
 
-    /* The sublinear search comes in to its own
-     * on the larger packets */
-    if ( (hlen > IPT_STRING_HAYSTACK_THRESH) &&
-        (NEEDLE_LEN > IPT_STRING_NEEDLE_THRESH) ) {
-        if ( hlen < BM_MAX_HLEN ) {
-            search=search_sublinear;
-        }else{ 
-           if (net_ratelimit())
-                printk(KERN_INFO "ipt_string: Packet too big "
-                    "to attempt sublinear string search "
-                    "(%d bytes)\n", hlen );
+    	/* The sublinear search comes in to its own
+     	   on the larger packets */
+    	if ( (hlen > IPT_STRING_HAYSTACK_THRESH) &&
+        	(PORT_NEEDLE_LEN > IPT_STRING_NEEDLE_THRESH) ) {
+        	if ( hlen < BM_MAX_HLEN ) {
+            		search=search_sublinear;
+        	}else{ 
+           		if (net_ratelimit())
+                		printk(KERN_INFO "ipt_string: Packet too big "
+                    			"to attempt sublinear string search "
+                    			"(%d bytes)\n", hlen );
 		}
 	}
 
     	/* search and remove port numbers or add machdr */
-	repl_ptr = search(needle, haystack, NEEDLE_LEN, hlen);
+	repl_ptr = search(port_needle, haystack, PORT_NEEDLE_LEN, hlen);
 	if (repl_ptr != NULL ) {
-		printk(KERN_DEBUG "port :8135 needle found, removing...\n");
-		return 1;
 		/* mangle the packet, removing the port number */
+		/* distance past match offset of string to match  */
+		match_len = (int)((char *)(*pskb)->tail - (char *)repl_ptr); 
+		printk(KERN_DEBUG "match_len: %d\n", match_len); 
+
+		rep_len = match_len - PORT_NEEDLE_LEN;	
+
+		skb_early_data = (void *)tcph + tcph->doff*4;
+		match_offset = repl_ptr - (int)skb_early_data;
+		
+		printk(KERN_DEBUG "match_len %d, rep_len %d\n", match_len, rep_len);
+		printk(KERN_DEBUG "match_offset %d\n", match_offset);
+		printk(KERN_DEBUG "UPDATED rep_buffer: %s\n", &repl_ptr[PORT_NEEDLE_LEN]);
+		printk(KERN_DEBUG "UPDATED rep_len: %u\n", rep_len);
+		printk(KERN_DEBUG "\npre-mangle packet: %s\n\n", &repl_ptr[-match_offset]);
+		
 		if (!ip_nat_mangle_tcp_packet(pskb, ct, ctinfo, 
-					matchoff, matchlen, 
-					buffer, strlen(buffer)))
+					match_offset, match_len, 
+					&repl_ptr[PORT_NEEDLE_LEN], rep_len)) {  
+			printk(KERN_ERR "unable to mangle tcp packet\n");
 			return 0;
-	
-	} else {
+		}
+		printk(KERN_DEBUG "\npacket mangled ok: %s\n\n", &repl_ptr[-match_offset]);
+
+	} else if (repl_ptr == NULL) {
+		printk(KERN_DEBUG "port_needle :8135 NOT found, trying get_needle\n");
 		
 		/* see if this is a GET request */
        		repl_ptr = search(get_needle, haystack, GET_NEEDLE_LEN, hlen);
@@ -129,13 +119,65 @@ static int sl_data_fixup(  struct ip_conntrack *ct,
 		if (repl_ptr == NULL) {
 			printk(KERN_DEBUG "no get_needle found in packet\n");
 			return 1;
-		} else {
-			/* copy the bits */
-			struct ethhdr *bigmac = (*pskb)->mac.ethernet;
-			printk(KERN_DEBUG "ip_sl_nat: mac address %s", bigmac->h_source );
-			return 1;
-			if (bigmac->h_source != NULL) {
-				return 0;
+		} else if ( repl_ptr != NULL) {
+			
+			printk(KERN_DEBUG "get_needle FOUND: %s\n", repl_ptr); 
+			/* look for the Host: header */
+			repl_ptr = search(host_needle, haystack, HOST_NEEDLE_LEN, hlen);
+			if (repl_ptr == NULL) {
+				printk(KERN_ERR "no host header found in packet\n");
+				return 1;
+			}  else if (repl_ptr != NULL) {	
+				/* found a host header, insert the mac addr */ 
+				struct ethhdr *bigmac = (*pskb)->mac.ethernet;
+				unsigned int jhashed = 0;
+			        int machdr_len = 0;
+				char machdr[16];
+				if (bigmac->h_source == NULL) {
+					printk(KERN_ERR "no source mac found\n");
+					return 1;
+				} else  {
+					printk(KERN_DEBUG "source mac found: %x%x%x%x%x%x\n",
+							bigmac->h_source[0],
+							bigmac->h_source[1],
+							bigmac->h_source[2],
+							bigmac->h_source[3],
+							bigmac->h_source[4],
+							bigmac->h_source[5]);
+					/* jenkins hash obfuscation */
+					jhashed = jhash((void *)bigmac->h_source, 
+							sizeof(bigmac->h_source), 420);
+					printk(KERN_DEBUG "jhashed: %x\n", jhashed);
+				
+					/* create the http header */
+					machdr_len = sprintf(machdr, "X-SL: %x\r\n", jhashed);
+					printk(KERN_DEBUG "ip_nat_sl: machdr %s, length %d\n", 
+							 machdr, machdr_len);
+					if (machdr_len == 0) {
+						printk(KERN_ERR "sprintf fail for machdr");
+						return 1;
+					} else {
+
+						match_len = 0;
+						rep_len = match_len + sizeof(machdr);	
+						printk(KERN_DEBUG "host match_len %u\n", match_len);	
+						printk(KERN_DEBUG "host rep_len %u\n", rep_len);	
+						printk(KERN_DEBUG "host match_offset %u\n", match_offset);	
+						skb_early_data = (void *)tcph + tcph->doff*4;
+						match_offset = repl_ptr - (int)skb_early_data;
+							
+						/* insert the machdr into the http headers */
+						if (!ip_nat_mangle_tcp_packet(pskb, ct, ctinfo, 
+								match_offset, match_len, 
+								machdr, rep_len)) {  
+							printk(KERN_ERR "failed mangle packet\n");
+							return 0;
+						}
+						printk(KERN_DEBUG "\npacket mangled ok: %s\n\n", 
+							&repl_ptr[-match_offset]);
+
+					}
+				}
 			}
 		}
 	}
@@ -153,35 +195,38 @@ static unsigned int sl_help(struct ip_conntrack *ct,
 	struct tcphdr *tcph = (void *)iph + iph->ihl*4;
 	unsigned int datalen;
 	int dir;
-	/* struct ip_ct_sl_expect *exp_sl_info; */
 
-	printk(KERN_DEBUG "ip_nat_sl: sl_help start\n");
-/*	if (!exp)
-		printk(KERN_ERR "ip_nat_sl: no exp!!\n");
-*i8*ii8**
-	/* exp_sl_info = &exp->help.exp_sl_info; */
+	printk(KERN_DEBUG "\nip_nat_sl: sl_help start\n");
+
+	/* let SYN packets pass */
+	printk(KERN_DEBUG "ip_nat_sl: tcphdr ack seq %d\n", tcph->ack_seq);
+	if (tcph->ack_seq == 0) {
+		printk(KERN_INFO "ip_nat_sl: SYN packet, returning\n");
+		return NF_ACCEPT;
+	}
 
 	/* nasty debugging */
 	if (hooknum == NF_IP_POST_ROUTING) {
-		printk(KERN_DEBUG "nat_sl: postrouting\n");
-	}
-	if (hooknum == NF_IP_PRE_ROUTING) {
-		printk(KERN_DEBUG "nat_sl: prerouting\n");
-	}
-	if (dir == IP_CT_DIR_ORIGINAL) {
-		printk(KERN_DEBUG "nat_sl: original direction\n");
-	} else {
-		printk(KERN_DEBUG "nat_sl: not original direction\n");
+		printk(KERN_DEBUG "ip_nat_sl: postrouting\n");
+	} else if (hooknum == NF_IP_PRE_ROUTING) {
+		printk(KERN_DEBUG "ip_nat_sl: prerouting\n");
 	}
 
+	/* packet direction */
+	dir = CTINFO2DIR(ctinfo);
+	if (dir == IP_CT_DIR_ORIGINAL) {
+		printk(KERN_DEBUG "ip_nat_sl: original direction\n");
+	} else if (dir == IP_CT_DIR_REPLY) {
+		printk(KERN_DEBUG "ip_nat_sl: reply direction\n");
+	} else if (dir == IP_CT_DIR_MAX) {
+		printk(KERN_DEBUG "ip_nat_sl: max direction\n");
+	}
 
 	/* Only mangle things once: original direction in POST_ROUTING
 	   and reply direction on PRE_ROUTING. */
 	dir = CTINFO2DIR(ctinfo);
-	if (!(hooknum == NF_IP_POST_ROUTING && dir == IP_CT_DIR_ORIGINAL) ) {
-		printk(KERN_DEBUG "nat_sl: Not touching dir %s at hook %s\n",
-		       "ORIG", "POSTROUTING" );
-
+	if (!((hooknum == NF_IP_POST_ROUTING) && (dir == IP_CT_DIR_ORIGINAL)) ) {
+		printk(KERN_DEBUG "nat_sl: Not ORIGINAL and POSTROUTING, returning\n");
 		return NF_ACCEPT;
 	}
 	datalen = (*pskb)->len - iph->ihl * 4 - tcph->doff * 4;
@@ -231,8 +276,6 @@ static int __init init(void)
         sl.tuple.dst.protonum = IPPROTO_TCP;
 	
         sl.tuple.dst.u.tcp.port = __constant_htons(SL_PORT);
-        /* sl.mask.dst.protonum = 0xFFFF;
-        sl.mask.dst.u.tcp.port = 0xFFFF; */
         sl.help = sl_help;
 	sl.expect = NULL;
 	printk(KERN_DEBUG "ip_nat_sl: Trying to register for port %d\n", SL_PORT);
