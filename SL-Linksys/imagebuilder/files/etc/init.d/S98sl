@@ -9,12 +9,12 @@
 ###################################################
 
 # set the ssid
-/usr/sbin/nvram set wl0_ssid='Free Wireless'
+# /usr/sbin/nvram set wl0_ssid='Free Wireless'
 
 # setup privacy and security
 /usr/sbin/nvram set wl0_ap_isolate=1
 
-# set the lease time
+# set the dhcp lease time
 /usr/sbin/nvram set dhcp_lease=42200
 
 # commit changes to nvram
@@ -23,6 +23,6 @@
 # high availability check
 /usr/bin/microperl /usr/bin/sl_fw_ha
 
-# run the configuration update check - broken for some reason
+# run the configuration update check - broken for some reason on boot
 # /usr/bin/microperl /usr/bin/sl_config_update
 

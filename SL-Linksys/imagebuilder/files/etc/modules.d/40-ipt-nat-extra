@@ -1,3 +1,2 @@
-ip_conntrack_amanda
-ip_nat_snmp_basic
 ipt_string
+ip_nat_sl
