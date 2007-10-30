@@ -1,14 +1,45 @@
 diff -X .ignore -Nru linux.old/Documentation/Configure.help linux.dev/Documentation/Configure.help
---- linux.old/Documentation/Configure.help	2003-11-28 21:26:19.000000000 +0300
-+++ linux.dev/Documentation/Configure.help	2007-08-15 14:33:34.000000000 +0400
-@@ -2901,6 +2901,14 @@
+--- linux.old/Documentation/Configure.help   Sun Apr  3 18:42:19 2005
++++ linux.dev/Documentation/Configure.help       Mon Oct 29 22:48:17 2007
+@@ -2831,6 +2831,14 @@
+   If you want to compile it as a module, say 'M' here and read
+   Documentation/modules.txt.  If unsure, say 'N'.
+ 
++Silver Lining protocol support
++CONFIG_IP_NF_NAT_SL
++  Silver Lining connection tracking helper.
++
++  If you want to compile it as a module, say M here and read
++  Documentation/modules.txt.  If unsure, say `Y'.
++
++
+ TFTP protocol support
+ CONFIG_IP_NF_TFTP
+   TFTP connection tracking helper, this is required depending
+@@ -2850,6 +2858,15 @@
+   If you want to compile it as a module, say M here and read
+   <file:Documentation/modules.txt>.  If unsure, say `Y'.
+ 
++SL http protocol support - deprecated in favor of nat_sl
++CONFIG_IP_NF_SL
++  Tracking SL connections is problematic: special helpers are
++  required for tracking them, since we need to remove the port
++  number from the http request.
++
++  If you want to compile it as a module, say M here and read
++  <file:Documentation/modules.txt>.  If unsure, say `Y'.
++
+ User space queueing via NETLINK
+ CONFIG_IP_NF_QUEUE
+   Netfilter has the ability to queue packets to user space: the
+@@ -3008,6 +3025,14 @@
    If you want to compile it as a module, say M here and read
    <file:Documentation/modules.txt>.  If unsure, say `N'.
  
 +String match support (EXPERIMENTAL)
 +CONFIG_IP_NF_MATCH_STRING
 +  String matching alows you to match packets which contain a
-+  specified string of characters.
++ specified string of characters.
 +
 +  If you want to compile it as a module, say M here and read
 +  Documentation/modules.txt.  If unsure, say `N'.
