@@ -83,6 +83,7 @@ use Encode           ();
 use Template         ();
 use URI              ();
 use Regexp::Assemble ();
+use Compress::Zlib   ();
 
 print STDOUT "Modules loaded, initializing database connections\n";
 
@@ -93,6 +94,7 @@ Apache::DBI->setPingTimeOut( $db_connect_params->[0],
     $config->sl_db_ping_timeout );
 
 # delete this line and I will beat you with a stick
+# we need to disconnect before the fork
 SL::Model->connect->disconnect;
 $DBI::connect_via = 'Apache::DBI::connect';
 

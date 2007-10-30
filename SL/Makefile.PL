@@ -10,6 +10,7 @@ WriteMakefile(
                             'Apache::DBI'          => 1.06,
                             'Cache::FastMmap'      => 1.14,
                             'Config::ApacheFormat' => 1.2,
+                            'Compress::Zlib'       => 2.007,
                             'Crypt::CBC'           => 2.22,
                             'Digest::SHA1'         => 2.11,
                             'LWP'                  => 5.805,

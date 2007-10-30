@@ -42,6 +42,7 @@ use Data::Dumper          qw(Dumper);
 use Encode                ();
 use RHP::Timer            ();
 use Regexp::Assemble      ();
+use Compress::Zlib        ();
 
 use SL::Config;
 my $CONFIG = SL::Config->new;
@@ -557,7 +558,7 @@ sub twohundred {
 		(not $is_toofast) and 
 		(not $SUBREQUEST_TRACKER->is_subrequest(url => $r->pnotes('url')))) {
 
-        # note the ad-serving time for the rate-limitter
+        # note the ad-serving time for the rate-limiter
         $RATE_LIMIT->record_ad_serve($r->connection->remote_ip, $r->pnotes('ua'));
 
 		$response_content_ref = _generate_response( $r, $response );
@@ -599,12 +600,12 @@ sub twohundred {
 	# speed things up
 	# replace the links if this router/location has a replace_port setting
 	if (! defined $r->pnotes('google_override')) {
-		my $rep_ref = eval { 
+		my $rep_ref = eval {
 			SL::Model::Proxy::Router->replace_port( $r->connection->remote_ip ); };
 	if ($@) {
 		$r->log->error(sprintf("error getting replace_port for ip %s", $@));
 	}
-	
+
 	if ( (defined $rep_ref) && (! $@) && ( defined $subrequests_ref)) {
 		# setting in place, replace the links
 		my $ok = $SUBREQUEST_TRACKER->replace_subrequests({
@@ -615,7 +616,7 @@ sub twohundred {
 		$r->log->error("could not replace subrequests") unless $ok;
 		}
 	}
-    
+
 	# set the status line
     $r->status_line( $response->status_line );
     $r->log->debug( "status line is " . $response->status_line );
@@ -670,7 +671,10 @@ sub twohundred {
     delete $headers{'Content-Type'};
 
     ## Content encoding
+    # FIXME - why is this line commented out?
+    # ANSWER - probably because we determine ourselves if things should be gzipped
     #$r->content_encoding($response->header('content-encoding'));
+    $r->log->debug("$$ RESPONSE_CONTENT_ENCODING: " . $headers{'Content-Encoding'} );
     delete $headers{'Content-Encoding'};
 
     ## Content languages
@@ -703,9 +707,8 @@ sub twohundred {
         $r->headers_out->set( $key => $headers{$key} );
     }
 
-	# set the content-length
-	if (!$CONFIG->sl_proxy_apache_deflate)
-	{
+	# set the content-length if deflate is not turned on AND we are not compressing html content
+	if (!$CONFIG->sl_proxy_apache_deflate and  ( !($CONFIG->sl_proxy_apache_html_gzip && $is_html) )) {
 		no strict 'refs';
 		$r->set_content_length(length($$response_content_ref));
 	}
@@ -732,12 +735,20 @@ sub twohundred {
  		# Print the response content
         $TIMER->start('print_response');
     }
-    $r->print($$response_content_ref);
+
+    my $bytes_sent;
+    if ($CONFIG->sl_proxy_apache_html_gzip && $is_html) {
+        # we are compressing html so compress it
+        $r->content_encoding("gzip");
+        $bytes_sent = $r->print(Compress::Zlib::memGzip($response_content_ref));
+    } else {
+        $bytes_sent = $r->print($$response_content_ref);
+    }
 
     # checkpoint
     if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {
         $r->log->info(
-            sprintf( "timer $$ %s %d %s %f",
+            sprintf( "$bytes_sent bytes sent, timer $$ %s %d %s %f",
                 @{ $TIMER->checkpoint }[ 0, 2 .. 4 ] )
         );
     }
