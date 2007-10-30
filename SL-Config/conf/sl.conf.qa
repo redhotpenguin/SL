@@ -39,6 +39,7 @@ sl_mod_debug 1 # debugging in SL::* modules
 #sl_small_prof
 
 # proxy server settings
+sl_proxy_apache_html_gzip 1
 # sl_proxy_apache_deflate  1 # deflate breaks youtube
 sl_proxy_apache_maxclients  128
 sl_proxy_apache_start_servers  64
