@@ -5,19 +5,24 @@
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 41;
+use Test::More tests => 42;
 
-BEGIN { use_ok('SL::Cache::Subrequest') or die };
+BEGIN { use_ok('SL::Cache::Subrequest') or die }
 
 # setup the database
 my $base_url = "http://example.com";
 my @urls     = (
-    "$base_url/bar.js",             "http://scripthaus.com/zimzam.js",
+    "$base_url/bar.js",
+    "http://scripthaus.com/zimzam.js",
     "http://www.redhotpenguin.com/css/local.css",
-    "$base_url/subreq.cgi",         "$base_url/not_subreq.cgi",
-    "http://imagefarm.com/pig.jpg", "$base_url/images/news.gif",
-    "$base_url/img/cow.gif",  'javascript:false;',
-     'about:blank',
+    "$base_url/subreq.cgi",
+    "$base_url/not_subreq.cgi",
+    "http://imagefarm.com/pig.jpg",
+    "$base_url/images/news.gif",
+    "$base_url/img/cow.gif",
+    'javascript:false;',
+    'about:blank',
+    'https://testssl.com',
 );
 my $in = join ( ',', map { "'" . $_ . "'" } @urls );
 
@@ -47,6 +52,7 @@ ok( $subreq->is_subrequest( url  => $urls[6] ) );
 ok( $subreq->is_subrequest( url  => $urls[7] ) );
 ok( !$subreq->is_subrequest( url => $urls[8] ) );
 ok( !$subreq->is_subrequest( url => $urls[9] ) );
+ok( !$subreq->is_subrequest( url => $urls[10] ));
 
 # examine the results of the subrequest collection
 diag('examine results of subrequest collection');
@@ -68,16 +74,15 @@ cmp_ok( $subreq_ref->[6]->[1], 'eq', $urls[7] );
 
 diag('replace the links now');
 my $port = '8135';
-$DB::single = 1;
 my $ok = $subreq->replace_subrequests(
-        {
-            port        => $port,
-            content_ref => \$content,
-            subreq_ref  => $subreq_ref,
-        }
-    );
-ok($ok, 'subrequests replaced od');
-$DB::single = 1;
+    {
+        port        => $port,
+        content_ref => \$content,
+        subreq_ref  => $subreq_ref,
+    }
+);
+ok( $ok, 'subrequests replaced od' );
+
 my $subrequests_ref = $subreq->collect_subrequests(
     content_ref => \$content,
     base_url    => $base_url
@@ -87,10 +92,13 @@ my $subrequests_ref = $subreq->collect_subrequests(
 
 my $i = 0;
 foreach my $subrequest_ref ( @{$subrequests_ref} ) {
+
     # make sure the port was replaced
-    like($subrequest_ref->[0], qr/$port/);
+    like( $subrequest_ref->[0], qr/$port/ );
+
     # ??
-    cmp_ok($subreq_ref->[$i++]->[2], 'eq', $subrequest_ref->[2]);
+    cmp_ok( $subreq_ref->[ $i++ ]->[2], 'eq', $subrequest_ref->[2] );
+
     # check to make sure quotes were preserved
     my $testurl = $subrequest_ref->[1];
 }
@@ -118,6 +126,7 @@ __DATA__
 <img src="/img/cow.gif">
 <iframe src="javascript:false;"></iframe>
 <frame src="about:blank"></frame>
+<a href="https://testssl.com">an https test</a>
 </p>
 </body>
 </html>

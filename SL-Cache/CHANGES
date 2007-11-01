@@ -1,5 +1,9 @@
 Revision history for SL::Cache
 
+0.20 Wed Oct 31 21:18:47 2007
+    - fix a bug where https links were being picked up as subrequests, thanks
+      to jeff and garrett for the spot.
+
 0.19 Sat Jul 28 15:21:57 2007
     - fix a bug where certain link attributes were wrongly being assumed
       as static content, and therefore we had some bad links in places.

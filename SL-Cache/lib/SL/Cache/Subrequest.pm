@@ -177,7 +177,7 @@ sub _normalize_url {
 
     # canonicalize the URL
     my $canonical_url;
-    if ( $url =~ m!^https?://! ) {
+    if ( $url =~ m!^http?://! ) { # we skip https on purpose thanks
 
         # full url
         $canonical_url = URI->new($url)->canonical->as_string;
