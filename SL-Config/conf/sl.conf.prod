@@ -39,9 +39,11 @@ sl_proxy_apache_html_gzip 1
 # sl_proxy_apache_deflate  1 # deflate breaks youtube
 sl_proxy_apache_maxclients  384
 sl_proxy_apache_start_servers  192
-sl_proxy_apache_max_spare_servers  32
-sl_proxy_apache_min_spare_servers  16
+sl_proxy_apache_max_spare_servers  64
+sl_proxy_apache_min_spare_servers  32
 sl_proxy_apache_loglevel  error
+# sl_proxy_apache_loglevel  info
+# sl_proxy_apache_loglevel  debug
 sl_proxy_apache_keepalive  On
 sl_proxy_apache_user  phred
 sl_proxy_apache_group  users
