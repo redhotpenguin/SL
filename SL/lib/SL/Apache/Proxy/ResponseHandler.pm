@@ -674,8 +674,10 @@ sub twohundred {
     # FIXME - why is this line commented out?
     # ANSWER - probably because we determine ourselves if things should be gzipped
     #$r->content_encoding($response->header('content-encoding'));
-    $r->log->debug("$$ RESPONSE_CONTENT_ENCODING: " . $headers{'Content-Encoding'} );
-    delete $headers{'Content-Encoding'};
+	if (exists $headers{'Content-Encoding'}) {
+		$r->log->debug("$$ RESPONSE_CONTENT_ENCODING: " . $headers{'Content-Encoding'} );
+		delete $headers{'Content-Encoding'};
+	}
 
     ## Content languages
     if ( defined $response->header('content-language') ) {
@@ -726,6 +728,11 @@ sub twohundred {
     $r->log->debug( "$$ Response content: " . $$response_content_ref )
       if $VERBOSE_DEBUG;
 
+    if ($CONFIG->sl_proxy_apache_html_gzip && $is_html) {
+        # we are compressing html so compress it
+        $r->content_encoding('gzip');
+    } 
+
     # rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
     $r->rflush();
@@ -738,14 +745,13 @@ sub twohundred {
 
     my $bytes_sent;
     if ($CONFIG->sl_proxy_apache_html_gzip && $is_html) {
-        # we are compressing html so compress it
-        $r->content_encoding("gzip");
+	        # we are compressing html so compress it
         $bytes_sent = $r->print(Compress::Zlib::memGzip($response_content_ref));
     } else {
         $bytes_sent = $r->print($$response_content_ref);
     }
 
-    # checkpoint
+	# checkpoint
     if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {
         $r->log->info(
             sprintf( "$bytes_sent bytes sent, timer $$ %s %d %s %f",

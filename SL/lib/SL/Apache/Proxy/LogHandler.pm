@@ -10,7 +10,9 @@ use Apache2::Log ();
 use RHP::Timer ();
 
 my $TIMER = RHP::Timer->new();
-our $THRESHOLD = 2;
+use SL::Config;
+our $CONFIG = SL::Config->new;
+our $THRESHOLD = $CONFIG->sl_proxy_apache_request_threshold;
 
 sub handler {
     my $r = shift;

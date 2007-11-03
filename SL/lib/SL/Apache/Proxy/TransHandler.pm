@@ -115,7 +115,7 @@ sub handler {
     # we only serve ads on GETs
     return &proxy_request($r) if ($r->method ne 'GET');
 
-    # start the clock - the stuff above is about 5-10 ms
+	# start the clock - the stuff above is about 5-10 ms
     if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
         # start the clock
         $TIMER->start('db_mod_proxy_filters');
@@ -175,6 +175,13 @@ sub handler {
         $r->log->info(
              sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
     }
+
+	# need to be a get to get a x-sl header
+	my $sl_header = $r->headers_in->{'x-sl'};
+	if ($sl_header) {
+		$r->log->error("Found sl_header $sl_header for url $url");
+		$r->pnotes('x_sl' => $sl_header);
+	}
 
     return Apache2::Const::OK;
 }

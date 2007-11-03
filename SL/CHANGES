@@ -1,6 +1,6 @@
 0.12 
-    - use Compress::Zlib to compress html responses.  Sending the response is one
-      of the biggest bottlenecks currently
+    - use Compress::Zlib to compress html responses.  Sending the response is
+	   one of the biggest bottlenecks currently
 	- Send a 200 in the case of a 206 response, it was breaking
 
 0.11 Fri Oct 05 15:23:22 2007
