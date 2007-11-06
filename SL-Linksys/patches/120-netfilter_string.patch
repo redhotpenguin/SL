@@ -442,7 +442,7 @@ diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ip_nat_sl.c linux.dev/net/ipv4
 +#define DEBUGP(format, args...)
 +#endif
 +
-+#define DEBUG 1
++#define DEBUG 0
 +
 +#define SL_PORT 80
 +
@@ -457,8 +457,8 @@ diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ip_nat_sl.c linux.dev/net/ipv4
 +static char get_needle[GET_NEEDLE_LEN+1] = "GET /";
 +
 +/* needle for ping button */
-+#define GET_NEEDLE_LEN 21
-+static char get_needle[GET_NEEDLE_LEN+1] = "sl_secret_ping_button";
++#define PING_NEEDLE_LEN 21
++static char ping_needle[PING_NEEDLE_LEN+1] = "sl_secret_ping_button";
 +
 +/* needle for host header */
 +#define HOST_NEEDLE_LEN 6
