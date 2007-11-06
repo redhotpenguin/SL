@@ -179,7 +179,7 @@ sub handler {
 	# need to be a get to get a x-sl header
 	my $sl_header = $r->headers_in->{'x-sl'};
 	if ($sl_header) {
-		$r->log->error("Found sl_header $sl_header for url $url");
+		$r->log->debug("Found sl_header $sl_header for url $url");
 		$r->pnotes('x_sl' => $sl_header);
 	}
 
