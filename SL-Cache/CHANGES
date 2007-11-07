@@ -1,5 +1,8 @@
 Revision history for SL::Cache
 
+0.21 Tue Nov 06 17:01:00 2007
+    - use the sl_header if it exists to determine unique user
+
 0.20 Wed Oct 31 21:18:47 2007
     - fix a bug where https links were being picked up as subrequests, thanks
       to jeff and garrett for the spot.

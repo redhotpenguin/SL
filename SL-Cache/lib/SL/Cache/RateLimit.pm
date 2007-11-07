@@ -25,13 +25,12 @@ SL::Cache::RateLimit - cache based rate-limit enforcement for ad serving
   $rate_limit = SL::Cache::RateLimit->new;
 
   # determine if this request is over the limit
-  $is_too_fast = $rate_limit->check_violation(
-      $ip, $user_agent );
+  $is_too_fast = $rate_limit->check_violation( $user_id );
 
   # record an ad served
-  $rate_limit->record_ad_serve( $ip, $user_agent );
+  $rate_limit->record_ad_serve( $user_id );
 
-  if ($rate_limit->check_violation( $ip, $user_agent )) {
+  if ($rate_limit->check_violation( $user_id )) {
     # don't serve an ad
   }
 
@@ -71,9 +70,7 @@ Checks to see if this request is over the limit for the user.  Returns
 =cut
 
 sub record_ad_serve {
-    my ( $self, $ip, $user_agent ) = @_;
-
-    my $user_id = _user_id( $ip, $user_agent );
+    my ( $self, $user_id ) = @_;
 
     # update the cache
     $self->{cache}->set( join('|', 'ratelimit', $user_id) => time() );
@@ -87,14 +84,7 @@ sub _user_id {
 }
 
 sub check_violation {
-    my ( $self, $ip, $user_agent ) = @_;
-
-    # Determine a maximally unique ID which will hopefully reliably
-    # identify a user.  We can't use cookies due to the multi-domain
-    # nature of SL
-    # FIX: add the user's IP or MAC address (not possible without help
-    # from the router)
-    my $user_id = _user_id( $ip, $user_agent );
+    my ( $self, $user_id ) = @_;
 
     # do the rate check with limit
     my $last_known = $self->{cache}->get(join('|', 'ratelimit', $user_id));
