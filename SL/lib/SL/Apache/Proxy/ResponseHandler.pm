@@ -823,7 +823,7 @@ sub _generate_response {
         $TIMER->start('container insertion')
           if ( $r->server->loglevel() == Apache2::Const::LOG_INFO );
 
-        if ( $ad_id eq $GOOGLE_AD_ID) {
+        if (0 and ( $ad_id eq $GOOGLE_AD_ID)) {
            my $PAGE_CACHE = SL::Page::Cache->new;
 
            # create a dynamic page for this content unless one exists

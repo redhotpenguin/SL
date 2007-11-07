@@ -54,9 +54,6 @@ our $SUBREQUEST_TRACKER = SL::Cache::Subrequest->new;
 
 my $TIMER = RHP::Timer->new();
 
-use SL::Page::Cache;
-my $PAGE_CACHE = SL::Page::Cache->new;
-
 sub proxy_request {
     my ($r, $uri) = @_;
     if ($r->dir_config('SLProxy') eq 'perlbal') {
@@ -146,12 +143,12 @@ sub handler {
 		my $new_url = $r->construct_url($new_uri);
 		$r->pnotes(url => $new_url);
 		$r->log->debug("NEW URL: $new_url");
-		my $cached_url = $PAGE_CACHE->cache_url({ url => $referer });
-		if ($cached_url) {
-			# the response handler handles the proxy for this so stash referer
-			$r->pnotes('referer' => $cached_url);
-			$r->headers_in->{Referer} = $cached_url;
-		}
+#		my $cached_url = $PAGE_CACHE->cache_url({ url => $referer });
+#		if ($cached_url) {
+#			# the response handler handles the proxy for this so stash referer
+#			$r->pnotes('referer' => $cached_url);
+#			$r->headers_in->{Referer} = $cached_url;
+#		}
     }
 
     # blacklisted urls
