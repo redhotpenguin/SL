@@ -52,9 +52,12 @@ Mac Address:
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
 <!-- splash page -->
-<tr><td>Splash page url:</td>
+<tr><td>
+[% IF errors.missing.splash_href or errors.invalid.splash_href %]<font color="red">[% END %]
+Splash page url:</td>
+[% IF errors.missing.splash_href or errors.invalid.splash_href %]</font>[% END %]
 <td>
-<input type="text" name="splash_href" size="25" maxlength="25" value='[% router.splash_href %]'>
+<input type="text" name="splash_href" size="25" maxlength="255" value='[% req.param('splash_href') or router.splash_href %]'>
 </td></tr>
 <tr><td colspan="2">
 <font color="#CCCCCC">(example <b>http://www.redhotpenguin.com/silverlining.html</b>)</font></td></tr>

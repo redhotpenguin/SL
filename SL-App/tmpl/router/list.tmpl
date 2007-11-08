@@ -18,7 +18,7 @@
 <tr class="list_header">
 <td class="header">Name</td>
 <td class="header">Mac Address</td>
-<td class="header">Serial Number</td>
+<td class="header">Splash Page</td>
 <td class="header">Registered Locations</td>
 <td class="header">Ad Groups</td>
 </tr>
@@ -34,9 +34,9 @@
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
 [% router.macaddr %]</td>
 
-<!-- serial number -->	
+<!-- splash page -->	
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% router.serial_number %]</td>
+[% IF router.splash_href != '' %]<a href="[% router.splash_href %]">link</a>[% END %]</td>
 
 <!-- location count -->
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
