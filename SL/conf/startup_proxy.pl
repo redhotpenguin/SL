@@ -66,6 +66,7 @@ use SL::Static        ();
 use SL::Cache         ();
 use SL::Cache::Subrequest ();
 use SL::Cache::RateLimit ();
+use SL::Cache::User   ();
 use SL::UserAgent     ();
 use SL::HTTP::Request ();
 use SL::Util          ();

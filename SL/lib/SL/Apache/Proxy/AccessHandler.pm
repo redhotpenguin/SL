@@ -19,21 +19,22 @@ sub handler {
     }
 
     # see if we know this ip is registered
-    my $location = eval { SL::Model::Proxy::Location->get_location_id_from_ip(
+    my $location_id = eval { SL::Model::Proxy::Location->get_location_id_from_ip(
             $r->connection->remote_ip ); };
 
 	if ($@) {
-		
+
 		# db connect failed, run and hide!  can't do much else without auth
 		$r->log->error(sprintf("get_location_id_from_ip for ip %s failed, err %s",
 				$r->connection->remote_ip, $@ ));
 		return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
     } elsif ($location) {
-		
-		# authorized client, let them pass        
+
+		# authorized client, let them pass
+        $r->pnotes(location_id => $location_id);
 		return Apache2::Const::OK;
     } elsif (!$location) {
-		
+
 		# unauthorized attempt
 		$r->log->error(sprintf("client ip %s unregistered access attempt to url %s",
 				$r->connection->remote_ip, $url));

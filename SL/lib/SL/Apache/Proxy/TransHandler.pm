@@ -136,7 +136,7 @@ sub handler {
     {
 		# HACK
 		return &proxy_request($r) if ($new_uri eq '1'); # string or integer
-	
+
 		$r->log->debug("$$ google ad click match for url $url, ip " .
                        $r->connection->remote_ip . ", new uri $new_uri");
 		$r->pnotes('google_override' => 1);
@@ -177,7 +177,7 @@ sub handler {
 	my $sl_header = $r->headers_in->{'x-sl'};
 	if ($sl_header) {
 		$r->log->debug("Found sl_header $sl_header for url $url");
-		$r->pnotes('x_sl' => $sl_header);
+		$r->pnotes('sl_header' => $sl_header);
 	}
 
     return Apache2::Const::OK;
@@ -186,9 +186,14 @@ sub handler {
 sub user_blacklisted {
     my ($r, $dbh) = @_;
 
-    my $user_id = join("|",
+    my $user_id;
+    if (my $sl_header = $r->headers_in->{'x-sl'}) {
+      $user_id = join('|', $sl_header, $r->construct_server());
+    } else {
+      $user_id = join("|",
                        $r->connection->remote_ip, $r->pnotes('ua'),
                        $r->construct_server());
+    }
 
     my $sth =
       $dbh->prepare(

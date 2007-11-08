@@ -37,6 +37,7 @@ use SL::Model::Ad         ();
 use SL::Cache			  ();
 use SL::Cache::Subrequest ();
 use SL::Cache::RateLimit  ();
+use SL::Cache::User       ();
 use SL::Model::Proxy::Router  ();
 use Data::Dumper          qw(Dumper);
 use Encode                ();
@@ -172,6 +173,26 @@ BEGIN {
 sub handler {
     my $r = shift;
 
+    # send the user to the splash page if it is enabled
+    if ($r->pnotes('sl_header')) {
+      my ($splash_url, $timeout) = SL::Model::Proxy::Router->splash_page($r->pnotes('location_id'));
+      if ($splash_url) {
+        # aha we have a splash page, check when the last time we saw this user was
+        my $last_seen = SL::Cache::User->get_last_seen($r->pnotes('sl_header'));
+        # last_seen is in seconds, timeout is in minutes
+        if (($timeout * 60) < (time() - $last_seen)) {
+          # timed out, redirect to the splash page
+          my $location = "$splash_url?url=" . $r->pnotes('url');
+          $r->log->debug("splash page timeout, redirecting to $location");
+
+          my $set_ok = SL::Cache::User->set_last_seen($r->pnotes('sl_header'));
+          $r->headers_out->set(Location => $location);
+          # do not change this line
+          return Apache2::Const::REDIRECT;
+        }
+       }
+    }
+
     # Build the request
     my %headers;
     $r->headers_in->do(
@@ -208,7 +229,7 @@ sub handler {
 	my $response = $SL_UA->request($proxy_request);
 	$r->pnotes('proxy_req_timer')->stop;
 
-    $r->log->debug( "$$ Response from proxy request", Dumper($response) );
+    $r->log->debug( "$$ Response from proxy request", Dumper($response) ) if $VERBOSE_DEBUG;
 
     # checkpoint
     if ( $r->server->loglevel() == Apache2::Const::LOG_INFO ) {
@@ -237,8 +258,8 @@ sub handler {
 sub _translate_headers {
 	my ($r, $res) = @_;
 
-	$r->log->debug(sprintf( "Response headers: %s", $res->headers)); 
-	
+	$r->log->debug(sprintf( "Response headers: %s", $res->headers));
+
 	# clear the current headers
     $r->headers_out->clear();
 
@@ -271,7 +292,7 @@ sub _translate_headers {
 
         # some headers have an unecessary newline appended so chomp the value
         chomp( $headers{$key} );
-        
+
 		# not sure why chomp doesn't fix this
 		if ( $headers{$key} =~ m/\n/ ) {
             $headers{$key} =~ s/\n/ /g;
@@ -459,7 +480,7 @@ sub threeohone {
 
 	# translate the headers from the remote response to the proxy response
 	my $translated = _translate_headers($r, $res);
-	$r->log->error(sprintf("header translation error \$r: %s, \$res %s",
+	$r->log->error(sprintf("header translation error \$r: %s, \b$res %s",
 			$r->as_string, Dumper($res))) unless $translated;
     
 	# rflush() flushes the headers to the client
@@ -511,16 +532,16 @@ sub threeohthree {
 
 	# translate the headers from the remote response to the proxy response
 	my $translated = _translate_headers($r, $res);
-	
+
 	# rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
     $r->rflush();
-	
+
 	$r->log->error(sprintf("header translation error \$r: %s, \$res %s",
 			$r->as_string, Dumper($res))) unless $translated;
 
     $r->log->debug( "$$ Request: \n" . $r->as_string ) if $VERBOSE_DEBUG;
-	
+
 	# do not change this line
 	return Apache2::Const::HTTP_SEE_OTHER;
 }
@@ -548,9 +569,16 @@ sub twohundred {
     }
 
     my $is_toofast;
+    my $user_id;
     if ($is_html) {
-        $is_toofast = $RATE_LIMIT->check_violation($r->connection->remote_ip, $r->pnotes('ua')) || 0;
-		$r->log->debug("$$ ===> $url check_violation: $is_toofast");
+      if ($r->pnotes('sl_header')) {
+        $user_id = $r->pnotes('sl_header');
+      } else {
+        $user_id = join ( '|', $r->connection->remote_ip, $r->pnotes('ua') );
+     }
+
+     $is_toofast = $RATE_LIMIT->check_violation($user_id) || 0;
+	 $r->log->debug("$$ ===> $url check_violation: $is_toofast");
     }
 
     # serve an ad if this is HTML and it's not a sub-request of an
@@ -561,7 +589,7 @@ sub twohundred {
 		(not $SUBREQUEST_TRACKER->is_subrequest(url => $r->pnotes('url')))) {
 
         # note the ad-serving time for the rate-limiter
-        $RATE_LIMIT->record_ad_serve($r->connection->remote_ip, $r->pnotes('ua'));
+        $RATE_LIMIT->record_ad_serve($user_id);
 
 		$response_content_ref = _generate_response( $r, $response );
 

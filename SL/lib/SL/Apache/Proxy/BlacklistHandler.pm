@@ -10,8 +10,13 @@ use SL::Model ();
 sub handler {
 	my $r = shift;
 
-	my $user_id = join("|", $r->connection->remote_ip, 
+    my $user_id;
+    if (my $sl_header = $r->pnotes('sl_header')) {
+      $user_id = join('|', $sl_header, $r->construct_server());
+    } else {
+      $user_id = join("|", $r->connection->remote_ip, 
 		$r->pnotes('ua'), $r->construct_server());
+   }
 
 	my $dbh = eval { SL::Model->connect(); };
 	unless ($dbh) {
