@@ -45,6 +45,29 @@ sub add_router_from_mac {
     return $router_id;
 }
 
+
+use constant SPLASH_PAGE_SQL => q{
+SELECT router.splash_href, router.splash_timeout
+FROM router, location, router__location
+WHERE location.location_id = ?
+AND router__location.location_id = location.location_id
+AND router.router_id = router__location.router_id
+};
+
+
+sub splash_page {
+  my ($class, $location_id) = @_;
+  my $sth = $class->connect->prepare_cached(SPLASH_PAGE_SQL);
+  $sth->bind_param(1, $location_id);
+  $sth->execute or return;
+  my $ary_ref = $sth->fetchrow_arrayref;
+  $sth->finish;
+  return unless (scalar(@{$ary_ref}) > 0);
+  return unless ((defined $ary_ref->[0]) && ($ary_ref->[0] ne ''));
+  return ($ary_ref->[0], $ary_ref->[1]);
+}
+
+
 use constant REPLACE_PORT_SQL => q{
 SELECT router.router_id, router.replace_port
 FROM router, location, router__location
