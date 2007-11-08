@@ -178,7 +178,9 @@ sub handler {
         sub {
             my $k = shift;
             my $v = shift;
-            $headers{$k} = $v;
+			if ($k !~ m/^X-SL/) {
+				$headers{$k} = $v;
+			}
             return 1;    # don't remove me
         }
     );
