@@ -15,12 +15,12 @@ sub new {
     foreach my $k (keys %{$args_ref->{headers}}) {
         next
           if (   $k eq 'If-Modified-Since'
-              or $k eq 'If-None-Match'
-              or $k eq 'Accept-Encoding');
+              or $k eq 'If-None-Match' );
 
         $self->header($k => $args_ref->{headers}->{$k});
     }
-    return $self;
+	$self->protocol('HTTP/1.1');
+	return $self;
 }
 
 1;
