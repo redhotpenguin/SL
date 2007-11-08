@@ -99,7 +99,7 @@ sub dispatch_edit {
         $r->method_number(Apache2::Const::M_GET);
         my %router_profile = (
             required           => [qw( name macaddr )],
-            constraint_methods => { macaddr => valid_macaddr() }
+            constraint_methods => { macaddr => valid_macaddr(), splash_href => splash_href() }
         );
         my $results = Data::FormValidator->check( $req, \%router_profile );
 
@@ -196,6 +196,16 @@ sub dispatch_list {
     $ok
       ? return $self->ok( $r, $output )
       : return $self->error( $r, "Template error: " . $tmpl->error() );
+}
+
+sub splash_href {
+  return sub {
+    my $dfv = shift;
+    my $val = $dfv->get_current_constraint_value;
+
+    return $val if ( $val =~ m/^http:\/\/\w+/ );
+    return;
+    }
 }
 
 sub valid_macaddr {
