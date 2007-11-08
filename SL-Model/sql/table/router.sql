@@ -29,6 +29,8 @@ CREATE TABLE router (
     name text default '',
     feed_linkshare boolean default 'f',
     feed_google boolean default 'f',
+    splash_href text default '',
+    splash_timeout integer default 60
 );
 
 ALTER TABLE ONLY router
