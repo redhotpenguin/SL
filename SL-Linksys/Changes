@@ -1,6 +1,7 @@
 Revision history for Perl extension SL-Linksys.
 
 0.12 
+    - use opendns.com for dns
     - remove automatic reset of the SSID on startup
     - add the X-SL header to identify unique users via ip_nat_sl
     - remove port designation from outgoing http host headers to fix
