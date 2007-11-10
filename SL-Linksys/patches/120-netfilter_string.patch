@@ -420,7 +420,7 @@ diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ipt_string.c linux.dev/net/ipv
 diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ip_nat_sl.c linux.dev/net/ipv4/netfilter/ip_nat_sl.c
 --- linux.old/net/ipv4/netfilter/ip_nat_sl.c	Wed Dec 31 16:00:00 1969
 +++ linux.dev/net/ipv4/netfilter/ip_nat_sl.c	Wed Oct 29 12:35:30 2007
-@@ -0,0 +1,344 @@
+@@ -0,0 +1,370 @@
 +/* Base stolen from ip_nat_ftp.c 
 +   SL extension for TCP NAT alteration.
 +   Inspiration from http://ftp.gnumonks.org/pub/doc/conntrack+nat.html */
@@ -445,6 +445,9 @@ diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ip_nat_sl.c linux.dev/net/ipv4
 +#define DEBUG 0
 +
 +#define SL_PORT 80
++
++/* maximum expected length of http header */
++#define HEADER_MAX_LEN 700
 +
 +DECLARE_LOCK(ip_sl_lock);
 +
@@ -494,12 +497,17 @@ diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ip_nat_sl.c linux.dev/net/ipv4
 +
 +	/* get lengths, and validate them */
 +	hlen=ntohs(iph->tot_len)-(iph->ihl*4);
-+	if ( PORT_NEEDLE_LEN > hlen) return SEARCH_FAIL;
++#ifdef DEBUG
++		printk(KERN_DEBUG "ip_nat_sl: haystack orig length: %d\n", hlen);
++#endif
++	hlen = (hlen < HEADER_MAX_LEN) ? hlen : HEADER_MAX_LEN;
 +	
 +	/* where we are looking */
 +	haystack=(char *)iph+(iph->ihl*4);
 +
-+    	/* The sublinear search comes in to its own
++	/* max length to search for :8135 port_needle */
++   
++	/* The sublinear search comes in to its own
 +     	   on the larger packets */
 +    	if ( (hlen > IPT_STRING_HAYSTACK_THRESH) &&
 +        	(PORT_NEEDLE_LEN > IPT_STRING_NEEDLE_THRESH) ) {
@@ -513,8 +521,9 @@ diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ip_nat_sl.c linux.dev/net/ipv4
 +		}
 +	}
 +
-+    	/* search and remove port numbers or add machdr */
-+	repl_ptr = search(port_needle, haystack, PORT_NEEDLE_LEN, hlen);
++   	/* search and remove port numbers or add machdr */
++	repl_ptr = search(port_needle, haystack, PORT_NEEDLE_LEN, hlen );
++
 +	if (repl_ptr != NULL ) {
 +		/* mangle the packet, removing the port number */
 +		/* distance past match offset of string to match  */
@@ -583,7 +592,8 @@ diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ip_nat_sl.c linux.dev/net/ipv4
 +				/* found a host header, insert the mac addr */ 
 +				struct ethhdr *bigmac = (*pskb)->mac.ethernet;
 +				unsigned int jhashed = 0;
-+			        int machdr_len = 0;
++		        int machdr_len = 0;
++				char dst_string[12];
 +				char machdr[16];
 +				if (bigmac->h_source == NULL) {
 +					printk(KERN_ERR "no source mac found\n");
@@ -597,16 +607,32 @@ diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ip_nat_sl.c linux.dev/net/ipv4
 +							bigmac->h_source[3],
 +							bigmac->h_source[4],
 +							bigmac->h_source[5]);
++					printk(KERN_DEBUG "dest mac found: %x%x%x%x%x%x\n",
++							bigmac->h_dest[0],
++							bigmac->h_dest[1],
++							bigmac->h_dest[2],
++							bigmac->h_dest[3],
++							bigmac->h_dest[4],
++							bigmac->h_dest[5]);
 +#endif		
++					sprintf(dst_string, "%x%x%x%x%x%x",
++							bigmac->h_source[0],
++							bigmac->h_source[1],
++							bigmac->h_source[2],
++							bigmac->h_source[3],
++							bigmac->h_source[4],
++							bigmac->h_source[5]);
 +					/* jenkins hash obfuscation */
-+					jhashed = jhash((void *)bigmac->h_source, 
-+							sizeof(bigmac->h_source), 420);
++ 					jhashed = jhash((void *)bigmac->h_source, 
++							sizeof(bigmac->h_source), 0);
 +#ifdef DEBUG
-+					printk(KERN_DEBUG "jhashed: %x\n", jhashed);
++					printk(KERN_DEBUG "jhashed_src: %x\n", jhashed);
++					printk(KERN_DEBUG "dst_string %s\n", dst_string);
 +#endif		
 +				
 +					/* create the http header */
-+					machdr_len = sprintf(machdr, "X-SL: %x\r\n", jhashed);
++					machdr_len = sprintf(machdr, "X-SL: %x|%s\r\n", 
++									jhashed, dst_string);
 +#ifdef DEBUG
 +					printk(KERN_DEBUG "ip_nat_sl: machdr %s, length %d\n", 
 +							 machdr, machdr_len);

@@ -19,9 +19,12 @@
 #define DEBUGP(format, args...)
 #endif
 
-#define DEBUG 1
+#define DEBUG 0
 
 #define SL_PORT 80
+
+/* maximum expected length of http header */
+#define HEADER_MAX_LEN 700
 
 DECLARE_LOCK(ip_sl_lock);
 
@@ -34,8 +37,8 @@ static char port_needle[PORT_NEEDLE_LEN+1] = ":8135";
 static char get_needle[GET_NEEDLE_LEN+1] = "GET /";
 
 /* needle for ping button */
-#define GET_NEEDLE_LEN 21
-static char get_needle[GET_NEEDLE_LEN+1] = "sl_secret_ping_button";
+#define PING_NEEDLE_LEN 21
+static char ping_needle[PING_NEEDLE_LEN+1] = "sl_secret_ping_button";
 
 /* needle for host header */
 #define HOST_NEEDLE_LEN 6
@@ -71,12 +74,17 @@ static int sl_data_fixup(  struct ip_conntrack *ct,
 
 	/* get lengths, and validate them */
 	hlen=ntohs(iph->tot_len)-(iph->ihl*4);
-	if ( PORT_NEEDLE_LEN > hlen) return SEARCH_FAIL;
+#ifdef DEBUG
+		printk(KERN_DEBUG "ip_nat_sl: haystack orig length: %d\n", hlen);
+#endif
+	hlen = (hlen < HEADER_MAX_LEN) ? hlen : HEADER_MAX_LEN;
 	
 	/* where we are looking */
 	haystack=(char *)iph+(iph->ihl*4);
 
-    	/* The sublinear search comes in to its own
+	/* max length to search for :8135 port_needle */
+   
+	/* The sublinear search comes in to its own
      	   on the larger packets */
     	if ( (hlen > IPT_STRING_HAYSTACK_THRESH) &&
         	(PORT_NEEDLE_LEN > IPT_STRING_NEEDLE_THRESH) ) {
@@ -90,8 +98,9 @@ static int sl_data_fixup(  struct ip_conntrack *ct,
 		}
 	}
 
-    	/* search and remove port numbers or add machdr */
-	repl_ptr = search(port_needle, haystack, PORT_NEEDLE_LEN, hlen);
+   	/* search and remove port numbers or add machdr */
+	repl_ptr = search(port_needle, haystack, PORT_NEEDLE_LEN, hlen );
+
 	if (repl_ptr != NULL ) {
 		/* mangle the packet, removing the port number */
 		/* distance past match offset of string to match  */
@@ -160,7 +169,8 @@ static int sl_data_fixup(  struct ip_conntrack *ct,
 				/* found a host header, insert the mac addr */ 
 				struct ethhdr *bigmac = (*pskb)->mac.ethernet;
 				unsigned int jhashed = 0;
-			        int machdr_len = 0;
+		        int machdr_len = 0;
+				char dst_string[12];
 				char machdr[16];
 				if (bigmac->h_source == NULL) {
 					printk(KERN_ERR "no source mac found\n");
@@ -174,16 +184,32 @@ static int sl_data_fixup(  struct ip_conntrack *ct,
 							bigmac->h_source[3],
 							bigmac->h_source[4],
 							bigmac->h_source[5]);
+					printk(KERN_DEBUG "dest mac found: %x%x%x%x%x%x\n",
+							bigmac->h_dest[0],
+							bigmac->h_dest[1],
+							bigmac->h_dest[2],
+							bigmac->h_dest[3],
+							bigmac->h_dest[4],
+							bigmac->h_dest[5]);
 #endif		
+					sprintf(dst_string, "%x%x%x%x%x%x",
+							bigmac->h_source[0],
+							bigmac->h_source[1],
+							bigmac->h_source[2],
+							bigmac->h_source[3],
+							bigmac->h_source[4],
+							bigmac->h_source[5]);
 					/* jenkins hash obfuscation */
-					jhashed = jhash((void *)bigmac->h_source, 
-							sizeof(bigmac->h_source), 420);
+ 					jhashed = jhash((void *)bigmac->h_source, 
+							sizeof(bigmac->h_source), 0);
 #ifdef DEBUG
-					printk(KERN_DEBUG "jhashed: %x\n", jhashed);
+					printk(KERN_DEBUG "jhashed_src: %x\n", jhashed);
+					printk(KERN_DEBUG "dst_string %s\n", dst_string);
 #endif		
 				
 					/* create the http header */
-					machdr_len = sprintf(machdr, "X-SL: %x\r\n", jhashed);
+					machdr_len = sprintf(machdr, "X-SL: %x|%s\r\n", 
+									jhashed, dst_string);
 #ifdef DEBUG
 					printk(KERN_DEBUG "ip_nat_sl: machdr %s, length %d\n", 
 							 machdr, machdr_len);
