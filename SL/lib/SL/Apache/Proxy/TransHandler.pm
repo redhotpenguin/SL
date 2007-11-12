@@ -78,17 +78,8 @@ sub handler {
     my $url = $r->construct_url($r->unparsed_uri);
     my $referer = $r->headers_in->{'referer'} || 'no_referer';
 
-	return &proxy_request($r) if ($referer =~ m/googlesyndication/);
-
     $r->pnotes('url'     => $url);
     $r->pnotes('referer' => $referer);
-
-    # first check that a database handle is available
-    my $dbh = SL::Model->connect();
-    unless ($dbh) {
-        $r->log->error("Database has gone away, sending to mod_proxy");
-        return &proxy_request($r);
-    }
 
     # our secret namespace
     if ($url =~ m!/sl_secret_ping_button!) {
@@ -102,34 +93,28 @@ sub handler {
         return Apache2::Const::OK;
     }
 
-	# User and content driven handling
-    # Close this bar
-    return &proxy_request($r) if user_blacklisted($r, $dbh);
+	# need to be a get to get a x-sl header, covers non GET requests also
+	if (my $sl_header = $r->headers_in->{'x-sl'}) {
+		$r->pnotes('sl_header' => $sl_header);
+		$r->log->debug("$$ Found sl_header $sl_header");
+	} else {
+		# no sl header no request
+		return &proxy_request($r);
+	}
 
-    ## Handle non-browsers that use port 80
+	## Handle non-browsers that use port 80
     return &proxy_request($r) if (_not_a_browser($r));
-
-    # we only serve ads on GETs
-    return &proxy_request($r) if ($r->method ne 'GET');
-
-	# start the clock - the stuff above is about 5-10 ms
-    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        # start the clock
-        $TIMER->start('db_mod_proxy_filters');
-    }
-
-    # start the timer holmes
-    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $TIMER->start('examine_request');
-    }
-
-    ## Static content
+	
+	## Static content
     if (static_content_uri($url)) {
         $r->log->debug("$$ Url $url static content extension, proxying");
         return &proxy_request($r);
     }
 
-    # if this is one of our google ads then log it and pass it
+	## hack for google ads
+	return &proxy_request($r) if ($referer =~ m/googlesyndication/);
+	
+	# if this is one of our google ads then log it and pass it
     # this needs to be before the blacklist check
     if (my $new_uri = SL::Model::Ad::Google->match_and_log({ url => $url,
                                                ip => $r->connection->remote_ip })) 
@@ -143,6 +128,7 @@ sub handler {
 		my $new_url = $r->construct_url($new_uri);
 		$r->pnotes(url => $new_url);
 		$r->log->debug("NEW URL: $new_url");
+		return &proxy_request($r);
 #		my $cached_url = $PAGE_CACHE->cache_url({ url => $referer });
 #		if ($cached_url) {
 #			# the response handler handles the proxy for this so stash referer
@@ -151,14 +137,25 @@ sub handler {
 #		}
     }
 
+	# start the clock - the stuff above is all memory
+    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
+        # start the clock
+        $TIMER->start('db_mod_proxy_filters');
+    }
+
+    # first check that a database handle is available
+    my $dbh = SL::Model->connect();
+    unless ($dbh) {
+        $r->log->error("Database has gone away, sending to mod_proxy");
+        return &proxy_request($r);
+    }
+
     # blacklisted urls
 	return &proxy_request($r) if (url_blacklisted($url));
 
-    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $r->log->info(
-             sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
-        $TIMER->start('not_a_browser');
-    }
+	# User and content driven handling
+    # Close this bar
+    return &proxy_request($r) if user_blacklisted($r, $dbh);
 
     # check for sub-reqs if it passed the other tests
     my $is_subreq = $SUBREQUEST_TRACKER->is_subrequest(url => $url);
@@ -173,21 +170,14 @@ sub handler {
              sprintf("timer $$ %s %d %s %f", @{$TIMER->checkpoint}[0, 2 .. 4]));
     }
 
-	# need to be a get to get a x-sl header
-	my $sl_header = $r->headers_in->{'x-sl'};
-	if ($sl_header) {
-		$r->log->debug("Found sl_header $sl_header for url $url");
-		$r->pnotes('sl_header' => $sl_header);
-	}
-
-    return Apache2::Const::OK;
+ 	return Apache2::Const::OK;
 }
 
 sub user_blacklisted {
     my ($r, $dbh) = @_;
 
     my $user_id;
-    if (my $sl_header = $r->headers_in->{'x-sl'}) {
+    if (my $sl_header = $r->pnotes('sl_header')) {
       $user_id = join('|', $sl_header, $r->construct_server());
     } else {
       $user_id = join("|",
@@ -195,6 +185,7 @@ sub user_blacklisted {
                        $r->construct_server());
     }
 
+	$r->log->info("==> user_blacklist check with user_id $user_id");
     my $sth =
       $dbh->prepare(
                  "SELECT count(user_id) FROM user_blacklist WHERE user_id = ?");

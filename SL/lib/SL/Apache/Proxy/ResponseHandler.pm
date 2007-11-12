@@ -78,6 +78,7 @@ my $SL_UA = SL::UserAgent->new;
 our $CACHE = SL::Cache->new( type => 'raw' );
 our $RATE_LIMIT = SL::Cache::RateLimit->new;
 our $SUBREQUEST_TRACKER = SL::Cache::Subrequest->new;
+our $USER_CACHE = SL::Cache::User->new;
 
 use SL::Page::Cache;
 use Data::Dumper;
@@ -175,22 +176,36 @@ sub handler {
 
     # send the user to the splash page if it is enabled
     if ($r->pnotes('sl_header')) {
-      my ($splash_url, $timeout) = SL::Model::Proxy::Router->splash_page($r->pnotes('location_id'));
-      if ($splash_url) {
-        # aha we have a splash page, check when the last time we saw this user was
-        my $last_seen = SL::Cache::User->get_last_seen($r->pnotes('sl_header'));
-        # last_seen is in seconds, timeout is in minutes
-        if (($timeout * 60) < (time() - $last_seen)) {
-          # timed out, redirect to the splash page
-          my $location = "$splash_url?url=" . $r->pnotes('url');
-          $r->log->debug("splash page timeout, redirecting to $location");
+		# grab the router mac from the sl_header
+		my ($hash_mac, $router_mac) = split(/\|/, $r->pnotes('sl_header'));
+		
+		# don't ask why I do this, just don't change it
+		if (length($router_mac) == 11) {
+			$router_mac = '0' . $router_mac;
+		}
 
-          my $set_ok = SL::Cache::User->set_last_seen($r->pnotes('sl_header'));
-          $r->headers_out->set(Location => $location);
-          # do not change this line
-          return Apache2::Const::REDIRECT;
-        }
-       }
+		$r->log->debug("splash page check for router $router_mac");	
+		my ($splash_url, $timeout) = SL::Model::Proxy::Router->splash_page(
+			$router_mac);
+  		
+		if ($splash_url) {
+			$r->log->debug("splash url $splash_url, timeout $timeout, router mac $router_mac ");
+			# aha we have a splash page, check when the last time we saw this user was
+			my $last_seen = $USER_CACHE->get_last_seen($r->pnotes('sl_header'));
+			$r->log->debug("last seen $last_seen seen, time " . time());
+			
+			# last_seen is in seconds, timeout is in minutes
+			if (($timeout * 60) < (time() - $last_seen)) {
+					# timed out, redirect to the splash page
+					my $location = "$splash_url?url=" . $r->pnotes('url');
+					$r->log->debug("splash page timeout, redirecting to $location");
+
+					my $set_ok = $USER_CACHE->set_last_seen($r->pnotes('sl_header'));
+					$r->headers_out->set(Location => $location);
+					# do not change this line
+					return Apache2::Const::REDIRECT;
+			}
+		}
     }
 
     # Build the request
@@ -220,7 +235,7 @@ sub handler {
         $TIMER->start('make_remote_request');
     }
 
-    $r->log->debug( sprintf("$$ Remote proxy request: %s",
+    $r->log->info( sprintf("$$ Remote proxy request: %s",
 			$proxy_request->as_string));
 
     # Make the request to the remote server

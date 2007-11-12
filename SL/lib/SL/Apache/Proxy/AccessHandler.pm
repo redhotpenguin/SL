@@ -28,12 +28,12 @@ sub handler {
 		$r->log->error(sprintf("get_location_id_from_ip for ip %s failed, err %s",
 				$r->connection->remote_ip, $@ ));
 		return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
-    } elsif ($location) {
+    } elsif ($location_id) {
 
 		# authorized client, let them pass
         $r->pnotes(location_id => $location_id);
 		return Apache2::Const::OK;
-    } elsif (!$location) {
+    } elsif (!$location_id) {
 
 		# unauthorized attempt
 		$r->log->error(sprintf("client ip %s unregistered access attempt to url %s",

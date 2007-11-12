@@ -11,13 +11,14 @@ sub handler {
 	my $r = shift;
 
     my $user_id;
-    if (my $sl_header = $r->pnotes('sl_header')) {
+    if (my $sl_header = $r->headers_in->{'x-sl'}) {
+	  # we want to know what location they blacklisted it at
       $user_id = join('|', $sl_header, $r->construct_server());
     } else {
       $user_id = join("|", $r->connection->remote_ip, 
 		$r->pnotes('ua'), $r->construct_server());
    }
-
+	$r->log->info("===> user blacklist handler, user_id $user_id");
 	my $dbh = eval { SL::Model->connect(); };
 	unless ($dbh) {
 		$r->log->error(sprintf("package %s db connect failed err: %s", 
