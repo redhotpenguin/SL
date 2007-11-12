@@ -28,7 +28,9 @@ sub handler {
 	
 	my $url = $r->pnotes('url');
 	if (($total > $THRESHOLD) or ( $r->server->loglevel() == Apache2::Const::LOG_INFO)) {
-		$r->log->error("***** SL_REQUEST_TIME $total for url $url");
+		if ($url !~ m/sl_secret/) {
+			$r->log->error("***** SL_REQUEST_TIME $total for url $url");
+		}
 	}
 	if ($proxy_req_time) {
 		$request_time = join(' ', $request_time, $proxy_req_time);

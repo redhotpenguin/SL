@@ -185,7 +185,7 @@ sub user_blacklisted {
                        $r->construct_server());
     }
 
-	$r->log->info("==> user_blacklist check with user_id $user_id");
+	$r->log->debug("==> user_blacklist check with user_id $user_id");
     my $sth =
       $dbh->prepare(
                  "SELECT count(user_id) FROM user_blacklist WHERE user_id = ?");
