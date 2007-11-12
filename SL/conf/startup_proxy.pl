@@ -83,6 +83,7 @@ use Params::Validate ();
 use Encode           ();
 use Template         ();
 use URI              ();
+use URI::Escape      ();
 use Regexp::Assemble ();
 use Compress::Zlib   ();
 

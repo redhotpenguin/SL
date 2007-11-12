@@ -44,6 +44,7 @@ use Encode                ();
 use RHP::Timer            ();
 use Regexp::Assemble      ();
 use Compress::Zlib        ();
+use URI::Escape           ();
 
 use SL::Config;
 my $CONFIG = SL::Config->new;
@@ -197,7 +198,7 @@ sub handler {
 			# last_seen is in seconds, timeout is in minutes
 			if (($timeout * 60) < (time() - $last_seen)) {
 					# timed out, redirect to the splash page
-					my $location = "$splash_url?url=" . $r->pnotes('url');
+					my $location = "$splash_url?url=" . URI::Escape::uri_escape($r->pnotes('url'));
 					$r->log->debug("splash page timeout, redirecting to $location");
 
 					my $set_ok = $USER_CACHE->set_last_seen($r->pnotes('sl_header'));
