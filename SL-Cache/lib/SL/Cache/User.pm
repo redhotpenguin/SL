@@ -29,7 +29,7 @@ sub get_last_seen {
     my ( $self, $user_id ) = @_;
 
     my $last_seen = $self->{cache}->get(join('|', 'user', $user_id));
-    return unless $last_known;
+    return unless $last_seen;
     return $last_seen;
 }
 
