@@ -414,23 +414,23 @@ sub _sl {
 
 # this method returns a random ad, given the ip of the router
 sub random {
-    my ( $class, $ip, $url ) = @_;
+    my ( $class, $ip, $url, $mac ) = @_;
 
     # get the list of ad types we can serve for this ip
-    my $ad_methods_ref = $class->_ad_methods_from_ip($ip);
+    my $ad_methods_ref = $class->_ad_methods_from_ip($ip, $mac);
 
     # loop over them, apply conditions until we have an ad
     my $ad_data;
 
     foreach my $ad_method (@{$ad_methods_ref}) {
       warn("calling method $ad_method") if $DEBUG;
-        $ad_data = $class->$ad_method($ip, $url);
+        $ad_data = $class->$ad_method($ip, $url, $mac);
         last if defined $ad_data->[AD_ID_IDX];
     }
 
     # no ad returned?  try the default ad which should not fail
     unless ( defined $ad_data->[AD_ID_IDX] ) {
-        $ad_data = $class->_sl_default($ip, $url);
+        $ad_data = $class->_sl_default($ip, $url, $mac);
 
         # going to hell for this one
         return unless defined $ad_data->[AD_ID_IDX];
