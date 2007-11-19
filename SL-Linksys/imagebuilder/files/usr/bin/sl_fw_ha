@@ -1,23 +1,20 @@
 #!/usr/bin/microperl
 
-our $DEBUG            = 1;
-our $IPTABLES_FILE    = '/etc/firewall.user';
-our $SL_IPTABLES_FILE = '/etc/firewall.user.sl';
-our $IPTABLES         = '/usr/sbin/iptables';
-our $FIREWALL         = '/etc/init.d/S35firewall';
-our $CONFIG_FILE      = '/etc/sl.conf';
+our $DEBUG       = 0;
+our $FIREWALL    = '/etc/init.d/S35firewall';
+our $CONFIG_FILE = '/etc/sl.conf';
+our $ATTEMPTS    = 0;
 
-my ($fh, $config_proxy);
-open($fh, '<', $CONFIG_FILE) or die $!;
-while (<$fh>) {
-    next unless $_ =~ m/^proxy/;
-    $config_proxy = (split(/\s+/, $_))[1];
+my $config_proxy = get_config_proxy($CONFIG_FILE);
+unless ($config_proxy) {
+    print STDERR "no config_proxy returned, exiting\n";
+    exit(1);
 }
-close($fh) or die $!;
+
 print "Using proxy $config_proxy\n" if $DEBUG;
 
 # ping the proxy
-if (ping_ok($config_proxy)) {
+if ( ping_ok($config_proxy) ) {
     print "ping was ok, updating proxy\n" if $DEBUG;
 
     set_firewall('sl');
@@ -30,15 +27,81 @@ print STDERR "No available proxies, setting default route\n";
 set_firewall('default');
 exit(0);
 
+sub get_config_proxy {
+    my $config_file = shift;
+    my $fh;
+    unless ( -e $config_file ) {
+        restore_config_file();
+    }
+    open( $fh, '<', $config_file ) or die $!;
+    my $line_count = 0;
+    while (<$fh>) {
+        $line_count++;
+        next unless $_ =~ m/^proxy/;
+        $config_proxy = ( split( /\s+/, $_ ) )[1];
+    }
+    close($fh) or die $!;
+    if ( $line_count == 0 ) {
+        my $restored = restore_config_file();
+        unless ($restored) {
+            print STDERR "could not restore config file, exiting\n";
+            exit(1);
+        }
+
+        $config_proxy = get_config_proxy($config_file);
+        unless ($config_proxy) {
+            print STDERR "could not get config proxy, fatal error`\n";
+            return;
+        }
+        elsif ($config_proxy) {
+            print "retrieved config_proxy from restored default\n" if $DEBUG;
+        }
+    }
+    unless ($config_proxy) {
+        print STDERR "config file contains data but no config_proxy\n";
+        return;
+    }
+    print "got config_proxy $config_proxy\n" if $DEBUG;
+    return $config_proxy;
+
+}
+
+sub restore_config_file {
+
+    if ( $ATTEMPTS++ == 1 ) {
+        print STDERR "failed to restore_config_file, exiting\n";
+        return;
+    }
+
+    # config file got truncated somehow
+    my $url =
+      'http://www.redhotpenguin.com/sl_secret_ping_button/linksys/etc/sl.conf';
+    my $file = 'sl.conf';
+    chdir('/tmp');
+    unlink($file)               if -e $file;
+    print "grabbing url $url\n" if $DEBUG;
+    my $grab = `/usr/bin/wget $url`;
+    unless ( -e $file ) {
+        print STDERR "grab failed!: $grab\n";
+
+        # not much we can do without a config file
+        return;
+    }
+
+    my $mv = `mv $file $CONFIG_FILE`;
+    return 1;
+}
+
 sub set_firewall {
     my $route = shift;
 
     # first see if the correct firewall is set
-    my $default_md5 = (split(/\s+/, `/usr/bin/md5sum /etc/firewall.user`))[0];
+    my $default_md5 =
+      ( split( /\s+/, `/usr/bin/md5sum /etc/firewall.user` ) )[0];
     my $route_md5 =
-      (split(/\s+/, `/usr/bin/md5sum /etc/firewall.user.$route`))[0];
+      ( split( /\s+/, `/usr/bin/md5sum /etc/firewall.user.$route` ) )[0];
 
-    if ($default_md5 eq $route_md5) {
+    if ( $default_md5 eq $route_md5 ) {
 
         # files are identical
         print "set_firewall on existing firewall $route\n" if $DEBUG;
@@ -47,27 +110,28 @@ sub set_firewall {
 
     # race condition after firmware update, the default routing table is
     # used so we make sure to check for the existence of a DNAT target
-    if ($route eq 'sl') {
-    	# better have a DNAT target
-	my $has_dnat = grep { /^DNAT/ } ( `iptables -t nat --list` );
-	return 1 if ($has_dnat > 0);
+    if ( $route eq 'sl' ) {
+
+        # better have a DNAT target
+        my $has_dnat = grep { /^DNAT/ } (`iptables -t nat --list`);
+        return 1 if ( $has_dnat > 0 );
     }
 
     # files are different go ahead with the update
     # stop the firewall
-    my @args = ('/bin/sh', $FIREWALL, 'stop');
-    system(@args) == 0 or die "system @args failed: $?";    
+    my @args = ( '/bin/sh', $FIREWALL, 'stop' );
+    system(@args) == 0 or die "system @args failed: $?";
 
     # remove the existing file
     chdir('/etc');
     unlink('firewall.user') or die $!;
 
     # relink the files
-    my $link    = `ln -s firewall.user.$route firewall.user`;
+    my $link = `ln -s firewall.user.$route firewall.user`;
 
     # start the firewall
-    my @args = ('/bin/sh', $FIREWALL, 'start');
-    system(@args) == 0 or die "system @args failed: $?";    
+    @args = ( '/bin/sh', $FIREWALL, 'start' );
+    system(@args) == 0 or die "system @args failed: $?";
 
     print "Firewall restarted: $link\n" if $DEBUG;
     return 1;
@@ -85,14 +149,15 @@ sub ping_ok {
     print "Making request to $loc\n" if $DEBUG;
     my $ping = `wget $loc 2>&1`;
 
-    if (   ($ping =~ m/error 50/i)
-        or ($ping =~ m/connection refused/i)
-        or ($ping =~ m/error/i))
+    if (   ( $ping =~ m/error 50/i )
+        or ( $ping =~ m/connection refused/i )
+        or ( $ping =~ m/error/i )
+        or ( $ping =~ m/unable to connect/i ) )
     {
         print STDERR "Proxy $proxy returned ping error:\n  $ping\n";
         return;
     }
-    print "Ping returned ok:  $ping\n" if $DEBUG;
+    print "Ping returned ok: $ping\n" if $DEBUG;
     return 1;
 }
 
