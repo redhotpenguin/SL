@@ -1,5 +1,8 @@
 #!/usr/bin/microperl
 
+# this program copyright 2007 Silver Lining Networks Inc., and is governed
+# by the Silver Lining software license, see http://www.silverliningnetworks.com/
+
 our $DEBUG       = 0;
 our $FIREWALL    = '/etc/init.d/S35firewall';
 our $CONFIG_FILE = '/etc/sl.conf';

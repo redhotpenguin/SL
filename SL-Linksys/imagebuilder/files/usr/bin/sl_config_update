@@ -1,16 +1,13 @@
 #!/usr/bin/microperl
 
-my $default_wget = '/usr/bin/wget';
-unless (-e $default_wget) {
-    print STDERR "wget not found at $default_wget\n";
-    exit(1);
-}
+# this program copyright 2007 Silver Lining Networks Inc., and is governed
+# by the Silver Lining software license, see http://www.silverliningnetworks.com/
 
-our $DEBUG = 0;
-our $CONFIG_FILE =  '/etc/sl.conf';
-our $DEFAULT_CONFIG_URL = 'http://www.redhotpenguin.com/sl/linksys/etc/sl.conf';
 
-my $reboot;
+our $DEBUG              = 0;
+our $CONFIG_FILE        = '/etc/sl.conf';
+our $DEFAULT_CONFIG_URL = 'http://www.redhotpenguin.com/sl_secret_ping_button/linksys/etc/sl.conf';
+our $REBOOT = 0;
 
 #############################################
 # gather up the files that need to be updated
@@ -18,17 +15,17 @@ my $reboot;
 print STDERR "==> updating config file\n" if $DEBUG;
 my $updated = _update_config_file($CONFIG_FILE);
 print STDERR "<== config file updated\n" if $DEBUG;
-$reboot = 1 if $updated;
+$REBOOT = 1 if $updated;
 my $urls_ref = _http_urls_from_config($CONFIG_FILE);
 
-foreach my $url (@{$urls_ref}) {
+foreach my $url ( @{$urls_ref} ) {
     my $updated = _grab_and_update($url);
     print "File from url $url updated: $updated\n" if $DEBUG;
-    $reboot = 1 if $updated;
+    $REBOOT = 1 if $updated;
 }
 
 # reboot if files have been updated
-if ($reboot) {
+if ($REBOOT) {
     print STDERR "rebooting due to config update\n";
     `/sbin/reboot`;
 }
@@ -40,17 +37,19 @@ exit(0);
 sub _http_urls_from_config {
     my $config_file = shift;
     my $fh;
-    open($fh, '<', $config_file) or die $!;
+    open( $fh, '<', $config_file ) or die $!;
 
     my @urls;
-    while (my $line = <$fh>) {
+    while ( my $line = <$fh> ) {
         chomp($line);
-        # already did this one
-        next if ($line =~ m/^config/);
 
-        my $url = (split(/\s+/, $line))[1];
+        # already did this one
+        next if ( $line =~ m/^config/ );
+
+        my $url = ( split( /\s+/, $line ) )[1];
+
         # grab the http links
-        if ($url =~ m/http\:\/\//i) {
+        if ( $url =~ m/http\:\/\//i ) {
             push @urls, $url;
             next;
         }
@@ -65,31 +64,31 @@ sub _update_config_file {
     my $config_file = shift;
 
     my $fh;
-    open($fh, '<', $config_file) or die $!;
+    open( $fh, '<', $config_file ) or die $!;
 
     my $url;
     my $line_count = 0;
-    while (my $line = <$fh>) {
-    	$line_count++;
+    while ( my $line = <$fh> ) {
+        $line_count++;
         chomp($line);
-        next unless ($line =~ m/^config/);
-        $url = (split(/\s+/, $line))[1];
-        last; 
+        next unless ( $line =~ m/^config/ );
+        $url = ( split( /\s+/, $line ) )[1];
+        last;
     }
     close($fh) or die $!;
 
+    if ( $line_count == 0 ) {
 
-    if ($line_count == 0) {
-    	# bad news, config file got nuked
-	$url = $DEFAULT_CONFIG_URL;
-    }    	
-    my $updated = _grab_and_update($url, $config_file);
+        # bad news, config file got nuked
+        $url = $DEFAULT_CONFIG_URL;
+    }
+    my $updated = _grab_and_update( $url, $config_file );
     return 1 if $updated;
     return;
 }
 
 sub _grab_and_update {
-    my ($url, $dest_file) = @_;
+    my ( $url, $dest_file ) = @_;
 
     my ($file) = $url =~ m/([^\/]+)$/;
 
@@ -101,7 +100,7 @@ sub _grab_and_update {
 
     # grab the updated file
     my $grab = `wget $url`;
-    if (-e $file) {
+    if ( -e $file ) {
         print "$file retrieved ok\n" if $DEBUG;
 
         # figure out where it should go
@@ -118,22 +117,26 @@ sub _grab_and_update {
         my $force_update;
         unless ($existing_file_md5) {
             print STDERR "unable to md5 existing file /etc/$etc_base\n";
-            if (! -e "/etc/$file") {
+            if ( !-e "/etc/$file" ) {
+
                 # file is missing, force the update
                 $force_update = 1;
-            } else {
-                return; # return if md5 is broken somehow
+            }
+            else {
+                return;    # return if md5 is broken somehow
             }
         }
-        my $new_file_md5    = `/usr/bin/md5sum $file`;
+        my $new_file_md5 = `/usr/bin/md5sum $file`;
         ($new_file_md5) = $new_file_md5 =~ m/([aA-zZ0-9]{32})/;
         unless ($new_file_md5) {
             print STDERR "unable to md5 new file $file\n";
+
             # if we can't md5 the new one then we are really in trouble
             return;
         }
-        if (! $force_update && ($existing_file_md5 eq $new_file_md5)) {
-            print "New file $file matches existing file /etc/$etc_base\n" if $DEBUG;
+        if ( !$force_update && ( $existing_file_md5 eq $new_file_md5 ) ) {
+            print "New file $file matches existing file /etc/$etc_base\n"
+              if $DEBUG;
             return;
         }
 
@@ -143,10 +146,11 @@ sub _grab_and_update {
         # safety check to make sure the move went ok
         $existing_file_md5 = `/usr/bin/md5sum /etc/$etc_base`;
         ($existing_file_md5) = $existing_file_md5 =~ m/([aA-zZ0-9]{32})/;
-        if ($existing_file_md5 eq $new_file_md5) {
+        if ( $existing_file_md5 eq $new_file_md5 ) {
             print "$file moved to /etc\n" if $DEBUG;
             return 1;
-        } else {
+        }
+        else {
             print STDERR "file $file could not be moved to /etc/$etc_base\n";
             return;
         }
