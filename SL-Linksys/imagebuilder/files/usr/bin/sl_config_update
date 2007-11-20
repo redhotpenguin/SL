@@ -3,18 +3,18 @@
 # this program copyright 2007 Silver Lining Networks Inc., and is governed
 # by the Silver Lining software license, see http://www.silverliningnetworks.com/
 
-
-our $DEBUG              = 0;
-our $CONFIG_FILE        = '/etc/sl.conf';
-our $DEFAULT_CONFIG_URL = 'http://www.redhotpenguin.com/sl_secret_ping_button/linksys/etc/sl.conf';
+our $DEBUG       = 0;
+our $CONFIG_FILE = '/etc/sl.conf';
+our $DEFAULT_CONFIG_URL =
+  'http://www.redhotpenguin.com/sl_secret_ping_button/linksys/etc/sl.conf';
 our $REBOOT = 0;
 
 #############################################
 # gather up the files that need to be updated
 
-print STDERR "==> updating config file\n" if $DEBUG;
+print STDERR '==> updating config file\n' if $DEBUG;
 my $updated = _update_config_file($CONFIG_FILE);
-print STDERR "<== config file updated\n" if $DEBUG;
+print STDERR '<== config file updated\n' if $DEBUG;
 $REBOOT = 1 if $updated;
 my $urls_ref = _http_urls_from_config($CONFIG_FILE);
 
@@ -99,8 +99,19 @@ sub _grab_and_update {
     unlink($file) if -e $file;
 
     # grab the updated file
-    my $grab = `wget $url`;
+    my $grab = `/usr/bin/wget $url`;
     if ( -e $file ) {
+        my $fh;
+        open( $fh, '<', $file ) or die $!;
+        my $has_lines = 0;
+        while (<$fh>) {
+            $has_lines++;
+            last;
+        }
+        unless ($has_lines) {
+            print STDERR "ERROR: file $file has no lines, grab $grab\n";
+            exit(1);
+        }
         print "$file retrieved ok\n" if $DEBUG;
 
         # figure out where it should go
@@ -113,7 +124,7 @@ sub _grab_and_update {
         # see if the file has changed
         my $existing_file_md5 = `/usr/bin/md5sum /etc/$etc_base`;
         ($existing_file_md5) = $existing_file_md5 =~ m/([aA-zZ0-9]{32})/;
-        $DB::single = 1;
+
         my $force_update;
         unless ($existing_file_md5) {
             print STDERR "unable to md5 existing file /etc/$etc_base\n";
