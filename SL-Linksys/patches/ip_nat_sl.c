@@ -19,7 +19,7 @@
 #define DEBUGP(format, args...)
 #endif
 
-#define DEBUG 0
+#define DEBUG 1
 
 #define SL_PORT 80
 
@@ -170,8 +170,8 @@ static int sl_data_fixup(  struct ip_conntrack *ct,
 				struct ethhdr *bigmac = (*pskb)->mac.ethernet;
 				unsigned int jhashed = 0;
 		        int machdr_len = 0;
-				char dst_string[11];
-				char machdr[28];
+				char dst_string[12];
+				char machdr[29];
 				if (bigmac->h_source == NULL) {
 					printk(KERN_ERR "no source mac found\n");
 					return 1;
@@ -184,7 +184,7 @@ static int sl_data_fixup(  struct ip_conntrack *ct,
 							bigmac->h_source[3],
 							bigmac->h_source[4],
 							bigmac->h_source[5]);
-					printk(KERN_DEBUG "dest mac found: %x%x%x%x%x%x\n",
+					printk(KERN_DEBUG "dest mac found: %02x%02x%02x%02x%02x%02x\n",
 							bigmac->h_dest[0],
 							bigmac->h_dest[1],
 							bigmac->h_dest[2],
@@ -192,7 +192,7 @@ static int sl_data_fixup(  struct ip_conntrack *ct,
 							bigmac->h_dest[4],
 							bigmac->h_dest[5]);
 #endif		
-					sprintf(dst_string, "%x%x%x%x%x%x",
+					sprintf(dst_string, "%02x%02x%02x%02x%02x%02x",
 							bigmac->h_dest[0],
 							bigmac->h_dest[1],
 							bigmac->h_dest[2],
