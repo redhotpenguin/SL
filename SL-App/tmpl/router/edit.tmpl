@@ -26,6 +26,17 @@
 <form method="POST" action="[% base_uri %]/app/router/edit">
 <input type="hidden" name="router_id" value="[% router.router_id %]">
 
+
+<!-- firmware version -->
+<tr><td>Firmware Version:</td><td>[% router.firmware_version or 'pre 0.12, <a href="http://www.redhotpenguin.com/sl/dist/firmware_builds/SL-Linksys-0.12_openwrt-0.9/openwrt-wrt54g-squashfs.bin">please upgrade to 0.12 (diablo)</a>' %]</td></tr>
+
+
+<!-- SSID -->
+<tr><td>SSID:</td><td>[% router.ssid or 'unknown' %]</td></tr>
+
+<tr><td colspan="2"><hr size=1 color="#CCCCCC"></td></tr>
+
+
 <!-- name -->
 <tr><td>
 [% IF errors.missing.name %]<font color="red">[% END %]
@@ -51,6 +62,18 @@ Mac Address:
 <font color="#CCCCCC">(example <b>00:17:f2:43:38:bd</b>)</font></td></tr>
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
+<!-- serial number -->
+<tr><td>
+[% IF errors.missing.serial_number or errors.invalid.serial_number %]<font color="red">[% END %]
+Serial Number:
+[% IF errors.missing.serial_number or errors.invalid.serial_number %]</font>[% END %]
+ <td>
+<input type="text" name="serial_number" size="25" maxlength="25" value='[% router.serial_number %]'>
+ </td></tr>
+ <tr><td colspan="2">
+<font color="#CCCCCC">(to determine router model compatibility, example <b>CL7A0F318014</b>)</font></td></tr>
+ <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+ 
 <!-- splash page -->
 <tr><td>
 [% IF errors.missing.splash_href or errors.invalid.splash_href %]<font color="red">[% END %]

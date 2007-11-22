@@ -98,7 +98,7 @@ sub dispatch_edit {
         # reset method to get for redirect
         $r->method_number(Apache2::Const::M_GET);
         my %router_profile = (
-            required           => [qw( name macaddr splash_href )],
+            required           => [qw( name macaddr splash_href serial_number )],
             constraint_methods => { macaddr => valid_macaddr(), splash_href => splash_href() }
         );
         my $results = Data::FormValidator->check( $req, \%router_profile );
@@ -153,7 +153,7 @@ sub dispatch_edit {
     my $feed_linkshare = ($req->param('feed_linkshare') == 1) ? 1 : 0;
     $router->feed_google($feed_google);
     $router->feed_linkshare($feed_linkshare);
-    foreach my $param qw( name macaddr splash_href ) {
+    foreach my $param qw( name macaddr splash_href serial_number ) {
         $router->$param( $req->param($param) );
       }
     $router->update;
@@ -202,7 +202,7 @@ sub splash_href {
   return sub {
     my $dfv = shift;
     my $val = $dfv->get_current_constraint_value;
-	return $val if $val eq '';
+	return 1 if $val eq '';
     return $val if ( $val =~ m/^http:\/\/\w+/ );
     return;
     }
