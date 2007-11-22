@@ -29,11 +29,24 @@ sub handler {
     }
 
     # grab the mac address if there is one
-    my ($macaddr) = $r->uri =~ m/\/(\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2})$/;
+    my ($macaddr, $ssid) = $r->uri =~ 
+		m/\/(\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2})(?:__)?(\w+)?/;
+	
     my %args = ( ip => $r->connection->remote_ip );
     if ( defined $macaddr ) {
+		$r->log->debug("Macaddr $macaddr\n");
         $args{'macaddr'} = $macaddr;
-    }
+    } else {
+		# no mac addr means something is probably broken
+		$r->log->error("no mac address in ping uri " . $r->uri);
+		return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
+	}
+
+	if ($ssid) {
+		$r->log->debug("ssid:  $ssid\n");
+		$ssid =~ s/_/ /g;
+        $args{'ssid'} = $ssid;
+	}
 
     # Grab any registered routers for this location
     my $active_router_ref = 
@@ -63,9 +76,12 @@ sub handler {
         # one router registered here
     }
     elsif (scalar(@{$active_router_ref}) > 1) {
-        # more than one router registered here
-		$r->log->error("more than one router registered here: %w",
-			Dumper($active_router_ref));
+        # more than one unique mac addr router registered here
+		# hrm this is an error
+		require Data::Dumper;
+		$r->log->error("more than one router registered here: ",
+			Data::Dumper::Dumper($active_router_ref));
+		return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
     }
 
     # check the load now
