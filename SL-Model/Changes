@@ -1,6 +1,7 @@
 Revision history for Perl extension SL-Model.
 
 0.13
+    - ssid tracking for diablo
     - SL::Model::Proxy::Router
 	- set time zone to local for sl_report.pl, thanks to todd for the spot
 

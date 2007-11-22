@@ -12,6 +12,14 @@ VALUES
 (?)
 };
 
+use constant INSERT_ROUTER_SQL_SSID => q{
+INSERT INTO ROUTER
+(macaddr, ssid)
+VALUES
+(?, ?)
+};
+
+
 use constant SELECT_ROUTER_ID => q{
 SELECT router_id
 FROM router
@@ -34,10 +42,19 @@ sub get_router_id_from_mac {
 }
 
 sub add_router_from_mac {
-    my ( $class, $macaddr ) = @_;
-    my $sth = $class->connect->prepare_cached(INSERT_ROUTER_SQL);
-    $sth->bind_param( 1, $macaddr );
-    $sth->execute or return;
+    my ( $class, $macaddr, $ssid ) = @_;
+
+	my $sth;
+	if (!$ssid) {
+	    $sth = $class->connect->prepare_cached(INSERT_ROUTER_SQL);
+	} elsif (defined $ssid) {
+	    $sth = $class->connect->prepare_cached(INSERT_ROUTER_SQL_SSID);
+	}
+	$sth->bind_param( 1, $macaddr );
+    if (defined $ssid) {
+		$sth->bind_param( 2, $ssid );
+	}
+	$sth->execute or return;
 	$sth->finish;
 
     my $router_id = $class->get_router_id_from_mac($macaddr);

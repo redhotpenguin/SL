@@ -16,6 +16,21 @@ AND router.macaddr = ?
 AND router.active = 't'
 };
 
+use constant UPDATE_ROUTER_ACTIVE => q{
+UPDATE ROUTER SET
+active = 't'
+WHERE router_id = ?
+};
+
+use constant UPDATE_ROUTER_SSID => q{
+UPDATE ROUTER SET
+active = 't',
+ssid = ?
+WHERE router_id = ?
+};
+
+
+
 use constant REGISTER_ROUTER_LOCATION => q{
 INSERT INTO router__location
 (location_id, router_id)
@@ -26,10 +41,11 @@ VALUES
 sub get_registered {
     my ( $class, $args_ref ) = @_;
 
-    my $macaddr = $args_ref->{'macaddr'} || die 'no mac address';;
-    my $ip = $args_ref->{'ip'} || die 'no ip address';;
+    my $macaddr = $args_ref->{'macaddr'} || die 'no mac address';
+    my $ip = $args_ref->{'ip'} || die 'no ip address';
+    my $ssid    = $args_ref->{'ssid'};
 
-    my $sth = $class->connect->prepare_cached(FIND_ROUTER_LOCATION);
+	my $sth = $class->connect->prepare_cached(FIND_ROUTER_LOCATION);
     $sth->bind_param( 1, $ip );
     $sth->bind_param( 2, $macaddr );
     $sth->execute or return;
@@ -38,6 +54,17 @@ sub get_registered {
 
     # no results
     return if scalar( @{$ary_ref} ) == 0;
+
+	# yay we have a result, log the time
+	if (!$ssid) {
+		$sth = $class->connect->prepare_cached(UPDATE_ROUTER_ACTIVE);
+		$sth->bind_param( 1, $ary_ref->[0]->[0]); # router_id
+	} elsif ($ssid) {
+		$sth = $class->connect->prepare_cached(UPDATE_ROUTER_SSID);
+		$sth->bind_param( 1, $ssid);
+		$sth->bind_param( 2, $ary_ref->[0]->[0]); # router_id
+	}
+	$sth->execute or warn("could not update_router_active mac $macaddr");
 
     # some results
     return $ary_ref;
@@ -48,12 +75,14 @@ sub register {
 
     my $macaddr = $args_ref->{'macaddr'} || die 'no macaddr';
     my $ip      = $args_ref->{'ip'}      || die 'no ip';
+    my $ssid    = $args_ref->{'ssid'}    || 
+		warn "no ssid on reg for macaddr $macaddr, ip $ip";
 
     # get the router
-    my $router_id = $class->SUPER::get_router_id_from_mac($macaddr);
+    my $router_id = $class->SUPER::get_router_id_from_mac($macaddr, $ssid);
     unless ($router_id) {
         warn("Unregistered router macaddr $macaddr entering system");
-        $router_id = eval { $class->SUPER::add_router_from_mac($macaddr) };
+        $router_id = eval { $class->SUPER::add_router_from_mac($macaddr, $ssid) };
         die $@ if ($@);
     }
 
