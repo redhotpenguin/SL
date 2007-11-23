@@ -14,6 +14,7 @@ lib/SL/Model/Ad/Google.pm
 lib/SL/Model/App/Location.pm
 lib/SL/Model/App/Reg.pm
 lib/SL/Model/App.pm
+lib/SL/Model/Test.pm
 lib/SL/Model/Proxy/Location.pm
 lib/SL/Model/Proxy/Router/Location.pm
 lib/SL/Model/Proxy/Router.pm
@@ -26,6 +27,7 @@ t/SL-Model-Ad-Group.t
 t/SL-Model-Ad-Hogwild.t
 t/SL-Model-Ad-LiveEarth.t
 t/SL-Model-Ad-Wsj.t
+t/SL-Model-Test.t
 t/SL-Model-Ad.t
 t/SL-Model-Ad-Google.t
 t/SL-Model-App.t
