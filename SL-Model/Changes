@@ -1,7 +1,8 @@
 Revision history for Perl extension SL-Model.
 
-0.13
-    - ssid tracking for diablo
+0.13 Thu Nov 22 18:05:49 PST 2007
+    - behaviorial, contextual, and geographical targeting framework in place
+    - ssid tracking for diablo, and event triggers for routers for fun stuff
     - SL::Model::Proxy::Router
 	- set time zone to local for sl_report.pl, thanks to todd for the spot
 

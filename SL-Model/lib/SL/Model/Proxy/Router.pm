@@ -30,6 +30,11 @@ macaddr = ?
 sub get_router_id_from_mac {
     my ( $class, $macaddr ) = @_;
 
+    unless ($macaddr) {
+      require Carp && Carp::cluck("$$ no macaddr passed");
+      return;
+    }
+
     # see if we have a router with this mac
     my $sth = $class->connect->prepare_cached(SELECT_ROUTER_ID);
     $sth->bind_param( 1, $macaddr );
@@ -43,6 +48,12 @@ sub get_router_id_from_mac {
 
 sub add_router_from_mac {
     my ( $class, $macaddr, $ssid ) = @_;
+
+    unless ($macaddr) {
+      require Carp && Carp::cluck("no maccaddr passed");
+      return;
+    }
+    require Carp && Carp::cluck("no ssid passed for mac $macaddr") unless $ssid;
 
 	my $sth;
 	if (!$ssid) {
@@ -72,6 +83,12 @@ WHERE router.macaddr = ?
 
 sub splash_page {
   my ($class, $macaddr) = @_;
+
+  unless ($macaddr) {
+    require Carp && Carp::Cluck("no macaddr passed");
+    return;
+  }
+
   my $sth = $class->connect->prepare_cached(SPLASH_PAGE_SQL);
   $sth->bind_param(1, $macaddr);
   $sth->execute or return;

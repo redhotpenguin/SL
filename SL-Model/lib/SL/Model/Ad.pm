@@ -5,7 +5,7 @@ use warnings;
 
 use base 'SL::Model';
 
-use List::Util   ();
+use List::Util                         ();
 use Template                           ();
 use SL::Model::Proxy::Router::Location ();
 
@@ -35,9 +35,14 @@ use constant LINK_HREF_IDX  => 7;
 use constant OUTPUT_REF     => 8;
 
 use SL::Config;
-our $CONFIG = SL::Config->new;
-our $PATH   = $CONFIG->sl_root . '/tmpl/';
-our $DEBUG = 0;
+our $CONFIG;
+
+BEGIN {
+    $CONFIG = SL::Config->new;
+}
+
+our $PATH = $CONFIG->sl_root . '/tmpl/';
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 die "Template include path $PATH doesn't exist!\n" unless -d $PATH;
 
@@ -47,8 +52,10 @@ my $TMPL_CONFIG = {
 };
 our $TEMPLATE = Template->new($TMPL_CONFIG) || die $Template::ERROR, "\n";
 
-our $GOOGLE_RE = qr/(?:google|gmail|adwords|adsense|googlepages|googlesyndication)/;
-our $GOOGLE_AD_GROUP_ID = $CONFIG->sl_google_ad_group_id || die 'no google ad_group_id set';
+our $GOOGLE_RE =
+  qr/(?:google|gmail|adwords|adsense|googlepages|googlesyndication)/;
+our $GOOGLE_AD_GROUP_ID = $CONFIG->sl_google_ad_group_id
+  || die 'no google ad_group_id set';
 
 =head1 METHODS
 
@@ -64,9 +71,9 @@ our( $regex, $second_regex, $uber_match, $end_body_match );
 our( $top,   $container,    $tail );
 
 BEGIN {
-    $top            = qq{<div id="sl_top">};
-    $container      = qq{</div><div id="sl_ctr">};
-    $tail           = qq{</div>};
+    $top       = qq{<div id="sl_top">};
+    $container = qq{</div><div id="sl_ctr">};
+    $tail      = qq{</div>};
 
     $regex          = qr{^(.*?<\s*?head\s*?[^>]*?>)(.*)$}is;
     $uber_match     = qr{\G(?:</\s*?head\s*?>)}i;
@@ -78,9 +85,10 @@ sub container {
     my ( $css_url_ref, $decoded_content_ref, $ad_ref ) = @_;
 
     # check to make sure that we can insert all parts of the ad
-    return unless (($$decoded_content_ref =~ m/$regex/) &&
-                   ($$decoded_content_ref =~ m/$second_regex/) &&
-                   ($$decoded_content_ref =~ m/$end_body_match/));
+    return
+      unless ( ( $$decoded_content_ref =~ m/$regex/ )
+        && ( $$decoded_content_ref =~ m/$second_regex/ )
+        && ( $$decoded_content_ref =~ m/$end_body_match/ ) );
 
     my $link =
       qq{<link rel="stylesheet" href="$$css_url_ref" type="text/css" />};
@@ -95,7 +103,7 @@ sub container {
     # Insert the rest of the pieces
     $matched = $$decoded_content_ref =~ s{$second_regex}
                          {$1<body$2>$top$$ad_ref$container$3};
-    warn('failed to insert ad content ' . $$ad_ref) unless $matched;
+    warn( 'failed to insert ad content ' . $$ad_ref ) unless $matched;
 
     # insert the tail
     $matched = $$decoded_content_ref =~ s{$end_body_match}{$1$tail$2};
@@ -161,7 +169,12 @@ LIMIT 1
 };
 
 sub _linkshare {
-    my ( $class, $ip, $url ) = @_;
+    my ( $class, $args_ref ) = @_;
+
+    my $ip   = $args_ref->{ip}   || warn("no ip passed")   && return;
+    my $url  = $args_ref->{url}  || warn("no url passed")  && return;
+    my $mac  = $args_ref->{mac}  || warn("no mac passed")  && return;
+    my $user = $args_ref->{user} || warn("no user passed") && return;
 
     # only linkshare for right now
     my $dbh = SL::Model->connect();
@@ -204,9 +217,12 @@ LIMIT 1
 };
 
 sub _sl_location {
-    my ( $class, $ip, $url ) = @_;
+    my ( $class, $args_ref ) = @_;
 
-    die 'no ip' unless $ip;
+    my $ip   = $args_ref->{ip}   || warn("no ip passed")   && return;
+    my $url  = $args_ref->{url}  || warn("no url passed")  && return;
+    my $mac  = $args_ref->{mac}  || warn("no mac passed")  && return;
+    my $user = $args_ref->{user} || warn("no user passed") && return;
 
     my $dbh = SL::Model->connect();
 
@@ -249,23 +265,24 @@ AND ad_group.bug_id = bug.bug_id
 AND router__ad_group.ad_group_id = ad_group.ad_group_id
 AND (router.router_id = router__ad_group.router_id
 AND router.active = 't'
-AND router.router_id IN (
-  SELECT router_id
-  FROM router__location
-  INNER JOIN location USING(location_id)
-  WHERE location.ip = ? )
+AND router.macaddr = ?
 )
 ORDER BY RANDOM()
 LIMIT 1
 };
 
 sub _sl_router {
-    my ( $class, $ip, $url ) = @_;
+    my ( $class, $args_ref ) = @_;
+
+    my $ip   = $args_ref->{ip}   || warn("no ip passed")   && return;
+    my $url  = $args_ref->{url}  || warn("no url passed")  && return;
+    my $mac  = $args_ref->{mac}  || warn("no mac passed")  && return;
+    my $user = $args_ref->{user} || warn("no user passed") && return;
 
     # get the ads specific to this router_id
     my $dbh = SL::Model->connect();
     my $sth = $dbh->prepare(SL_ROUTER_SQL);
-    $sth->bind_param( 1, $ip );
+    $sth->bind_param( 1, $mac );
     my $rv = $sth->execute;
     die "Problem executing query: " . SL_ROUTER_SQL unless $rv;
 
@@ -292,7 +309,12 @@ LIMIT 1
 };
 
 sub _sl_default {
-    my ( $class, $ip, $url ) = @_;
+    my ( $class, $args_ref ) = @_;
+
+    my $ip   = $args_ref->{ip}   || warn("no ip passed")   && return;
+    my $url  = $args_ref->{url}  || warn("no url passed")  && return;
+    my $mac  = $args_ref->{mac}  || warn("no mac passed")  && return;
+    my $user = $args_ref->{user} || warn("no user passed") && return;
 
     my $dbh = SL::Model->connect();
     my $sth = $dbh->prepare_cached(SL_DEFAULT_SQL);
@@ -325,12 +347,17 @@ LIMIT 1
 
 # google ad
 sub _google {
-    my ($class, $ip, $url) = @_;
+    my ( $class, $args_ref ) = @_;
+
+    my $ip   = $args_ref->{ip}   || warn("no ip passed")   && return;
+    my $url  = $args_ref->{url}  || warn("no url passed")  && return;
+    my $mac  = $args_ref->{mac}  || warn("no mac passed")  && return;
+    my $user = $args_ref->{user} || warn("no user passed") && return;
 
     # we don't run google ads on certain urls, like google for instance
-    return if ($url =~ m/$GOOGLE_RE/i);
-    
-	my $dbh = SL::Model->connect();
+    return if ( $url =~ m/$GOOGLE_RE/i );
+
+    my $dbh = SL::Model->connect();
     my $sth = $dbh->prepare_cached(SL_GOOGLE_SQL);
     $sth->bind_param( 1, $GOOGLE_AD_GROUP_ID );
     my $rv = $sth->execute;
@@ -354,7 +381,12 @@ WHERE router_id IN ( SELECT router_id
 
 # returns the router data for a given ip
 sub _routers_from_ip {
-    my ($class, $ip) = @_;
+    my ( $class, $ip ) = @_;
+
+    unless ($ip) {
+        require Carp && Carp::cluck("no ip passed");
+        return;
+    }
 
     my $dbh = SL::Model->connect();
     my $sth = $dbh->prepare_cached(ROUTERS_FROM_IP);
@@ -368,22 +400,48 @@ sub _routers_from_ip {
     return $routers_aryref;
 }
 
+use constant ROUTER_FROM_MAC => q{
+SELECT router_id, feed_google, feed_linkshare
+FROM router
+WHERE macaddr = ?
+};
+
+sub _router_from_mac {
+    my ( $class, $mac ) = @_;
+
+    unless ($mac) {
+        warn("no mac passed");
+        return;
+    }
+
+    my $dbh = SL::Model->connect();
+    my $sth = $dbh->prepare_cached(ROUTER_FROM_MAC);
+    $sth->bind_param( 1, $mac );
+    my $rv = $sth->execute;
+    die "Problem executing query: " . ROUTER_FROM_MAC unless $rv;
+    my $router_aryref = $sth->fetchrow_arrayref;
+    $sth->finish;
+
+    return $router_aryref;
+}
+
 # returns the possible methods for an ad given an ip
-sub _ad_methods_from_ip {
-    my ($class, $ip) = @_;
+sub _ad_methods_from_mac {
+    my ( $class, $mac ) = @_;
+
+    unless ($mac) {
+        warn("no mac passed");
+        return;
+    }
 
     my @methods;
-    my $routers_aryref = $class->_routers_from_ip($ip);
+    my $router_aryref = $class->_router_from_mac($mac);
 
     # see if this ip can serve google ads
-    if ( grep { $_->[1] == 1 } @{$routers_aryref} ) {
-        push @methods, '_google';
-    }
+    push @methods, '_google' if ( $router_aryref->[1] == 1 );
 
     # see if this ip can serve linkshare ads
-    if ( grep { $_->[2] == 1 } @{$routers_aryref} ) {
-        push @methods, '_linkshare';
-    }
+    push @methods, '_linkshare' if ( $router_aryref->[2] == 1 );
 
     # assume it has sl ad groups
     push @methods, '_sl';
@@ -396,15 +454,20 @@ sub _ad_methods_from_ip {
 # silverlining ad dispatcher
 
 sub _sl {
-    my ($class, $ip, $url) = @_;
+    my ( $class, $args_ref ) = @_;
 
-    # grab an ad for this location
-    my $ad_data = $class->_sl_location($ip);
+    my $ip   = $args_ref->{ip}   || warn("no ip passed")   && return;
+    my $url  = $args_ref->{url}  || warn("no url passed")  && return;
+    my $mac  = $args_ref->{mac}  || warn("no mac passed")  && return;
+    my $user = $args_ref->{user} || warn("no user passed") && return;
+
+    # grab an ad for this location if we have one
+    my $ad_data = $class->_sl_router($args_ref);
 
     unless ( defined $ad_data->[TEXT_IDX] ) {
 
-            # nothing for location, try router specific
-            $ad_data = $class->_sl_router($ip);
+        # nothing for router, try location specific
+        $ad_data = $class->_sl_location($args_ref);
     }
 
     return unless defined $ad_data->[TEXT_IDX];
@@ -414,23 +477,28 @@ sub _sl {
 
 # this method returns a random ad, given the ip of the router
 sub random {
-    my ( $class, $ip, $url, $mac ) = @_;
+    my ( $class, $args_ref ) = @_;
+
+    my $ip   = $args_ref->{ip}   || warn("no ip passed")   && return;
+    my $url  = $args_ref->{url}  || warn("no url passed")  && return;
+    my $mac  = $args_ref->{mac}  || warn("no mac passed")  && return;
+    my $user = $args_ref->{user} || warn("no user passed") && return;
 
     # get the list of ad types we can serve for this ip
-    my $ad_methods_ref = $class->_ad_methods_from_ip($ip, $mac);
+    my $ad_methods_ref = $class->_ad_methods_from_mac($mac);
 
     # loop over them, apply conditions until we have an ad
     my $ad_data;
 
-    foreach my $ad_method (@{$ad_methods_ref}) {
-      warn("calling method $ad_method") if $DEBUG;
-        $ad_data = $class->$ad_method($ip, $url, $mac);
+    foreach my $ad_method ( @{$ad_methods_ref} ) {
+        warn("calling method $ad_method") if DEBUG;
+        $ad_data = $class->$ad_method($args_ref );
         last if defined $ad_data->[AD_ID_IDX];
     }
 
     # no ad returned?  try the default ad which should not fail
     unless ( defined $ad_data->[AD_ID_IDX] ) {
-        $ad_data = $class->_sl_default($ip, $url, $mac);
+        $ad_data = $class->_sl_default( $args_ref );
 
         # going to hell for this one
         return unless defined $ad_data->[AD_ID_IDX];
@@ -440,13 +508,18 @@ sub random {
     my $output_ref = $class->process_ad_template($ad_data);
 
     # return the id, string output ref, and css url
-    return ( $ad_data->[AD_ID_IDX], $output_ref,
-        \$ad_data->[CSS_URL_IDX], );
+    return ( $ad_data->[AD_ID_IDX], $output_ref, \$ad_data->[CSS_URL_IDX], );
 }
 
 # takes ad_data, returns scalar reference of output
 sub process_ad_template {
     my ( $class, $ad_data ) = @_;
+
+    unless ($ad_data) {
+        require Carp
+          && Carp::cluck("no ad_daata passed to process_ad_template");
+        return;
+    }
 
     my %tmpl_vars = (
         ad_link        => $CONFIG->sl_clickserver_url . $ad_data->[MD5_IDX],
@@ -473,6 +546,12 @@ AND location.ip = ?
 
 sub ad_groups_from_location {
     my ( $class, $ip ) = @_;
+
+    unless ($ip) {
+        require Carp && Carp::cluck("no ip passed");
+        return;
+    }
+
     my $dbh = SL::Model->connect();
 
     # are there any location__ad_groups for this location?
@@ -487,23 +566,25 @@ sub ad_groups_from_location {
     return $ad_group_ary_ref;
 }
 
-use constant ADGROUPS_FROM_ROUTER => q{
+use constant ADGROUPS_FROM_MAC => q{
 SELECT ad_group.ad_group_id, css_url, template
 FROM ad_group, router, router__ad_group
 WHERE router__ad_group.ad_group_id =  ad_group.ad_group_id
-AND router__ad_group.router_id = router.router_id IN (
-  SELECT router_id
-  FROM router__location
-  INNER JOIN location USING(location_id)
-  WHERE location.ip = ? )
+AND router__ad_group.router_id = router.router_id
+AND router.macaddr = ?
 };
 
-sub ad_groups_from_router {
-    my ( $class, $ip ) = @_;
+sub ad_groups_from_mac {
+    my ( $class, $mac ) = @_;
+
+    unless ($mac) {
+        require Carp && Carp::cluck("$$ no mac address passed\n");
+        return;
+    }
 
     my $dbh         = SL::Model->connect();
-    my $adgroup_sth = $dbh->prepare_cached(ADGROUPS_FROM_ROUTER);
-    $adgroup_sth->bind_param( 1, $ip );
+    my $adgroup_sth = $dbh->prepare_cached(ADGROUPS_FROM_MAC);
+    $adgroup_sth->bind_param( 1, $mac );
     $adgroup_sth->execute or die $DBI::errstr;
 
     # grab the ad_group data
@@ -513,7 +594,7 @@ sub ad_groups_from_router {
     return $ad_group_ary_ref;
 }
 
-use constant ADGROUPS_FROM_DEFAULT => q{
+use constant ADGROUPS_FROM_DEFAULT_LOCATION => q{
 SELECT ad_group.ad_group_id, css_url, template 
 FROM ad_group, location, location__ad_group
 WHERE ad_group.is_default = 't'
@@ -524,8 +605,13 @@ AND location.default_ok = 't')
 sub ad_groups_from_default {
     my ( $class, $ip ) = @_;
 
+    unless ($ip) {
+        require Carp && Carp::cluck("$$ No ip passed\n");
+        return;
+    }
+
     my $dbh         = SL::Model->connect();
-    my $adgroup_sth = $dbh->prepare_cached(ADGROUPS_FROM_DEFAULT);
+    my $adgroup_sth = $dbh->prepare_cached(ADGROUPS_FROM_DEFAULT_LOCATION);
     $adgroup_sth->bind_param( 1, $ip );
     $adgroup_sth->execute or die $DBI::errstr;
 
@@ -557,6 +643,11 @@ LIMIT 1
 sub ads_from_ad_groups {
     my ( $self, $ad_groups_ary_ref ) = @_;
 
+    unless ($ad_groups_ary_ref) {
+        require Carp && Carp::cluck("no ad_groups_ary_ref passed");
+        return;
+    }
+
     my @ad_group_ids = map { $_->[0] } @{$ad_groups_ary_ref};
     my $qs          = join ( ',', '?' x scalar(@ad_group_ids) );
     my $dbh         = SL::Model->connect();
@@ -567,7 +658,10 @@ sub ads_from_ad_groups {
     foreach my $id (@ad_group_ids) {
         $adgroup_sth->bind_param( $i++, $id );
     }
-    $adgroup_sth->execute or die $DBI::errstr;
+    unless ( $adgroup_sth->execute ) {
+        warn( "could not execute query " . ADS_FROM_ADGROUP_SQL_TWO );
+        return;
+    }
 
     # grab the ad_group data
     my $ad_group_ary_ref = $adgroup_sth->fetchall_arrayref;
@@ -577,9 +671,16 @@ sub ads_from_ad_groups {
     return $ad_group_ary_ref;
 }
 
+# this stuff is still under construction for the appliance version
 # this method returns an array reference of serialized ads for an ip
 sub serialize_ads {
     my ( $class, $ip ) = @_;
+
+    unless ($ip) {
+        require Carp && Carp::cluck("no ip passed to serialize_ads\n");
+        return;
+    }
+
     die 'no ip' unless $ip;
 
     my $ad_groups_ary_ref;
@@ -606,8 +707,8 @@ sub serialize_ads {
     foreach my $ad_data ( @{$ads_data_ary_ref} ) {
         my $output_scalar_ref = $class->process_ad_template($ad_data);
         $serialized .= join ( "\t",
-            $ad_data->[AD_ID_IDX], $$output_scalar_ref,
-            $ad_data->[CSS_URL_IDX], $ip );
+            $ad_data->[AD_ID_IDX], $$output_scalar_ref, $ad_data->[CSS_URL_IDX],
+            $ip );
     }
 
     return \$serialized;
