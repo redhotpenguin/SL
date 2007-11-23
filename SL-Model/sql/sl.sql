@@ -2,9 +2,11 @@
 -- PostgreSQL database dump
 --
 
-SET client_encoding = 'UTF8';
+SET client_encoding = 'SQL_ASCII';
+SET standard_conforming_strings = off;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
+SET escape_string_warning = off;
 
 --
 -- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: postgres
@@ -14,7 +16,7 @@ COMMENT ON SCHEMA public IS 'Standard public schema';
 
 
 --
--- Name: plpgsql; Type: PROCEDURAL LANGUAGE; Schema: -; Owner: 
+-- Name: plpgsql; Type: PROCEDURAL LANGUAGE; Schema: -; Owner: postgres
 --
 
 CREATE PROCEDURAL LANGUAGE plpgsql;
@@ -72,6 +74,21 @@ $$
 ALTER FUNCTION public.link_md5() OWNER TO phred;
 
 --
+-- Name: update_modified_column(); Type: FUNCTION; Schema: public; Owner: phred
+--
+
+CREATE FUNCTION update_modified_column() RETURNS "trigger"
+    AS $$ BEGIN
+NEW.mts = now();
+return new;
+END;
+$$
+    LANGUAGE plpgsql;
+
+
+ALTER FUNCTION public.update_modified_column() OWNER TO phred;
+
+--
 -- Name: ad_ad_id_seq; Type: SEQUENCE; Schema: public; Owner: phred
 --
 
@@ -96,39 +113,51 @@ CREATE TABLE ad (
     ad_id integer DEFAULT nextval('ad_ad_id_seq'::regclass) NOT NULL,
     active boolean DEFAULT false,
     md5 character varying(32),
-    cts timestamp without time zone DEFAULT now()
+    cts timestamp without time zone DEFAULT now(),
+    ad_group_id integer DEFAULT 1 NOT NULL
 );
 
 
 ALTER TABLE public.ad OWNER TO phred;
 
 --
--- Name: ad__ad_group; Type: TABLE; Schema: public; Owner: phred; Tablespace: 
---
-
-CREATE TABLE ad__ad_group (
-    ad_id integer NOT NULL,
-    ad_group_id integer NOT NULL
-);
-
-
-ALTER TABLE public.ad__ad_group OWNER TO phred;
-
---
 -- Name: ad_group; Type: TABLE; Schema: public; Owner: phred; Tablespace: 
 --
 
 CREATE TABLE ad_group (
-    ad_group_id serial NOT NULL,
+    ad_group_id integer NOT NULL,
     active boolean DEFAULT true,
     name character varying(256),
     cts timestamp without time zone DEFAULT now(),
-    css character varying(32) DEFAULT 'sl'::character varying,
-    "template" character varying(32) DEFAULT 'text_ad'::character varying
+    css_url text DEFAULT 'http://www.redhotpenguin.com/css/sl.css'::text NOT NULL,
+    "template" text DEFAULT 'text_ad.tmpl'::text NOT NULL,
+    bug_id integer DEFAULT 1 NOT NULL,
+    is_default boolean DEFAULT false,
+    reg_id integer DEFAULT 14 NOT NULL
 );
 
 
 ALTER TABLE public.ad_group OWNER TO phred;
+
+--
+-- Name: ad_group_ad_group_id_seq; Type: SEQUENCE; Schema: public; Owner: phred
+--
+
+CREATE SEQUENCE ad_group_ad_group_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.ad_group_ad_group_id_seq OWNER TO phred;
+
+--
+-- Name: ad_group_ad_group_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phred
+--
+
+ALTER SEQUENCE ad_group_ad_group_id_seq OWNED BY ad_group.ad_group_id;
+
 
 --
 -- Name: ad_linkshare_ad_linkshare_id_seq; Type: SEQUENCE; Schema: public; Owner: phred
@@ -194,6 +223,45 @@ CREATE TABLE ad_sl (
 ALTER TABLE public.ad_sl OWNER TO phred;
 
 --
+-- Name: bug; Type: TABLE; Schema: public; Owner: phred; Tablespace: 
+--
+
+CREATE TABLE bug (
+    bug_id integer NOT NULL,
+    image_href text DEFAULT 'http://www.redhotpenguin.com/images/sl/free_wireless.gif'::text NOT NULL,
+    link_href text DEFAULT 'http://64.151.90.20:81/click/795da10ca01f942fd85157d8be9e832e'::text,
+    cts timestamp without time zone DEFAULT now(),
+    mts timestamp without time zone DEFAULT now(),
+    active boolean DEFAULT true NOT NULL,
+    name text DEFAULT ''::text NOT NULL,
+    is_default boolean DEFAULT false NOT NULL,
+    reg_id integer DEFAULT 1 NOT NULL
+);
+
+
+ALTER TABLE public.bug OWNER TO phred;
+
+--
+-- Name: bug_bug_id_seq; Type: SEQUENCE; Schema: public; Owner: phred
+--
+
+CREATE SEQUENCE bug_bug_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.bug_bug_id_seq OWNER TO phred;
+
+--
+-- Name: bug_bug_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phred
+--
+
+ALTER SEQUENCE bug_bug_id_seq OWNED BY bug.bug_id;
+
+
+--
 -- Name: click_click_id_seq; Type: SEQUENCE; Schema: public; Owner: phred
 --
 
@@ -225,7 +293,6 @@ ALTER TABLE public.click OWNER TO phred;
 --
 
 CREATE SEQUENCE forgot_forgot_id_seq
-    START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
     NO MINVALUE
@@ -254,10 +321,10 @@ ALTER TABLE public.forgot OWNER TO phred;
 --
 
 CREATE TABLE "location" (
-    location_id serial NOT NULL,
+    location_id integer NOT NULL,
     ip inet NOT NULL,
-    name character varying(128),
-    description text,
+    name text DEFAULT ''::text NOT NULL,
+    description text DEFAULT ''::text NOT NULL,
     street_addr character varying(64),
     apt_suite character varying(5),
     zip character varying(9),
@@ -286,16 +353,24 @@ CREATE TABLE location__ad_group (
 ALTER TABLE public.location__ad_group OWNER TO phred;
 
 --
--- Name: macaddr__ad_group; Type: TABLE; Schema: public; Owner: phred; Tablespace: 
+-- Name: location_location_id_seq; Type: SEQUENCE; Schema: public; Owner: phred
 --
 
-CREATE TABLE macaddr__ad_group (
-    macaddr macaddr NOT NULL,
-    ad_group_id integer NOT NULL
-);
+CREATE SEQUENCE location_location_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
 
 
-ALTER TABLE public.macaddr__ad_group OWNER TO phred;
+ALTER TABLE public.location_location_id_seq OWNER TO phred;
+
+--
+-- Name: location_location_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phred
+--
+
+ALTER SEQUENCE location_location_id_seq OWNED BY "location".location_id;
+
 
 --
 -- Name: rate_limit; Type: TABLE; Schema: public; Owner: phred; Tablespace: 
@@ -369,6 +444,18 @@ CREATE TABLE reg__ad_group (
 ALTER TABLE public.reg__ad_group OWNER TO phred;
 
 --
+-- Name: reg__reg; Type: TABLE; Schema: public; Owner: phred; Tablespace: 
+--
+
+CREATE TABLE reg__reg (
+    first_reg_id integer NOT NULL,
+    sec_reg_id integer NOT NULL
+);
+
+
+ALTER TABLE public.reg__reg OWNER TO phred;
+
+--
 -- Name: root_root_id_seq; Type: SEQUENCE; Schema: public; Owner: phred
 --
 
@@ -419,7 +506,20 @@ CREATE TABLE router (
     macaddr macaddr,
     cts timestamp without time zone DEFAULT now(),
     mts timestamp without time zone DEFAULT now(),
-    active boolean DEFAULT true
+    active boolean DEFAULT true,
+    proxy inet,
+    replace_port smallint DEFAULT 8135,
+    description text,
+    name text,
+    feed_google boolean DEFAULT false,
+    feed_linkshare boolean DEFAULT false,
+    splash_timeout integer DEFAULT 60,
+    splash_href text DEFAULT ''::text,
+    firmware_version character varying(4) DEFAULT ''::character varying,
+    ssid text DEFAULT ''::text,
+    firmware_event text DEFAULT ''::text,
+    ssid_event text DEFAULT ''::text,
+    passwd_event text DEFAULT ''::text
 );
 
 
@@ -466,7 +566,7 @@ ALTER TABLE public.router__reg OWNER TO phred;
 --
 
 CREATE TABLE subrequest (
-    url character varying(1024) NOT NULL,
+    url text NOT NULL,
     ts timestamp without time zone DEFAULT now(),
     tag character varying(10) DEFAULT ''::character varying NOT NULL
 );
@@ -542,11 +642,24 @@ CREATE TABLE "view" (
 ALTER TABLE public."view" OWNER TO phred;
 
 --
--- Name: ad_ad_group_pkey; Type: CONSTRAINT; Schema: public; Owner: phred; Tablespace: 
+-- Name: ad_group_id; Type: DEFAULT; Schema: public; Owner: phred
 --
 
-ALTER TABLE ONLY ad__ad_group
-    ADD CONSTRAINT ad_ad_group_pkey PRIMARY KEY (ad_id, ad_group_id);
+ALTER TABLE ad_group ALTER COLUMN ad_group_id SET DEFAULT nextval('ad_group_ad_group_id_seq'::regclass);
+
+
+--
+-- Name: bug_id; Type: DEFAULT; Schema: public; Owner: phred
+--
+
+ALTER TABLE bug ALTER COLUMN bug_id SET DEFAULT nextval('bug_bug_id_seq'::regclass);
+
+
+--
+-- Name: location_id; Type: DEFAULT; Schema: public; Owner: phred
+--
+
+ALTER TABLE "location" ALTER COLUMN location_id SET DEFAULT nextval('location_location_id_seq'::regclass);
 
 
 --
@@ -582,6 +695,14 @@ ALTER TABLE ONLY ad_sl
 
 
 --
+-- Name: bug_pkey; Type: CONSTRAINT; Schema: public; Owner: phred; Tablespace: 
+--
+
+ALTER TABLE ONLY bug
+    ADD CONSTRAINT bug_pkey PRIMARY KEY (bug_id);
+
+
+--
 -- Name: click_pkey; Type: CONSTRAINT; Schema: public; Owner: phred; Tablespace: 
 --
 
@@ -614,19 +735,19 @@ ALTER TABLE ONLY "location"
 
 
 --
--- Name: macaddr__ad_group__pkey; Type: CONSTRAINT; Schema: public; Owner: phred; Tablespace: 
---
-
-ALTER TABLE ONLY macaddr__ad_group
-    ADD CONSTRAINT macaddr__ad_group__pkey PRIMARY KEY (macaddr, ad_group_id);
-
-
---
 -- Name: rate_limit_pkey; Type: CONSTRAINT; Schema: public; Owner: phred; Tablespace: 
 --
 
 ALTER TABLE ONLY rate_limit
     ADD CONSTRAINT rate_limit_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: reg__reg__pkey; Type: CONSTRAINT; Schema: public; Owner: phred; Tablespace: 
+--
+
+ALTER TABLE ONLY reg__reg
+    ADD CONSTRAINT reg__reg__pkey PRIMARY KEY (first_reg_id, sec_reg_id);
 
 
 --
@@ -718,6 +839,13 @@ ALTER TABLE ONLY "view"
 
 
 --
+-- Name: click_ip_idx; Type: INDEX; Schema: public; Owner: phred; Tablespace: 
+--
+
+CREATE INDEX click_ip_idx ON click USING btree (ip);
+
+
+--
 -- Name: url_index; Type: INDEX; Schema: public; Owner: phred; Tablespace: 
 --
 
@@ -729,6 +857,13 @@ CREATE INDEX url_index ON url USING btree (url);
 --
 
 CREATE UNIQUE INDEX url_uniq_index ON url USING btree (url);
+
+
+--
+-- Name: view_ip_idx; Type: INDEX; Schema: public; Owner: phred; Tablespace: 
+--
+
+CREATE INDEX view_ip_idx ON "view" USING btree (ip);
 
 
 --
@@ -749,6 +884,40 @@ CREATE TRIGGER md5
     BEFORE INSERT OR UPDATE ON ad
     FOR EACH ROW
     EXECUTE PROCEDURE ad_md5();
+
+
+--
+-- Name: update_router_mts; Type: TRIGGER; Schema: public; Owner: phred
+--
+
+CREATE TRIGGER update_router_mts
+    BEFORE UPDATE ON router
+    FOR EACH ROW
+    EXECUTE PROCEDURE update_modified_column();
+
+
+--
+-- Name: ad__ad_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
+--
+
+ALTER TABLE ONLY ad
+    ADD CONSTRAINT ad__ad_group_id_fkey FOREIGN KEY (ad_group_id) REFERENCES ad_group(ad_group_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: ad_group__bug_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
+--
+
+ALTER TABLE ONLY ad_group
+    ADD CONSTRAINT ad_group__bug_id_fkey FOREIGN KEY (bug_id) REFERENCES bug(bug_id) ON UPDATE CASCADE;
+
+
+--
+-- Name: ad_group__reg_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
+--
+
+ALTER TABLE ONLY ad_group
+    ADD CONSTRAINT ad_group__reg_id_fkey FOREIGN KEY (reg_id) REFERENCES reg(reg_id) ON UPDATE CASCADE;
 
 
 --
@@ -784,19 +953,27 @@ ALTER TABLE ONLY "view"
 
 
 --
--- Name: ad_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
---
-
-ALTER TABLE ONLY ad__ad_group
-    ADD CONSTRAINT ad_id_fkey FOREIGN KEY (ad_id) REFERENCES ad(ad_id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
 -- Name: ad_sl_reg_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
 --
 
 ALTER TABLE ONLY ad_sl
     ADD CONSTRAINT ad_sl_reg_id_fkey FOREIGN KEY (reg_id) REFERENCES reg(reg_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: bug__reg_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
+--
+
+ALTER TABLE ONLY bug
+    ADD CONSTRAINT bug__reg_id_fkey FOREIGN KEY (reg_id) REFERENCES reg(reg_id) ON UPDATE CASCADE;
+
+
+--
+-- Name: first_reg_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
+--
+
+ALTER TABLE ONLY reg__reg
+    ADD CONSTRAINT first_reg_fkey FOREIGN KEY (first_reg_id) REFERENCES reg(reg_id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
@@ -816,11 +993,11 @@ ALTER TABLE ONLY location__ad_group
 
 
 --
--- Name: macaddr__ad_group__ad_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
+-- Name: reg__ad_group__ad_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
 --
 
-ALTER TABLE ONLY macaddr__ad_group
-    ADD CONSTRAINT macaddr__ad_group__ad_group_id_fkey FOREIGN KEY (ad_group_id) REFERENCES ad_group(ad_group_id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE ONLY reg__ad_group
+    ADD CONSTRAINT reg__ad_group__ad_group_id_fkey FOREIGN KEY (ad_group_id) REFERENCES ad_group(ad_group_id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
@@ -893,6 +1070,14 @@ ALTER TABLE ONLY router__ad_group
 
 ALTER TABLE ONLY router__reg
     ADD CONSTRAINT router_id_fkey FOREIGN KEY (router_id) REFERENCES router(router_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: sec_reg_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
+--
+
+ALTER TABLE ONLY reg__reg
+    ADD CONSTRAINT sec_reg_fkey FOREIGN KEY (sec_reg_id) REFERENCES reg(reg_id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
