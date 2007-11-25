@@ -19,10 +19,6 @@ This serves ads, ya see?
 
 =cut
 
-use constant LOG_VIEW_SQL => q{
-INSERT INTO view
-( ad_id, ip ) values ( ?, ? )
-};
 
 use constant AD_ID_IDX      => 0;
 use constant TEXT_IDX       => 1;
@@ -714,14 +710,41 @@ sub serialize_ads {
     return \$serialized;
 }
 
+use constant LOG_VIEW_SQL => q{
+INSERT INTO view
+( ad_id, location_id, router_id, user_id, url, referer )
+values
+( ?,     (select location_id from location where ip = ?),
+                      (select router_id from router where macaddr = ?,
+                                 (select user_id from user where hash_mac = ?),
+                                          ?,   ? )
+};
+
 sub log_view {
-    my ( $class, $ip, $ad_id ) = @_;
+    my ( $class, $args_ref ) = @_;
+
+    my $ip   = $args_ref->{ip}   || warn("no ip passed")   && return;
+    my $url  = $args_ref->{url}  || warn("no url passed")  && return;
+    my $mac  = $args_ref->{mac}  || warn("no mac passed")  && return;
+    my $user = $args_ref->{user} || warn("no user passed") && return;
+    my $ad_id = $args_ref->{ad_id}  || warn("no ad_id passed") && return;
+    my $referer = $args_ref->{referer} || '';
 
     my $dbh = SL::Model->db_Main();
     my $sth = $dbh->prepare(LOG_VIEW_SQL);
+
     $sth->bind_param( 1, $ad_id );
     $sth->bind_param( 2, $ip );
-    my $rv = $sth->execute;
+    $sth->bind_param( 3, $mac );
+    $sth->bind_param( 4, $user );
+    $sth->bind_param( 5, $url );
+    $sth->bind_param( 6, $referer );
+
+    my $rv;
+    unless($rv = $sth->execute) {
+        warn(sprintf("$$ Error, could not log ad_id %d, ip %s, url %s, router %s, user %s",
+                     $ad_id, $ip, $url, $mac, $user));
+    }
     $sth->finish;
     return 1 if $rv;
     return;

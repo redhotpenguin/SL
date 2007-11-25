@@ -47,25 +47,20 @@ sub get_router_id_from_mac {
 }
 
 sub add_router_from_mac {
-    my ( $class, $macaddr, $ssid ) = @_;
+    my ( $class, $macaddr ) = @_;
 
     unless ($macaddr) {
       require Carp && Carp::cluck("no maccaddr passed");
       return;
     }
-    require Carp && Carp::cluck("no ssid passed for mac $macaddr") unless $ssid;
 
-	my $sth;
-	if (!$ssid) {
-	    $sth = $class->connect->prepare_cached(INSERT_ROUTER_SQL);
-	} elsif (defined $ssid) {
-	    $sth = $class->connect->prepare_cached(INSERT_ROUTER_SQL_SSID);
-	}
+	my $sth = $class->connect->prepare_cached(INSERT_ROUTER_SQL);
 	$sth->bind_param( 1, $macaddr );
-    if (defined $ssid) {
-		$sth->bind_param( 2, $ssid );
-	}
-	$sth->execute or return;
+	my $rv = $sth->execute;
+    unless($rv) {
+      require Carp && Carp::cluck("could not insert router sql mac $macaddr");
+      return;
+    }
 	$sth->finish;
 
     my $router_id = $class->get_router_id_from_mac($macaddr);

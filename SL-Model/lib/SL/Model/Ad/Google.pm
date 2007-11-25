@@ -7,8 +7,12 @@ use SL::Config ();
 use SL::Model::Ad ();
 use URI::Escape ();
 
-our $DEBUG = 1;
-our $CONFIG = SL::Config->new;
+our $CONFIG;
+BEGIN {
+  $CONFIG = SL::Config->new();
+}
+
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 our $CLIENT_ID = $CONFIG->sl_google_client_id || die 'no sl_google_client_id';
 our $CLIENT_ID_LENGTH = length($CLIENT_ID);
@@ -30,13 +34,11 @@ our $GOOGLE_AD_ID = $CONFIG->sl_google_ad_id || die 'no sl_google_ad_id';
 sub match_and_log {
     my ($class, $args_ref) = @_;
 
-    # validate args
-    my $url = $args_ref->{url};
-    unless ($url) { warn("no url passed for log_and_match"); return; }
-    my $ip = $args_ref->{ip};
-    unless ($ip) { warn("no ip passed for log_and_match"); return; }
-    my $referer = $args_ref->{referer};
-    unless ($ip) { warn("no referer passed for log_and_match"); return; }
+    my $ip    = $args_ref->{ip}    || warn("no ip passed")   && return;
+    my $url   = $args_ref->{url}   || warn("no url passed")  && return;
+    my $mac   = $args_ref->{mac}   || warn("no mac passed")  && return;
+    my $user  = $args_ref->{user}  || warn("no user passed") && return;
+    my $referer = $args_ref->{referer} || '';
 
     # see if this is a google ad url
     my $potential_match = substr($url, 0, $BASE_LENGTH);
@@ -50,7 +52,9 @@ sub match_and_log {
 	}
 
     # huzzah! we have a match, hit it yo
-    SL::Model::Ad->log_view( $ip, $GOOGLE_AD_ID);
+    SL::Model::Ad->log_view( { ip => $ip,   ad_id => $GOOGLE_AD_ID, 
+                               mac => $mac, user => $user,
+                               url => $url, referer => $referer });
 
 	# return if we are not in stealth mode
 	unless ($CONFIG->sl_google_stealth ) {

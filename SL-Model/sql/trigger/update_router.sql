@@ -1,0 +1,1 @@
+create trigger update_router_mts BEFORE UPDATE ON router FOR EACH ROW EXECUTE PROCEDURE update_modified_column();

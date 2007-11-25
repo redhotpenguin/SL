@@ -24,4 +24,6 @@ my $dbh = DBI->connect( $dsn, 'phred', '', $db_options );
 $dbh->do("alter table router add column passwd_event text DEFAULT ''::text");
 $dbh->do("alter table router add column firmware_event text DEFAULT ''::text");
 $dbh->do("alter table router add column ssid_event text DEFAULT ''::text");
+$dbh->do("alter table router add column reboot_event text DEFAULT ''::text");
+$dbh->do("alter table router add column halt_event text DEFAULT ''::text");
 
