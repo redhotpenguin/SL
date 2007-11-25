@@ -11,7 +11,7 @@
 [% END %]
 
 <form method="POST" action="[% base_uri %]/app/report/index">
-<p style="padding: 10px; background-color: #EEEEEE;">Email these reports to [% reg.email %]
+<p style="padding: 10px; background-color: #EEEEEE;">Email these reports to <b>[% reg.email %]</b>
 <br />
 <input type="radio" name="report_email_frequency" value="monthly"
 [% IF report_email_frequency == 'monthly' %]checked[% END %]>monthly
@@ -25,9 +25,6 @@
 <input type="radio" name="report_email_frequency" value="never"
 [% IF report_email_frequency == '' || report_email_frequency == 'never' %]checked[% END %]>never
 &nbsp;&nbsp;&nbsp;
-
-<input type="submit" value="Save">
-<br/>(<a href="[% base_uri %]/app/settings/account">change email address</a>)</p>
 
 </form>
 
