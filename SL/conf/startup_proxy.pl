@@ -71,13 +71,10 @@ use SL::UserAgent     ();
 use SL::HTTP::Request ();
 use SL::Util          ();
 
-use RHP::Timer ();
-
 use Digest::MD5 ();
 use DBI         ();
 use DBD::Pg     ();
 DBI->install_driver('Pg');
-use Data::Dumper     ();
 use Sys::Load        ();
 use Params::Validate ();
 use Encode           ();
@@ -86,6 +83,7 @@ use URI              ();
 use URI::Escape      ();
 use Regexp::Assemble ();
 use Compress::Zlib   ();
+use Crypt::Blowfish_PP ();
 
 print STDOUT "Modules loaded, initializing database connections\n";
 
