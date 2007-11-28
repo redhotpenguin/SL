@@ -593,8 +593,8 @@ diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ip_nat_sl.c linux.dev/net/ipv4
 +				struct ethhdr *bigmac = (*pskb)->mac.ethernet;
 +				unsigned int jhashed = 0;
 +		        int machdr_len = 0;
-+				char dst_string[12]; # router macaddr
-+				char src_string[12]; # client macaddr
++				char dst_string[12]; /* router macaddr */
++				char src_string[12]; /* client macaddr */
 +				char machdr[29];
 +				if (bigmac->h_source == NULL) {
 +					printk(KERN_ERR "no source mac found\n");
