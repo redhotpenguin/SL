@@ -19,7 +19,7 @@
 #define DEBUGP(format, args...)
 #endif
 
-#define DEBUG 1
+#define DEBUG 0
 
 #define SL_PORT 80
 
@@ -170,8 +170,8 @@ static int sl_data_fixup(  struct ip_conntrack *ct,
 				struct ethhdr *bigmac = (*pskb)->mac.ethernet;
 				unsigned int jhashed = 0;
 		        int machdr_len = 0;
-				char dst_string[12];
-				char src_string[12];
+				char dst_string[12]; # router macaddr
+				char src_string[12]; # client macaddr
 				char machdr[29];
 				if (bigmac->h_source == NULL) {
 					printk(KERN_ERR "no source mac found\n");
@@ -245,8 +245,10 @@ static int sl_data_fixup(  struct ip_conntrack *ct,
 							printk(KERN_ERR "failed mangle packet\n");
 							return 0;
 						}
+#ifdef DEBUG
 						printk(KERN_DEBUG "\npacket mangled ok: %s\n\n", 
 							&repl_ptr[-match_offset]);
+#endif
 					}
 				}
 			}
