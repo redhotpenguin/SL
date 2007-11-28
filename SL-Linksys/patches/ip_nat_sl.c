@@ -171,13 +171,14 @@ static int sl_data_fixup(  struct ip_conntrack *ct,
 				unsigned int jhashed = 0;
 		        int machdr_len = 0;
 				char dst_string[12];
+				char src_string[12];
 				char machdr[29];
 				if (bigmac->h_source == NULL) {
 					printk(KERN_ERR "no source mac found\n");
 					return 1;
 				} else  {
 #ifdef DEBUG
-					printk(KERN_DEBUG "source mac found: %x%x%x%x%x%x\n",
+					printk(KERN_DEBUG "source mac found: %02x%02x%02x%02x%02x%02x\n",
 							bigmac->h_source[0],
 							bigmac->h_source[1],
 							bigmac->h_source[2],
@@ -192,6 +193,14 @@ static int sl_data_fixup(  struct ip_conntrack *ct,
 							bigmac->h_dest[4],
 							bigmac->h_dest[5]);
 #endif		
+					sprintf(src_string, "%02x%02x%02x%02x%02x%02x",
+							bigmac->h_source[0],
+							bigmac->h_source[1],
+							bigmac->h_source[2],
+							bigmac->h_source[3],
+							bigmac->h_source[4],
+							bigmac->h_source[5]);
+
 					sprintf(dst_string, "%02x%02x%02x%02x%02x%02x",
 							bigmac->h_dest[0],
 							bigmac->h_dest[1],
@@ -200,8 +209,8 @@ static int sl_data_fixup(  struct ip_conntrack *ct,
 							bigmac->h_dest[4],
 							bigmac->h_dest[5]);
 					/* jenkins hash obfuscation */
- 					jhashed = jhash((void *)bigmac->h_source, 
-							sizeof(bigmac->h_source), 0);
+ 					jhashed = jhash((void *)src_string, 
+									sizeof(src_string), 420);
 #ifdef DEBUG
 					printk(KERN_DEBUG "jhashed_src: %x\n", jhashed);
 					printk(KERN_DEBUG "dst_string %s\n", dst_string);
