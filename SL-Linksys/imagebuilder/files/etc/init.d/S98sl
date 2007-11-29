@@ -19,6 +19,7 @@
 
 # set the dns to opendns.com, noticably faster than most isps
 /usr/sbin/nvram set lan_dns='208.67.222.222 208.67.220.220'
+/usr/sbin/nvram set wan_dns='208.67.222.222 208.67.220.220'
 
 # commit changes to nvram
 /usr/sbin/nvram commit
