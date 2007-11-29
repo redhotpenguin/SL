@@ -80,7 +80,7 @@ sub splash_page {
   my ($class, $macaddr) = @_;
 
   unless ($macaddr) {
-    require Carp && Carp::Cluck("no macaddr passed");
+    require Carp && Carp::cluck("no macaddr passed");
     return;
   }
 
