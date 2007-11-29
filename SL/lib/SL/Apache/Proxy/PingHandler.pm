@@ -8,87 +8,170 @@ use Apache2::Log             ();
 use Sys::Load                ();
 use SL::Model                ();
 use SL::Model::Proxy::Router ();
-use Data::Dumper     qw(Dumper);
+use Crypt::Blowfish_PP       ();
 
-our $MAX_LOAD = 2;
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
+
+use SL::Config;
+our $CONFIG;
+
+BEGIN {
+    $CONFIG = SL::Config->new();
+}
+
+use constant MAX_LOAD => $CONFIG->sl_proxy_max_load || 2;
+
+use constant SSID     => 2;
+use constant PASSWD   => 3;
+use constant FIRMWARE => 4;
+use constant REBOOT   => 5;
+use constant HALT     => 6;
 
 sub handler {
     my $r = shift;
 
-    # check the database
+    # check the load
     my $minute_avg = [ Sys::Load::getload() ]->[0];
-    my $dbh        = eval { SL::Model->connect() };
-    if (!$dbh or $@) {
-		if ($@) {
-			$r->log->error(sprintf("exception thrown in ping check: %s", $@));
-		}
-		my $post_count = `ps ax | grep -c post`;
-        $r->log->error(sprintf("ping db failure: sysload %s, pg_count %s",
-				$minute_avg, $post_count));
+    if ( $minute_avg > MAX_LOAD ) {
+        $r->log->error(
+            "System max load " . MAX_LOAD . " exceeded: $minute_avg" );
+        return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
+    }
+
+    # check the database
+    my $dbh = eval { SL::Model->connect() };
+    if ( !$dbh or $@ ) {
+        if ($@) {
+            $r->log->error(
+                sprintf( "exception thrown in ping check: %s", $@ ) );
+        }
+        my $post_count = `ps ax | grep -c post`;
+        $r->log->error(
+            sprintf(
+                "ping db failure: sysload %s, pg_count %s",
+                $minute_avg, $post_count
+            )
+        );
         return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
     }
 
     # grab the mac address if there is one
-    my ($macaddr, $ssid) = $r->uri =~ 
-		m/\/(\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2})(?:__)?(\w+)?/;
-	
+    my ($macaddr) = $r->uri =~ m/\/(\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2})$/;
+
     my %args = ( ip => $r->connection->remote_ip );
     if ( defined $macaddr ) {
-		$r->log->debug("Macaddr $macaddr\n");
+        $r->log->debug("Macaddr $macaddr\n") if DEBUG;
         $args{'macaddr'} = $macaddr;
-    } else {
-		# no mac addr means something is probably broken
-		$r->log->error("no mac address in ping uri " . $r->uri);
-		return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
-	}
+    }
+    else {
 
-	if ($ssid) {
-		$r->log->debug("ssid:  $ssid\n");
-		$ssid =~ s/_/ /g;
-        $args{'ssid'} = $ssid;
-	}
+        # no mac addr means something is probably broken
+        $r->log->error( "no mac address in ping uri " . $r->uri );
+        return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
+    }
 
     # Grab any registered routers for this location
-    my $active_router_ref = 
-      eval {SL::Model::Proxy::Router::Location->get_registered( \%args )};
-	if ($@) {
-		$r->log->error("db exception grabbing registered routers for %s",
-			Dumper(\%args));
-	}
+    my $router_ref =
+      eval { SL::Model::Proxy::Router::Location->get_registered( \%args ) };
+    if ($@) {
+        require Data::Dumper;
+        $r->log->error( "$$ db exception $@ grabbing registered routers for ",
+            Data::Dumper::Dumper( \%args ) );
+    }
 
-    unless ( defined $active_router_ref && (scalar( @{$active_router_ref} ) > 0 )) {
+    unless ($router_ref) {
 
         # no routers at this ip, register this one
-        my $router_location = 
-			eval {SL::Model::Proxy::Router::Location->register( \%args ); };
-		if ($@ or (!$router_location)) {
-			# handle registration failure
-			if ($@) {
-				$r->log->error(sprintf("error $@ registering router"));
-			}
-			$r->log->error(sprintf("error registering router args %s",
-				Dumper(\%args)));
-			return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
-		}
-    } 
-    # some routers exist at this location
-    elsif (scalar(@{$active_router_ref}) == 1) {
-        # one router registered here
-    }
-    elsif (scalar(@{$active_router_ref}) > 1) {
-        # more than one unique mac addr router registered here
-		# hrm this is an error
-		require Data::Dumper;
-		$r->log->error("more than one router registered here: ",
-			Data::Dumper::Dumper($active_router_ref));
-		return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
+        $r->log->error( "$$ registering router mac $macaddr at ip "
+              . $r->connection->remote_ip );
+
+        $router_ref =
+          eval { SL::Model::Proxy::Router::Location->register( \%args ); };
+
+        if ( $@ or ( !$router_ref ) ) {
+
+            # handle registration failure
+            $r->log->error( sprintf("$$ error $@ registering router") ) if $@;
+
+            require Data::Dumper;
+            $r->log->error(
+                sprintf( "$$ error registering router args %s",
+                    Data::Dumper::Dumper( \%args ) )
+            );
+            return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
+        }
     }
 
-    # check the load now
-    return Apache2::Const::DONE if $minute_avg < $MAX_LOAD;
-    
-	$r->log->error("System max load $MAX_LOAD exceeded: $minute_avg");
-    return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
+    $r->log->debug("$$ ping ok for mac $macaddr") if DEBUG;
+
+    # see if there are any events for this router to process
+    if (
+        ( defined $router_ref->[SSID] )     or    # ssid event
+        ( defined $router_ref->[PASSWD] )   or    # passwd event
+        ( defined $router_ref->[FIRMWARE] ) or    # firmware event
+        ( defined $router_ref->[REBOOT] )   or    # reboot event
+        ( defined $router_ref->[HALT] )
+      )
+    {                                             # halt event
+
+        $r->content_type('text/plain');
+        $r->rflush;
+        my $events = '';
+
+        if ( $router_ref->[SSID] or $router_ref->[PASSWD] ) {
+
+            $events .= _gen_event( ssid => $router_ref->[SSID] )
+              if $router_ref->[SSID];
+
+            $events .= _gen_event( passwd => $router_ref->[PASSWD] )
+              if $router_ref->[PASSWD];
+        }
+        elsif ( $router_ref->[FIRMWARE] ) {
+            $events .= _gen_event( firmware => $router_ref->[FIRMWARE] );
+        }
+        elsif ( $router_ref->[REBOOT] ) {
+            $events .= _gen_event( reboot => $router_ref->[REBOOT] );
+        }
+        elsif ( $router_ref->[HALT] ) {
+            $events .= _gen_event( halt => $router_ref->[HALT] );
+        }
+
+        my $encrypted = _encrypt($events, $macaddr);
+        # encrypt the events
+        $r->print($encrypted) if $encrypted;
+    }
+
+    return Apache2::Const::DONE;
+}
+
+sub _gen_event {
+    my ( $type, $data ) = @_;
+    unless ($data) {
+        warn("no data passed to _gen_event for type $type");
+        return;
+    }
+
+    return "$type:$data\n";
+}
+
+sub _encrypt {
+  my ($string, $mac)  = @_;
+  unless ($mac) {
+    require Carp && Carp::cluck("no macaddr passed");
+    return;
+  }
+
+  my $blowfish = Crypt::Blowfish_PP->new(join('', reverse(split('', $mac))));
+
+  # split the string into 8 byte pieces and encrypt
+  my @groups = ( $string =~ /.{1,8}/gs );
+
+  my $encrypted = '';
+  foreach my $member ( @groups ) {
+    $encrypted .= $blowfish->encrypt($member);
+  }
+
+  return $encrypted;
 }
 
 1;

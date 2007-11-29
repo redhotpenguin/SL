@@ -6,61 +6,95 @@ use warnings;
 use SL::Model::Ad ();
 use Apache2::Const -compile => qw( DECLINED LOG_INFO);
 use Apache2::RequestUtil ();
-use Apache2::Log ();
-use RHP::Timer ();
+use Apache2::Log         ();
 
-my $TIMER = RHP::Timer->new();
 use SL::Config;
-our $CONFIG = SL::Config->new;
-our $THRESHOLD = $CONFIG->sl_proxy_apache_request_threshold;
+our $CONFIG;
+
+BEGIN {
+    $CONFIG = SL::Config->new;
+}
+
+use constant TIMING     => $ENV{SL_TIMING}     || 0;
+use constant REQ_TIMING => $ENV{SL_REQ_TIMING} || 0;
+use constant DEBUG      => $ENV{SL_DEBUG}      || 0;
+
+my $TIMER;
+if (TIMING) {
+    require RHP::Timer;
+    $TIMER = RHP::Timer->new();
+}
+
+use constant THRESHOLD => $CONFIG->sl_proxy_apache_request_threshold || 0;
 
 sub handler {
     my $r = shift;
 
-    my $proxy_req_time;
-	if (defined $r->pnotes('proxy_req_timer')) {
-		$proxy_req_time = sprintf("sl_request_remote|%f",
-			$r->pnotes('proxy_req_timer')->last_interval);
-	}
-
-	my $total = @{ $r->pnotes('request_timer')->checkpoint }[4];
-    my $request_time = sprintf( "sl_request_total|%f", $total); 
-	
-	my $url = $r->pnotes('url');
-	if (($total > $THRESHOLD) or ( $r->server->loglevel() == Apache2::Const::LOG_INFO)) {
-		if ($url !~ m/sl_secret/) {
-			$r->log->error("***** SL_REQUEST_TIME $total for url $url");
-		}
-	}
-	if ($proxy_req_time) {
-		$request_time = join(' ', $request_time, $proxy_req_time);
-	}
-	$r->subprocess_env("SL_TIMER" => $request_time);
-
-	if ($url) {
-	    $r->subprocess_env("SL_URL" => sprintf('sl_url|%s', $url));
-	}
-    # for subrequests we don't have any log_data since no ad was inserted
-    return Apache2::Const::DECLINED unless 
-        (defined $r->pnotes('log_data') && $r->pnotes('log_data')->[0] && $r->pnotes('log_data')->[1]);
-
-    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $TIMER->start('log_view');
+    my $url = $r->pnotes('url');
+    unless ($url) {
+        $r->log->error("$$ no url in loghandler, something is broken");
+        return Apache2::Const::DECLINED;
     }
-    my $logged = SL::Model::Ad->log_view( 
-        $r->pnotes('log_data')->[0], $r->pnotes('log_data')->[1] );
 
-    $r->log->debug(sprintf("$$ logging view for ip %s, ad_id %d",
-        @{$r->pnotes('log_data')}));
+    $r->log->debug("$$ executing LogHandler") if DEBUG;
+    if ( $url !~ m/sl_secret/ ) {
+        $r->log->debug("$$ secret url, no log handling") if DEBUG;
+        return Apache2::Const::DECLINED;
+    }
 
-    $r->log->error(sprintf("Error logging view %s, ad_id %d",
-		@{$r->pnotes('log_data')})) unless $logged;
+    if ( TIMING || REQ_TIMING ) {    # grab the total request time
+        my $total = @{ $r->pnotes('request_timer')->checkpoint }[4];
+
+        my $request_time = sprintf( "sl_request_total|%f", $total );
+        $r->log->info("$$ request time $request_time");
+
+        $r->log->error("$$ *** REQ THRESHOLD TIMEOVER:  $total for $url")
+          if ( $total > THRESHOLD );
+    }
+
+    if (TIMING) {
+
+        my $proxy_req_timer = sprintf( "sl_request_remote|%f",
+            $r->pnotes('proxy_req_timer')->last_interval );
+
+        $r->log->info("$$ proxy_req_time $proxy_req_timer");
+
+        $r->subprocess_env( "SL_TIMER" => $proxy_req_timer );
+    }
+
+    $r->subprocess_env( "SL_URL" => sprintf( 'sl_url|%s', $url ) );
+
+    # for subrequests we don't have any log_data since no ad was inserted
+    return Apache2::Const::DECLINED unless $r->pnotes('ad_id');
+
+    $TIMER->start('log_ad_view') if TIMING;
+    my $logged = SL::Model::Ad->log_view(
+        {
+            ad_id   => $r->pnotes('ad_id'),
+            ip      => $r->connection->remote_ip,
+            user    => $r->pnotes('hash_mac'),
+            mac     => $r->pnotes('router_mac'),
+            url     => $r->pnotes('url'),
+            referer => $r->pnotes('referer') || ''
+        }
+    );
+    $r->log->debug(
+        sprintf(
+            "$$ logging view for url %s, ad_id %d",
+            $url, $r->pnotes('ad_id')
+        )
+      )
+      if DEBUG;
+
+    $r->log->error(
+        sprintf( "$$ Error logging view  ad_id %d",
+            @{ $r->pnotes('log_data') } )
+      )
+      unless $logged;
 
     # checkpoint
-    if ($r->server->loglevel() == Apache2::Const::LOG_INFO) {
-        $r->log->info(sprintf("timer $$ %s %d %s %f",
-            @{$TIMER->checkpoint}[0,2..4]));
-    }
+    $r->log->info( sprintf( "$$ timer %s %d %s %f", @{ $TIMER->checkpoint } ) )
+      if TIMING;
 
     return Apache2::Const::DECLINED;
 }

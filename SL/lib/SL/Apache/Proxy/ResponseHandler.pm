@@ -52,10 +52,9 @@ our $CONFIG;
 BEGIN {
     $CONFIG = SL::Config->new;
 }
-our $GOOGLE_AD_ID = $CONFIG->sl_google_ad_id;
-
-use constant NOOP_RESPONSE => $CONFIG->sl_noop_response;
-use constant SL_XHEADER    => $CONFIG->sl_xheader;
+use constant GOOGLE_AD_ID  => $CONFIG->sl_google_ad_id;
+use constant NOOP_RESPONSE => $CONFIG->sl_noop_response || 0;
+use constant SL_XHEADER    => $CONFIG->sl_xheader || 0;
 
 use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
@@ -181,48 +180,41 @@ BEGIN {
       swfobject.js );
     push @skips, 'Ads by Goo';
     $SKIPS = Regexp::Assemble->new->add(@skips)->re;
-    print STDERR "Regex for content insertion skips ", $SKIPS, "\n";
+    print STDERR "Regex for content insertion skips ", $SKIPS, "\n" if DEBUG;
 }
 
 sub handler {
     my $r = shift;
 
-    # send the user to the splash page if it is enabled
-    if ( $r->pnotes('sl_header') ) {
+    my ( $splash_url, $timeout ) =
+      SL::Model::Proxy::Router->splash_page( $r->pnotes('router_mac') );
 
-        # grab the router mac from the sl_header
-        my ( $hash_mac, $router_mac ) = split ( /\|/, $r->pnotes('sl_header') );
+    if ($splash_url) {
+        $r->log->debug( "sp url $splash_url, timeout $timeout,mac "
+              . $r->pnotes('router_mac') )
+          if DEBUG;
 
-        $r->log->debug("splash page check for router $router_mac") if DEBUG;
-        my ( $splash_url, $timeout ) =
-          SL::Model::Proxy::Router->splash_page($router_mac);
+        # aha splash page, check when the last time we saw this user was
+        my $last_seen = $USER_CACHE->get_last_seen( $r->pnotes('sl_header') );
+        $r->log->debug( "last seen $last_seen seen, time " . time() )
+          if DEBUG;
 
-        if ($splash_url) {
-            $r->log->debug(
-                "sp url $splash_url, timeout $timeout,mac $router_mac ")
-              if DEBUG;
+        my $set_ok = $USER_CACHE->set_last_seen( $r->pnotes('sl_header') );
 
-            # aha splash page, check when the last time we saw this user was
-            my $last_seen =
-              $USER_CACHE->get_last_seen( $r->pnotes('sl_header') );
-            $r->log->debug( "last seen $last_seen seen, time " . time() );
+        # last_seen is in seconds, timeout is in minutes
+        if ( !$last_seen
+            or ( ( $timeout * 60 ) < ( time() - $last_seen ) ) )
+        {
 
-            # last_seen is in seconds, timeout is in minutes
-            if ( ( $timeout * 60 ) < ( time() - $last_seen ) ) {
+            # timed out, redirect to the splash page
+            my $location =
+              "$splash_url?url=" . URI::Escape::uri_escape( $r->pnotes('url') );
+            $r->log->debug("splash page redirecting to $location") if DEBUG;
 
-                # timed out, redirect to the splash page
-                my $location =
-                  "$splash_url?url="
-                  . URI::Escape::uri_escape( $r->pnotes('url') );
-                $r->log->debug("splash page timeout, redirecting to $location");
+            $r->headers_out->set( Location => $location );
 
-                my $set_ok =
-                  $USER_CACHE->set_last_seen( $r->pnotes('sl_header') );
-                $r->headers_out->set( Location => $location );
-
-                # do not change this line
-                return Apache2::Const::REDIRECT;
-            }
+            # do not change this line
+            return Apache2::Const::REDIRECT;
         }
     }
 
@@ -249,33 +241,23 @@ sub handler {
 
     # the code above is not a bottleneck
     # start the clock
-    if (TIMING) {
-        $TIMER->start('make_remote_request');
-    }
+    $TIMER->start('make_remote_request') if TIMING;
 
-    if (DEBUG) {
-        $r->log->debug(
-            sprintf( "$$ Remote proxy request: %s", $proxy_request->as_string )
-        );
-    }
+    $r->log->debug(
+        sprintf( "$$ Remote proxy request: %s", $proxy_request->as_string ) )
+      if DEBUG;
 
     # Make the request to the remote server
-    $r->pnotes( 'proxy_req_timer' => $REMOTE_TIMER );
-    $r->pnotes('proxy_req_timer')->start('make_remote_request');
     my $response = $SL_UA->request($proxy_request);
-    $r->pnotes('proxy_req_timer')->stop;
 
-    if (VERBOSE_DEBUG) {
-        $r->log->debug( "$$ Response from proxy request", Dumper($response) );
-    }
+    $r->log->debug( "$$ Response from proxy request",
+        Data::Dumper::Dumper($response) )
+      if VERBOSE_DEBUG;
 
     # checkpoint
-    if (TIMING) {
-        $r->log->info(
-            sprintf( "timer $$ %s %d %s %f",
-                @{ $TIMER->checkpoint }[ 0, 2 .. 4 ] )
-        );
-    }
+    $r->log->info(
+        sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
+      if TIMING;
 
     # Dispatch the response
     my $sub = $response_map{ $response->code };
@@ -362,7 +344,8 @@ sub _translate_headers {
 sub twoohfour {
     my ( $r, $res ) = @_;
 
-    $r->log->debug( "$$ Request returned 204 response ", Dumper($res) )
+    $r->log->debug( "$$ Request returned 204 response ",
+        Data::Dumper::Dumper($res) )
       if VERBOSE_DEBUG;
 
     # status line 204 response
@@ -713,7 +696,7 @@ sub twohundred {
 
         # checkpoint
         $r->log->info(
-            sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ))
+            sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
           if TIMING;
 
     }    # end 'if ( $is_html and...'
@@ -930,14 +913,19 @@ sub _generate_response {
     # put the ad in the response
     $TIMER->start('random_ad') if TIMING;
 
-    my ( $ad_id, $ad_content_ref, $css_url ) =
-      SL::Model::Ad->random( $r->connection->remote_ip, $url );
+    my ( $ad_id, $ad_content_ref, $css_url ) = SL::Model::Ad->random(
+        {
+            ip   => $r->connection->remote_ip,
+            url  => $url,
+            mac  => $r->pnotes('router_mac'),
+            user => $r->pnotes('hash_mac'),
+        }
+    );
 
     # checkpoint
-    if (TIMING) {
-        $r->log->info(
-            sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) );
-    }
+    $r->log->info(
+        sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
+      if TIMING;
 
     $r->log->debug("Ad content is \n$$ad_content_ref\n") if VERBOSE_DEBUG;
     unless ($ad_content_ref) {
@@ -967,7 +955,7 @@ sub _generate_response {
     else {
         $TIMER->start('container insertion') if TIMING;
 
-        if ( 0 and ( $ad_id eq $GOOGLE_AD_ID ) ) {
+        if ( 0 and ( $ad_id eq GOOGLE_AD_ID ) ) {
             my $PAGE_CACHE = SL::Page::Cache->new;
 
             # create a dynamic page for this content unless one exists
@@ -1030,7 +1018,7 @@ sub _generate_response {
       if VERBOSE_DEBUG;
 
     # Log the ad view later
-    $r->pnotes( log_data => [ $r->connection->remote_ip, $ad_id ] );
+    $r->pnotes( ad_id => $ad_id );
 
     # re-encode content if needed
     if ($content_needs_encoding) {

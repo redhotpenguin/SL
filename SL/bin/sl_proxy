@@ -11,6 +11,16 @@ use SL::Config;
 my $server = 'proxy';
 my $config = SL::Config->new();
 
+$|++;
+if ($ENV{SL_TIMING}) {
+    print "Starting in TIMING mode\n";
+    $config->sl_proxy_apache_loglevel('info');
+}
+if ($ENV{SL_DEBUG}) {
+    print "Starting in DEBUG mode\n";
+    $config->sl_proxy_apache_loglevel('debug');
+}
+
 # FIll out the httpd.conf
 my $httpd_conf = "httpd_$server.conf";
 my $conf_tmpl   = sprintf("%s/$httpd_conf.tmpl", $config->conf_dir);

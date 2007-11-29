@@ -1,4 +1,5 @@
 0.12 
+    - lots of poop cleanup
     - splash page functionality
     - use Compress::Zlib to compress html responses.  Sending the response is
 	   one of the biggest bottlenecks currently

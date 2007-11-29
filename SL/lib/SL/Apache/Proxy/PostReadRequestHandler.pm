@@ -9,7 +9,14 @@ use Apache2::Log ();
 use APR::Table ();
 use Apache2::RequestUtil ();
 
-my $TIMER = RHP::Timer->new();
+use constant TIMING => $ENV{SL_TIMING} || 0;
+use constant REQ_TIMING => $ENV{SL_REQ_TIMING} || 0;
+
+my $TIMER;
+if (TIMING or REQ_TIMING) {
+  require RHP::Timer;
+  $TIMER = RHP::Timer->new();
+}
 
 sub handler {
 	my $r = shift;
@@ -24,8 +31,8 @@ sub handler {
 		return Apache2::Const::DONE;
 	}
 
-    $TIMER->start('request_timer');
-	$r->pnotes('request_timer' => $TIMER);
+    $TIMER->start('global_request_timer') if (TIMING or REQ_TIMING);
+	$r->pnotes('global_request_timer' => $TIMER) if (TIMING or REQ_TIMING);
 	return Apache2::Const::OK;
 }
 
