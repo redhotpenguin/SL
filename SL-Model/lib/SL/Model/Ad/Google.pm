@@ -25,9 +25,6 @@ our $CLIENT_ID_OFFSET = $CONFIG->sl_google_client_id_offset || die 'no sl_google
 
 our $GOOGLE_AD_ID = $CONFIG->sl_google_ad_id || die 'no sl_google_ad_id';
 
-#use SL::Page::Cache;
-#my $PAGE_CACHE = SL::Page::Cache->new;
-
 # this method matches catches outgoing requests to googles ad server
 # and logs them
 

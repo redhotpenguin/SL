@@ -66,7 +66,6 @@ use SL::Model;
 my $ip      = '127.0.0.1';
 my $macaddr = '00:02:B3:4D:BD:87';
 my $url     = 'http://www.foo.com/';
-my $ssid    = 'Free Wireless';
 my $user    = 'phred';
 
 # get rid of routers and locations
@@ -90,7 +89,7 @@ unless (
     diag("couldn't find router, registering new router");
     $router =
       SL::Model::Proxy::Router::Location->register(
-        { ip => $ip, macaddr => $macaddr, ssid => $ssid } )
+        { ip => $ip, macaddr => $macaddr  } )
       or die 'could not register';
 }
 
@@ -212,10 +211,10 @@ my $sl_ad     = SL::Model::App->resultset('AdSl')->create(
 print STDERR "created sl_ad id " . $sl_ad->ad_sl_id . "\n";
 
 # put it in the ad group for this router
-print STDERR "router is " . $router->[0]->[0] . "\n";
+print STDERR "router is " . $router->[0] . "\n";
 my $router__ad_group = SL::Model::App->resultset('RouterAdGroup')->create(
     {
-        router_id   => $router->[0]->[0],
+        router_id   => $router->[0],
         ad_group_id => $ad_group->ad_group_id,
     }
 );
@@ -247,7 +246,7 @@ cmp_ok( $test_ad->[TEMPLATE_IDX], 'eq', $template, 'template came through ok' );
 diag('test out location override');
 my $location__ad_group = SL::Model::App->resultset('LocationAdGroup')->new(
     {
-        location_id => $router->[0]->[1],
+        location_id => $router->[1],
         ad_group_id => $ad_group->ad_group_id
     }
 )->insert->update;

@@ -712,11 +712,11 @@ sub serialize_ads {
 
 use constant LOG_VIEW_SQL => q{
 INSERT INTO view
-( ad_id, location_id, router_id, user_id, url, referer )
+( ad_id, location_id, router_id, usr_id, url, referer )
 values
 ( ?,     (select location_id from location where ip = ?),
-                      (select router_id from router where macaddr = ?,
-                                 (select user_id from user where hash_mac = ?),
+                      (select router_id from router where macaddr = ?),
+                                 (select usr_id from usr where hash_mac = ?),
                                           ?,   ? )
 };
 
