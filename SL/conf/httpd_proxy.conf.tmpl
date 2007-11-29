@@ -76,6 +76,7 @@ PerlSetVar           ReloadDirectories "[% cfg.sl_root %]/lib"
 [% END %]
 
 PerlPassEnv          SL_DEBUG
+PerlPassEnv          SL_TIMING
 PerlSetVar           SLWhiteList [% cfg.sl_whitelist %]
 PerlSetVar           SLMethod [% cfg.sl_method %]
 PerlSetVar           SLCssUri [% cfg.sl_css_uri %]
