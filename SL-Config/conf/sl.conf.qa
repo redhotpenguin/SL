@@ -61,7 +61,6 @@ sl_proxy_rate_limit '3'
 sl_clickserver_url  http://localhost:9001/
 sl_whitelist  Off
 sl_method  Container
-sl_proxy  mod_proxy
 sl_css_uri http://www.redhotpenguin.com/css/sl.css
 
 # app server settings

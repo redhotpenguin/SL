@@ -5,6 +5,11 @@ sl_version  trunk
 sl_data_root /tmp/data/sl
 sl_ip_cache_file	/tmp/sl_ips
 
+sl_cache_url http://app.silverliningnetworks.com/cache
+
+# reporting
+sl_report_admin fred@redhotpenguin.com
+
 # configure the database connection
 sl_db_name  sl
 sl_db_host	localhost
@@ -57,7 +62,6 @@ sl_proxy_rate_limit '5'
 sl_clickserver_url http://69.36.240.29:81/click/
 sl_whitelist  Off
 sl_method  Container
-sl_proxy  mod_proxy
 sl_css_uri  http://www.redhotpenguin.com/css/sl.css
 
 # app server settings

@@ -46,7 +46,7 @@ sl_proxy_apache_max_requests_per_child 1
 sl_proxy_apache_start_servers  2
 sl_proxy_apache_max_spare_servers  1
 sl_proxy_apache_min_spare_servers  1
-sl_proxy_apache_loglevel  info
+sl_proxy_apache_loglevel  debug
 sl_proxy_apache_keepalive  On
 sl_proxy_apache_user  phred
 sl_proxy_apache_group  phred
@@ -54,11 +54,13 @@ sl_proxy_admin support@silverliningnetworks.com
 sl_proxy_servername  sl_proxy
 sl_proxy_rate_limit '3'
 sl_proxy_apache_listen  0.0.0.0:8000
+sl_proxy_apache_max_requests_per_child 250
 
 sl_clickserver_url  http://localhost:9000/click/
 sl_whitelist  Off
 sl_method  Container
-sl_proxy  mod_proxy
+sl_css_uri  http://www.redhotpenguin.com/css/sl.css
+
 # app server settings
 sl_app_root  /Users/phred/dev/sl/trunk/SL-App
 sl_app_servername  dev.silverliningnetworks.com
