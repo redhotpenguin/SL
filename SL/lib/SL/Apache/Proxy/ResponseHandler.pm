@@ -186,6 +186,10 @@ BEGIN {
 sub handler {
     my $r = shift;
 
+    $r->log->debug("server version: " . Apache2::ServerUtil::get_server_version());
+    $r->log->debug("server banner: " . Apache2::ServerUtil::get_server_banner());
+    $r->log->debug("server description" . Apache2::ServerUtil::get_server_description());
+#    $r->server->add_version_component( "foo maing 1.1" );
     my ( $splash_url, $timeout ) =
       SL::Model::Proxy::Router->splash_page( $r->pnotes('router_mac') );
 
@@ -312,6 +316,7 @@ sub _translate_headers {
             # remove from response
             $res->headers->remove_header('www-authenticate');
         }
+    }
 
       # Create a hash with the remaining HTTP::Response HTTP::Headers attributes
         my %headers;
@@ -339,7 +344,6 @@ sub _translate_headers {
 
             $r->headers_out->set( $key => $headers{$key} );
         }
-    }
     return 1;
 }
 
@@ -650,7 +654,7 @@ sub twohundred {
     $r->log->debug("$$ ===> $url is_html: $is_html") if DEBUG;
 
     # code aboe is not a bottleneck
-    $TIMER->start('rate_limiter') if (TIMING);
+    $TIMER->start('rate_limiter') if TIMING;
 
     my $is_toofast;
     my $user_id;
@@ -844,6 +848,10 @@ sub twohundred {
         no strict 'refs';
         $r->set_content_length( length($$response_content_ref) );
     }
+
+    $r->server->add_version_component( $headers{Server} );
+    $r->log->debug("$$ server header is " . $headers{Server} );
+#    $r->headers_out->set( 'Server' => 'I like dead monkeys' );
 
     # FIXME
     # this is not setting the Keep-Alive header at all for some reason
