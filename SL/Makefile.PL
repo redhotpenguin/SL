@@ -18,6 +18,7 @@ WriteMakefile(
                             'Template'             => 2.14,
                             'Regexp::Assemble'     => 0.24,
                             'Sys::Load'            => 0.2,
+                            'SL::BrowserUtil'      => 0.01,
                             'SL::Cache'            => 0.21,
                             'SL::Config'           => 0.14,
                             'SL::Model'            => 0.13,

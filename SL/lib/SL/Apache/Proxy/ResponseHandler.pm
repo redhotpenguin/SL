@@ -230,7 +230,9 @@ sub handler {
             return 1;    # don't remove me
         }
     );
-    $headers{'referer'} = $r->pnotes('referer');
+    $headers{'referer'} = $r->pnotes('referer') 
+      if ($r->pnotes('referer') ne 'no_referer');
+
     my $proxy_request = SL::HTTP::Request->new(
         {
             method  => $r->method,
@@ -244,7 +246,7 @@ sub handler {
     $TIMER->start('make_remote_request') if TIMING;
 
     $r->log->debug(
-        sprintf( "$$ Remote proxy request: %s", $proxy_request->as_string ) )
+        sprintf( "$$ Remote proxy request: \n%s", $proxy_request->as_string ) )
       if DEBUG;
 
     # Make the request to the remote server
@@ -850,7 +852,7 @@ sub twohundred {
     # maybe someday but not today
     $r->no_cache(1);
 
-    $r->log->debug( "$$ Request string before sending: " . $r->as_string )
+    $r->log->debug( "$$ Reponse headers to client " . $r->as_string )
       if DEBUG;
 
     $r->log->debug( "$$ Response content: " . $$response_content_ref )

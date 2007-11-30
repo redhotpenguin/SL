@@ -70,6 +70,7 @@ use SL::Cache::User   ();
 use SL::UserAgent     ();
 use SL::HTTP::Request ();
 use SL::Util          ();
+use SL::BrowserUtil   ();
 
 use Digest::MD5 ();
 use DBI         ();

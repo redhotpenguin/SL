@@ -34,35 +34,27 @@ sub handler {
     unless ($url) {
         $r->log->error("$$ no url in loghandler, something is broken");
         return Apache2::Const::DECLINED;
-    }
+      }
 
-    $r->log->debug("$$ executing LogHandler") if DEBUG;
-    if ( $url !~ m/sl_secret/ ) {
+    $r->log->debug("$$ executing LogHandler for url $url") if DEBUG;
+    if ( $url =~ m/sl_secret/ ) {
         $r->log->debug("$$ secret url, no log handling") if DEBUG;
         return Apache2::Const::DECLINED;
     }
 
+    $r->subprocess_env( "SL_URL" => sprintf( 'sl_url|%s', $url ) );
+
     if ( TIMING || REQ_TIMING ) {    # grab the total request time
-        my $total = @{ $r->pnotes('request_timer')->checkpoint }[4];
+        my $total = @{ $r->pnotes('global_request_timer')->checkpoint }[4];
 
         my $request_time = sprintf( "sl_request_total|%f", $total );
         $r->log->info("$$ request time $request_time");
 
         $r->log->error("$$ *** REQ THRESHOLD TIMEOVER:  $total for $url")
           if ( $total > THRESHOLD );
+
+        $r->subprocess_env( "SL_TIMER" => $request_time );
     }
-
-    if (TIMING) {
-
-        my $proxy_req_timer = sprintf( "sl_request_remote|%f",
-            $r->pnotes('proxy_req_timer')->last_interval );
-
-        $r->log->info("$$ proxy_req_time $proxy_req_timer");
-
-        $r->subprocess_env( "SL_TIMER" => $proxy_req_timer );
-    }
-
-    $r->subprocess_env( "SL_URL" => sprintf( 'sl_url|%s', $url ) );
 
     # for subrequests we don't have any log_data since no ad was inserted
     return Apache2::Const::DECLINED unless $r->pnotes('ad_id');
@@ -93,7 +85,7 @@ sub handler {
       unless $logged;
 
     # checkpoint
-    $r->log->info( sprintf( "$$ timer %s %d %s %f", @{ $TIMER->checkpoint } ) )
+    $r->log->info( sprintf( "$$ timer %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
       if TIMING;
 
     return Apache2::Const::DECLINED;

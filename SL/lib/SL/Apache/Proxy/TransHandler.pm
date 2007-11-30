@@ -13,6 +13,7 @@ SL::Apache::TransHandler
 
 use SL::Model      ();
 use SL::Model::URL ();
+use SL::BrowserUtil ();
 
 our( $EXT_REGEX, $BLACKLIST_REGEX );
 use Regexp::Assemble ();
@@ -28,8 +29,8 @@ BEGIN {
     $CONFIG = SL::Config->new();
 }
 
-use constant DEFAULT_HASH_MAC   => $CONFIG->sl_default_hash_mac   || 0;
-use constant DEFAULT_ROUTER_MAC => $CONFIG->sl_default_router_mac || 0;
+use constant DEFAULT_HASH_MAC   => $CONFIG->sl_default_hash_mac   || die 'hash_mac';
+use constant DEFAULT_ROUTER_MAC => $CONFIG->sl_default_router_mac || die 'identity';
 
 BEGIN {
     ## Extension based matching
@@ -140,7 +141,7 @@ sub handler {
     $r->pnotes( 'router_mac' => $router_mac );
 
     ## Handle non-browsers that use port 80
-    return &proxy_request($r) if ( _not_a_browser($r) );
+    return &proxy_request($r) if SL::BrowserUtil->not_a_browser($r->pnotes('ua'));
 
     ## Static content
     if ( static_content_uri($url) ) {
@@ -270,6 +271,8 @@ sub _not_a_browser {
 
     # all browsers start with Mozilla, at least in apache
     if ( substr( $r->pnotes('ua'), 0, 7 ) eq 'Mozilla' ) {
+      $r->log->debug( "$$ This is a browser: " . $r->pnotes('ua') )
+        if DEBUG;
         return;
     }
 
