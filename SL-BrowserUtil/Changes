@@ -1,0 +1,6 @@
+Revision history for Perl extension SL-BrowserUtil.
+
+0.01  Fri Nov 30 00:40:40 2007
+	- original version; created by h2xs 1.23 with options
+		-X SL-BrowserUtil
+
