@@ -1,0 +1,11 @@
+--- xs/maps/apache2_structures.map.orig	2007-11-30 13:51:57.000000000 -0800
++++ xs/maps/apache2_structures.map	2007-11-30 13:52:38.000000000 -0800
+@@ -52,7 +52,7 @@
+    ap_auth_type
+ ~  no_cache
+    no_local_copy
+-<  unparsed_uri
++   unparsed_uri
+    uri
+    filename
+ -  canonical_filename

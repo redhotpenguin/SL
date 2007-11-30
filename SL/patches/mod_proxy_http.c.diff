@@ -1,5 +1,5 @@
---- httpd-2.2.4/modules/proxy/mod_proxy_http.c	2006-08-28 11:57:09.000000000 -0700
-+++ httpd-2.2.4/modules/proxy/mod_proxy_http.c	2007-10-09 16:27:09.000000000 -0700
+--- modules/proxy/mod_proxy_http.c	2006-08-28 11:57:09.000000000 -0700
++++ modules/proxy/mod_proxy_http.c	2007-10-09 16:27:09.000000000 -0700
 @@ -51,7 +51,7 @@
      }
      def_port = apr_uri_port_of_scheme(scheme);
