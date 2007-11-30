@@ -21,7 +21,7 @@ WriteMakefile(
                             'SL::BrowserUtil'      => 0.01,
                             'SL::Cache'            => 0.21,
                             'SL::Config'           => 0.14,
-                            'SL::Model'            => 0.13,
+                            'SL::Model'            => 0.14,
                             'SL::UserAgent'        => 0.1,
                             'SL::HTTP::Request'    => 0.1,
                             'RHP::Timer'           => 0.1,
