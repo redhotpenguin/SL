@@ -432,6 +432,10 @@ sub _ad_methods_from_mac {
 
     my @methods;
     my $router_aryref = $class->_router_from_mac($mac);
+    unless ($router_aryref) {
+      require Carp && Carp::cluck("no router from mac $mac");
+      return;
+    }
 
     # see if this ip can serve google ads
     push @methods, '_google' if ( $router_aryref->[1] == 1 );
@@ -482,6 +486,10 @@ sub random {
 
     # get the list of ad types we can serve for this ip
     my $ad_methods_ref = $class->_ad_methods_from_mac($mac);
+    unless ($ad_methods_ref) {
+      require Carp && Carp::cluck("no ad methods returned");
+      return;
+    }
 
     # loop over them, apply conditions until we have an ad
     my $ad_data;

@@ -89,8 +89,8 @@ sub splash_page {
   $sth->execute or return;
   my $ary_ref = $sth->fetchrow_arrayref;
   $sth->finish;
-  return unless (scalar(@{$ary_ref}) > 0);
-  return unless ((defined $ary_ref->[0]) && ($ary_ref->[0] ne ''));
+
+  return unless $ary_ref;
   return ($ary_ref->[0], $ary_ref->[1]);
 }
 
