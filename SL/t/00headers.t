@@ -5,22 +5,25 @@ use warnings FATAL => 'all';
 
 use Test::More tests => 6;    # last test to print
 
-use LWP::UserAgent;
+use SL::Config;
+my $CONFIG = SL::Config->new;
+my ($host, $port) = split(/:/, $CONFIG->sl_proxy_apache_listen);
 
-my $ua =
-  LWP::UserAgent->new(
-    max_redirect => 0,
-    agent        =>
-'Mozilla/5.0 (Macintosh; U; PPC Mac OS X Mach-O; en-US; rv:1.8.0.2) Gecko/20060308 Firefox/1.5.0.2'
-  );
+use SL::Client::HTTP;
 
-# standard get first
-my $res = $ua->get('http://www.google.com');
+my $remote_host = 'www.google.com';
+my $url = "http://$remote_host/";
+my $user_agent = 'Mozilla/5.0 (Macintosh; U; PPC Mac OS X Mach-O; en-US; rv:1.8.0.2) Gecko/20060308 Firefox/1.5.0.2';
 
-# now use the sl_proxy
-use LWP::Protocol::http;
-$LWP::Protocol::http::sl_proxy = 1;
-my $proxy_res = $ua->get('http://www.google.com');
+my %args = (
+    url => $url,
+    host => $host,
+    port => $port,
+    headers => { 'User-Agent' => $user_agent } );
+
+my $proxy_res = SL::Client::HTTP->get( \%args );
+
+my $res = SL::Client::HTTP->get( { %args, port => 80, host => $remote_host } );
 
 cmp_ok($res->code, '==', $proxy_res->code, 'check code');
 my $regex = qr/(\w+,\s\d+\s\w+\s\d+)/;
