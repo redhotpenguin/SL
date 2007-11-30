@@ -1,0 +1,72 @@
+--- httpd-2.2.4/modules/proxy/mod_proxy_http.c	2006-08-28 11:57:09.000000000 -0700
++++ httpd-2.2.4/modules/proxy/mod_proxy_http.c	2007-10-09 16:27:09.000000000 -0700
+@@ -51,7 +51,7 @@
+     }
+     def_port = apr_uri_port_of_scheme(scheme);
+ 
+-    ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, r->server,
++    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 1, r->server,
+              "proxy: HTTP: canonicalising URL %s", url);
+ 
+     /* do syntatic check.
+@@ -71,6 +71,9 @@
+      * has already been decoded.  True proxy requests have r->uri
+      * == r->unparsed_uri, and no others have that property.
+      */
++    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 1, r->server,
++             "proxy: HTTP: uri %s eq unparsed_uri %s", r->uri, r->unparsed_uri);
++
+     if (r->uri == r->unparsed_uri) {
+         search = strchr(url, '?');
+         if (search != NULL)
+@@ -81,6 +84,8 @@
+ 
+     /* process path */
+     path = ap_proxy_canonenc(r->pool, url, strlen(url), enc_path, 0, r->proxyreq);
++    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r->server,
++        "proxy: HTTP: path %s", path);
+     if (path == NULL)
+         return HTTP_BAD_REQUEST;
+ 
+@@ -94,6 +99,8 @@
+     }
+     r->filename = apr_pstrcat(r->pool, "proxy:", scheme, "://", host, sport,
+             "/", path, (search) ? "?" : "", (search) ? search : "", NULL);
++    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r->server,
++        "proxy: HTTP: r->filename %s", r->filename);
+     return OK;
+ }
+ 
+@@ -1610,6 +1617,9 @@
+     const char *u;
+     proxy_conn_rec *backend = NULL;
+     int is_ssl = 0;
++  
++            ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, r->server,
++                         "PROXY WAXOO: handling proxy request %s", url);
+ 
+     /* Note: Memory pool allocation.
+      * A downstream keepalive connection is always connected to the existence
+@@ -1628,6 +1638,22 @@
+     conn_rec *c = r->connection;
+     apr_uri_t *uri = apr_palloc(r->connection->pool, sizeof(*uri));
+ 
++
++            ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, r->server,
++                         "PROXY WAXOO: URI %s", r->uri);
++
++            ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, r->server,
++                         "PROXY WAXOO: UNPARSED_URI %s", r->unparsed_uri);
++
++            ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, r->server,
++                         "PROXY WAXOO: handling proxy hostname %s", r->hostname);
++
++            url = apr_pstrcat(r->pool, "http://", r->hostname, r->unparsed_uri, NULL);
++
++            ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, r->server,
++                         "PROXY WAXOO: NEW URL  %s", url);
++
++
+     /* find the scheme */
+     u = strchr(url, ':');
+     if (u == NULL || u[1] != '/' || u[2] != '/' || u[3] == '\0')
