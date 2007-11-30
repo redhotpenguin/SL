@@ -186,10 +186,6 @@ BEGIN {
 sub handler {
     my $r = shift;
 
-    $r->log->debug("server version: " . Apache2::ServerUtil::get_server_version());
-    $r->log->debug("server banner: " . Apache2::ServerUtil::get_server_banner());
-    $r->log->debug("server description" . Apache2::ServerUtil::get_server_description());
-#    $r->server->add_version_component( "foo maing 1.1" );
     my ( $splash_url, $timeout ) =
       SL::Model::Proxy::Router->splash_page( $r->pnotes('router_mac') );
 
@@ -234,8 +230,8 @@ sub handler {
             return 1;    # don't remove me
         }
     );
-    $headers{'referer'} = $r->pnotes('referer') 
-      if ($r->pnotes('referer') ne 'no_referer');
+    $headers{'referer'} = $r->pnotes('referer')
+      if ( $r->pnotes('referer') ne 'no_referer' );
 
     my $proxy_request = SL::HTTP::Request->new(
         {
@@ -318,32 +314,32 @@ sub _translate_headers {
         }
     }
 
-      # Create a hash with the remaining HTTP::Response HTTP::Headers attributes
-        my %headers;
-        $res->scan( sub { $headers{ $_[0] } = $_[1]; } );
+    # Create a hash with the remaining HTTP::Response HTTP::Headers attributes
+    my %headers;
+    $res->scan( sub { $headers{ $_[0] } = $_[1]; } );
 
-        # now output the headers to the $r->headers_out->set
-        foreach my $key ( keys %headers ) {
-            next if $key =~ m/^Client/;   # skip HTTP::Response inserted headers
+    # now output the headers to the $r->headers_out->set
+    foreach my $key ( keys %headers ) {
+        next if $key =~ m/^Client/;    # skip HTTP::Response inserted headers
 
-           # some headers have an unecessary newline appended so chomp the value
-            chomp( $headers{$key} );
+        # some headers have an unecessary newline appended so chomp the value
+        chomp( $headers{$key} );
 
-            # not sure why chomp doesn't fix this
-            if ( $headers{$key} =~ m/\n/ ) {
-                $headers{$key} =~ s/\n/ /g;
-            }
-
-            $r->log->debug(
-                sprintf(
-                    "Setting key %s, value %s to headers",
-                    $key, $headers{$key}
-                )
-              )
-              if VERBOSE_DEBUG;
-
-            $r->headers_out->set( $key => $headers{$key} );
+        # not sure why chomp doesn't fix this
+        if ( $headers{$key} =~ m/\n/ ) {
+            $headers{$key} =~ s/\n/ /g;
         }
+
+        $r->log->debug(
+            sprintf(
+                "Setting key %s, value %s to headers",
+                $key, $headers{$key}
+            )
+          )
+          if VERBOSE_DEBUG;
+
+        $r->headers_out->set( $key => $headers{$key} );
+    }
     return 1;
 }
 
@@ -849,9 +845,9 @@ sub twohundred {
         $r->set_content_length( length($$response_content_ref) );
     }
 
+    # possible through a nasty hack
+    $r->log->debug( "$$ server header is " . $headers{Server} ) if DEBUG;
     $r->server->add_version_component( $headers{Server} );
-    $r->log->debug("$$ server header is " . $headers{Server} );
-#    $r->headers_out->set( 'Server' => 'I like dead monkeys' );
 
     # FIXME
     # this is not setting the Keep-Alive header at all for some reason

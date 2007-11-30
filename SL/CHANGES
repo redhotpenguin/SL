@@ -1,4 +1,5 @@
 0.12 
+    - we can set the server header now
     - lots of poop cleanup
     - splash page functionality
     - use Compress::Zlib to compress html responses.  Sending the response is
