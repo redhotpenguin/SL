@@ -30,6 +30,10 @@ sl_google_ad_id 255
 # mogilefs
 sl_mogile_host  127.0.0.1:7001
 
+# default identity
+sl_default_hash_mac aabbccffdd
+sl_default_router_mac aabbccddeeff
+
 # debugging levels, etc.  debug is single user mode for apache -DONE_PROCESS
 sl_devel  1
 sl_mod_debug 1 # debugging in SL::* modules

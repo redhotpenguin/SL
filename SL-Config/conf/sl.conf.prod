@@ -35,6 +35,11 @@ sl_google_ad_group_id 16
 sl_google_ad_id 255
 #sl_google_stealth 1
 
+
+# default identity
+sl_default_hash_mac aabbccffdd
+sl_default_router_mac aabbccddeeff
+
 # mogilefs
 sl_mogile_host 127.0.0.1:7001
 
