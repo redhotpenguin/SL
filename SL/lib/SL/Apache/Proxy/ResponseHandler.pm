@@ -340,6 +340,9 @@ sub _translate_headers {
 
         $r->headers_out->set( $key => $headers{$key} );
     }
+    
+    $r->log->debug( "$$ server header is " . $headers{Server} ) if DEBUG;
+    $r->server->add_version_component( $headers{Server} );
     return 1;
 }
 
@@ -824,7 +827,7 @@ sub twohundred {
     delete $headers{'Content-Length'};
 
     foreach my $key ( keys %headers ) {
-        next if $key =~ m/^Client/;    # skip HTTP::Response inserted headers
+        next if $key =~ m/^Client/i;    # skip HTTP::Response inserted headers
 
         # some headers have an unecessary newline appended so chomp the value
         chomp( $headers{$key} );
