@@ -11,15 +11,15 @@ SL::Apache::TransHandler
 
 =cut
 
-use SL::Model      ();
-use SL::Model::URL ();
+use SL::Model       ();
+use SL::Model::URL  ();
 use SL::BrowserUtil ();
 
 our( $EXT_REGEX, $BLACKLIST_REGEX );
 use Regexp::Assemble ();
 
-use constant DEBUG  => $ENV{SL_DEBUG}  || 0;
-use constant TIMING => $ENV{SL_TIMING} || 0;
+use constant DEBUG      => $ENV{SL_DEBUG}      || 0;
+use constant TIMING     => $ENV{SL_TIMING}     || 0;
 use constant REQ_TIMING => $ENV{SL_REQ_TIMING} || 0;
 
 use SL::Config;
@@ -29,8 +29,9 @@ BEGIN {
     $CONFIG = SL::Config->new();
 }
 
-use constant DEFAULT_HASH_MAC   => $CONFIG->sl_default_hash_mac   || die 'hash_mac';
-use constant DEFAULT_ROUTER_MAC => $CONFIG->sl_default_router_mac || die 'identity';
+use constant DEFAULT_HASH_MAC => $CONFIG->sl_default_hash_mac || die 'hash_mac';
+use constant DEFAULT_ROUTER_MAC => $CONFIG->sl_default_router_mac
+  || die 'identity';
 
 BEGIN {
     ## Extension based matching
@@ -80,11 +81,11 @@ sub static_content_uri {
 sub handler {
     my $r = shift;
 
-    my $url     = $r->construct_url( $r->unparsed_uri );
-    $r->pnotes( 'url'     => $url );
+    my $url = $r->construct_url( $r->unparsed_uri );
+    $r->pnotes( 'url' => $url );
 
     if ( $r->pnotes('ua') eq 'none' ) {
-      $r->log->debug("$$ no user agent, mod_proxy");
+        $r->log->debug("$$ no user agent, mod_proxy");
         return &proxy_request($r);
     }
 
@@ -104,9 +105,13 @@ sub handler {
         return Apache2::Const::OK;
     }
 
+    ## Handle non-browsers that use port 80
+    return &proxy_request($r)
+      if SL::BrowserUtil->not_a_browser( $r->pnotes('ua') );
+
     # get only
     unless ( $r->method_number == Apache2::Const::M_GET ) {
-        $r->log->debug("$$ no host header, mod_proxy") if DEBUG;
+        $r->log->debug("$$ not a GET request, mod_proxy") if DEBUG;
         return &proxy_request($r);
     }
 
@@ -116,7 +121,8 @@ sub handler {
         return &proxy_request($r);
     }
     else {
-        $r->log->debug( "$$ host header: " . $r->headers_in->{'Host'} ) if DEBUG;
+        $r->log->debug( "$$ host header: " . $r->headers_in->{'Host'} )
+          if DEBUG;
     }
 
     # need to be a get to get a x-sl header, covers non GET requests also
@@ -127,21 +133,38 @@ sub handler {
 
         ( $hash_mac, $router_mac ) =
           split ( /\|/, $r->pnotes('sl_header') );
+
         $r->log->debug("$$ router $router_mac, hash_mac $hash_mac")
           if DEBUG;
+
+        # get rid of this header so that is isn't proxied
+        $r->headers_in->{'x-sl'}->unset;
+
         unless ( $router_mac && $hash_mac ) {
             $r->log->error("$$ sl_header present but no hash or router mac");
             return Apache2::Const::SERVER_ERROR;    # not really anything better
         }
-
     }
 
     # stash these
     $r->pnotes( 'hash_mac'   => $hash_mac );
     $r->pnotes( 'router_mac' => $router_mac );
 
-    ## Handle non-browsers that use port 80
-    return &proxy_request($r) if SL::BrowserUtil->not_a_browser($r->pnotes('ua'));
+    # start the clock - the stuff above is all memory
+    $TIMER->start('db_mod_proxy_filters') if TIMING;
+
+    # first check that a database handle is available
+    my $dbh = SL::Model->connect();
+    unless ($dbh) {
+        $r->log->error("$$ Database has gone away, sending to mod_proxy");
+        return &proxy_request($r);
+    }
+
+    # ok check for a splash page
+    my ( $splash_url, $timeout ) =
+      SL::Model::Proxy::Router->splash_page( $r->pnotes('router_mac') );
+
+    _handle_splash_redirect( $r, $splash_url, $timeout ) if ($splash_url);
 
     ## Static content
     if ( static_content_uri($url) ) {
@@ -156,7 +179,7 @@ sub handler {
     # if this is one of our google ads then log it and pass it
     # this needs to be before the blacklist check
     if (
-        my $new_uri = SL::Model::Ad::Google->match_and_log(
+        my $ad_id = SL::Model::Ad::Google->match_and_log(
             {
                 url     => $url,
                 ip      => $r->connection->remote_ip,
@@ -168,43 +191,13 @@ sub handler {
       )
     {
 
-        # HACK
-        return &proxy_request($r)
-          if ( $new_uri eq '1' );    # string or integer
-
+        $r->pnotes( 'ad_id' => $ad_id );
+        my $new_url = $r->construct_url($new_uri);
+        $r->pnotes( url => $new_url );
         $r->log->debug( "$$ google ad click match for url $url, ip "
               . $r->connection->remote_ip
               . ", new uri $new_uri" )
           if DEBUG;
-        $r->pnotes( 'google_override' => 1 );
-        my $new_url = $r->construct_url($new_uri);
-        $r->pnotes( url => $new_url );
-        $r->log->debug("NEW URL: $new_url") if DEBUG;
-
-        # delete the sl_header
-        $r->headers_in->{'X-SL'}->unset;
-
-        return &proxy_request($r);
-
-        ######## google stealth mode - not in use right now
-        my $PAGE_CACHE;    # HACK HACK HACK
-        my $cached_url = $PAGE_CACHE->cache_url( { url => $referer } );
-        if ($cached_url) {
-
-            # the response handler handles the proxy for this so stash referer
-            $r->pnotes( 'referer' => $cached_url );
-            $r->headers_in->{Referer} = $cached_url;
-        }
-        ###############################################
-    }
-
-    # start the clock - the stuff above is all memory
-    $TIMER->start('db_mod_proxy_filters') if TIMING;
-
-    # first check that a database handle is available
-    my $dbh = SL::Model->connect();
-    unless ($dbh) {
-        $r->log->error("Database has gone away, sending to mod_proxy");
         return &proxy_request($r);
     }
 
@@ -227,6 +220,38 @@ sub handler {
         sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
       if TIMING;
 
+    return Apache2::Const::OK;
+}
+
+sub _handle_splash_redirect {
+    my ( $r, $splash_url, $timeout ) = @_;
+
+    $r->pnotes( 'splash_url' => $splash_url );
+    $r->log->debug(
+        "sp url $splash_url, timeout $timeout,mac " . $r->pnotes('router_mac') )
+      if DEBUG;
+
+    # aha splash page, check when the last time we saw this user was
+    my $last_seen = $USER_CACHE->get_last_seen( $r->pnotes('sl_header') );
+    $r->log->debug( "last seen $last_seen seen, time " . time() )
+      if DEBUG;
+
+    if ( !$last_seen
+        or ( ( $timeout * 60 ) < ( time() - $last_seen ) ) )
+    {
+
+        $r->set_handlers(
+            PerlResponseHandler => ['SL::Apache::Proxy::SplashHandler'] );
+
+    }
+    my $set_ok = $USER_CACHE->set_last_seen( $r->pnotes('sl_header') );
+
+    $r->log->info(
+        sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
+      if TIMING;
+
+    $r->log->debug("$$ sending to splash handler for url $splash_url")
+      if DEBUG;
     return Apache2::Const::OK;
 }
 
@@ -265,22 +290,6 @@ sub url_blacklisted {
     return 1 if ( $url =~ m{$BLACKLIST_REGEX}i );
 }
 
-# extract this to a utility library or something
-sub _not_a_browser {
-    my $r = shift;
-
-    # all browsers start with Mozilla, at least in apache
-    if ( substr( $r->pnotes('ua'), 0, 7 ) eq 'Mozilla' ) {
-      $r->log->debug( "$$ This is a browser: " . $r->pnotes('ua') )
-        if DEBUG;
-        return;
-    }
-
-    $r->log->debug( "$$ This is not a browser: " . $r->pnotes('ua') )
-      if DEBUG;
-    return 1;
-}
-
 sub proxy_request {
     my ( $r, $uri ) = @_;
 
@@ -307,9 +316,8 @@ sub proxy_request {
 
     $r->log->debug( "$$ filename is " . $r->filename ) if DEBUG;
 
-
-    $r->handler('proxy-server'); # hrm this causes perl response as well
-    $r->set_handlers(PerlResponseHandler => []);
+    $r->handler('proxy-server');    # hrm this causes perl response as well
+    $r->set_handlers( PerlResponseHandler => [] );
     $r->proxyreq(1);
     return Apache2::Const::DECLINED;
 }

@@ -186,38 +186,6 @@ BEGIN {
 sub handler {
     my $r = shift;
 
-    my ( $splash_url, $timeout ) =
-      SL::Model::Proxy::Router->splash_page( $r->pnotes('router_mac') );
-
-    if ($splash_url) {
-        $r->log->debug( "sp url $splash_url, timeout $timeout,mac "
-              . $r->pnotes('router_mac') )
-          if DEBUG;
-
-        # aha splash page, check when the last time we saw this user was
-        my $last_seen = $USER_CACHE->get_last_seen( $r->pnotes('sl_header') );
-        $r->log->debug( "last seen $last_seen seen, time " . time() )
-          if DEBUG;
-
-        my $set_ok = $USER_CACHE->set_last_seen( $r->pnotes('sl_header') );
-
-        # last_seen is in seconds, timeout is in minutes
-        if ( !$last_seen
-            or ( ( $timeout * 60 ) < ( time() - $last_seen ) ) )
-        {
-
-            # timed out, redirect to the splash page
-            my $location =
-              "$splash_url?url=" . URI::Escape::uri_escape( $r->pnotes('url') );
-            $r->log->debug("splash page redirecting to $location") if DEBUG;
-
-            $r->headers_out->set( Location => $location );
-
-            # do not change this line
-            return Apache2::Const::REDIRECT;
-        }
-    }
-
     # Build the request
     my %headers;
     $r->headers_in->do(
@@ -1063,6 +1031,7 @@ sub _response_charset {
 
     # if the charset wasn't in the http header look for meta-equiv
     unless ($charset) {
+        
 
     # default charset for HTTP::Message - if it couldn't guess it will
     # have decoded as 8859-1, so we need to match that when

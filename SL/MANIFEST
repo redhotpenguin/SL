@@ -1,14 +1,14 @@
 Makefile.PL
 MANIFEST
+lib/SL/Apache/Proxy/BlacklistHandler.pm
 lib/SL/Apache/Proxy/TransHandler.pm
 lib/SL/Apache/Proxy/LogHandler.pm
 lib/SL/Apache/Proxy/PostReadRequestHandler.pm
 lib/SL/Apache/Proxy/PingHandler.pm
 lib/SL/Apache/Proxy/ResponseHandler.pm
+lib/SL/Apache/Proxy/SplashHandler.pm
 lib/SL/Apache/Proxy/AccessHandler.pm
-lib/SL/Test/Mechanize.pm
 lib/SL/Util.pm
-lib/SL/Test.pm
 conf/perlbal.conf
 conf/firewall.user
 conf/sshd_config
@@ -65,7 +65,6 @@ htdocs/img/logo.gif
 htdocs/img/app_logo.gif
 htdocs/404.html
 htdocs/500.html
-lib/SL/Apache/Proxy/BlacklistHandler.pm
 bin/sl_qa_install
 bin/sl_dev_install
 tmpl/activated.tmpl
@@ -86,3 +85,10 @@ tmpl/skype_store.tmpl
 tmpl/starbucks.tmpl
 tmpl/text_ad.tmpl
 tmpl/yahoo.tmpl
+t/00headers.t
+t/01surfspotmedia.t
+t/02netflix.t
+t/03ivillage.t
+t/04charset.t
+t/05oregonstate.t
+t/06multiple_ads.t
