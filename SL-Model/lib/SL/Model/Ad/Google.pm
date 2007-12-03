@@ -45,20 +45,11 @@ sub match_and_log {
     # return 1 here since this is some form of google ad and mod_proxy should blabla
 	unless (substr($url, $CLIENT_ID_OFFSET, $CLIENT_ID_LENGTH) eq $CLIENT_ID) {
 		warn("non sl google ad encountered, url $url") if $CONFIG->sl_mod_debug;
-		return 1;
+		return;
 	}
 
-    # huzzah! we have a match, hit it yo
-    SL::Model::Ad->log_view( { ip => $ip,   ad_id => $GOOGLE_AD_ID, 
-                               mac => $mac, user => $user,
-                               url => $url, referer => $referer });
-
-	# return if we are not in stealth mode
-	unless ($CONFIG->sl_google_stealth ) {
-		warn("not in google stealth mode, returning") if $CONFIG->sl_mod_debug;
-		return 1;
-	}
-	return 1;
+    # we have a match at this point
+	return $GOOGLE_AD_ID;
 }
 
 1;
