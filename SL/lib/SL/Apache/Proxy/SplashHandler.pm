@@ -20,6 +20,9 @@ sub handler {
     $r->log->debug("splash page redirecting to $location") if DEBUG;
 
     $r->headers_out->set( Location => $location );
+    $r->server->add_version_component( 'sl' );
+    $r->no_cache(1);
+    $r->rflush;
 
     # do not change this line
     return Apache2::Const::REDIRECT;

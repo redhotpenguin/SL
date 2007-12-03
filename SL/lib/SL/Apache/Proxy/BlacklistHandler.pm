@@ -77,6 +77,9 @@ sub _redirect {
 		$r->headers_out->set(Location => $r->pnotes('referer'));
 	}
     $r->no_cache(1);
+    $r->server->add_version_component( 'sl' );
+    $r->rflush;
+
 	return Apache2::Const::REDIRECT;
 }
 

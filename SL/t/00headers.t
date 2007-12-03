@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 6;    # last test to print
+use Test::More tests => 7;
 
 use SL::Config;
 my $CONFIG = SL::Config->new;
@@ -11,10 +11,22 @@ my ( $host, $port ) = split ( /:/, $CONFIG->sl_proxy_apache_listen );
 
 use SL::Client::HTTP;
 
+my $ping_url = "http://localhost/sl_secret_ping_button/FF:FF:FF:FF:FF:FF";
+
+my %args = (
+    url     => $ping_url,
+    host    => $host,
+    port    => $port,
+);
+
+# ping the server
+my $res = SL::Client::HTTP->get( \%args);
+cmp_ok($res->code, '==', 200, 'ping 200');
+
 my $remote_host = 'www.google.com';
 my $url         = "http://$remote_host/";
 
-my %args = (
+%args = (
     url     => $url,
     host    => $host,
     port    => $port,
@@ -22,7 +34,7 @@ my %args = (
 
 my $proxy_res = SL::Client::HTTP->get( \%args );
 
-my $res = SL::Client::HTTP->get( { %args, port => 80, host => $remote_host } );
+$res = SL::Client::HTTP->get( { %args, port => 80, host => $remote_host } );
 
 cmp_ok( $res->code, '==', $proxy_res->code, 'check code' );
 my $regex = qr/(\w+,\s\d+\s\w+\s\d+)/;

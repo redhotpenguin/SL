@@ -59,11 +59,13 @@ use Apache2::URI          ();
 use SL::Cache             ();
 use SL::Util              ();
 use SL::Cache             ();
+use SL::Cache::User       ();
 use SL::Cache::Subrequest ();
 use SL::Model::Ad::Google ();
 
 our $CACHE              = SL::Cache->new( type => 'raw' );
 our $SUBREQUEST_TRACKER = SL::Cache::Subrequest->new;
+our $USER_CACHE         = SL::Cache::User->new;
 
 my $TIMER;
 if (TIMING) {
@@ -192,11 +194,8 @@ sub handler {
     {
 
         $r->pnotes( 'ad_id' => $ad_id );
-        my $new_url = $r->construct_url($new_uri);
-        $r->pnotes( url => $new_url );
         $r->log->debug( "$$ google ad click match for url $url, ip "
-              . $r->connection->remote_ip
-              . ", new uri $new_uri" )
+              . $r->connection->remote_ip)
           if DEBUG;
         return &proxy_request($r);
     }

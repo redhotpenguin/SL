@@ -30,6 +30,10 @@ use constant HALT     => 6;
 sub handler {
     my $r = shift;
 
+    $r->server->add_version_component( 'sl' );
+    $r->no_cache(1);
+    $r->rflush;
+
     # check the load
     my $minute_avg = [ Sys::Load::getload() ]->[0];
     if ( $minute_avg > MAX_LOAD ) {
@@ -114,8 +118,6 @@ sub handler {
       )
     {                                             # halt event
 
-        $r->content_type('text/plain');
-        $r->rflush;
         my $events = '';
 
         if ( $router_ref->[SSID] or $router_ref->[PASSWD] ) {

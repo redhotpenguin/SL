@@ -37,7 +37,6 @@ use SL::Model::Ad            ();
 use SL::Cache                ();
 use SL::Cache::Subrequest    ();
 use SL::Cache::RateLimit     ();
-use SL::Cache::User          ();
 use SL::Model::Proxy::Router ();
 use Encode                   ();
 use RHP::Timer               ();
@@ -91,7 +90,6 @@ my $SL_UA = SL::UserAgent->new;
 our $CACHE              = SL::Cache->new( type => 'raw' );
 our $RATE_LIMIT         = SL::Cache::RateLimit->new;
 our $SUBREQUEST_TRACKER = SL::Cache::Subrequest->new;
-our $USER_CACHE         = SL::Cache::User->new;
 
 use SL::Page::Cache;
 
@@ -220,8 +218,10 @@ sub handler {
     # Make the request to the remote server
     my $response = $SL_UA->request($proxy_request);
 
-    $r->log->debug( "$$ Response headers from proxy request",
-        Data::Dumper::Dumper($response->headers) )
+    $r->log->debug(
+        "$$ Response headers from proxy request",
+        Data::Dumper::Dumper( $response->headers )
+      )
       if DEBUG;
 
     # checkpoint
@@ -248,9 +248,6 @@ sub handler {
 sub _translate_headers {
     my ( $r, $res ) = @_;
 
-    $r->log->debug( sprintf( "$$ Response headers: %s", $res->headers ) )
-      if DEBUG;
-
     # clear the current headers
     $r->headers_out->clear();
 
@@ -266,20 +263,19 @@ sub _translate_headers {
             # and remove it from the response headers
             $res->headers->remove_header('Set-Cookie');
         }
+    }
 
-        # auth headers
-        if ( my @auth_headers = $res->header('www-authenticate') ) {
+    # auth headers
+    if ( my @auth_headers = $res->header('www-authenticate') ) {
 
-            $r->log->debug(
-                "Auth headers are " . Data::Dumper::Dumper( \@auth_headers ) )
-              if VERBOSE_DEBUG;
+        $r->log->debug(
+            "Auth headers are " . Data::Dumper::Dumper( \@auth_headers ) )
+          if DEBUG;
 
-            $r->err_headers_out->add( 'www-authenticate' => $_ )
-              for @auth_headers;
+        $r->err_headers_out->add( 'www-authenticate' => $_ ) for @auth_headers;
 
-            # remove from response
-            $res->headers->remove_header('www-authenticate');
-        }
+        # remove from response
+        $res->headers->remove_header('www-authenticate');
     }
 
     # Create a hash with the remaining HTTP::Response HTTP::Headers attributes
@@ -425,9 +421,9 @@ sub badrequest {
 sub fourohone {
     my ( $r, $res ) = @_;
 
-    $r->log->debug( "$$ Request returned 401, response ",
-        Data::Dumper::Dumper($res) )
-      if VERBOSE_DEBUG;
+    $r->log->debug( "$$ Request returned 401, auth headers: ",
+        Data::Dumper::Dumper( $res->header('www-authenticate') ) )
+      if DEBUG;
 
     # setup response
     $r->status( $res->code );
@@ -435,12 +431,10 @@ sub fourohone {
     my $content_type = $res->content_type;
     $r->content_type($content_type) if $content_type;
 
-    $r->rflush();
     my $translated = _translate_headers( $r, $res );
 
     # rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
-
     $r->rflush();
 
     # print the custom response content, and return OK (401 in status_line)
@@ -712,7 +706,8 @@ sub twohundred {
 
     # set the status line
     $r->status_line( $response->status_line );
-    $r->log->debug( "$$ status line is " . $response->status_line ) if DEBUG;
+    $r->log->debug( "$$ status line is " . $response->status_line )
+      if DEBUG;
 
     # This loops over the response headers and adds them to headers_out.
     # Override any headers with our own here
@@ -927,7 +922,8 @@ sub _generate_response {
     }
 
     if ( $decoded_content =~ m/$SKIPS/is ) {
-        $r->log->debug("$$ Skipping ad insertion from skips regex") if DEBUG;
+        $r->log->debug("$$ Skipping ad insertion from skips regex")
+          if DEBUG;
         return \$response->content;
     }
     else {
@@ -955,7 +951,8 @@ sub _generate_response {
                     return \$response->content;
                 }
 
-                $r->log->debug("$$ created virtual page for url $url") if DEBUG;
+                $r->log->debug("$$ created virtual page for url $url")
+                  if DEBUG;
             }
         }
 
@@ -1031,12 +1028,12 @@ sub _response_charset {
 
     # if the charset wasn't in the http header look for meta-equiv
     unless ($charset) {
-        
 
-    # default charset for HTTP::Message - if it couldn't guess it will
-    # have decoded as 8859-1, so we need to match that when
-    # re-encoding
-    return $charset || "ISO-8859-1";
+        # default charset for HTTP::Message - if it couldn't guess it will
+        # have decoded as 8859-1, so we need to match that when
+        # re-encoding
+        return $charset || "ISO-8859-1";
+    }
 }
 
 1;
