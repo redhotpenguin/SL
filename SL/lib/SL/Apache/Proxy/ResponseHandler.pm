@@ -252,9 +252,9 @@ sub handler {
     # Make the request to the remote server
     my $response = $SL_UA->request($proxy_request);
 
-    $r->log->debug( "$$ Response from proxy request",
-        Data::Dumper::Dumper($response) )
-      if VERBOSE_DEBUG;
+    $r->log->debug( "$$ Response headers from proxy request",
+        Data::Dumper::Dumper($response->headers) )
+      if DEBUG;
 
     # checkpoint
     $r->log->info(
@@ -340,7 +340,8 @@ sub _translate_headers {
 
         $r->headers_out->set( $key => $headers{$key} );
     }
-    
+
+    # set the server header
     $r->log->debug( "$$ server header is " . $headers{Server} ) if DEBUG;
     $r->server->add_version_component( $headers{Server} );
     return 1;
@@ -1059,6 +1060,9 @@ sub _response_charset {
         my ( undef, undef, %ct_param ) = @{ $ct[-1] };
         $charset = $ct_param{charset};
     }
+
+    # if the charset wasn't in the http header look for meta-equiv
+    unless ($charset) {
 
     # default charset for HTTP::Message - if it couldn't guess it will
     # have decoded as 8859-1, so we need to match that when
