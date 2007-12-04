@@ -91,3 +91,4 @@ t/03ivillage.t
 t/04charset.t
 t/05oregonstate.t
 t/06multiple_ads.t
+t/07kvh.com.t
