@@ -5,18 +5,18 @@ use warnings;
 
 use base 'HTTP::Request';
 
-our $VERSION = 0.1;
+our $VERSION = 0.02;
 
 sub new {
     my ($class, $args_ref) = @_;
 
     my $self = $class->SUPER::new($args_ref->{method}, $args_ref->{url});
 
+    # copy the headers to the request
     foreach my $k (keys %{$args_ref->{headers}}) {
         next
           if (   $k eq 'If-Modified-Since'
-              or $k eq 'If-None-Match' 
-              or $k eq 'Accept-Encoding');
+              or $k eq 'If-None-Match' );
 
         $self->header($k => $args_ref->{headers}->{$k});
     }
