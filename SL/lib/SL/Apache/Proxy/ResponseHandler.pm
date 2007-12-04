@@ -199,6 +199,10 @@ sub handler {
     $headers{'Referer'} = $r->pnotes('referer')
       if ( $r->pnotes('referer') ne 'no_referer' );
 
+    # this is a whacked hack
+    $headers{'Connection'} = 'keep-alive';
+
+    # work around clients which don't support compression
     if ( !exists $headers{'Accept-Encoding'} ) {
         $r->log->debug( "$$ client DOES NOT support compression "
               . Data::Dumper::Dumper( \%headers ) )
@@ -212,6 +216,10 @@ sub handler {
         $r->pnotes(
             'client_supports_compression' => $headers{'Accept-Encoding'} );
     }
+
+    $r->log->debug(
+        "$$ proxy request headers " . Data::Dumper::Dumper( \%headers ) )
+      if DEBUG;
 
     my $proxy_request = SL::HTTP::Request->new(
         {
@@ -749,31 +757,7 @@ sub twohundred {
 
     ## Set the response content type from the request, preserving charset
     my $content_type = $response->header('content-type');
-
-    my $ua = $r->pnotes('ua');
-
-    # Cleanse the content-type.  I first noticed this with Opera 9.0 on the
-    # Mac when doing a googl etoolbar search the first time I used Opera 9
-    # I saw this happen on IE first though
-    # IE is very picky about it's content type so we use a hack here - FIXME
-    if ( !$ua ) { $r->log->error("$$ UA missing for url $url") }
-    if (
-        ( $ua =~ m{(?:MSIE|opera)}i )
-        && (   ( defined $content_type )
-            && ( $content_type =~ m{^text\/html} ) )
-      )
-    {
-        $r->content_type('text/html');
-        $r->log->debug("$$ MSIE content type set to text/html") if DEBUG;
-    }
-    elsif ( !$content_type ) {
-        $r->content_type('text/html');
-        $r->log->error("$$ Undefined content type, setting to text/html");
-    }
-    else {
-        $r->content_type($content_type);
-        $r->log->debug("$$ content type set to $content_type") if DEBUG;
-    }
+    $r->content_type( $headers{'Content-Type'} );
     delete $headers{'Content-Type'};
 
     ## Content languages
@@ -797,13 +781,13 @@ sub twohundred {
             "is html: %s, compression supported %s",
             $is_html,
             $r->pnotes('client_supports_compression'),
-            $headers{'Client-Encoding'}
+            $headers{'Content-Encoding'}
         )
       )
       if DEBUG;
     if ( $is_html && $r->pnotes('client_supports_compression') ) {
 
-        if ( !exists $headers{'Client-Encoding'} ) {
+        if ( !exists $headers{'Content-Encoding'} ) {
             $r->log->debug("$$ no existing encoding headers so use gzip")
               if DEBUG;
         }
@@ -818,17 +802,25 @@ sub twohundred {
             $r->log->error(
                 "$$ content-length header on gzipped response for $url");
         }
-        delete $headers{'Client-Encoding'};
+        delete $headers{'Content-Encoding'};
+        delete $headers{'Content-Length'};
     }
     else {
         $r->set_content_length( length($$response_content_ref) );
     }
 
+    # this is for any additional headers
     foreach my $key ( keys %headers ) {
+
+        # we set this manually
+        next if lc($key) eq 'server';
 
         # skip HTTP::Response inserted headers
         next if substr( lc($key), 0, 6 ) eq 'client';
-        next if lc($key) eq 'server';
+
+        # let apache set these
+        next if substr( lc($key), 0, 10 ) eq 'connection';
+        next if substr( lc($key), 0, 10 ) eq 'keep-alive';
 
         # some headers have an unecessary newline appended so chomp the value
         chomp( $headers{$key} );
@@ -847,7 +839,7 @@ sub twohundred {
 
     # FIXME
     # this is not setting the Keep-Alive header at all for some reason
-    $r->connection->keepalive(1);
+    $r->connection->keepalive(Apache2::Const::CONN_KEEPALIVE);
 
     # maybe someday but not today
     $r->no_cache(1);
@@ -857,6 +849,12 @@ sub twohundred {
 
     $r->log->debug( "$$ Response content: " . $$response_content_ref )
       if VERBOSE_DEBUG;
+
+    my $gzip_content;
+    if ( $is_html && $r->pnotes('client_supports_compression') ) {
+        $gzip_content = Compress::Zlib::memGzip($response_content_ref);
+        $r->set_content_length( length($gzip_content) );
+    }
 
     # rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
@@ -870,16 +868,15 @@ sub twohundred {
 
         # we are compressing html so compress it
         $r->log->debug(
-            sprintf( "content encoding is _%s_", $r->content_encoding ) );
+            sprintf( "content encoding is _%s_", $r->content_encoding ) )
+          if DEBUG;
         if ( $r->content_encoding eq 'gzip' ) {
 
-            $bytes_sent =
-              $r->print( Compress::Zlib::memGzip($response_content_ref) );
+            $bytes_sent = $r->print($gzip_content);
         }
         elsif ( $r->content_encoding eq 'deflate' ) {
 
-            $bytes_sent =
-              $r->print( Compress::Zlib::memGzip($response_content_ref) );
+            $bytes_sent = $r->print($gzip_content);
         }
         else {
             $r->log->error( "$$ unsupported encoding " . $r->content_encoding );
@@ -888,7 +885,7 @@ sub twohundred {
     }
     else {
         $bytes_sent = $r->print($$response_content_ref);
-        $r->log->debug("bytes sent, no compression: $bytes_sent");
+        $r->log->debug("bytes sent, no compression: $bytes_sent") if DEBUG;
 
     }
 
