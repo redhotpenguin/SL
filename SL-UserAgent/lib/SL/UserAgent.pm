@@ -6,12 +6,13 @@ use warnings;
 use base 'LWP::UserAgent';
 use HTTP::Cookies ();
 
-our $VERSION = 0.11;
+our $VERSION = 0.12;
 
 sub new {
+    my $class = shift;
 
     # shifty yet super, we will handle redirects
-    my $ua = shift->SUPER::new(max_redirect => 0, keep_alive => 10);
+    my $ua = $class->SUPER::new(max_redirect => 0, keep_alive => 300);
 
     # Cookies, yummy yummy
     $ua->cookie_jar(HTTP::Cookies->new());
@@ -62,16 +63,6 @@ sub _browser_redirect {
     }
 
     # not a redirect
-    return;
-}
-
-sub isa_browser {
-    my $ua_string = shift;
-    die unless $ua_string;
-
-    # all browsers start with Mozilla, at least in apache
-    return 1 if ( substr($ua_string, 0, 7 ) eq 'Mozilla');
-
     return;
 }
 

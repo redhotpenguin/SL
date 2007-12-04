@@ -1,9 +1,9 @@
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 7;
+use Test::More tests => 6;
 
-use constant PING_IP => '64.151.90.20';
+use constant PING_IP => '69.36.240.28';
 
 my $pkg;
 
@@ -12,10 +12,7 @@ BEGIN {
     use_ok($pkg);
 }
 
-can_ok($pkg, qw( _browser_redirect request new isa_browser ));
-
-# test browser recognition
-ok(SL::UserAgent::isa_browser('Mozilla/5.0 (Macintosh)', 'isa_browser works'));
+can_ok($pkg, qw( _browser_redirect request new  ));
 
 my $ua = $pkg->new();
 isa_ok($ua, $pkg, 'constructor ok');
