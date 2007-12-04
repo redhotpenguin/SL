@@ -21,7 +21,7 @@ my $db = shift or die "gimme a database name yo\n";
 my $dsn = "dbi:Pg:dbname='$db';";
 my $dbh = DBI->connect( $dsn, 'phred', '', $db_options );
 # get to work
-my $user = `psql -d $db -f sql/table/user.sql`;
+my $user = `psql -d $db -f sql/table/usr.sql`;
 warn("user table: $user");
 
 $dbh->do("insert into usr (hash_mac) values('ffffffff')");
@@ -31,6 +31,10 @@ $dbh->do("alter table router add column firmware_event text DEFAULT ''::text");
 $dbh->do("alter table router add column ssid_event text DEFAULT ''::text");
 $dbh->do("alter table router add column reboot_event text DEFAULT ''::text");
 $dbh->do("alter table router add column halt_event text DEFAULT ''::text");
+
+use SL::Config;
+my $config = SL::Config->new;
+$dbh->do("insert into router (name, macaddr) values ('default router', '" . $config->sl_default_router_mac . "')");
 
 warn('url, referer');
 $dbh->do("alter table view add column url text DEFAULT ''::text");
