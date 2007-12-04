@@ -149,6 +149,7 @@ sub stacked {
 }
 
 use constant SL_LINKSHARE_SQL => q{
+-- SL_LINKSHARE_SQL
 SELECT
 ad_linkshare.ad_id,    ad_linkshare.displaytext AS text,
 ad.md5,                ad_linkshare.linkurl AS uri,
@@ -188,6 +189,7 @@ sub _linkshare {
 }
 
 use constant RANDOM_ADGROUP_FROM_IP => q{
+-- RANDOM_ADGROUP_FROM_IP
 SELECT ad_group.ad_group_id, css_url, template 
 FROM ad_group, location, location__ad_group
 WHERE location__ad_group.ad_group_id =  ad_group.ad_group_id
@@ -198,6 +200,7 @@ LIMIT 1
 };
 
 use constant SL_LOCATION_SQL => q{
+-- SL_LOCATION_SQL
 SELECT
 ad_sl.ad_id,         ad_sl.text,         ad.md5,     ad_sl.uri,
 ad_group.template,   ad_group.css_url, 
@@ -249,6 +252,7 @@ sub _sl_location {
 }
 
 use constant SL_ROUTER_SQL => q{
+-- SL_ROUTER_SQL
 SELECT
 ad_sl.ad_id,      ad_sl.text,        ad.md5,
 ad_sl.uri,        ad_group.template, ad_group.css_url,
@@ -288,6 +292,7 @@ sub _sl_router {
 }
 
 use constant SL_DEFAULT_SQL => q{
+-- SL_DEFAULT_SQL
 SELECT
 ad_sl.ad_id,       ad_sl.text,        ad.md5,
 ad_sl.uri,         ad_group.template, ad_group.css_url,
@@ -327,6 +332,7 @@ sub _sl_default {
 }
 
 use constant SL_GOOGLE_SQL => q{
+-- SL_GOOGLE_SQL
 SELECT
 ad_sl.ad_id,         ad_sl.text,         ad.md5,     ad_sl.uri,
 ad_group.template,   ad_group.css_url,
@@ -367,6 +373,7 @@ sub _google {
 }
 
 use constant ROUTERS_FROM_IP => q{
+-- ROUTERS_FROM_IP
 SELECT router_id, feed_google, feed_linkshare
 FROM router
 WHERE router_id IN ( SELECT router_id
@@ -397,6 +404,7 @@ sub _routers_from_ip {
 }
 
 use constant ROUTER_FROM_MAC => q{
+-- ROUTER_FROM_MAC
 SELECT router_id, feed_google, feed_linkshare
 FROM router
 WHERE macaddr = ?
@@ -502,10 +510,14 @@ sub random {
 
     # no ad returned?  try the default ad which should not fail
     unless ( defined $ad_data->[AD_ID_IDX] ) {
+        warn("$$ no ad for _sl_router or _sl_location, trying default") if DEBUG;
         $ad_data = $class->_sl_default( $args_ref );
 
         # going to hell for this one
-        return unless defined $ad_data->[AD_ID_IDX];
+        unless (defined $ad_data->[AD_ID_IDX]) {
+            warn("$$ _sl_default no ad, bailing") if DEBUG;
+            return;
+        }
     }
 
     # process the template
@@ -541,6 +553,7 @@ sub process_ad_template {
 }
 
 use constant ADGROUPS_FROM_LOCATION => q{
+-- ADGROUPS_FROM_LOCATION
 SELECT ad_group.ad_group_id, css_url, template 
 FROM ad_group, location, location__ad_group
 WHERE location__ad_group.ad_group_id =  ad_group.ad_group_id
@@ -571,6 +584,7 @@ sub ad_groups_from_location {
 }
 
 use constant ADGROUPS_FROM_MAC => q{
+-- ADGROUPS_FROM_MAC
 SELECT ad_group.ad_group_id, css_url, template
 FROM ad_group, router, router__ad_group
 WHERE router__ad_group.ad_group_id =  ad_group.ad_group_id
@@ -599,6 +613,7 @@ sub ad_groups_from_mac {
 }
 
 use constant ADGROUPS_FROM_DEFAULT_LOCATION => q{
+-- ADGROUPS_FROM_DEFAULT_LOCATION
 SELECT ad_group.ad_group_id, css_url, template 
 FROM ad_group, location, location__ad_group
 WHERE ad_group.is_default = 't'
@@ -627,6 +642,7 @@ sub ad_groups_from_default {
 }
 
 use constant ADS_FROM_ADGROUP_SQL_ONE => q{
+-- ADS_FROM_ADGROUP_SQL_ONE
 SELECT
 ad_sl.ad_id,       ad_sl.text,        ad.md5,
 ad_sl.uri,         ad_group.template, ad_group.css_url,
@@ -639,6 +655,7 @@ AND ad_group.ad_group_id IN (
 };
 
 use constant ADS_FROM_ADGROUP_SQL_TWO => q{
+-- ADS_FROM_ADGROUP_SQL_ONE
  ) AND ad_group.bug_id = bug.bug_id
 ORDER BY RANDOM()
 LIMIT 1
@@ -719,6 +736,7 @@ sub serialize_ads {
 }
 
 use constant LOG_VIEW_SQL => q{
+-- LOG_VIEW_SQL
 INSERT INTO view
 ( ad_id, location_id, router_id, usr_id, url, referer )
 values
