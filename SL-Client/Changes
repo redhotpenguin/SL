@@ -1,4 +1,8 @@
 Revision history for Perl extension SL-Client.
+
+0.06  Mon Dec 03 21:00:44 2007
+    - default headers for http client
+
 0.05 - added verbose option to sl_request
 
 0.04 - high performance through tcp level client proxying
