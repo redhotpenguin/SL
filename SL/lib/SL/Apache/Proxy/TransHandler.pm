@@ -208,6 +208,7 @@ sub handler {
     return &proxy_request($r) if user_blacklisted( $r, $dbh );
 
     # check for sub-reqs if it passed the other tests
+    $r->log->debug("$$ checking if subrequest") if DEBUG;
     my $is_subreq = $SUBREQUEST_TRACKER->is_subrequest( url => $url );
     return &proxy_request($r) if $is_subreq;
 
