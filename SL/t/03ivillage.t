@@ -13,14 +13,11 @@ use SL::Client::HTTP;
 
 my $remote_host   = 'www.ivillage.com';
 my $url         = "http://$remote_host/";
-my $user_agent  =
-'Mozilla/5.0 (Macintosh; U; PPC Mac OS X Mach-O; en-US; rv:1.8.0.2) Gecko/20060308 Firefox/1.5.0.2';
 
 my %args = (
     url     => $url,
     host    => $host,
     port    => $port,
-    headers => { 'User-Agent' => $user_agent }
 );
 
 my $proxy_res = SL::Client::HTTP->get( \%args );

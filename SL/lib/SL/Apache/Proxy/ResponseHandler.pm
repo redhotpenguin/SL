@@ -196,8 +196,22 @@ sub handler {
             return 1;    # don't remove me
         }
     );
-    $headers{'referer'} = $r->pnotes('referer')
+    $headers{'Referer'} = $r->pnotes('referer')
       if ( $r->pnotes('referer') ne 'no_referer' );
+
+    if ( !exists $headers{'Accept-Encoding'} ) {
+        $r->log->debug( "$$ client DOES NOT support compression "
+              . Data::Dumper::Dumper( \%headers ) )
+          if DEBUG;
+        $headers{'Accept-Encoding'} = 'gzip, deflate';
+    }
+    else {
+        $r->log->debug(
+            "$$ client supports compression " . $headers{'Accept-Encoding'} )
+          if DEBUG;
+        $r->pnotes(
+            'client_supports_compression' => $headers{'Accept-Encoding'} );
+    }
 
     my $proxy_request = SL::HTTP::Request->new(
         {
@@ -637,10 +651,15 @@ sub twohundred {
     # serve an ad if this is HTML and it's not a sub-request of an
     # ad-serving page, and it's not too soon after a previous ad was served
     my $subrequests_ref;
-    if (    ( !defined $r->pnotes('google_override') ) && $is_html
-        and ( not $is_toofast )
-        and
-        ( not $SUBREQUEST_TRACKER->is_subrequest( url => $r->pnotes('url') ) ) )
+    if (
+        (
+                $is_html
+            and ( not $is_toofast )
+            and (
+                not $SUBREQUEST_TRACKER->is_subrequest(
+                    url => $r->pnotes('url') ) )
+        )
+      )
     {
 
         # note the ad-serving time for the rate-limiter
@@ -678,30 +697,27 @@ sub twohundred {
     # we replace the links even on pages that we don't serve ads on to
     # speed things up
     # replace the links if this router/location has a replace_port setting
-    if ( !defined $r->pnotes('google_override') ) {
-        my $rep_ref = eval {
-            SL::Model::Proxy::Router->replace_port( $r->connection->remote_ip );
-        };
-        if ($@) {
-            $r->log->error(
-                sprintf( "error getting replace_port for ip %s", $@ ) );
-        }
+    my $rep_ref = eval {
+        SL::Model::Proxy::Router->replace_port( $r->connection->remote_ip );
+    };
+    if ($@) {
+        $r->log->error( sprintf( "error getting replace_port for ip %s", $@ ) );
+    }
 
-        if (   ( defined $rep_ref )
-            && ( !$@ )
-            && ( defined $subrequests_ref ) )
-        {
+    if (   ( defined $rep_ref )
+        && ( !$@ )
+        && ( defined $subrequests_ref ) )
+    {
 
-            # setting in place, replace the links
-            my $ok = $SUBREQUEST_TRACKER->replace_subrequests(
-                {
-                    port        => $rep_ref->[1],           # r_id, port
-                    subreq_ref  => $subrequests_ref,
-                    content_ref => $response_content_ref,
-                }
-            );
-            $r->log->error("$$ could not replace subrequests") unless $ok;
-        }
+        # setting in place, replace the links
+        my $ok = $SUBREQUEST_TRACKER->replace_subrequests(
+            {
+                port        => $rep_ref->[1],           # r_id, port
+                subreq_ref  => $subrequests_ref,
+                content_ref => $response_content_ref,
+            }
+        );
+        $r->log->error("$$ could not replace subrequests") unless $ok;
     }
 
     # set the status line
@@ -722,7 +738,6 @@ sub twohundred {
     foreach my $cookie ( $response->header('set-cookie') ) {
         $r->headers_out->add( 'Set-Cookie' => $cookie );
 
-        #$r->log->debug("$$ added set-cookie header: $cookie");
     }
     $response->headers->remove_header('Set-Cookie');
 
@@ -730,7 +745,7 @@ sub twohundred {
     $response->scan( sub { $headers{ $_[0] } = $_[1]; } );
     $r->log->debug(
         sprintf( "Response headers: %s", Data::Dumper::Dumper( \%headers ) ) )
-      if VERBOSE_DEBUG;
+      if DEBUG;
 
     ## Set the response content type from the request, preserving charset
     my $content_type = $response->header('content-type');
@@ -761,19 +776,8 @@ sub twohundred {
     }
     delete $headers{'Content-Type'};
 
-    ## Content encoding
-  # FIXME - why is this line commented out?
-  # ANSWER - probably because we determine ourselves if things should be gzipped
-  #$r->content_encoding($response->header('content-encoding'));
-    if ( exists $headers{'Content-Encoding'} ) {
-        $r->log->debug(
-            "$$ RESPONSE_CONTENT_ENCODING: " . $headers{'Content-Encoding'} )
-          if DEBUG;
-        delete $headers{'Content-Encoding'};
-    }
-
     ## Content languages
-    if ( defined $response->header('content-language') ) {
+    if ( defined $headers{'content-language'} ) {
         $r->content_languages( [ $response->header('content-language') ] );
         $r->log->debug( "$$ content languages set to "
               . $response->header('content_language') )
@@ -786,12 +790,45 @@ sub twohundred {
         $r->log->debug("$$ x-silverlining header set") if DEBUG;
     }
 
-    delete $headers{'Client-Peer'};
-    delete $headers{'Content-Encoding'};
-    delete $headers{'Content-Length'};
+    # set the content-length if deflate is not turned
+    # on AND we are not compressing html content
+    $r->log->debug(
+        sprintf(
+            "is html: %s, compression supported %s",
+            $is_html,
+            $r->pnotes('client_supports_compression'),
+            $headers{'Client-Encoding'}
+        )
+      )
+      if DEBUG;
+    if ( $is_html && $r->pnotes('client_supports_compression') ) {
+
+        if ( !exists $headers{'Client-Encoding'} ) {
+            $r->log->debug("$$ no existing encoding headers so use gzip")
+              if DEBUG;
+        }
+        else {
+            $r->log->debug(
+                "$$ existing content encoding " . $headers{'Content-Encoding'} )
+              if DEBUG;
+            $r->content_encoding( $headers{'Content-Encoding'} );
+        }
+
+        if ( $headers{'Content-Length'} ) {
+            $r->log->error(
+                "$$ content-length header on gzipped response for $url");
+        }
+        delete $headers{'Client-Encoding'};
+    }
+    else {
+        $r->set_content_length( length($$response_content_ref) );
+    }
 
     foreach my $key ( keys %headers ) {
-        next if $key =~ m/^Client/i;    # skip HTTP::Response inserted headers
+
+        # skip HTTP::Response inserted headers
+        next if substr( lc($key), 0, 6 ) eq 'client';
+        next if lc($key) eq 'server';
 
         # some headers have an unecessary newline appended so chomp the value
         chomp( $headers{$key} );
@@ -800,16 +837,8 @@ sub twohundred {
         }
 
         $r->log->debug( "Setting header key $key, value " . $headers{$key} )
-          if VERBOSE_DEBUG;
+          if DEBUG;
         $r->headers_out->set( $key => $headers{$key} );
-    }
-
-# set the content-length if deflate is not turned on AND we are not compressing html content
-    if ( !$CONFIG->sl_proxy_apache_deflate
-        and ( !( $CONFIG->sl_proxy_apache_html_gzip && $is_html ) ) )
-    {
-        no strict 'refs';
-        $r->set_content_length( length($$response_content_ref) );
     }
 
     # possible through a nasty hack
@@ -829,12 +858,6 @@ sub twohundred {
     $r->log->debug( "$$ Response content: " . $$response_content_ref )
       if VERBOSE_DEBUG;
 
-    if ( $CONFIG->sl_proxy_apache_html_gzip && $is_html ) {
-
-        # we are compressing html so compress it
-        $r->content_encoding('gzip');
-    }
-
     # rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
     $r->rflush();
@@ -843,18 +866,33 @@ sub twohundred {
     $TIMER->start('print_response') if TIMING;
 
     my $bytes_sent;
-    if ( $CONFIG->sl_proxy_apache_html_gzip && $is_html ) {
+    if ( $is_html && $r->pnotes('client_supports_compression') ) {
 
         # we are compressing html so compress it
-        $bytes_sent =
-          $r->print( Compress::Zlib::memGzip($response_content_ref) );
+        $r->log->debug(
+            sprintf( "content encoding is _%s_", $r->content_encoding ) );
+        if ( $r->content_encoding eq 'gzip' ) {
+
+            $bytes_sent =
+              $r->print( Compress::Zlib::memGzip($response_content_ref) );
+        }
+        elsif ( $r->content_encoding eq 'deflate' ) {
+
+            $bytes_sent =
+              $r->print( Compress::Zlib::memGzip($response_content_ref) );
+        }
+        else {
+            $r->log->error( "$$ unsupported encoding " . $r->content_encoding );
+            $bytes_sent = $r->print($$response_content_ref);
+        }
     }
     else {
         $bytes_sent = $r->print($$response_content_ref);
+        $r->log->debug("bytes sent, no compression: $bytes_sent");
+
     }
 
     # checkpoint
-
     $r->log->info(
         sprintf( "$bytes_sent bytes sent, timer $$ %s %s %d %s %f",
             @{ $TIMER->checkpoint } )
@@ -875,9 +913,6 @@ sub _generate_response {
 
     # yes this is ugly but it helps for testing
     return $response->decoded_content if NOOP_RESPONSE;
-    return $response->decoded_content
-      if ( ( defined $r->pnotes('google_override') )
-        && ( $r->pnotes('google_override') == 1 ) );
 
     my $url     = $r->pnotes('url');
     my $ua      = $r->pnotes('ua');
@@ -928,33 +963,6 @@ sub _generate_response {
     }
     else {
         $TIMER->start('container insertion') if TIMING;
-
-        if ( 0 and ( $ad_id eq GOOGLE_AD_ID ) ) {
-            my $PAGE_CACHE = SL::Page::Cache->new;
-
-            # create a dynamic page for this content unless one exists
-            my $cached_page_url = $PAGE_CACHE->cache_url( { url => $url } );
-
-            unless ($cached_page_url) {
-                $r->log->debug("$$ Caching page $url") if DEBUG;
-
-                # new virtual page, create that shit holmes!
-                my $new_page_url = $PAGE_CACHE->insert(
-                    {
-                        url         => $url,
-                        content_ref => \$response->content
-                    }
-                );
-
-                unless ($new_page_url) {
-                    $r->log->error("$$ Could not create new cached page $url");
-                    return \$response->content;
-                }
-
-                $r->log->debug("$$ created virtual page for url $url")
-                  if DEBUG;
-            }
-        }
 
         # put the ad in the page
         my $ok =
