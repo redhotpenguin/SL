@@ -798,6 +798,7 @@ sub twohundred {
         if ( !exists $headers{'Content-Encoding'} ) {
             $r->log->debug("$$ no existing encoding headers so use gzip")
               if DEBUG;
+            $already_compressed = 0;
             $r->content_encoding('gzip');
         }
         else {

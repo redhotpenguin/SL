@@ -19,7 +19,8 @@ sub handler {
     }
 
     # see if we know this ip is registered
-    my $location_id = eval { SL::Model::Proxy::Location->get_location_id_from_ip(
+    my $location_id = eval {
+      SL::Model::Proxy::Location->get_location_id_from_ip(
             $r->connection->remote_ip ); };
 
 	if ($@) {
@@ -39,7 +40,7 @@ sub handler {
 		$r->log->error(sprintf("client ip %s unregistered access attempt to url %s",
 				$r->connection->remote_ip, $url));
 		return Apache2::Const::FORBIDDEN
-	} 
+	}
 }
 
 1;
