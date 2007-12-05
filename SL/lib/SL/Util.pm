@@ -5,7 +5,7 @@ use warnings;
 
 sub not_html {
     my $content_type = shift;
-    if ( $content_type !~ m/text\/html/ and $content_type !~ m/xml/ ) {
+    if ( $content_type !~ m/text\/html/ ) {
         return 1;
     }
 }

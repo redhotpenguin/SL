@@ -1,10 +1,11 @@
 0.12 Dec 03 23:02:08 2007
+    - no treat xml as html
     - we can set the server header now
     - lots of poop cleanup
     - splash page functionality
     - use Compress::Zlib to compress html responses.  Sending the response is
-	   one of the biggest bottlenecks currently
-	- Send a 200 in the case of a 206 response, it was breaking
+        one of the biggest bottlenecks currently
+    - Send a 200 in the case of a 206 response, it was breaking
 
 0.11 Fri Oct 05 15:23:22 2007
     - google ad handler
