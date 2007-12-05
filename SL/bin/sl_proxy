@@ -11,8 +11,8 @@ use SL::Config;
 my $server = 'proxy';
 my $config = SL::Config->new();
 
-$ENV{SL_DEBUG} = 1;
-$ENV{SL_TIMING} = 1;
+#$ENV{SL_DEBUG} = 1;
+#$ENV{SL_TIMING} = 1;
 $|++;
 if ($ENV{SL_TIMING}) {
     print "Starting in TIMING mode\n";
