@@ -26,12 +26,11 @@ sub get_location_id_from_ip {
 
     my $dbh = $class->connect;
     unless ($dbh) {
-      warn("$$ [error] unable to get database handle: " . $DBI::errstr);
-      return;
+      die("$$ unable to get database handle: " . $DBI::errstr);
     }
 
     # see if we have a location with this ip
-    my $sth = $class->connect->prepare_cached(SELECT_LOCATION_ID);
+    my $sth = $dbh->prepare_cached(SELECT_LOCATION_ID);
     $sth->bind_param( 1, $ip );
     my $rv = $sth->execute;
     unless ($rv) {
@@ -51,8 +50,7 @@ sub add_location_from_ip {
 
     my $dbh = $class->connect;
     unless ($dbh) {
-      warn("$$ [error] unable to get database handle: " . $DBI::errstr);
-      return;
+      die("$$ unable to get database handle: " . $DBI::errstr);
     }
 
     my $sth = $class->connect->prepare_cached(INSERT_LOCATION_SQL);

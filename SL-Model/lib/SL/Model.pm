@@ -50,10 +50,9 @@ sub connect {
 	}
 
     my $dbh     = eval { DBI->connect_cached(@{$connect}) };
-    warn("$$ have a dbh?: $dbh") if DEBUG;
     if (!$dbh or ($dbh && $dbh->err) or $@) {
-        warn("Error %s connecting to database, %s, params %s",
-             $@, $DBI::errstr, $class->connect_params);
+        warn(sprintf("Error %s connecting to database, %s, params %s",
+             $@, $DBI::errstr, $class->connect_params));
         return;
     }
     return $dbh;
