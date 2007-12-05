@@ -22,7 +22,9 @@ sub handler {
     $r->headers_out->set( Location => $location );
     $r->server->add_version_component( 'sl' );
     $r->no_cache(1);
-    $r->rflush;
+
+    # rflush breaks SL!
+    # $r->rflush;
 
     # do not change this line
     return Apache2::Const::REDIRECT;

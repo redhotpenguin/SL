@@ -174,8 +174,8 @@ our $SKIPS;
 
 BEGIN {
     my @skips = qw( framset adwords.google.com
-      MM_executeFlashDetection
-      swfobject.js );
+      MM_executeFlashDetection );
+#      swfobject.js );
     push @skips, 'Ads by Goo';
     $SKIPS = Regexp::Assemble->new->add(@skips)->re;
     print STDERR "Regex for content insertion skips ", $SKIPS, "\n" if DEBUG;
@@ -558,18 +558,17 @@ sub redirect {
             "$$ status line %s, response: %s",
             $res->status_line, Data::Dumper::Dumper($res)
         )
-    );
+    ) if DEBUG;
 
     # set the status line
     #$r->status($res->code);
-    $r->log->debug( "status line is " . $res->status_line );
+    $r->log->debug( "status line is " . $res->status_line ) if DEBUG;
 
     # translate the headers from the remote response to the proxy response
     my $translated = _translate_headers( $r, $res );
 
-    # rflush() flushes the headers to the client
-    # thanks to gozer's mod_perl for speed presentation
-    #$r->rflush();
+    # rflush breaks things, do not change this!
+    # $r->rflush();
 
     $r->log->error(
         sprintf(
@@ -603,9 +602,8 @@ sub threeohthree {
     # translate the headers from the remote response to the proxy response
     my $translated = _translate_headers( $r, $res );
 
-    # rflush() flushes the headers to the client
-    # thanks to gozer's mod_perl for speed presentation
-    $r->rflush();
+    # rflush breaks things, do not change this!
+    # $r->rflush();
 
     $r->log->error(
         sprintf(
@@ -618,7 +616,7 @@ sub threeohthree {
     $r->log->debug( "$$ Request: \n" . $r->as_string ) if VERBOSE_DEBUG;
 
     # do not change this line
-    return Apache2::Const::HTTP_SEE_OTHER;
+    return Apache2::Const::REDIRECT;
 }
 
 sub twohundred {
@@ -659,6 +657,7 @@ sub twohundred {
     # serve an ad if this is HTML and it's not a sub-request of an
     # ad-serving page, and it's not too soon after a previous ad was served
     my $subrequests_ref;
+    my $already_compressed = 0;
     if (
         (
                 $is_html
@@ -674,6 +673,10 @@ sub twohundred {
         $RATE_LIMIT->record_ad_serve($user_id);
 
         $response_content_ref = _generate_response( $r, $response );
+        unless ($response_content_ref) {
+          $already_compressed = 1;
+          $response_content_ref = \$response->content;
+        }
 
         if (TIMING) {
             $r->log->info(
@@ -696,8 +699,9 @@ sub twohundred {
 
     }    # end 'if ( $is_html and...'
     else {
-
-        # this is not html
+        $r->log->debug("$$ ad not served, using existing content") if DEBUG;
+        # this is not html or its compressed, etc
+        $already_compressed = 1;
         $response_content_ref = \$response->content;
     }
 
@@ -705,6 +709,7 @@ sub twohundred {
     # we replace the links even on pages that we don't serve ads on to
     # speed things up
     # replace the links if this router/location has a replace_port setting
+    unless ($already_compressed) {
     my $rep_ref = eval {
         SL::Model::Proxy::Router->replace_port( $r->connection->remote_ip );
     };
@@ -727,6 +732,7 @@ sub twohundred {
         );
         $r->log->error("$$ could not replace subrequests") unless $ok;
     }
+  }
 
     # set the status line
     $r->status_line( $response->status_line );
@@ -785,11 +791,14 @@ sub twohundred {
         )
       )
       if DEBUG;
+
+    # do not mess with this next section unless you like pain
     if ( $is_html && $r->pnotes('client_supports_compression') ) {
 
         if ( !exists $headers{'Content-Encoding'} ) {
             $r->log->debug("$$ no existing encoding headers so use gzip")
               if DEBUG;
+            $r->content_encoding('gzip');
         }
         else {
             $r->log->debug(
@@ -797,17 +806,13 @@ sub twohundred {
               if DEBUG;
             $r->content_encoding( $headers{'Content-Encoding'} );
         }
-
-        if ( $headers{'Content-Length'} ) {
-            $r->log->error(
-                "$$ content-length header on gzipped response for $url");
-        }
-        delete $headers{'Content-Encoding'};
-        delete $headers{'Content-Length'};
     }
     else {
         $r->set_content_length( length($$response_content_ref) );
     }
+    delete $headers{'Content-Encoding'};
+    delete $headers{'Content-Length'};
+
 
     # this is for any additional headers
     foreach my $key ( keys %headers ) {
@@ -844,17 +849,18 @@ sub twohundred {
     # maybe someday but not today
     $r->no_cache(1);
 
-    $r->log->debug( "$$ Reponse headers to client " . $r->as_string )
-      if DEBUG;
-
-    $r->log->debug( "$$ Response content: " . $$response_content_ref )
-      if VERBOSE_DEBUG;
-
     my $gzip_content;
-    if ( $is_html && $r->pnotes('client_supports_compression') ) {
+    if ( !$already_compressed and ($is_html && $r->pnotes('client_supports_compression') ) ) {
+      $r->log->debug("$$ gzipping response") if DEBUG;
         $gzip_content = Compress::Zlib::memGzip($response_content_ref);
         $r->set_content_length( length($gzip_content) );
     }
+
+    $r->log->debug( "$$ Reponse headers to client " . $r->as_string )
+      if VERBOSE_DEBUG;
+
+    $r->log->debug( "$$ Response content: " . $$response_content_ref )
+      if VERBOSE_DEBUG;
 
     # rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
@@ -864,7 +870,8 @@ sub twohundred {
     $TIMER->start('print_response') if TIMING;
 
     my $bytes_sent;
-    if ( $is_html && $r->pnotes('client_supports_compression') ) {
+    if ( !$already_compressed and (($r->content_encoding ne '') && 
+         $is_html && $r->pnotes('client_supports_compression') )) {
 
         # we are compressing html so compress it
         $r->log->debug(
@@ -879,7 +886,7 @@ sub twohundred {
             $bytes_sent = $r->print($gzip_content);
         }
         else {
-            $r->log->error( "$$ unsupported encoding " . $r->content_encoding );
+            $r->log->error( sprintf("%d unsupported encoding _%s\_", $$,  $r->content_encoding ));
             $bytes_sent = $r->print($$response_content_ref);
         }
     }
@@ -935,7 +942,7 @@ sub _generate_response {
     $r->log->debug("Ad content is \n$$ad_content_ref\n") if VERBOSE_DEBUG;
     unless ($ad_content_ref) {
         $r->log->error("$$ Hmm, we didn't get an ad for url $url");
-        return \$response->content;
+        return;
     }
 
     # Skip ad insertion if $skips regex match on decoded_content
@@ -956,7 +963,7 @@ sub _generate_response {
     if ( $decoded_content =~ m/$SKIPS/is ) {
         $r->log->debug("$$ Skipping ad insertion from skips regex")
           if DEBUG;
-        return \$response->content;
+        return;
     }
     else {
         $TIMER->start('container insertion') if TIMING;
@@ -970,7 +977,7 @@ sub _generate_response {
             $r->log->error(
                 "could not insert ad into page url $url, css $css_url, ad "
                   . Data::Dumper::Dumper($ad_content_ref) );
-            return \$response->content;
+            return;
         }
 
         # checkpoint
@@ -987,11 +994,11 @@ sub _generate_response {
         );
         $r->log->error(
             "$$ Munged response $decoded_content, ad $$ad_content_ref");
-        return \$response->content;
+        return;
     }
 
     # We've made it this far so we're looking good
-    $r->log->debug("$$ Ad inserted url $url; referer: $referer; ua: $ua;")
+    $r->log->debug("$$ Ad inserted url $url; referer: $referer;")
       if DEBUG;
 
     $r->log->debug("$$ Munged response is \n $decoded_content")

@@ -9,6 +9,7 @@ use Apache2::Log ();
 use APR::Table ();
 use Apache2::RequestUtil ();
 
+use constant DEBUG  => $ENV{SL_DEBUG} || 0;
 use constant TIMING => $ENV{SL_TIMING} || 0;
 use constant REQ_TIMING => $ENV{SL_REQ_TIMING} || 0;
 
@@ -26,8 +27,14 @@ sub handler {
 		$ua = 'none';
 	}
 	$r->pnotes('ua'      => $ua);
-	if ($ua eq 'Apache (internal dummy connection)') {
+
+    my $potential_dummy = substr($ua, (length($ua)-27), length($ua));
+
+	if ($potential_dummy eq  '(internal dummy connection)') {
+        $r->log->debug("$$ dummy connection") if DEBUG;
+
 		$r->subprocess_env(SL_URL => 'sl_dummy');
+        $r->set_handlers( PerlResponseHandler => [] );
 		return Apache2::Const::DONE;
 	}
 

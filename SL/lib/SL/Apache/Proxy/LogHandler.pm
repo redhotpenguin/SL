@@ -18,6 +18,7 @@ BEGIN {
 use constant TIMING     => $ENV{SL_TIMING}     || 0;
 use constant REQ_TIMING => $ENV{SL_REQ_TIMING} || 0;
 use constant DEBUG      => $ENV{SL_DEBUG}      || 0;
+use constant VERBOSE_DEBUG      => $ENV{SL_VERBOSE_DEBUG}      || 0;
 
 my $TIMER;
 if (TIMING) {
@@ -36,9 +37,9 @@ sub handler {
         return Apache2::Const::DECLINED;
       }
 
-    $r->log->debug("$$ executing LogHandler for url $url") if DEBUG;
+    $r->log->debug("$$ executing LogHandler for url $url") if VERBOSE_DEBUG;
     if ( $url =~ m/sl_secret/ ) {
-        $r->log->debug("$$ secret url, no log handling") if DEBUG;
+        $r->log->debug("$$ secret url, no log handling") if VERBOSE_DEBUG;
         return Apache2::Const::DECLINED;
     }
 
@@ -48,7 +49,7 @@ sub handler {
         my $total = @{ $r->pnotes('global_request_timer')->checkpoint }[4];
 
         my $request_time = sprintf( "sl_request_total|%f", $total );
-        $r->log->info("$$ request time $request_time");
+        $r->log->info("$$ request time $request_time for $url");
 
         $r->log->error("$$ *** REQ THRESHOLD TIMEOVER:  $total for $url")
           if ( $total > THRESHOLD );

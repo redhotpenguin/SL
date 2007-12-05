@@ -19,6 +19,7 @@ our( $EXT_REGEX, $BLACKLIST_REGEX );
 use Regexp::Assemble ();
 
 use constant DEBUG      => $ENV{SL_DEBUG}      || 0;
+use constant VERBOSE_DEBUG => $ENV{VERBOSE_DEBUG} || 0;
 use constant TIMING     => $ENV{SL_TIMING}     || 0;
 use constant REQ_TIMING => $ENV{SL_REQ_TIMING} || 0;
 
@@ -108,8 +109,11 @@ sub handler {
     }
 
     ## Handle non-browsers that use port 80
-    return &proxy_request($r)
-      if SL::BrowserUtil->not_a_browser( $r->pnotes('ua') );
+    if(SL::BrowserUtil->not_a_browser( $r->pnotes('ua') )) {
+        $r->log->debug("$$ not a browser: " . $r->as_string) if DEBUG;
+        $r->pnotes('not_a_browser' => 1);
+        return &proxy_request($r);
+    }
 
     # get only
     unless ( $r->method_number == Apache2::Const::M_GET ) {
@@ -118,13 +122,16 @@ sub handler {
     }
 
     # http 1.1 only
-    unless ( defined $r->headers_in->{'Host'} ) {
+    my $hostname;
+    unless ( $hostname = defined $r->headers_in->{'Host'} ) {
         $r->log->debug("$$ no host header, mod_proxy") if DEBUG;
         return &proxy_request($r);
     }
-    else {
-        $r->log->debug( "$$ host header: " . $r->headers_in->{'Host'} )
-          if DEBUG;
+
+    # serving ads on hosts that are ip numbers causes problems usually
+    if ($hostname =~ m/\d{1,3}:\d{1,3}:\d{1,3}:\d{1,3}/) {
+        $r->log->debug("$$ hostname is ip addr $hostname, skipping") if DEBUG;
+        return &proxy_request($r);
     }
 
     # need to be a get to get a x-sl header, covers non GET requests also
@@ -140,7 +147,7 @@ sub handler {
           if DEBUG;
 
         # get rid of this header so that is isn't proxied
-        $r->headers_in->{'x-sl'}->unset;
+        $r->headers_in->unset('x-sl');
 
         unless ( $router_mac && $hash_mac ) {
             $r->log->error("$$ sl_header present but no hash or router mac");
@@ -165,8 +172,10 @@ sub handler {
     # ok check for a splash page
     my ( $splash_url, $timeout ) =
       SL::Model::Proxy::Router->splash_page( $r->pnotes('router_mac') );
-
-    _handle_splash_redirect( $r, $splash_url, $timeout ) if ($splash_url);
+    if ($splash_url) {
+        my $should_redir = handle_splash_redirect( $r, $splash_url, $timeout );
+        return Apache2::Const::OK if $should_redir;
+    }
 
     ## Static content
     if ( static_content_uri($url) ) {
@@ -213,7 +222,7 @@ sub handler {
     return &proxy_request($r) if $is_subreq;
 
     ## Check the cache for a static content match
-    return mod_proxy($r)              if $CACHE->is_known_not_html($url);
+    return &proxy_request($r)              if $CACHE->is_known_not_html($url);
     $r->log->debug("EndTranshandler") if DEBUG;
 
     $r->log->info(
@@ -223,10 +232,9 @@ sub handler {
     return Apache2::Const::OK;
 }
 
-sub _handle_splash_redirect {
+sub handle_splash_redirect {
     my ( $r, $splash_url, $timeout ) = @_;
 
-    $r->pnotes( 'splash_url' => $splash_url );
     $r->log->debug(
         "sp url $splash_url, timeout $timeout,mac " . $r->pnotes('router_mac') )
       if DEBUG;
@@ -236,37 +244,30 @@ sub _handle_splash_redirect {
     $r->log->debug( "last seen $last_seen seen, time " . time() )
       if DEBUG;
 
+    my $set_ok = $USER_CACHE->set_last_seen( $r->pnotes('sl_header') );
+
     if ( !$last_seen
         or ( ( $timeout * 60 ) < ( time() - $last_seen ) ) )
     {
 
+      $r->log->debug("$$ sending to splash handler for url $splash_url")
+        if DEBUG;
+      $r->pnotes( 'splash_url' => $splash_url );
+
         $r->set_handlers(
             PerlResponseHandler => ['SL::Apache::Proxy::SplashHandler'] );
+        return 1;
+    } else {
 
-    }
-    my $set_ok = $USER_CACHE->set_last_seen( $r->pnotes('sl_header') );
-
-    $r->log->info(
-        sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
-      if TIMING;
-
-    $r->log->debug("$$ sending to splash handler for url $splash_url")
-      if DEBUG;
-    return Apache2::Const::OK;
+      return;
+  }
 }
 
 sub user_blacklisted {
     my ( $r, $dbh ) = @_;
 
-    my $user_id;
-    if ( my $sl_header = $r->pnotes('sl_header') ) {
-        $user_id = join ( '|', $sl_header, $r->construct_server() );
-    }
-    else {
-        $user_id = join ( "|",
-            $r->connection->remote_ip, $r->pnotes('ua'),
-            $r->construct_server() );
-    }
+    my $user_id = join ( '|', $r->pnotes('hash_mac'),
+                          $r->pnotes('router_mac'), $r->construct_server() );
 
     $r->log->debug("==> user_blacklist check with user_id $user_id")
       if DEBUG;
@@ -274,8 +275,16 @@ sub user_blacklisted {
       $dbh->prepare(
         "SELECT count(user_id) FROM user_blacklist WHERE user_id = ?");
     $sth->bind_param( 1, $user_id );
-    $sth->execute;
+    my $rv = $sth->execute;
+    unless ($rv) {
+      $r->log->error("$$ user_blacklist query failed for user id $user_id");
+    $sth->finish;
+      return;
+    }
+
     my $ary_ref = $sth->fetchrow_arrayref;
+    $sth->finish;
+
     return 1 if $ary_ref->[0] > 0;
     return;
 }
@@ -293,16 +302,13 @@ sub url_blacklisted {
 sub proxy_request {
     my ( $r, $uri ) = @_;
 
-    warn("oops called proxy_request without \$r") unless ($r);
+    die("oops called proxy_request without \$r") unless ($r);
 
     ## Don't change this next line even if you think you should
     my $url = $r->construct_url;
 
     ## Use mod_proxy to do the proxying
     $r->log->debug("$$ mod_proxy handling request for $url") if DEBUG;
-
-    #$r->log->debug("$$ new uri is $uri");
-    $r->log->debug( "$$ unparsed uri " . $r->unparsed_uri ) if DEBUG;
 
     # Don't change these lines either or you'll be hurting
     if ($uri) {
@@ -313,12 +319,13 @@ sub proxy_request {
     # Don't change this stuff either unless you are on a desert island alone
     # with a solar powered computer
     $r->filename("proxy:$url");
-
     $r->log->debug( "$$ filename is " . $r->filename ) if DEBUG;
 
-    $r->handler('proxy-server');    # hrm this causes perl response as well
     $r->set_handlers( PerlResponseHandler => [] );
+    $r->handler('proxy-server');    # hrm this causes perl response as well
     $r->proxyreq(1);
+
+#    $r->server->add_version_component( 'sl' ); # need to patch mod_proxy
     return Apache2::Const::DECLINED;
 }
 

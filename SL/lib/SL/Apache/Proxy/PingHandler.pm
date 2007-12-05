@@ -64,13 +64,13 @@ sub handler {
 
     my %args = ( ip => $r->connection->remote_ip );
     if ( defined $macaddr ) {
-        $r->log->debug("Macaddr $macaddr\n") if DEBUG;
+        $r->log->debug("$$ Macaddr $macaddr\n") if DEBUG;
         $args{'macaddr'} = $macaddr;
     }
     else {
 
         # no mac addr means something is probably broken
-        $r->log->error( "no mac address in ping uri " . $r->uri );
+        $r->log->error( "$$ no mac address in ping uri " . $r->uri );
         return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
     }
 
@@ -114,14 +114,13 @@ sub handler {
         ( defined $router_ref->[PASSWD] )   or    # passwd event
         ( defined $router_ref->[FIRMWARE] ) or    # firmware event
         ( defined $router_ref->[REBOOT] )   or    # reboot event
-        ( defined $router_ref->[HALT] )
+        ( defined $router_ref->[HALT] )           # halt event
       )
-    {                                             # halt event
-
+    {
         my $events = '';
 
         if ( $router_ref->[SSID] or $router_ref->[PASSWD] ) {
-
+          $r->log->debug("$$ ping event for ssid or passwd") if DEBUG;
             $events .= _gen_event( ssid => $router_ref->[SSID] )
               if $router_ref->[SSID];
 
@@ -129,12 +128,15 @@ sub handler {
               if $router_ref->[PASSWD];
         }
         elsif ( $router_ref->[FIRMWARE] ) {
+            $r->log->debug("$$ ping event for firmware") if DEBUG;
             $events .= _gen_event( firmware => $router_ref->[FIRMWARE] );
         }
         elsif ( $router_ref->[REBOOT] ) {
+            $r->log->debug("$$ ping event for reboot") if DEBUG;
             $events .= _gen_event( reboot => $router_ref->[REBOOT] );
         }
         elsif ( $router_ref->[HALT] ) {
+            $r->log->debug("$$ ping event for halt") if DEBUG;
             $events .= _gen_event( halt => $router_ref->[HALT] );
         }
 
