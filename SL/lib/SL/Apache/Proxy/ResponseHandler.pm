@@ -246,7 +246,7 @@ sub handler {
       )
       if DEBUG;
 
-    # checkpoint
+    # checkpoint make remote request
     $r->log->info(
         sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
       if TIMING;
@@ -639,20 +639,19 @@ sub twohundred {
     $TIMER->start('rate_limiter') if TIMING;
 
     my $is_toofast;
-    my $user_id;
+    my $user_id = join('|', $r->pnotes('hash_mac'), $r->pnotes('ua'));
     if ($is_html) {
-        if ( $r->pnotes('sl_header') ) {
-            $user_id = $r->pnotes('sl_header');
-        }
-        else {
-            $user_id =
-              join ( '|', $r->connection->remote_ip, $r->pnotes('ua') );
-        }
 
         $is_toofast = $RATE_LIMIT->check_violation($user_id) || 0;
+
         $r->log->debug("$$ ===> $url check_violation: $is_toofast")
           if DEBUG;
     }
+
+    $r->log->info(
+                sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
+      if TIMING;
+
 
     # serve an ad if this is HTML and it's not a sub-request of an
     # ad-serving page, and it's not too soon after a previous ad was served
@@ -678,21 +677,15 @@ sub twohundred {
           $response_content_ref = \$response->content;
         }
 
-        if (TIMING) {
-            $r->log->info(
-                sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) );
-            $TIMER->start('collect_subrequests');
-        }
-
         # first grab the links from the page and stash them
-        $TIMER->start('collect_subrequests') if TIMING;
+        $TIMER->start('collect_subrequests');
 
         $subrequests_ref = $SUBREQUEST_TRACKER->collect_subrequests(
             content_ref => $response_content_ref,
             base_url    => $url
         );
 
-        # checkpoint
+        # checkpoint for collect_subrequuests
         $r->log->info(
             sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
           if TIMING;
@@ -935,7 +928,7 @@ sub _generate_response {
         }
     );
 
-    # checkpoint
+    # checkpoint random ad
     $r->log->info(
         sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
       if TIMING;
@@ -974,17 +967,18 @@ sub _generate_response {
           SL::Model::Ad::container( $css_url, \$decoded_content,
             $ad_content_ref );
 
+        # checkpoint
+        $r->log->info(
+            sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
+          if TIMING;
+
+
         unless ($ok) {
             $r->log->error(
                 "could not insert ad into page url $url, css $css_url, ad "
                   . Data::Dumper::Dumper($ad_content_ref) );
             return;
         }
-
-        # checkpoint
-        $r->log->info(
-            sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
-          if TIMING;
     }
 
     # Check to see if the ad is inserted
