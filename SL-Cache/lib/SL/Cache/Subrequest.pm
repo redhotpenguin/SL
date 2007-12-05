@@ -10,7 +10,7 @@ use SL::Cache        ();
 use base 'SL::Cache';
 use SL::Static       ();
 
-our $DEBUG = 0;
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 =head1 NAME
 
@@ -142,9 +142,9 @@ sub replace_subrequests {
         $replacement_url->port($port);
         $replacement_url = $replacement_url->canonical->as_string;
 
-        print STDERR "=> orig url is $orig_url\n" if $DEBUG;
+        print STDERR "=> orig url is $orig_url\n" if DEBUG;
         print STDERR "==> replacement url is $replacement_url\n\n"
-          if $DEBUG;
+          if DEBUG;
 
         # run the substitution, match surrounding quotes to handle
         # mixed and absolute urls
