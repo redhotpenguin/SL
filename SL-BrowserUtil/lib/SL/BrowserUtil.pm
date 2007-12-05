@@ -3,7 +3,7 @@ package SL::BrowserUtil;
 use strict;
 use warnings;
 
-use constant DEBUG => $ENV{SL_DEBUG} || 0;
+use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 
 our $VERSION = 0.01;
 
@@ -20,11 +20,11 @@ sub not_a_browser {
     if ( ( substr( $ua, 0, 7 ) eq 'Mozilla' )
       or ( substr( $ua, 0, 5 ) eq 'Opera' )  ){
           warn("$$ This is a browser: $ua")
-            if DEBUG;
+            if VERBOSE_DEBUG;
             return;
       }
 
-      warn("$$ This is not a browser: $ua") if DEBUG;
+      warn("$$ This is not a browser: $ua") if VERBOSE_DEBUG;
     return 1;
 }
 
