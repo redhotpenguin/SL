@@ -8,6 +8,8 @@ use SL::Config;
 
 our $VERSION = 0.14;
 
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
+
 my $db_options = {
                   RaiseError         => 0,
                   PrintError         => 1,
@@ -46,11 +48,12 @@ sub connect {
 	if (exists $params->{db}) {
         $connect->[0] = $class->dsn($params->{db});
 	}
-    my $dbh     = DBI->connect_cached(@{$connect});
-    if (!$dbh or ($dbh && $dbh->err)) {
-        print STDERR "Error connecting to database: "
-          . $class->connect_params . ", "
-          . $DBI::errstr . "\n";
+
+    my $dbh     = eval { DBI->connect_cached(@{$connect}) };
+    warn("$$ have a dbh?: $dbh") if DEBUG;
+    if (!$dbh or ($dbh && $dbh->err) or $@) {
+        warn("Error %s connecting to database, %s, params %s",
+             $@, $DBI::errstr, $class->connect_params);
         return;
     }
     return $dbh;

@@ -503,7 +503,7 @@ sub random {
     my $ad_data;
 
     foreach my $ad_method ( @{$ad_methods_ref} ) {
-        warn("calling method $ad_method") if DEBUG;
+        warn("$$ calling method $ad_method") if DEBUG;
         $ad_data = $class->$ad_method($args_ref );
         last if defined $ad_data->[AD_ID_IDX];
     }

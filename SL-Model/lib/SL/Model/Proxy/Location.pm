@@ -6,6 +6,7 @@ use warnings;
 use base 'SL::Model';
 
 use constant INSERT_LOCATION_SQL => q{
+-- INSERT_LOCATION_SQL
 INSERT INTO LOCATION
 (ip)
 VALUES
@@ -13,6 +14,7 @@ VALUES
 };
 
 use constant SELECT_LOCATION_ID => q{
+-- SELECT_LOCATION_ID
 SELECT location_id
 FROM location
 WHERE
@@ -22,11 +24,23 @@ ip = ?
 sub get_location_id_from_ip {
     my ( $class, $ip ) = @_;
 
+    my $dbh = $class->connect;
+    unless ($dbh) {
+      warn("$$ [error] unable to get database handle: " . $DBI::errstr);
+      return;
+    }
+
     # see if we have a location with this ip
     my $sth = $class->connect->prepare_cached(SELECT_LOCATION_ID);
     $sth->bind_param( 1, $ip );
-    $sth->execute or return;
+    my $rv = $sth->execute;
+    unless ($rv) {
+      warn("$$ [error] unable to execute sql " . SELECT_LOCATION_ID);
+      return;
+    }
+
     my $location_id = $sth->fetchall_arrayref->[0]->[0];
+    $sth->finish;
 
     return unless $location_id;
     return $location_id;
@@ -34,12 +48,28 @@ sub get_location_id_from_ip {
 
 sub add_location_from_ip {
     my ( $class, $ip ) = @_;
+
+    my $dbh = $class->connect;
+    unless ($dbh) {
+      warn("$$ [error] unable to get database handle: " . $DBI::errstr);
+      return;
+    }
+
     my $sth = $class->connect->prepare_cached(INSERT_LOCATION_SQL);
     $sth->bind_param( 1, $ip );
-    $sth->execute or return;
+    my $rv = $sth->execute;
+    unless ($rv) {
+      warn("$$ [error] unable to execute sql " . INSERT_LOCATION_SQL);
+      return;
+    }
+    $sth->finish;
 
     my $location_id = $class->get_location_id_from_ip($ip);
-    die "location add for ip $ip failed!" unless $location_id;
+    unless ($location_id) {
+       warn("$$ [error] failed to get newly created location for $ip");
+       return;
+     }
+
     return $location_id;
 }
 

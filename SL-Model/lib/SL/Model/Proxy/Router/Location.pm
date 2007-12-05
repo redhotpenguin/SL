@@ -48,11 +48,12 @@ sub get_registered {
     my $rv = $sth->execute;
     unless ($rv) {
       warn("$$ could not find router location for ip $ip, mac $macaddr");
+      $sth->finish;
       return;
     }
     my $ary_ref = $sth->fetchrow_arrayref;
-
     $sth->finish;
+
     # no results
     return unless $ary_ref;
 
@@ -68,10 +69,11 @@ sub get_registered {
 	$rv = $other_sth->execute;
     unless($rv) {
       warn("$$ could not update_router_active mac $macaddr");
+      $other_sth->finish;
       return;
     }
-
     $other_sth->finish;
+
     # some results
     return $ary_ref;
 }
@@ -112,7 +114,7 @@ sub register {
     $register_sth->bind_param( 2, $router_id );
 
     my $rv = $register_sth->execute;
-
+    $register_sth->finish;
     unless ($rv) {
         warn(
 "$$ Could not make router__location loc_id $location_id, ro_id $router_id"
