@@ -28,15 +28,17 @@ sub handler {
 	}
 	$r->pnotes('ua'      => $ua);
 
-    my $potential_dummy = substr($ua, (length($ua)-27), length($ua));
+    if ( length($ua) > 25) {
+        my $potential_dummy = substr($ua, (length($ua)-27), length($ua));
 
-	if ($potential_dummy eq  '(internal dummy connection)') {
-        $r->log->debug("$$ dummy connection") if DEBUG;
+	    if ($potential_dummy eq  '(internal dummy connection)') {
+            $r->log->debug("$$ dummy connection") if DEBUG;
 
-		$r->subprocess_env(SL_URL => 'sl_dummy');
-        $r->set_handlers( PerlResponseHandler => [] );
-		return Apache2::Const::DONE;
-	}
+		    $r->subprocess_env(SL_URL => 'sl_dummy');
+            $r->set_handlers( PerlResponseHandler => [] );
+		    return Apache2::Const::DONE;
+	    }
+    }
 
     $TIMER->start('global_request_timer') if (TIMING or REQ_TIMING);
 	$r->pnotes('global_request_timer' => $TIMER) if (TIMING or REQ_TIMING);
