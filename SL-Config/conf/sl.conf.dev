@@ -20,7 +20,6 @@ sl_db_debug 1
 
 # debugging levels, etc.  debug is single user mode for apache -DONE_PROCESS
 sl_devel  1
-sl_mod_debug 1 # debugging in SL::* modules
 #sl_debug  1
 #sl_prof 1
 sl_status 1
@@ -51,7 +50,7 @@ sl_proxy_apache_start_servers  2
 sl_proxy_apache_max_spare_servers  1
 sl_proxy_apache_min_spare_servers  1
 sl_proxy_apache_loglevel  debug
-sl_proxy_apache_keepalive  On
+sl_proxy_apache_keepalive  Off
 sl_proxy_apache_user  phred
 sl_proxy_apache_group  phred
 sl_proxy_admin support@silverliningnetworks.com

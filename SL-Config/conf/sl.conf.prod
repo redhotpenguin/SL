@@ -21,7 +21,6 @@ sl_db_debug 0
 
 # debugging levels, etc.  debug is single user mode for apache -DONE_PROCESS
 #sl_devel  1
-# sl_mod_debug 1 # SL::* module debugging
 #sl_debug  1
 #sl_prof  1
 #sl_status 1
@@ -54,7 +53,7 @@ sl_proxy_apache_min_spare_servers  32
 sl_proxy_apache_loglevel  error
 # sl_proxy_apache_loglevel  info
 # sl_proxy_apache_loglevel  debug
-sl_proxy_apache_keepalive  On
+sl_proxy_apache_keepalive  Off
 sl_proxy_apache_user  phred
 sl_proxy_apache_group  users
 sl_proxy_admin support@silverliningnetworks.com
@@ -62,7 +61,7 @@ sl_proxy_apache_listen  69.36.240.29:80
 sl_proxy_apache_max_requests_per_child 250
 
 sl_proxy_servername  app.redhotpenguin.com
-sl_proxy_rate_limit '5'
+sl_proxy_rate_limit '10'
 
 sl_clickserver_url http://69.36.240.29:81/click/
 sl_whitelist  Off
