@@ -1,0 +1,45 @@
+Index: lib/Perlbal/ClientHTTPBase.pm
+===================================================================
+--- lib/Perlbal/ClientHTTPBase.pm	(revision 734)
++++ lib/Perlbal/ClientHTTPBase.pm	(working copy)
+@@ -44,19 +44,40 @@
+ 
+ # hard-code defaults can be changed with MIME management command
+ our $MimeType = {qw(
++                    avi video/x-msvideo
++                    bin application/octet-stream
++                    dms application/octet-stream
++                    lha application/octet-stream
++                    lzh application/octet-stream
++                    exe application/octet-stream
++                    class application/octet-stream
++                    so application/octet-stream
++                    dll application/octet-stream
++                    dmg application/octet-stream
++                    bz2 application/bzip2
+                     css  text/css
+                     doc  application/msword
+                     gif  image/gif
++                    gz  application/x-gzip
++                    tgz  application/x-gzip
++                    fla  application/x-shockwave-flash
++                    flv  application/x-shockwave-flash
+                     htm  text/html
+                     html text/html
++                    ico  image/x-icon
+                     jpg  image/jpeg
++                    jpeg  image/jpeg
+                     js   application/x-javascript
+                     mp3  audio/mpeg
+                     mpg  video/mpeg
++                    mpeg  video/mpeg
+                     pdf  application/pdf
+                     png  image/png
++                    rdf text/xml
++                    rss text/xml
+                     tif   image/tiff
+                     tiff  image/tiff
++                    swf  application/x-shockwave-flash
+                     torrent  application/x-bittorrent
+                     txt   text/plain
+                     zip   application/zip
