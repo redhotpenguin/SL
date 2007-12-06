@@ -20,7 +20,7 @@ Mostly Apache2 and HTTP class based.
 use Apache2::Const -compile => qw( OK SERVER_ERROR NOT_FOUND DECLINED
   REDIRECT LOG_DEBUG LOG_ERR LOG_INFO CONN_KEEPALIVE HTTP_BAD_REQUEST
   HTTP_UNAUTHORIZED HTTP_SEE_OTHER HTTP_MOVED_PERMANENTLY
-  HTTP_NO_CONTENT HTTP_PARTIAL_CONTENT);
+  HTTP_NO_CONTENT HTTP_PARTIAL_CONTENT HTTP_NOT_MODIFIED );
 use Apache2::Connection      ();
 use Apache2::Log             ();
 use Apache2::RequestRec      ();
@@ -77,6 +77,7 @@ our %response_map = (
     301 => 'threeohone',
     302 => 'redirect',
     303 => 'threeohthree',
+    304 => 'threeohfour',
     307 => 'redirect',
     500 => 'bsod',
     503 => 'bsod',
@@ -608,6 +609,36 @@ sub threeohthree {
     # do not change this line
     return Apache2::Const::REDIRECT;
 }
+
+# same as a 302 just different status line and constants
+sub threeohfour {
+    my ( $r, $res ) = @_;
+
+    # set the status line
+    $r->status($res->code);
+    $r->log->debug( "status line is " . $res->status_line ) if DEBUG;
+
+    # translate the headers from the remote response to the proxy response
+    my $translated = _translate_headers( $r, $res );
+
+    # rflush breaks things, do not change this!
+    # $r->rflush();
+
+    $r->log->error(
+        sprintf(
+            "header translation error \$r: %s, \$res %s",
+            $r->as_string, Data::Dumper::Dumper($res)
+        )
+      )
+      unless $translated;
+
+    $r->log->debug( "$$ Request: \n" . $r->as_string ) if VERBOSE_DEBUG;
+
+    # do not change this line
+    return Apache2::Const::OK;
+}
+
+
 
 sub twohundred {
     my ( $r, $response ) = @_;
