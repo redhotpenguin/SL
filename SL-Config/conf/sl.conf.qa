@@ -16,7 +16,7 @@ sl_db_host	localhost
 sl_db_user  sl
 sl_db_user  phred
 sl_db_pass  
-sl_db_ping_timeout 5
+sl_db_ping_timeout 30
 sl_db_debug 0
 
 # google ad stuff
@@ -35,8 +35,8 @@ sl_default_hash_mac aabbccffdd
 sl_default_router_mac aabbccddeeff
 
 # debugging levels, etc.  debug is single user mode for apache -DONE_PROCESS
-sl_devel  1
-sl_mod_debug 1 # debugging in SL::* modules
+# sl_devel  1
+# sl_mod_debug 1 # debugging in SL::* modules
 #sl_debug  1
 #sl_prof  1
 #sl_status 1
@@ -50,13 +50,14 @@ sl_proxy_apache_maxclients  128
 sl_proxy_apache_start_servers  64
 sl_proxy_apache_max_spare_servers  16
 sl_proxy_apache_min_spare_servers  8
-sl_proxy_apache_loglevel  debug
+sl_proxy_apache_loglevel  error
 #sl_proxy_apache_loglevel  error
-sl_proxy_apache_keepalive  On
+sl_proxy_apache_keepalive  Off
+#sl_proxy_apache_keepalive  On
 sl_proxy_apache_user  phred
 sl_proxy_apache_group  users
 sl_proxy_admin support@silverliningnetworks.com
-sl_proxy_apache_listen  192.168.3.1:80
+sl_proxy_apache_listen  127.0.0.1:9999
 sl_proxy_apache_max_requests_per_child 250
 
 sl_proxy_servername  harpua
