@@ -44,7 +44,7 @@ sub match_and_log {
     # ok it's a google ad, see if the client id matches
     # return 1 here since this is some form of google ad and mod_proxy should blabla
 	unless (substr($url, $CLIENT_ID_OFFSET, $CLIENT_ID_LENGTH) eq $CLIENT_ID) {
-		warn("non sl google ad encountered, url $url") if $CONFIG->sl_mod_debug;
+		warn("non sl google ad encountered, url $url") if DEBUG;
 		return;
 	}
 
