@@ -43,3 +43,24 @@ Index: lib/Perlbal/ClientHTTPBase.pm
                      torrent  application/x-bittorrent
                      txt   text/plain
                      zip   application/zip
+Index: lib/Perlbal/BackendHTTP.pm
+===================================================================
+--- lib/Perlbal/BackendHTTP.pm	(revision 734)
++++ lib/Perlbal/BackendHTTP.pm	(working copy)
+@@ -71,9 +71,14 @@
+         Perlbal::log('crit', "Error creating socket: $!");
+         return undef;
+     }
+-
++    my $inet_aton = Socket::inet_aton($ip);
++    unless ($inet_aton) {
++        Perlbal::log('crit', "inet_aton failed creating socket for $ip");
++        return undef;
++    }
++ 
+     IO::Handle::blocking($sock, 0);
+-    connect $sock, Socket::sockaddr_in($port, Socket::inet_aton($ip));
++    connect $sock, Socket::sockaddr_in($port, $inet_aton);
+ 
+     my $self = fields::new($class);
+     $self->SUPER::new($sock);
