@@ -36,9 +36,13 @@ use constant DEFAULT_ROUTER_MAC => $CONFIG->sl_default_router_mac
 
 BEGIN {
     ## Extension based matching
+  # removed js css swf
     my @extensions = qw(
-      ad avi bin bz2 css doc exe fla flv gif gz ico jpeg jpg js pdf png ppt
-      rar sit swf rss tgz txt wmv vob xpi zip );
+      js torrent img avi bin bz2 doc exe fla flv gif gz ico jpeg jpg pdf png 
+      ppt mpg mpeg mp3 tif tiff
+ads
+ swf     rar sit
+rdf rss tgz txt wmv vob xpi zip );
 
     $EXT_REGEX = Regexp::Assemble->new->add(@extensions)->re;
     print STDERR "Regex for static content match is $EXT_REGEX\n"
@@ -76,7 +80,7 @@ if (TIMING) {
 
 sub static_content_uri {
     my $url = shift;
-    if ( $url =~ m{\.(?:$EXT_REGEX)$}i ) {
+    if ( $url =~ m{\.$EXT_REGEX}i ) {
         return 1;
     }
 }
@@ -88,7 +92,7 @@ sub handler {
     $r->pnotes( 'url' => $url );
 
     if ( $r->pnotes('ua') eq 'none' ) {
-        $r->log->debug("$$ no user agent, mod_proxy");
+        $r->log->debug("$$ no user agent, mod_proxy") if DEBUG;
         return &proxy_request($r);
     }
 
@@ -130,8 +134,13 @@ sub handler {
 
     # serving ads on hosts that are ip numbers causes problems usually
     if ($hostname =~ m/\d{1,3}:\d{1,3}:\d{1,3}:\d{1,3}/) {
-        $r->log->debug("$$ hostname is ip addr $hostname, skipping") if DEBUG;
-        return &proxy_request($r);
+        $r->log->debug("$$ hostname is ip addr $hostname, perlbal") if DEBUG;
+        return &perlbal($r);
+    }
+
+    if ($url =~ m{\.(?:js|javascript|css|yahoofs)}i ) {
+      $r->log->debug("$$ js|css|yahoofs found $url") if DEBUG;
+      return &proxy_request($r);
     }
 
     # need to be a get to get a x-sl header, covers non GET requests also
@@ -179,13 +188,16 @@ sub handler {
 
     ## Static content
     if ( static_content_uri($url) ) {
-        $r->log->debug("$$ Url $url static content extension, proxying")
-          if DEBUG;
-        return &proxy_request($r);
+        $r->log->debug("$$ Url $url static content ext, perlbal") if DEBUG;
+        return &perlbal($r);
     }
 
     ## hack for google ads
     return &proxy_request($r) if ( $referer =~ m/googlesyndication/ );
+
+    # have perlbal grab these
+    return &proxy_request($r)
+      if $url eq 'http://pagead2.googlesyndication.com/pagead/show_ads.js';
 
     # if this is one of our google ads then log it and pass it
     # this needs to be before the blacklist check
@@ -203,18 +215,40 @@ sub handler {
     {
 
         $r->pnotes( 'ad_id' => $ad_id );
-        $r->log->debug( "$$ google ad click match for url $url, ip "
+        $r->log->debug( "$$ google ad view match for url $url, ip "
               . $r->connection->remote_ip)
           if DEBUG;
         return &proxy_request($r);
     }
+    # other peoples google ads
+    return &proxy_request($r) if ( $url =~ m/googlesyndication/ );
 
+    # do not move this!
+    if ($r->unparsed_uri =~ m/brightcove|flash/i) {
+      $r->log->debug("$$ flash or brightcove url $url, mod_proxy") if DEBUG;
+       return &proxy_request($r);
+     }
+
+    # known offenders that are perlbal can
+    if ($url =~ m/sphere.com|fmpub.net|edgesuite|oascentral|2mdn\.net/i) {
+      $r->log->debug("$$ known slow content server $url, perlbal") if DEBUG;
+       return &perlbal($r);
+     }
+
+    $r->log->debug("$$ checking blacklisted urls") if DEBUG;
     # blacklisted urls
-    return &proxy_request($r) if ( url_blacklisted($url) );
+    if ( url_blacklisted($url) ) {
+        $r->log->debug("$$ url $url blacklisted") if DEBUG;
+        return &proxy_request($r);
+    }
 
+    $r->log->debug("$$ checking blacklisted users") if DEBUG;
     # User and content driven handling
     # Close this bar
-    return &proxy_request($r) if user_blacklisted( $r, $dbh );
+    if (user_blacklisted( $r, $dbh )) {
+        $r->log->debug("$$ user blacklisted") if DEBUG;
+        return &proxy_request($r);
+    }
 
     # check for sub-reqs if it passed the other tests
     $r->log->debug("$$ checking if subrequest") if DEBUG;
@@ -275,7 +309,7 @@ sub user_blacklisted {
       $dbh->prepare(
         "SELECT count(user_id) FROM user_blacklist WHERE user_id = ?");
     $sth->bind_param( 1, $user_id );
-    my $rv = $sth->execute;
+    my $rv= $sth->execute;
     unless ($rv) {
       $r->log->error("$$ user_blacklist query failed for user id $user_id");
     $sth->finish;
@@ -300,6 +334,12 @@ sub url_blacklisted {
 }
 
 sub proxy_request {
+    my $r = shift;
+
+    return &mod_proxy($r);
+}
+
+sub mod_proxy {
     my ( $r, $uri ) = @_;
 
     die("oops called proxy_request without \$r") unless ($r);
@@ -321,7 +361,9 @@ sub proxy_request {
     $r->filename("proxy:$url");
     $r->log->debug( "$$ filename is " . $r->filename ) if DEBUG;
 
-    $r->set_handlers( PerlResponseHandler => [] );
+    $r->set_handlers( PerlResponseHandler => undef );
+    $r->set_handlers( PerlLogHandler => undef );
+
     $r->handler('proxy-server');    # hrm this causes perl response as well
     $r->proxyreq(1);
 
@@ -334,9 +376,11 @@ sub perlbal {
 
     ##########
     # Use perlbal to do the proxying
-    $r->log->debug("Using perlbal to reproxy request") if DEBUG;
     my $uri = $r->construct_url( $r->unparsed_uri );
     $r->headers_out->add( 'X-REPROXY-URL' => $r->construct_url );
+    $r->set_handlers( PerlResponseHandler => undef );
+    $r->set_handlers( PerlLogHandler => undef );
+    $r->log->debug("$$ X-REPROXY-URL for $uri") if DEBUG;
     return Apache2::Const::DONE;
 }
 

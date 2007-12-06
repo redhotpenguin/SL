@@ -31,8 +31,9 @@ use Apache2::ServerRec       ();
 use Apache2::ServerUtil      ();
 use Apache2::URI             ();
 use APR::Table               ();
-use SL::HTTP::Request        ();
-use SL::UserAgent            ();
+#use SL::HTTP::Request        ();
+#use SL::UserAgent            ();
+use SL::HTTP::Client ();
 use SL::Model::Ad            ();
 use SL::Cache                ();
 use SL::Cache::Subrequest    ();
@@ -78,14 +79,12 @@ our %response_map = (
     303 => 'threeohthree',
     307 => 'redirect',
     500 => 'bsod',
+    503 => 'bsod',
     400 => 'badrequest',
     401 => 'fourohone',
     403 => 'fourohthree',
     404 => 'fourohfour',
 );
-
-## Make a user agent
-my $SL_UA = SL::UserAgent->new;
 
 our $CACHE              = SL::Cache->new( type => 'raw' );
 our $RATE_LIMIT         = SL::Cache::RateLimit->new;
@@ -175,7 +174,7 @@ our $SKIPS;
 BEGIN {
     my @skips = qw( framset adwords.google.com
       MM_executeFlashDetection );
-#      swfobject.js );
+
     push @skips, 'Ads by Goo';
     $SKIPS = Regexp::Assemble->new->add(@skips)->re;
     print STDERR "Regex for content insertion skips ", $SKIPS, "\n" if DEBUG;
@@ -190,17 +189,25 @@ sub handler {
         sub {
             my $k = shift;
             my $v = shift;
-            if ( $k !~ m/^X-SL/ ) {
-                $headers{$k} = $v;
-            }
+
+            # sl headers
+            return 1 if substr(lc($k), 0, 4) eq 'x-sl';
+
+            # we don't care about connection or keep alive headers
+            return 1 if $k =~ m/^keep-alive/i;
+            return 1 if $k =~ m/^connection/i;
+
+            # perlbal headers
+            return 1 if substr(lc($k), 0, 11) eq 'x-forwarded';
+            return 1 if substr(lc($k), 0, 7) eq 'x-proxy';
+
+            $headers{$k} = $v;
+
             return 1;    # don't remove me
         }
     );
     $headers{'Referer'} = $r->pnotes('referer')
       if ( $r->pnotes('referer') ne 'no_referer' );
-
-    # this is a whacked hack
-    $headers{'Connection'} = 'keep-alive';
 
     # work around clients which don't support compression
     if ( !exists $headers{'Accept-Encoding'} ) {
@@ -221,24 +228,14 @@ sub handler {
         "$$ proxy request headers " . Data::Dumper::Dumper( \%headers ) )
       if DEBUG;
 
-    my $proxy_request = SL::HTTP::Request->new(
-        {
-            method  => $r->method,
-            url     => $r->pnotes('url'),
-            headers => \%headers,
-        }
-    );
-
     # the code above is not a bottleneck
     # start the clock
     $TIMER->start('make_remote_request') if TIMING;
 
-    $r->log->debug(
-        sprintf( "$$ Remote proxy request: \n%s", $proxy_request->as_string ) )
-      if DEBUG;
 
     # Make the request to the remote server
-    my $response = $SL_UA->request($proxy_request);
+     my $response = SL::HTTP::Client->get({ headers => \%headers,
+                                            url => $r->pnotes('url'), });
 
     $r->log->debug(
         "$$ Response headers from proxy request",
@@ -329,7 +326,7 @@ sub _translate_headers {
 
     # set the server header
     $r->log->debug( "$$ server header is " . $headers{Server} ) if DEBUG;
-    $r->server->add_version_component( $headers{Server} );
+    $r->server->add_version_component( $headers{Server} || 'sl' );
     return 1;
 }
 
@@ -588,13 +585,6 @@ sub redirect {
 sub threeohthree {
     my ( $r, $res ) = @_;
 
-    $r->log->debug(
-        sprintf(
-            "$$ status line %s, response: %s",
-            $res->status_line, Data::Dumper::Dumper($res)
-        )
-    );
-
     # set the status line
     #$r->status($res->code);
     $r->log->debug( "status line is " . $res->status_line ) if DEBUG;
@@ -622,7 +612,7 @@ sub threeohthree {
 sub twohundred {
     my ( $r, $response ) = @_;
 
-    my $url = $response->request->uri;
+    my $url = $r->pnotes('url');
     $r->log->debug("$$ Request to $url returned 200") if DEBUG;
 
     # Cache the content_type
@@ -678,7 +668,7 @@ sub twohundred {
         }
 
         # first grab the links from the page and stash them
-        $TIMER->start('collect_subrequests');
+        $TIMER->start('collect_subrequests') if TIMING;
 
         $subrequests_ref = $SUBREQUEST_TRACKER->collect_subrequests(
             content_ref => $response_content_ref,
@@ -756,7 +746,7 @@ sub twohundred {
 
     ## Set the response content type from the request, preserving charset
     my $content_type = $response->header('content-type');
-    $r->content_type( $headers{'Content-Type'} );
+    $r->content_type( $headers{'Content-Type'} || '' );
     delete $headers{'Content-Type'};
 
     ## Content languages
@@ -833,8 +823,7 @@ sub twohundred {
     }
 
     # possible through a nasty hack
-    $r->log->debug( "$$ server header is " . $headers{Server} ) if DEBUG;
-    $r->server->add_version_component( $headers{Server} );
+    $r->server->add_version_component( $headers{Server} || 'sl');
 
     # FIXME
     # this is not setting the Keep-Alive header at all for some reason
@@ -974,6 +963,7 @@ sub _generate_response {
 
 
         unless ($ok) {
+            require Data::Dumper;
             $r->log->error(
                 "could not insert ad into page url $url, css $css_url, ad "
                   . Data::Dumper::Dumper($ad_content_ref) );
@@ -983,6 +973,7 @@ sub _generate_response {
 
     # Check to see if the ad is inserted
     unless ( grep( $$ad_content_ref, $decoded_content ) ) {
+            require Data::Dumper;
         $r->log->error(
             sprintf( "$$ Ad insertion failed, response: %s",
                 Data::Dumper::Dumper($response) )

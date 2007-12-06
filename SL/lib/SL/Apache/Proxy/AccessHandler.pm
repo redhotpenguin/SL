@@ -28,6 +28,10 @@ sub handler {
 		# db connect failed, run and hide!  can't do much else without auth
 		$r->log->error(sprintf("get_location_id_from_ip for ip %s failed, err %s",
 				$r->connection->remote_ip, $@ ));
+        $r->set_handlers(PerlTransHandler => undef);
+        $r->set_handlers(PerlResponseHandler => undef);
+        $r->set_handlers(PerlLogHandler => undef);
+
 		return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
     } elsif ($location_id) {
 

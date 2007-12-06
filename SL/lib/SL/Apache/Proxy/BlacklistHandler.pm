@@ -38,7 +38,7 @@ sub handler {
           if DEBUG;
 
         # get rid of this header so that is isn't proxied
-        $r->headers_in->{'x-sl'}->unset;
+        $r->headers_in->unset('x-sl');
 
         unless ( $router_mac && $hash_mac ) {
             $r->log->error("$$ sl_header present but no hash or router mac");

@@ -1,5 +1,6 @@
 Makefile.PL
 MANIFEST
+lib/SL/HTTP/Client.pm
 lib/SL/Apache/Proxy/BlacklistHandler.pm
 lib/SL/Apache/Proxy/TransHandler.pm
 lib/SL/Apache/Proxy/LogHandler.pm

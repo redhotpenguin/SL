@@ -22,8 +22,6 @@ WriteMakefile(
                             'SL::Cache'            => 0.21,
                             'SL::Config'           => 0.14,
                             'SL::Model'            => 0.14,
-                            'SL::UserAgent'        => 0.12,
-                            'SL::HTTP::Request'    => 0.02,
                             'RHP::Timer'           => 0.1,
                            },
               EXE_FILES => [qw( bin/sl_proxy )],
