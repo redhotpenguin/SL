@@ -235,8 +235,12 @@ sub handler {
 
 
     # Make the request to the remote server
-     my $response = SL::HTTP::Client->get({ headers => \%headers,
-                                            url => $r->pnotes('url'), });
+    my $response = eval { SL::HTTP::Client->get({ headers => \%headers,
+                                            url => $r->pnotes('url'), })};
+    if ($@) {
+        $r->log->info("$$ error fetching url " . $r->pnotes('url'));
+        return &crazypage($r); # haha this page is kwazy!
+    }
 
     $r->log->debug(
         "$$ Response headers from proxy request",
@@ -263,6 +267,15 @@ sub handler {
     no strict 'refs';
     $r->log->debug( "$$ Response code " . $response->code ) if DEBUG;
     return &$sub( $r, $response );
+}
+
+sub crazypage {
+    my $r = shift;
+    
+    $r->content_type('text/html');
+    $r->print("<html><body><h2>Sorry the url " . $r->pnotes('url') .
+        ' is not a valid hostname, please try again.</h2></body></html>');
+    return Apache2::Const::OK;
 }
 
 sub _translate_headers {
