@@ -825,10 +825,6 @@ sub twohundred {
     # possible through a nasty hack
     $r->server->add_version_component( $headers{Server} || 'sl');
 
-    # FIXME
-    # this is not setting the Keep-Alive header at all for some reason
-    $r->connection->keepalive(Apache2::Const::CONN_KEEPALIVE);
-
     # maybe someday but not today
     $r->no_cache(1);
 
