@@ -8,6 +8,7 @@ use Apache2::Log             ();
 use Sys::Load                ();
 use SL::Model                ();
 use SL::Model::Proxy::Router ();
+use SL::Model::Proxy::Router::Location ();
 use Crypt::Blowfish_PP       ();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
@@ -141,8 +142,12 @@ sub handler {
         }
 
         my $encrypted = _encrypt($events, $macaddr);
+
         # encrypt the events
-        $r->print($encrypted) if $encrypted;
+        my $bytes = $r->print($encrypted) if $encrypted;
+
+        # reset the event queue
+        SL::Model::Proxy::Router->reset_events($router_ref);
     }
 
     return Apache2::Const::DONE;
@@ -165,10 +170,13 @@ sub _encrypt {
     return;
   }
 
-  my $blowfish = Crypt::Blowfish_PP->new(join('', reverse(split('', $mac))));
+  my $mac_salt = join('', reverse(split(':', $mac)));
+  warn("$$ mac salt is $mac_salt");
+  my $blowfish = Crypt::Blowfish_PP->new($mac_salt);
 
   # split the string into 8 byte pieces and encrypt
   my @groups = ( $string =~ /.{1,8}/gs );
+  warn("$$ groups are " . join(',', @groups));
 
   my $encrypted = '';
   foreach my $member ( @groups ) {
