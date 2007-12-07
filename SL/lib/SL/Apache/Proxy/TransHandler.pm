@@ -138,7 +138,8 @@ sub handler {
         return &perlbal($r);
     }
 
-    if ($url =~ m{\.(?:js|javascript|css|yahoofs)}i ) {
+    # first level domain name check for things that perlbal can't handle
+    if ($url =~ m{\.(?:js|javascript|css|yahoofs|tbn0)|tbn\d\.google}i ) {
       $r->log->debug("$$ js|css|yahoofs found $url") if DEBUG;
       return &proxy_request($r);
     }
