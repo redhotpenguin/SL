@@ -206,7 +206,7 @@ sub _process_commands {
 	foreach my $event ( split("\n", $decrypted)) {
 		chomp($event);
 		my ($sub, $arg) = split(/:/, $event);
-		print "Event $sub, executing\n" if DEBUG;
+		print "Event $sub, executing\n" if $DEBUG;
 		unless ($arg) {
 			warn("arg not present, bug or junk?"); # encryption junk most likely
 			next;
