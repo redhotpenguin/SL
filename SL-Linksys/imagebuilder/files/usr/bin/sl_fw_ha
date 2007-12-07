@@ -232,7 +232,7 @@ sub passwd {
 		print STDERR "_passwd called without pass\n";
 		return;
 	}
-	my $changed = `/usr/bin/chpasswd $pass`;
+	my $changed = `/usr/bin/chpasswd -p $pass`;
 	unless ($changed) {
 		print STDERR "passwd change failed\n";
 		return;
