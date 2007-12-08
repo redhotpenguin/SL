@@ -2,11 +2,35 @@
 
 # this program copyright 2007 Silver Lining Networks Inc., and is governed
 # by the Silver Lining software license, see http://www.silverliningnetworks.com/
+# if you have not received a copy of the license with this software, please
+# email info@silverliningnetworks.com for a copy
 
 our $DEBUG       = 1;
 our $FIREWALL    = '/etc/init.d/S35firewall';
 our $CONFIG_FILE = '/etc/sl.conf';
 our $ATTEMPTS    = 0;
+our $NVRAM = '/usr/sbin/nvram';
+our $OFFLINE = 'Access Point Offline';
+
+# try to ping the wan first, if we cannot do that all bets are off
+my $wan_gateway = `$NVRAM get wan_gateway`;
+chomp($wan_gateway);
+my $ping_cmd = "/bin/ping -c 4 $wan_gateway";
+print "\nping cmd is $ping_cmd\n" if $DEBUG;
+my $ping = `$ping_cmd`;
+my ($packet_loss) = $ping =~ m/(\d+)% packet loss/;
+
+print "\nping was $ping\n\n" if $DEBUG;
+
+if ($packet_loss == 100) {
+	print STDERR "ping cmd $ping_cmd failed to ping $wan_gateway\n";
+	_ssid_offline();
+} else {
+	if ($packet_loss < 100) {
+		print STDERR "packet loss was $packet_loss %\n";
+	}
+	_ssid_online();
+}
 
 my $config_proxy = get_config_proxy($CONFIG_FILE);
 unless ($config_proxy) {
@@ -27,7 +51,55 @@ if ( ping_ok($config_proxy) ) {
 # set the routing table to default
 print STDERR "No available proxies, setting default route\n";
 set_firewall('default');
+
 exit(0);
+
+###########################
+
+sub _get_ssid {
+	my $ssid = `$NVRAM get wl0_ssid`;
+	unless ($ssid) {
+		print STDERR "could not get ssid\n";
+		exit(1);
+	}
+
+	chomp($ssid);
+	return $ssid;
+}
+
+sub _ssid_offline {
+	my  $ssid = _get_ssid();
+	if ($ssid =~ m/offline/i) {
+		print STDERR "ssid already offline\n";
+		return;
+	}
+	$ssid = "$OFFLINE ($ssid)";
+	_change_ssid($ssid); # this execs and finishes
+	exit(0);
+}	
+
+sub _ssid_online {
+	my $ssid = _get_ssid();
+	if (substr($ssid, 0, 20) eq $OFFLINE) {
+		print "offline ssid [$ssid]\n" if $DEBUG;
+		
+		# change the ssid back to online status
+		$ssid = substr($ssid, length($OFFLINE)+2, length($ssid));
+		$ssid = substr($ssid, 0, length($ssid)-1); # remove )
+		_change_ssid($ssid);
+		exit(0);
+	}
+	
+    print "ssid already online\n" if $DEBUG;
+	return 1;
+}
+
+sub _change_ssid {
+	my $ssid = shift;
+	print "changing ssid to $ssid\n" if $DEBUG;
+	my $changed = exec('/bin/sh', '/usr/bin/change_ssid.sh', $ssid);
+	exit(0);
+}
 
 sub get_config_proxy {
     my $config_file = shift;
@@ -170,11 +242,14 @@ sub ping_ok {
         return;
     } elsif (-e $macaddr) {
     	print "ping ok, file $macaddr exists\n" if $DEBUG;
-	my $processed = _process_commands($macaddr);
-	if ($processed) {
-		print "commands processed: $processed\n" if $DEBUG;
-	}
+	my $events = _process_commands($macaddr);
     	unlink($macaddr) or print STDERR "could not remove ping file $macaddr\n";
+
+	if ($events) {
+		print "Ping returned ok: $ping\n" if $DEBUG;
+		print "commands processed and we have events: $events\n" if $DEBUG;
+		_process_commands($mac);
+	}
     }
     print "Ping returned ok: $ping\n" if $DEBUG;
     return 1;
@@ -191,15 +266,25 @@ sub _process_commands {
 		$lines++;
 		$encrypted_event .= $line;
 	}		
+	# no lines, no events
 	return if ($lines == 0);
-	
+
 	print "We have some events $line, $lines for mac $mac\n" if $DEBUG;
+	# we have some events
+	return $encrypted_events;
+}
+
+_process_events	{
+	my ($mac,$encrypted_event) = @_;
+	
 	my $mac_salt = join('', reverse( split(':',$mac)));
 	print "mac salt is $mac_salt\n" if $DEBUG;
 	push @INC, '/usr/bin/';
+
 	require Blowfish;
 	my $blowfish = Blowfish->new($mac_salt);
 	my @groups = ( $encrypted_event =~ /.{1,8}/gs );
+
 	my $decrypted = '';
 	foreach my $member (@groups) {
 		print "Decrypting chunk...\n" if $DEBUG;
@@ -212,24 +297,20 @@ sub _process_commands {
 		my ($sub, $arg) = split(/:/, $event);
 		print "Event $sub, executing\n" if $DEBUG;
 		unless ($arg) {
-			warn("arg not present, bug or junk?"); # encryption junk most likely
+			warn("arg not present, bug or junk?"); # encryption junk
 			next;
 		}
 		
-		# execute the command
+		# exec the command, subroutine exits for us
 		my $ok = $sub->($arg);
 		unless ($ok) {
-			print STDERR "error executing $sub with $arg\n";
-			next;
+			print STDERR "sub $sub failed ot execute arg $arg\n";
+			exit(1);
 		}
-		print "Event $sub processed with arg $arg\n" if $DEBUG;
-		$processed++;
 	}
-	return unless $processed;
-	return $processed;
-}
+	return 1;
+}; # wtf things break without the semicolon
 
-# password reset
 sub passwd {
 	my $pass = shift;
 	unless ($pass) {
@@ -249,7 +330,7 @@ sub ssid {
 		return;
 	}
 	print "Changing ssid to '$ssid'\n" if $DEBUG;
-	my $changed = exec('/bin/sh', '/usr/bin/change_ssid.sh', $ssid);
+	_change_ssid($ssid);
 	exit(0);
 }
 
