@@ -1,6 +1,9 @@
 Revision history for Perl extension SL-Linksys.
 
-0.12 
+0.13
+    - add offline wireless ssid monitor
+
+0.12 Nov something
     - use opendns.com for dns
     - remove automatic reset of the SSID on startup
     - add the X-SL header to identify unique users via ip_nat_sl

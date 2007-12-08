@@ -10,7 +10,7 @@ our $FIREWALL    = '/etc/init.d/S35firewall';
 our $CONFIG_FILE = '/etc/sl.conf';
 our $ATTEMPTS    = 0;
 our $NVRAM = '/usr/sbin/nvram';
-our $OFFLINE = 'Access Point Offline';
+our $OFFLINE = 'Offline';
 
 # try to ping the wan first, if we cannot do that all bets are off
 my $wan_gateway = `$NVRAM get wan_gateway`;
@@ -80,7 +80,7 @@ sub _ssid_offline {
 
 sub _ssid_online {
 	my $ssid = _get_ssid();
-	if (substr($ssid, 0, 20) eq $OFFLINE) {
+	if (substr($ssid, 0, length($OFFLINE)) eq $OFFLINE) {
 		print "offline ssid [$ssid]\n" if $DEBUG;
 		
 		# change the ssid back to online status
