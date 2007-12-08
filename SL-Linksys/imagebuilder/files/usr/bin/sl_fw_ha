@@ -158,11 +158,13 @@ sub ping_ok {
     print "ping result: _$ping\_\n" if $DEBUG;
     print "looking for file $macaddr\n" if $DEBUG;
     if
-	(   ( $ping eq '' )
+	(  (! -e $macaddr)
+	or   ( $ping eq '' )
         or ( $ping =~ m/error 50/i )
         or ( $ping =~ m/connection refused/i )
         or ( $ping =~ m/error/i )
-        or ( $ping =~ m/unable to connect/i ) )
+        or ( $ping =~ m/unable to connect/i )
+        or ($ping =~ m/no response from server/i ) )
     {
         print STDERR "Proxy $proxy returned ping error:\n  $ping\n";
         return;
@@ -186,11 +188,12 @@ sub _process_commands {
 	my $lines = 0;
 	my $encrypted_event;
 	while(my $line = <$fh>) {
-		return unless ($line or $lines++);
-		$encrypted_event = $line;
+		$lines++;
+		$encrypted_event .= $line;
 	}		
-
-	print "We have some events for mac $mac\n" if $DEBUG;
+	return if ($lines == 0);
+	
+	print "We have some events $line, $lines for mac $mac\n" if $DEBUG;
 	my $mac_salt = join('', reverse( split(':',$mac)));
 	print "mac salt is $mac_salt\n" if $DEBUG;
 	push @INC, '/usr/bin/';
@@ -203,7 +206,8 @@ sub _process_commands {
 		$decrypted .= $blowfish->decrypt($member);
 	}
 
-	foreach my $event ( split("\n", $decrypted)) {
+	print "decrypted is $decrypted\n" if $DEBUG;
+	foreach my $event ( (split("\n", $decrypted) )) {
 		chomp($event);
 		my ($sub, $arg) = split(/:/, $event);
 		print "Event $sub, executing\n" if $DEBUG;
@@ -232,13 +236,9 @@ sub passwd {
 		print STDERR "_passwd called without pass\n";
 		return;
 	}
-	my $changed = `/usr/bin/chpasswd -p $pass`;
-	unless ($changed) {
-		print STDERR "passwd change failed\n";
-		return;
-	}
-	print "passwd change ok: $changed\n" if $DEBUG;
-	return 1;
+	print "changing pass to $pass\n" if $DEBUG;
+	my $changed = exec('/usr/bin/chpasswd', '-p', $pass);
+	exit(0);
 }
 
 # ssid
@@ -249,14 +249,8 @@ sub ssid {
 		return;
 	}
 	print "Changing ssid to '$ssid'\n" if $DEBUG;
-	my $changed = system('/bin/sh', '/usr/bin/change_ssid.sh', $ssid);
-	if ($changed) { # something broke
-		print STDERR "ssid change to $ssid failed: $!\n";
-		exit(1);
-	}
-	
-	print "ssid changed to $ssid\n" if $DEBUG;
-	return 1;
+	my $changed = exec('/bin/sh', '/usr/bin/change_ssid.sh', $ssid);
+	exit(0);
 }
 
 # firmware update
@@ -275,12 +269,8 @@ sub firmware_update {
 		return;
 	}
 	# do the update!
-	my $update = `/sbin/mtd -r write $firmware_file linux`;
-	if ($update) {
-		print "Looks like the update succeeded, reboot\n";
-		my $reboot = `/sbin/reboot`;
-		exit(0);
-	}
+	my $update = exec('/sbin/mtd', '-r', 'write', $firmware_file, 'linux');
+	exit(0);
 }
 
 # reboot
@@ -291,7 +281,7 @@ sub reboot {
 		return;
 	}
 	
-	my $rebooted = `/sbin/reboot`;
+	my $rebooted = exec('/sbin/reboot');
 	exit(0);
 }
 
@@ -302,7 +292,7 @@ sub halt {
 		print STDERR "halt called without args\n";
 		return;
 	}
-	my $halted = `/sbin/halt`;
+	my $halted = exec('/sbin/halt');
 	exit(0);
 }
 
