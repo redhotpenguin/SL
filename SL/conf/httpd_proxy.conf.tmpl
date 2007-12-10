@@ -50,11 +50,17 @@ ErrorDocument        404	/404.html
 ErrorDocument        500	/500.html
 
 LoadModule perl_module        modules/mod_perl.so
+[% IF cfg.sl_prof %]
+<Perl>
+    require Apache::DB;
+    Apache::DB->init;
+</Perl>
+PerlModule Apache::DProf
+[% END %]
 
 PerlPassEnv SL_ROOT
 PerlPostConfigRequire "[% cfg.sl_root %]/conf/startup_proxy.pl"
-#PerlLoadModule SL::Config
-#SLRoot '/home/fred/dev/sl'
+
 [% IF cfg.sl_debug %]
 PerlRequire "[% cfg.sl_root %]/conf/db.pl"
 [% END %]
