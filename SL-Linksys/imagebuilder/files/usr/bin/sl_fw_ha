@@ -244,11 +244,11 @@ sub ping_ok {
     	print "ping ok, file $macaddr exists\n" if $DEBUG;
 	my $events = _process_commands($macaddr);
     	unlink($macaddr) or print STDERR "could not remove ping file $macaddr\n";
-
+	
 	if ($events) {
 		print "Ping returned ok: $ping\n" if $DEBUG;
-		print "commands processed and we have events: $events\n" if $DEBUG;
-		_process_commands($mac);
+		print "commands processed and we have events\n" if $DEBUG;
+		_process_events($macaddr, $events);
 	}
     }
     print "Ping returned ok: $ping\n" if $DEBUG;
@@ -266,15 +266,17 @@ sub _process_commands {
 		$lines++;
 		$encrypted_event .= $line;
 	}		
+	close($fh) or die $!;
+	
 	# no lines, no events
 	return if ($lines == 0);
 
-	print "We have some events $line, $lines for mac $mac\n" if $DEBUG;
+	print "We have some events, $lines lines for mac $mac\n" if $DEBUG;
 	# we have some events
-	return $encrypted_events;
+	return $encrypted_event;
 }
 
-_process_events	{
+sub _process_events {
 	my ($mac,$encrypted_event) = @_;
 	
 	my $mac_salt = join('', reverse( split(':',$mac)));
@@ -294,7 +296,8 @@ _process_events	{
 	print "decrypted is $decrypted\n" if $DEBUG;
 	foreach my $event ( (split("\n", $decrypted) )) {
 		chomp($event);
-		my ($sub, $arg) = split(/:/, $event);
+		my ($sub, @args) = split(/:/, $event);
+		my $arg = join(':', @args);
 		print "Event $sub, executing\n" if $DEBUG;
 		unless ($arg) {
 			warn("arg not present, bug or junk?"); # encryption junk
@@ -335,21 +338,24 @@ sub ssid {
 }
 
 # firmware update
-sub firmware_update {
+sub firmware {
 	my $firmware_url = shift;
 	unless ($firmware_url) {
 		print STDERR "firmware update called without firmware\n";
 		return;
 	}
+	print "grabbing the firmware $firmware_url\n" if $DEBUG;
 	# grab the firmware update
 	my $wget = `wget $firmware_url`;
 	my ($firmware_file) = $firmware_url =~ m/\/([^\/]+)$/;
+	print "firmware file is $firmware_file\n" if $DEBUG
 
 	 unless ( -e $firmware_file ) {                                               
 		print STDERR "firmware file $firmware_file not found, update failed\n";
 		return;
 	}
 	# do the update!
+	print "executing firmware update...\n\n" if $DEBUG;
 	my $update = exec('/sbin/mtd', '-r', 'write', $firmware_file, 'linux');
 	exit(0);
 }
