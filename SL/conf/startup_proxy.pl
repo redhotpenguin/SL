@@ -15,7 +15,7 @@ print STDOUT "Loading modules...\n";
 
 # status
 if ( $config->sl_status ) {
-    require Apache2::Status;
+    use Apache2::Status;
 }
 
 # Preload these modules during httpd startup, don't import any symbols
@@ -34,12 +34,12 @@ use Apache2::URI            ();
 use Apache2::Const          ();
 use APR::Table              ();
 
-use SL::Model                ();
-use SL::Model::Ad            ();
-use SL::Model::Ad::Google    ();
-use SL::Model::URL           ();
-use SL::Model::Proxy::Router ();
-use SL::Model::Proxy::Location ();
+use SL::Model                          ();
+use SL::Model::Ad                      ();
+use SL::Model::Ad::Google              ();
+use SL::Model::URL                     ();
+use SL::Model::Proxy::Router           ();
+use SL::Model::Proxy::Location         ();
 use SL::Model::Proxy::Router::Location ();
 
 use SL::Apache::Proxy::AccessHandler          ();
@@ -51,39 +51,39 @@ use SL::Apache::Proxy::PostReadRequestHandler ();
 use SL::Apache::Proxy::PingHandler            ();
 use SL::Apache::Proxy::LogHandler             ();
 
-use SL::Static        ();
-use SL::Cache         ();
+use SL::Static            ();
+use SL::Cache             ();
 use SL::Cache::Subrequest ();
-use SL::Cache::RateLimit ();
-use SL::HTTP::Client   ();
-use SL::Util          ();
-use SL::BrowserUtil   ();
+use SL::Cache::RateLimit  ();
+use SL::HTTP::Client      ();
+use SL::Util              ();
+use SL::BrowserUtil       ();
 
 use Digest::MD5 ();
 use DBI         ();
 use DBD::Pg     ();
 DBI->install_driver('Pg');
-use Sys::Load        ();
-use Params::Validate ();
-use Encode           ();
-use Template         ();
-use URI              ();
-use URI::http        ();
-use URI::Escape      ();
-use Regexp::Assemble ();
-use Compress::Zlib   ();
-use Crypt::Blowfish_PP ();
+use Sys::Load           ();
+use Params::Validate    ();
+use Encode              ();
+use Template            ();
+use URI                 ();
+use URI::http           ();
+use URI::Escape         ();
+use Regexp::Assemble    ();
+use Compress::Zlib      ();
+use Crypt::Blowfish_PP  ();
 use HTTP::Headers::Util ();
 
 BEGIN {
 
     require 'utf8_heavy.pl';
-       require 'unicore/PVA.pl';
-       require 'unicore/Exact.pl';
-       require 'unicore/Canonical.pl';
-       require 'unicore/To/Fold.pl';
-       require 'Fold.pl';
-       require 'unicore/lib/gc_sc/SpacePer.pl';
+    require 'unicore/PVA.pl';
+    require 'unicore/Exact.pl';
+    require 'unicore/Canonical.pl';
+    require 'unicore/To/Fold.pl';
+    require 'Fold.pl';
+    require 'unicore/lib/gc_sc/SpacePer.pl';
 }
 
 $Apache::DBI::DEBUG = $config->sl_db_debug;
