@@ -13,18 +13,6 @@ my $config = SL::Config->new();
 
 print STDOUT "Loading modules...\n";
 
-# single user mode
-if ( $config->sl_debug or $config->sl_small_prof ) {
-    require APR::Pool;
-    require Apache::DB;
-    Apache::DB->init();
-}
-
-# profiling
-if ( $config->sl_prof ) {
-    require Apache::DProf;
-}
-
 # status
 if ( $config->sl_status ) {
     require Apache2::Status;
@@ -80,12 +68,23 @@ use Params::Validate ();
 use Encode           ();
 use Template         ();
 use URI              ();
+use URI::http        ();
 use URI::Escape      ();
 use Regexp::Assemble ();
 use Compress::Zlib   ();
 use Crypt::Blowfish_PP ();
+use HTTP::Headers::Util ();
 
-print STDOUT "Modules loaded, initializing database connections\n";
+BEGIN {
+
+    require 'utf8_heavy.pl';
+       require 'unicore/PVA.pl';
+       require 'unicore/Exact.pl';
+       require 'unicore/Canonical.pl';
+       require 'unicore/To/Fold.pl';
+       require 'Fold.pl';
+       require 'unicore/lib/gc_sc/SpacePer.pl';
+}
 
 $Apache::DBI::DEBUG = $config->sl_db_debug;
 my $db_connect_params = SL::Model->connect_params;
