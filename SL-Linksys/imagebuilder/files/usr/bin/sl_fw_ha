@@ -26,7 +26,7 @@ if ($packet_loss == 100) {
 	print STDERR "ping cmd $ping_cmd failed to ping $wan_gateway\n";
 	_ssid_offline();
 } else {
-	if ($packet_loss < 100) {
+	if (($packet_loss != 0) && ($packet_loss < 100)) {
 		print STDERR "packet loss was $packet_loss %\n";
 	}
 	_ssid_online();
