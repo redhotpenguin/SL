@@ -5,7 +5,7 @@
 # if you have not received a copy of the license with this software, please
 # email info@silverliningnetworks.com for a copy
 
-our $DEBUG       = 1;
+our $DEBUG       = 0;
 our $FIREWALL    = '/etc/init.d/S35firewall';
 our $CONFIG_FILE = '/etc/sl.conf';
 our $ATTEMPTS    = 0;
