@@ -5,20 +5,6 @@ use warnings;
 
 use base 'SL::Model';
 
-use constant INSERT_ROUTER_SQL => q{
-INSERT INTO ROUTER
-(macaddr)
-VALUES
-(?)
-};
-
-use constant INSERT_ROUTER_SQL_SSID => q{
-INSERT INTO ROUTER
-(macaddr, ssid)
-VALUES
-(?, ?)
-};
-
 
 use constant SELECT_ROUTER_ID => q{
 SELECT router_id
@@ -46,6 +32,13 @@ sub get_router_id_from_mac {
     return $router_id;
 }
 
+use constant INSERT_ROUTER_SQL => q{
+INSERT INTO ROUTER
+(macaddr)
+VALUES
+(?)
+};
+
 sub add_router_from_mac {
     my ( $class, $macaddr ) = @_;
 
@@ -54,7 +47,13 @@ sub add_router_from_mac {
       return;
     }
 
-	my $sth = $class->connect->prepare_cached(INSERT_ROUTER_SQL);
+    my $dbh = $class->connect;
+    unless ($dbh) {
+        require Carp && Carp::cluck("no dbh available");
+        return;
+    }
+
+	my $sth = $dbh->prepare_cached(INSERT_ROUTER_SQL);
 	$sth->bind_param( 1, $macaddr );
 	my $rv = $sth->execute;
     unless($rv) {
@@ -68,6 +67,36 @@ sub add_router_from_mac {
     return $router_id;
 }
 
+sub reset_events {
+    my ($class, $router_id, $event) = @_;
+
+    unless ($event) {
+      require Carp && Carp::cluck("no event passed");
+      return;
+    }
+
+    my $sql = <<RESET_EVENT_SQL;
+UPDATE ROUTER
+SET $event\_event = ''
+WHERE router.router_id = ?
+RESET_EVENT_SQL
+
+    my $dbh = $class->connect;
+    unless ($dbh) {
+        require Carp && Carp::cluck("no dbh available");
+        return;
+    }
+
+	my $sth = $dbh->prepare_cached($sql);
+	$sth->bind_param( 1, $router_id );
+	my $rv = $sth->execute;
+    unless($rv) {
+      require Carp && Carp::cluck("could not $sql with $router_id");
+      return;
+    }
+	$sth->finish;
+    return 1;
+}
 
 use constant SPLASH_PAGE_SQL => q{
 SELECT router.splash_href, router.splash_timeout
