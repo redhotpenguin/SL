@@ -453,7 +453,7 @@ sub _ad_methods_from_mac {
 
     # assume it has sl ad groups
     push @methods, '_sl';
-
+	warn("methods are: " . join(", ", @methods)) if DEBUG;
     my @shuffled = List::Util::shuffle(@methods);
 
     return \@shuffled;
@@ -473,7 +473,7 @@ sub _sl {
     my $ad_data = $class->_sl_router($args_ref);
 
     unless ( defined $ad_data->[TEXT_IDX] ) {
-
+	warn("no sl router ad for ip $ip, mac $mac, user $user");
         # nothing for router, try location specific
         $ad_data = $class->_sl_location($args_ref);
     }

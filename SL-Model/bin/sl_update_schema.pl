@@ -24,7 +24,7 @@ my $dbh = DBI->connect( $dsn, 'phred', '', $db_options );
 my $user = `psql -d $db -f sql/table/usr.sql`;
 warn("user table: $user");
 
-$dbh->do("insert into usr (hash_mac) values('ffffffff')");
+$dbh->do("insert into usr (hash_mac) values('ff:ff:ff:ff:ff:ff:ff:ff')");
 
 $dbh->do("alter table router add column passwd_event text DEFAULT ''::text");
 $dbh->do("alter table router add column firmware_event text DEFAULT ''::text");

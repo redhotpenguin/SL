@@ -102,7 +102,7 @@ sub register {
     # get the location
     my $location_id = $class->SUPER::get_location_id_from_ip($ip);
     unless ($location_id) {
-          warn("$$ Unregistered location ip $ip entering system");
+          warn("$$ Unregistered location ip $ip entering system for mac $macaddr");
           $location_id = eval { $class->SUPER::add_location_from_ip($ip) };
           die $@ if ($@);
     }
