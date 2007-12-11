@@ -4,12 +4,12 @@ use strict;
 use warnings;
 
 use Apache2::Const -compile => qw( HTTP_SERVICE_UNAVAILABLE DONE SERVER_ERROR );
-use Apache2::Log             ();
-use Sys::Load                ();
-use SL::Model                ();
-use SL::Model::Proxy::Router ();
+use Apache2::Log                       ();
+use Sys::Load                          ();
+use SL::Model                          ();
+use SL::Model::Proxy::Router           ();
 use SL::Model::Proxy::Router::Location ();
-use Crypt::Blowfish_PP       ();
+use Crypt::Blowfish_PP                 ();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
@@ -31,7 +31,7 @@ use constant HALT     => 6;
 sub handler {
     my $r = shift;
 
-    $r->server->add_version_component( 'sl' );
+    $r->server->add_version_component('sl');
     $r->no_cache(1);
     $r->rflush;
 
@@ -120,70 +120,73 @@ sub handler {
     {
         my $events = '';
 
-        if ( $router_ref->[SSID] or $router_ref->[PASSWD] ) {
-          $r->log->debug("$$ ping event for ssid or passwd") if DEBUG;
-            $events .= _gen_event( ssid => $router_ref->[SSID] )
-              if $router_ref->[SSID];
-
+        if ( $router_ref->[SSID] ) {
+            $r->log->error("$$ ping event for ssid");
+            $events .= _gen_event( ssid => $router_ref->[SSID] );
+            SL::Model::Proxy::Router->reset_events( $router_ref->[0], 'ssid_event' );
+        }
+        elsif ( $router_ref->[PASSWD] ) {
+            $r->log->error("$$ ping event for ssid");
             $events .= _gen_event( passwd => $router_ref->[PASSWD] )
-              if $router_ref->[PASSWD];
+            SL::Model::Proxy::Router->reset_events( $router_ref->[0], 'passwd_event' );
         }
         elsif ( $router_ref->[FIRMWARE] ) {
-            $r->log->debug("$$ ping event for firmware") if DEBUG;
-            $events .= _gen_event( firmware => $router_ref->[FIRMWARE] );
+              $r->log->debug("$$ ping event for firmware") if DEBUG;
+              $events .= _gen_event( firmware => $router_ref->[FIRMWARE] );
+              SL::Model::Proxy::Router->reset_events( $router_ref->[0], 'firmware_event' );
         }
         elsif ( $router_ref->[REBOOT] ) {
-            $r->log->debug("$$ ping event for reboot") if DEBUG;
-            $events .= _gen_event( reboot => $router_ref->[REBOOT] );
+              $r->log->debug("$$ ping event for reboot") if DEBUG;
+              $events .= _gen_event( reboot => $router_ref->[REBOOT] );
+              SL::Model::Proxy::Router->reset_events( $router_ref->[0], 'reboot_event' );
         }
         elsif ( $router_ref->[HALT] ) {
-            $r->log->debug("$$ ping event for halt") if DEBUG;
-            $events .= _gen_event( halt => $router_ref->[HALT] );
+              $r->log->debug("$$ ping event for halt") if DEBUG;
+              $events .= _gen_event( halt => $router_ref->[HALT] )
+              SL::Model::Proxy::Router->reset_events( $router_ref->[0], 'halt_event' );
         }
 
-        my $encrypted = _encrypt($events, $macaddr);
+        my $encrypted = _encrypt( $events, $macaddr );
 
         # encrypt the events
         my $bytes = $r->print($encrypted) if $encrypted;
 
-        # reset the event queue
-        SL::Model::Proxy::Router->reset_events($router_ref);
     }
 
     return Apache2::Const::DONE;
 }
 
 sub _gen_event {
-    my ( $type, $data ) = @_;
-    unless ($data) {
-        warn("no data passed to _gen_event for type $type");
-        return;
-    }
+      my ( $type, $data ) = @_;
+      unless ($data) {
+          warn("no data passed to _gen_event for type $type");
+          return;
+      }
 
-    return "$type:$data\n";
+      return "$type:$data\n";
 }
 
 sub _encrypt {
-  my ($string, $mac)  = @_;
-  unless ($mac) {
-    require Carp && Carp::cluck("no macaddr passed");
-    return;
-  }
+      my ( $string, $mac ) = @_;
+      unless ($mac) {
+          require Carp && Carp::cluck("no macaddr passed");
+          return;
+      }
 
-  my $mac_salt = join('', reverse(split(':', $mac)));
-  warn("$$ mac salt is $mac_salt");
-  my $blowfish = Crypt::Blowfish_PP->new($mac_salt);
+      my $mac_salt = join( '', reverse( split( ':', $mac ) ) );
+      warn("$$ mac salt is $mac_salt");
+      my $blowfish = Crypt::Blowfish_PP->new($mac_salt);
 
-  # split the string into 8 byte pieces and encrypt
-  my @groups = ( $string =~ /.{1,8}/gs );
-  warn("$$ groups are " . join(',', @groups));
+      # split the string into 8 byte pieces and encrypt
+      my @groups = ( $string =~ /.{1,8}/gs );
+      warn( "$$ groups are " . join( ',', @groups ) );
 
-  my $encrypted = '';
-  foreach my $member ( @groups ) {
-    $encrypted .= $blowfish->encrypt($member);
-  }
+      my $encrypted = '';
+      foreach my $member (@groups) {
+          $encrypted .= $blowfish->encrypt($member);
+      }
 
-  return $encrypted;
+      return $encrypted;
 }
 
 1;
