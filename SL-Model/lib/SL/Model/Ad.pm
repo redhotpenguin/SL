@@ -473,7 +473,6 @@ sub _sl {
     my $ad_data = $class->_sl_router($args_ref);
 
     unless ( defined $ad_data->[TEXT_IDX] ) {
-	warn("no sl router ad for ip $ip, mac $mac, user $user");
         # nothing for router, try location specific
         $ad_data = $class->_sl_location($args_ref);
     }
