@@ -82,7 +82,6 @@ BEGIN {
     require 'unicore/Exact.pl';
     require 'unicore/Canonical.pl';
     require 'unicore/To/Fold.pl';
-    require 'Fold.pl';
     require 'unicore/lib/gc_sc/SpacePer.pl';
 }
 

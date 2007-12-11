@@ -18,7 +18,12 @@ sub handler {
         return Apache2::Const::OK;
     }
 
-    # see if we know this ip is registered
+	# perlbal proxy
+	if (defined $r->headers_in->{'X-Forwarded-For'}) {
+	    $r->connection->remote_ip($r->headers_in->{'X-Forwarded-For'});
+	}
+
+	# see if we know this ip is registered
     my $location_id = eval {
       SL::Model::Proxy::Location->get_location_id_from_ip(
             $r->connection->remote_ip ); };

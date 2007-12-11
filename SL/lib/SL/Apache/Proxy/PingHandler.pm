@@ -63,7 +63,12 @@ sub handler {
     # grab the mac address if there is one
     my ($macaddr) = $r->uri =~ m/\/(\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2})$/;
 
-    my %args = ( ip => $r->connection->remote_ip );
+	# handle perlbal proxy
+	if (defined $r->headers_in->{'X-Forwarded-For'}) {
+	    $r->connection->remote_ip($r->headers_in->{'X-Forwarded-For'});
+	}
+
+	my %args = ( ip => $r->connection->remote_ip );
     if ( defined $macaddr ) {
         $r->log->debug("$$ Macaddr $macaddr\n") if DEBUG;
         $args{'macaddr'} = $macaddr;
@@ -121,13 +126,13 @@ sub handler {
         my $events = '';
 
         if ( $router_ref->[SSID] ) {
-            $r->log->error("$$ ping event for ssid");
+            $r->log->debug("$$ ping event for ssid") if DEBUG;
             $events .= _gen_event( ssid => $router_ref->[SSID] );
             SL::Model::Proxy::Router->reset_events( $router_ref->[0], 'ssid_event' );
         }
         elsif ( $router_ref->[PASSWD] ) {
-            $r->log->error("$$ ping event for ssid");
-            $events .= _gen_event( passwd => $router_ref->[PASSWD] )
+            $r->log->debug("$$ ping event for passwd") if DEBUG;
+            $events .= _gen_event( passwd => $router_ref->[PASSWD] );
             SL::Model::Proxy::Router->reset_events( $router_ref->[0], 'passwd_event' );
         }
         elsif ( $router_ref->[FIRMWARE] ) {
@@ -142,7 +147,7 @@ sub handler {
         }
         elsif ( $router_ref->[HALT] ) {
               $r->log->debug("$$ ping event for halt") if DEBUG;
-              $events .= _gen_event( halt => $router_ref->[HALT] )
+              $events .= _gen_event( halt => $router_ref->[HALT] );
               SL::Model::Proxy::Router->reset_events( $router_ref->[0], 'halt_event' );
         }
 
@@ -174,12 +179,12 @@ sub _encrypt {
       }
 
       my $mac_salt = join( '', reverse( split( ':', $mac ) ) );
-      warn("$$ mac salt is $mac_salt");
+      warn("$$ mac salt is $mac_salt") if DEBUG;
       my $blowfish = Crypt::Blowfish_PP->new($mac_salt);
 
       # split the string into 8 byte pieces and encrypt
       my @groups = ( $string =~ /.{1,8}/gs );
-      warn( "$$ groups are " . join( ',', @groups ) );
+      warn( "$$ groups are " . join( ',', @groups ) ) if DEBUG;
 
       my $encrypted = '';
       foreach my $member (@groups) {

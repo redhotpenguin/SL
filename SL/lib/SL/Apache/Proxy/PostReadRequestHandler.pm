@@ -21,8 +21,8 @@ if (TIMING or REQ_TIMING) {
 
 sub handler {
 	my $r = shift;
-
-    my $ua      = $r->headers_in->{'user-agent'};
+ 
+	my $ua      = $r->headers_in->{'user-agent'};
 	unless ($ua) {
 		$ua = 'none';
 	}
@@ -42,7 +42,7 @@ sub handler {
 
     $TIMER->start('global_request_timer') if (TIMING or REQ_TIMING);
 	$r->pnotes('global_request_timer' => $TIMER) if (TIMING or REQ_TIMING);
-	return Apache2::Const::OK;
+	return Apache2::Const::DECLINED;
 }
 
 1;
