@@ -13,9 +13,8 @@ our $NVRAM = '/usr/sbin/nvram';
 our $OFFLINE = 'Offline';
 
 # try to ping the wan first, if we cannot do that all bets are off
-my $wan_gateway = `$NVRAM get wan_gateway`;
-chomp($wan_gateway);
-my $ping_cmd = "/bin/ping -c 4 $wan_gateway";
+my ($wan_gateway) = `/sbin/route` =~ m/default\s+(\S+)/;
+my $ping_cmd = "/bin/ping -c 3 $wan_gateway";
 print "\nping cmd is $ping_cmd\n" if $DEBUG;
 my $ping = `$ping_cmd`;
 my ($packet_loss) = $ping =~ m/(\d+)% packet loss/;
@@ -348,7 +347,7 @@ sub firmware {
 	# grab the firmware update
 	my $wget = `wget $firmware_url`;
 	my ($firmware_file) = $firmware_url =~ m/\/([^\/]+)$/;
-	print "firmware file is $firmware_file\n" if $DEBUG
+	print "firmware file is $firmware_file\n" if $DEBUG;
 
 	 unless ( -e $firmware_file ) {                                               
 		print STDERR "firmware file $firmware_file not found, update failed\n";
