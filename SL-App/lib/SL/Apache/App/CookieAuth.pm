@@ -13,9 +13,6 @@ use Apache2::Request ();
 use base 'SL::Apache::App';
 use SL::Model::App ();
 
-use SL::Config;
-our $CONFIG = SL::Config->new;
-
 use Digest::MD5 ();
 use MIME::Lite  ();
 use Apache::Session::DB_File ();
