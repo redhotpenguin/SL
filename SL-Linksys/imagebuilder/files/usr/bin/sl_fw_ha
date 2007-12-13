@@ -14,6 +14,12 @@ our $OFFLINE = 'Offline';
 
 # try to ping the wan first, if we cannot do that all bets are off
 my ($wan_gateway) = `/sbin/route` =~ m/default\s+(\S+)/;
+unless ($wan_gateway) {
+	print STDERR "no wan gateway, take us offline\n";
+	_ssid_offline();
+	exit(1);
+}
+
 my $ping_cmd = "/bin/ping -c 3 $wan_gateway";
 print "\nping cmd is $ping_cmd\n" if $DEBUG;
 my $ping = `$ping_cmd`;
