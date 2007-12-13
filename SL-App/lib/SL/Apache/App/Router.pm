@@ -98,9 +98,10 @@ sub dispatch_edit {
         # reset method to get for redirect
         $r->method_number(Apache2::Const::M_GET);
         my %router_profile = (
-            required           => [qw( name macaddr serial_number )],
+            required           => [qw( name macaddr serial_number ssid )],
 			optional           => [qw( splash_href ) ],
-            constraint_methods => { macaddr => valid_macaddr(), splash_href => splash_href() }
+            constraint_methods => { macaddr => valid_macaddr(), 
+									splash_href => splash_href(), }
         );
         my $results = Data::FormValidator->check( $req, \%router_profile );
 
@@ -150,13 +151,20 @@ sub dispatch_edit {
       }
 
     # no errors update the router
-    my $feed_google = $req->param('feed_google') || 0;
+	my $feed_google = $req->param('feed_google') || 0;
     my $feed_linkshare = $req->param('feed_linkshare')  || 0;
     $router->feed_google($feed_google);
     $router->feed_linkshare($feed_linkshare);
-    foreach my $param qw( name macaddr splash_href serial_number ) {
+
+	# create an ssid event if the ssid changed
+	if ($router->ssid ne $req->param('ssid')) {
+		$router->ssid_event($req->param('ssid'));
+	}
+
+	# update each attribute
+	foreach my $param qw( name macaddr splash_href serial_number ssid ) {
         $router->$param( $req->param($param) );
-      }
+    }
     $router->update;
 
     # and update the associated ad groups for this router

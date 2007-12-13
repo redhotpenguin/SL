@@ -22,7 +22,6 @@
 <td class="header">Registered Locations</td>
 <td class="header">Ad Groups</td>
 <td class="header">SSID</td>
-<td class="header">Firmware Version</td>
 </tr>
 [% FOREACH router = routers %]
   <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
@@ -51,10 +50,6 @@
 <!-- SSID -->
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
 [% router.ssid or '?'  %]</td>
-
-<!-- firmware -->
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% router.firmware_version or 'pre 0.12, <a href="http://www.redhotpenguin.com/sl/dist/firmware_builds/SL-Linksys-0.12_openwrt-0.9/openwrt-wrt54g-squashfs.bin">please upgrade to 0.12</a>' %]</td>
 
 </tr>
 

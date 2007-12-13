@@ -26,17 +26,6 @@
 <form method="POST" action="[% base_uri %]/app/router/edit">
 <input type="hidden" name="router_id" value="[% router.router_id %]">
 
-
-<!-- firmware version -->
-<tr><td>Firmware Version:</td><td>[% router.firmware_version or 'pre 0.12, <a href="http://www.redhotpenguin.com/sl/dist/firmware_builds/SL-Linksys-0.12_openwrt-0.9/openwrt-wrt54g-squashfs.bin">please upgrade to 0.12 (diablo)</a>' %]</td></tr>
-
-
-<!-- SSID -->
-<tr><td>SSID:</td><td>[% router.ssid or 'unknown' %]</td></tr>
-
-<tr><td colspan="2"><hr size=1 color="#CCCCCC"></td></tr>
-
-
 <!-- name -->
 <tr><td>
 [% IF errors.missing.name %]<font color="red">[% END %]
@@ -47,6 +36,18 @@ Name this router:
 <input type="text" name = "name" size="25" maxlength="25" value='[% req.param('name') or router.name %]'>
 </td></tr>
 <tr><td colspan="2"><font color="#CCCCCC">(100 character limit)</font></td></tr>
+<tr><td colspan="2"><hr size=1 color="#CCCCCC"></td></tr>
+
+<!-- SSID -->
+<tr><td>
+[% IF errors.missing.ssid %]<font color="red">[% END %]
+SSID:
+[% IF errors.missing.ssid %]<font color="red">[% END %]
+</td>
+<td>
+<input type="text" name = "ssid" size="25" maxlength="25" value='[% req.param('ssid') or router.ssid %]'>
+</td></tr>
+<tr><td colspan="2"><font color="#CCCCCC">(Allow up to a minute to take effect)</font></td></tr>
 <tr><td colspan="2"><hr size=1 color="#CCCCCC"></td></tr>
 
 <!-- macaddr -->
@@ -71,7 +72,7 @@ Serial Number:
 <input type="text" name="serial_number" size="25" maxlength="25" value='[% router.serial_number %]'>
  </td></tr>
  <tr><td colspan="2">
-<font color="#CCCCCC">(to determine router model compatibility, example <b>CL7A0F318014</b>)</font></td></tr>
+<font color="#CCCCCC">(Optional, to determine router model compatibility, example <b>CL7A0F318014</b>)</font></td></tr>
  <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
  
 <!-- splash page -->
