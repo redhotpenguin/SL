@@ -7,7 +7,7 @@
 <h2>[% PROCESS router/nav.tmpl %] > <a href="[% base_uri %]/app/router/list">[% count %] Routers Total</a></h2>
 <hr size=1 color="#CCCCCC">
 
-<p style="text-align: left; padding-bottom: 5px; width: 500px;">
+<p style="text-align: left; padding-bottom: 5px; width: 600px;">
 <a href="[% base_uri %]/app/router/edit">Add a new Router</a></span></p>
 
 [% IF session.msg %]
@@ -22,6 +22,7 @@
 <td class="header">Registered Locations</td>
 <td class="header">Ad Groups</td>
 <td class="header">SSID</td>
+<td class="header">Last Seen</td>
 </tr>
 [% FOREACH router = routers %]
   <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
@@ -50,6 +51,10 @@
 <!-- SSID -->
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
 [% router.ssid or '?'  %]</td>
+
+<!-- last seen -->
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+[% router.last_seen or '?'  %]</td>
 
 </tr>
 

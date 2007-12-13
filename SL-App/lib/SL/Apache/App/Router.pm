@@ -193,7 +193,25 @@ sub dispatch_list {
 
     my @routers = $reg->get_routers( $req->param('ad_group_id') );
 
-    my %tmpl_data = (
+	foreach my $router (@routers) {
+		my $dt = DateTime::Format::Pg->parse_datetime( $router->mts );
+		# hack for pacific time
+		my $sec = (time - $dt->epoch - 3600*8);
+		my $minutes = sprintf('%d', $sec/60);
+		if ( $sec <= 60) {
+			$router->{'last_seen'} = "$sec sec";
+		} elsif (($sec > 60) && ($minutes <= 60)) {
+			$router->{'last_seen'} = "$minutes min";
+		} elsif (($minutes > 60) && ($minutes < 1440) ) {
+			my $hours = sprintf('%d', $minutes/60);
+			$router->{'last_seen'} = "$hours hours";
+		} else {
+			my $days = sprintf('%d', $minutes/1440);
+			$router->{'last_seen'} = "$days days";
+		}
+	}
+
+	my %tmpl_data = (
         root  => $r->pnotes('root'),
         session => $r->pnotes('session'),
         routers => \@routers,
