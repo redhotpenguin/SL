@@ -77,7 +77,7 @@ sub reset_events {
 
     my $sql = <<RESET_EVENT_SQL;
 UPDATE ROUTER
-SET $event\_event = ''
+SET $event = ''
 WHERE router.router_id = ?
 RESET_EVENT_SQL
 
