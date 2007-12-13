@@ -99,7 +99,7 @@ sub dispatch_edit {
         $r->method_number(Apache2::Const::M_GET);
         my %router_profile = (
             required           => [qw( name macaddr serial_number ssid )],
-			optional           => [qw( splash_href ) ],
+			optional           => [qw( splash_href splash_timeout ) ],
             constraint_methods => { macaddr => valid_macaddr(), 
 									splash_href => splash_href(), }
         );
@@ -162,7 +162,7 @@ sub dispatch_edit {
 	}
 
 	# update each attribute
-	foreach my $param qw( name macaddr splash_href serial_number ssid ) {
+	foreach my $param qw( name macaddr splash_href serial_number ssid splash_timeout) {
         $router->$param( $req->param($param) );
     }
     $router->update;
@@ -223,6 +223,15 @@ sub dispatch_list {
     $ok
       ? return $self->ok( $r, $output )
       : return $self->error( $r, "Template error: " . $tmpl->error() );
+}
+
+sub splash_timeout {
+	return sub {
+		my $dfv = shift;
+		my $val = $dfv->get_current_constraint_value;
+		return $val if ( $val =~ m/^\d{1,3}$/ );
+		return;
+	}
 }
 
 sub splash_href {
