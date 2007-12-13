@@ -25,7 +25,8 @@ AND router.macaddr = ?
 
 use constant UPDATE_ROUTER_ACTIVE => q{
 UPDATE ROUTER SET
-active = 't'
+active = 't',
+last_ping = now()
 WHERE router_id = ?
 };
 
