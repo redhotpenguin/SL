@@ -194,7 +194,7 @@ sub dispatch_list {
     my @routers = $reg->get_routers( $req->param('ad_group_id') );
 
 	foreach my $router (@routers) {
-		my $dt = DateTime::Format::Pg->parse_datetime( $router->mts );
+		my $dt = DateTime::Format::Pg->parse_datetime( $router->last_ping );
 		# hack for pacific time
 		my $sec = (time - $dt->epoch - 3600*8);
 		my $minutes = sprintf('%d', $sec/60);
