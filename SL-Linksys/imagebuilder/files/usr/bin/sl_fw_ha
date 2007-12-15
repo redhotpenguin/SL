@@ -11,6 +11,7 @@ our $CONFIG_FILE = '/etc/sl.conf';
 our $ATTEMPTS    = 0;
 our $NVRAM = '/usr/sbin/nvram';
 our $OFFLINE = 'Offline';
+our $MD5     = '/usr/bin/md5';
 
 # try to ping the wan first, if we cannot do that all bets are off
 my ($wan_gateway) = `/sbin/route` =~ m/default\s+(\S+)/;
@@ -349,17 +350,39 @@ sub firmware {
 		print STDERR "firmware update called without firmware\n";
 		return;
 	}
+    chdir('/tmp');
+
+    # first grab the md5sum
+    my $md5_file = 'md5sum.txt';
+    print "grabbing md5sum file\n" if $DEBUG;
+    my ($firmware_dir) = $firmware_url =~ m/^(.*?)[^\/]+$/;
+    my $md5_url = $firmware_dir . $md5_file;
+    my $md5_get = `wget $md5_url`;
+    unless (-e $md5_file) {
+        print STDERR "failed to grab $md5_url, firmware update bailing\n";
+        exit(1);
+    }
+
+    # grab the firmware update
 	print "grabbing the firmware $firmware_url\n" if $DEBUG;
-	# grab the firmware update
 	my $wget = `wget $firmware_url`;
 	my ($firmware_file) = $firmware_url =~ m/\/([^\/]+)$/;
 	print "firmware file is $firmware_file\n" if $DEBUG;
 
-	 unless ( -e $firmware_file ) {                                               
+	unless ( -e $firmware_file ) {                                               
 		print STDERR "firmware file $firmware_file not found, update failed\n";
-		return;
+		exit(1);
 	}
-	# do the update!
+
+    # check the md5sum of the file
+    my @md5 = `grep $firmware_file $md5_file`;
+    my ($md5sum) = `$MD5 $firmware_file` =~ m/([a-f0-9]{32})/i;
+    unless ($md5[0] eq $md5sum) {
+        print STDERR "$firmware_file failed md5check, md5 calc is " . $md5[0] . "\n";
+        exit(1);
+    }
+
+    # do the update!
 	print "executing firmware update...\n\n" if $DEBUG;
 	my $update = exec('/sbin/mtd', '-r', 'write', $firmware_file, 'linux');
 	exit(0);
