@@ -11,7 +11,7 @@ our $CONFIG_FILE = '/etc/sl.conf';
 our $ATTEMPTS    = 0;
 our $NVRAM = '/usr/sbin/nvram';
 our $OFFLINE = 'Offline';
-our $MD5     = '/usr/bin/md5';
+our $MD5     = '/usr/bin/md5sum';
 
 # try to ping the wan first, if we cannot do that all bets are off
 my ($wan_gateway) = `/sbin/route` =~ m/default\s+(\S+)/;
@@ -375,10 +375,10 @@ sub firmware {
 	}
 
     # check the md5sum of the file
-    my @md5 = `grep $firmware_file $md5_file`;
+    my @md5 = split(/\s+/, `grep $firmware_file $md5_file`);
     my ($md5sum) = `$MD5 $firmware_file` =~ m/([a-f0-9]{32})/i;
     unless ($md5[0] eq $md5sum) {
-        print STDERR "$firmware_file failed md5check, md5 calc is " . $md5[0] . "\n";
+        print STDERR "$firmware_file failed md5check, md5sum is $md5sum, md5 calc is _" . $md5[0] . "_\n";
         exit(1);
     }
 
