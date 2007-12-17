@@ -453,7 +453,7 @@ sub _ad_methods_from_mac {
 
     # assume it has sl ad groups
     push @methods, '_sl';
-	warn("methods are: " . join(", ", @methods)) if DEBUG;
+	warn("methods for mac $mac are: " . join(", ", @methods)) if DEBUG;
     my @shuffled = List::Util::shuffle(@methods);
 
     return \@shuffled;
