@@ -1,7 +1,7 @@
 #!/home/phred/dev/perl/bin/perl
 
 eval 'exec /home/phred/dev/perl/bin/perl  -S $0 ${1+"$@"}'
-    if 0; # not running under some shell
+  if 0;    # not running under some shell
 
 use strict;
 use warnings FATAL => 'all';
@@ -12,14 +12,14 @@ use DateTime::Format::Pg;
 use Mail::Mailer;
 
 our $FULL_LOCATION_DATA = 0;
-our $LOCATIONS = 1;
-our $DEBUG    = 0;
+our $LOCATIONS          = 0;
+our $DEBUG              = 0;
 
 my $ADMIN = 'sl_reports@redhotpenguin.com';
 my $FROM  = "SL Reporting Daemon <fred\@redhotpenguin.com>";
 my @DAYS  = qw( 1 3 7 14 30 );
 unless ($DEBUG) {
-	push @DAYS, qw( 45 90 135 180 225 270 315 360);
+    push @DAYS, qw( 45 90 135 180 225 270 315 360);
 }
 
 my %results = ();
@@ -30,8 +30,8 @@ my @locations =
 my ( $prev, $prev_day );
 foreach my $day (@DAYS) {
     print STDERR "processing day $day...\n" if $DEBUG;
-
-    my $end = DateTime->now( time_zone => 'local' );
+    $DB::single = 1;
+    my $end   = DateTime->now( time_zone    => 'local' );
     my $start = $end->clone->subtract( days => $day );
 
     my $start_string = DateTime::Format::Pg->format_datetime($start);
@@ -39,11 +39,13 @@ foreach my $day (@DAYS) {
 
     my $views_count =
       SL::Model::App->resultset('View')
-      ->search( { cts => { -between => [ $start_string, $end_string ] } } )->count;
+      ->search( { cts => { -between => [ $start_string, $end_string ] } } )
+      ->count;
 
     my $clicks_count =
       SL::Model::App->resultset('Click')
-      ->search( { cts => { -between => [ $start_string, $end_string ] } } )->count;
+      ->search( { cts => { -between => [ $start_string, $end_string ] } } )
+      ->count;
 
     $results{$day}{views}  = $views_count;
     $results{$day}{clicks} = $clicks_count;
@@ -77,30 +79,29 @@ foreach my $day (@DAYS) {
                 or ( $loc_clicks_count > 0 ) )
             {
 
-
                 # get the routers registered to this location
                 my @router__locations = $location->router__locations;
-                my $router_names = join(' - ',
-                      map { $_->router_id->name || $location->ip }
-                      @router__locations);
+                my $router_names = join ( ' - ',
+                    map { $_->router_id->name || $location->ip }
+                      @router__locations );
 
-                push @{$results{$day}{locations}}, 
+                push @{ $results{$day}{locations} },
                   [ $router_names, $loc_views_count ];
 
                 if ($FULL_LOCATION_DATA) {
-                $results{$day}{data} ||= [];
-                push @{ $results{$day}{data} },
-                  {
-                    ip     => $location->ip,
-                    views  => $loc_views_count,
-                    clicks => $loc_clicks_count,
-                    rate   => ( $loc_views_count == 0 )
-                    ? 0
-                    : ( ( $clicks_count / $views_count ) * 100 ),
-                  };
-                $results{$day}{views}  += $views_count;
-                $results{$day}{clicks} += $clicks_count;
-              }
+                    $results{$day}{data} ||= [];
+                    push @{ $results{$day}{data} },
+                      {
+                        ip     => $location->ip,
+                        views  => $loc_views_count,
+                        clicks => $loc_clicks_count,
+                        rate   => ( $loc_views_count == 0 )
+                        ? 0
+                        : ( ( $clicks_count / $views_count ) * 100 ),
+                      };
+                    $results{$day}{views}  += $views_count;
+                    $results{$day}{clicks} += $clicks_count;
+                }
             }
         }
     }
@@ -115,14 +116,17 @@ foreach my $day (@DAYS) {
 }
 
 # Generate the email
-my $mailer = Mail::Mailer->new('qmail');
-$mailer->open(
-    {
-        'To'      => $ADMIN,
-        'From'    => $FROM,
-        'Subject' => 'SL global daily stats'
-    }
-);
+my $mailer;
+unless ($DEBUG) {
+    $mailer = Mail::Mailer->new('qmail');
+    $mailer->open(
+        {
+            'To'      => $ADMIN,
+            'From'    => $FROM,
+            'Subject' => 'SL global daily stats'
+        }
+    );
+}
 
 use Number::Format;
 my $de  = Number::Format->new();
@@ -154,17 +158,22 @@ foreach my $day (@DAYS) {
     $cnt .= "------------------------------------------------------\n";
 }
 
-$cnt .= "\nBreakdown of most active routers\n\n";
-foreach my $day (@DAYS) {
+if ($LOCATIONS) {
+    $cnt .= "\nBreakdown of most active routers\n\n";
+    foreach my $day (@DAYS) {
         $cnt .= "Last $day days\n";
-      foreach my $location ( sort { $b->[1] <=> $a->[1] } @{$results{$day}{locations}} ) {
-        $cnt .= sprintf("  Router %s had %u views\n", $location->[0], $location->[1]);
-      }
+        foreach my $location ( sort { $b->[1] <=> $a->[1] }
+            @{ $results{$day}{locations} } )
+        {
+            $cnt .= sprintf( "  Router %s had %u views\n",
+                $location->[0], $location->[1] );
+        }
         $cnt .= "\n";
+    }
 }
 
 $cnt .= "\nHave a nice day :)\n";
 
 print STDERR $cnt if $DEBUG;
 print $mailer $cnt unless $DEBUG;
-$mailer->close unless $DEBUG;
+$mailer->close     unless $DEBUG;
