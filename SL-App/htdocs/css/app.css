@@ -33,7 +33,7 @@ h1, h2, h3 {
 	
 a#banner-img {
 	display: block;
-	height: 80px;
+	height: 100px;
 	background: #FFFFFF url("http://www.redhotpenguin.com/images/dashboard_banner.gif") 
 }
 
@@ -44,12 +44,12 @@ a .banner-alt { display: none; }
 	color: #336600;
 	background-color: #FFFFFF;
 	background: #FFFFFF url("http://www.redhotpenguin.com/images/dashboard_banner.gif");
-	width: 800px;
+	width: 280px;
     margin-left: 30px;
 	text-align: left;
 	padding: 0px;
 	border-bottom: 0px solid #999999;
-	height: 80px;
+	height: 100px;
 	}
 	
 #banner a {
