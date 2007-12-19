@@ -21,34 +21,16 @@ my $db = shift or die "gimme a database name yo\n";
 my $dsn = "dbi:Pg:dbname='$db';";
 my $dbh = DBI->connect( $dsn, 'phred', '', $db_options );
 # get to work
-my $user = `psql -d $db -f sql/table/usr.sql`;
-warn("user table: $user");
-
-$dbh->do("insert into usr (hash_mac) values('ff:ff:ff:ff:ff:ff:ff:ff')");
-
-$dbh->do("alter table router add column passwd_event text DEFAULT ''::text");
-$dbh->do("alter table router add column firmware_event text DEFAULT ''::text");
-$dbh->do("alter table router add column ssid_event text DEFAULT ''::text");
-$dbh->do("alter table router add column reboot_event text DEFAULT ''::text");
-$dbh->do("alter table router add column halt_event text DEFAULT ''::text");
-
-use SL::Config;
-my $config = SL::Config->new;
-$dbh->do("insert into router (name, macaddr) values ('default router', '" . $config->sl_default_router_mac . "')");
-
-warn('url, referer');
-$dbh->do("alter table view add column url text DEFAULT ''::text");
-$dbh->do("alter table view add column referer text DEFAULT ''::text");
 
 warn('location');
-$dbh->do("alter table view add column location_id integer DEFAULT 1");
-$dbh->do("ALTER TABLE ONLY view ADD CONSTRAINT location_id_fkey FOREIGN KEY (location_id) REFERENCES location(location_id) ON UPDATE CASCADE ON DELETE CASCADE");
-#$dbh->do("update view set location_id = ( select location_id from location where ip = view.ip)");
+$dbh->do("alter table click add column location_id integer DEFAULT 1");
+$dbh->do("ALTER TABLE ONLY click ADD CONSTRAINT location_id_fkey FOREIGN KEY (location_id) REFERENCES location(location_id) ON UPDATE CASCADE ON DELETE CASCADE");
+$dbh->do("update click set location_id = ( select location_id from location where ip = click.ip)");
 
 warn('usr_id');
-$dbh->do("alter table view add column usr_id integer DEFAULT 1");
-$dbh->do("ALTER TABLE ONLY view ADD CONSTRAINT usr_id_fkey FOREIGN KEY (usr_id) REFERENCES usr(usr_id) ON UPDATE CASCADE ON DELETE CASCADE");
+$dbh->do("alter table click add column usr_id integer DEFAULT 1");
+$dbh->do("ALTER TABLE ONLY click ADD CONSTRAINT usr_id_fkey FOREIGN KEY (usr_id) REFERENCES usr(usr_id) ON UPDATE CASCADE ON DELETE CASCADE");
 
 warn('router_id');
-$dbh->do("alter table view add column router_id integer DEFAULT 1");
-$dbh->do("ALTER TABLE ONLY view ADD CONSTRAINT router_id_fkey FOREIGN KEY (router_id) REFERENCES router(router_id) ON UPDATE CASCADE ON DELETE CASCADE");
+$dbh->do("alter table click add column router_id integer DEFAULT 1");
+$dbh->do("ALTER TABLE ONLY click ADD CONSTRAINT router_id_fkey FOREIGN KEY (router_id) REFERENCES router(router_id) ON UPDATE CASCADE ON DELETE CASCADE");
