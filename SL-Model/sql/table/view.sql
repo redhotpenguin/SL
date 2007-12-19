@@ -2,7 +2,7 @@ CREATE TABLE view (
     view_id serial NOT NULL,
     ad_id integer NOT NULL default 1,
     location_id integer NOT NULL default 1,
-    user_id integer NOT NOT default 1,
+    user_id integer NOT default 1,
     router_id integer NOT NULL default 1,
     url text NOT NULL DEFAULT '',
     referer text NOT NULL DEFAULT '',
