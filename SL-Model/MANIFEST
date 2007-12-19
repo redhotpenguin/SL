@@ -12,6 +12,7 @@ lib/SL/Model/Ad/Group.pm
 lib/SL/Model/Ad.pm
 lib/SL/Model/Ad/Google.pm
 lib/SL/Model/App/Location.pm
+lib/SL/Model/App/Router.pm
 lib/SL/Model/App/Reg.pm
 lib/SL/Model/App.pm
 lib/SL/Model/Test.pm
