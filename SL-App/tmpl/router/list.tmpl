@@ -18,11 +18,9 @@
 <tr class="list_header">
 <td class="header">Name</td>
 <td class="header">Mac Address</td>
-<td class="header">Splash Page</td>
-<td class="header">Registered Locations</td>
-<td class="header">Ad Groups</td>
 <td class="header">SSID</td>
 <td class="header">Last Seen</td>
+<td class="header">Views last 24 Hours</td>
 </tr>
 [% FOREACH router = routers %]
   <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
@@ -36,18 +34,6 @@
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
 [% router.macaddr %]</td>
 
-<!-- splash page -->	
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% IF router.splash_href != '' %]<a href="[% router.splash_href %]">link</a>[% END %]</td>
-
-<!-- location count -->
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% router.location_count %]</td>
-
-<!-- Ad group count -->
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% router.ad_group_count %]</td>
-
 <!-- SSID -->
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
 [% router.ssid or '?'  %]</td>
@@ -55,6 +41,10 @@
 <!-- last seen -->
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
 [% router.last_seen or '?'  %]</td>
+
+<!-- Views last 24 hours -->
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+[% router.views_last_day or '?'  %]</td>
 
 </tr>
 
