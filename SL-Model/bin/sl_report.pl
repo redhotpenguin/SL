@@ -11,13 +11,14 @@ use DateTime;
 use DateTime::Format::Pg;
 use Mail::Mailer;
 
-our $ROUTERS            = 1;
+our $ROUTERS = 1;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 my $ADMIN = 'sl_reports@redhotpenguin.com';
 my $FROM  = "SL Reporting Daemon <fred\@redhotpenguin.com>";
 my @DAYS  = qw( 1 3 7 14 30 );
+
 unless (DEBUG) {
     push @DAYS, qw( 45 90 135 180 225 270 315 360);
 }
@@ -65,11 +66,14 @@ foreach my $day (@DAYS) {
 
     # breakdown by routers
     if ($ROUTERS) {
-      foreach my $router (@routers) {
-        print STDERR sprintf("==> processing router id %d, name '%s', mac %s\n",
-                             $router->id,
-                             $router->name || 'unknown',
-                             $router->macaddr || 'unknown') if DEBUG;
+        foreach my $router (@routers) {
+            print STDERR sprintf(
+                "==> processing router id %d, name '%s', mac %s\n",
+                $router->id,
+                $router->name    || 'unknown',
+                $router->macaddr || 'unknown'
+              )
+              if DEBUG;
 
             my ( $router_views_count, $views_ary_ref ) =
               $router->ad_views( $start, $end );
@@ -81,9 +85,14 @@ foreach my $day (@DAYS) {
             {
                 push @{ $results{$day}{routers} },
                   [ $router->name || $router->macaddr, $router_views_count ];
-              }
+            }
 
-      }
+            # HACK - update the router count
+            if ($day == 7) {
+              $router->views_daily($router_views_count);
+              $router->update;
+            }
+        }
     }
 
     $results{$day}{rate} =
@@ -150,7 +159,6 @@ if ($ROUTERS) {
         $cnt .= "\n";
     }
 }
-
 
 $cnt .= "\nHave a nice day :)\n";
 

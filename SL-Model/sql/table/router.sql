@@ -35,6 +35,7 @@ CREATE TABLE router (
     splash_href text DEFAULT ''::text,
     firmware_version character varying(4) DEFAULT ''::character varying,
     ssid text DEFAULT ''::text,
+    views_daily integer DEFAULT 0
 );
 
 
