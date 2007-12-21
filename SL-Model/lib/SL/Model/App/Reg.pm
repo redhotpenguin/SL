@@ -419,18 +419,18 @@ sub views {
 
 # same as views but just count
 sub views_count {
-    my ( $self, $start, $end, $locations_aryref ) = @_;
+    my ( $self, $start, $end, $routers_aryref ) = @_;
     die 'start and end invalid'
       unless SL::Model::App::validate_dt( $start, $end );
-    die 'please specify locations' unless $locations_aryref;
+    die 'please specify routers' unless $routers_aryref;
 
     my $views_hashref;
     my $total = 0;
-    foreach my $location ( @{$locations_aryref} ) {
-        my $count = $location->views_count( $start, $end );
+    foreach my $router ( @{$routers_aryref} ) {
+        my $count = $router->views_count( $start, $end );
         $total += $count;
 
-        $views_hashref->{locations}->{ $location->location_id }->{count} =
+        $views_hashref->{routers}->{ $router->router_id }->{count} =
           $count || 0;
     }
     $views_hashref->{total} = $total;
@@ -461,18 +461,18 @@ sub clicks {
 
 # same as clicks but just count
 sub clicks_count {
-    my ( $self, $start, $end, $locations_aryref ) = @_;
+    my ( $self, $start, $end, $routers_aryref ) = @_;
     die 'start and end invalid'
       unless SL::Model::App::validate_dt( $start, $end );
-    die 'please specify locations' unless $locations_aryref;
+    die 'please specify routers' unless $routers_aryref;
 
     my $clicks_hashref;
     my $total = 0;
-    foreach my $location ( @{$locations_aryref} ) {
-        my $count = $location->clicks_count( $start, $end );
+    foreach my $router ( @{$routers_aryref} ) {
+        my $count = $router->clicks_count( $start, $end );
         $total += $count;
 
-        $clicks_hashref->{locations}->{ $location->location_id }->{count} =
+        $clicks_hashref->{routers}->{ $router->router_id }->{count} =
           $count || 0;
     }
     $clicks_hashref->{total} = $total;
@@ -491,15 +491,16 @@ sub clicks_count {
 # };
 
 sub ads_by_click {
-    my ( $self, $start, $end, $locations_aryref ) = @_;
+    my ( $self, $start, $end, $routers_aryref ) = @_;
     die 'start and end invalid'
       unless SL::Model::App::validate_dt( $start, $end );
-    die 'please specify locations' unless $locations_aryref;
+    die 'need routers' unless $routers_aryref->[0]->isa('SL::Model::App::Router');
 
     my $ads_hashref;
     my $max = 0;
-    foreach my $location ( @{$locations_aryref} ) {
-        my ( $count, $clicks_ary_ref ) = $location->clicks( $start, $end );
+    foreach my $router ( @{$routers_aryref} ) {
+
+        my ( $count, $clicks_ary_ref ) = $router->ad_clicks( $start, $end );
 
         foreach my $click ( @{$clicks_ary_ref} ) {
 
@@ -525,14 +526,15 @@ sub ads_by_click {
 }
 
 sub click_rates {
-    my ( $self, $start, $end, $locations_aryref ) = @_;
+    my ( $self, $start, $end, $routers_aryref ) = @_;
     die 'start and end invalid'
       unless SL::Model::App::validate_dt( $start, $end );
-    die 'please specify locations' unless $locations_aryref;
+    die 'need a router' unless $routers_aryref->[0]->isa('SL::Model::App::Router');
 
 	my $ads_hashref;
-    foreach my $location ( @{$locations_aryref} ) {
-        my ( $view_count, $views_ary_ref ) = $location->views( $start, $end );
+    foreach my $router ( @{$routers_aryref} ) {
+
+        my ( $view_count, $views_ary_ref ) = $router->ad_views( $start, $end );
 
         # tally up the views
         foreach my $view ( @{$views_ary_ref} ) {
@@ -551,7 +553,7 @@ sub click_rates {
         }
 
         # tally up the clicks
-        my ( $click_count, $clicks_ary_ref ) = $location->clicks( $start, $end );
+        my ( $click_count, $clicks_ary_ref ) = $router->ad_clicks( $start, $end );
         foreach my $click ( @{$clicks_ary_ref} ) {
 
             # init the count
@@ -566,7 +568,7 @@ sub click_rates {
             $ads_hashref->{ $click->{ad}->ad_id }->{ad} = $click->{ad};
         }
     }
-    
+
 	my $max_rate = 0;
     # now calculate the rates
     my $rates_hashref;

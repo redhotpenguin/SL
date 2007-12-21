@@ -34,7 +34,9 @@ pod2usage(1) if $help;
 pod2usage( -verbose => 2 ) if $man;
 
 die "Bad interval"
-  unless grep { $_ =~ m/(?:daily|weekly|monthly|quarterly|annually|biannually)/ } @intervals;
+  unless
+  grep { $_ =~ m/(?:daily|weekly|monthly|quarterly|annually|biannually)/ }
+  @intervals;
 
 use DateTime;
 
@@ -42,17 +44,18 @@ use SL::Model::Report;
 use SL::Model::Report::Graph;
 use SL::Model::App;
 
-our $DEBUG         = 1;
 our %duration_hash = (
-    daily     => '24 hours',
-    weekly    => '7 days',
-    monthly   => '30 days',
-    quarterly => '90 days',
+    daily      => '24 hours',
+    weekly     => '7 days',
+    monthly    => '30 days',
+    quarterly  => '90 days',
     biannually => '180 days',
     annually   => '365 days',
 );
 
-my @regs = SL::Model::App->resultset('Reg')->search( { active => 1 } );
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
+
+my @regs = SL::Model::App->resultset('Reg')->search( { active => 1, email => 'fred@redhotpenguin.com' } );
 
 foreach my $temporal (@intervals) {
     my %global;
@@ -61,25 +64,24 @@ foreach my $temporal (@intervals) {
 
     foreach my $reg (@regs) {
         print STDERR sprintf( "=> Processing account %s \n", $reg->email )
-          if $DEBUG;
+          if DEBUG;
 
-        # get the location info from the routers for this reg
-        my %unique_locations =
-          map { $_->location_id->location_id => $_->location_id }
-          map { $_->router__locations } $reg->get_routers;
-        my @locations = values %unique_locations;
-          unless ( scalar(@locations) > 0 )
-        {
-            print STDERR sprintf( "Account %s has no routers\n", $reg->email )
-              if $DEBUG;
-            next;
+        my @routers = $reg->get_routers;
+        unless (@routers) {
+          print STDERR "no routers for " . $reg->email . "\n" if DEBUG;
+          next;
         }
 
         ######################
         # get the view data
-        my $views = SL::Model::Report->views({ reg => $reg,
-                                                    temporal => $temporal,
-                                                    locations => \@locations });
+        my $views = SL::Model::Report->views(
+            {
+                reg      => $reg,
+                temporal => $temporal,
+                routers  => \@routers
+            }
+        );
+
         # burn the view graph
         my $filename =
           join ( '/', $reg->report_dir_base, "views_$temporal.png" );
@@ -91,16 +93,20 @@ foreach my $temporal (@intervals) {
                 temporal     => $temporal,
             }
         );
-        print STDERR "==> burned graph $filename\n" if $DEBUG;
+        print STDERR "==> burned graph $filename\n" if DEBUG;
 
         ########################
         # get the click data
-        my $clicks = SL::Model::Report->clicks({ reg => $reg,
-                                                    temporal => $temporal,
-                                                    locations => \@locations });
+        my $clicks = SL::Model::Report->clicks(
+            {
+                reg      => $reg,
+                temporal => $temporal,
+                routers  => \@routers,
+            }
+        );
+
         # burn the click graph
-        $filename =
-          join ( '/', $reg->report_dir_base, "clicks_$temporal.png" );
+        $filename = join ( '/', $reg->report_dir_base, "clicks_$temporal.png" );
         SL::Model::Report::Graph->clicks(
             {
                 data_hashref => $clicks,
@@ -109,16 +115,20 @@ foreach my $temporal (@intervals) {
                 temporal     => $temporal,
             }
         );
-        print STDERR "==> burned graph $filename\n" if $DEBUG;
+        print STDERR "==> burned graph $filename\n" if DEBUG;
 
         #########################
-        # get ad breakdown for all locations
-        my $ads_by_click = SL::Model::Report->ads_by_click({ reg => $reg,
-                                                    temporal => $temporal,
-                                                    locations => \@locations });
+        # get ad breakdown for all routers
+        my $ads_by_click = SL::Model::Report->ads_by_click(
+            {
+                reg       => $reg,
+                temporal  => $temporal,
+                routers => \@routers,
+            }
+        );
+
         # burn the click by ad graph
-        $filename =
-          join ( '/', $reg->report_dir_base, "ads_$temporal.png" );
+        $filename = join ( '/', $reg->report_dir_base, "ads_$temporal.png" );
         SL::Model::Report::Graph->ads_by_click(
             {
                 data_hashref => $ads_by_click,
@@ -127,16 +137,21 @@ foreach my $temporal (@intervals) {
                 temporal     => $temporal,
             }
         );
-        print STDERR "==> burned graph $filename\n" if $DEBUG;
+        print STDERR "==> burned graph $filename\n" if DEBUG;
 
         #########################
         # click rates
-        my $click_rates = SL::Model::Report->click_rates({ reg => $reg,
-                                                    temporal => $temporal,
-                                                    locations => \@locations });
+        my $click_rates = SL::Model::Report->click_rates(
+            {
+                reg       => $reg,
+                temporal  => $temporal,
+                routers => \@routers,
+            }
+        );
+        print STDERR "==> got ad data for " . $reg->email . "\n" if DEBUG;
+
         # burn the click by ad graph
-        $filename =
-          join ( '/', $reg->report_dir_base, "rates_$temporal.png" );
+        $filename = join ( '/', $reg->report_dir_base, "rates_$temporal.png" );
         SL::Model::Report::Graph->click_rates(
             {
                 data_hashref => $click_rates,
@@ -145,11 +160,11 @@ foreach my $temporal (@intervals) {
                 temporal     => $temporal,
             }
         );
-        print STDERR "==> burned graph $filename\n" if $DEBUG;
+        print STDERR "==> burned graph $filename\n" if DEBUG;
 
     }
 
-    print STDERR "\nFinished processing $temporal reports\n" if $DEBUG;
+    print STDERR "\nFinished processing $temporal reports\n" if DEBUG;
 }
 
 1;

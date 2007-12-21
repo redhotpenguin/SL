@@ -15,13 +15,15 @@ $Text::Wrap::columns = 25;
 use Number::Format;
 my $de = Number::Format->new;
 
-our $DEBUG = 1;
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 sub _ad_text_from_id {
     my ( $class, $ad_id ) = @_;
 
-    my ($return, $ad_text, $ad);
-    if (($ad) = SL::Model::App->resultset('AdLinkshare')->search( { ad_id => $ad_id }))
+    my ( $return, $ad_text, $ad );
+    if ( ($ad) =
+        SL::Model::App->resultset('AdLinkshare')->search( { ad_id => $ad_id } )
+      )
     {
 
         # look in linkshare first;
@@ -105,41 +107,20 @@ sub validate {
     my ( $class, $params ) = @_;
 
     # validate
-    my $reg              = $params->{reg}       or die;
-    my $temporal         = $params->{temporal}  or die;
-    my $locations_aryref = $params->{locations} or die;
+    my $reg      = $params->{reg}      or die;
+    my $temporal = $params->{temporal} or die;
+    my $routers_aryref = $params->{routers}
+      or ( require Carp && Carp::confess("no routers") );
 
-    die 'not a location object'
-      unless $locations_aryref->[0]->isa('SL::Model::App::Location');
+    require Carp && Carp::confess 'not a router object'
+      unless defined $routers_aryref->[0] && 
+        $routers_aryref->[0]->isa('SL::Model::App::Router');
 
     die "Invalid temporal parameter passed"
       unless grep { $temporal eq $_ } keys %time_hash;
 
-    return ( $reg, $temporal, $locations_aryref );
+    return ( $reg, $temporal, $routers_aryref );
 }
-
-sub series_from_locations {
-	my ($class, $locations_aryref) = @_;
-
-	my @series;
-	foreach my $location (@{$locations_aryref}) {
-		# see if there are any router names
-		my @routers = map { $_->router_id } $location->router__locations;
-		my @names;
-		foreach my $router ( @routers ) {
-			if (defined $router->name) {
-				push @names, $router->name;
-			}
-		}
-		my $id = $location->ip;
-		if (@names) {
-			$id = join(' - ', $id, @names);
-		}
-		push @series, $id;
-	}
-	return \@series;
-}
-
 
 # generates the graph data for view counts
 #
@@ -157,37 +138,38 @@ sub series_from_locations {
 
 sub views {
     my ( $class, $params ) = @_;
-    my ( $reg, $temporal, $locations_aryref ) = $class->validate($params);
+    my ( $reg, $temporal, $routers_aryref ) = $class->validate($params);
 
     # init
-    my $results = { max => 0, headers => [], data => [], series => [], total => 0 };
+    my $results =
+      { max => 0, headers => [], data => [], series => [], total => 0 };
 
     # report end time
     my $end = DateTime->now( time_zone => 'local' );
     $end->truncate( to => 'hour' );
 
     # create the series
-	$results->{series} = $class->series_from_locations( $locations_aryref );
+    $results->{series} = [ map { $_->name } @{ $routers_aryref } ];
 
-	for ( @{ $time_hash{$temporal}->{range} } ) {
+    for ( @{ $time_hash{$temporal}->{range} } ) {
 
-        print STDERR "processing time slice $_\n" if $DEBUG;
+        print STDERR "processing time slice $_\n" if DEBUG;
 
         # add the date in the format specified, this is the header
         my $start =
           $end->clone->subtract( @{ $time_hash{$temporal}->{interval} } );
-		unshift @{ $results->{headers} },
+        unshift @{ $results->{headers} },
           $start->strftime( $time_hash{$temporal}->{format} ) . ' - '
           . $end->strftime( $time_hash{$temporal}->{format} );
 
-        # Ads viewed data for locations
-        my $views_hashref = $reg->views_count( $start, $end, $locations_aryref );
+        # Ads viewed data for routers
+        my $views_hashref = $reg->views_count( $start, $end, $routers_aryref );
 
         # add the data
-        my $i = 0;    # location1, location2, etc
-        foreach my $location_id ( keys %{ $views_hashref->{locations} } ) {
+        my $i = 0;    # router1, router2, etc
+        foreach my $router_id ( keys %{ $views_hashref->{routers} } ) {
             unshift @{ $results->{data}->[ $i++ ] },
-              $views_hashref->{locations}->{$location_id}->{count};
+              $views_hashref->{routers}->{$router_id}->{count};
         }
 
         # update the max
@@ -195,63 +177,67 @@ sub views {
             $results->{max} = $views_hashref->{total};
         }
 
-		$results->{total} += $views_hashref->{total};
+        $results->{total} += $views_hashref->{total};
 
-		# shift the end point
+        # shift the end point
         $end = $start->clone;
     }
 
     # now weed out the series that don't have any data other than 0
-    my @series = @{$results->{series}};
+    my @series = @{ $results->{series} };
     my @remove_indices;
-    for (0.. $#series) {
-         my $row_aryref = $results->{data}->[$_];
-         my $only_zeros = 1;
-         foreach my $col (@{$row_aryref}) {
-             if ($col != 0) {
-               $only_zeros = 0;
-               last;
-             }
-         }
-         if ($only_zeros == 1) {
-             # this series only has zeros, so splice the arrays
-             push @remove_indices, $_;
-         }
+    for ( 0 .. $#series ) {
+        my $row_aryref = $results->{data}->[$_];
+        my $only_zeros = 1;
+        foreach my $col ( @{$row_aryref} ) {
+            if ( $col != 0 ) {
+                $only_zeros = 0;
+                last;
+            }
+        }
+        if ( $only_zeros == 1 ) {
+
+            # this series only has zeros, so splice the arrays
+            push @remove_indices, $_;
+        }
     }
     my $num_splices = 0;
     foreach my $index (@remove_indices) {
-         $index -= $num_splices++;
-         splice(@{$results->{series}}, $index, 1);
-         splice(@{$results->{data}}, $index, 1);
+        $index -= $num_splices++;
+        splice( @{ $results->{series} }, $index, 1 );
+        splice( @{ $results->{data} },   $index, 1 );
 
     }
-    # make sure we are left with something
-    if (scalar(@{$results->{data}}) == 0) {
-        push @{$results->{data}}, [0] for 0..scalar(@{$results->{headers}});
-        $results->{series}->[0] = 'empty dataset';
-      }
 
-	$results->{total} = $de->format_number($results->{total});
+    # make sure we are left with something
+    if ( scalar( @{ $results->{data} } ) == 0 ) {
+        push @{ $results->{data} },
+          [0] for 0 .. scalar( @{ $results->{headers} } );
+        $results->{series}->[0] = 'empty dataset';
+    }
+
+    $results->{total} = $de->format_number( $results->{total} );
     return $results;
 }
 
 sub clicks {
     my ( $class, $params ) = @_;
-    my ( $reg, $temporal, $locations_aryref ) = $class->validate($params);
+    my ( $reg, $temporal, $routers_aryref ) = $class->validate($params);
 
     # init
-    my $results = { max => 0, headers => [], data => [], series => [], total => 0 };
+    my $results =
+      { max => 0, headers => [], data => [], series => [], total => 0 };
 
     # report end time
     my $end = DateTime->now( time_zone => 'local' );
     $end->truncate( to => 'hour' );
 
     # create the series
-	$results->{series} = $class->series_from_locations( $locations_aryref );
+    $results->{series} = [ map { $_->name } @{ $routers_aryref } ];
 
     for ( @{ $time_hash{$temporal}->{range} } ) {
 
-        print STDERR "processing time slice $_\n" if $DEBUG;
+        print STDERR "processing time slice $_\n" if DEBUG;
 
         # add the date in the format specified, this is the header
         my $start =
@@ -261,13 +247,14 @@ sub clicks {
           . $end->strftime( $time_hash{$temporal}->{format} );
 
         # Ads clicks data for locations
-        my $clicks_hashref = $reg->clicks_count( $start, $end, $locations_aryref );
+        my $clicks_hashref =
+          $reg->clicks_count( $start, $end, $routers_aryref );
 
         # add the data
         my $i = 0;    # location1, location2, etc
-        foreach my $location_id ( keys %{ $clicks_hashref->{locations} } ) {
+        foreach my $router_id ( keys %{ $clicks_hashref->{routers} } ) {
             push @{ $results->{data}->[ $i++ ] },
-              $clicks_hashref->{locations}->{$location_id}->{count};
+              $clicks_hashref->{routers}->{$router_id}->{count};
         }
 
         # update the max
@@ -275,12 +262,12 @@ sub clicks {
             $results->{max} = $clicks_hashref->{total};
         }
 
-		$results->{total} += $clicks_hashref->{total};
+        $results->{total} += $clicks_hashref->{total};
 
-		# shift the end point
+        # shift the end point
         $end = $start->clone;
     }
-	$results->{total} = $de->format_number($results->{total});
+    $results->{total} = $de->format_number( $results->{total} );
     return $results;
 }
 
@@ -296,7 +283,9 @@ sub clicks {
 
 sub ads_by_click {
     my ( $class, $params ) = @_;
-    my ( $reg, $temporal, $locations_aryref ) = $class->validate($params);
+    my ( $reg, $temporal, $routers_aryref ) = $class->validate($params);
+
+    die "no routers passed\n" unless $routers_aryref->[0]->isa("SL::Model::App::Router");
 
     # init
     my $results = { max => 0, headers => [], data => [], series => [] };
@@ -308,7 +297,7 @@ sub ads_by_click {
     my $start = $end->clone->subtract( $time_hash{$temporal}->{subtract} );
 
     # get the ads grcouped
-    my $ads_by_click = $reg->ads_by_click( $start, $end, $locations_aryref );
+    my $ads_by_click = $reg->ads_by_click( $start, $end, $routers_aryref );
 
     $results->{max} = $ads_by_click->{max};
 
@@ -327,7 +316,7 @@ sub ads_by_click {
     # handle race condition
     if ( scalar( @{ $results->{headers} } ) == 0 ) {
         $results->{headers} = ['No Ad Clicks'];
-        $results->{data} = [ 0 ];
+        $results->{data}    = [0];
     }
 
     # create the series
@@ -338,7 +327,8 @@ sub ads_by_click {
 
 sub click_rates {
     my ( $class, $params ) = @_;
-    my ( $reg, $temporal, $locations_aryref ) = $class->validate($params);
+    my ( $reg, $temporal, $routers_aryref ) = $class->validate($params);
+    die "no routers passed\n" unless $routers_aryref->[0]->isa("SL::Model::App::Router");
 
     # init
     my $results = { max => 0, headers => [], data => [], series => [] };
@@ -350,7 +340,7 @@ sub click_rates {
     my $start = $end->clone->subtract( $time_hash{$temporal}->{subtract} );
 
     # get the click rates
-    my $click_rates = $reg->click_rates( $start, $end, $locations_aryref );
+    my $click_rates = $reg->click_rates( $start, $end, $routers_aryref );
 
     $results->{max} = $click_rates->{max};
 
@@ -364,11 +354,11 @@ sub click_rates {
     # handle race condition
     if ( scalar( @{ $results->{headers} } ) == 0 ) {
         $results->{headers} = ['No Ad Clicks'];
-        $results->{data} = [ 0 ];
+        $results->{data}    = [0];
     }
 
     # create the series
-    @{ $results->{series} } = ('Ad Clicks for all locations');
+    @{ $results->{series} } = ('Ad Clicks for all routers');
 
     return $results;
 }
@@ -379,7 +369,7 @@ __END__
 
 
 # SL::Model::Report
-# build the ad summary
+# bubild the ad summary
 sub ad_summary {
     my ( $class, $ip, $start_date, $now ) = @_;
     my $ad_clicks_ref = SL::Model::Report->ip_clicks( $start_date, $now, $ip );
