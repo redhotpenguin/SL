@@ -148,7 +148,7 @@ __PACKAGE__->add_columns(
     size => 8,
   },
  "views_daily",
-  { data_type => "integer", default_value => undef, is_nullable => 1, size => 4 },
+  { data_type => "integer", default_value => 0, is_nullable => 1, size => 4 },
 );
 __PACKAGE__->set_primary_key("router_id");
 __PACKAGE__->has_many(

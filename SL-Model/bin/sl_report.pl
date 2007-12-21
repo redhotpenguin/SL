@@ -88,7 +88,7 @@ foreach my $day (@DAYS) {
             }
 
             # HACK - update the router count
-            if ($day == 7) {
+            if ($day == 1) {
               $router->views_daily($router_views_count);
               $router->update;
             }
