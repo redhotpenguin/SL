@@ -55,7 +55,8 @@ our %duration_hash = (
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
-my @regs = SL::Model::App->resultset('Reg')->search( { active => 1, email => 'fred@redhotpenguin.com' } );
+my @regs = SL::Model::App->resultset('Reg')->search( { active => 1, });
+# email => 'fred@redhotpenguin.com' } );
 
 foreach my $temporal (@intervals) {
     my %global;

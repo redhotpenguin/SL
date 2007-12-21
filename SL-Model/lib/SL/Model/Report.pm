@@ -122,6 +122,13 @@ sub validate {
     return ( $reg, $temporal, $routers_aryref );
 }
 
+sub _series {
+  my $routers_aryref = shift;
+  return [ map { sprintf('%s (%s)', $_->name, $_->ssid) }
+                           sort { $a->router_id <=> $b->router_id }
+                           @{ $routers_aryref } ];
+}
+
 # generates the graph data for view counts
 #
 # return data structure, first array index is headers, rest are data
@@ -149,7 +156,7 @@ sub views {
     $end->truncate( to => 'hour' );
 
     # create the series
-    $results->{series} = [ map { $_->name } @{ $routers_aryref } ];
+    $results->{series} = _series($routers_aryref);
 
     for ( @{ $time_hash{$temporal}->{range} } ) {
 
@@ -167,7 +174,8 @@ sub views {
 
         # add the data
         my $i = 0;    # router1, router2, etc
-        foreach my $router_id ( keys %{ $views_hashref->{routers} } ) {
+        foreach my $router_id ( sort {$a <=> $b }
+                                keys %{ $views_hashref->{routers} } ) {
             unshift @{ $results->{data}->[ $i++ ] },
               $views_hashref->{routers}->{$router_id}->{count};
         }
@@ -233,7 +241,7 @@ sub clicks {
     $end->truncate( to => 'hour' );
 
     # create the series
-    $results->{series} = [ map { $_->name } @{ $routers_aryref } ];
+    $results->{series} = _series($routers_aryref);
 
     for ( @{ $time_hash{$temporal}->{range} } ) {
 

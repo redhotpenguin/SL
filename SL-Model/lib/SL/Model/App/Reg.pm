@@ -396,6 +396,8 @@ sub get_routers {
 
 sub views {
     my ( $self, $start, $end, $locations_aryref ) = @_;
+
+    die; # hmm this sub is not in use
     die 'start and end invalid'
       unless SL::Model::App::validate_dt( $start, $end );
     die 'please specify locations' unless $locations_aryref;
@@ -426,7 +428,8 @@ sub views_count {
 
     my $views_hashref;
     my $total = 0;
-    foreach my $router ( @{$routers_aryref} ) {
+    foreach my $router ( sort { $a->router_id <=> $b->router_id }
+                         @{$routers_aryref} ) {
         my $count = $router->views_count( $start, $end );
         $total += $count;
 
@@ -441,6 +444,7 @@ sub views_count {
 
 sub clicks {
     my ( $self, $start, $end, $locations_aryref ) = @_;
+die;
     die 'start and end invalid'
       unless SL::Model::App::validate_dt( $start, $end );
     die 'please specify locations' unless $locations_aryref;
@@ -468,7 +472,8 @@ sub clicks_count {
 
     my $clicks_hashref;
     my $total = 0;
-    foreach my $router ( @{$routers_aryref} ) {
+    foreach my $router ( sort { $a->router_id <=> $b->router_id }
+                         @{$routers_aryref} ) {
         my $count = $router->clicks_count( $start, $end );
         $total += $count;
 
@@ -498,7 +503,8 @@ sub ads_by_click {
 
     my $ads_hashref;
     my $max = 0;
-    foreach my $router ( @{$routers_aryref} ) {
+    foreach my $router ( sort { $a->router_id <=> $b->router_id }
+                         @{$routers_aryref} ) {
 
         my ( $count, $clicks_ary_ref ) = $router->ad_clicks( $start, $end );
 
@@ -527,12 +533,14 @@ sub ads_by_click {
 
 sub click_rates {
     my ( $self, $start, $end, $routers_aryref ) = @_;
+
     die 'start and end invalid'
       unless SL::Model::App::validate_dt( $start, $end );
     die 'need a router' unless $routers_aryref->[0]->isa('SL::Model::App::Router');
 
 	my $ads_hashref;
-    foreach my $router ( @{$routers_aryref} ) {
+    foreach my $router ( sort { $a->router_id <=> $b->router_id }
+                         @{$routers_aryref} ) {
 
         my ( $view_count, $views_ary_ref ) = $router->ad_views( $start, $end );
 
