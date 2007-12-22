@@ -2,28 +2,22 @@ SHELL=/bin/bash
 PATH=/home/phred/dev/perl/bin
 
 # mail text report every day
-00 06 * * * perl -I $HOME/dev/sl/trunk/lib $HOME/dev/sl/trunk/bin/sl_report.pl
+00 0 * * * perl $HOME/dev/perl/bin/sl_report.pl
 
-# clean up the rate_limit table every six minutes
-*/6 * * * * perl -I $HOME/dev/sl/trunk/lib $HOME/dev/sl/trunk/bin/sl_rate_limit_cleanup.pl
+# clean up the rate limit table
+* */6 * * * perl -I $HOME/dev/sl/trunk/lib $HOME/dev/sl/trunk/bin/sl_rate_limit_cleanup.pl
 
 # generate daily, weekly, and monthly reports every day
-30 05 * * * perl -I $HOME/dev/sl/trunk/lib $HOME/dev/sl/trunk/bin/sl_report_graph.pl --interval=daily --interval=weekly --interval=monthly
+15 0 * * * perl  $HOME/dev/perl/bin/sl_report_graph.pl --interval=daily --interval=weekly --interval=monthly
 
-# mail global daily, weekly, weekly, and monthly reports every day
-00 06 * * * perl -I $HOME/dev/sl/trunk/lib $HOME/dev/sl/trunk/bin/sl_mail_global_reports.pl --to=sl_reports@redhotpenguin.com --interval=daily --interval=weekly --interval=monthly
-
-# mail user specific reports every day
-00 06 * * * perl -I $HOME/dev/sl/trunk/lib $HOME/dev/sl/trunk/bin/sl_mail_user_reports.pl --interval=daily --interval=weekly --interval=monthly
+# mail user specific reports every day in the morning to avoid spam
+00 06 * * * perl  $HOME/dev/perl/bin/sl_mail_user_reports.pl --interval=daily --interval=weekly --interval=monthly
 
 # generate the quarterly reports once a week
-00 05 0 * * perl -I $HOME/dev/sl/trunk/lib $HOME/dev/sl/trunk/bin/sl_report_graph.pl --interval=quarterly
+30 0 0 * * perl  $HOME/dev/perl/bin/sl_report_graph.pl --interval=quarterly --interval=biannually --interval=annually
 
 # mail the quarterly reports once a week
-# global
-00 6 0 * * perl -I $HOME/dev/sl/trunk/lib $HOME/bin/sl_mail_global_reports.pl --to=sl_reports@redhotpenguin.com --interval=quarterly
-# user
-00 6 0 * * perl -I $HOME/dev/sl/trunk/lib $HOME/bin/sl_mail_user_reports.pl --interval=quarterly
+00 6 0 * * perl  $HOME/dev/perl/bin/sl_mail_user_reports.pl --interval=quarterly --interval=biannually --interval=annually
 
 # Grab the latest linkshare ads
-00 4 * * *  perl -I $HOME/dev/sl/trunk/lib $HOME/bin/sl_update_linkshare.pl --user=****** --pass=*******
+#00 4 * * *  perl -I $HOME/dev/sl/trunk/lib $HOME/bin/sl_update_linkshare.pl --user=****** --pass=*******
