@@ -1,11 +1,12 @@
-[% PROCESS header.tmpl %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Logout" %]
 [% PROCESS left.tmpl %]
  
 <div id="center">
 <div class="content">
-<h3>You have been logged out</h3>
+<h2><a href="[% base_uri %]">Home</a> > <a href="[% base_uri%]/login">Login</a> > <a href="[% base_uri %]/forgot">Forgot Password?</a> > Logged Out</h2>
+
+<p>You have been logged out</p>
 </div>
 </div>
 
-[% PROCESS right.tmpl %]
 [% PROCESS footer.tmpl %]

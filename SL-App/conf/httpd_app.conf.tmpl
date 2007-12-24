@@ -33,22 +33,21 @@ LoadModule apreq_module        modules/mod_apreq2.so
 LoadModule perl_module        modules/mod_perl.so
 
 PerlPassEnv SL_ROOT
+PerlPassEnv SL_DEBUG
 
 PerlPostConfigRequire "[% cfg.sl_app_root %]/conf/startup_app.pl"
-#PerlLoadModule SL::Config
-#SLRoot '/home/fred/dev/sl/trunk'
+
 [% IF cfg.sl_debug %]
 PerlRequire "[% cfg.sl_app_root %]/conf/db.pl"
 [% END %]
 PerlSetVar data_root "[% cfg.sl_app_root %]/data"
 
-[% IF cfg.sl_devel %]
-# Apache::Reload for development.
+# Apache::Reload for quick fixes
 PerlModule           Apache2::Reload
 PerlInitHandler      Apache2::Reload
 PerlSetVar           ReloadAll On
 PerlSetVar ReloadModules "SL::* Apache2::* ModPerl::*"
-[% END %]
+
 [% IF cfg.sl_prof %]
 	PerlModule Apache::DProf
 [% END %]

@@ -17,6 +17,8 @@ use Digest::MD5 ();
 use MIME::Lite  ();
 use Apache::Session::DB_File ();
 
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
+warn("DEBUG IS " . DEBUG);
 our ($CONFIG, $CIPHER);
 
 BEGIN {
@@ -37,7 +39,9 @@ our $TEMPLATE = SL::App::Template->template();
 sub authenticate {
     my ( $class, $r ) = @_;
 
-    # subrequests ok
+	$r->log->debug("$$ authenticating") if DEBUG;
+    
+	# subrequests ok
     unless ( $r->is_initial_req ) {
         # FIXME - abstract this out to match auth_ok
         $r->user($r->prev->user);
@@ -61,6 +65,7 @@ sub authenticate {
     # user doesn't have a cookie?
     unless ($cookie) {
         $dest .= "/?dest=" . $r->unparsed_uri;
+		$r->log->debug("$$ redirecting to $dest, no cookie present") if DEBUG;
         return $class->redirect_auth( $r, 'No Cookie', $dest );
     }
 
@@ -111,7 +116,7 @@ sub logout {
 
     $class->expire_cookie($r);
     my $output;
-    my $ok = $TEMPLATE->process('index.tmpl', {}, \$output);
+    my $ok = $TEMPLATE->process('logout.tmpl', {}, \$output);
     $ok ? return $class->ok($r, $output) 
         : return $class->error($r, "Template error: " . $TEMPLATE->error());
 }
@@ -169,7 +174,8 @@ sub login {
 
         # they're ok
         my $destination = $req->param('dest') || '/app/home/index';
-        return $class->redirect_auth( $r, 'successful auth', $r->construct_url($destination) );
+		$r->log->debug("$$ login ok, redirecting to $destination") if DEBUG;
+		return $class->redirect_auth( $r, 'successful auth', $r->construct_url($destination) );
     }
     else {
         return Apache2::Const::HTTP_METHOD_NOT_ALLOWED;
@@ -184,6 +190,7 @@ sub expire_cookie {
         -name  => $CONFIG->sl_app_cookie_name,
         -value => '',
         -expires => 'Mon, 21-May-1971 00:00:00 GMT',
+		-path    => '/sl/app/',
     );
 
     $cookie->bake($r);
@@ -207,6 +214,7 @@ sub send_cookie {
         -name  => $CONFIG->sl_app_cookie_name,
         -value => $class->encode( \%state ),
         -expires => '14D',
+		-path    => '/sl/app/',
     );
 
     $cookie->bake($r);
@@ -215,8 +223,7 @@ sub send_cookie {
 	$r->log->debug( "$class user "
           . $state{email}
           . ", last seen " . $state{last_seen}
-          . ", session_id " . $state{session_id}
-          . ", authenticated ok, cookie sent" );
+          . ", authenticated ok, cookie sent" ) if DEBUG;
 
 	return 1;
 }
@@ -253,7 +260,7 @@ sub decode {
 sub redirect_auth {
     my ( $class, $r, $reason, $dest ) = @_;
 
-    $r->log->debug( $class . " redirecting to $dest, reason '$reason'" );
+    $r->log->debug( $class . " redirecting to $dest, reason '$reason'" ) if DEBUG;
     $r->headers_out->set( Location => $dest );
     return Apache2::Const::REDIRECT;
 }
@@ -276,7 +283,7 @@ sub forgot {
             "Template error: " . $TEMPLATE->error() );
 
     } elsif ($r->method_number == Apache2::Const::M_POST ) {
-      $r->log->debug("POSTING...");
+      $r->log->debug("$$ POSTING...") if DEBUG;
         my $email;
         unless ($email = $req->param('email')) {
           # missing email
