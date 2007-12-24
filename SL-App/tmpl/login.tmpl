@@ -1,10 +1,10 @@
-[% PROCESS header.tmpl %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Please Login" %]
 [% PROCESS left.tmpl %]
 
 <div id="center">
 <div class="content">
 
-<h2><a href="http://forums.silverliningnetworks.com/">Home</a> > Login > <a href="[% base_uri %]/forgot">Forgot Password?</a></h2>
+<h2><a href="[% base_uri %]/app/">Home</a> > Login > <a href="[% base_uri %]/forgot">Forgot Password?</a></h2>
 [% IF status == 'password_updated' %]
 <p><font color="red">Your password has been updated, please login</font></p>
 [% END %]
