@@ -4,7 +4,7 @@
 <div id="list_center">
 	<div class="content">
 
-<h2>[% PROCESS ad/groups/ads/nav.tmpl %] > [% UNLESS ad_sl.ad_sl_id  %]Create New Ad[% ELSE %]Edit Existing Ad[% END %]</h2>
+<h2>[% PROCESS ad/groups/ads/nav.tmpl %] > <a href="[% base_uri %]/app/ad/groups/ads/list?ad_group_id=[% ad_group.id %]">Ad Group '[% ad_group.name %]'</a> > [% UNLESS ad_sl.ad_sl_id  %]Create New Ad[% ELSE %]Edit Existing Ad[% END %]</h2>
 <hr size=1 color="#CCCCCC">
 <div id="edit_form">
 

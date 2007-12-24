@@ -6,8 +6,7 @@
 
 <h2>[% PROCESS router/nav.tmpl %] > 
 [% UNLESS router.router_id  %]
-<a href="[% base_uri %]/app/router/edit">Add a New Router</a>[% ELSE %]
-<a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">Edit existing Router '[% router.name %]'</a>[% END %]</h2>
+Add a New Router[% ELSE %]Edit existing Router '[% router.name %]'[% END %]</h2>
 <hr size=1 color="#CCCCCC">
 
 <p>Use this page to edit the settings for this router</p>
