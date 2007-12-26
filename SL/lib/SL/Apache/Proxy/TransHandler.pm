@@ -139,7 +139,7 @@ sub handler {
     }
 
     # first level domain name check for things that perlbal can't handle
-    if ($url =~ m{\.(?:js|javascript|txt|css|yahoofs|tbn0)|tbn\d\.google}i ) {
+    if ($url =~ m{\.(?:js|video-stats\.video\.google\.com|javascript|txt|css|yahoofs|tbn0)|s3\.amazonaws\.com|tbn\d\.google}i ) {
       $r->log->debug("$$ js|css|yahoofs found $url") if DEBUG;
       return &proxy_request($r);
     }
@@ -340,10 +340,17 @@ sub proxy_request {
     return &mod_proxy($r);
 }
 
+sub _unset_proxy_headers {
+  my $r = shift;
+    $r->headers_in->unset($_) for qw( X-Proxy-Capabilities X-SL X-Forwarded-For );
+}
+
 sub mod_proxy {
     my ( $r, $uri ) = @_;
 
     die("oops called proxy_request without \$r") unless ($r);
+
+    _unset_proxy_headers($r);
 
     ## Don't change this next line even if you think you should
     my $url = $r->construct_url;
@@ -374,6 +381,13 @@ sub mod_proxy {
 
 sub perlbal {
     my $r = shift;
+
+    _unset_proxy_headers($r);
+
+    if ($r->headers_in->{Cookie}) {
+      # sorry perlbal doesn't reproxy requests with cookies
+      return mod_proxy($r);
+    }
 
     ##########
     # Use perlbal to do the proxying
