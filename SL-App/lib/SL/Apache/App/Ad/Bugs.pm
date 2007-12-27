@@ -122,8 +122,12 @@ sub dispatch_list {
       SL::Model::App->resultset('Bug')
       ->search( { reg_id => $r->pnotes( $r->user )->reg_id } );
 
+    my @default_bugs = SL::Model::App->resultset('Bug')
+	  ->search({ is_default => 1 });
+
     my %tmpl_data = (
         bugs    => \@bugs,
+		default_bugs => \@default_bugs,
         count   => scalar(@bugs),
         root    => $r->pnotes('root'),
         session => $r->pnotes('session'),

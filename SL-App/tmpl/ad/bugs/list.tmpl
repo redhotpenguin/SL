@@ -11,7 +11,7 @@
 <tr><td><font color="red">[% session.msg %]</td></tr>
 [% END %]
 
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+<hr size=1 color="#CCCCCC">
 
 <p style="text-align: left; padding-bottom: 5px;">
 <a href="[% base_uri %]/app/ad/bugs/edit">Create a New Bug Image</a></span></p>
@@ -38,6 +38,29 @@
 
 </tr>
 [% END %]
+</table>
+
+<p style="text-align: left; padding-bottom: 5px;">
+Default bugs available</p>
+<table class="list">
+<tr class="list_header">
+<td>Name</td>
+<td>Image</td>
+</tr>
+
+[% FOREACH bug = default_bugs %]
+  <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
+	
+<!-- name -->
+  <td style="color: #639D63">&nbsp;&nbsp;[% bug.name or 'unnamed' %]</td>
+
+<!-- image href -->
+<td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
+<a href="[% bug.link_href %]"><img src="[% bug.image_href %]"></a></td>
+
+</tr>
+[% END %]
+
 </table>
 </div>
 </div>
