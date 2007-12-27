@@ -2,10 +2,11 @@
 
 [% PROCESS left.tmpl %]
 
-<div id="list_cenTer">
+<div id="list_center">
 <div class="content">
 
 <h2>[% PROCESS dashboard.tmpl %] > Blacklist Websites</h2>
+<hr size=1 color="#CCCCCC">
 
 [% IF status == 'exists' %]
 <p><font color="red">Url '[% url %]' has already been blacklisted :-)</font></p>
