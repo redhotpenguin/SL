@@ -4,6 +4,8 @@ body {
 /*	text-align: left; */
 }
 
+#wrap       { width:900px; margin:0 auto; } /* "auto" makes the left and right margins center the wrapper */  
+
 a {
 	text-decoration: underline;
 	font-weight: normal;
