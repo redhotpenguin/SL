@@ -1,10 +1,10 @@
 body {
 	margin: 15px 0px 0px 0px;
 	background-color: #FFFFFF;
-/*	text-align: left; */
+	text-align: center;
 }
 
-#wrap       { width:900px; margin:0 auto; } /* "auto" makes the left and right margins center the wrapper */  
+#wrap       { width:900px; margin:0 auto; text-align: left;} /* "auto" makes the left and right margins center the wrapper */  
 
 a {
 	text-decoration: underline;
@@ -70,9 +70,10 @@ a .banner-alt { display: none; }
 	}
 
 #container {
-	position: absolute;
-	top: 120px;
-	left: 50px;
+	position: relative;
+	top: 0px;
+	/* top: 120px; */
+	left: 0px;
 	line-height: 140%;
 	margin-right: auto;
 	margin-left: auto;
@@ -87,8 +88,8 @@ a .banner-alt { display: none; }
 #left {
 	position: relative;
 	top: 0px;
-	left: 0px;
-	width: 50px;
+	left: 10px;
+	width: 125px;
 /*	border: 1px solid; */
 	background-color: #FFFFff;
 }
@@ -96,8 +97,8 @@ a .banner-alt { display: none; }
 #right {
 	position: absolute;
 	top: 0px;
-	left: 630px;
-	width: 200px;
+	left: 650px;
+	width: 190px;
 	background-color: #FFFFFF;
 	border-left: 0px solid #cccccc;
 	overflow: hidden;
@@ -107,16 +108,16 @@ a .banner-alt { display: none; }
 #center {
 	position: absolute;
 	top: 0px;
-	left: 150px;
-	width: 450px;
+	left: 130px;
+	width: 500px;
 	overflow: hidden;
 }
 
 #list_center {
 	position: absolute;
 	top: 0px;
-	left: 150px;
-	width: 800px;
+	left: 130px;
+	width: 730px;
 	overflow: hidden;
 }
 
