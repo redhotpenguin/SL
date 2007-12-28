@@ -190,7 +190,7 @@ sub expire_cookie {
         -name  => $CONFIG->sl_app_cookie_name,
         -value => '',
         -expires => 'Mon, 21-May-1971 00:00:00 GMT',
-		-path    => '/sl/app/',
+		-path    => $CONFIG->sl_app_base_uri . '/app/',
     );
 
     $cookie->bake($r);
@@ -214,7 +214,7 @@ sub send_cookie {
         -name  => $CONFIG->sl_app_cookie_name,
         -value => $class->encode( \%state ),
         -expires => '14D',
-		-path    => '/sl/app/',
+		-path    => $CONFIG->sl_app_base_uri . '/app/',
     );
 
     $cookie->bake($r);
