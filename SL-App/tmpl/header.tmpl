@@ -8,8 +8,16 @@
 </head>
 	<body>
     <div id="wrap">	
-	<div id="banner">
+    <div id="top">
+	  <div id="banner">
 		<a id="banner-img" href="[% base_uri %]/app/home/index" style="background: #FFFFFF url('http://www.redhotpenguin.com/images/dashboard_banner.gif');">
 		<span class="banner-alt"></span></a>
-	</div>
+
+	  </div>
+      [% UNLESS no_settings %]
+      <div id="settings">
+        <p style="font-size: 12px; font-family: 'Trebuchet MS', Verdana, sans-serif;">[% email %] | <a href="[% base_uri %]/app/settings/index">Settings</a> | <a href="[% base_uri %]/logout">Logout</a> | <a href="http://silverliningworks.typepad.com/site/support.html">Help</a></p>
+      </div>
+      [% END %]
+    </div>
 	<div id="container">

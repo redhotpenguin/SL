@@ -41,10 +41,17 @@ a#banner-img {
 
 a .banner-alt { display: none; }
 
+#top {
+    width: 900px;
+	height: 100px;
+}
+
 #banner {
+	position: relative;
+	top: 0px;
+	left: 0px;
 	font-family: Verdana, Arial, sans-serif;
 	color: #336600;
-	background-color: #FFFFFF;
 	background: #FFFFFF url("http://www.redhotpenguin.com/images/dashboard_banner.gif");
 	width: 280px;
     margin-left: 30px;
@@ -69,20 +76,24 @@ a .banner-alt { display: none; }
 	display: none;
 	}
 
+#settings {
+   position: absolute;
+   top: 53px;
+   left: 500px;
+   overflow: hidden;
+   text-align: right;
+}
+
 #container {
 	position: relative;
 	top: 0px;
-	/* top: 120px; */
 	left: 0px;
 	line-height: 140%;
 	margin-right: auto;
 	margin-left: auto;
-/*	text-align: left; */
 	padding: 0px;
 	width: 900px;
-/*	border: 1px solid; */
 	background-color: #FFFFFF;
-/*	border-bottom: 1px solid #cccccc; */
 }
 
 #left {
@@ -90,7 +101,6 @@ a .banner-alt { display: none; }
 	top: 0px;
 	left: 10px;
 	width: 125px;
-/*	border: 1px solid; */
 	background-color: #FFFFff;
 }
 
@@ -102,7 +112,6 @@ a .banner-alt { display: none; }
 	background-color: #FFFFFF;
 	border-left: 0px solid #cccccc;
 	overflow: hidden;
-	/* border: 1px solid; */
 	}
 
 #center {
@@ -126,7 +135,6 @@ a .banner-alt { display: none; }
 	left: 0px;
 	width: 450px;
 	overflow: hidden;
-/*	border: 1px solid; */
 	}
 	
 .content {
