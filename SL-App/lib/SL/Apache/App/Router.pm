@@ -23,8 +23,7 @@ use SL::Model::App;    # works for now
 sub dispatch_index {
     my ($self, $r) = @_;
 
-    my %tmpl_data = ( root => $r->pnotes('root'),
-                       email => $r->user);
+    my %tmpl_data;
     my $output;
     my $ok = $tmpl->process('router/index.tmpl', \%tmpl_data, \$output, $r);
     $ok ? return $self->ok($r, $output) 
@@ -79,8 +78,6 @@ sub dispatch_edit {
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
-            root     => $r->pnotes('root'),
-            reg      => $reg,
             ad_groups => \@reg__ad_groups,
             router   => $router,
             locations => scalar(@locations > 0) ? \@locations :  '',
@@ -200,19 +197,28 @@ sub dispatch_list {
 		my $minutes = sprintf('%d', $sec/60);
 		if ( $sec <= 60) {
 			$router->{'last_seen'} = "$sec sec";
+			$router->{'seen_index'} = 1;
 		} elsif (($sec > 60) && ($minutes <= 60)) {
 			$router->{'last_seen'} = "$minutes min";
+			$router->{'seen_index'} = 2;
 		} elsif (($minutes > 60) && ($minutes < 1440) ) {
 			my $hours = sprintf('%d', $minutes/60);
 			$router->{'last_seen'} = "$hours hours";
+			$router->{'seen_index'} = 3;
 		} else {
-			my $days = sprintf('%d', $minutes/1440);
-			$router->{'last_seen'} = "$days days";
+				$router->{'last_seen'} = sprintf('%d', $minutes/1440) . ' days';
+			$router->{'seen_index'} = 4;
 		}
 	}
 
+	@routers = 
+		sort { $b->views_daily <=> $a->views_daily }
+		sort { $a->{'seen_index'} <=> $b->{'seen_index'} }
+		sort { $b->{'cpm_monthly'} <=> $a->{'cpm_monthly'} }
+		sort { $a->{'last_seen'} <=> $b->{'last_seen'} }
+            @routers;
+
 	my %tmpl_data = (
-        root  => $r->pnotes('root'),
         session => $r->pnotes('session'),
         routers => \@routers,
         count => scalar(@routers),
