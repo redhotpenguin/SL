@@ -42,12 +42,14 @@ a#banner-img {
 a .banner-alt { display: none; }
 
 #top {
-    width: 900px;
+    width: 800px;
 	height: 100px;
+	position: relative;
+	top: 0px;
 }
 
 #banner {
-	position: relative;
+	position: absolute;
 	top: 0px;
 	left: 0px;
 	font-family: Verdana, Arial, sans-serif;
@@ -77,9 +79,9 @@ a .banner-alt { display: none; }
 	}
 
 #settings {
-   position: absolute;
-   top: 53px;
-   left: 500px;
+   position: relative;
+   top: 40px;
+   right: 100px;
    overflow: hidden;
    text-align: right;
 }
