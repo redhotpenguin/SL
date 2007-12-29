@@ -32,7 +32,7 @@ sub dispatch_index {
     }
 
     my $output;
-    my $ok = $tmpl->process( 'blacklist.tmpl', \%tmpl_data, \$output );
+    my $ok = $tmpl->process( 'blacklist.tmpl', \%tmpl_data, \$output, $r );
     $ok
       ? return $self->ok( $r, $output )
       : return $self->error( $r,
@@ -85,7 +85,7 @@ sub dispatch_edit {
               $tmpl_data{'errors'} = $errors;
         }
   	    my $ok = $tmpl->process( 'blacklist/edit.tmpl', 
-                                 \%tmpl_data, \$output );
+                                 \%tmpl_data, \$output, $r );
         $ok
           ? return $self->ok( $r, $output )
           : return $self->error( $r,

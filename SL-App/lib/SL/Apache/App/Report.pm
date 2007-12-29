@@ -52,7 +52,7 @@ sub dispatch_index {
         );
 
         my $output;
-        my $ok = $tmpl->process( 'report.tmpl', \%tmpl_data, \$output );
+        my $ok = $tmpl->process( 'report.tmpl', \%tmpl_data, \$output, $r );
         $ok
           ? return $self->ok( $r, $output )
           : return $self->error( $r, "Template error: " . $tmpl->error() );

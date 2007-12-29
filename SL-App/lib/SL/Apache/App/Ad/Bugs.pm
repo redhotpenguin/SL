@@ -28,7 +28,7 @@ sub dispatch_index {
         email => $r->user
     );
     my $output;
-    my $ok = $tmpl->process( 'ad/bugs/index.tmpl', \%tmpl_data, \$output );
+    my $ok = $tmpl->process( 'ad/bugs/index.tmpl', \%tmpl_data, \$output, $r );
     $ok
       ? return $self->ok( $r, $output )
       : return $self->error( $r, "Template error: " . $tmpl->error() );
@@ -62,7 +62,7 @@ sub dispatch_edit {
             req    => $req,
         );
 
-        my $ok = $tmpl->process( 'ad/bugs/edit.tmpl', \%tmpl_data, \$output );
+        my $ok = $tmpl->process( 'ad/bugs/edit.tmpl', \%tmpl_data, \$output, $r );
         $ok
           ? return $self->ok( $r, $output )
           : return $self->error( $r, "Template error: " . $tmpl->error() );
@@ -134,7 +134,7 @@ sub dispatch_list {
     );
 
     my $output;
-    my $ok = $tmpl->process( 'ad/bugs/list.tmpl', \%tmpl_data, \$output );
+    my $ok = $tmpl->process( 'ad/bugs/list.tmpl', \%tmpl_data, \$output, $r );
     $ok
       ? return $self->ok( $r, $output )
       : return $self->error( $r, "Template error: " . $tmpl->error() );

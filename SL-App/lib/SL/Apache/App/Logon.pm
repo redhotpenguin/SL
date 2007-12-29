@@ -41,7 +41,7 @@ sub get {
 
     # build the template
     my $page;
-    my $tmpl_ok = $tmpl->process( 'login.tmpl', $login, \$page );
+    my $tmpl_ok = $tmpl->process( 'login.tmpl', $login, \$page, $r );
     unless ($tmpl_ok) {
         $r->log->error( "Error processing template: " . $tmpl->error() );
         return Apache2::Const::SERVER_ERROR;

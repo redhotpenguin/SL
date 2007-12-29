@@ -133,7 +133,7 @@ sub login {
          { status => $req->param('status') || '',
            error => $req->param('error') || '',
            dest  => $req->param('dest') || ''},
-            \$output );
+            \$output, $r );
 
         $ok
           ? return $class->ok( $r, $output )
