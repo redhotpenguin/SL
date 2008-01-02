@@ -4,23 +4,19 @@
 <div id="list_center">
 	<div class="content">
 
-<h2>[% PROCESS settings/nav.tmpl %]</h2>
+<h2>[% PROCESS settings/nav.tmpl %] > Manage Settings</h2>
 <hr size=1 color="#CCCCCC"></td>
 <div id="edit_form">
 
 <table class="edit">
-<tr><td colspan=2>
-<h2>Settings</h2></td></tr>
-
 [% IF session.msg %]
 <tr><td colspan=2><hr size=1 color="#CCCCCC" width=600px></td></tr>
 <tr><td><font color="red">[% session.msg %]</td></tr>
 [% END %]
 
-<tr><td colspan=2><hr size=1 color="#CCCCCC" width=600px></td></tr>
-<tr><td><a href="[% base_uri %]/app/settings/account">Email and Password</a> - Manage your account information</td></tr>
-<tr><td><a href="[% base_uri %]/app/settings/friends">Friends</a> - Manage users to share your account with</td></tr>
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+<p><a href="[% base_uri %]/app/settings/account">Login Info</a> - Manage your account information</p>
+<p><a href="[% base_uri %]/app/settings/friends">Friends</a> - Manage users to share your account with</p>
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></p>
 
 </table>
     </div>
