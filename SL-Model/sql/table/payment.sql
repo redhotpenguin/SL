@@ -2,9 +2,15 @@ CREATE TABLE payment (
     payment_id serial NOT NULL,
     reg_id integer NOT NULL,
     cts timestamp without time zone default now(),
-    pts timestamp without time zone,
+    start_ts timestamp without time zone,
+    finish_ts timestamp without time zone,
+    paid_ts timestamp without time zone,
+    approved_ts timestamp without time zone,
     approved boolean default 'f',
-    approved_reg_id integer
+    approved_reg_id integer not null default 1,
+    num_views integer not null,
+    cpm money not null,
+    amount money not null
 );
 
 
