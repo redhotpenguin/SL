@@ -7,6 +7,8 @@ WriteMakefile(
     NAME         => 'SL::Model',
     VERSION_FROM => 'lib/SL/Model.pm',
     PREREQ_PM    => {
+        'Business::PayPal::API'       => 0.52,
+        'Crypt::SSLeay'               => 0.57,
         'DBI'                         => 1.50,
         'GD::Graph'                   => 1.44,
         'DateTime::Format::Pg'        => 0.1,
