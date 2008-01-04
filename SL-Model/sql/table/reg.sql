@@ -19,6 +19,7 @@ SET default_with_oids = false;
 CREATE TABLE reg (
     reg_id integer NOT NULL,
     email character varying(64) DEFAULT ''::character varying NOT NULL,
+    paypal_id character varying(64) DEFAULT ''::character varying,
     zipcode character varying(10) DEFAULT ''::character varying,
     firstname character varying(32),
     lastname character varying(32),
