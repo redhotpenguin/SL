@@ -12,17 +12,17 @@ sl_report_admin fred@redhotpenguin.com
 
 # configure the database connection
 sl_db_name  sl
-sl_db_host  localhost
+sl_db_host  127.0.0.1
 sl_db_user  phred
 sl_db_pass  
 sl_db_ping_timeout 5
-sl_db_debug 1
+# sl_db_debug 1
 
 # debugging levels, etc.  debug is single user mode for apache -DONE_PROCESS
-sl_devel  1
+#sl_devel  1
 #sl_debug  1
 #sl_prof 1
-sl_status 1
+#sl_status 1
 #sl_small_prof  1
 
 # google ad stuff
@@ -32,6 +32,15 @@ sl_google_base_url_length  36
 sl_google_client_id_offset 62
 sl_google_ad_group_id 16
 sl_google_ad_id 255
+
+# paypal creds
+sl_paypal_username phredwolf_api1.yahoo.com
+sl_paypal_password 2VCJ55DWKQR5YFCP
+sl_paypal_signature AQU0e5vuZCvSg-XJploSa.sGUDlpA3aEJbJvqrODbc-xmNzelj7DrWDI
+
+# payment thresholds
+sl_default_cpm 1
+sl_default_views 5000
 
 # mogilefs
 sl_mogile_host  127.0.0.1:7001
@@ -49,7 +58,7 @@ sl_proxy_apache_max_requests_per_child 1
 sl_proxy_apache_start_servers  2
 sl_proxy_apache_max_spare_servers  1
 sl_proxy_apache_min_spare_servers  1
-sl_proxy_apache_loglevel  debug
+sl_proxy_apache_loglevel  error
 sl_proxy_apache_keepalive  Off
 sl_proxy_apache_user  phred
 sl_proxy_apache_group  phred
