@@ -10,7 +10,12 @@ CREATE TABLE payment (
     approved_reg_id integer not null default 1,
     num_views integer not null,
     cpm money not null,
-    amount money not null
+    amount money not null,
+    pp_timestamp timestamp with time zone,
+    pp_correlation_id text default '',
+    pp_version text default '',
+    pp_build text default '',
+    paid boolean default 'f'
 );
 
 
