@@ -11,7 +11,7 @@ our $DEBUG = 0;
 __PACKAGE__->loader_options(
 	relationships => 1,
 	debug => $DEBUG,
-#    dump_directory => '/tmp/foo', # use to update dynamic classes
+    dump_directory => '/tmp/foo', # use to update dynamic classes
 );
 
 my $params_ref = SL::Model->connect_params();

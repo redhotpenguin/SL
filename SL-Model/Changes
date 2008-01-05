@@ -1,5 +1,7 @@
 Revision history for Perl extension SL-Model.
 
+    - add paypal gateway
+
 0.15
     - fix global reports to be router specific
     - fix bug with report series, always sort by router_id

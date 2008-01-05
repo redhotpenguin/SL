@@ -2,6 +2,12 @@ Changes
 Makefile.PL
 MANIFEST
 README
+bin/sl_gen_payments.pl
+bin/sl_pay_payments.pl
+bin/sl_approve_payments.pl
+bin/sl_gen_receivables.pl
+bin/sl_collect_receivables.pl
+bin/sl_approve_receivables.pl
 bin/sl_mail_user_reports.pl
 bin/sl_rate_limit_cleanup.pl
 bin/sl_report.pl
@@ -13,6 +19,7 @@ lib/SL/Model/Ad.pm
 lib/SL/Model/Ad/Google.pm
 lib/SL/Model/App/Location.pm
 lib/SL/Model/App/Router.pm
+lib/SL/Model/App/Payment.pm
 lib/SL/Model/App/Reg.pm
 lib/SL/Model/App.pm
 lib/SL/Model/Test.pm
@@ -38,3 +45,4 @@ t/SL-Model-Report-Graph.t
 t/SL-Model-Report.t
 t/SL-Model-URL.t
 t/SL-Model.t
+
