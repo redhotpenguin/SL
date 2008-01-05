@@ -222,6 +222,26 @@ NOTE
     return \%response;
 }
 
+sub approve {
+  my ($self, $approver_reg) = @_;
+
+  if ($self->paid == 1) {
+    die sprintf("payment id %d already paid!\n", $self->payment_id);
+  }
+
+  if (($self->approved == 1) and
+      ($self->approved_reg_id != 1) and
+      (defined $self->approved_ts)) {
+    die sprintf("payment id %d already approved!\n", $self->payment_id);
+  }
+
+  # ok approve the payment
+  $self->approved_reg_id($approver_reg->reg_id);
+  $self->approved_ts(DateTime::Format::Pg->format_datetime(DateTime->now));
+  $self->approved(1);
+  return $self->update;
+}
+
 sub send_receipt {
     my ( $self, $args_ref ) = @_;
 
