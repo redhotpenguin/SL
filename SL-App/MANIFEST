@@ -42,7 +42,6 @@ tmpl/left.tmpl
 tmpl/login.tmpl
 tmpl/logout.tmpl
 tmpl/report.tmpl
-tmpl/right.tmpl
 tmpl/router/edit.tmpl
 tmpl/router/index.tmpl
 tmpl/router/list.tmpl
