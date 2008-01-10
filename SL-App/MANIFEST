@@ -49,6 +49,7 @@ tmpl/router/list.tmpl
 tmpl/router/nav.tmpl
 tmpl/settings/account.tmpl
 tmpl/settings/friends.tmpl
+tmpl/settings/payment.tmpl
 tmpl/settings/index.tmpl
 tmpl/settings/nav.tmpl
 tmpl/settings/router.tmpl
