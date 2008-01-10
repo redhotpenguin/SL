@@ -15,8 +15,8 @@
 <div id="edit_form">
 
 <span class="edit"> 
-<h3>To receive money for ad views on your network, enter your paypal id (email) and desired payment threshold.</h3>
-<h3>You will receive a payment and an email receipt when your account generates revenue equal to the payment threshold.</h3>
+<h2 style="width: 600px">To receive money for ad views on your network, enter your paypal id (email) and desired payment threshold.</h2>
+<h2 style="width: 600px">You will receive a payment and an email receipt when your account generates revenue equal to the payment threshold.</h2>
 <p><hr size=1 color="#CCCCCC"></p>
 <form method="POST" action="[% base_uri %]/app/settings/payment">
 <p>
@@ -27,7 +27,7 @@ PayPal ID:
 <input type="text" name="paypal_id" size="30" maxlength="30" value="[% req.param('paypal_id') or reg.paypal_id %]">
 </p>
 <p><font color="#CCCCCC">(Enter your PayPal ID)</font></p>
-<p><hr size=1 color="#FFFFF" style="color: #CCCCCC;"></p>
+<p><hr size=1 color="#FFFFFF"></p>
 <p>
 [% IF errors.missing.payment_threshold or errors.invalid.payment_threshold %]
 <font color="red">[% END %]
