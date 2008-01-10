@@ -10,7 +10,7 @@ MANIFEST
 htdocs/css/app.css
 t/TEST.PL
 t/01.t
-src/Apache-Dispatch-0.10_02.tar.gz
+src/Apache-Dispatch-0.10.tar.gz
 src/Crypt-CBC-2.22.tar.gz
 src/Data-FormValidator-4.50.tar.gz
 src/Template-Toolkit-2.14.tar.gz

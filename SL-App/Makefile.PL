@@ -14,7 +14,6 @@ ModPerl::MM::WriteMakefile(
     VERSION_FROM => 'lib/SL/Apache/App.pm',
     PREREQ_PM    => {
         'Apache::DBI'         => 1.06,
-        'Apache::Dispatch'    => 0.10_02,
         'Apache::Session'     => 1.83,
         'Crypt::CBC'          => 2.22,
         'Crypt::DES'          => 2.05,
