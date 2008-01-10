@@ -1,0 +1,51 @@
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage Payment Information"  %]
+[% PROCESS left.tmpl %]
+
+<div id="list_center">
+	<div class="content">
+
+<h2>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage Settings</a> > Payment Info</h2>
+<p><hr size=1 color="#CCCCCC"></p>
+
+[% IF session.msg %]
+<p><font color="red">[% session.msg %]</p>
+<p><hr size=1 color="#CCCCCC"></p>
+[% END %]
+
+<div id="edit_form">
+
+<span class="edit"> 
+<h3>To receive money for ad views on your network, enter your paypal id (email) and desired payment threshold.</h3>
+<h3>You will receive a payment and an email receipt when your account generates revenue equal to the payment threshold.</h3>
+<p><hr size=1 color="#CCCCCC"></p>
+<form method="POST" action="[% base_uri %]/app/settings/payment">
+<p>
+[% IF errors.missing.paypal_id or errors.invalid.paypal_id %]
+<font color="red">[% END %]
+PayPal ID:
+[% IF errors.missing.paypal_id or errors.invalid.paypal_id %]</font>[% END %]
+<input type="text" name="paypal_id" size="30" maxlength="30" value="[% req.param('paypal_id') or reg.paypal_id %]">
+</p>
+<p><font color="#CCCCCC">(Enter your PayPal ID)</font></p>
+<p><hr size=1 color="#FFFFF" style="color: #CCCCCC;"></p>
+<p>
+[% IF errors.missing.payment_threshold or errors.invalid.payment_threshold %]
+<font color="red">[% END %]
+Payment Threshold:
+[% IF errors.missing.payment_threshold or errors.invalid.payment_threshold %]
+</font>[% END %]
+$&nbsp;<input type="text" name="payment_threshold" size="5" maxlength="4" value="[% req.param('payment_threshold') or reg.payment_threshold  or '5' %]">
+</p>
+
+<p><font color="#CCCCCC">
+(Send payment when accout balance reaches this amount, minimum $5)</font></p>
+<p><hr size=1 color="#CCCCCC"></p>
+
+<p><input type="submit" value="Save"></p>
+</form>
+</span>
+</div>
+</div>
+</div>
+
+[% PROCESS  footer.tmpl %]

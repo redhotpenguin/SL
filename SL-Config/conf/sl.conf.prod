@@ -34,6 +34,15 @@ sl_google_ad_group_id 16
 sl_google_ad_id 255
 #sl_google_stealth 1
 
+# paypal production creds
+sl_paypal_prod_username phredwolf_api1.yahoo.com
+sl_paypal_prod_password 2VCJ55DWKQR5YFCP
+sl_paypal_prod_signature AQU0e5vuZCvSg-XJploSa.sGUDlpA3aEJbJvqrODbc-xmNzelj7DrWDI
+
+# paypal test creds
+sl_paypal_sandbox_username fred_s_1199482080_biz_api1.redhotpenguin.com
+sl_paypal_sandbox_password 1199482097
+sl_paypal_sandbox_signature AOYQzn1Msof3mkz-n7Z8-H.oD8YvAlpivvadPTh1EhrTZwOxrQ0w8Ocs 
 
 # default identity
 sl_default_hash_mac aabbccffdd

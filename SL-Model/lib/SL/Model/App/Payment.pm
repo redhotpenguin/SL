@@ -8,106 +8,109 @@ use base 'DBIx::Class';
 __PACKAGE__->load_components("Core");
 __PACKAGE__->table("payment");
 __PACKAGE__->add_columns(
-    "payment_id",
-    {
-        data_type     => "integer",
-        default_value => "nextval('payment_payment_id_seq'::regclass)",
-        is_nullable   => 0,
-        size          => 4,
-    },
-    "reg_id",
-    {
-        data_type     => "integer",
-        default_value => undef,
-        is_nullable   => 0,
-        size          => 4
-    },
-    "cts",
-    {
-        data_type     => "timestamp without time zone",
-        default_value => "now()",
-        is_nullable   => 1,
-        size          => 8,
-    },
-    "approved_ts",
-    {
-        data_type     => "timestamp without time zone",
-        default_value => undef,
-        is_nullable   => 1,
-        size          => 8,
-    },
-    "approved",
-    {
-        data_type     => "boolean",
-        default_value => "false",
-        is_nullable   => 1,
-        size          => 1,
-    },
-    "approved_reg_id",
-    { data_type => "integer", default_value => 1, is_nullable => 0, size => 4 },
-    "num_views",
-    {
-        data_type     => "integer",
-        default_value => undef,
-        is_nullable   => 0,
-        size          => 4
-    },
-    "cpm",
-    {
-        data_type     => "money",
-        default_value => undef,
-        is_nullable   => 0,
-        size          => 4
-    },
-    "amount",
-    {
-        data_type     => "money",
-        default_value => undef,
-        is_nullable   => 0,
-        size          => 4
-    },
-    "pp_timestamp",
-    {
-        data_type     => "timestamp with time zone",
-        default_value => undef,
-        is_nullable   => 1,
-        size          => 8,
-    },
-    "pp_correlation_id",
-    {
-        data_type     => "text",
-        default_value => "''::text",
-        is_nullable   => 1,
-        size          => undef,
-    },
-    "pp_version",
-    {
-        data_type     => "text",
-        default_value => "''::text",
-        is_nullable   => 1,
-        size          => undef,
-    },
-    "pp_build",
-    {
-        data_type     => "text",
-        default_value => "''::text",
-        is_nullable   => 1,
-        size          => undef,
-    },
-    "paid",
-    {
-        data_type     => "boolean",
-        default_value => "false",
-        is_nullable   => 1,
-        size          => 1,
-    },
+  "payment_id",
+  {
+    data_type => "integer",
+    default_value => "nextval('payment_payment_id_seq'::regclass)",
+    is_nullable => 0,
+    size => 4,
+  },
+  "reg_id",
+  { data_type => "integer", default_value => undef, is_nullable => 0, size => 4 },
+  "cts",
+  {
+    data_type => "timestamp without time zone",
+    default_value => "now()",
+    is_nullable => 1,
+    size => 8,
+  },
+  "approved_ts",
+  {
+    data_type => "timestamp without time zone",
+    default_value => undef,
+    is_nullable => 1,
+    size => 8,
+  },
+  "approved",
+  {
+    data_type => "boolean",
+    default_value => "false",
+    is_nullable => 1,
+    size => 1,
+  },
+  "approved_reg_id",
+  { data_type => "integer", default_value => 1, is_nullable => 0, size => 4 },
+  "num_views",
+  { data_type => "integer", default_value => undef, is_nullable => 0, size => 4 },
+  "cpm",
+  { data_type => "money", default_value => undef, is_nullable => 0, size => 4 },
+  "amount",
+  { data_type => "money", default_value => undef, is_nullable => 0, size => 4 },
+  "pp_timestamp",
+  {
+    data_type => "timestamp with time zone",
+    default_value => undef,
+    is_nullable => 1,
+    size => 8,
+  },
+  "pp_correlation_id",
+  {
+    data_type => "text",
+    default_value => "''::text",
+    is_nullable => 1,
+    size => undef,
+  },
+  "pp_version",
+  {
+    data_type => "text",
+    default_value => "''::text",
+    is_nullable => 1,
+    size => undef,
+  },
+  "pp_build",
+  {
+    data_type => "text",
+    default_value => "''::text",
+    is_nullable => 1,
+    size => undef,
+  },
+  "payable",
+  {
+    data_type => "boolean",
+    default_value => "false",
+    is_nullable => 0,
+    size => 1,
+  },
+  "receivable",
+  {
+    data_type => "boolean",
+    default_value => "false",
+    is_nullable => 0,
+    size => 1,
+  },
+  "collected",
+  {
+    data_type => "boolean",
+    default_value => "false",
+    is_nullable => 0,
+    size => 1,
+  },
+  "paid",
+  {
+    data_type => "boolean",
+    default_value => "false",
+    is_nullable => 0,
+    size => 1,
+  },
 );
 __PACKAGE__->set_primary_key("payment_id");
-__PACKAGE__->belongs_to( "reg_id", "SL::Model::App::Reg",
-    { reg_id => "reg_id" } );
+__PACKAGE__->belongs_to("reg_id", "SL::Model::App::Reg", { reg_id => "reg_id" });
 
-# Created by DBIx::Class::Schema::Loader v0.04002 @ 2008-01-05 11:51:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9Y+2z08mE3nnwZ5LI97I0Q
+
+# Created by DBIx::Class::Schema::Loader v0.04002 @ 2008-01-08 23:25:05
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sl4oXvKotMGimPintdq8/Q
+
+# These lines were loaded from '/Users/phred/dev/svn/sl/trunk/SL-Model/lib/SL/Model/App/Payment.pm' found in @INC.# They are now part of the custom portion of this file# for you to hand-edit.  If you do not either delete# this section or remove that file from @INC, this section# will be repeated redundantly when you re-create this# file again via Loader!
 
 use Business::PayPal::API qw( MassPay );
 use SL::Model::App;
@@ -164,6 +167,78 @@ sub new {
     return $self;
 }
 
+
+sub collect {
+    my ( $self, $recv ) = @_;
+
+    die "not a receivable"
+      unless $recv && $recv->isa('SL::Model::App::Payment');
+    die "ugh mutated transaction, DANGER!\n" . Dumper($recv) . "\n"
+      unless ( ( $recv->payable == 0 )
+        && ( $recv->receivable == 1 )
+        && ( $recv->approved == 1 )
+        && ( $recv->collected == 0 )
+        && ( $recv->paid == 0 ) );
+
+    # do a credit card authorization
+    my $reg = $recv->reg_id;
+    my $cc  = $reg->cc_id;
+
+    my %resp = $self->{pp}->DoDirectPaymentRequest(
+        PaymentAction     => 'Sale',
+        OrderTotal        => $recv->amount,
+        TaxTotal          => 0.0,
+        ShippingTotal     => 0.0,
+        ItemTotal         => 0.0,
+        HandlingTotal     => 0.0,
+        CreditCardType    => $cc->type,
+        CreditCardNumber  => $cc->number,
+        ExpMonth          => $cc->exp_month,
+        ExpYear           => $cc->exp_year,
+        CVV2              => $cc->cvvtwo,
+        FirstName         => $reg->fname,
+        LastName          => $reg->lname,
+        Street1           => $reg->streetone,
+        Street2           => $reg->streettwo,
+        CityName          => $reg->city,
+        StateOrProvince   => $reg->state,
+        PostalCode        => $reg->zip,
+        Country           => $reg->country,
+        Payer             => $reg->paypal_id,
+        CurrencyID        => 'USD',
+        IPAddress         => $reg->last_seen_ip,
+        MerchantSessionID => 420,
+    );
+
+    if ( $resp{Ack} ne 'Success' ) {
+        die "Request failed: " . Dumper( \%resp ) . "\n";
+    }
+
+    $recv->pp_correlation_id( $resp{'CorrelationID'} );
+    $recv->pp_timestamp( $resp{'Timestamp'} );
+    $recv->pp_version( $resp{'Version'} );
+    $recv->pp_build( $resp{'Build'} );
+    $recv->collected(1);
+    $recv->update;
+
+    return \%resp;
+}
+
+sub receivables {
+   my @sl_receivables = SL::Model::App->resultset('Payment')->search(
+        {
+            receivable => 1, # we get money from user
+            payable   => 0,
+            approved => 1,
+            paid     => 0,
+            collected => 0,
+        }
+    );
+   return unless @sl_receivables;
+   return \@sl_receivables;
+}
+
+
 # execute the payment transaction for payments that have been approved
 
 sub pay_payments {
@@ -172,8 +247,11 @@ sub pay_payments {
     # grab approved payments that haven't been paid
     my @sl_payments = SL::Model::App->resultset('Payment')->search(
         {
+            receivable    => 0,
+            payable       => 1, # we are paying the user
             approved => 1,
             paid     => 0,
+            collected => 0,
         }
     );
 

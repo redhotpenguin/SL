@@ -8,213 +8,258 @@ use base 'DBIx::Class';
 __PACKAGE__->load_components("Core");
 __PACKAGE__->table("reg");
 __PACKAGE__->add_columns(
-    "reg_id",
-    {
-        data_type     => "integer",
-        default_value => "nextval('reg_reg_id_seq'::regclass)",
-        is_nullable   => 0,
-        size          => 4,
-    },
-    "email",
-    {
-        data_type     => "character varying",
-        default_value => "''::character varying",
-        is_nullable   => 0,
-        size          => 64,
-    },
-    "zipcode",
-    {
-        data_type     => "character varying",
-        default_value => "''::character varying",
-        is_nullable   => 1,
-        size          => 10,
-    },
-    "firstname",
-    {
-        data_type     => "character varying",
-        default_value => undef,
-        is_nullable   => 1,
-        size          => 32,
-    },
-    "lastname",
-    {
-        data_type     => "character varying",
-        default_value => undef,
-        is_nullable   => 1,
-        size          => 32,
-    },
-    "description",
-    {
-        data_type     => "text",
-        default_value => undef,
-        is_nullable   => 1,
-        size          => undef,
-    },
-    "street_addr",
-    {
-        data_type     => "character varying",
-        default_value => undef,
-        is_nullable   => 1,
-        size          => 64,
-    },
-    "apt_suite",
-    {
-        data_type     => "character varying",
-        default_value => undef,
-        is_nullable   => 1,
-        size          => 5,
-    },
-    "referer",
-    {
-        data_type     => "character varying",
-        default_value => undef,
-        is_nullable   => 1,
-        size          => 32,
-    },
-    "phone",
-    {
-        data_type     => "character varying",
-        default_value => undef,
-        is_nullable   => 1,
-        size          => 14,
-    },
-    "cts",
-    {
-        data_type     => "timestamp without time zone",
-        default_value => "now()",
-        is_nullable   => 1,
-        size          => 8,
-    },
-    "mts",
-    {
-        data_type     => "timestamp without time zone",
-        default_value => "now()",
-        is_nullable   => 1,
-        size          => 8,
-    },
-    "sponsor",
-    {
-        data_type     => "character varying",
-        default_value => undef,
-        is_nullable   => 1,
-        size          => 64,
-    },
-    "street_addr2",
-    {
-        data_type     => "character varying",
-        default_value => undef,
-        is_nullable   => 1,
-        size          => 64,
-    },
-    "city",
-    {
-        data_type     => "character varying",
-        default_value => undef,
-        is_nullable   => 1,
-        size          => 64,
-    },
-    "state",
-    {
-        data_type     => "character",
-        default_value => undef,
-        is_nullable   => 1,
-        size          => 2,
-    },
-    "active",
-    {
-        data_type     => "boolean",
-        default_value => "true",
-        is_nullable   => 1,
-        size          => 1,
-    },
-    "report_email",
-    {
-        data_type     => "character varying",
-        default_value => "''::character varying",
-        is_nullable   => 1,
-        size          => 64,
-    },
-    "password_md5",
-    {
-        data_type     => "character varying",
-        default_value => undef,
-        is_nullable   => 1,
-        size          => 32,
-    },
-    "send_reports_daily",
-    {
-        data_type     => "boolean",
-        default_value => "false",
-        is_nullable   => 1,
-        size          => 1,
-    },
-    "send_reports_weekly",
-    {
-        data_type     => "boolean",
-        default_value => "false",
-        is_nullable   => 1,
-        size          => 1,
-    },
-    "send_reports_monthly",
-    {
-        data_type     => "boolean",
-        default_value => "false",
-        is_nullable   => 1,
-        size          => 1,
-    },
-    "send_reports_quarterly",
-    {
-        data_type     => "boolean",
-        default_value => "false",
-        is_nullable   => 1,
-        size          => 1,
-    },
-    "report_email_frequency",
-    {
-        data_type     => "character varying",
-        default_value => "''::character varying",
-        is_nullable   => 0,
-        size          => 16,
-    },
+  "reg_id",
+  {
+    data_type => "integer",
+    default_value => "nextval('reg_reg_id_seq'::regclass)",
+    is_nullable => 0,
+    size => 4,
+  },
+  "email",
+  {
+    data_type => "character varying",
+    default_value => "''::character varying",
+    is_nullable => 0,
+    size => 64,
+  },
+  "zipcode",
+  {
+    data_type => "character varying",
+    default_value => "''::character varying",
+    is_nullable => 1,
+    size => 10,
+  },
+  "firstname",
+  {
+    data_type => "character varying",
+    default_value => undef,
+    is_nullable => 1,
+    size => 32,
+  },
+  "lastname",
+  {
+    data_type => "character varying",
+    default_value => undef,
+    is_nullable => 1,
+    size => 32,
+  },
+  "description",
+  {
+    data_type => "text",
+    default_value => undef,
+    is_nullable => 1,
+    size => undef,
+  },
+  "street_addr",
+  {
+    data_type => "character varying",
+    default_value => undef,
+    is_nullable => 1,
+    size => 64,
+  },
+  "apt_suite",
+  {
+    data_type => "character varying",
+    default_value => undef,
+    is_nullable => 1,
+    size => 5,
+  },
+  "referer",
+  {
+    data_type => "character varying",
+    default_value => undef,
+    is_nullable => 1,
+    size => 32,
+  },
+  "phone",
+  {
+    data_type => "character varying",
+    default_value => undef,
+    is_nullable => 1,
+    size => 14,
+  },
+  "cts",
+  {
+    data_type => "timestamp without time zone",
+    default_value => "now()",
+    is_nullable => 1,
+    size => 8,
+  },
+  "mts",
+  {
+    data_type => "timestamp without time zone",
+    default_value => "now()",
+    is_nullable => 1,
+    size => 8,
+  },
+  "sponsor",
+  {
+    data_type => "character varying",
+    default_value => undef,
+    is_nullable => 1,
+    size => 64,
+  },
+  "street_addr2",
+  {
+    data_type => "character varying",
+    default_value => undef,
+    is_nullable => 1,
+    size => 64,
+  },
+  "city",
+  {
+    data_type => "character varying",
+    default_value => undef,
+    is_nullable => 1,
+    size => 64,
+  },
+  "state",
+  {
+    data_type => "character",
+    default_value => undef,
+    is_nullable => 1,
+    size => 2,
+  },
+  "active",
+  {
+    data_type => "boolean",
+    default_value => "true",
+    is_nullable => 1,
+    size => 1,
+  },
+  "report_email",
+  {
+    data_type => "character varying",
+    default_value => "''::character varying",
+    is_nullable => 1,
+    size => 64,
+  },
+  "password_md5",
+  {
+    data_type => "character varying",
+    default_value => undef,
+    is_nullable => 1,
+    size => 32,
+  },
+  "send_reports_daily",
+  {
+    data_type => "boolean",
+    default_value => "false",
+    is_nullable => 1,
+    size => 1,
+  },
+  "send_reports_weekly",
+  {
+    data_type => "boolean",
+    default_value => "false",
+    is_nullable => 1,
+    size => 1,
+  },
+  "send_reports_monthly",
+  {
+    data_type => "boolean",
+    default_value => "false",
+    is_nullable => 1,
+    size => 1,
+  },
+  "send_reports_quarterly",
+  {
+    data_type => "boolean",
+    default_value => "false",
+    is_nullable => 1,
+    size => 1,
+  },
+  "report_email_frequency",
+  {
+    data_type => "character varying",
+    default_value => "''::character varying",
+    is_nullable => 0,
+    size => 16,
+  },
+  "paypal_id",
+  {
+    data_type => "text",
+    default_value => undef,
+    is_nullable => 1,
+    size => undef,
+  },
+  "payment_threshold",
+  { data_type => "integer", default_value => 5, is_nullable => 0, size => 4 },
 );
 __PACKAGE__->set_primary_key("reg_id");
-__PACKAGE__->has_many( "ad_groups", "SL::Model::App::AdGroup",
-    { "foreign.reg_id" => "self.reg_id" },
+__PACKAGE__->has_many(
+  "ad_groups",
+  "SL::Model::App::AdGroup",
+  { "foreign.reg_id" => "self.reg_id" },
 );
-__PACKAGE__->has_many( "ad_sls", "SL::Model::App::AdSl",
-    { "foreign.reg_id" => "self.reg_id" },
+__PACKAGE__->has_many(
+  "ad_sls",
+  "SL::Model::App::AdSl",
+  { "foreign.reg_id" => "self.reg_id" },
 );
-__PACKAGE__->has_many( "bugs", "SL::Model::App::Bug",
-    { "foreign.reg_id" => "self.reg_id" },
+__PACKAGE__->has_many(
+  "bugs",
+  "SL::Model::App::Bug",
+  { "foreign.reg_id" => "self.reg_id" },
 );
-__PACKAGE__->has_many( "forgots", "SL::Model::App::Forgot",
-    { "foreign.reg_id" => "self.reg_id" },
+__PACKAGE__->has_many(
+  "forgots",
+  "SL::Model::App::Forgot",
+  { "foreign.reg_id" => "self.reg_id" },
 );
-__PACKAGE__->has_many( "reg__ad_groups", "SL::Model::App::RegAdGroup",
-    { "foreign.reg_id" => "self.reg_id" },
+__PACKAGE__->has_many(
+  "payments",
+  "SL::Model::App::Payment",
+  { "foreign.reg_id" => "self.reg_id" },
 );
-__PACKAGE__->has_many( "reg__reg_sec_reg_ids", "SL::Model::App::RegReg",
-    { "foreign.sec_reg_id" => "self.reg_id" },
+__PACKAGE__->has_many(
+  "reg__ad_groups",
+  "SL::Model::App::RegAdGroup",
+  { "foreign.reg_id" => "self.reg_id" },
 );
-__PACKAGE__->has_many( "reg__reg_first_reg_ids", "SL::Model::App::RegReg",
-    { "foreign.first_reg_id" => "self.reg_id" },
+__PACKAGE__->has_many(
+  "reg__reg_sec_reg_ids",
+  "SL::Model::App::RegReg",
+  { "foreign.sec_reg_id" => "self.reg_id" },
 );
-__PACKAGE__->has_many( "roots", "SL::Model::App::Root",
-    { "foreign.reg_id" => "self.reg_id" },
+__PACKAGE__->has_many(
+  "reg__reg_first_reg_ids",
+  "SL::Model::App::RegReg",
+  { "foreign.first_reg_id" => "self.reg_id" },
 );
-__PACKAGE__->has_many( "router__regs", "SL::Model::App::RouterReg",
-    { "foreign.reg_id" => "self.reg_id" },
+__PACKAGE__->has_many(
+  "roots",
+  "SL::Model::App::Root",
+  { "foreign.reg_id" => "self.reg_id" },
 );
-__PACKAGE__->has_many( "urls", "SL::Model::App::Url",
-    { "foreign.reg_id" => "self.reg_id" },
+__PACKAGE__->has_many(
+  "router__regs",
+  "SL::Model::App::RouterReg",
+  { "foreign.reg_id" => "self.reg_id" },
+);
+__PACKAGE__->has_many(
+  "urls",
+  "SL::Model::App::Url",
+  { "foreign.reg_id" => "self.reg_id" },
 );
 
-use Data::Dumper;
+
+# Created by DBIx::Class::Schema::Loader v0.04002 @ 2008-01-09 00:24:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iVJQEvV7oqmzM6ZZ/N+Pcw
+
+# These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Reg.pm' found in @INC.# They are now part of the custom portion of this file# for you to hand-edit.  If you do not either delete# this section or remove that file from @INC, this section# will be repeated redundantly when you re-create this# file again via Loader!
+
+
 use File::Path qw(mkpath);
-
 use SL::Model::App;
 use SL::Config;
 my $config = SL::Config->new();
+
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
+if (DEBUG) {
+  require Data::Dumper;
+
+}
 
 sub report_dir_base {
     my $self = shift;
