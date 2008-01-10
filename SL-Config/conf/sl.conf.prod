@@ -5,11 +5,6 @@ sl_version  trunk
 sl_data_root /tmp/data/sl
 sl_ip_cache_file	/tmp/sl_ips
 
-sl_cache_url http://app.silverliningnetworks.com/cache
-
-# reporting
-sl_report_admin fred@redhotpenguin.com
-
 # configure the database connection
 sl_db_name  sl
 sl_db_host	localhost
@@ -21,6 +16,7 @@ sl_db_debug 0
 
 # debugging levels, etc.  debug is single user mode for apache -DONE_PROCESS
 #sl_devel  1
+# sl_mod_debug 1 # SL::* module debugging
 #sl_debug  1
 #sl_prof  1
 #sl_status 1
@@ -59,14 +55,14 @@ sl_proxy_apache_maxclients  384
 sl_proxy_apache_start_servers  192
 sl_proxy_apache_max_spare_servers  64
 sl_proxy_apache_min_spare_servers  32
-sl_proxy_apache_loglevel  error
-# sl_proxy_apache_loglevel  info
-# sl_proxy_apache_loglevel  debug
-sl_proxy_apache_keepalive  Off
+sl_proxy_apache_loglevel  warn
+#sl_proxy_apache_loglevel  info
+#sl_proxy_apache_loglevel  debug
+sl_proxy_apache_keepalive  On
 sl_proxy_apache_user  phred
 sl_proxy_apache_group  users
 sl_proxy_admin support@silverliningnetworks.com
-sl_proxy_apache_listen  69.36.240.29:80
+sl_proxy_apache_listen  127.0.0.1:8000
 sl_proxy_apache_max_requests_per_child 250
 
 sl_proxy_servername  app.redhotpenguin.com
@@ -75,11 +71,12 @@ sl_proxy_rate_limit '10'
 sl_clickserver_url http://69.36.240.29:81/click/
 sl_whitelist  Off
 sl_method  Container
+sl_proxy  mod_proxy
 sl_css_uri  http://www.redhotpenguin.com/css/sl.css
 
 # app server settings
 sl_app_root /home/phred/dev/sl/sl_app_root
-sl_app_servername  app.redhotpenguin.com
+sl_app_servername  app.silverliningnetworks.com
 sl_app_apache_deflate  1
 sl_app_apache_loglevel  error
 sl_app_apache_maxclients  32
@@ -97,6 +94,6 @@ sl_app_base_uri '/sl'
 sl_app_home_uri http://www.silverliningnetworks.com/
 sl_app_css_uri http://www.redhotpenguin.com/css/app.css
 sl_app_report_uri https://www.redhotpenguin.com/img/data
-sl_app_server https://www.redhotpenguin.com
+sl_app_server https://app.silverliningnetworks.com
 
 
