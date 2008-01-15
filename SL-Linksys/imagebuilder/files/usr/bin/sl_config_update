@@ -12,9 +12,9 @@ our $REBOOT = 0;
 #############################################
 # gather up the files that need to be updated
 
-print STDERR '==> updating config file\n' if $DEBUG;
+print STDERR "==> updating config file\n" if $DEBUG;
 my $updated = _update_config_file($CONFIG_FILE);
-print STDERR '<== config file updated\n' if $DEBUG;
+print STDERR "<== config file updated\n" if $DEBUG;
 $REBOOT = 1 if $updated;
 my $urls_ref = _http_urls_from_config($CONFIG_FILE);
 
@@ -68,6 +68,7 @@ sub _update_config_file {
 
     my $url;
     my $line_count = 0;
+
     while ( my $line = <$fh> ) {
         $line_count++;
         chomp($line);
@@ -77,11 +78,18 @@ sub _update_config_file {
     }
     close($fh) or die $!;
 
+    if (! defined $url ) {
+    	print STDERR "url not found, using default\n";
+    	$url = $DEFAULT_CONFIG_URL;
+    }
+
     if ( $line_count == 0 ) {
 
         # bad news, config file got nuked
+	print STDERR "config file nuked, restoring\n";
         $url = $DEFAULT_CONFIG_URL;
     }
+
     my $updated = _grab_and_update( $url, $config_file );
     return 1 if $updated;
     return;
@@ -99,19 +107,30 @@ sub _grab_and_update {
     unlink($file) if -e $file;
 
     # grab the updated file
+    print STDERR "grabbing file $url\n" if $DEBUG;
     my $grab = `/usr/bin/wget $url`;
     if ( -e $file ) {
         my $fh;
         open( $fh, '<', $file ) or die $!;
         my $has_lines = 0;
-        while (<$fh>) {
-            $has_lines++;
-            last;
+        my $first_line;
+	while (<$fh>) {
+         if ($has_lines == 0) {
+           $first_line = $_;
+         }
+         $has_lines++;
+         last;
         }
         unless ($has_lines) {
             print STDERR "ERROR: file $file has no lines, grab $grab\n";
             exit(1);
         }
+ 
+        if ($file eq 'sl.conf' && (substr($first_line, 0, 5) ne 'proxy')) {
+            print STDERR "ERROR: invalid first line in config file\n";
+            exit(1);
+        }
+
         print "$file retrieved ok\n" if $DEBUG;
 
         # figure out where it should go

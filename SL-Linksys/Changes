@@ -1,5 +1,9 @@
 Revision history for Perl extension SL-Linksys.
 
+0.16 Tue Jan 15 15:32:59 PST
+    - fix bug in sl_config_update where it would grab a AAA screen instead
+      of the updated config file during auto config update
+
 0.15 Sun Dec 16 20:04:04
     - fix bug with firmware update where partial file downloaded
     - fix bug with sl_fw_ha when network was not up
