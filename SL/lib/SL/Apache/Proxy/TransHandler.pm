@@ -113,10 +113,21 @@ sub handler {
     }
 
     ## Handle non-browsers that use port 80
-    if(SL::BrowserUtil->not_a_browser( $r->pnotes('ua') )) {
+    my $browser_name = SL::BrowserUtil->is_a_browser( $r->pnotes('ua') );
+    if(! $browser_name ) {
         $r->log->debug("$$ not a browser: " . $r->as_string) if DEBUG;
         $r->pnotes('not_a_browser' => 1);
         return &proxy_request($r);
+
+    } elsif ($browser_name) {
+
+      if ($browser_name eq 'opera') {
+        # sorry opera locks up on stuff
+        return handle_opera_redirect($r);
+      } else {
+        $r->pnotes('browser_name') = $browser_name;
+      }
+
     }
 
     # get only
@@ -265,6 +276,15 @@ sub handler {
       if TIMING;
 
     return Apache2::Const::OK;
+}
+
+sub handle_opera_redirect {
+  my $r = shift;
+
+  $r->set_handlers(
+                   PerlResponseHandler => ['SL::Apache::Proxy::OperaHandler']
+  );
+  return Apache2::Const::OK;
 }
 
 sub handle_splash_redirect {

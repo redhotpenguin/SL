@@ -7,6 +7,7 @@ lib/SL/Apache/Proxy/LogHandler.pm
 lib/SL/Apache/Proxy/PostReadRequestHandler.pm
 lib/SL/Apache/Proxy/PingHandler.pm
 lib/SL/Apache/Proxy/ResponseHandler.pm
+lib/SL/Apache/Proxy/OperaHandler.pm
 lib/SL/Apache/Proxy/SplashHandler.pm
 lib/SL/Apache/Proxy/AccessHandler.pm
 lib/SL/Util.pm
@@ -78,6 +79,7 @@ tmpl/ipod_personal.tmpl
 tmpl/javascript.tmpl
 tmpl/kinkos.tmpl
 tmpl/linktoads.tmpl
+tmpl/opera.tmpl
 tmpl/local_com.tmpl
 tmpl/reg.tmpl
 tmpl/skype.tmpl

@@ -31,8 +31,6 @@ use Apache2::ServerRec       ();
 use Apache2::ServerUtil      ();
 use Apache2::URI             ();
 use APR::Table               ();
-#use SL::HTTP::Request        ();
-#use SL::UserAgent            ();
 use SL::HTTP::Client ();
 use SL::Model::Ad            ();
 use SL::Cache                ();

@@ -1,6 +1,9 @@
 Revision history for Perl extension SL-BrowserUtil.
 
-0.01  Fri Nov 30 00:40:40 2007
-	- original version; created by h2xs 1.23 with options
+0.02  Tue Jan 14 2008 13:44:50 PST
+    - return browser name of opera or mozilla, isa_browser
+
+0.01  Fri Nov 30 2008 00:40:40 PST
+    - original version; created by h2xs 1.23 with options
 		-X SL-BrowserUtil
 
