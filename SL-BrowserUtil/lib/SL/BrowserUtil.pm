@@ -19,10 +19,12 @@ sub is_a_browser {
     # all browsers start with Mozilla, at least in apache
     my $browser_name;
     if (substr( $ua, 0, 7 ) eq 'Mozilla' ) {
-		if (substr( $ua, 28, 7 ) eq 'Opera' ) {
-			$browser_name = 'opera'; # early opera versions
+		if ( (length($ua) > 49 ) &&
+            ((substr( $ua, 49, 7 ) eq 'Opera 6') or
+		    (substr( $ua, 47, 7 ) eq 'Opera 7' ))) {
+			$browser_name = 'opera'; # opera 6 & 7
 			return $browser_name;
-		} else {
+        } else {
 			$browser_name = 'mozilla';
 			return $browser_name;
 		}
