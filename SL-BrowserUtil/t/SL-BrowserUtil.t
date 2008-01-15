@@ -21,19 +21,24 @@ BEGIN {
 my $browser;
 my $user_agent =
 'Mozilla/5.0 (Macintosh; U; PPC Mac OS X Mach-O; en-US; rv:1.8.0.2) Gecko/20060308 Firefox/1.5.0.2';
-ok($browser = $pkg->is_a_browser( $user_agent), 'firefox 1.5 is a browser');
+$browser = $pkg->is_a_browser( $user_agent);
+cmp_ok($browser, 'eq', 'mozilla','firefox 1.5 is a browser');
 
 $user_agent = 'Mozilla/4.0 (compatible; MSIE 5.0; Windows 2000) Opera 6.0 [en]';
-ok($browser = $pkg->is_a_browser( $user_agent), 'opera 6');
+$browser = $pkg->is_a_browser( $user_agent);
+cmp_ok($browser, 'eq', 'opera', 'opera 6');
 
 $user_agent = 'Mozilla/4.0 (compatible; MSIE 6.0; Windows ME) Opera 7.11  [en]';
-ok($browser = $pkg->is_a_browser( $user_agent), 'opera 7.11 en');
+$browser = $pkg->is_a_browser( $user_agent);
+cmp_ok($browser, 'eq', 'opera', 'opera 7.11 en');
 
 $user_agent = "Opera/7.54 (Windows NT 5.1; U)  [pl]";
 ok($browser = $pkg->is_a_browser( $user_agent), 'opera 7.54 pl');
+cmp_ok($browser, 'eq', 'opera');
 
 $user_agent = "Opera/9.00 (Windows NT 5.1; U; en)";
 ok($browser = $pkg->is_a_browser( $user_agent), 'opera 9');
+cmp_ok($browser, 'eq', 'opera');
 
 $user_agent = "Mozilla/5.0 (Macintosh; U; PPC Mac OS X; en) AppleWebKit/418.9 (KHTML, like Gecko) Safari/419.3";
 ok($browser = $pkg->is_a_browser( $user_agent), 'safari/419.3');

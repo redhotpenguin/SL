@@ -18,15 +18,21 @@ sub is_a_browser {
 
     # all browsers start with Mozilla, at least in apache
     my $browser_name;
-    if ( $browser_name = ( substr( $ua, 0, 7 ) eq 'Mozilla' )
-      or ( $browser_name = substr( $ua, 0, 5 ) eq 'Opera' )  ){
-          warn("$$ This is a browser: $browser_name")
-            if VERBOSE_DEBUG;
-            return $browser_name;
-      }
-
+    if (substr( $ua, 0, 7 ) eq 'Mozilla' ) {
+		if (substr( $ua, 28, 7 ) eq 'Opera' ) {
+			$browser_name = 'opera'; # early opera versions
+			return $browser_name;
+		} else {
+			$browser_name = 'mozilla';
+			return $browser_name;
+		}
+	} elsif ( substr( $ua, 0, 5 ) eq 'Opera')  {
+      $browser_name = 'opera';
+		return $browser_name;
+    } else {
       warn("$$ This is not a browser: $ua") if VERBOSE_DEBUG;
-    return;
+      return;
+	}
 }
 
 1;
