@@ -125,7 +125,7 @@ sub handler {
         # sorry opera locks up on stuff
         return handle_opera_redirect($r);
       } else {
-        $r->pnotes('browser_name') = $browser_name;
+        $r->pnotes('browser_name' => $browser_name);
       }
 
     }
