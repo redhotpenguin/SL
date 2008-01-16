@@ -31,16 +31,15 @@ Listen [% cfg.sl_proxy_apache_listen %]
     # If mod_proxy is used for proxy forwarding
     ProxyRequests On
 	
-
     <IfModule mod_cache.c>
         <IfModule mod_mem_cache.c>
             CacheEnable mem /
 			# /ig is for igoogle.com, disable
 			CacheDisable /ig
-            MCacheSize 65536
-            MCacheMaxObjectCount 1024
+            MCacheSize 524288
+            MCacheMaxObjectCount 4096
             MCacheMinObjectSize 1
-            MCacheMaxObjectSize 4096
+            MCacheMaxObjectSize 8192
         </IfModule>
     </IfModule>
 </IfModule>

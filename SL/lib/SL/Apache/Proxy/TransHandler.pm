@@ -258,8 +258,8 @@ sub handler {
     # User and content driven handling
     # Close this bar
     if (user_blacklisted( $r, $dbh )) {
-        $r->log->debug("$$ user blacklisted") if DEBUG;
-        return &proxy_request($r);
+		$r->log->debug("$$ user blacklisted") if DEBUG;
+        return &handle_user_blacklisted($r);
     }
 
     # check for sub-reqs if it passed the other tests
@@ -276,6 +276,15 @@ sub handler {
       if TIMING;
 
     return Apache2::Const::OK;
+}
+
+sub handle_user_blacklisted {
+  my $r= shift;
+
+  # delete any caching headers to make sure we get a fresh page
+  $r->headers_in->unset($_) for qw( If-Modified-Since If-None-Match );
+
+  return &proxy_request($r);
 }
 
 sub handle_opera_redirect {
