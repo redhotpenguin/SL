@@ -111,7 +111,7 @@ sub _redirect {
 		$r->headers_out->set(Location => $r->construct_url('/'));
 	} else {
 		# redirect back to the referring page
-		$r->headers_out->set(Location => $r->pnotes('referer'));
+		$r->headers_out->set(Location => $r->pnotes('referer') . '#');
 	}
     $r->no_cache(1);
     $r->server->add_version_component( 'sl' );
