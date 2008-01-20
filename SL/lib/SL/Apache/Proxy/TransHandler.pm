@@ -226,7 +226,8 @@ sub handler {
       )
     {
 
-        $r->pnotes( 'ad_id' => $ad_id );
+		# ugh, this bug counted google ads twice
+		# $r->pnotes( 'ad_id' => $ad_id );
         $r->log->debug( "$$ google ad view match for url $url, ip "
               . $r->connection->remote_ip)
           if DEBUG;
