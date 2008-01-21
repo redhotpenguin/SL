@@ -6,7 +6,7 @@
 
 <h2>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage Account</a> > Payment Info</h2>
 <p><hr size=1 color="#CCCCCC"></p>
-
+<h3>Payment Info</h3>
 [% IF session.msg %]
 <p><font color="red">[% session.msg %]</p>
 <p><hr size=1 color="#CCCCCC"></p>
@@ -15,8 +15,8 @@
 <div id="edit_form">
 
 <span class="edit"> 
-<h2 style="width: 600px">To receive money for ad views on your network, enter your paypal id (email) and desired payment threshold.</h2>
-<h2 style="width: 600px">You will receive a payment and an email receipt when your account generates revenue equal to the payment threshold.</h2>
+<p style="width: 600px">To receive money for ad views on your network, enter your paypal id (email) and desired payment threshold.</h2><br />
+<p style="width: 600px">You will receive a payment and an email receipt when your account generates revenue equal to the payment threshold.</h2>
 <p><hr size=1 color="#CCCCCC"></p>
 <form method="POST" action="[% base_uri %]/app/settings/payment">
 <p>
