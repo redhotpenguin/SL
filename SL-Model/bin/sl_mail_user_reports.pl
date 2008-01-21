@@ -81,7 +81,7 @@ DATA
 	my $attached_something = 0;	
     foreach my $temporal ( @intervals ) {
 
-        foreach my $type qw( views clicks rates ads ) {
+        foreach my $type qw( views ) { # clicks rates ads ) {
           my $filename = "$type\_$temporal.png";
 		  next unless -e "$dir/$filename";
 		  
