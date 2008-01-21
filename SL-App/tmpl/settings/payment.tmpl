@@ -4,7 +4,7 @@
 <div id="list_center">
 	<div class="content">
 
-<h2>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage Settings</a> > Payment Info</h2>
+<h2>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage Account</a> > Payment Info</h2>
 <p><hr size=1 color="#CCCCCC"></p>
 
 [% IF session.msg %]
@@ -34,11 +34,20 @@ PayPal ID:
 Payment Threshold:
 [% IF errors.missing.payment_threshold or errors.invalid.payment_threshold %]
 </font>[% END %]
-$&nbsp;<input type="text" name="payment_threshold" size="5" maxlength="4" value="[% req.param('payment_threshold') or reg.payment_threshold  or '5' %]">
+<select name="payment_threshold">
+<option value="5" [% IF reg.payment_threshold == 5 %]SELECTED[% END %]>$5
+<option value="10" [% IF reg.payment_threshold == 10 %]SELECTED[% END %]>$10
+<option value="20" [% IF reg.payment_threshold == 20 %]SELECTED[% END %]>$20
+<option value="50" [% IF reg.payment_threshold == 50 %]SELECTED[% END %]>$50
+<option value="100" [% IF reg.payment_threshold == 100 %]SELECTED[% END %]>$100
+</select>
+<!--
+
+<input type="text" name="payment_threshold" size="5" maxlength="4" value="[% req.param('payment_threshold') or reg.payment_threshold  or '5' %]"> -->
 </p>
 
 <p><font color="#CCCCCC">
-(Send payment when accout balance reaches this amount, minimum $5)</font></p>
+(Send payment when account balance reaches this amount)</font></p>
 <p><hr size=1 color="#CCCCCC"></p>
 
 <p><input type="submit" value="Save"></p>

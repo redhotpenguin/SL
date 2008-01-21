@@ -37,7 +37,7 @@ sub dispatch_index {
     my @router__regs = $r->pnotes( $r->user )->router__regs;
     my @routers      = map { $_->router_id } @router__regs;
 
-    $r->log->debug( "session: " . Dumper( $r->pnotes('session') ) ) if DEBUG;
+    $r->log->debug( "sessionnow: " . Dumper( $r->pnotes('session') ) ) if DEBUG;
 
     # see if this ip is currently unregistered;
     if ( $r->method_number == Apache2::Const::M_GET ) {
@@ -111,10 +111,8 @@ sub dispatch_account {
             $r->pnotes( $r->user )->update;
             $path .= 'email_updated=1&';
         }
-
-        my $redir = $r->construct_url( $r->uri . "$path" );
-
-        $r->internal_redirect($redir);
+        $r->pnotes('session')->{msg} = "Settings have been updated";
+        $r->internal_redirect("/app/settings/index");
         return Apache2::Const::OK;
     }
 }
@@ -168,7 +166,9 @@ sub dispatch_payment {
         $reg->payment_threshold($req->param('payment_threshold'));
         $reg->update;
 
-        $r->pnotes('session')->{msg} = "Payment settings have been updated";
+		my $sess = $r->pnotes('session');
+		$sess->{msg} = "Payment settings have been updated";
+		$r->pnotes('session' => $sess);
         $r->internal_redirect("/app/settings/index");
         return Apache2::Const::OK;
     }
