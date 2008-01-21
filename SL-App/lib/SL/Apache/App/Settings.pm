@@ -42,9 +42,6 @@ sub dispatch_index {
     # see if this ip is currently unregistered;
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
-            session => $r->pnotes('session'),
-            root    => $r->pnotes('root'),
-            reg     => $r->pnotes( $r->user ),
             status  => $req->param('status') || '',
         );
         if ( scalar(@routers) > 0 ) {
@@ -52,7 +49,7 @@ sub dispatch_index {
         }
 
         my $output;
-        my $ok = $tmpl->process( 'settings/index.tmpl', \%tmpl_data, \$output );
+        my $ok = $tmpl->process( 'settings/index.tmpl', \%tmpl_data, \$output, $r );
         $ok
           ? return $self->ok( $r, $output )
           : return $self->error( $r, "Template error: " . $tmpl->error() );
@@ -64,8 +61,6 @@ sub dispatch_account {
     my $req = Apache2::Request->new($r);
 
     my %tmpl_data = (
-        root             => $r->pnotes('root'),
-        reg              => $r->pnotes( $r->user ),
         status           => $req->param('status') || '',
         password_updated => $req->param('password_updated') || '',
     );
@@ -191,10 +186,7 @@ sub dispatch_friends {
          # see if this ip is currently unregistered;
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
-            session => $r->pnotes('session'),
-            root    => $r->pnotes('root'),
             friends => \@friends,
-            reg     => $reg,
             errors  => $args_ref->{errors},
             user    => $friend,
         );
