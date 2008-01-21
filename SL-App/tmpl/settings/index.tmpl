@@ -4,13 +4,15 @@
 <div id="list_center">
 	<div class="content">
 
-<h2>[% PROCESS settings/nav.tmpl %] > Manage Settings</h2>
+<h2>[% PROCESS settings/nav.tmpl %] > Manage Account</h2>
 <p><hr size=1 color="#CCCCCC"></p>
 <span class="edit">
 [% IF session.msg %]
 <p><font color="red">[% session.msg %]</font></p>
 <p><hr size=1 color="#CCCCCC"></p>
 [% END %]
+
+<h3>Manage Account</h3>
 
 <p><a href="[% base_uri %]/app/settings/account">Login Info</a> - Manage your account information</p>
 <p><a href="[% base_uri %]/app/settings/payment">Payment Info</a> - Manage your payment information</p>
