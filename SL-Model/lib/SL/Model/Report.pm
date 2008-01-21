@@ -166,8 +166,7 @@ sub views {
         my $start =
           $end->clone->subtract( @{ $time_hash{$temporal}->{interval} } );
         unshift @{ $results->{headers} },
-          $start->strftime( $time_hash{$temporal}->{format} ) . ' - '
-          . $end->strftime( $time_hash{$temporal}->{format} );
+          $start->strftime( $time_hash{$temporal}->{format} );
 
         # Ads viewed data for routers
         my $views_hashref = $reg->views_count( $start, $end, $routers_aryref );
@@ -504,7 +503,7 @@ sub data_weekly_ip {
 
         # add the date in the format "Mon 1pm to Mon 2pm"
         unshift @{ $view_results[0] },
-          $previous->strftime("%a %l %p") . ' - ' . $now->strftime("%a %l %p");
+          $previous->strftime("%a %l %p");
         unshift @{ $view_results[1] }, $views_count->[0]->[0];
         if ( $views_count->[0]->[0] > $max_view_results ) {
             $max_view_results = $views_count->[0]->[0];
