@@ -3,12 +3,12 @@ package SL::Cache::Subrequest;
 use strict;
 use warnings;
 
-use String::Strip ();
+use String::Strip    ();
 use HTML::TokeParser ();
 use URI              ();
 use SL::Cache        ();
 use base 'SL::Cache';
-use SL::Static       ();
+use SL::Static ();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
@@ -78,19 +78,27 @@ sub collect_subrequests {
 
     # look for tags that can house sub-reqs
     my ( @subrequests, %found );
-    while ( my $token = $parser->get_tag(qw(script iframe frame src script
-                                            img link)) ) {
+    while (
+        my $token = $parser->get_tag(
+            qw(script iframe frame src script
+              img link)
+        )
+      )
+    {
         my $attrs = $token->[1];
         my $url;
-        if ($token->[0] eq 'link') {
-             $url = $attrs->{href};
+        if ( $token->[0] eq 'link' ) {
+            $url = $attrs->{href};
+
             # only handle static content links
-            if (defined $url) {
-                next unless SL::Static::is_static_content({
-                                url => $url, type => $attrs->{type} });
+            if ( defined $url ) {
+                next
+                  unless SL::Static::is_static_content(
+                    { url => $url, type => $attrs->{type} } );
             }
-         } else { # everything else
-             $url = $attrs->{src};
+        }
+        else {    # everything else
+            $url = $attrs->{src};
         }
 
         # skip these iframe and frame invalid targets
@@ -117,14 +125,21 @@ sub collect_subrequests {
         $self->{cache}
           ->set( join ( '|', 'subreq', $normalized_url ) => $token->[0] );
     }
-    return \@subrequests;
+
+    # ok now also grab any full urls embedded in <script> tags
+    my @script_urls =
+      $$content_ref =~ m{<script[^>]+>.*?(http\:/\/[^\/\'\"]+).*?<\/script>}sg;
+
+    my @jses = map { [ $_ . '/', $_ . '/', '_script' ] } @script_urls;
+
+    return [ @subrequests, @jses ];
 }
 
 sub replace_subrequests {
     my ( $self, $args_ref ) = @_;
 
     foreach my $param qw( port subreq_ref content_ref ) {
-        unless (exists $args_ref->{$param}) {
+        unless ( exists $args_ref->{$param} ) {
             warn("replace_subrequests() called with empty param $param");
             return;
         }
@@ -134,6 +149,7 @@ sub replace_subrequests {
     my $content_ref = $args_ref->{'content_ref'};
     my $subreq_ref  = $args_ref->{'subreq_ref'};
 
+    my $replaced = 0;
     foreach my $subrequest ( @{$subreq_ref} ) {
 
         # prepare the urls
@@ -149,14 +165,34 @@ sub replace_subrequests {
         # run the substitution, match surrounding quotes to handle
         # mixed and absolute urls
         # change this regex and I will beat you with a stick
-        my $matched = $$content_ref =~
-            s/((\=|['"])\s{0,3}?)\Q$orig_url\E/$1$replacement_url/sg;
+        # handle replacements inside javascript differently than
+        # html tokens
+        my $is_script = ( $subrequest->[2] eq '_script' ) ? 1 : 0;
+        if ( !$is_script ) {
+            my $matched =
+              $$content_ref =~
+              s/(\=\s?['"]?\s{0,3}?)\Q$orig_url\E/$1$replacement_url/sg;
+            $replaced += $matched;
 
-        warn("did not replace $orig_url with $replacement_url ok")
-            unless $matched;
+            warn("did not replace $orig_url with $replacement_url ok")
+              unless $matched;
+            warn("replaced $matched urls for $replacement_url") if DEBUG;
+        }
+        elsif ($is_script) {
+            my $is_script_replace =
+              # thanks to dave_the_m on perlmonks for this gem
+              $$content_ref =~
+                s{(<script[^>]+>.*?<\/script>)}{
+                  my $s = $1;
+                  $s =~ s{\Q$orig_url\E}{$replacement_url};
+                  $s;
+                }sge;
+            $replaced += $is_script_replace;
+        }
+
     }
 
-    return 1;
+    return $replaced;
 }
 
 sub is_subrequest {
@@ -177,7 +213,7 @@ sub _normalize_url {
 
     # canonicalize the URL
     my $canonical_url;
-    if ( $url =~ m!^http?://! ) { # we skip https on purpose thanks
+    if ( $url =~ m!^http?://! ) {    # we skip https on purpose thanks
 
         # full url
         $canonical_url = URI->new($url)->canonical->as_string;
