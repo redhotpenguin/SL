@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 35;
+use Test::More tests => 44;
 
 BEGIN { use_ok('SL::Cache::Subrequest') or die }
 
@@ -25,7 +25,7 @@ my $subreq_ref = $subreq->collect_subrequests(
 );
 my $interval = tv_interval( $start, [gettimeofday] );
 
-is( scalar( @{$subreq_ref} ), 11, '11 subrequests extracted' );
+is( scalar( @{$subreq_ref} ), scalar(@{test_urls()}), 'subrequests extracted' );
 diag("extraction took $interval seconds");
 my $limit = 0.1;
 cmp_ok( $interval, '<', $limit,
@@ -66,14 +66,19 @@ foreach my $subrequest_ref ( @{$subrequests_ref} ) {
 
 sub test_urls {
     return [
-        'http://www.leknott.com/blog/styles.css',
+       'http://www.leknott.com/blog/styles.css',
+       'http://www.leknott.com/blog/index.rdf',
+       'http://www.typepad.com/t/rsd/9086',
+       'http://www.leknott.com/foaf.rdf',
        'http://stats.adbrite.com/stats/stats.gif?_cpid=conversion&_uid=207319',
        'http://leknott.typepad.com/blog/images/photos.gif',
        'http://leknott.typepad.com/blog/images/cc.gif',
-      'http://pagead2.googlesyndication.com/pagead/show_ads.js',
-        'http://www.leknott.com/photos/uncategorized/2007/06/22/baraci.gif',
+       'http://pagead2.googlesyndication.com/pagead/show_ads.js',
+       'http://www.leknott.com/photos/uncategorized/2007/06/22/baraci.gif',
        'http://leknott.typepad.com/images/hood_to_coast_banner.gif',
        'http://leknott.typepad.com/images/PHP_banner.jpg',
+       'http://pagead2.googlesyndication.com/',
+       'http://www.typepad.com/',
     ];
 }
 

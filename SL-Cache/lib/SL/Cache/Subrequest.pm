@@ -128,9 +128,12 @@ sub collect_subrequests {
 
     # ok now also grab any full urls embedded in <script> tags
     my @script_urls =
-      $$content_ref =~ m{<script[^>]+>.*?(http\:/\/[^\/\'\"]+).*?<\/script>}sg;
+      $$content_ref =~ m{<script[^>]+>.*?(http\:/\/\w+[^\/\'\"]+).*?<\/script>}sg;
 
-    my @jses = map { [ $_ . '/', $_ . '/', '_script' ] } @script_urls;
+    # get the unique urls
+    my %unique;
+    my @jses = map { [ $_ . '/', $_ . '/', '_script' ] }
+      grep (!$unique{$_}++, @script_urls);
 
     return [ @subrequests, @jses ];
 }

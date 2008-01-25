@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 67;
+use Test::More tests => 77;
 
 BEGIN { use_ok('SL::Cache::Subrequest') or die }
 

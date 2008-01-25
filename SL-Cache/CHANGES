@@ -1,5 +1,8 @@
 Revision history for SL::Cache
 
+0.23 Thu Jan 24 16:18:14 2008
+    - scrape urls from within <script> sections and replace them
+
 0.22 Thu Jan 10 00:13:25 2008
 	- SL::Cache::User
 
