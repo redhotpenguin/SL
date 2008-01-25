@@ -187,7 +187,7 @@ sub replace_subrequests {
               $$content_ref =~
                 s{(<script[^>]+>.*?<\/script>)}{
                   my $s = $1;
-                  $s =~ s{\Q$orig_url\E}{$replacement_url};
+                  $s =~ s{\Q$orig_url\E}{$replacement_url}gs;
                   $s;
                 }sge;
             $replaced += $is_script_replace;
