@@ -20,6 +20,11 @@ use constant REQ_TIMING => $ENV{SL_REQ_TIMING} || 0;
 use constant DEBUG      => $ENV{SL_DEBUG}      || 0;
 use constant VERBOSE_DEBUG      => $ENV{SL_VERBOSE_DEBUG}      || 0;
 
+
+use constant DEFAULT_HASH_MAC => $CONFIG->sl_default_hash_mac || die 'hash_mac';
+use constant DEFAULT_ROUTER_MAC => $CONFIG->sl_default_router_mac
+  || die 'identity';
+
 my $TIMER;
 if (TIMING) {
     require RHP::Timer;
@@ -42,6 +47,15 @@ sub handler {
         $r->log->debug("$$ secret url, no log handling") if VERBOSE_DEBUG;
         return Apache2::Const::DECLINED;
     }
+
+	if (($r->pnotes('hash_mac') eq DEFAULT_HASH_MAC) or
+		($r->pnotes('router_mac') eq DEFAULT_ROUTER_MAC)) {
+		# something is weird, so log it
+		$r->log->error(sprintf(
+			"Default client encountered, hash_mac %s, router %s, url %s, ip %s, referer %s, ad_id %d", $r->pnotes('hash_mac'), $r->pnotes('router_mac'),
+			$r->pnotes('url'), $r->connection->remote_ip,
+			$r->pnotes('referer') || '', ad_id $r->pnotes('ad_id')));
+}
 
     $r->subprocess_env( "SL_URL" => sprintf( 'sl_url|%s', $url ) );
 

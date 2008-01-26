@@ -709,6 +709,14 @@ sub twohundred {
           $response_content_ref = \$response->content;
         }
 
+    }    # end 'if ( $is_html and...'
+    else {
+        $r->log->debug("$$ ad not served, using existing content") if DEBUG;
+        # this is not html or its compressed, etc
+        $already_compressed = 1;
+        $response_content_ref = \$response->content;
+    }
+
         # first grab the links from the page and stash them
         $TIMER->start('collect_subrequests') if TIMING;
 
@@ -721,14 +729,6 @@ sub twohundred {
         $r->log->info(
             sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
           if TIMING;
-
-    }    # end 'if ( $is_html and...'
-    else {
-        $r->log->debug("$$ ad not served, using existing content") if DEBUG;
-        # this is not html or its compressed, etc
-        $already_compressed = 1;
-        $response_content_ref = \$response->content;
-    }
 
     ###########
     # we replace the links even on pages that we don't serve ads on to
