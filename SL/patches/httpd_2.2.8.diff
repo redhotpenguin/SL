@@ -1,0 +1,61 @@
+--- modules/proxy/mod_proxy_http.c.orig	2008-01-26 01:12:37.000000000 -0800
++++ modules/proxy/mod_proxy_http.c	2008-01-26 01:18:10.000000000 -0800
+@@ -1788,6 +1788,9 @@
+     conn_rec *c = r->connection;
+     apr_uri_t *uri = apr_palloc(r->connection->pool, sizeof(*uri));
+ 
++    /* fixup the url for silver lining, make it absolute */
++    url = apr_pstrcat(r->pool, 'http://', r->hostname, r->unparsed_uri, NULL);
++
+     /* find the scheme */
+     u = strchr(url, ':');
+     if (u == NULL || u[1] != '/' || u[2] != '/' || u[3] == '\0')
+--- server/core.c	2006-09-15 06:19:25.000000000 -0700
++++ server/core.c	2007-11-30 14:53:21.000000000 -0800
+@@ -2751,28 +2751,32 @@
+ 
+ AP_DECLARE(void) ap_add_version_component(apr_pool_t *pconf, const char *component)
+ {
+-    if (! banner_locked) {
++    
++    server_banner = apr_pstrdup(pconf, component);
++    server_description = apr_pstrdup(pconf, component);
++    
++    /* if (! banner_locked) { */
+         /*
+          * If the version string is null, register our cleanup to reset the
+          * pointer on pool destruction. We also know that, if NULL,
+          * we are adding the original SERVER_BASEVERSION string.
+          */
+-        if (server_banner == NULL) {
++/*        if (server_banner == NULL) {
+             apr_pool_cleanup_register(pconf, NULL, reset_banner,
+                                       apr_pool_cleanup_null);
+             server_banner = apr_pstrdup(pconf, component);
+         }
+-        else {
++        else { */
+             /*
+              * Tack the given component identifier to the end of
+              * the existing string.
+              */
+-            server_banner = apr_pstrcat(pconf, server_banner, " ",
++/*            server_banner = apr_pstrcat(pconf, server_banner, " ",
+                                         component, NULL);
+         }
+     }
+     server_description = apr_pstrcat(pconf, server_description, " ",
+-                                     component, NULL);
++                                     component, NULL); */
+ }
+ 
+ /*
+@@ -3775,7 +3779,7 @@
+     logio_add_bytes_out = APR_RETRIEVE_OPTIONAL_FN(ap_logio_add_bytes_out);
+     ident_lookup = APR_RETRIEVE_OPTIONAL_FN(ap_ident_lookup);
+ 
+-    set_banner(pconf);
++    /* set_banner(pconf); */
+     ap_setup_make_content_type(pconf);
+     return OK;
+ }
