@@ -18,7 +18,7 @@ use MIME::Lite  ();
 use Apache::Session::DB_File ();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
-warn("DEBUG IS " . DEBUG);
+
 our ($CONFIG, $CIPHER);
 
 BEGIN {
@@ -265,6 +265,30 @@ sub redirect_auth {
     return Apache2::Const::REDIRECT;
 }
 
+sub signup {
+	my ($class, $r) = @_;
+
+	my $req = Apache2::Request->new($r);
+
+	if ( $r->method_number == Apache2::Const::M_GET ) {
+	    my $output;
+        my $ok =
+          $TEMPLATE->process( 'signup.tmpl', 
+                              { status => $req->param('status') || '',
+							  }, \$output, $r );
+
+        $ok
+          ? return $class->ok( $r, $output )
+          : return $class->ok( $r,
+            "Template error: " . $TEMPLATE->error() );
+
+    } elsif ($r->method_number == Apache2::Const::M_POST ) {
+      $r->log->debug("$$ POSTING...") if DEBUG;
+        my $email;
+	}
+
+}
+
 sub forgot {
     my ($class, $r) = @_;
 
@@ -275,7 +299,7 @@ sub forgot {
         my $ok =
           $TEMPLATE->process( 'forgot.tmpl', 
                               { status => $req->param('status') || '',
-                                email  => $req->param('email') }, \$output );
+                                email  => $req->param('email') }, \$output, $r );
 
         $ok
           ? return $class->ok( $r, $output )

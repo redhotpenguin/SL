@@ -1,0 +1,48 @@
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Account Signup" no_settings="1" %]
+[% PROCESS left.tmpl %]
+
+<div id="center">
+<div class="content">
+
+<h2><a href="[% home_uri %]">Home</a> > Account Signup</h2>
+<hr size=1 color="#CCCCCC">
+<p><h3>Sign up for a Silver Lining Account</h3><br /></p>
+<form method="POST" action="[% base_uri %]/signup">
+
+<p>
+[% IF errors.missing.email or errors.invalid.email %]<font color="red">[% END %]
+Email:
+[% IF errors.missing.email or errors.invalid.email %]</font>[% END %]
+<input type="text" size="25" maxlength="96" name="email" value="[% reg.email %]"></p>
+<p><font color="#CCCCCC">(Required, we will never spam you)</font><p>
+<p><hr size=1 color="#CCCCCC"></p>
+
+<p>
+[% IF errors.missing.password or errors.invalid.password %]<font color="red">[% END %]
+Password:
+[% IF errors.missing.password or errors.invalid.password %]</font>[% END %]
+<input type="password" name="password" size="15" maxlength="15" value="">
+</p>
+
+<p>
+[% IF errors.missing.password or errors.invalid.password %]<font color="red">[% END %]
+Retype Password:
+[% IF errors.missing.password or errors.invalid.password %]</font>[% END %]
+<input type="password" name="retype" size="15" maxlength="15" value="">
+</p>
+<p><hr size=1 color="#CCCCCC"></p>
+
+<p>
+[% IF errors.missing.email or errors.invalid.email %]<font color="red">[% END %]
+Email:
+[% IF errors.missing.email or errors.invalid.email %]</font>[% END %]
+<input type="text" size="25" maxlength="96" name="email" value="[% reg.email %]"></p>
+<p><font color="#CCCCCC">(Required, we will never spam you)</font><p>
+<p><hr size=1 color="#CCCCCC"></p>
+
+
+<p><input type="submit" name="login" value="Submit"></p>
+</form>
+</div>
+</div>
+[% PROCESS footer.tmpl %]
