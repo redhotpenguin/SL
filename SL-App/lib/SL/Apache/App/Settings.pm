@@ -25,7 +25,6 @@ our $tmpl = SL::App::Template->template();
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 if (DEBUG) {
     require Data::Dumper;
-    import(Dumper);
 }
 
 sub dispatch_index {
@@ -37,7 +36,8 @@ sub dispatch_index {
     my @router__regs = $r->pnotes( $r->user )->router__regs;
     my @routers      = map { $_->router_id } @router__regs;
 
-    $r->log->debug( "sessionnow: " . Dumper( $r->pnotes('session') ) ) if DEBUG;
+    $r->log->debug( "sessionnow: " .
+                    Data::Dumper::Dumper( $r->pnotes('session') ) ) if DEBUG;
 
     # see if this ip is currently unregistered;
     if ( $r->method_number == Apache2::Const::M_GET ) {
@@ -151,8 +151,8 @@ sub dispatch_payment {
 
 
             my $errors = $self->SUPER::_results_to_errors($results);
-            use Data::Dumper;
-      $r->log->info("posting - ERRORS " . Dumper($results));
+            $r->log->info("posting - ERRORS " 
+                          . Data::Dumper::Dumper($results)) if DEBUG;
             return $self->dispatch_payment(
                 $r,
                 {

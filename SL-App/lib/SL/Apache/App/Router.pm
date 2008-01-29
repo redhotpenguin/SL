@@ -15,8 +15,13 @@ use base 'SL::Apache::App';
 use SL::App::Template ();
 our $tmpl = SL::App::Template->template();
 
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
+
 # this specific template logic
-use Data::Dumper;
+if (DEBUG) {
+  require Data::Dumper;
+}
+
 use SL::Model;
 use SL::Model::App;    # works for now
 
