@@ -19,8 +19,7 @@
 <p style="width: 600px">You will receive a payment and an email receipt when your account generates revenue equal to the payment threshold.</h2>
 <p><hr size=1 color="#CCCCCC"></p>
 <form method="POST" action="[% base_uri %]/app/settings/payment">
-<!--<p><img src="http://www.redhotpenguin.com/images/sl/paypal_silverlining.gif"></p>-->
-<p>
+<p><a target="new" href="https://www.paypal.com/us/cgi-bin/webscr?cmd=_registration-run"><img border='0' src="http://www.redhotpenguin.com/images/sl/paypal_silverlining.gif"></a>
 [% IF errors.missing.paypal_id or errors.invalid.paypal_id %]
 <font color="red">[% END %]
 PayPal ID:
