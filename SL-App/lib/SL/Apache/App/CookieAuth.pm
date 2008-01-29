@@ -12,6 +12,8 @@ use Apache2::Request    ();
 use Data::FormValidator ();
 use Data::FormValidator::Constraints qw(:closures);
 
+use Mail::Mailer;
+
 use base 'SL::Apache::App';
 use SL::Model::App ();
 
@@ -389,6 +391,17 @@ sub signup {
             { router_id => $router->router_id, reg_id => $reg->reg_id } );
         $reg_router->update;
 
+		my $mailer = Mail::Mailer->new('qmail');
+		$mailer->open({
+				'To' => 'sl_reports@redhotpenguin.com',
+				'From' => "SL Signup Daemon <fred\@redhotpenguin.com>",
+				'Subject' => "New signup for " . $reg->email,
+			});
+		print $mailer $reg->email . " has signed up with router mac " .
+			$router->macaddr . "\n";
+		$mailer->close;
+
+		# auth the user and log them in
         $class->send_cookie( $r, $reg );
         $r->internal_redirect("/app/home/index");
         return $class->auth_ok( $r, $reg );

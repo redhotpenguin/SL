@@ -51,7 +51,7 @@ tmpl/settings/friends.tmpl
 tmpl/settings/payment.tmpl
 tmpl/settings/index.tmpl
 tmpl/settings/nav.tmpl
-tmpl/settings/router.tmpl
+tmpl/signup.tmpl
 lib/SL/Apache/App/Ad/Bugs.pm
 lib/SL/Apache/App/Ad/Groups/Ads.pm
 lib/SL/Apache/App/Ad/Groups.pm

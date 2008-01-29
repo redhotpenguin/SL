@@ -17,7 +17,7 @@ ModPerl::MM::WriteMakefile(
         'Apache::Session'     => 1.83,
         'Crypt::CBC'          => 2.22,
         'Crypt::DES'          => 2.05,
-        'Data::FormValidator' => 4.40,
+        'Data::FormValidator' => 4.50,
         'DBD::Pg'             => 1.49,
         'Digest::MD5'         => 2.33,
         'MIME::Lite'          => 3.01,
