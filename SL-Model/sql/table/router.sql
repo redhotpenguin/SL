@@ -35,6 +35,7 @@ CREATE TABLE router (
     splash_href text DEFAULT ''::text,
     firmware_version character varying(4) DEFAULT ''::character varying,
     ssid text DEFAULT ''::text,
+    bug_id integer not null default 1,
     views_daily integer DEFAULT 0
 );
 
@@ -58,6 +59,10 @@ CREATE TRIGGER update_router_mts
     FOR EACH ROW
     EXECUTE PROCEDURE update_modified_column();
 
+ALTER TABLE ONLY router
+	ADD CONSTRAINT router__bug_id_fkey 
+	FOREIGN KEY (bug_id) REFERENCES bug(bug_id) 
+	ON UPDATE CASCADE;
 
 --
 -- PostgreSQL database dump complete
