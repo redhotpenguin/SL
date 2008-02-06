@@ -26,8 +26,9 @@ use constant MD5_IDX        => 2;
 use constant URI_IDX        => 3;
 use constant TEMPLATE_IDX   => 4;
 use constant CSS_URL_IDX    => 5;
-use constant IMAGE_HREF_IDX => 6;
-use constant LINK_HREF_IDX  => 7;
+use constant BUG_IMAGE_HREF_IDX => 0;
+use constant BUG_LINK_HREF_IDX  => 1;
+use constant SPLASH_HREF_IDX  => 2;
 use constant OUTPUT_REF     => 8;
 
 use SL::Config;
@@ -153,13 +154,11 @@ use constant SL_LINKSHARE_SQL => q{
 SELECT
 ad_linkshare.ad_id,    ad_linkshare.displaytext AS text,
 ad.md5,                ad_linkshare.linkurl AS uri,
-ad_group.template,     ad_group.css_url,
-bug.image_href,        bug.link_href
-FROM ad_linkshare, ad, router, router__ad_group, ad_group, bug
+ad_group.template,     ad_group.css_url
+FROM ad_linkshare, ad, router, router__ad_group, ad_group
 WHERE ad.active = 't'
 AND ad_linkshare.ad_id = ad.ad_id
 AND router__ad_group.ad_group_id = ad_group.ad_group_id
-AND ad_group.bug_id = bug.bug_id
 AND router.ip = ?
 ORDER BY RANDOM()
 LIMIT 1
@@ -203,14 +202,12 @@ use constant SL_LOCATION_SQL => q{
 -- SL_LOCATION_SQL
 SELECT
 ad_sl.ad_id,         ad_sl.text,         ad.md5,     ad_sl.uri,
-ad_group.template,   ad_group.css_url, 
-bug.image_href,      bug.link_href
-FROM ad_sl, ad, ad_group, bug
+ad_group.template,   ad_group.css_url
+FROM ad_sl, ad, ad_group
 WHERE ad.active = 't'
 AND ad_group.ad_group_id = ?
 AND ad_group.ad_group_id = ad.ad_group_id
 AND ad_sl.ad_id = ad.ad_id
-AND ad_group.bug_id = bug.bug_id
 ORDER BY RANDOM()
 LIMIT 1
 };
@@ -255,13 +252,11 @@ use constant SL_ROUTER_SQL => q{
 -- SL_ROUTER_SQL
 SELECT
 ad_sl.ad_id,      ad_sl.text,        ad.md5,
-ad_sl.uri,        ad_group.template, ad_group.css_url,
-bug.image_href,   bug.link_href
-FROM ad_sl, ad, router, router__ad_group, ad_group, bug
+ad_sl.uri,        ad_group.template, ad_group.css_url
+FROM ad_sl, ad, router, router__ad_group, ad_group
 WHERE ad.active = 't'
 AND ad.ad_id = ad_sl.ad_id
 AND ad.ad_group_id = ad_group.ad_group_id
-AND ad_group.bug_id = bug.bug_id
 AND router__ad_group.ad_group_id = ad_group.ad_group_id
 AND (router.router_id = router__ad_group.router_id
 AND router.active = 't'
@@ -295,14 +290,12 @@ use constant SL_DEFAULT_SQL => q{
 -- SL_DEFAULT_SQL
 SELECT
 ad_sl.ad_id,       ad_sl.text,        ad.md5,
-ad_sl.uri,         ad_group.template, ad_group.css_url,
-bug.image_href,    bug.link_href
-FROM ad_sl, ad, location, ad_group, bug
+ad_sl.uri,         ad_group.template, ad_group.css_url
+FROM ad_sl, ad, location, ad_group
 WHERE ad.active = 't'
 AND ad.ad_id = ad_sl.ad_id
 AND ad.ad_group_id = ad_group.ad_group_id
 AND ad_group.is_default = 't'
-AND ad_group.bug_id = bug.bug_id
 AND (location.ip = ?
 AND location.default_ok = 't')
 ORDER BY RANDOM()
@@ -335,14 +328,12 @@ use constant SL_GOOGLE_SQL => q{
 -- SL_GOOGLE_SQL
 SELECT
 ad_sl.ad_id,         ad_sl.text,         ad.md5,     ad_sl.uri,
-ad_group.template,   ad_group.css_url,
-bug.image_href,      bug.link_href
-FROM ad_sl, ad, ad_group, bug
+ad_group.template,   ad_group.css_url
+FROM ad_sl, ad, ad_group
 WHERE ad.active = 't'
 AND ad_group.ad_group_id = ?
 AND ad_group.ad_group_id = ad.ad_group_id
 AND ad_sl.ad_id = ad.ad_id
-AND ad_group.bug_id = bug.bug_id
 ORDER BY RANDOM()
 LIMIT 1
 };
@@ -405,7 +396,9 @@ sub _routers_from_ip {
 
 use constant ROUTER_FROM_MAC => q{
 -- ROUTER_FROM_MAC
-SELECT router_id, feed_google, feed_linkshare
+SELECT 
+router_id, feed_google, feed_linkshare, 
+bug_image_href, bug_link_href, splash_href
 FROM router
 WHERE macaddr = ?
 };
@@ -439,24 +432,24 @@ sub _ad_methods_from_mac {
     }
 
     my @methods;
-    my $router_aryref = $class->_router_from_mac($mac);
-    unless ($router_aryref) {
+    my $router = $class->_router_from_mac($mac);
+    unless ($router) {
       require Carp && Carp::cluck("no router from mac $mac");
       return;
     }
 
     # see if this ip can serve google ads
-    push @methods, '_google' if ( $router_aryref->[1] == 1 );
+    push @methods, '_google' if ( $router->[1] == 1 );
 
     # see if this ip can serve linkshare ads
-    push @methods, '_linkshare' if ( $router_aryref->[2] == 1 );
+    push @methods, '_linkshare' if ( $router->[2] == 1 );
 
     # assume it has sl ad groups
     push @methods, '_sl';
 	warn("methods for mac $mac are: " . join(", ", @methods)) if DEBUG;
     my @shuffled = List::Util::shuffle(@methods);
 
-    return \@shuffled;
+    return (\@shuffled, [ $router->[4], $router->[5], $router->[6] ] );
 }
 
 # silverlining ad dispatcher
@@ -492,8 +485,8 @@ sub random {
     my $user = $args_ref->{user} || warn("no user passed") && return;
 
     # get the list of ad types we can serve for this ip
-    my $ad_methods_ref = $class->_ad_methods_from_mac($mac);
-    unless ($ad_methods_ref) {
+    my ($ad_methods, $router) = $class->_ad_methods_from_mac($mac);
+    unless ($ad_methods && $router) {
       require Carp && Carp::cluck("no ad methods returned");
       return;
     }
@@ -501,7 +494,7 @@ sub random {
     # loop over them, apply conditions until we have an ad
     my $ad_data;
 
-    foreach my $ad_method ( @{$ad_methods_ref} ) {
+    foreach my $ad_method ( @{$ad_methods} ) {
         warn("$$ calling method $ad_method") if DEBUG;
         $ad_data = $class->$ad_method($args_ref );
         last if defined $ad_data->[AD_ID_IDX];
@@ -520,7 +513,7 @@ sub random {
     }
 
     # process the template
-    my $output_ref = $class->process_ad_template($ad_data);
+    my $output_ref = $class->process_ad_template($ad_data, $router);
 
     # return the id, string output ref, and css url
     return ( $ad_data->[AD_ID_IDX], $output_ref, \$ad_data->[CSS_URL_IDX], );
@@ -528,19 +521,20 @@ sub random {
 
 # takes ad_data, returns scalar reference of output
 sub process_ad_template {
-    my ( $class, $ad_data ) = @_;
+    my ( $class, $ad_data, $router ) = @_;
 
-    unless ($ad_data) {
+    unless ($ad_data && $router) {
         require Carp
-          && Carp::cluck("no ad_daata passed to process_ad_template");
+          && Carp::cluck("no ad_data or bug ref passed to process_ad_template");
         return;
     }
 
     my %tmpl_vars = (
         ad_link        => $CONFIG->sl_clickserver_url . $ad_data->[MD5_IDX],
         ad_text        => $ad_data->[TEXT_IDX],
-        bug_image_href => $ad_data->[IMAGE_HREF_IDX],
-        bug_link_href  => $ad_data->[LINK_HREF_IDX],
+        bug_image_href => $router->[BUG_IMAGE_HREF_IDX],
+        bug_link_href  => $router->[BUG_LINK_HREF_IDX],
+        splash_href    => $router->[SPLASH_HREF_IDX],
     );
 
     # generate the ad
@@ -644,9 +638,8 @@ use constant ADS_FROM_ADGROUP_SQL_ONE => q{
 -- ADS_FROM_ADGROUP_SQL_ONE
 SELECT
 ad_sl.ad_id,       ad_sl.text,        ad.md5,
-ad_sl.uri,         ad_group.template, ad_group.css_url,
-bug.image_href,    bug.link_href
-FROM ad_sl, ad, ad_group, bug
+ad_sl.uri,         ad_group.template, ad_group.css_url
+FROM ad_sl, ad, ad_group
 WHERE ad.active = 't'
 AND ad.ad_id = ad_sl.ad_id
 AND ad.ad_group_id = ad_group.ad_group_id
@@ -655,7 +648,7 @@ AND ad_group.ad_group_id IN (
 
 use constant ADS_FROM_ADGROUP_SQL_TWO => q{
 -- ADS_FROM_ADGROUP_SQL_ONE
- ) AND ad_group.bug_id = bug.bug_id
+ )
 ORDER BY RANDOM()
 LIMIT 1
 };
