@@ -43,8 +43,7 @@ CREATE TABLE router (
     last_ping timestamp without time zone DEFAULT now(),
     views_daily integer DEFAULT 0 NOT NULL,
     bug_image_href text DEFAULT 'http://www.redhotpenguin.com/images//sl/free_wireless.gif'::text NOT NULL,
-    bug_link_href text DEFAULT 'http://www.silverliningnetworks.com/'::text NOT NULL,
-    custom_ads boolean DEFAULT false
+    bug_link_href text DEFAULT 'http://www.silverliningnetworks.com/'::text NOT NULL
 );
 
 
