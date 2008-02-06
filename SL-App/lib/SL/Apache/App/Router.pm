@@ -100,10 +100,12 @@ sub dispatch_edit {
         # reset method to get for redirect
         $r->method_number(Apache2::Const::M_GET);
         my %router_profile = (
-            required           => [qw( name macaddr ssid )],
+            required           => [qw( name macaddr ssid bug_image_href bug_link_href)],
 			optional           => [qw( splash_href splash_timeout serial_number ) ],
             constraint_methods => { macaddr => valid_macaddr(), 
-									splash_href => splash_href(), }
+									splash_href => splash_href(),
+                                    bug_image_href => splash_href(),
+                                    bug_link_href => splash_href(),}
         );
         my $results = Data::FormValidator->check( $req, \%router_profile );
 
@@ -164,7 +166,9 @@ sub dispatch_edit {
 	}
 
 	# update each attribute
-	foreach my $param qw( name macaddr splash_href serial_number ssid splash_timeout) {
+	foreach my $param qw( name macaddr splash_href 
+                          serial_number ssid splash_timeout
+                           bug_image_href bug_link_href ) {
         $router->$param( $req->param($param) );
     }
     $router->update;

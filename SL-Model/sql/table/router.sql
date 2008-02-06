@@ -29,14 +29,22 @@ CREATE TABLE router (
     replace_port smallint DEFAULT 8135,
     description text,
     name text,
-    feed_google boolean DEFAULT false,
+    feed_google boolean DEFAULT true,
     feed_linkshare boolean DEFAULT false,
     splash_timeout integer DEFAULT 60,
     splash_href text DEFAULT ''::text,
     firmware_version character varying(4) DEFAULT ''::character varying,
     ssid text DEFAULT ''::text,
-    bug_id integer not null default 1,
-    views_daily integer DEFAULT 0
+    passwd_event text DEFAULT ''::text,
+    firmware_event text DEFAULT ''::text,
+    ssid_event text DEFAULT ''::text,
+    reboot_event text DEFAULT ''::text,
+    halt_event text DEFAULT ''::text,
+    last_ping timestamp without time zone DEFAULT now(),
+    views_daily integer DEFAULT 0 NOT NULL,
+    bug_image_href text DEFAULT 'http://www.redhotpenguin.com/images//sl/free_wireless.gif'::text NOT NULL,
+    bug_link_href text DEFAULT 'http://www.silverliningnetworks.com/'::text NOT NULL,
+    custom_ads boolean DEFAULT false
 );
 
 
@@ -51,6 +59,13 @@ ALTER TABLE ONLY router
 
 
 --
+-- Name: madaddr_uniq; Type: INDEX; Schema: public; Owner: phred; Tablespace: 
+--
+
+CREATE UNIQUE INDEX madaddr_uniq ON router USING btree (macaddr);
+
+
+--
 -- Name: update_router_mts; Type: TRIGGER; Schema: public; Owner: phred
 --
 
@@ -59,10 +74,6 @@ CREATE TRIGGER update_router_mts
     FOR EACH ROW
     EXECUTE PROCEDURE update_modified_column();
 
-ALTER TABLE ONLY router
-	ADD CONSTRAINT router__bug_id_fkey 
-	FOREIGN KEY (bug_id) REFERENCES bug(bug_id) 
-	ON UPDATE CASCADE;
 
 --
 -- PostgreSQL database dump complete
