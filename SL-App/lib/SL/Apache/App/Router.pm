@@ -119,7 +119,7 @@ sub dispatch_edit {
         }
       }
 
-
+	my $reg = $r->pnotes( $r->user);
     if ( not defined $router ) {
         # this logic in here is a bit sticky, since someone else could have
         # registered this router, but this user wants to use it also
@@ -138,7 +138,7 @@ sub dispatch_edit {
 
         # see if a router reg exists
         my %reg_args = (
-            reg_id    => $r->pnotes( $r->user )->reg_id,
+            reg_id    => $reg->reg_id,
             router_id => $router->router_id,
         );
         my ($router__reg) =
@@ -155,10 +155,12 @@ sub dispatch_edit {
       }
 
     # no errors update the router
-	my $feed_google = $req->param('feed_google') || 0;
-    my $feed_linkshare = $req->param('feed_linkshare')  || 0;
-    $router->feed_google($feed_google);
-    $router->feed_linkshare($feed_linkshare);
+	if ($reg->custom_ads) {
+		my $feed_google = $req->param('feed_google') || 0;
+		my $feed_linkshare = $req->param('feed_linkshare')  || 0;
+		$router->feed_google($feed_google);
+		$router->feed_linkshare($feed_linkshare);
+	}
 
 	# create an ssid event if the ssid changed
 	if ($router->ssid ne $req->param('ssid')) {
