@@ -416,10 +416,10 @@ sub _router_from_mac {
     $sth->bind_param( 1, $mac );
     my $rv = $sth->execute;
     die "Problem executing query: " . ROUTER_FROM_MAC unless $rv;
-    my $router_aryref = $sth->fetchrow_arrayref;
+    my $router = $sth->fetchrow_arrayref;
     $sth->finish;
 
-    return $router_aryref;
+    return $router;
 }
 
 # returns the possible methods for an ad given an ip
@@ -449,7 +449,7 @@ sub _ad_methods_from_mac {
 	warn("methods for mac $mac are: " . join(", ", @methods)) if DEBUG;
     my @shuffled = List::Util::shuffle(@methods);
 
-    return (\@shuffled, [ $router->[4], $router->[5], $router->[6] ] );
+    return (\@shuffled, [ $router->[3], $router->[4], $router->[5] ] );
 }
 
 # silverlining ad dispatcher
@@ -534,8 +534,9 @@ sub process_ad_template {
         ad_text        => $ad_data->[TEXT_IDX],
         bug_image_href => $router->[BUG_IMAGE_HREF_IDX],
         bug_link_href  => $router->[BUG_LINK_HREF_IDX],
-        splash_href    => $router->[SPLASH_HREF_IDX],
+        splash_href    => $router->[SPLASH_HREF_IDX] || 'http://www.silverliningnetworks.com/', # HACK
     );
+	warn("tmpl vars: " . Data::Dumper::Dumper(\%tmpl_vars)) if DEBUG;
 
     # generate the ad
     my $output;
