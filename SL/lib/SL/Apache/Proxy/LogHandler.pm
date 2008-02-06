@@ -52,9 +52,8 @@ sub handler {
 		($r->pnotes('router_mac') eq DEFAULT_ROUTER_MAC)) {
 		# something is weird, so log it
 		$r->log->error(sprintf(
-			"Default client encountered, hash_mac %s, router %s, url %s, ip %s, referer %s, ad_id %d", $r->pnotes('hash_mac'), $r->pnotes('router_mac'),
-			$r->pnotes('url'), $r->connection->remote_ip,
-			$r->pnotes('referer') || '', ad_id $r->pnotes('ad_id')));
+			"Default client encountered, hash_mac %s, router %s, url %s, ip %s, ad_id %d", $r->pnotes('hash_mac'), $r->pnotes('router_mac'),
+			$r->pnotes('url'), $r->connection->remote_ip, $r->pnotes('ad_id')));
 }
 
     $r->subprocess_env( "SL_URL" => sprintf( 'sl_url|%s', $url ) );
