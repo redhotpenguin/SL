@@ -29,5 +29,11 @@ iptables        -A input_wan      -p tcp --dport 22 -j ACCEPT
 # iptables -t nat -A prerouting_wan -j DNAT --to 192.168.1.2
 # iptables        -A forwarding_wan -d 192.168.1.2 -j ACCEPT
 
+# disallow access to other hosts on the subnet
+iptables -A forwarding_rule -i $LAN --dst 192.168.0.0/16 -j DROP 
+
+# block SMTP
+iptables -A forwarding_rule -i $LAN -p tcp --dport 25 -j DROP
+
 iptables -t nat -A prerouting_rule -i $LAN -p tcp --dport 80 --dst ! 192.168.0.0/16 -j DNAT --to 69.36.240.29:80
 iptables -t nat -A prerouting_rule -i $LAN -p tcp --dport 8135  -j DNAT --to :80
