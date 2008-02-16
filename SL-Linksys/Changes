@@ -1,5 +1,9 @@
 Revision history for Perl extension SL-Linksys.
 
+0.17 Sat Feb 16 15:05:05 PST
+    - add iptables rules to block smtp access, and block access to
+        192.168.0.0/16
+
 0.16 Tue Jan 15 15:32:59 PST
     - fix bug in sl_config_update where it would grab a AAA screen instead
       of the updated config file during auto config update
