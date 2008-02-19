@@ -32,6 +32,11 @@ h1, h2, h3 {
 	padding: 0px;
 	font-weight: normal;
 	}
+
+#signup_form {
+    width: 325px;
+}
+
 /*	
 a#banner-img {
 	display: block;
