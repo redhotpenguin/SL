@@ -74,6 +74,7 @@ PerlSetVar           ReloadDirectories "[% cfg.sl_root %]/lib"
 [% END %]
 
 PerlPassEnv          SL_DEBUG
+PerlPassEnv          SL_VERBOSE_DEBUG
 PerlPassEnv          SL_TIMING
 PerlSetVar           SLWhiteList [% cfg.sl_whitelist %]
 PerlSetVar           SLMethod [% cfg.sl_method %]
@@ -106,9 +107,6 @@ PerlTransHandler SL::Apache::Proxy::TransHandler
 <Directory />
     AllowOverride None
 </Directory>
-[% IF cfg.sl_proxy_apache_deflate %]
-Include [% cfg.sl_root %]/conf/deflate.conf
-[% END %]
 
 [% IF cfg.sl_status %]
 <Location /sl_secret_status>

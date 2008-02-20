@@ -20,6 +20,9 @@ if ($ENV{SL_DEBUG}) {
     print "Starting in DEBUG mode\n";
     $config->sl_proxy_apache_loglevel('debug');
 }
+if ($ENV{SL_VERBOSE_DEBUG}) {
+    print "Starting in VERBOSE_DEBUG mode\n";
+}
 
 # FIll out the httpd.conf
 my $httpd_conf = "httpd_$server.conf";
