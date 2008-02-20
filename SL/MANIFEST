@@ -18,7 +18,6 @@ conf/httpd_proxy.conf.tmpl
 conf/deflate.conf
 conf/gateway/iptables.txt
 conf/bridge/iptables.txt
-conf/iptables.txt
 conf/dnsmasq.conf
 conf/postgresql.conf
 conf/startup_proxy.pl
@@ -94,4 +93,3 @@ t/03ivillage.t
 t/04charset.t
 t/05oregonstate.t
 t/06multiple_ads.t
-t/07kvh.com.t
