@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 =head1 NAME
- 
+
 SL::Apache::TransHandler
 
 =head1 SYNOPSIS
@@ -28,15 +28,9 @@ our $CONFIG;
 
 BEGIN {
     $CONFIG = SL::Config->new();
-}
 
-use constant DEFAULT_HASH_MAC => $CONFIG->sl_default_hash_mac || die 'hash_mac';
-use constant DEFAULT_ROUTER_MAC => $CONFIG->sl_default_router_mac
-  || die 'identity';
-
-BEGIN {
     ## Extension based matching
-  # removed js css swf
+    # removed js css swf
     my @extensions = qw(
       js torrent img avi bin bz2 doc exe fla flv gif gz ico jpeg jpg pdf png 
       ppt mpg mpeg mp3 tif tiff
@@ -156,13 +150,16 @@ sub handler {
     }
 
     # need to be a get to get a x-sl header, covers non GET requests also
-    my ( $hash_mac, $router_mac ) = ( DEFAULT_HASH_MAC, DEFAULT_ROUTER_MAC );
     if ( my $sl_header = $r->headers_in->{'x-sl'} ) {
         $r->pnotes( 'sl_header' => $sl_header );
         $r->log->debug("$$ Found sl_header $sl_header") if DEBUG;
 
-        ( $hash_mac, $router_mac ) =
+        my ( $hash_mac, $router_mac ) =
           split ( /\|/, $r->pnotes('sl_header') );
+
+        # stash these
+        $r->pnotes( 'hash_mac'   => $hash_mac );
+        $r->pnotes( 'router_mac' => $router_mac );
 
         $r->log->debug("$$ router $router_mac, hash_mac $hash_mac")
           if DEBUG;
@@ -174,11 +171,10 @@ sub handler {
             $r->log->error("$$ sl_header present but no hash or router mac");
             return Apache2::Const::SERVER_ERROR;    # not really anything better
         }
+    } else {
+        # send to mod_proxy
+        return &proxy_request($r);
     }
-
-    # stash these
-    $r->pnotes( 'hash_mac'   => $hash_mac );
-    $r->pnotes( 'router_mac' => $router_mac );
 
     # start the clock - the stuff above is all memory
     $TIMER->start('db_mod_proxy_filters') if TIMING;
