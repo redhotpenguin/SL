@@ -731,12 +731,12 @@ sub serialize_ads {
 use constant LOG_VIEW_SQL => q{
 -- LOG_VIEW_SQL
 INSERT INTO view
-( ad_id, location_id, router_id, usr_id, url, referer )
+( ad_id, location_id, router_id, usr_id, url, referer, ip )
 values
 ( ?,     (select location_id from location where ip = ?),
                       (select router_id from router where macaddr = ?),
-                                 (select usr_id from usr where hash_mac = ?),
-                                          ?,   ? )
+                                 ?,
+                                          ?,   ?,      ? )
 };
 
 sub log_view {
@@ -758,6 +758,7 @@ sub log_view {
     $sth->bind_param( 4, $user );
     $sth->bind_param( 5, $url );
     $sth->bind_param( 6, $referer );
+    $sth->bind_param( 7, $ip );
 
     my $rv;
     unless($rv = $sth->execute) {
