@@ -140,7 +140,7 @@ sub handler {
     # serving ads on hosts that are ip numbers causes problems usually
     if ($hostname =~ m/\d{1,3}:\d{1,3}:\d{1,3}:\d{1,3}/) {
         $r->log->debug("$$ hostname is ip addr $hostname, perlbal") if DEBUG;
-        return &perlbal($r);
+        return &proxy_request($r);
     }
 
     # first level domain name check for things that perlbal can't handle
