@@ -11,6 +11,7 @@ WriteMakefile(
                             'Cache::FastMmap'      => 1.14,
                             'Config::ApacheFormat' => 1.2,
                             'Compress::Zlib'       => 2.007,
+                            'Compress::Bzip2'      => 2.09,
                             'Crypt::Blowfish_PP'   => 1.12,
                             'Crypt::CBC'           => 2.22,
                             'Digest::SHA1'         => 2.11,
