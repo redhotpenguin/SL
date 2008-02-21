@@ -897,7 +897,7 @@ sub twohundred {
             subreq_ref  => $subrequests_ref,
             content_ref => $response_content_ref,
         });
-        $r->log->error("$$ could not replace subrequests") unless $ok;
+        $r->log->info("$$ could not replace subrequests for url $url") unless $ok;
     }
 
     # set the status line
