@@ -173,6 +173,7 @@ sub handler {
         }
     } else {
         # send to mod_proxy
+        $r->log->debug("$$ no sl header, send to mod_proxy") if DEBUG;
         return &proxy_request($r);
     }
 

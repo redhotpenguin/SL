@@ -68,8 +68,6 @@ use Carp qw(croak);
 my %default_headers = (
     'Accept-Encoding' => 'gzip,deflate',
     'Accept-Charset'  => 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
-#    'Pragma'          => 'no-cache',
-#    'Cache-Control'   => 'no-cache',
     'Accept-Lang'     => 'en-us,en;q=0.5',
     'Accept'          =>
 'text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5',
@@ -84,12 +82,7 @@ sub get {
       return;
     }
     my $url = $args_ref->{url};
-
     my $host = $args_ref->{host} || $args_ref->{headers}->{Host} || 'localhost';
-    unless ($args_ref->{headers}) {
-      warn("$$ no headers passed, using defaults");
-    }
-
     my $port = $args_ref->{port} || 80;
 
     $url = URI->new( $url )
@@ -100,21 +93,16 @@ sub get {
     # convert headers to array-ref if a hash-ref is passed
     $headers = [%$headers] if ( ref $headers eq 'HASH' );
 
-    # setup some default headers
-#    my %seen_keys;
-#    for my $i ( 0 .. $#$headers ) {
-#        $seen_keys{ $headers->[$i] }++ if ( ( $i % 2 ) == 0 );
-#    }
-
-     my $http = Net::HTTP->new(
+    my $http = Net::HTTP->new(
         Host     => $url->host,
         PeerAddr => $host,
         PeerPort => $port
       )
       || die $@;
 
+    # set keep alive
     $http->keep_alive(1);
-    
+
     # reinforce the point (Net::HTTP adds PeerPort to host during
     # new())
     $http->host( $url->host );
@@ -123,7 +111,7 @@ sub get {
     my $req = $url->path_query || "/";
     my $ok = $http->write_request( GET => $req, @$headers );
 
-    # get the resulr code, message and response headers
+    # get the result code, message and response headers
     my ( $code, $mess, @headers_out ) = $http->read_response_headers;
 
     # read response body
@@ -148,6 +136,22 @@ sub _build_response {
 
     my $response = HTTP::Response->new( $code, $mess, $header, $$body_ref );
     return $response;
+}
+
+# adds a convenient extra method for inspection
+{
+    no warnings;
+    *HTTP::Response::is_html = sub {
+        return 1 if ( shift->content_type =~ m/text\/html/ );
+        return;
+    };
+
+    *HTTP::Response::should_compress = sub {
+        $" = '|';
+        my @compressibles; # = qw( text/html text/xml text/plain application/pdf );
+        return 1 if ( shift->content_type =~ m/(?:@compressibles)/ );
+        return;
+    };
 }
 
 1;

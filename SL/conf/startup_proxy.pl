@@ -32,6 +32,7 @@ use Apache2::ServerUtil     ();
 use Apache2::SubRequest     ();
 use Apache2::URI            ();
 use Apache2::Const          ();
+use Apache2::Filter         ();
 use APR::Table              ();
 
 use SL::Model                          ();
@@ -57,7 +58,6 @@ use SL::Cache             ();
 use SL::Cache::Subrequest ();
 use SL::Cache::RateLimit  ();
 use SL::HTTP::Client      ();
-use SL::Util              ();
 use SL::BrowserUtil       ();
 
 use Digest::MD5 ();
@@ -73,6 +73,7 @@ use URI::http           ();
 use URI::Escape         ();
 use Regexp::Assemble    ();
 use Compress::Zlib      ();
+use Compress::Bzip2     ();
 use Crypt::Blowfish_PP  ();
 use HTTP::Headers::Util ();
 
