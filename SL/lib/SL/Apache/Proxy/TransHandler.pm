@@ -132,15 +132,15 @@ sub handler {
 
     # http 1.1 only
     my $hostname;
-    unless ( $hostname = defined $r->headers_in->{'Host'} ) {
+    unless ( $hostname = $r->headers_in->{'Host'} ) {
         $r->log->debug("$$ no host header, mod_proxy") if DEBUG;
         return &proxy_request($r);
     }
 
     # serving ads on hosts that are ip numbers causes problems usually
-    if ($hostname =~ m/\d{1,3}:\d{1,3}:\d{1,3}:\d{1,3}/) {
+    if ($hostname =~ m/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {
         $r->log->debug("$$ hostname is ip addr $hostname, perlbal") if DEBUG;
-        return &proxy_request($r);
+        return &perlbal($r);
     }
 
     # first level domain name check for things that perlbal can't handle
@@ -423,7 +423,7 @@ sub perlbal {
     $r->set_handlers( PerlResponseHandler => undef );
     $r->set_handlers( PerlLogHandler => undef );
     $r->log->debug("$$ X-REPROXY-URL for $uri") if DEBUG;
-    return Apache2::Const::DONE;
+    return Apache2::Const::OK;
 }
 
 1;

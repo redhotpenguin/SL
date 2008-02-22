@@ -746,10 +746,11 @@ sub _set_response_headers {
                   ( grep { $_ eq 'x-gzip' } @h ) ) { # some parts lifted from HTTP::Message
 
             # need a copy for memgzip, see HTTP::Message notes
-            my $gzipped = Compress::Zlib::memGzip($response_content_ref);
-            $$response_content_ref = $gzipped;
-            $encoding = 'gzip';
-
+            my $gzipped = eval { Compress::Zlib::memGzip($response_content_ref); };
+			if ($gzipped && !$@) {
+	            $$response_content_ref = $gzipped;
+	            $encoding = 'gzip';
+			}
         } elsif ( grep { $_ eq 'deflate' } @h ) {
 
             my $copy = $$response_content_ref;
