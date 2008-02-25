@@ -43,39 +43,6 @@ Ad Group name:
 
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
-<!-- bug selection -->
-<tr>
-<td colspan="2"><table>
-<tr>
-<td colspan="[% bugs.max %]">
-[% IF errors.missing.bug_id %]<font color="red">[% END %]
-Select a bug to associate the ad group with:
-[% IF errors.missing.bug_id %]</font>[% END %]
-</td></tr>
-<tr>
-[% FOREACH bug = bugs %]
-<td><img src="[% bug.image_href %]"></td>
-[% END %]
-</tr>
-<tr>
-[% FOREACH bug = bugs %]
-<td><input type="radio" name="bug_id" 
-value="[% bug.bug_id %]"
-[% IF (req.param('bug_id') == bug.bug_id ) %]checked
-[% ELSIF (ad_group.bug_id.bug_id == bug.bug_id) %]checked[% END %]>
-&nbsp;[% bug.name %]</td>
-[% END %]
-</tr>
-</table>
-</td></tr>
-<tr><td colspan=3><font color="#CCCCCC">
-<a href="[% base_uri %]/app/ad/bugs/index">Add a new Bug</a>
-</font></td></tr>
-
-<!-- end bug selection -->
-
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
-
 <!-- friends -->
 [% IF ad_group.ad_group_id %]
 <tr><td colspan="2">This Ad Group was created by <b><a href="mailto:[% ad_group.reg_id.email %]">[% ad_group.reg_id.email %]</b></td></tr>

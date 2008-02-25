@@ -60,28 +60,9 @@ sub dispatch_edit {
         }
     }
 
-    # get the bugs which this user owns, plus default bugs
-    my @bugs = SL::Model::App->resultset('Bug')->search(
-        [
-            { reg_id => $r->pnotes( $r->user )->reg_id, }, { is_default => 't' }
-        ]
-    );
-	# make sure that we grab the image associated with this bug
-	# even if it isn't owned by this user.  this prevents those
-	# who are allowed to view the ad group to see the current
-	# bug image even though the bug is owned by someone else
-	if ($ad_group) {
-		my %bugs_hash = map { $_->name => $_ } @bugs;
-		unless (exists $bugs_hash{$ad_group->bug_id->name}) {
-			$bugs_hash{$ad_group->bug_id->name} = $ad_group->bug_id;
-		}
-		@bugs = values %bugs_hash;
-	}
-
-    if ( $r->method_number == Apache2::Const::M_GET ) {
+	if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
             reg      => $reg,
-            bugs     => \@bugs,
             friends  => \@friends,
             ad_group => $ad_group,
             errors   => $args_ref->{errors},
@@ -99,7 +80,7 @@ sub dispatch_edit {
 
         # validate input
         my %ad_group_profile = (
-            required           => [qw( name  bug_id active )],
+            required           => [qw( name active )],
         );
 
         my $results = Data::FormValidator->check( $req, \%ad_group_profile );
@@ -126,7 +107,7 @@ sub dispatch_edit {
     }
 
     # add arguments
-    foreach my $param qw( name bug_id active ) {
+    foreach my $param qw( name active ) {
         $ad_group->$param( $req->param($param) );
     }
     $r->log->debug("ISA: " . join(',', @SL::Model::App::AdGroup::ISA));
