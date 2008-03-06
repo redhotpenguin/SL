@@ -1,5 +1,9 @@
 Revision history for Perl extension SL-Linksys.
 
+0.18 Thu Mar 06 15:12:24 PST
+    - change the cron reboot entry to once a week, it was rebooting every
+      four hours and twenty minutes.  Thanks to EJ for the spot.
+
 0.17 Sat Feb 16 15:05:05 PST
     - add iptables rules to block smtp access, and block access to
         192.168.0.0/16

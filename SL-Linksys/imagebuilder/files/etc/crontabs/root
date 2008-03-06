@@ -4,7 +4,7 @@
 # grab the latest configuration data once an hour
 19 * * * * /usr/bin/microperl /usr/bin/sl_config_update
 
-# reboot once a day to prevent the occassional memory leak from
-# bringing down the router
-20 4 * * * /sbin/reboot
+# reboot once a week to prevent the occassional memory leak from
+# bringing down the router.  reboot at the same time it was started
+0 0 7 * * /sbin/reboot
 

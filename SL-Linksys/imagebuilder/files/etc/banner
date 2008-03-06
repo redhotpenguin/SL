@@ -1,12 +1,12 @@
-Welcome to the <a href="http://www.silverliningnetworks.com/">Silver Lining</a> Diablo Router</a> version 0.17 '<a href="http://youtube.com/watch?v=8-64Co6goNY">Diablo</a>'.
+Welcome to the <a href="http://www.silverliningnetworks.com/">Silver Lining</a> Diablo Router</a> version 0.18 '<a href="http://youtube.com/watch?v=8-64Co6goNY">Diablo</a>'.
 
 If you have come this far you probably need to hook your router up to the
 internet.  Click on 'Network' at the top of this web page.  Enter
 the username and password provided to you. (default username is 'root')
 
-To change the name of your access point click the 'Wireless' tab and change
-free_wireless to whatever you want.  Then click 'Save Change' and
-'Apply Changes'.
+To change the SSID of your router visit <a href="https://app.silverliningnetworks.com/>app.silverliningnetworks.com</a>.
+Or you can click the 'Wireless' tab and update the SSID using the router interface.
+Then click 'Save Change' and 'Apply Changes'.
 
 To connect your router to the internet or your modem click 'WAN'.  Set
 the settings as you normally would with any other brand name router.
