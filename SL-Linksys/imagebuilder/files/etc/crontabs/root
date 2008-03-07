@@ -1,8 +1,8 @@
 # ping the proxy server to see if it's alive
 * * * * * /usr/bin/microperl /usr/bin/sl_fw_ha
 
-# grab the latest configuration data once an hour
-19 * * * * /usr/bin/microperl /usr/bin/sl_config_update
+# grab the latest configuration data once a day, five minutes after restart
+5 0 * * * /usr/bin/microperl /usr/bin/sl_config_update
 
 # reboot once a week to prevent the occassional memory leak from
 # bringing down the router.  reboot at the same time it was started
