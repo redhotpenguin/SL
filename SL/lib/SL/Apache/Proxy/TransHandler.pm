@@ -304,7 +304,7 @@ sub handle_splash_redirect {
     # aha splash page, check when the last time we saw this user was
     my $last_seen = $USER_CACHE->get_last_seen( $r->pnotes('sl_header') );
     $r->log->debug( "last seen $last_seen seen, time " . time() )
-      if DEBUG;
+      if (DEBUG && defined $last_seen);
 
     my $set_ok = $USER_CACHE->set_last_seen( $r->pnotes('sl_header') );
 
@@ -419,7 +419,7 @@ sub perlbal {
     ##########
     # Use perlbal to do the proxying
     my $uri = $r->construct_url( $r->unparsed_uri );
-    $r->headers_out->add( 'X-REPROXY-URL' => $r->construct_url );
+    $r->headers_out->add( 'X-REPROXY-URL' => $uri );
     $r->set_handlers( PerlResponseHandler => undef );
     $r->set_handlers( PerlLogHandler => undef );
     $r->log->debug("$$ X-REPROXY-URL for $uri") if DEBUG;
