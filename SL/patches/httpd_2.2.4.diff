@@ -53,18 +53,18 @@
  
 +
 +            ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, r->server,
-+                         "PROXY WAXOO: URI %s", r->uri);
++                         "MOD_PROXY: URI %s", r->uri);
 +
 +            ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, r->server,
-+                         "PROXY WAXOO: UNPARSED_URI %s", r->unparsed_uri);
++                         "PROXY: UNPARSED_URI %s", r->unparsed_uri);
 +
 +            ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, r->server,
-+                         "PROXY WAXOO: handling proxy hostname %s", r->hostname);
++                         "PROXY: handling proxy hostname %s", r->hostname);
 +
 +            url = apr_pstrcat(r->pool, "http://", r->hostname, r->unparsed_uri, NULL);
 +
 +            ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, r->server,
-+                         "PROXY WAXOO: NEW URL  %s", url);
++                         "PROXY: NEW URL  %s", url);
 +
 +
      /* find the scheme */
