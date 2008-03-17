@@ -817,7 +817,7 @@ sub twohundred {
     $r->log->debug("$$ Request to $url returned 200") if DEBUG;
 
     # Cache the content_type
-    if ( defined $response->content_type ) {
+    if ( defined $response->content_type && ($response->content_type ne '')) {
         $CACHE->add_known_html( $url => $response->content_type );
     }
 
