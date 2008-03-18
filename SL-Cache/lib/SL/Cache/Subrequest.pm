@@ -73,6 +73,11 @@ sub collect_subrequests {
     my ( $self,        %args )     = @_;
     my ( $content_ref, $base_url ) = @args{qw(content_ref base_url)};
 
+	unless ($$content_ref ne '') {
+		warn("$$ SL::Cache::Subrequests missing content_ref");
+		return;
+	}
+
     my $parser = HTML::TokeParser->new($content_ref);
     $parser->attr_encoded(1);
 
@@ -177,9 +182,11 @@ sub replace_subrequests {
               s/(\=\s?['"]?\s{0,3}?)\Q$orig_url\E/$1$replacement_url/sg;
             $replaced += $matched;
 
-            warn("did not replace $orig_url with $replacement_url ok")
-              unless $matched;
-            warn("replaced $matched urls for $replacement_url") if DEBUG;
+			if (DEBUG) {
+	            warn("did not replace $orig_url with $replacement_url ok")
+		          unless $matched;
+			    warn("replaced $matched urls for $replacement_url");
+			}
         }
         elsif ($is_script) {
             my $is_script_replace =
