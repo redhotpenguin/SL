@@ -204,7 +204,7 @@ sub dispatch_list {
 	foreach my $router (@routers) {
 		my $dt = DateTime::Format::Pg->parse_datetime( $router->last_ping );
 		# hack for pacific time
-		my $sec = (time - $dt->epoch - 3600*8);
+		my $sec = (time - $dt->epoch - 3600*7); # FIXME daylight savings time breaks
 		my $minutes = sprintf('%d', $sec/60);
 		if ( $sec <= 60) {
 			$router->{'last_seen'} = "$sec sec";

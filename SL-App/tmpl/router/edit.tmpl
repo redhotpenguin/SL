@@ -112,7 +112,7 @@ Branding Image Location:
 </td><td>
 </tr>
 <tr><td colspan=2><font color="#CCCCCC">
-( 120 pixels wide by 45 pixels high, example http://www.redhotpenguin.com/images/sl/sl.gif )</font></td></tr>
+( 120 pixels wide by 45 pixels high, example http://www.silverliningnetworks.com/app/logos/sl.gif )</font></td></tr>
 <tr><td colspan=2>
 <a href="[% router.bug_image_href %]"><img border='0' src="[% router.bug_image_href %]"></a></td>
 <!-- end image_href -->
@@ -133,19 +133,11 @@ value="[% req.param('bug_link_href') or router.bug_link_href %]">
 <tr><td colspan=2><a href="[% req.param('bug_link_href') or router.bug_link_href %]">Link</a></td></tr>
 <!-- end image_href -->
 
+
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+
 
 [% IF reg.custom_ads %]
-<!-- ad feeds -->
-<tr><td colspan="2">Ad Feeds associated with this Router</td></tr>
-<tr><td colspan="4">
-<input type="checkbox" name="feed_google" value="1" [% IF router.feed_google %]CHECKED[% END %]>Google Ad Sense&nbsp;&nbsp;
-</td></tr>
-<tr><td colspan=4><font color="#CCCCCC">
-Click checkbox to add the Ad Feed to the Router</font></td></tr>
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
-
-
 <!-- ad groups -->
 <tr><td colspan="2">Ad Groups associated with this Router</td></tr>
 <tr><td colspan="4">
