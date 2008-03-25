@@ -34,7 +34,7 @@ Name this router:
 <td>
 <input type="text" name = "name" size="45" maxlength="50" value='[% req.param('name') or router.name %]'>
 </td></tr>
-<tr><td colspan="2"><font color="#CCCCCC">(100 character limit)</font></td></tr>
+<tr><td colspan="2"><font color="#CCCCCC"><b>100 character limit</b></font></td></tr>
 <tr><td colspan="2"><hr size=1 color="#CCCCCC"></td></tr>
 
 <!-- SSID -->
@@ -46,7 +46,7 @@ SSID:
 <td>
 <input type="text" name = "ssid" size="25" maxlength="25" value='[% req.param('ssid') or router.ssid %]'>
 </td></tr>
-<tr><td colspan="2"><font color="#CCCCCC">(Allow up to a minute to take effect)</font></td></tr>
+<tr><td colspan="2"><font color="#CCCCCC"><b>Allow up to a minute to take effect</b></font></td></tr>
 <tr><td colspan="2"><hr size=1 color="#CCCCCC"></td></tr>
 
 <!-- macaddr -->
@@ -59,7 +59,7 @@ Mac Address:
 <input type="text" name = "macaddr" size="17" maxlength="17" value='[% req.param('macaddr') or router.macaddr%]'>
 </td></tr>
 <tr><td colspan="2">
-<font color="#CCCCCC">(example <b>00:17:f2:43:38:bd</b>)</font></td></tr>
+<font color="#CCCCCC"><b>Example:  00:17:f2:43:38:bd</b></font></td></tr>
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
 <!-- serial number -->
@@ -71,7 +71,7 @@ Serial Number:
 <input type="text" name="serial_number" size="25" maxlength="25" value='[% router.serial_number %]'>
  </td></tr>
  <tr><td colspan="2">
-<font color="#CCCCCC">(Optional, to determine router model compatibility, example <b>CL7A0F318014</b>)</font></td></tr>
+<font color="#CCCCCC"><b>Optional, to determine router model compatibility, example CL7A0F318014</b></font></td></tr>
  <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
  
 <!-- splash page -->
@@ -80,10 +80,10 @@ Serial Number:
 Splash page url:</td>
 [% IF errors.missing.splash_href or errors.invalid.splash_href %]</font>[% END %]
 <td>
-<input type="text" name="splash_href" size="45" maxlength="255" value='[% req.param('splash_href') or router.splash_href %]'>
+<input type="text" name="splash_href" size="45" maxlength="255" value='[% req.param('splash_href') or router.splash_href or 'http://www.silverliningnetworks.com/network/' %]'>
 </td></tr>
 <tr><td colspan="2">
-<font color="#CCCCCC">(example <b><a href="http://www.silverliningnetworks.com/network/">http://www.silverliningnetworks.com/network/</a></b>)</font></td></tr>
+<font color="#CCCCCC"><b>Example:  http://www.silverliningnetworks.com/network/</b></font></td></tr>
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
 <!-- splash page timeout -->
@@ -92,10 +92,10 @@ Splash page url:</td>
 Splash page timeout:</td>
 [% IF errors.missing.splash_timeout or errors.invalid.splash_timeout %]</font>[% END %]
 <td>
-<input type="text" name="splash_timeout" size="3" maxlength="3" value='[% req.param('splash_timeout') or router.splash_timeout or '60' %]'>
+<input type="text" name="splash_timeout" size="3" maxlength="3" value='[% req.param('splash_timeout') or router.splash_timeout or '20' %]'>
 </td></tr>
 <tr><td colspan="2">
-<font color="#CCCCCC">(Number of inactive minutes before splash page is shown)</font></td></tr>
+<font color="#CCCCCC"><b>Number of inactive minutes before splash page is shown</b></font></td></tr>
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
 <!-- bug link and image -->
@@ -108,11 +108,10 @@ Branding Image Location:
 [% IF errors.missing.bug_image_href or errors.invalid.bug_image_href %]</font>[% END %]
 </td>
 <td>
-<input type="text" name="bug_image_href" size="50" maxlength="512" value="[% req.param('bug_image_href') or router.bug_image_href %]">
+<input type="text" name="bug_image_href" size="50" maxlength="512" value="[% req.param('bug_image_href') or router.bug_image_href or 'http://www.silverliningnetworks.com/images/silver-lining-ad-bar.gif'  %]">
 </td><td>
 </tr>
-<tr><td colspan=2><font color="#CCCCCC">
-( 120 pixels wide by 45 pixels high, example http://www.silverliningnetworks.com/images/silver-lining-ad-bar.gif )</font></td></tr>
+<tr><td colspan=2><font color="#CCCCCC"><b>120 pixels wide by 45 pixels high, Example:  http://www.silverliningnetworks.com/images/silver-lining-ad-bar.gif</b></font></td></tr>
 <tr><td colspan=2>
 <a href="[% router.bug_image_href %]"><img border='0' src="[% router.bug_image_href %]"></a></td>
 <!-- end image_href -->
@@ -126,10 +125,9 @@ Branding Image Links To:
 [% IF errors.missing.bug_link_href or errors.invalid.bug_link_href %]</font>[% END %]
 </td>
 <td><input type="text" name="bug_link_href" size="50" maxlength="512" 
-value="[% req.param('bug_link_href') or router.bug_link_href %]">
+value="[% req.param('bug_link_href') or router.bug_link_href or 'http://www.silverliningnetworks.com/?referer=silverlining' %]">
 </td></tr>
-<tr><td colspan=2><font color="#CCCCCC">
-( example http://www.silverliningnetworks.com/?referer=silverlining )</font></td></tr>
+<tr><td colspan=2><font color="#CCCCCC"><b>Example:  http://www.silverliningnetworks.com/?referer=silverlining</b></font></td></tr>
 <tr><td colspan=2><a href="[% req.param('bug_link_href') or router.bug_link_href %]">Link</a></td></tr>
 <!-- end image_href -->
 
@@ -148,7 +146,7 @@ value="[% req.param('bug_link_href') or router.bug_link_href %]">
 [% END %]
 </td></tr>
 <tr><td colspan=4><font color="#CCCCCC">
-Click checkbox to add the Ad Group to the Router</font></td></tr>
+<b>Click checkbox to add the Ad Group to the Router</b></font></td></tr>
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
 [% END %]
