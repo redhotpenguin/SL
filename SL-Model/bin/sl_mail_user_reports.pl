@@ -67,7 +67,7 @@ Attached are the reporting graphs for your Silver Lining routers.
 
 To edit your report delivery settings visit the Silver Lining dashboard:
 
-https://www.redhotpenguin.com/sl/app/home/index
+https://app.silverliningnetworks.com/sl/app/home/index
 DATA
 
 	my $msg = MIME::Lite->new(
