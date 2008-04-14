@@ -15,7 +15,15 @@ my %reg_expires = (
 
     # expire kharma account rate limit once an hour
     '60 min' =>
-      [ '0013102d6976', '0016b61c93e7', '0013102d6985', '0016b61c93e7', ],
+      [ 
+		'0013102d6976', 
+		'0016b61c93e7', 
+		'0013102d6985', 
+		'0016b61c93f3',
+		'000f66cc950e',
+		'0016b61c950d',
+		'0013102d6973',
+		],
 );
 
 foreach my $expiry_interval ( keys %reg_expires ) {
