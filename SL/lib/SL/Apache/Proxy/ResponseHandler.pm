@@ -63,7 +63,7 @@ use constant TIMING        => $ENV{SL_TIMING}        || 0;
 
 use constant REPLACE_PORT  => 8135;
 
-use constant MIN_CONTENT_LENGTH => 1750;
+use constant MIN_CONTENT_LENGTH => $CONFIG->sl_min_content_length || 2500;
 
 
 my ( $TIMER, $REMOTE_TIMER );
@@ -981,7 +981,7 @@ sub _generate_response {
     # It is a fix for sites like google, yahoo who send encoded UTF-8 et al
     my $decoded_content        = $response->decoded_content;
     my $content_needs_encoding = 1;
-
+	
 	unless (length($decoded_content) > MIN_CONTENT_LENGTH) {
 	    $r->log->debug("$$ content too small, skipping ad insertion") if DEBUG;
 		return;
