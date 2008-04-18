@@ -31,7 +31,7 @@ p.sl {
 .sl_textad_text {
 /* 	border: solid 1px black; */
 	position: absolute;
-	top: 3px;
+	top: 5px;
 	left: 125px;
 	vertical-align: 50%;
 	text-decoration: underline;
