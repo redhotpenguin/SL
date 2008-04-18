@@ -63,7 +63,7 @@ use constant TIMING        => $ENV{SL_TIMING}        || 0;
 
 use constant REPLACE_PORT  => 8135;
 
-use constant MIN_CONTENT_LENGTH => 1000;
+use constant MIN_CONTENT_LENGTH => 1750;
 
 
 my ( $TIMER, $REMOTE_TIMER );
