@@ -63,6 +63,9 @@ use constant TIMING        => $ENV{SL_TIMING}        || 0;
 
 use constant REPLACE_PORT  => 8135;
 
+use constant MIN_CONTENT_LENGTH => 1000;
+
+
 my ( $TIMER, $REMOTE_TIMER );
 if (TIMING) {
     $TIMER        = RHP::Timer->new();
@@ -845,6 +848,9 @@ sub twohundred {
     my $response_content_ref;
     my $ad_served;
     if (
+		# not enough content means it's probably not a real page
+			( $response->header('content-length') > MIN_CONTENT_LENGTH)
+				and
             ( not $is_toofast )
             and
             ( not $SUBREQUEST_TRACKER->is_subrequest( url => $url ) )
