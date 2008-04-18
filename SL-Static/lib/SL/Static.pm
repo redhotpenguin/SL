@@ -15,7 +15,7 @@ BEGIN {
     $CONFIG = SL::Config->new();
     # TODO - need to parse javascript files
     my @extensions = qw( ad avi bin bz2 css doc exe fla gif gz ico jpeg 
-        jpg js pdf png ppt rar rdf sit rss tgz txt wmv vob xpi zip );
+        jpg js mar pdf png ppt rar rdf sit rss tgz txt wmv vob xpi zip );
     $EXT_REGEX = Regexp::Assemble->new->add(@extensions)->re;
     print STDERR "Extensions regex for SL::Static is $EXT_REGEX\n" if $DEBUG;
 
