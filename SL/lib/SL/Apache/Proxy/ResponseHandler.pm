@@ -849,8 +849,6 @@ sub twohundred {
     my $ad_served;
     if (
 		# not enough content means it's probably not a real page
-			( $response->header('content-length') > MIN_CONTENT_LENGTH)
-				and
             ( not $is_toofast )
             and
             ( not $SUBREQUEST_TRACKER->is_subrequest( url => $url ) )
@@ -984,7 +982,12 @@ sub _generate_response {
     my $decoded_content        = $response->decoded_content;
     my $content_needs_encoding = 1;
 
-    unless ( defined $decoded_content ) {
+	unless (length($decoded_content) > MIN_CONTENT_LENGTH) {
+	    $r->log->debug("$$ content too small, skipping ad insertion") if DEBUG;
+		return;
+	}
+
+	unless ( defined $decoded_content ) {
 
         # hmmm, in some cases decoded_content is null so we use regular content
         # https://www.redhotpenguin.com/bugzilla/show_bug.cgi?id=424
