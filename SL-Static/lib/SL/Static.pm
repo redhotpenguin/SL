@@ -6,7 +6,7 @@ use warnings;
 use Regexp::Assemble;
 use SL::Config;
 
-our $VERSION = 0.10;
+our $VERSION = 0.11;
 
 our $DEBUG = 0;
 our ($CONFIG, $EXT_REGEX, $SKIPS_REGEX);

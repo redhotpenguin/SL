@@ -6,7 +6,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME         => 'SL-Static',
     VERSION_FROM => 'lib/SL/Static.pm',
-    PREREQ_PM    => { 'Regexp::Assemble' => 0.31, },
+    PREREQ_PM    => { 'Regexp::Assemble' => 0.32, },
     ABSTRACT     => 'Regexes for static content and friends',
     AUTHOR       => 'Fred Moyer <fred@redhotpenguin.com>',
 );
