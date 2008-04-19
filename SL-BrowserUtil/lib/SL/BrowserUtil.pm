@@ -5,7 +5,7 @@ use warnings;
 
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 
-our $VERSION = 0.02;
+our $VERSION = 0.03;
 
 # extract this to a utility library or something
 sub is_a_browser {

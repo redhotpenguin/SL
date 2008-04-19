@@ -1,3 +1,8 @@
+#!perl
+
+use strict;
+use warnings;
+
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl SL-BrowserUtil.t'
 
@@ -59,4 +64,4 @@ $user_agent = "Mozilla/5.0 (Danger hiptop 3.4; U; AvantGo 3.2)";
 ok($browser = $pkg->is_a_browser( $user_agent), 'sidekick 3 is a browser');
 
 $user_agent = "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.10) Gecko/20071115 Firefox/2.0.0.10";
-ok($browswer = $pkg->is_a_browser( $user_agent), 'firefox 2 is a browswer');
+ok($browser = $pkg->is_a_browser( $user_agent), 'firefox 2 is a browswer');
