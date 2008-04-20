@@ -8,22 +8,30 @@ use SL::Config;
 
 our $VERSION = 0.11;
 
-our $DEBUG = 0;
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
 our ($CONFIG, $EXT_REGEX, $SKIPS_REGEX);
 
 BEGIN {
     $CONFIG = SL::Config->new();
-    # TODO - need to parse javascript files
-    my @extensions = qw( ad avi bin bz2 css doc exe fla gif gz ico jpeg 
-        jpg js mar pdf png ppt rar rdf sit rss tgz txt wmv vob xpi zip );
-    $EXT_REGEX = Regexp::Assemble->new->add(@extensions)->re;
-    print STDERR "Extensions regex for SL::Static is $EXT_REGEX\n" if $DEBUG;
+    my @extensions = qw( 
+		ad ads avi 
+		bin bz2 bzip class css dll dms doc exe fla flv 
+		gif gz ico img jar jpg jpeg js 
+		lha lzh mar mov mp3 mpg mpeg 
+		pdf png ppt psf
+		rar rdf rss sit so swf 
+		tar tgz tif tiff torrent txt 
+		wmv vob xls xpi zip );
+    
+
+	$EXT_REGEX = Regexp::Assemble->new->add(@extensions)->re;
+    print STDERR "Extensions regex for SL::Static is $EXT_REGEX\n" if DEBUG;
 
     my @skips = qw( framset adwords.google.com MM_executeFlashDetection
                  swfobject.js );
     push @skips, 'Ads by Goooooogle';
     $SKIPS_REGEX = Regexp::Assemble->new->add(@skips)->re;
-    print STDERR "Skips regex for SL::Static is $SKIPS_REGEX\n" if $DEBUG;
+    print STDERR "Skips regex for SL::Static is $SKIPS_REGEX\n" if DEBUG;
 }
 
 sub is_static_content {
@@ -40,7 +48,7 @@ sub is_static_content {
     }
 
     if ($args_ref->{url}) {
-      return 1 if ( $args_ref->{url} =~ m{\.(?:$EXT_REGEX)$}i );
+      return 1 if ( $args_ref->{url} =~ m{\.(?:$EXT_REGEX)}i );
     }
 
     return;
