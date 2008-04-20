@@ -29,21 +29,20 @@ our $CONFIG;
 BEGIN {
     $CONFIG = SL::Config->new();
 
+	# FIXME - replace with SL::Static
     ## Extension based matching
     # removed js css swf
     my @extensions = qw(
       js torrent img avi bin bz2 doc exe fla flv gif gz ico jpeg jpg pdf png 
-      ppt mpg mpeg mp3 tif tiff
-ads
- swf     rar sit
-rdf rss tgz txt wmv vob xpi zip );
+      ppt mar mpg mpeg mp3 tif tiff
+	  ads swf rar sit rdf rss tgz txt wmv vob xpi zip );
 
     $EXT_REGEX = Regexp::Assemble->new->add(@extensions)->re;
     print STDERR "Regex for static content match is $EXT_REGEX\n"
       if DEBUG;
 
     $BLACKLIST_REGEX = SL::Model::URL->generate_blacklist_regex;
-    print STDERR "Blacklist reges is $BLACKLIST_REGEX\n" if DEBUG;
+    print STDERR "Blacklist regex is $BLACKLIST_REGEX\n" if DEBUG;
 
 }
 
