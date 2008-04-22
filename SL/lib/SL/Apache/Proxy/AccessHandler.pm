@@ -18,38 +18,39 @@ sub handler {
         return Apache2::Const::OK;
     }
 
-	# perlbal proxy
-	if (defined $r->headers_in->{'X-Forwarded-For'}) {
-	    $r->connection->remote_ip($r->headers_in->{'X-Forwarded-For'});
-	}
+    # perlbal proxy
+    if (defined $r->headers_in->{'X-Forwarded-For'}) {
+        $r->connection->remote_ip($r->headers_in->{'X-Forwarded-For'});
+        delete $r->headers_in->{'X-Forwarded-For'};
+    }
 
-	# see if we know this ip is registered
+    # see if we know this ip is registered
     my $location_id = eval {
       SL::Model::Proxy::Location->get_location_id_from_ip(
             $r->connection->remote_ip ); };
 
-	if ($@) {
+    if ($@) {
 
-		# db connect failed, run and hide!  can't do much else without auth
-		$r->log->error(sprintf("get_location_id_from_ip for ip %s failed, err %s",
-				$r->connection->remote_ip, $@ ));
+        # db connect failed, run and hide!  can't do much else without auth
+        $r->log->error(sprintf("get_location_id_from_ip for ip %s failed, err %s",
+                $r->connection->remote_ip, $@ ));
         $r->set_handlers(PerlTransHandler => undef);
         $r->set_handlers(PerlResponseHandler => undef);
         $r->set_handlers(PerlLogHandler => undef);
 
-		return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
+        return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
     } elsif ($location_id) {
 
-		# authorized client, let them pass
+        # authorized client, let them pass
         $r->pnotes(location_id => $location_id);
-		return Apache2::Const::OK;
+        return Apache2::Const::OK;
     } elsif (!$location_id) {
 
-		# unauthorized attempt
-		$r->log->error(sprintf("client ip %s unregistered access attempt to url %s",
-				$r->connection->remote_ip, $url));
-		return Apache2::Const::FORBIDDEN
-	}
+        # unauthorized attempt
+        $r->log->error(sprintf("client ip %s unregistered access attempt to url %s",
+                $r->connection->remote_ip, $url));
+        return Apache2::Const::FORBIDDEN
+    }
 }
 
 1;
