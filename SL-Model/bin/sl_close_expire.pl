@@ -11,34 +11,13 @@ use SL::Model;
 
 my $dbh = SL::Model->connect;
 
-my %reg_expires = (
+my $expiry_interval = '60 min';
 
-    # expire kharma account rate limit once an hour
-    '60 min' =>
-      [ 
-		'0013102d6976', 
-		'0016b61c93e7', 
-		'0013102d6985', 
-		'0016b61c93f3',
-		'000f66cc950e',
-		'0016b61c950d',
-		'0013102d6973',
-		],
-);
-
-foreach my $expiry_interval ( keys %reg_expires ) {
-
-    # grab the macaddresses of the routers
-    my @macaddrs = @{ $reg_expires{$expiry_interval} };
-    foreach my $macaddr (@macaddrs) {
-
-        # have this make it expired once we push the proxy user blacklist part live
-        $dbh->do(
-"DELETE FROM user_blacklist WHERE user_id like '\%$macaddr|\%' and (now() - ts) > ?",
+# have this make it expired once we push the proxy user blacklist part live
+$dbh->do(
+"DELETE FROM user_blacklist WHERE (now() - ts) > ?",
             undef, $expiry_interval
         );
-    }
-}
 
 # reclaim space from delete and update index stats
 $dbh->do('VACUUM ANALYZE user_blacklist');
