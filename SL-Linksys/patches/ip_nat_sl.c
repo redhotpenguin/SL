@@ -11,371 +11,507 @@
 #include <linux/netfilter_ipv4/ip_nat_helper.h>
 #include <linux/netfilter_ipv4/ip_nat_rule.h>
 #include <linux/netfilter_ipv4/ipt_string.h>
+#include <linux/netfilter_ipv4/ip_nat_sl_helper.h>
 #include <linux/jhash.h>
 
-#if 0
-#define DEBUGP printk
-#else
-#define DEBUGP(format, args...)
-#endif
+MODULE_LICENSE("SL");
+MODULE_DESCRIPTION("Connection helper for SL HTTP requests");
+MODULE_AUTHOR("Fred Moyer <fred@redhotpenguin.com>");
 
-#define DEBUG 0
+/* salt for the hashing */
+#define JHASH_SALT 420
 
-#define SL_PORT 80
+/* maximum packet length */ 
+#define MAX_PACKET_LEN 1480
 
-/* maximum expected length of http header */
-#define HEADER_MAX_LEN 700
+/* This is calculated anyway but we use it to check for big packets */
+#define SL_HEADER_LEN 29
 
-DECLARE_LOCK(ip_sl_lock);
+/* needle for Connection header */
+#define CONN_NEEDLE_LEN 13
+static char conn_needle[CONN_NEEDLE_LEN+1] = "\r\nConnection:"; 
 
-/* the removal string for the port */ 
-#define PORT_NEEDLE_LEN 5
-static char port_needle[PORT_NEEDLE_LEN+1] = ":8135";
+/* needle for Keep-Alive header */
+#define KA_NEEDLE_LEN 13
+static char ka_needle[KA_NEEDLE_LEN+1] = "\r\nKeep-Alive:"; 
 
-/* needle for GET */
-#define GET_NEEDLE_LEN 5
-static char get_needle[GET_NEEDLE_LEN+1] = "GET /";
+/* needle for CRLF */
+static char crlf_needle[CRLF_NEEDLE_LEN+1] = "\r\n";
 
-/* needle for ping button */
-#define PING_NEEDLE_LEN 21
-static char ping_needle[PING_NEEDLE_LEN+1] = "sl_secret_ping_button";
-
-/* needle for host header */
-#define HOST_NEEDLE_LEN 6
-static char host_needle[HOST_NEEDLE_LEN+1] = "Host: ";
-
-#define SEARCH_FAIL 0
-
-static int sl_data_fixup(  struct ip_conntrack *ct,
-			  struct sk_buff **pskb,
-			  enum ip_conntrack_info ctinfo,
-			  struct ip_conntrack_expect *expect)
+static int sl_data_fixup(
+              struct ip_conntrack *ct,
+              struct sk_buff **pskb,
+              enum   ip_conntrack_info ctinfo,
+              struct ip_conntrack_expect *expect )
 {
-	struct iphdr *iph = (*pskb)->nh.iph;
-	struct tcphdr *tcph = (void *)iph + iph->ihl*4;
+    struct iphdr *iph = (*pskb)->nh.iph;
+    struct tcphdr *tcph = (void *)iph + iph->ihl*4;
 
-	/* needed to remove string */
-	char *haystack, *repl_ptr;
+    /* pointer to the search result */
+    char *host_ptr = NULL;
 
-	/* equivalent to skb->data but apparently earlier
-	   needed because ip_nat_mangle_tcp_packet uses it as a ref point */ 
-	unsigned char *skb_early_data;
-	
-	int hlen, match_offset, match_len, rep_len;
-    proc_ipt_search search=search_linear;
-	
-	/* this is going to sl dc, add machdr */
-#ifdef DEBUG
-		printk(KERN_DEBUG "ip_nat_sl: sl_data_fixup\n");
+    /* pointer to the start of the user data */
+    unsigned char *user_data = NULL;
+    
+    int packet_len, match_offset, user_data_len;
+    
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "ip_nat_sl: sl_data_fixup\n");
 #endif
 
-	/* no ip header is a problem */
-	if ( !iph ) return SEARCH_FAIL;
+    /* no ip header is a problem */
+    if ( !iph ) return 0;
 
-	/* get lengths, and validate them */
-	hlen=ntohs(iph->tot_len)-(iph->ihl*4);
-#ifdef DEBUG
-		printk(KERN_DEBUG "ip_nat_sl: haystack orig length: %d\n", hlen);
-#endif
-	hlen = (hlen < HEADER_MAX_LEN) ? hlen : HEADER_MAX_LEN;
-	
-	/* where we are looking */
-	haystack=(char *)iph+(iph->ihl*4);
+    /* get packet length */
+    packet_len = ntohs(iph->tot_len) - (iph->ihl*4);
 
-	/* max length to search for :8135 port_needle */
-   
-	/* The sublinear search comes in to its own
-     	   on the larger packets */
-    	if ( (hlen > IPT_STRING_HAYSTACK_THRESH) &&
-        	(PORT_NEEDLE_LEN > IPT_STRING_NEEDLE_THRESH) ) {
-        	if ( hlen < BM_MAX_HLEN ) {
-            		search=search_sublinear;
-        	}else{ 
-           		if (net_ratelimit())
-                		printk(KERN_INFO "ipt_string: Packet too big "
-                    			"to attempt sublinear string search "
-                    			"(%d bytes)\n", hlen );
-		}
-	}
-
-   	/* search and remove port numbers or add machdr */
-	repl_ptr = search(port_needle, haystack, PORT_NEEDLE_LEN, hlen );
-
-	if (repl_ptr != NULL ) {
-		/* mangle the packet, removing the port number */
-		/* distance past match offset of string to match  */
-		match_len = (int)((char *)(*pskb)->tail - (char *)repl_ptr); 
-#ifdef DEBUG
-		printk(KERN_DEBUG "match_len: %d\n", match_len); 
-#endif
-		rep_len = match_len - PORT_NEEDLE_LEN;	
-
-		skb_early_data = (void *)tcph + tcph->doff*4;
-		match_offset = (int)(repl_ptr - (int)skb_early_data);
-	
-#ifdef DEBUG
-		printk(KERN_DEBUG "match_len %d, rep_len %d\n", match_len, rep_len);
-		printk(KERN_DEBUG "match_offset %d\n", match_offset);
-		printk(KERN_DEBUG "UPDATED rep_buffer: %s\n", &repl_ptr[PORT_NEEDLE_LEN]);
-		printk(KERN_DEBUG "UPDATED rep_len: %u\n", rep_len);
-		printk(KERN_DEBUG "\npre-mangle packet: %s\n\n", &repl_ptr[-match_offset]);
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "ip_nat_sl: packet length: %d\n", packet_len);
 #endif
 
-		if (!ip_nat_mangle_tcp_packet(pskb, ct, ctinfo, 
-					match_offset, match_len, 
-					&repl_ptr[PORT_NEEDLE_LEN], rep_len)) {  
-			printk(KERN_ERR "unable to mangle tcp packet\n");
-			return 0;
-		}
-#ifdef DEBUG
-		printk(KERN_DEBUG "\npacket mangled ok: %s\n\n", &repl_ptr[-match_offset]);
-#endif		
+    /* pointer to where the user data starts */
+    user_data = (void *)tcph + tcph->doff*4;
+    
+    /* length of the packet user data */
+    user_data_len = (int)((char *)(*pskb)->tail -  (char *)user_data);
 
-	} else if (repl_ptr == NULL) {
-
-#ifdef DEBUG
-			printk(KERN_DEBUG "port_needle :8135 NOT found, trying get_needle\n");
-#endif		
-		/* see if this is a GET request */
-       		repl_ptr = search(get_needle, haystack, GET_NEEDLE_LEN, hlen);
-
-		/* no repl_ptr is a problem */
-		if (repl_ptr == NULL) {
-#ifdef DEBUG
-			printk(KERN_DEBUG "no get_needle found in packet\n");
-#endif		
-			return 1;
-		} else if ( repl_ptr != NULL) {
-			
-#ifdef DEBUG
-			printk(KERN_DEBUG "get_needle FOUND: %s\n", repl_ptr); 
-#endif		
-			/* make sure this isn't a ping */
-			repl_ptr = search(ping_needle, haystack, PING_NEEDLE_LEN, hlen);
-			if (repl_ptr != NULL) {
-				/* this is a ping */
-#ifdef DEBUG
-				printk(KERN_DEBUG "secret ping button FOUND: %s\n", repl_ptr); 
-#endif		
-					return 1;
-			}
-			
-			/* look for the Host: header */
-			repl_ptr = search(host_needle, haystack, HOST_NEEDLE_LEN, hlen);
-			if (repl_ptr == NULL) {
-				printk(KERN_ERR "no host header found in packet\n");
-				return 1;
-			}  else if (repl_ptr != NULL) {	
-				/* found a host header, insert the mac addr */ 
-				struct ethhdr *bigmac = (*pskb)->mac.ethernet;
-				unsigned int jhashed = 0;
-		        int machdr_len = 0;
-				char dst_string[12]; /* router macaddr */
-				char src_string[12]; /* client macaddr */
-				char machdr[29];
-				if (bigmac->h_source == NULL) {
-					printk(KERN_ERR "no source mac found\n");
-					return 1;
-				} else  {
-#ifdef DEBUG
-					printk(KERN_DEBUG "source mac found: %02x%02x%02x%02x%02x%02x\n",
-							bigmac->h_source[0],
-							bigmac->h_source[1],
-							bigmac->h_source[2],
-							bigmac->h_source[3],
-							bigmac->h_source[4],
-							bigmac->h_source[5]);
-					printk(KERN_DEBUG "dest mac found: %02x%02x%02x%02x%02x%02x\n",
-							bigmac->h_dest[0],
-							bigmac->h_dest[1],
-							bigmac->h_dest[2],
-							bigmac->h_dest[3],
-							bigmac->h_dest[4],
-							bigmac->h_dest[5]);
-#endif		
-					sprintf(src_string, "%02x%02x%02x%02x%02x%02x",
-							bigmac->h_source[0],
-							bigmac->h_source[1],
-							bigmac->h_source[2],
-							bigmac->h_source[3],
-							bigmac->h_source[4],
-							bigmac->h_source[5]);
-
-					sprintf(dst_string, "%02x%02x%02x%02x%02x%02x",
-							bigmac->h_dest[0],
-							bigmac->h_dest[1],
-							bigmac->h_dest[2],
-							bigmac->h_dest[3],
-							bigmac->h_dest[4],
-							bigmac->h_dest[5]);
-					/* jenkins hash obfuscation */
- 					jhashed = jhash((void *)src_string, 
-									sizeof(src_string), 420);
-#ifdef DEBUG
-					printk(KERN_DEBUG "jhashed_src: %x\n", jhashed);
-					printk(KERN_DEBUG "dst_string %s\n", dst_string);
-#endif		
-				
-					/* create the http header */
-					machdr_len = sprintf(machdr, "X-SL: %x|%s\r\n", 
-									jhashed, dst_string);
-#ifdef DEBUG
-					printk(KERN_DEBUG "ip_nat_sl: machdr %s, length %d\n", 
-							 machdr, machdr_len);
-#endif		
-					if (machdr_len == 0) {
-						printk(KERN_ERR "sprintf fail for machdr");
-						return 1;
-					} else {
-
-						match_len = 0;
-						rep_len = match_len + sizeof(machdr);	
-#ifdef DEBUG
-						printk(KERN_DEBUG "host match_len %u\n", match_len);	
-						printk(KERN_DEBUG "host rep_len %u\n", rep_len);	
-						printk(KERN_DEBUG "host match_offset %u\n", match_offset);	
-#endif		
-						skb_early_data = (void *)tcph + tcph->doff*4;
-						match_offset = (int)(repl_ptr - (int)skb_early_data);
-							
-						/* insert the machdr into the http headers */
-						if (!ip_nat_mangle_tcp_packet(pskb, ct, ctinfo, 
-								match_offset, match_len, 
-								machdr, rep_len)) {  
-							printk(KERN_ERR "failed mangle packet\n");
-							return 0;
-						}
-#ifdef DEBUG
-						printk(KERN_DEBUG "\npacket mangled ok: %s\n\n", 
-							&repl_ptr[-match_offset]);
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "ip_nat_sl: packet user data length: %d\n", user_data_len); 
+    printk(KERN_DEBUG "packet check: %s\n", user_data);
 #endif
-					}
-				}
-			}
-		}
-	}
-	return 1;
+       
+    /* see if this is a GET request */
+    if (strncmp(get_needle, user_data, GET_NEEDLE_LEN)) {    
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "no get_needle found in packet\n");
+#endif        
+        return 1;
+    } 
+
+    /* It is a GET request, look for the host needle */    
+    host_ptr = search_linear( 
+        host_needle, 
+        &user_data[GET_NEEDLE_LEN], 
+        HOST_NEEDLE_LEN, 
+        user_data_len );
+
+    if (host_ptr == NULL) {
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "no host header found in packet\n");
+#endif
+        return 1;
+    } 
+
+    /* look for a port rewrite and remove it if exists */
+    if (sl_remove_port(
+                    pskb, ct, ctinfo,
+                    host_ptr,
+                    user_data,
+                    user_data_len ) ) {
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "port rewrite removed\n");
+#endif
+        return 1;
+    }
+
+    {   
+        /* found a host header, insert the x-sl header */ 
+        struct ethhdr *bigmac = (*pskb)->mac.ethernet;
+        unsigned int jhashed = 0;
+        int slheader_len = 0;
+        char dst_string[12];
+        char src_string[12];
+        char slheader[SL_HEADER_LEN];
+
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "\n\npacket check after host search: %s\n", host_ptr);
+        printk(KERN_DEBUG "packet len:  %d, slheader_len %d, sum %d\n", 
+            packet_len, SL_HEADER_LEN, packet_len + SL_HEADER_LEN);
+#endif        
+
+        /* check for full packet, remove ka and conn headers */
+        if ((packet_len + SL_HEADER_LEN) >= MAX_PACKET_LEN) {
+           
+            /* pointers to keep alive and connection headers */
+            char *ka_ptr,      *conn_ptr, 
+                 *ka_crlf_ptr, *conn_crlf_ptr, 
+                 *after_get,   *crlf_ptr;
+
+            int match_len = 0;
+            int delta = 0;
+            
+            int ka_offset = 0;
+            int ka_crlf_offset = 0;
+            
+            int conn_offset = 0;  
+            int conn_crlf_offset = 0;  
+            
+            int host_offset = 0;  
+            
+#ifdef SL_DEBUG
+            printk(KERN_DEBUG "big packet warning, removing keep-alive headers\n");
+#endif
+
+            /* ******************************************** */
+            /* remove the keep-alive and connection headers */
+
+#ifdef SL_DEBUG
+            printk(KERN_DEBUG "\n\npacket check before search: %s\n", 
+                    &user_data[GET_NEEDLE_LEN]);
+#endif    
+            /* first advance the search pointer to the first header in the packet */
+            after_get = search_linear(
+                crlf_needle,
+                &user_data[GET_NEEDLE_LEN], 
+                CRLF_NEEDLE_LEN, 
+                user_data_len - GET_NEEDLE_LEN );
+            /* no crlf?  return */
+            if (!after_get) {
+#ifdef SL_DEBUG
+                printk(KERN_DEBUG "\npacket is request line only\n");
+#endif
+                return 1;
+            }
+            
+            /* try to find the connection header, start at first crlf */
+            conn_ptr = search_linear(
+                    conn_needle, 
+                    after_get, 
+                    CONN_NEEDLE_LEN, 
+                    user_data_len - (int)((char *)after_get - (char *)user_data) );
+
+            if (!conn_ptr) {
+#ifdef SL_DEBUG
+                printk(KERN_DEBUG "\nno Connection header found\n");
+#endif
+                return 1;
+            }
+
+            /* look for the keep alive header now, start at first crlf */
+            ka_ptr = search_linear(
+                    ka_needle, 
+                    after_get,
+                    KA_NEEDLE_LEN,
+                    user_data_len - (int)((char *)after_get - (char *)user_data ) );
+
+            if (!ka_ptr) {
+#ifdef SL_DEBUG
+                printk(KERN_DEBUG "\nno Keep-Alive header found\n");
+#endif
+                return 1;
+            }
+
+            ka_offset = (int)((char *)ka_ptr - (char *)user_data);
+            conn_offset = (int)((char *)conn_ptr - (char *)user_data);
+
+            /* now find the pointers to the end of both of the headers */
+            ka_crlf_ptr = search_linear(
+                    crlf_needle, 
+                    &ka_ptr[KA_NEEDLE_LEN + CRLF_NEEDLE_LEN],
+                    CRLF_NEEDLE_LEN,
+                    user_data_len 
+                        - (int)((char *)ka_ptr - (char *)user_data )
+                        - (KA_NEEDLE_LEN + CRLF_NEEDLE_LEN ));
+
+            conn_crlf_ptr = search_linear( 
+                    crlf_needle, 
+                    &conn_ptr[CONN_NEEDLE_LEN + CRLF_NEEDLE_LEN],
+                    CRLF_NEEDLE_LEN,
+                    user_data_len 
+                        - (int)((char *)conn_ptr - (char *)user_data ) 
+                        - (CONN_NEEDLE_LEN + CRLF_NEEDLE_LEN) );
+
+            if (!ka_crlf_ptr || !conn_crlf_ptr) {
+#ifdef SL_DEBUG
+                printk(KERN_DEBUG "\nno crlf header found after ka headers\n");
+#endif
+                return 1;
+            }
+
+            /* figure out what order the headers are in */ 
+            ka_crlf_offset = (int)((char *)ka_crlf_ptr - (char *)user_data);
+            conn_crlf_offset = (int)((char *)conn_crlf_ptr - (char *)user_data);
+            
+            if (ka_crlf_offset == conn_offset) {
+                /* Keep-Alive:...Connection: */
+                match_offset = ka_offset;
+                delta = (conn_crlf_offset - match_offset);
+                crlf_ptr = conn_crlf_ptr;
+                match_len = (int)((char *)(*pskb)->tail - (char *)conn_ptr);
+            } else if (conn_crlf_offset == ka_offset) {
+                /* Connection:...Keep-Alive: */
+                match_offset = conn_offset;
+                delta = (ka_crlf_offset - match_offset);
+                crlf_ptr = ka_crlf_ptr;
+                match_len = (int)((char *)(*pskb)->tail - (char *)ka_ptr);
+            } else {
+                /* Headers are not sequential, nothing can be done */
+#ifdef SL_DEBUG
+                printk(KERN_DEBUG "\nnon sequential keep-alive headers\n");
+#endif
+                return 1;
+            }
+
+#ifdef SL_DEBUG
+            printk(KERN_DEBUG "\nconn offset: %d\n", conn_offset);
+            printk(KERN_DEBUG "ka offset: %d\n", ka_offset);
+            printk(KERN_DEBUG "conn crlf offset: %d\n", conn_crlf_offset);
+            printk(KERN_DEBUG "ka crlf offset: %d\n", ka_crlf_offset);
+            printk(KERN_DEBUG "match offset: %d\n", match_offset);
+#endif
+
+            if (!ip_nat_mangle_tcp_packet(pskb, ct, ctinfo,
+                                          match_offset,  // match_offset
+                                          match_len,       // match_len
+                                          crlf_ptr, // rep_buffer 
+                                          match_len - delta)) {    // rep_len
+#ifdef SL_DEBUG
+                printk(KERN_ERR "\ncould not remove ka headers\n"); 
+#endif                   
+                return 0; 
+            }
+
+            /* distance to host header, need to move it */
+            host_offset = (int)(host_ptr + CRLF_NEEDLE_LEN - (int)user_data); 
+
+            if (match_offset < host_offset ) {
+                /* move the host: pointer back the amount of bytes removed */ 
+                host_ptr -= delta;
+            }
+
+        }  /* END FIXUP BIG PACKET */
+
+        /* create the X-SL Header */        
+        /* source mac present */   
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "\nsource mac found: %02x%02x%02x%02x%02x%02x\n",
+            bigmac->h_source[0],
+            bigmac->h_source[1],
+            bigmac->h_source[2],
+            bigmac->h_source[3],
+            bigmac->h_source[4],
+            bigmac->h_source[5]);
+
+        printk(KERN_DEBUG "\ndest mac found: %02x%02x%02x%02x%02x%02x\n",
+            bigmac->h_dest[0],
+            bigmac->h_dest[1],
+            bigmac->h_dest[2],
+            bigmac->h_dest[3],
+            bigmac->h_dest[4],
+            bigmac->h_dest[5]);
+#endif        
+
+        sprintf(src_string, "%02x%02x%02x%02x%02x%02x",
+            bigmac->h_source[0],
+            bigmac->h_source[1],
+            bigmac->h_source[2],
+            bigmac->h_source[3],
+            bigmac->h_source[4],
+            bigmac->h_source[5]);
+
+        sprintf(dst_string, "%02x%02x%02x%02x%02x%02x",
+            bigmac->h_dest[0],
+            bigmac->h_dest[1],
+            bigmac->h_dest[2],
+            bigmac->h_dest[3],
+            bigmac->h_dest[4],
+            bigmac->h_dest[5]);
+
+        /* jenkins hash obfuscation */
+        jhashed = jhash((void *)src_string,    sizeof(src_string), JHASH_SALT);
+
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "jhashed_src: %x\n", jhashed);
+        printk(KERN_DEBUG "dst_string %s\n", dst_string);
+#endif        
+                
+        /* create the http header */
+        slheader_len = sprintf(slheader, "X-SL: %x|%s\r\n", jhashed, dst_string);
+
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "ip_nat_sl: slheader %s, length %d\n", slheader, 
+                                                                 slheader_len);
+#endif        
+
+        /* handle sprintf failure */
+        if (slheader_len == 0) {
+#ifdef SL_DEBUG
+            printk(KERN_ERR "sprintf fail for slheader");
+#endif        
+            return 0;
+        } 
+
+        /* now insert the sl header */
+        /* calculate distance to the host header */
+        match_offset = (int)(host_ptr + CRLF_NEEDLE_LEN - (int)user_data); 
+
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "\nhost match_offset %u\n", match_offset);    
+#endif        
+
+        /* insert the slheader into the http headers */
+        if (!ip_nat_mangle_tcp_packet( pskb, ct, ctinfo, match_offset, 0, 
+                                       slheader, slheader_len)) {  
+
+#ifdef SL_DEBUG
+            printk(KERN_ERR "failed to mangle packet\n");
+#endif        
+            return 0;
+        }
+
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "\npacket mangled ok: %s\n\n", &host_ptr[-match_offset]);
+#endif        
+
+    return 1;
+    }
 }
 
 static unsigned int sl_help(struct ip_conntrack *ct,
-			 struct ip_conntrack_expect *exp,
-			 struct ip_nat_info *info,
-			 enum ip_conntrack_info ctinfo,
-			 unsigned int hooknum,
-			 struct sk_buff **pskb)
+             struct ip_conntrack_expect *exp,
+             struct ip_nat_info *info,
+             enum ip_conntrack_info ctinfo,
+             unsigned int hooknum,
+             struct sk_buff **pskb)
 {
-	struct iphdr *iph = (*pskb)->nh.iph;
-	struct tcphdr *tcph = (void *)iph + iph->ihl*4;
-	unsigned int datalen;
-	int dir;
+    struct iphdr *iph = (*pskb)->nh.iph;
+    struct tcphdr *tcph = (void *)iph + iph->ihl*4;
 
-	/* HACK - skip dest port not 80 */
-	if (ntohs(tcph->dest) != SL_PORT) {
-		return 1;
-	}
-#ifdef DEBUG
-	printk(KERN_DEBUG "ip_nat_sl: tcphdr dest port %d, source port %d, ack seq %d\n", 
-			ntohs(tcph->dest), ntohs(tcph->source),
-			tcph->ack_seq);
-	/* let SYN packets pass */
-	printk(KERN_DEBUG "ip_nat_sl: FIN: %d\n", tcph->fin);
-	printk(KERN_DEBUG "ip_nat_sl: SYN: %d\n", tcph->syn);
-	printk(KERN_DEBUG "ip_nat_sl: RST: %d\n", tcph->rst);
-	printk(KERN_DEBUG "ip_nat_sl: PSH: %d\n", tcph->psh);
-#endif	
-	if (!( (tcph->psh == 1) && (tcph->ack == 1)) ) {
-#ifdef DEBUG
-		printk(KERN_INFO "ip_nat_sl: not psh and ack\n");
-#endif	
-		return NF_ACCEPT;
-	}
+    int dir, plen;
 
-	/* nasty debugging */
-	if (hooknum == NF_IP_POST_ROUTING) {
-#ifdef DEBUG
-		printk(KERN_DEBUG "ip_nat_sl: postrouting\n");
-#endif	
-	} else if (hooknum == NF_IP_PRE_ROUTING) {
-#ifdef DEBUG
-		printk(KERN_DEBUG "ip_nat_sl: prerouting\n");
-#endif	
-	}
+    /* HACK - skip dest port not 80 */
+    if (ntohs(tcph->dest) != SL_PORT) {
+        return 1;
+    }
 
-	/* packet direction */
-	dir = CTINFO2DIR(ctinfo);
-	if (dir == IP_CT_DIR_ORIGINAL) {
-#ifdef DEBUG
-		printk(KERN_DEBUG "ip_nat_sl: original direction\n");
-#endif	
-	} else if (dir == IP_CT_DIR_REPLY) {
-#ifdef DEBUG
-		printk(KERN_DEBUG "ip_nat_sl: reply direction\n");
-#endif	
-	} else if (dir == IP_CT_DIR_MAX) {
-#ifdef DEBUG
-		printk(KERN_DEBUG "ip_nat_sl: max direction\n");
-#endif	
-	}
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "\n\nip_nat_sl: tcphdr dst port %d, src port %d, ack seq %d\n",
+            ntohs(tcph->dest), ntohs(tcph->source),
+            tcph->ack_seq);
+    /* let SYN, FIN, RST, PSH, ACK, ECE, CWR, URG packets pass */
+    printk(KERN_DEBUG "ip_nat_sl: FIN: %d\n", tcph->fin);
+    printk(KERN_DEBUG "ip_nat_sl: SYN: %d\n", tcph->syn);
+    printk(KERN_DEBUG "ip_nat_sl: RST: %d\n", tcph->rst);
+    printk(KERN_DEBUG "ip_nat_sl: PSH: %d\n", tcph->psh);
+    printk(KERN_DEBUG "ip_nat_sl: ACK: %d\n", tcph->ack);
+    printk(KERN_DEBUG "ip_nat_sl: URG: %d\n", tcph->urg);
+    printk(KERN_DEBUG "ip_nat_sl: ECE: %d\n", tcph->ece);
+    printk(KERN_DEBUG "ip_nat_sl: CWR: %d\n", tcph->cwr);
+#endif    
 
-	/* Only mangle things once: original direction in POST_ROUTING
-	   and reply direction on PRE_ROUTING. */
-	if (!((hooknum == NF_IP_POST_ROUTING) && (dir == IP_CT_DIR_ORIGINAL)) ) {
-#ifdef DEBUG
-		printk(KERN_DEBUG "nat_sl: Not ORIGINAL and POSTROUTING, returning\n");
-#endif	
-		return NF_ACCEPT;
-	}
-	datalen = (*pskb)->len - iph->ihl * 4 - tcph->doff * 4;
+    /* nasty debugging */
+#ifdef SL_DEBUG
+    if (hooknum == NF_IP_POST_ROUTING) {
+        printk(KERN_DEBUG "ip_nat_sl: postrouting\n");
+    } else if (hooknum == NF_IP_PRE_ROUTING) {
+        printk(KERN_DEBUG "ip_nat_sl: prerouting\n");
+    } else if (hooknum == NF_IP_LOCAL_OUT) {
+        printk(KERN_DEBUG "ip_nat_sl: local out\n");
+    }
 
-	if (!sl_data_fixup(ct, pskb, ctinfo, exp)) {
-			printk(KERN_ERR "ip_nat_sl: error sl_data_fixup\n");
-			return NF_DROP;
-	}
-	
-#ifdef DEBUG
-	printk(KERN_DEBUG "ip_nat_sl: sl_help end, returning nf_accept\n");
-#endif	
-	return NF_ACCEPT;
+    printk(KERN_DEBUG "ip_nat_sl: hooknum is %d\n", hooknum);
+#endif    
+
+    /* packet direction */
+    dir = CTINFO2DIR(ctinfo);
+#ifdef SL_DEBUG
+    if (dir == IP_CT_DIR_ORIGINAL) {
+        printk(KERN_DEBUG "ip_nat_sl: original direction\n");
+    } else if (dir == IP_CT_DIR_REPLY) {
+        printk(KERN_DEBUG "ip_nat_sl: reply direction\n");
+    } else if (dir == IP_CT_DIR_MAX) {
+        printk(KERN_DEBUG "ip_nat_sl: max direction\n");
+    }
+#endif    
+
+    /* Only mangle things once: original direction in POST_ROUTING
+       and reply direction on PRE_ROUTING. */
+    if (!((hooknum == NF_IP_POST_ROUTING) && (dir == IP_CT_DIR_ORIGINAL)) ) {
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "nat_sl: Not ORIGINAL and POSTROUTING, returning\n");
+#endif    
+        return NF_ACCEPT;
+    }
+
+
+    /* only work on push or ack packets */
+    if (!( (tcph->psh == 1) || (tcph->ack == 1)) ) {
+#ifdef SL_DEBUG
+        printk(KERN_INFO "ip_nat_sl: psh or ack\n");
+#endif    
+        return NF_ACCEPT;
+    }
+
+    /* get the packet length */
+    plen=ntohs(iph->tot_len)-(iph->ihl*4);
+#ifdef SL_DEBUG
+        printk(KERN_INFO "ip_nat_sl: packet length %d\n", plen);
+#endif    
+
+    /* minimum length to search the packet */
+    if (plen < MIN_PACKET_LEN) {
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "ip_nat_sl: packet too small to examine - %d\n", plen);
+#endif    
+        return NF_ACCEPT;
+    }
+
+
+    /* search the packet */
+    if (!sl_data_fixup(ct, pskb, ctinfo, exp)) {
+#ifdef SL_DEBUG
+            printk(KERN_ERR "ip_nat_sl: error sl_data_fixup\n");
+#endif
+    }
+    
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "ip_nat_sl: sl_help end, returning nf_accept\n");
+#endif    
+    return NF_ACCEPT;
 }
 
 struct ip_nat_helper sl;
 
 static void fini(void)
 {
-#ifdef DEBUG
-	printk(KERN_DEBUG "ip_nat_sl: unregistering for port %d\n", SL_PORT);
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "ip_nat_sl: unregistering for port %d\n", SL_PORT);
 #endif
-	ip_nat_helper_unregister(&sl);
+    ip_nat_helper_unregister(&sl);
 }
 
 static int __init init(void)
 {
-	int ret = 0;
-	
+    int ret = 0;
+    
     sl.list.next = 0;
     sl.list.prev = 0;
-	sl.me = THIS_MODULE;
-	sl.flags = (IP_NAT_HELPER_F_STANDALONE|IP_NAT_HELPER_F_ALWAYS);
+    sl.me = THIS_MODULE;
+    sl.flags = (IP_NAT_HELPER_F_STANDALONE|IP_NAT_HELPER_F_ALWAYS);
     sl.tuple.dst.protonum = IPPROTO_TCP;
-	
+    
     sl.tuple.dst.u.tcp.port = __constant_htons(SL_PORT);
     sl.mask.dst.u.tcp.port = 0;
-	sl.help = sl_help;
-	sl.expect = NULL;
-#ifdef DEBUG
-	printk(KERN_DEBUG "ip_nat_sl: Trying to register for port %d\n", SL_PORT);
-#endif
-	ret = ip_nat_helper_register(&sl);
-	if (ret) {
-  	  printk(KERN_ERR "ip_nat_sl: error registering helper for port %d\n", SL_PORT);
-	  fini();
-	  return ret;
-	}
-	return ret;
-}
+    sl.help = sl_help;
+    sl.expect = NULL;
 
-EXPORT_SYMBOL(ip_sl_lock);
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "ip_nat_sl: Trying to register for port %d\n", SL_PORT);
+#endif
+
+    ret = ip_nat_helper_register(&sl);
+
+    if (ret) {
+
+#ifdef SL_DEBUG
+        printk(KERN_ERR "ip_nat_sl: error registering helper, port %d\n", SL_PORT);
+#endif
+
+        fini();
+        return ret;
+    }
+    return ret;
+}
 
 module_init(init);
 module_exit(fini);
-MODULE_LICENSE("GPL");

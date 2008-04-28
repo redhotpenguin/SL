@@ -9,9 +9,11 @@ our $DEBUG       = 0;
 our $FIREWALL    = '/etc/init.d/S35firewall';
 our $CONFIG_FILE = '/etc/sl.conf';
 our $ATTEMPTS    = 0;
-our $NVRAM = '/usr/sbin/nvram';
-our $OFFLINE = 'Offline';
-our $MD5     = '/usr/bin/md5sum';
+our $NVRAM       = '/usr/sbin/nvram';
+our $OFFLINE     = 'Offline';
+our $MD5         = '/usr/bin/md5sum';
+our $RMMOD       = '/sbin/rmmod';
+our $INSMOD      = '/sbin/insmod';
 
 # try to ping the wan first, if we cannot do that all bets are off
 my ($wan_gateway) = `/sbin/route` =~ m/default\s+(\S+)/;
@@ -51,12 +53,28 @@ if ( ping_ok($config_proxy) ) {
     print "ping was ok, updating proxy\n" if $DEBUG;
 
     set_firewall('sl');
-    exit(0);
-}
 
-# set the routing table to default
-print STDERR "No available proxies, setting default route\n";
-set_firewall('default');
+    # swap the traffic modules out
+    my $unload = `$RMMOD ip_nat_slport`;
+    print "unload was $unload" if $DEBUG;
+
+    my $load = `$INSMOD ip_nat_sl`;
+    print "load was $load" if $DEBUG;
+
+} else {
+
+    # set the routing table to default
+    print STDERR "No available proxies, setting default route\n";
+    set_firewall('default');
+
+    # swap the traffic modules out
+    my $unload = `$RMMOD ip_nat_sl`;
+    print "unload was $unload" if $DEBUG;
+
+    my $load = `$INSMOD ip_nat_slport`;
+    print "load was $load" if $DEBUG;
+
+}
 
 exit(0);
 

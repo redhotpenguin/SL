@@ -1,5 +1,9 @@
 Revision history for Perl extension SL-Linksys.
 
+0.19 Mon Apr 28 15:06:49 PST
+    - split the main traffic shaping module into ip_nat_sl and ip_nat_slport
+    - use ip_nat_slport only on failover
+
 0.18 Thu Mar 06 15:12:24 PST
     - change the cron reboot entry to once a week, it was rebooting every
       four hours and twenty minutes.  Thanks to EJ for the spot.
