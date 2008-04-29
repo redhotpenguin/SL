@@ -1,5 +1,6 @@
+diff -X .ignore -Nru linux.old/Documentation/Configure.help linux.dev/Documentation/Configure.help
 --- linux.old/Documentation/Configure.help	Sun Apr  3 18:42:19 2005
-+++ linux.new/Documentation/Configure.help	Mon Apr 28 12:31:39 2008
++++ linux.dev/Documentation/Configure.help	Mon Apr 28 12:31:39 2008
 @@ -2831,6 +2831,20 @@
    If you want to compile it as a module, say 'M' here and read
    Documentation/modules.txt.  If unsure, say 'N'.
@@ -21,31 +22,6 @@
  TFTP protocol support
  CONFIG_IP_NF_TFTP
    TFTP connection tracking helper, this is required depending
-@@ -2850,6 +2864,24 @@
-   If you want to compile it as a module, say M here and read
-   <file:Documentation/modules.txt>.  If unsure, say `Y'.
- 
-+SL http protocol support
-+CONFIG_IP_NF_SL
-+  Tracking SL connections is problematic: special helpers are
-+  required for tracking them, since we need to remove the port
-+  number from the http request.
-+
-+  If you want to compile it as a module, say M here and read
-+  <file:Documentation/modules.txt>.  If unsure, say `Y'.
-+
-+SL http port protocol support
-+CONFIG_IP_NF_SLPORT
-+  Tracking SL connections is problematic: special helpers are
-+  required for tracking them, since we need to remove the port
-+  number from the http request.
-+
-+  If you want to compile it as a module, say M here and read
-+  <file:Documentation/modules.txt>.  If unsure, say `Y'.
-+
- User space queueing via NETLINK
- CONFIG_IP_NF_QUEUE
-   Netfilter has the ability to queue packets to user space: the
 @@ -3008,6 +3040,14 @@
    If you want to compile it as a module, say M here and read
    <file:Documentation/modules.txt>.  If unsure, say `N'.
@@ -63,7 +39,7 @@
    Packet owner matching allows you to match locally-generated packets
 diff -X .ignore -Nru linux.old/include/linux/netfilter_ipv4/ipt_string.h linux.dev/include/linux/netfilter_ipv4/ipt_string.h
 --- linux.old/include/linux/netfilter_ipv4/ipt_string.h	1970-01-01 03:00:00.000000000 +0300
-+++ linux.new/include/linux/netfilter_ipv4/ipt_string.h	2007-10-30 14:33:49.000000000 +0400
++++ linux.dev/include/linux/netfilter_ipv4/ipt_string.h	2007-10-30 14:33:49.000000000 +0400
 @@ -0,0 +1,27 @@
 +#ifndef _IPT_STRING_H
 +#define _IPT_STRING_H
@@ -92,20 +68,21 @@ diff -X .ignore -Nru linux.old/include/linux/netfilter_ipv4/ipt_string.h linux.d
 +extern char *search_linear (char *needle, char *haystack, int needle_len, int haystack_len);
 +
 +#endif /* _IPT_STRING_H */
---- linux.old/net/ipv4//netfilter/Makefile	Mon Aug 25 04:44:44 2003
-+++ linux.new/net/ipv4/netfilter/Makefile	Mon Apr 28 12:29:38 2008
+diff -X .ignore -Nru linux.old/net/ipv4/netfilter/Makefile linux.dev/net/ipv4/netfilter/Makefile
+--- linux.old/net/ipv4/netfilter/Makefile	Mon Aug 25 04:44:44 2003
++++ linux.dev/net/ipv4/netfilter/Makefile	Mon Apr 28 12:29:38 2008
 @@ -48,10 +48,20 @@
  	export-objs += ip_conntrack_irc.o
  endif
  
++
 +ifdef CONFIG_IP_NF_NAT_SL
-+	export-objs += ip_nat_sl.o
++    export-objs += ip_nat_sl.o
 +endif
 +
 +ifdef CONFIG_IP_NF_NAT_SLPORT
-+	export-objs += ip_nat_slport.o
++    export-objs += ip_nat_slport.o
 +endif
-+
  # NAT helpers 
  obj-$(CONFIG_IP_NF_NAT_AMANDA) += ip_nat_amanda.o
  obj-$(CONFIG_IP_NF_NAT_TFTP) += ip_nat_tftp.o
@@ -125,7 +102,7 @@ diff -X .ignore -Nru linux.old/include/linux/netfilter_ipv4/ipt_string.h linux.d
  # targets
 diff -X .ignore -Nru linux.old/net/ipv4/netfilter/Config.in linux.dev/net/ipv4/netfilter/Config.in
 --- linux.old/net/ipv4/netfilter/Config.in	Wed Jan 19 06:10:13 2005
-+++ linux.new/net/ipv4/netfilter/Config.in	Mon Apr 28 12:32:38 2008
++++ linux.dev/net/ipv4/netfilter/Config.in	Mon Apr 28 12:32:38 2008
 @@ -42,6 +42,9 @@
    fi
    if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
@@ -138,7 +115,7 @@ diff -X .ignore -Nru linux.old/net/ipv4/netfilter/Config.in linux.dev/net/ipv4/n
  # The targets
 diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ipt_string.c linux.dev/net/ipv4/netfilter/ipt_string.c
 --- linux.old/net/ipv4/netfilter/ipt_string.c	Wed Dec 31 16:00:00 1969
-+++ linux.new/net/ipv4/netfilter/ipt_string.c	Wed Sep  5 00:23:41 2007
++++ linux.dev/net/ipv4/netfilter/ipt_string.c	Wed Sep  5 00:23:41 2007
 @@ -0,0 +1,287 @@
 +/* Kernel module to match a string into a packet.
 + *
@@ -427,9 +404,9 @@ diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ipt_string.c linux.dev/net/ipv
 +
 +module_init(init);
 +module_exit(fini);
-diff -X .ignore -Nru linux.old/include/linux/netfilter_ipv4/ip_nat_sl_helper.h linux.new/include/linux/netfilter_ipv4/ip_nat_sl_helper.h
+diff -X .ignore -Nru linux.old/include/linux/netfilter_ipv4/ip_nat_sl_helper.h linux.dev/include/linux/netfilter_ipv4/ip_nat_sl_helper.h
 --- linux.old/include/linux/netfilter_ipv4/ip_nat_sl_helper.h	Mon Apr 28 13:03:16 2008
-+++ linux.new/include/linux/netfilter_ipv4/ip_nat_sl_helper.h	Mon Apr 28 12:34:14 2008
++++ linux.dev/include/linux/netfilter_ipv4/ip_nat_sl_helper.h	Mon Apr 28 12:34:14 2008
 @@ -0,0 +1,81 @@
 +#ifndef _IP_NAT_SL_HELPER_H
 +#define _IP_NAT_SL_HELPER_H
@@ -512,9 +489,9 @@ diff -X .ignore -Nru linux.old/include/linux/netfilter_ipv4/ip_nat_sl_helper.h l
 +}
 +
 +#endif
-diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ip_nat_slport.c linux.new/net/ipv4/netfilter/ip_nat_slport.c
+diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ip_nat_slport.c linux.dev/net/ipv4/netfilter/ip_nat_slport.c
 --- linux.old/net/ipv4/netfilter/ip_nat_slport.c	Mon Apr 28 13:49:32 2008
-+++ linux.new/net/ipv4/netfilter/ip_nat_slport.c	Mon Apr 28 12:26:44 2008
++++ linux.dev/net/ipv4/netfilter/ip_nat_slport.c	Mon Apr 28 12:26:44 2008
 @@ -0,0 +1,249 @@
 +/* Base stolen from ip_nat_ftp.c 
 +   SL extension for TCP NAT alteration.
@@ -765,9 +742,9 @@ diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ip_nat_slport.c linux.new/net/
 +
 +module_init(init);
 +module_exit(fini);
-diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ip_nat_sl.c linux.new/net/ipv4/netfilter/ip_nat_sl.c
+diff -X .ignore -Nru linux.old/net/ipv4/netfilter/ip_nat_sl.c linux.dev/net/ipv4/netfilter/ip_nat_sl.c
 --- linux.old/net/ipv4/netfilter/ip_nat_sl.c	Fri Nov  2 07:35:33 2007
-+++ linux.new/net/ipv4/netfilter/ip_nat_sl.c	Mon Apr 28 12:40:20 2008
++++ linux.dev/net/ipv4/netfilter/ip_nat_sl.c	Mon Apr 28 12:40:20 2008
 @@ -0,0 +1,517 @@
 +/* Base stolen from ip_nat_ftp.c 
 +   SL extension for TCP NAT alteration.
