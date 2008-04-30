@@ -411,7 +411,7 @@ diff -X .ignore -Nru linux.old/include/linux/netfilter_ipv4/ip_nat_sl_helper.h l
 +#ifndef _IP_NAT_SL_HELPER_H
 +#define _IP_NAT_SL_HELPER_H
 +
-+#define SL_DEBUG 1
++#define xSL_DEBUG
 +
 +/* packets must be on port 80 to have fun */
 +#define SL_PORT 80

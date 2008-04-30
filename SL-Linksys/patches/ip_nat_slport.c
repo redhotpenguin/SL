@@ -25,33 +25,18 @@ int slport_data_fixup(
 {
     struct iphdr *iph = (*pskb)->nh.iph;
     struct tcphdr *tcph = (void *)iph + iph->ihl*4;
-
-    char *host_ptr = NULL;
-    unsigned char *user_data = NULL;
-
+    char *host_ptr, *user_data;
     int packet_len, user_data_len;
-    
-#ifdef SL_DEBUG
-        printk(KERN_DEBUG "ip_nat_sl: sl_data_fixup\n");
-#endif
 
     /* no ip header is a problem */
     if ( !iph ) return 0;
 
-    /* get packet length */
     packet_len = ntohs(iph->tot_len) - (iph->ihl*4);
+    user_data = (void *)tcph + tcph->doff*4;
+    user_data_len = (int)((*pskb)->tail -  user_data);
 
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "ip_nat_sl: packet length: %d\n", packet_len);
-#endif    
-
-    /* get user data start */
-    user_data = (void *)tcph + tcph->doff*4;
-    
-    /* length of the packet user data */
-    user_data_len = (int)((char *)(*pskb)->tail -  (char *)user_data);
-
-#ifdef SL_DEBUG
     printk(KERN_DEBUG "ip_nat_sl: packet user data length: %d\n", user_data_len);
     printk(KERN_DEBUG "packet check: %s\n", user_data);
 #endif
