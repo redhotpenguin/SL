@@ -18,7 +18,7 @@ BEGIN {
 		bin bz2 bzip class css dll dms doc exe fla flv 
 		gif gz ico img jar jpg jpeg js 
 		lha lzh mar mov mp3 mpg mpeg 
-		pdf png ppt psf
+		ogg pdf png ppt psf
 		rar rdf rss sit so swf 
 		tar tgz tif tiff torrent txt 
 		wmv vob xls xpi zip );
