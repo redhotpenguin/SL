@@ -1,0 +1,21 @@
+--- package/busybox/config/loginutils/Config.in	2005-03-07 03:03:46.000000000 -0500
++++ package/busybox/config/loginutils/Config.in	2007-11-22 00:47:51.000000000 -0500
+@@ -98,6 +98,18 @@
+ 	  Note that Busybox binary must be setuid root for this applet to
+ 	  work properly.
+ 
++config BUSYBOX_CONFIG_CHPASSWD
++        bool "chpasswd"
++        default y
++        select CONFIG_FEATURE_SUID
++        help
++          chpasswd is a super user password utility which allows the password
++          to be specified in the command line options.  Like passwd but non
++          interactive.
++
++          Note that Busybox binary must be setuid root for this applet to
++          work properly.
++
+ config BUSYBOX_CONFIG_SU
+ 	bool "su"
+ 	default n
