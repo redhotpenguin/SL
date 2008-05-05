@@ -53,7 +53,7 @@ static int sl_remove_port(
     }
 
     match_offset = (unsigned int)(port_ptr - user_data);
-    match_len    = (unsigned int)((*pskb)->tail - port_ptr);
+    match_len    = (unsigned int)((char *)(*pskb)->tail - port_ptr);
 
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "\nmatch_len: %d\n", match_len);
@@ -62,7 +62,7 @@ static int sl_remove_port(
 
     /* remove the port */
     if (!ip_nat_mangle_tcp_packet( 
-                skb, ct, ctinfo,
+                pskb, ct, ctinfo,
                 match_offset,
                 match_len,
                 &port_ptr[PORT_NEEDLE_LEN],

@@ -38,6 +38,99 @@ static char ka_needle[KA_NEEDLE_LEN+1] = "\r\nKeep-Alive:";
 /* needle for CRLF */
 static char crlf_needle[CRLF_NEEDLE_LEN+1] = "\r\n";
 
+#define MACADDR_SIZE 12
+
+static unsigned int add_sl_header(
+    struct sk_buff **pskb,
+    struct ip_conntrack *ct, 
+    enum ip_conntrack_info ctinfo,
+    char *user_data,
+    int user_data_len,
+    char *host_ptr ) {
+        
+    struct ethhdr *bigmac = (*pskb)->mac.ethernet;
+    unsigned int jhashed, slheader_len, match_offset;
+    char dst_string[MACADDR_SIZE], src_string[MACADDR_SIZE], slheader[SL_HEADER_LEN];
+
+    /* create the X-SL Header */        
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "\nsource mac found: %02x%02x%02x%02x%02x%02x\n",
+            bigmac->h_source[0],
+            bigmac->h_source[1],
+            bigmac->h_source[2],
+            bigmac->h_source[3],
+            bigmac->h_source[4],
+            bigmac->h_source[5]);
+
+    printk(KERN_DEBUG "\ndest mac found: %02x%02x%02x%02x%02x%02x\n",
+            bigmac->h_dest[0],
+            bigmac->h_dest[1],
+            bigmac->h_dest[2],
+            bigmac->h_dest[3],
+            bigmac->h_dest[4],
+            bigmac->h_dest[5]);
+#endif        
+
+    sprintf(src_string, "%02x%02x%02x%02x%02x%02x",
+            bigmac->h_source[0],
+            bigmac->h_source[1],
+            bigmac->h_source[2],
+            bigmac->h_source[3],
+            bigmac->h_source[4],
+            bigmac->h_source[5]);
+
+    sprintf(dst_string, "%02x%02x%02x%02x%02x%02x",
+            bigmac->h_dest[0],
+            bigmac->h_dest[1],
+            bigmac->h_dest[2],
+            bigmac->h_dest[3],
+            bigmac->h_dest[4],
+            bigmac->h_dest[5]);
+
+               
+    /* create the http header */
+    /* jenkins hash obfuscation of source mac */
+    jhashed = jhash((void *)src_string, MACADDR_SIZE, JHASH_SALT);
+    slheader_len = sprintf(slheader, "X-SL: %x|%s\r\n", jhashed, dst_string);
+
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "ip_nat_sl: slheader %s, length %d\n", slheader, slheader_len);
+#endif        
+        
+    /* handle sprintf failure */
+    if (slheader_len == 0) {
+#ifdef SL_DEBUG
+        printk(KERN_ERR "sprintf fail for slheader");
+#endif        
+        return 0;
+    } 
+
+    /* now insert the sl header */
+    /* calculate distance to the host header */
+    match_offset = (unsigned int)(host_ptr - user_data) + CRLF_NEEDLE_LEN; 
+
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "\nhost match_offset %u\n", match_offset);    
+#endif        
+
+    /* insert the slheader into the http headers */
+    if (!ip_nat_mangle_tcp_packet( pskb, ct, ctinfo, match_offset, 0, 
+                                   slheader, slheader_len)) {  
+
+#ifdef SL_DEBUG
+        printk(KERN_ERR "ip_nat_sl: failed to mangle packet\n");
+#endif        
+        return 0;
+    }
+
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "\npacket mangled ok: %s\n\n", &host_ptr[-match_offset]);
+#endif        
+
+    return 1;
+}
+
+
 static int sl_data_fixup(
               struct ip_conntrack *ct,
               struct sk_buff **pskb,
@@ -92,18 +185,147 @@ static int sl_data_fixup(
         return 1;
     }
 
-
     /* check for full packet, remove ka and conn headers */
     if ((packet_len + SL_HEADER_LEN) >= MAX_PACKET_LEN) {
 
-        if (!trim_big_packet(pskb, ct, ctinfo, user_data, user_data_len, host_ptr)) {
+        /* remove the keep-alive and connection headers */
+        /* pointers to keep alive and connection headers */
+        char *ka_ptr, *conn_ptr, *ka_crlf_ptr, *conn_crlf_ptr, *after_get, *crlf_ptr;
+        int host_offset, match_len, delta, match_offset,
+            ka_offset, ka_crlf_offset, conn_offset, conn_crlf_offset;
+            
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "big packet warning, removing keep-alive headers\n");
+#endif
+
+        /* first advance the search pointer to the first header in the packet */
+        after_get = search_linear(
+            crlf_needle,
+            &user_data[GET_NEEDLE_LEN], 
+            CRLF_NEEDLE_LEN, 
+            user_data_len - GET_NEEDLE_LEN );
+
+        /* no crlf?  return */
+        if (!after_get) {
+#ifdef SL_DEBUG
+            printk(KERN_DEBUG "\npacket is request line only\n");
+#endif
+            return 1;
+        }
+            
+        /* try to find the connection header, start at first crlf */
+        conn_ptr = search_linear(
+                    conn_needle, 
+                    after_get, 
+                    CONN_NEEDLE_LEN, 
+                    user_data_len - (int)((char *)after_get - (char *)user_data) );
+
+        if (!conn_ptr) {
+#ifdef SL_DEBUG
+            printk(KERN_DEBUG "\nno Connection header found\n");
+#endif
+            return 1;
+        }
+
+        /* look for the keep alive header now, start at first crlf */
+        ka_ptr = search_linear(
+                    ka_needle, 
+                    after_get,
+                    KA_NEEDLE_LEN,
+                    user_data_len - (int)((char *)after_get - (char *)user_data ));
+
+        if (!ka_ptr) {
+#ifdef SL_DEBUG
+            printk(KERN_DEBUG "\nno Keep-Alive header found\n");
+#endif
+            return 1;
+        }
+
+        /* offsets for crlf search */
+        ka_offset = (int)((char *)ka_ptr - (char *)user_data);
+        conn_offset = (int)((char *)conn_ptr - (char *)user_data);
+
+        /* now find the pointers to the end of both of the headers */
+        ka_crlf_ptr = search_linear(
+                    crlf_needle, 
+                    &ka_ptr[KA_NEEDLE_LEN + CRLF_NEEDLE_LEN],
+                    CRLF_NEEDLE_LEN,
+                    user_data_len - ka_offset - (KA_NEEDLE_LEN+CRLF_NEEDLE_LEN ));
+
+        conn_crlf_ptr = search_linear( 
+                    crlf_needle, 
+                    &conn_ptr[CONN_NEEDLE_LEN + CRLF_NEEDLE_LEN],
+                    CRLF_NEEDLE_LEN,
+                    user_data_len - conn_offset - (CONN_NEEDLE_LEN+CRLF_NEEDLE_LEN));
+
+        if (!(ka_crlf_ptr && conn_crlf_ptr)) {
+#ifdef SL_DEBUG
+            printk(KERN_DEBUG "\nno crlf header found after ka headers\n");
+#endif
+            return 1;
+        }
+
+        /* figure out what order the headers are in */ 
+        ka_crlf_offset = (int)((char *)ka_crlf_ptr - (char *)user_data);
+        conn_crlf_offset = (int)((char *)conn_crlf_ptr - (char *)user_data);
+            
+        if (ka_crlf_offset == conn_offset) {
+                /* Keep-Alive:...Connection: */
+                match_offset = ka_offset;
+                delta = (conn_crlf_offset - match_offset);
+                crlf_ptr = conn_crlf_ptr;
+                match_len = (int)((char *)(*pskb)->tail - conn_ptr);
+        } else if (conn_crlf_offset == ka_offset) {
+                /* Connection:...Keep-Alive: */
+                match_offset = conn_offset;
+                delta = (ka_crlf_offset - match_offset);
+                crlf_ptr = ka_crlf_ptr;
+                match_len = (int)((char *)(*pskb)->tail - ka_ptr);
+        } else {
+            /* Headers are not sequential, nothing can be done */
+#ifdef SL_DEBUG
+            printk(KERN_DEBUG "\nnon sequential keep-alive headers\n");
+#endif
+            return 1;
+        }
 
 #ifdef SL_DEBUG
-            printk(KERN_DEBUG "trim_big_packet returned NULL\n");
+        printk(KERN_DEBUG "\nconn offset: %d\n", conn_offset);
+        printk(KERN_DEBUG "ka offset: %d\n", ka_offset);
+        printk(KERN_DEBUG "conn crlf offset: %d\n", conn_crlf_offset);
+        printk(KERN_DEBUG "ka crlf offset: %d\n", ka_crlf_offset);
+        printk(KERN_DEBUG "match offset: %d\n", match_offset);
 #endif
-            return 0;
+
+        if (!ip_nat_mangle_tcp_packet(
+            pskb, ct, ctinfo,
+            match_offset,           // match_offset
+            match_len,              // match_len
+            crlf_ptr,               // rep_buffer 
+            match_len - delta)) {   // rep_len
+
+#ifdef SL_DEBUG
+            printk(KERN_ERR "\n*** could not remove ka headers\n"); 
+#endif                   
+            return 0; 
         }
-    }
+
+        /* distance to host header, need to move it */
+        host_offset = (int)(host_ptr - user_data) + CRLF_NEEDLE_LEN; 
+
+#ifdef SL_DEBUG
+        printk(KERN_ERR "host_offset is %d\n", host_offset); 
+#endif                   
+
+        if (match_offset < host_offset ) {
+            /* move the host: pointer back the amount of bytes removed */ 
+            host_ptr -= delta;
+#ifdef SL_DEBUG
+            printk(KERN_ERR "updated host_ptr is %d\n", *host_ptr); 
+#endif                   
+        }
+
+    }  /* end trim_big_packet */
 
     /* ok now attempt to insert the X-SL header */
     if (!add_sl_header(pskb, ct, ctinfo, user_data, user_data_len, host_ptr)) {
@@ -117,246 +339,6 @@ static int sl_data_fixup(
     /* that's all folks */
     return 1;
 }
-
-
-static unsigned int add_sl_header(
-    struct sk_buff **pskb,
-    struct ip_conntrack *ct, 
-    enum ip_conntrack_info ctinfo,
-    char *user_data,
-    int user_data_len,
-    char *host_ptr ) {
-        
-    struct ethhdr *bigmac = (*pskb)->mac.ethernet;
-    unsigned int jhashed, slheader_len, match_offset;
-    char dst_string[12], src_string[12], slheader[SL_HEADER_LEN];
-
-    /* create the X-SL Header */        
-#ifdef SL_DEBUG
-    printk(KERN_DEBUG "\nsource mac found: %02x%02x%02x%02x%02x%02x\n",
-            bigmac->h_source[0],
-            bigmac->h_source[1],
-            bigmac->h_source[2],
-            bigmac->h_source[3],
-            bigmac->h_source[4],
-            bigmac->h_source[5]);
-
-    printk(KERN_DEBUG "\ndest mac found: %02x%02x%02x%02x%02x%02x\n",
-            bigmac->h_dest[0],
-            bigmac->h_dest[1],
-            bigmac->h_dest[2],
-            bigmac->h_dest[3],
-            bigmac->h_dest[4],
-            bigmac->h_dest[5]);
-#endif        
-
-    sprintf(src_string, "%02x%02x%02x%02x%02x%02x",
-            bigmac->h_source[0],
-            bigmac->h_source[1],
-            bigmac->h_source[2],
-            bigmac->h_source[3],
-            bigmac->h_source[4],
-            bigmac->h_source[5]);
-
-    sprintf(dst_string, "%02x%02x%02x%02x%02x%02x",
-            bigmac->h_dest[0],
-            bigmac->h_dest[1],
-            bigmac->h_dest[2],
-            bigmac->h_dest[3],
-            bigmac->h_dest[4],
-            bigmac->h_dest[5]);
-
-               
-    /* create the http header */
-    /* jenkins hash obfuscation of source mac */
-    jhashed = jhash((void *)src_string,    sizeof(src_string), JHASH_SALT);
-    slheader_len = sprintf(slheader, "X-SL: %x|%s\r\n", jhashed, dst_string);
-
-#ifdef SL_DEBUG
-    printk(KERN_DEBUG "ip_nat_sl: slheader %s, length %d\n", slheader, slheader_len);
-#endif        
-        
-    /* handle sprintf failure */
-    if (slheader_len == 0) {
-#ifdef SL_DEBUG
-        printk(KERN_ERR "sprintf fail for slheader");
-#endif        
-        return 0;
-    } 
-
-    /* now insert the sl header */
-    /* calculate distance to the host header */
-    match_offset = (unsigned int)(host_ptr - user_data) + CRLF_NEEDLE_LEN; 
-
-#ifdef SL_DEBUG
-    printk(KERN_DEBUG "\nhost match_offset %u\n", match_offset);    
-#endif        
-
-    /* insert the slheader into the http headers */
-    if (!ip_nat_mangle_tcp_packet( pskb, ct, ctinfo, match_offset, 0, 
-                                   slheader, slheader_len)) {  
-
-#ifdef SL_DEBUG
-        printk(KERN_ERR "ip_nat_sl: failed to mangle packet\n");
-#endif        
-        return 0;
-    }
-
-#ifdef SL_DEBUG
-    printk(KERN_DEBUG "\npacket mangled ok: %s\n\n", &host_ptr[-match_offset]);
-#endif        
-
-    return 1;
-}
-
-/* remove the keep-alive and connection headers */
-
-static unsigned int trim_big_packet(
-    struct sk_buff **pskb,
-    struct ip_conntrack *ct, 
-    enum ip_conntrack_info ctinfo,
-    char *user_data,
-    int user_data_len,
-    char *host_ptr ) {
-        
-    /* pointers to keep alive and connection headers */
-    char *ka_ptr, *conn_ptr, *ka_crlf_ptr, *conn_crlf_ptr, *after_get, *crlf_ptr;
-
-    int host_offset, match_len, delta, match_offset,
-        ka_offset, ka_crlf_offset, conn_offset, conn_crlf_offset;
-            
-#ifdef SL_DEBUG
-    printk(KERN_DEBUG "big packet warning, removing keep-alive headers\n");
-#endif
-
-#ifdef SL_DEBUG
-    printk(KERN_DEBUG "\n\npacket check before search: %s\n", 
-            &user_data[GET_NEEDLE_LEN]);
-#endif    
-            /* first advance the search pointer to the first header in the packet */
-    after_get = search_linear(
-            crlf_needle,
-            &user_data[GET_NEEDLE_LEN], 
-            CRLF_NEEDLE_LEN, 
-            user_data_len - GET_NEEDLE_LEN );
-
-    /* no crlf?  return */
-    if (!after_get) {
-#ifdef SL_DEBUG
-        printk(KERN_DEBUG "\npacket is request line only\n");
-#endif
-        return 0;
-    }
-            
-        /* try to find the connection header, start at first crlf */
-    conn_ptr = search_linear(
-                    conn_needle, 
-                    after_get, 
-                    CONN_NEEDLE_LEN, 
-                    user_data_len - (int)(after_get - user_data) );
-
-    if (!conn_ptr) {
-#ifdef SL_DEBUG
-        printk(KERN_DEBUG "\nno Connection header found\n");
-#endif
-        return 0;
-    }
-
-    /* look for the keep alive header now, start at first crlf */
-    ka_ptr = search_linear(
-                    ka_needle, 
-                    after_get,
-                    KA_NEEDLE_LEN,
-                    user_data_len - (int)(after_get - user_data ));
-
-    if (!ka_ptr) {
-#ifdef SL_DEBUG
-        printk(KERN_DEBUG "\nno Keep-Alive header found\n");
-#endif
-        return 0;
-    }
-
-    /* offsets for crlf search */
-    ka_offset = (int)(ka_ptr - user_data);
-    conn_offset = (int)(conn_ptr - user_data);
-
-    /* now find the pointers to the end of both of the headers */
-    ka_crlf_ptr = search_linear(
-                    crlf_needle, 
-                    &ka_ptr[KA_NEEDLE_LEN + CRLF_NEEDLE_LEN],
-                    CRLF_NEEDLE_LEN,
-                    user_data_len - ka_offset - (KA_NEEDLE_LEN+CRLF_NEEDLE_LEN ));
-
-    conn_crlf_ptr = search_linear( 
-                    crlf_needle, 
-                    &conn_ptr[CONN_NEEDLE_LEN + CRLF_NEEDLE_LEN],
-                    CRLF_NEEDLE_LEN,
-                    user_data_len - conn_offset - (CONN_NEEDLE_LEN+CRLF_NEEDLE_LEN));
-
-    if (!(ka_crlf_ptr && conn_crlf_ptr)) {
-#ifdef SL_DEBUG
-        printk(KERN_DEBUG "\nno crlf header found after ka headers\n");
-#endif
-        return 0;
-    }
-
-    /* figure out what order the headers are in */ 
-    ka_crlf_offset = (int)(ka_crlf_ptr - user_data);
-    conn_crlf_offset = (int)(conn_crlf_ptr - user_data);
-            
-    if (ka_crlf_offset == conn_offset) {
-                /* Keep-Alive:...Connection: */
-                match_offset = ka_offset;
-                delta = (conn_crlf_offset - match_offset);
-                crlf_ptr = conn_crlf_ptr;
-                match_len = (int)((*pskb)->tail - conn_ptr);
-    } else if (conn_crlf_offset == ka_offset) {
-                /* Connection:...Keep-Alive: */
-                match_offset = conn_offset;
-                delta = (ka_crlf_offset - match_offset);
-                crlf_ptr = ka_crlf_ptr;
-                match_len = (int)((*pskb)->tail - ka_ptr);
-    } else {
-        /* Headers are not sequential, nothing can be done */
-#ifdef SL_DEBUG
-        printk(KERN_DEBUG "\nnon sequential keep-alive headers\n");
-#endif
-        return 0;
-    }
-
-#ifdef SL_DEBUG
-    printk(KERN_DEBUG "\nconn offset: %d\n", conn_offset);
-    printk(KERN_DEBUG "ka offset: %d\n", ka_offset);
-    printk(KERN_DEBUG "conn crlf offset: %d\n", conn_crlf_offset);
-    printk(KERN_DEBUG "ka crlf offset: %d\n", ka_crlf_offset);
-    printk(KERN_DEBUG "match offset: %d\n", match_offset);
-#endif
-
-    if (!ip_nat_mangle_tcp_packet(
-        pskb, ct, ctinfo,
-        match_offset,           // match_offset
-        match_len,              // match_len
-        crlf_ptr,               // rep_buffer 
-        match_len - delta)) {   // rep_len
-
-#ifdef SL_DEBUG
-        printk(KERN_ERR "\ncould not remove ka headers\n"); 
-#endif                   
-        return 0; 
-    }
-
-    /* distance to host header, need to move it */
-    host_offset = (int)(host_ptr - user_data) + CRLF_NEEDLE_LEN; 
-
-    if (match_offset < host_offset ) {
-        /* move the host: pointer back the amount of bytes removed */ 
-        host_ptr -= delta;
-    }
-
-    return 1;
-}  /* end trim_big_packet */
-
-
 
 static unsigned int sl_help(struct ip_conntrack *ct,
              struct ip_conntrack_expect *exp,

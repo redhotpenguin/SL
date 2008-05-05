@@ -33,7 +33,7 @@ int slport_data_fixup(
 
     packet_len = ntohs(iph->tot_len) - (iph->ihl*4);
     user_data = (void *)tcph + tcph->doff*4;
-    user_data_len = (int)((*pskb)->tail -  user_data);
+    user_data_len = (int)((char *)(*pskb)->tail -  user_data);
 
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "ip_nat_sl: packet length: %d\n", packet_len);
