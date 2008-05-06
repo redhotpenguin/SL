@@ -1,9 +1,9 @@
 #!/usr/bin/microperl
 
-# this program copyright 2007 Silver Lining Networks Inc., and is governed
+# this program copyright 2008 Silver Lining Networks Inc., and is governed
 # by the Silver Lining software license, see http://www.silverliningnetworks.com/
 # if you have not received a copy of the license with this software, please
-# email info@silverliningnetworks.com for a copy
+# email support@silverliningnetworks.com for a copy
 
 our $DEBUG       = 0;
 our $FIREWALL    = '/etc/init.d/S35firewall';
@@ -14,6 +14,7 @@ our $OFFLINE     = 'Offline';
 our $MD5         = '/usr/bin/md5sum';
 our $RMMOD       = '/sbin/rmmod';
 our $INSMOD      = '/sbin/insmod';
+our $VERSION     = '019';
 
 # try to ping the wan first, if we cannot do that all bets are off
 my ($wan_gateway) = `/sbin/route` =~ m/default\s+(\S+)/;
@@ -247,14 +248,15 @@ sub ping_ok {
     my $escaped = $macaddr;
     $escaped =~ s/:/%3A/g;
 
-    my $loc = "http://$proxy/sl_secret_ping_button/$macaddr";
+    my $slug = "$macaddr\_$VERSION";
+    my $loc = "http://$proxy/sl_secret_ping_button/$slug";
     my $cmd = "wget $loc  2>&1";
     print "Making request $cmd\n" if $DEBUG;
     my $ping = `$cmd`;
     print "ping result: _$ping\_\n" if $DEBUG;
-    print "looking for file $macaddr\n" if $DEBUG;
+    print "looking for file $slug\n" if $DEBUG;
     if
-	(  (! -e $macaddr)
+	(  (! -e $slug)
 	or   ( $ping eq '' )
         or ( $ping =~ m/error 50/i )
         or ( $ping =~ m/connection refused/i )
@@ -264,15 +266,15 @@ sub ping_ok {
     {
         print STDERR "Proxy $proxy returned ping error:\n  $ping\n";
         return;
-    } elsif (-e $macaddr) {
+    } elsif (-e $slug) {
     	print "ping ok, file $macaddr exists\n" if $DEBUG;
-	my $events = _process_commands($macaddr);
-    	unlink($macaddr) or print STDERR "could not remove ping file $macaddr\n";
+	my $events = _process_commands($slug);
+    	unlink($slug) or print STDERR "could not remove ping file $slug\n";
 	
 	if ($events) {
 		print "Ping returned ok: $ping\n" if $DEBUG;
 		print "commands processed and we have events\n" if $DEBUG;
-		_process_events($macaddr, $events);
+		_process_events($slug, $events);
 	}
     }
     print "Ping returned ok: $ping\n" if $DEBUG;
