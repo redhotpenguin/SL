@@ -1,0 +1,26 @@
+timer proc_id 3, get_id 1, link http://www.hvh.com/ time 0.911876
+timer proc_id 3, get_id 2, link http://horses.smugmug.com/ time 0.277066
+timer proc_id 3, get_id 3, link http://www.sfgate.com/ time 0.626389
+timer proc_id 3, get_id 4, link http://www.fark.com/ time 0.880458
+timer proc_id 3, get_id 5, link http://www.silverliningnetworks.com/ time 0.222722
+timer proc_id 4, get_id 1, link http://www.fark.com/ time 1.292881
+timer proc_id 4, get_id 2, link http://www.perl.com/ time 0.683705
+timer proc_id 4, get_id 3, link http://www.redhotpenguin.com/ time 0.177216
+timer proc_id 4, get_id 4, link http://www.perl.com/ time 0.844573
+timer proc_id 4, get_id 5, link http://www.fark.com/ time 1.111004
+timer proc_id 2, get_id 1, link http://www.sfgate.com/ time 0.812124
+timer proc_id 2, get_id 2, link http://horses.smugmug.com/ time 0.242553
+timer proc_id 2, get_id 3, link http://use.perl.org/ time 0.312494
+timer proc_id 2, get_id 4, link http://www.perlmonks.org/ time 7.083412
+timer proc_id 2, get_id 5, link http://www.twitter.com/ time 1.081874
+timer proc_id 1, get_id 1, link http://www.hvh.com/ time 0.965383
+timer proc_id 1, get_id 2, link http://use.perl.org/ time 0.295473
+timer proc_id 1, get_id 3, link http://use.perl.org/ time 0.234031
+timer proc_id 1, get_id 4, link http://www.perlmonks.org/ time 8.519058
+timer proc_id 1, get_id 5, link http://www.perl.com/ time 1.375306
+timer proc_id 5, get_id 1, link http://www.perlmonks.org/ time 9.970382
+timer proc_id 5, get_id 2, link http://www.hvh.com/ time 0.371867
+timer proc_id 5, get_id 3, link http://www.perlmonks.org/ time 1.424137
+timer proc_id 5, get_id 4, link http://www.sfgate.com/ time 0.24214
+timer proc_id 5, get_id 5, link http://www.redhotpenguin.com/ time 0.274174
+total time: 12.34683

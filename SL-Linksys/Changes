@@ -1,6 +1,7 @@
 Revision history for Perl extension SL-Linksys.
 
-0.19 Mon Apr 28 15:06:49 PST
+0.19 Tue May 06 12:06:49 PST
+    - include the firmware version in the ping slug
     - split the main traffic shaping module into ip_nat_sl and ip_nat_slport
     - use ip_nat_slport only on failover
 
