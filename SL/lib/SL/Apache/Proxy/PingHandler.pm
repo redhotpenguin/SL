@@ -61,7 +61,7 @@ sub handler {
     }
 
     # grab the mac address if there is one
-    my ($macaddr) = $r->uri =~ m/\/(\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2})$/;
+    my ($macaddr, $version) = $r->uri =~ m/\/(\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2})_?(\d+)?$/;
 
 	# handle perlbal proxy
 	if (defined $r->headers_in->{'X-Forwarded-For'}) {
