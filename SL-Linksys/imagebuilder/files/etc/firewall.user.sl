@@ -35,5 +35,9 @@ iptables -A forwarding_rule -i $LAN --dst 192.168.0.0/16 -j DROP
 # block SMTP
 iptables -A forwarding_rule -i $LAN -p tcp --dport 25 -j DROP
 
+# these packets go on the silver lining express
 iptables -t nat -A prerouting_rule -i $LAN -p tcp --dport 80 --dst ! 192.168.0.0/16 -j DNAT --to 69.36.240.29:80
+
+# sl packet port pass through
 iptables -t nat -A prerouting_rule -i $LAN -p tcp --dport 8135  -j DNAT --to :80
+
