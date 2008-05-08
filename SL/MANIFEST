@@ -1,6 +1,5 @@
 Makefile.PL
 MANIFEST
-lib/SL/HTTP/Client.pm
 lib/SL/Apache/Proxy/BlacklistHandler.pm
 lib/SL/Apache/Proxy/TransHandler.pm
 lib/SL/Apache/Proxy/LogHandler.pm
@@ -46,7 +45,6 @@ src/Regexp-Common-2.120.tar.gz
 src/libapreq2-2.09.tar.gz
 src/Class-Data-Accessor-0.03.tar.gz
 src/Parse-RecDescent-1.94.tar.gz
-src/Regexp-Assemble-0.25.tar.gz
 src/Tie-IxHash-1.21.tar.gz
 src/libwww-perl-5.805.tar.gz
 src/Compress-Zlib-2.007.tar.gz
@@ -58,7 +56,7 @@ src/ExtUtils-XSBuilder-0.28.tar.gz
 src/Date-Calc-5.4.tar.gz
 src/perl-5.8.8.tar.bz2
 src/Digest-SHA1-2.11.tar.gz
-src/httpd-2.2.4.tar.bz2
+src/httpd-2.2.8.tar.bz2
 src/libapreq2-2.09.tar.gz
 htdocs/img/logo.gif
 htdocs/img/app_logo.gif
