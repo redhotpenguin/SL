@@ -17,6 +17,7 @@ Mostly Apache2 and HTTP class based.
 
 =cut
 
+# mp core
 use Apache2::Const -compile => qw( OK SERVER_ERROR NOT_FOUND DECLINED
   REDIRECT LOG_DEBUG LOG_ERR LOG_INFO CONN_KEEPALIVE HTTP_BAD_REQUEST
   HTTP_UNAUTHORIZED HTTP_SEE_OTHER HTTP_MOVED_PERMANENTLY
@@ -33,12 +34,16 @@ use Apache2::URI             ();
 use Apache2::Filter          ();
 use APR::Table               ();
 
-use SL::HTTP::Client ();
+# sl libraries
+use SL::Config;
+use SL::HTTP::Client         ();
 use SL::Model::Ad            ();
 use SL::Cache                ();
 use SL::Cache::Subrequest    ();
-use SL::Cache::RateLimit     ();
+use SL::RateLimit     ();
 use SL::Model::Proxy::Router ();
+
+# non core perl libs
 use Encode                   ();
 use RHP::Timer               ();
 use Regexp::Assemble         ();
@@ -46,16 +51,13 @@ use Compress::Zlib           ();
 use Compress::Bzip2          ();
 use URI::Escape              ();
 
-use SL::Config;
-
 our $CONFIG;
 
 BEGIN {
     $CONFIG = SL::Config->new;
 }
-use constant GOOGLE_AD_ID  => $CONFIG->sl_google_ad_id;
+
 use constant NOOP_RESPONSE => $CONFIG->sl_noop_response || 0;
-use constant SL_XHEADER    => $CONFIG->sl_xheader || 0;
 
 use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
@@ -63,10 +65,11 @@ use constant TIMING        => $ENV{SL_TIMING}        || 0;
 
 use constant REPLACE_PORT  => 8135;
 
+# unencoded http responses must be this big to get an ad
 use constant MIN_CONTENT_LENGTH => $CONFIG->sl_min_content_length || 2500;
 
 
-my ( $TIMER, $REMOTE_TIMER );
+our ( $TIMER, $REMOTE_TIMER );
 if (TIMING) {
     $TIMER        = RHP::Timer->new();
     $REMOTE_TIMER = RHP::Timer->new();
@@ -94,7 +97,7 @@ our %response_map = (
 );
 
 our $CACHE              = SL::Cache->new( type => 'raw' );
-our $RATE_LIMIT         = SL::Cache::RateLimit->new;
+our $RATE_LIMIT         = SL::RateLimit->new;
 our $SUBREQUEST_TRACKER = SL::Cache::Subrequest->new;
 
 use SL::Page::Cache;
