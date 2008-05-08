@@ -8,18 +8,19 @@ use Cache::FastMmap;
 
 our $VERSION = 0.23;
 
-our ($RAW_CACHE, $OBJ_CACHE);
+our( $RAW_CACHE, $OBJ_CACHE );
+
 BEGIN {
-  our $CONFIG = SL::Config->new;
-        $RAW_CACHE = Cache::FastMmap->new(
-            raw_values => 1,
-            cache_size => $CONFIG->sl_raw_cache_size || '64m',
-            share_file => $CONFIG->sl_raw_cache_file || '/tmp/sl_raw_cache',
-        );
-        $OBJ_CACHE = Cache::FastMmap->new(
-            cache_size => $CONFIG->sl_obj_cache_size || '64m',
-            share_file => $CONFIG->sl_obj_cache_file || '/tmp/sl_obj_cache ',
-        );
+    our $CONFIG = SL::Config->new;
+    $RAW_CACHE = Cache::FastMmap->new(
+        raw_values => 1,
+        cache_size => $CONFIG->sl_raw_cache_size || '64m',
+        share_file => $CONFIG->sl_raw_cache_file || '/tmp/sl_raw_cache',
+    );
+    $OBJ_CACHE = Cache::FastMmap->new(
+        cache_size => $CONFIG->sl_obj_cache_size || '64m',
+        share_file => $CONFIG->sl_obj_cache_file || '/tmp/sl_obj_cache ',
+    );
 }
 
 sub new {
@@ -30,10 +31,10 @@ sub new {
 
     my $CONFIG = SL::Config->new();
     if ( $args{type} eq 'raw' ) {
-      $self->{cache} = $RAW_CACHE;
-   }
+        $self->{cache} = $RAW_CACHE;
+    }
     elsif ( $args{type} eq 'obj' ) {
-      $self->{cache} = $OBJ_CACHE;
+        $self->{cache} = $OBJ_CACHE;
     }
     else {
         die ' no such type ' . $args{type} . "\n";
@@ -69,8 +70,7 @@ sub is_user_blacklisted {
     my ( $self, $user_id ) = @_;
     die unless $user_id;
 
-    my $is_blacklisted =
-      $self->{cache}->get( join ( '|', 'user', $user_id ) );
+    my $is_blacklisted = $self->{cache}->get( join ( '|', 'user', $user_id ) );
     return 1 if $is_blacklisted;
     return;
 }
@@ -78,13 +78,11 @@ sub is_user_blacklisted {
 sub add_known_html {
     my ( $self, $url, $content_type ) = @_;
     unless ( $url && $content_type ) {
-		warn("url $url or content type $content_type missing");
-		return;
-	}
+        warn("url $url or content type $content_type missing");
+        return;
+    }
 
-    $self->{cache}->set(
-        join ('|', 'known_html', $url) => $content_type
-    );
+    $self->{cache}->set( join ( '|', 'known_html', $url ) => $content_type );
     return 1;
 }
 
@@ -92,9 +90,8 @@ sub is_known_not_html {
     my ( $self, $url ) = @_;
     die unless $url;
 
-    my $content_type =
-      $self->{cache}->get( join ( '|', 'known_html', $url ) );
-	return 1 if ($content_type && ($content_type !~ m/text\/html/ ));
+    my $content_type = $self->{cache}->get( join ( '|', 'known_html', $url ) );
+    return 1 if ( $content_type && ( $content_type !~ m/text\/html/ ) );
     return;
 }
 
