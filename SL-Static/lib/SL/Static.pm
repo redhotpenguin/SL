@@ -6,7 +6,7 @@ use warnings;
 use Regexp::Assemble;
 use SL::Config;
 
-our $VERSION = 0.11;
+our $VERSION = 0.12;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 our ($CONFIG, $EXT_REGEX, $SKIPS_REGEX);
@@ -17,7 +17,7 @@ BEGIN {
 		ad ads avi 
 		bin bz2 bzip class css dll dms doc exe fla flv 
 		gif gz ico img jar jpg jpeg js 
-		lha lzh mar mov mp3 mpg mpeg 
+		lha lzh mar mkv mov mp3 mpg mpeg 
 		ogg pdf png ppt psf
 		rar rdf rss sit so swf 
 		tar tgz tif tiff torrent txt 
