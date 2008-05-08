@@ -1,0 +1,7 @@
+Revision history for Perl extension SL-HTTP-Client.
+
+0.01  Wed May  7 20:26:59 2008
+    - moved from SL main repository here
+	- original version; created by h2xs 1.23 with options
+		-X SL-HTTP-Client
+

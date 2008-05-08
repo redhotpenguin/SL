@@ -1,0 +1,6 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/SL-HTTP-Client.t
+lib/SL/HTTP/Client.pm
