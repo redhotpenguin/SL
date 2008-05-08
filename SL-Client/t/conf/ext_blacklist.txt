@@ -1,1 +1,0 @@
-(?-xism:(?:p(?:df|ng|pt)|j(?:pe?g|s)|r(?:ar|ss)|t(?:gz|xt)|x(?:ls|pi)|a(?:vi|d)|g(?:if|z)|od[fs]|mpe?g|bz2|css|doc|exe|fla|ico|sit|vob|wmv|zip))
