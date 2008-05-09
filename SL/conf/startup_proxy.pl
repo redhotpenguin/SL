@@ -53,12 +53,12 @@ use SL::Apache::Proxy::PostReadRequestHandler ();
 use SL::Apache::Proxy::PingHandler            ();
 use SL::Apache::Proxy::LogHandler             ();
 
-use SL::Static            ();
-use SL::Cache             ();
-use SL::Cache::Subrequest ();
-use SL::Cache::RateLimit  ();
-use SL::HTTP::Client      ();
-use SL::BrowserUtil       ();
+use SL::Static       ();
+use SL::Cache        ();
+use SL::Subrequest   ();
+use SL::RateLimit    ();
+use SL::HTTP::Client ();
+use SL::BrowserUtil  ();
 
 use Digest::MD5 ();
 use DBI         ();

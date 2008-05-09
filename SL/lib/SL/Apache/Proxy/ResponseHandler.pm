@@ -22,34 +22,34 @@ use Apache2::Const -compile => qw( OK SERVER_ERROR NOT_FOUND DECLINED
   REDIRECT LOG_DEBUG LOG_ERR LOG_INFO CONN_KEEPALIVE HTTP_BAD_REQUEST
   HTTP_UNAUTHORIZED HTTP_SEE_OTHER HTTP_MOVED_PERMANENTLY
   HTTP_NO_CONTENT HTTP_PARTIAL_CONTENT HTTP_NOT_MODIFIED );
-use Apache2::Connection      ();
-use Apache2::Log             ();
-use Apache2::RequestRec      ();
-use Apache2::RequestUtil     ();
-use Apache2::RequestIO       ();
-use Apache2::Response        ();
-use Apache2::ServerRec       ();
-use Apache2::ServerUtil      ();
-use Apache2::URI             ();
-use Apache2::Filter          ();
-use APR::Table               ();
+use Apache2::Connection  ();
+use Apache2::Log         ();
+use Apache2::RequestRec  ();
+use Apache2::RequestUtil ();
+use Apache2::RequestIO   ();
+use Apache2::Response    ();
+use Apache2::ServerRec   ();
+use Apache2::ServerUtil  ();
+use Apache2::URI         ();
+use Apache2::Filter      ();
+use APR::Table           ();
 
 # sl libraries
 use SL::Config;
 use SL::HTTP::Client         ();
 use SL::Model::Ad            ();
 use SL::Cache                ();
-use SL::Cache::Subrequest    ();
-use SL::RateLimit     ();
+use SL::Subrequest           ();
+use SL::RateLimit            ();
 use SL::Model::Proxy::Router ();
 
 # non core perl libs
-use Encode                   ();
-use RHP::Timer               ();
-use Regexp::Assemble         ();
-use Compress::Zlib           ();
-use Compress::Bzip2          ();
-use URI::Escape              ();
+use Encode           ();
+use RHP::Timer       ();
+use Regexp::Assemble ();
+use Compress::Zlib   ();
+use Compress::Bzip2  ();
+use URI::Escape      ();
 
 our $CONFIG;
 
@@ -63,13 +63,12 @@ use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 use constant TIMING        => $ENV{SL_TIMING}        || 0;
 
-use constant REPLACE_PORT  => 8135;
+use constant REPLACE_PORT => 8135;
 
 # unencoded http responses must be this big to get an ad
 use constant MIN_CONTENT_LENGTH => $CONFIG->sl_min_content_length || 2500;
 
-
-our ( $TIMER, $REMOTE_TIMER );
+our( $TIMER, $REMOTE_TIMER );
 if (TIMING) {
     $TIMER        = RHP::Timer->new();
     $REMOTE_TIMER = RHP::Timer->new();
@@ -230,7 +229,8 @@ sub _build_request_headers {
         $r->log->debug(
             "$$ client supports compression " . $headers{'Accept-Encoding'} )
           if DEBUG;
-        $r->pnotes( client_supports_compression => $headers{'Accept-Encoding'} );
+        $r->pnotes(
+            client_supports_compression => $headers{'Accept-Encoding'} );
     }
 
     $r->log->debug(
@@ -252,15 +252,17 @@ sub handler {
 
     # Make the request to the remote server
     my $response = eval {
-      SL::HTTP::Client->get({
-         headers => $headers,
-         url     => $r->pnotes('url'),
-      });
+        SL::HTTP::Client->get(
+            {
+                headers => $headers,
+                url     => $r->pnotes('url'),
+            }
+        );
     };
 
     if ($@) {
-        $r->log->info("$$ error fetching url " . $r->pnotes('url'));
-        return &crazypage($r); # haha this page is kwazy!
+        $r->log->info( "$$ error fetching url " . $r->pnotes('url') );
+        return &crazypage($r);    # haha this page is kwazy!
     }
 
     $r->log->debug(
@@ -296,8 +298,9 @@ sub crazypage {
     my $r = shift;
 
     $r->content_type('text/html');
-    $r->print("<html><body><h2>Sorry the url " . $r->pnotes('url') .
-        ' is not a valid hostname, please try again.</h2></body></html>');
+    $r->print( "<html><body><h2>Sorry the url "
+          . $r->pnotes('url')
+          . ' is not a valid hostname, please try again.</h2></body></html>' );
     return Apache2::Const::OK;
 }
 
@@ -592,7 +595,8 @@ sub redirect {
             "$$ status line %s, response: %s",
             $res->status_line, Data::Dumper::Dumper($res)
         )
-    ) if DEBUG;
+      )
+      if DEBUG;
 
     # set the status line
     #$r->status($res->code);
@@ -651,7 +655,7 @@ sub threeohfour {
     my ( $r, $res ) = @_;
 
     # set the status line
-    $r->status($res->code);
+    $r->status( $res->code );
     $r->log->debug( "status line is " . $res->status_line ) if DEBUG;
 
     # translate the headers from the remote response to the proxy response
@@ -675,7 +679,7 @@ sub threeohfour {
 }
 
 sub _non_html_two_hundred {
-    my ($r, $res) = @_;
+    my ( $r, $res ) = @_;
 
     # set the status
     $r->status( $res->code );
@@ -693,7 +697,7 @@ sub _non_html_two_hundred {
 }
 
 sub _set_response_headers {
-    my ($r, $response, $response_content_ref) = @_;
+    my ( $r, $response, $response_content_ref ) = @_;
 
     # This loops over the response headers and adds them to headers_out.
     # Override any headers with our own here
@@ -737,34 +741,46 @@ sub _set_response_headers {
     my $encoding;
     if ( $r->pnotes('client_supports_compression') ) {
 
-        $r->log->debug("$$ client supports compression: " . $r->pnotes('client_supports_compression')) if DEBUG;
+        $r->log->debug( "$$ client supports compression: "
+              . $r->pnotes('client_supports_compression') )
+          if DEBUG;
 
-        my @h = map { $_->[0] } HTTP::Headers::Util::split_header_words( $r->pnotes('client_supports_compression'));
-        $r->log->debug("$$ header words are " . join(',', @h)) if DEBUG;
+        my @h =
+          map { $_->[0] }
+          HTTP::Headers::Util::split_header_words(
+            $r->pnotes('client_supports_compression') );
+        $r->log->debug( "$$ header words are " . join ( ',', @h ) ) if DEBUG;
 
         # use the first acceptable compression, ordered by
         if ( grep { $_ eq 'x-bzip2' } @h ) {
 
-            $response_content_ref = Compress::Bzip2::compress($$response_content_ref);
+            $response_content_ref =
+              Compress::Bzip2::compress($$response_content_ref);
             $encoding = 'x-bzip2';
 
-        } elsif ( ( grep { $_ eq 'gzip' } @h ) ||
-                  ( grep { $_ eq 'x-gzip' } @h ) ) { # some parts lifted from HTTP::Message
+        }
+        elsif (( grep { $_ eq 'gzip' } @h )
+            || ( grep { $_ eq 'x-gzip' } @h ) )
+        {    # some parts lifted from HTTP::Message
 
             # need a copy for memgzip, see HTTP::Message notes
-            my $gzipped = eval { Compress::Zlib::memGzip($response_content_ref); };
-			if ($gzipped && !$@) {
-	            $$response_content_ref = $gzipped;
-	            $encoding = 'gzip';
-			}
-        } elsif ( grep { $_ eq 'deflate' } @h ) {
+            my $gzipped =
+              eval { Compress::Zlib::memGzip($response_content_ref); };
+            if ( $gzipped && !$@ ) {
+                $$response_content_ref = $gzipped;
+                $encoding              = 'gzip';
+            }
+        }
+        elsif ( grep { $_ eq 'deflate' } @h ) {
 
             my $copy = $$response_content_ref;
             $$response_content_ref = Compress::Zlib::compress($copy);
-            $encoding = 'deflate';
+            $encoding              = 'deflate';
 
-        } else {
-            $r->log->error("$$ unknown content-encoding encountered:  " . join(',', @h));
+        }
+        else {
+            $r->log->error( "$$ unknown content-encoding encountered:  "
+                  . join ( ',', @h ) );
         }
     }
 
@@ -807,7 +823,7 @@ sub _set_response_headers {
 
     ###############################
     # possible through a nasty hack, set the server version
-    $r->server->add_version_component( $headers{Server} || 'sl');
+    $r->server->add_version_component( $headers{Server} || 'sl' );
 
     ###############################
     # maybe someday but not today, do not cache this response
@@ -823,12 +839,13 @@ sub twohundred {
     $r->log->debug("$$ Request to $url returned 200") if DEBUG;
 
     # Cache the content_type
-    if ( defined $response->content_type && ($response->content_type ne '')) {
+    if ( defined $response->content_type && ( $response->content_type ne '' ) )
+    {
         $CACHE->add_known_html( $url => $response->content_type );
     }
 
     # check to make sure it's HTML first
-    $r->log->debug("$$ ===> $url is_html: " . $response->is_html) if DEBUG;
+    $r->log->debug( "$$ ===> $url is_html: " . $response->is_html ) if DEBUG;
     unless ( $response->is_html ) {
         return _non_html_two_hundred( $r, $response );
     }
@@ -839,10 +856,11 @@ sub twohundred {
     ################################
     # the request rate limiter
     $TIMER->start('rate_limiter') if TIMING;
-    my $user_id = join('|', $r->pnotes('hash_mac'), $r->pnotes('ua'));
+    my $user_id = join ( '|', $r->pnotes('hash_mac'), $r->pnotes('ua') );
     my $is_toofast = $RATE_LIMIT->check_violation($user_id) || 0;
     $r->log->debug("$$ ===> $url check_violation: $is_toofast") if DEBUG;
-    $r->log->info( sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
+    $r->log->info(
+        sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
       if TIMING;
 
     ##############################
@@ -851,21 +869,25 @@ sub twohundred {
     my $response_content_ref;
     my $ad_served;
     if (
-		# not enough content means it's probably not a real page
-            ( not $is_toofast )
-            and
-            ( not $SUBREQUEST_TRACKER->is_subrequest( url => $url ) )
+
+        # not enough content means it's probably not a real page
+        ( not $is_toofast )
+        and ( not $SUBREQUEST_TRACKER->is_subrequest( url => $url ) )
       )
     {
 
         # put an ad in the response
         $response_content_ref = _generate_response( $r, $response );
 
-        if (!$response_content_ref) {
-            # we could not serve an ad on this page for some reason
-            $r->log->info("$$ ad not served, _generate_response failed url $url");
+        if ( !$response_content_ref ) {
 
-        } else {
+            # we could not serve an ad on this page for some reason
+            $r->log->info(
+                "$$ ad not served, _generate_response failed url $url");
+
+        }
+        else {
+
             # we served an ad, note the ad-serving time for the rate-limiter
             $ad_served = 1;
             $RATE_LIMIT->record_ad_serve($user_id);
@@ -873,6 +895,7 @@ sub twohundred {
 
     }    # end 'if ('
     else {
+
         # this is not html or its compressed, etc
         $r->log->debug("$$ ad not served, using existing content") if DEBUG;
     }
@@ -889,10 +912,11 @@ sub twohundred {
         content_ref => $response_content_ref,
         base_url    => $url,
     );
+
     # checkpoint for collect_subrequuests
     $r->log->info(
         sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
-        if TIMING;
+      if TIMING;
 
     ###########################################
     # we replace the links even on pages that we don't serve ads on to
@@ -900,12 +924,15 @@ sub twohundred {
     if ( defined $subrequests_ref ) {
 
         # setting in place, replace the links
-        my $ok = $SUBREQUEST_TRACKER->replace_subrequests({
-            port        => REPLACE_PORT,
-            subreq_ref  => $subrequests_ref,
-            content_ref => $response_content_ref,
-        });
-        $r->log->info("$$ could not replace subrequests for url $url") unless $ok;
+        my $ok = $SUBREQUEST_TRACKER->replace_subrequests(
+            {
+                port        => REPLACE_PORT,
+                subreq_ref  => $subrequests_ref,
+                content_ref => $response_content_ref,
+            }
+        );
+        $r->log->info("$$ could not replace subrequests for url $url")
+          unless $ok;
     }
 
     # set the status line
@@ -913,7 +940,7 @@ sub twohundred {
     $r->log->debug( "$$ status line is " . $response->status_line ) if DEBUG;
 
     # set the response headers
-    my $set_ok = _set_response_headers( $r, $response, $response_content_ref);
+    my $set_ok = _set_response_headers( $r, $response, $response_content_ref );
 
     if (VERBOSE_DEBUG) {
         $r->log->debug( "$$ Reponse headers to client " . $r->as_string );
@@ -984,13 +1011,13 @@ sub _generate_response {
     # It is a fix for sites like google, yahoo who send encoded UTF-8 et al
     my $decoded_content        = $response->decoded_content;
     my $content_needs_encoding = 1;
-	
-	unless (length($decoded_content) > MIN_CONTENT_LENGTH) {
-	    $r->log->debug("$$ content too small, skipping ad insertion") if DEBUG;
-		return;
-	}
 
-	unless ( defined $decoded_content ) {
+    unless ( length($decoded_content) > MIN_CONTENT_LENGTH ) {
+        $r->log->debug("$$ content too small, skipping ad insertion") if DEBUG;
+        return;
+    }
+
+    unless ( defined $decoded_content ) {
 
         # hmmm, in some cases decoded_content is null so we use regular content
         # https://www.redhotpenguin.com/bugzilla/show_bug.cgi?id=424
@@ -1019,9 +1046,10 @@ sub _generate_response {
           if TIMING;
 
         unless ($ok) {
+
             # TODO - mark url to be skipped next time
             $r->log->info(
-				"could not insert ad id $ad_id into url $url, css $css_url");
+                "could not insert ad id $ad_id into url $url, css $css_url");
             return;
         }
     }
