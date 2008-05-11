@@ -42,6 +42,7 @@ use SL::Cache                ();
 use SL::Subrequest           ();
 use SL::RateLimit            ();
 use SL::Model::Proxy::Router ();
+use SL::Static               ();
 
 # non core perl libs
 use Encode           ();
@@ -87,12 +88,12 @@ our %response_map = (
     303 => 'threeohthree',
     304 => 'threeohfour',
     307 => 'redirect',
-    500 => 'bsod',
-    503 => 'bsod',
     400 => 'badrequest',
     401 => 'fourohone',
     403 => 'fourohthree',
     404 => 'fourohfour',
+    500 => 'bsod',
+    503 => 'bsod',
 );
 
 our $CACHE              = SL::Cache->new( type => 'raw' );
@@ -178,16 +179,6 @@ The question at hand for container is 'will it work?'
 
 =cut
 
-our $SKIPS;
-
-BEGIN {
-    my @skips = qw( framset adwords.google.com
-      MM_executeFlashDetection );
-
-    push @skips, 'Ads by Goo';
-    $SKIPS = Regexp::Assemble->new->add(@skips)->re;
-    print STDERR "Regex for content insertion skips ", $SKIPS, "\n" if DEBUG;
-}
 
 sub _build_request_headers {
     my $r = shift;
@@ -266,7 +257,7 @@ sub handler {
     }
 
     $r->log->debug(
-        "$$ Response headers from proxy request",
+        "$$ Response headers from proxy request\n",
         Data::Dumper::Dumper( $response->headers )
       )
       if DEBUG;
@@ -365,8 +356,10 @@ sub _translate_headers {
     }
 
     # set the server header
+    $headers{Server} ||= 'sl';
     $r->log->debug( "$$ server header is " . $headers{Server} ) if DEBUG;
-    $r->server->add_version_component( $headers{Server} || 'sl' );
+    $r->server->add_version_component( $headers{Server}  );
+
     return 1;
 }
 
@@ -600,11 +593,15 @@ sub redirect {
 
     # set the status line
     #$r->status($res->code);
-    $r->log->debug( "status line is " . $res->status_line ) if DEBUG;
+    
+    $r->log->debug( "$$ status line is " . $res->status_line ) if DEBUG;
 
     # translate the headers from the remote response to the proxy response
     my $translated = _translate_headers( $r, $res );
 
+    # no content type needed
+    $r->headers_out->unset('Content-Type');
+$r->headers_out->add('TEST' => 1);
     # rflush breaks things, do not change this!
     # $r->rflush();
 
@@ -845,11 +842,9 @@ sub twohundred {
     }
 
     # check to make sure it's HTML first
-    $r->log->debug( "$$ ===> $url is_html: " . $response->is_html ) if DEBUG;
-    unless ( $response->is_html ) {
-        return _non_html_two_hundred( $r, $response );
-    }
-
+    $r->log->debug("$$ ===> request is_html: " . $response->is_html ) if DEBUG;
+    
+    return _non_html_two_hundred( $r, $response ) unless $response->is_html;
     # code above is not a bottleneck
     ####################################
 
@@ -884,6 +879,7 @@ sub twohundred {
             # we could not serve an ad on this page for some reason
             $r->log->info(
                 "$$ ad not served, _generate_response failed url $url");
+            return _non_html_two_hundred( $r, $response );
 
         }
         else {
@@ -983,6 +979,32 @@ sub _generate_response {
     my $ua      = $r->pnotes('ua');
     my $referer = $r->pnotes('referer');
 
+    # It is a fix for sites like google, yahoo who send encoded UTF-8 et al
+    my $decoded_content        = $response->decoded_content;
+    my $content_needs_encoding = 1;
+
+	unless ( defined $decoded_content ) {
+
+        # hmmm, in some cases decoded_content is null so we use regular content
+        # https://www.redhotpenguin.com/bugzilla/show_bug.cgi?id=424
+        $decoded_content = $response->content;
+
+        # don't try to re-encode it in this case
+        $content_needs_encoding = 0;
+    }
+
+    # check to make sure that the content can accept an ad	
+	unless (length($decoded_content) > MIN_CONTENT_LENGTH) {
+	    $r->log->debug("$$ content too small for ad: " . length($decoded_content))
+            if DEBUG;
+        $r->log->debug("$$ small content is \n$decoded_content\n") if DEBUG;
+
+        ## TODO - mark for perlbal next time
+		return;
+	}
+
+    $r->log->debug("$$ content length is " . length($decoded_content)) if DEBUG;
+
     ##############################################################
     # put the ad in the response
     $TIMER->start('random_ad') if TIMING;
@@ -1001,11 +1023,15 @@ sub _generate_response {
         sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
       if TIMING;
 
+
     $r->log->debug("Ad content is \n$$ad_content_ref\n") if VERBOSE_DEBUG;
+
     unless ($ad_content_ref) {
         $r->log->error("$$ Hmm, we didn't get an ad for url $url");
         return;
     }
+   
+    $TIMER->start('container insertion') if TIMING;
 
     # Skip ad insertion if $skips regex match on decoded_content
     # It is a fix for sites like google, yahoo who send encoded UTF-8 et al
@@ -1051,7 +1077,6 @@ sub _generate_response {
             $r->log->info(
                 "could not insert ad id $ad_id into url $url, css $css_url");
             return;
-        }
     }
 
     # Check to see if the ad is inserted

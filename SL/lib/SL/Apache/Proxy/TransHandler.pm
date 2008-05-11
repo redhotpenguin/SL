@@ -15,8 +15,8 @@ use SL::Model       ();
 use SL::Model::URL  ();
 use SL::BrowserUtil ();
 
-our( $EXT_REGEX, $BLACKLIST_REGEX );
-use Regexp::Assemble ();
+our $BLACKLIST_REGEX;
+use SL::Static ();
 
 use constant DEBUG      => $ENV{SL_DEBUG}      || 0;
 use constant VERBOSE_DEBUG => $ENV{VERBOSE_DEBUG} || 0;
@@ -29,21 +29,8 @@ our $CONFIG;
 BEGIN {
     $CONFIG = SL::Config->new();
 
-	# FIXME - replace with SL::Static
-    ## Extension based matching
-    # removed js css swf
-    my @extensions = qw(
-      js torrent img avi bin bz2 doc exe fla flv gif gz ico jpeg jpg pdf png 
-      ppt mar mpg mpeg mp3 tif tiff
-	  ads swf rar sit rdf rss tgz txt wmv vob xpi zip );
-
-    $EXT_REGEX = Regexp::Assemble->new->add(@extensions)->re;
-    print STDERR "Regex for static content match is $EXT_REGEX\n"
-      if DEBUG;
-
     $BLACKLIST_REGEX = SL::Model::URL->generate_blacklist_regex;
     print STDERR "Blacklist regex is $BLACKLIST_REGEX\n" if DEBUG;
-
 }
 
 use Apache2::Const -compile =>
@@ -71,13 +58,6 @@ if (TIMING) {
     $TIMER = RHP::Timer->new();
 }
 
-sub static_content_uri {
-    my $url = shift;
-    if ( $url =~ m{\.$EXT_REGEX}i ) {
-        return 1;
-    }
-}
-
 sub handler {
     my $r = shift;
 
@@ -86,7 +66,7 @@ sub handler {
 
     if ( $r->pnotes('ua') eq 'none' ) {
         $r->log->debug("$$ no user agent, mod_proxy") if DEBUG;
-        return &proxy_request($r);
+        return &mod_proxy($r);
     }
 
     my $referer = $r->headers_in->{'referer'} || 'no_referer';
@@ -110,7 +90,7 @@ sub handler {
     if(! $browser_name ) {
         $r->log->debug("$$ not a browser: " . $r->as_string) if DEBUG;
         $r->pnotes('not_a_browser' => 1);
-        return &proxy_request($r);
+        return &mod_proxy($r);
 
     } elsif ($browser_name) {
 
@@ -126,14 +106,14 @@ sub handler {
     # get only
     unless ( $r->method_number == Apache2::Const::M_GET ) {
         $r->log->debug("$$ not a GET request, mod_proxy") if DEBUG;
-        return &proxy_request($r);
+        return &mod_proxy($r);
     }
 
     # http 1.1 only
     my $hostname;
     unless ( $hostname = $r->headers_in->{'Host'} ) {
         $r->log->debug("$$ no host header, mod_proxy") if DEBUG;
-        return &proxy_request($r);
+        return &mod_proxy($r);
     }
 
     # serving ads on hosts that are ip numbers causes problems usually
@@ -143,10 +123,10 @@ sub handler {
     }
 
     # first level domain name check for things that perlbal can't handle
-    if ($url =~ m{\.(?:js|video-stats\.video\.google\.com|javascript|txt|css|yahoofs|tbn0)|s3\.amazonaws\.com|tbn\d\.google}i ) {
-      $r->log->debug("$$ js|css|yahoofs found $url") if DEBUG;
-      return &proxy_request($r);
-    }
+#    if ($url =~ m{\.(?:js|video-stats\.video\.google\.com|javascript|txt|css|yahoofs|tbn0)|s3\.amazonaws\.com|tbn\d\.google}i ) {
+#      $r->log->debug("$$ js|css|yahoofs found $url") if DEBUG;
+#      return &proxy_request($r);
+#    }
 
     # need to be a get to get a x-sl header, covers non GET requests also
     if ( my $sl_header = $r->headers_in->{'x-sl'} ) {
@@ -173,6 +153,7 @@ sub handler {
     } else {
         # send to mod_proxy
         $r->log->debug("$$ no sl header, send to mod_proxy") if DEBUG;
+        $r->log->debug("$$ request: \n\n" . $r->as_string . "\n\n") if DEBUG;
         return &proxy_request($r);
     }
 
@@ -183,7 +164,7 @@ sub handler {
     my $dbh = SL::Model->connect();
     unless ($dbh) {
         $r->log->error("$$ Database has gone away, sending to mod_proxy");
-        return &proxy_request($r);
+        return &mod_proxy($r);
     }
 
     # ok check for a splash page
@@ -195,42 +176,10 @@ sub handler {
     }
 
     ## Static content
-    if ( static_content_uri($url) ) {
-        $r->log->debug("$$ Url $url static content ext, perlbal") if DEBUG;
-        return &perlbal($r);
-    }
-
-    ## hack for google ads
-    return &proxy_request($r) if ( $referer =~ m/googlesyndication/ );
-
-    # have perlbal grab these
-    return &proxy_request($r)
-      if $url eq 'http://pagead2.googlesyndication.com/pagead/show_ads.js';
-
-    # if this is one of our google ads then log it and pass it
-    # this needs to be before the blacklist check
-    if (
-        my $ad_id = SL::Model::Ad::Google->match_and_log(
-            {
-                url     => $url,
-                ip      => $r->connection->remote_ip,
-                mac     => $r->pnotes('router_mac'),
-                user    => $r->pnotes('hash_mac'),
-                referer => $referer,
-            }
-        )
-      )
-    {
-
-		# ugh, this bug counted google ads twice
-		# $r->pnotes( 'ad_id' => $ad_id );
-        $r->log->debug( "$$ google ad view match for url $url, ip "
-              . $r->connection->remote_ip)
-          if DEBUG;
+    if ( SL::Static->is_static_content( { url => $url } ) ) {
+        $r->log->debug("$$ Url $url static content ext, proxying") if DEBUG;
         return &proxy_request($r);
     }
-    # other peoples google ads
-    return &proxy_request($r) if ( $url =~ m/googlesyndication/ );
 
     # do not move this!
     if ($r->unparsed_uri =~ m/brightcove|flash/i) {
@@ -238,7 +187,7 @@ sub handler {
        return &proxy_request($r);
      }
 
-    # known offenders that are perlbal can
+    # known offenders that are perlbal can friendly
     if ($url =~ m/sphere.com|fmpub.net|edgesuite|oascentral|2mdn\.net/i) {
       $r->log->debug("$$ known slow content server $url, perlbal") if DEBUG;
        return &perlbal($r);
@@ -266,7 +215,7 @@ sub handler {
 
     ## Check the cache for a static content match
     return &proxy_request($r)              if $CACHE->is_known_not_html($url);
-    $r->log->debug("EndTranshandler") if DEBUG;
+    $r->log->debug("$$ EndTranshandler") if DEBUG;
 
     $r->log->info(
         sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
@@ -297,12 +246,12 @@ sub handle_splash_redirect {
     my ( $r, $splash_url, $timeout ) = @_;
 
     $r->log->debug(
-        "sp url $splash_url, timeout $timeout,mac " . $r->pnotes('router_mac') )
+        "$$ sp url $splash_url, timeout $timeout,mac " . $r->pnotes('router_mac') )
       if DEBUG;
 
     # aha splash page, check when the last time we saw this user was
     my $last_seen = $USER_CACHE->get_last_seen( $r->pnotes('sl_header') );
-    $r->log->debug( "last seen $last_seen seen, time " . time() )
+    $r->log->debug( "$$ last seen $last_seen seen, time " . time() )
       if (DEBUG && defined $last_seen);
 
     my $set_ok = $USER_CACHE->set_last_seen( $r->pnotes('sl_header') );
@@ -363,12 +312,13 @@ sub url_blacklisted {
 sub proxy_request {
     my $r = shift;
 
-    return &mod_proxy($r);
+    return &perlbal($r);
+
 }
 
 sub _unset_proxy_headers {
   my $r = shift;
-    $r->headers_in->unset($_) for qw( X-Proxy-Capabilities X-SL X-Forwarded-For );
+    delete $r->headers_in->{$_} for qw( X-SL );
 }
 
 sub mod_proxy {
@@ -410,10 +360,11 @@ sub perlbal {
 
     _unset_proxy_headers($r);
 
-    if ($r->headers_in->{Cookie}) {
+   #   return mod_proxy($r);
+   # if ($r->headers_in->{Cookie}) {
       # sorry perlbal doesn't reproxy requests with cookies
-      return mod_proxy($r);
-    }
+    #  return mod_proxy($r);
+   # }
 
     ##########
     # Use perlbal to do the proxying
