@@ -11,6 +11,6 @@ BEGIN {
     use_ok($pkg);
 }
 
-can_ok($pkg, qw(is_static_content contains_skips));
+can_ok($pkg, qw(is_static_content));
 
 1;
