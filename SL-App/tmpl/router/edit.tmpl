@@ -135,7 +135,6 @@ value="[% req.param('bug_link_href') or router.bug_link_href or 'http://www.silv
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
 
-[% IF reg.custom_ads %]
 <!-- ad groups -->
 <tr><td colspan="2">Ad Groups associated with this Router</td></tr>
 <tr><td colspan="4">
@@ -148,8 +147,6 @@ value="[% req.param('bug_link_href') or router.bug_link_href or 'http://www.silv
 <tr><td colspan=4><font color="#CCCCCC">
 <b>Click checkbox to add the Ad Group to the Router</b></font></td></tr>
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
-
-[% END %]
 
 <tr><td colspan="2"><input type="Submit" value="Save Router Settings"></td></tr>
 
