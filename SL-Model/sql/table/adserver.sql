@@ -22,6 +22,7 @@ CREATE TABLE adserver (
     type text not null,
     login text not null,
     pass text not null,
+    url text not null,
     cts timestamp without time zone DEFAULT now(),
     mts timestamp without time zone DEFAULT now()
 );
