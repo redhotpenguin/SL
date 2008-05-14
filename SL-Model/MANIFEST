@@ -9,11 +9,11 @@ bin/sl_gen_receivables.pl
 bin/sl_collect_receivables.pl
 bin/sl_approve_receivables.pl
 bin/sl_mail_user_reports.pl
-bin/sl_rate_limit_cleanup.pl
 bin/sl_report.pl
 bin/sl_report_graph.pl
 bin/sl_update_linkshare.pl
 bin/sl_update_schema.pl
+bin/sl_close_expire.pl
 lib/SL/Model/Ad/Group.pm
 lib/SL/Model/Ad.pm
 lib/SL/Model/Ad/Google.pm

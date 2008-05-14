@@ -198,6 +198,11 @@ __PACKAGE__->has_many(
   { "foreign.reg_id" => "self.reg_id" },
 );
 __PACKAGE__->has_many(
+  "adservers",
+  "SL::Model::App::Adserver",
+  { "foreign.reg_id" => "self.reg_id" },
+);
+__PACKAGE__->has_many(
   "bugs",
   "SL::Model::App::Bug",
   { "foreign.reg_id" => "self.reg_id" },

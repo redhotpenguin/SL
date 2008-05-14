@@ -3,10 +3,10 @@ package SL::Model;
 use strict;
 use warnings;
 
-use DBI;
-use SL::Config;
+use DBI        ();
+use SL::Config ();
 
-our $VERSION = 0.16;
+our $VERSION = 0.17;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 

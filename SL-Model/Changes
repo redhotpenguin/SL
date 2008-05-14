@@ -1,5 +1,8 @@
 Revision history for Perl extension SL-Model.
 
+0.17
+    - openx ad server integration
+
 0.16 Thu Jan 10 00:13:05 PST 2008
     - add paypal gateway
 

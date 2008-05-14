@@ -24,7 +24,7 @@ WriteMakefile(
         'Text::Wrap'                  => 2005.0824_01,
     },
     EXE_FILES => [
-        qw( bin/sl_mail_user_reports.pl bin/sl_rate_limit_cleanup.pl 
+        qw( bin/sl_mail_user_reports.pl
             bin/sl_report.pl bin/sl_report_graph.pl 
             bin/sl_update_linkshare.pl bin/sl_close_expire.pl )
     ],
