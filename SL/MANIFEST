@@ -10,16 +10,10 @@ lib/SL/Apache/Proxy/OperaHandler.pm
 lib/SL/Apache/Proxy/SplashHandler.pm
 lib/SL/Apache/Proxy/AccessHandler.pm
 conf/perlbal.conf
-conf/firewall.user
-conf/sshd_config
 conf/httpd_proxy.conf.tmpl
 conf/deflate.conf
-conf/gateway/iptables.txt
-conf/bridge/iptables.txt
-conf/dnsmasq.conf
 conf/postgresql.conf
 conf/startup_proxy.pl
-conf/net_eth1_eth3_dhcp
 conf/mime.types
 bin/configure_httpd_ssl_2_2
 bin/httpd_single_start
