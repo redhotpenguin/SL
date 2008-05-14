@@ -1,0 +1,70 @@
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage Personal Information"  %]
+[% PROCESS left.tmpl %]
+
+<div id="list_center">
+	<div class="content">
+
+<h2>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage Account</a> > Ad Server Info</h2>
+<hr size=1 color="#CCCCCC">
+<div id="edit_form">
+
+<table class="edit"> 
+
+<tr><td colspan=2>
+	<h2>Select an ad server for your account</h2>
+</td></tr>
+
+<form method="POST" action="[% base_uri %]/app/settings/adserver">
+
+
+<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+
+<!-- adserver type -->
+<tr><td>Ad Server Type:</td><td><select name="type">
+<option value="openx" SELECTED>OpenX Ad Server (version 2.5)</option>
+</select>
+</td></tr>
+<tr><td colspan=2><hr size=1 color="#FFFFF" style="color: #CCCCCC;"></td></tr>
+
+<!-- adserver root  -->
+<tr><td>
+[% IF errors.invalid.url or errors.missing.url %]<font color="red">[% END %]
+Ad Server Root URL:
+[% IF errors.invalid.url or errors.missing.url %]</font>[% END %]
+</td>
+<td><input type="text" name="url" value="[% req.param('url') or adserver.url %]" size="40" maxlength="40"></td></tr>
+<tr><td colspan=2><font color="#CCCCCC">example http://myadserver.com/openx/</font></td></tr>
+<tr><td colspan=2><hr size=1 color="#FFFFF" style="color: #CCCCCC;"></td></tr>
+
+[% IF errors.invalid.pass %]
+<tr><td colspan=2><font color="red">Your login and password were not accepted</font></td></tr>
+[% END %]
+
+<!-- login  -->
+<tr><td>
+[% IF errors.invalid.login or errors.missing.login %]<font color="red">[% END %]
+Login:
+[% IF errors.invalid.login or errors.missing.login %]</font>[% END %]
+</td>
+<td><input type="text" name="login" value="[% req.param('login') or adserver.login %]" size="25" maxlength="40"></td></tr>
+<tr><td colspan=2><font color="#CCCCCC">login for the ad server account</font></td></tr>
+<tr><td colspan=2><hr size=1 color="#FFFFF" style="color: #CCCCCC;"></td></tr>
+
+<!-- password  -->
+<tr><td>
+[% IF errors.missing.pass %]<font color="red">[% END %]
+Password:
+[% IF errors.missing.pass %]</font>[% END %]
+</td>
+<td><input type="password" name="pass" size="15" maxlength="15" value=""></td></tr>
+<tr><td colspan=2><font color="#CCCCCC">password for the ad server account</font></td></tr>
+<tr><td colspan=2><hr size=1 color="#FFFFF" style="color: #CCCCCC;"></td></tr>
+
+<tr><td><input type="submit" value="Save"></td></tr>
+</form>
+</table>
+</div>
+</div>
+</div>
+
+[% PROCESS footer.tmpl %]

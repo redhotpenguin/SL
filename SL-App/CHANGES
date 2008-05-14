@@ -1,5 +1,8 @@
 Revision history for SL::App
 
+0.16
+    - openx integration
+
 0.l5 Thu Jan 10 00:14:15 2008
     - paypal control
     - add controls for ad feeds to router edit page

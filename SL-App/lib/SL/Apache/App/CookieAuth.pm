@@ -11,17 +11,18 @@ use Apache2::URI        ();
 use Apache2::Request    ();
 use Data::FormValidator ();
 use Data::FormValidator::Constraints qw(:closures);
-
 use Mail::Mailer;
-
-use base 'SL::Apache::App';
-use SL::Model::App ();
-
 use Digest::MD5              ();
 use MIME::Lite               ();
 use Apache::Session::DB_File ();
 
+use base 'SL::Apache::App';
+use SL::Model::App ();
+use SL::App::Template ();
+
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
+
+our $TEMPLATE = SL::App::Template->template();
 
 our( $CONFIG, $CIPHER );
 
@@ -37,8 +38,6 @@ BEGIN {
 
 }
 
-use SL::App::Template ();
-our $TEMPLATE = SL::App::Template->template();
 
 sub authenticate {
     my ( $class, $r ) = @_;

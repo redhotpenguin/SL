@@ -62,7 +62,6 @@ lib/SL/Apache/App/CookieAuth.pm
 lib/SL/Apache/App/Home.pm
 lib/SL/Apache/App/Logon.pm
 lib/SL/Apache/App/Reg.pm
-lib/SL/Apache/App/Register.pm
 lib/SL/Apache/App/Report.pm
 lib/SL/Apache/App/Router.pm
 lib/SL/Apache/App/Settings.pm

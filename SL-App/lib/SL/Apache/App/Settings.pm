@@ -9,20 +9,20 @@ use Apache2::Request    ();
 use Apache2::Upload     ();
 use Apache2::ServerUtil ();
 use Data::FormValidator ();
-use Data::FormValidator::Constraints  qw(:closures);
-use Digest::MD5         ();
-use SL::Model::App      ();
-use Data::Dumper;
-
-use base 'SL::Apache::App';
-use SL::Config;
-my $CONFIG    = SL::Config->new();
-my $DATA_ROOT = $CONFIG->sl_data_root;
+use Data::FormValidator::Constraints qw(:closures);
+use Digest::MD5 ();
 
 use SL::App::Template ();
-our $tmpl = SL::App::Template->template();
+use SL::Config        ();
+use SL::Model::App    ();
+use base 'SL::Apache::App';
+
+our $CONFIG    = SL::Config->new();
+our $DATA_ROOT = $CONFIG->sl_data_root;
+our $TMPL      = SL::App::Template->template();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
+
 if (DEBUG) {
     require Data::Dumper;
 }
@@ -34,25 +34,25 @@ sub dispatch_index {
 
     # get all routers for this user
     my @router__regs = $r->pnotes( $r->user )->router__regs;
-    my @routers      = map { $_->router_id } @router__regs;
+    my @routers = map { $_->router_id } @router__regs;
 
-    $r->log->debug( "sessionnow: " .
-                    Data::Dumper::Dumper( $r->pnotes('session') ) ) if DEBUG;
+    $r->log->debug(
+        "session now: " . Data::Dumper::Dumper( $r->pnotes('session') ) )
+      if DEBUG;
 
     # see if this ip is currently unregistered;
     if ( $r->method_number == Apache2::Const::M_GET ) {
-        my %tmpl_data = (
-            status  => $req->param('status') || '',
-        );
+        my %tmpl_data = ( status => $req->param('status') || '', );
         if ( scalar(@routers) > 0 ) {
             $tmpl_data{routers} = \@routers;
         }
 
         my $output;
-        my $ok = $tmpl->process( 'settings/index.tmpl', \%tmpl_data, \$output, $r );
+        my $ok =
+          $TMPL->process( 'settings/index.tmpl', \%tmpl_data, \$output, $r );
         $ok
           ? return $self->ok( $r, $output )
-          : return $self->error( $r, "Template error: " . $tmpl->error() );
+          : return $self->error( $r, "Template error: " . $TMPL->error() );
     }
 }
 
@@ -61,7 +61,7 @@ sub dispatch_account {
     my $req = Apache2::Request->new($r);
 
     my %tmpl_data = (
-        status           => $req->param('status') || '',
+        status           => $req->param('status')           || '',
         password_updated => $req->param('password_updated') || '',
     );
 
@@ -70,10 +70,10 @@ sub dispatch_account {
 
         my $output;
         my $ok =
-          $tmpl->process( 'settings/account.tmpl', \%tmpl_data, \$output, $r );
+          $TMPL->process( 'settings/account.tmpl', \%tmpl_data, \$output, $r );
         $ok
           ? return $self->ok( $r, $output )
-          : return $self->error( $r, "Template error: " . $tmpl->error );
+          : return $self->error( $r, "Template error: " . $TMPL->error );
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
         my %errors;
@@ -117,6 +117,89 @@ sub dispatch_account {
     }
 }
 
+sub dispatch_adserver {
+    my ( $self, $r, $args_ref ) = @_;
+
+    my $req = $args_ref->{req} || Apache2::Request->new($r);
+    my $reg = $r->pnotes( $r->user );
+    my $url = $req->param('url');    # weird libapreq bug, can't pass req to tmpl
+
+    my ($adserver) =
+          SL::Model::App->resultset('Adserver')
+          ->search( { reg_id => $reg->reg_id,});
+
+
+    if ( $r->method_number == Apache2::Const::M_GET ) {
+        my %tmpl_data = (
+            errors => $args_ref->{errors},
+            req    => $req,
+            adserver => $adserver,
+        );
+
+        my $output;
+        my $ok =
+          $TMPL->process( 'settings/adserver.tmpl', \%tmpl_data, \$output, $r );
+        $ok
+          ? return $self->ok( $r, $output )
+          : return $self->error( $r, "Template error: " . $TMPL->error() );
+    }
+    elsif ( $r->method_number == Apache2::Const::M_POST ) {
+
+        # reset method to get for redirect
+        $r->method_number(Apache2::Const::M_GET);
+        my %profile = (
+            required           => [qw( type login pass url )],
+            constraint_methods => {
+                url      => $self->valid_link(),
+                pass     => $self->check_openx_login(
+                    { fields => [ 'url', 'login', 'pass' ] }
+                ),
+            },
+        );
+
+        my $results = Data::FormValidator->check( $req, \%profile );
+
+        # handle form errors
+        if ( $results->has_missing or $results->has_invalid ) {
+
+            my $errors = $self->SUPER::_results_to_errors($results);
+
+            return $self->dispatch_adserver(
+                $r,
+                {
+                    errors => $errors,
+                    req    => $req,
+                }
+            );
+        }
+    }
+
+    ($adserver) =
+          SL::Model::App->resultset('Adserver')
+          ->search( { reg_id => $reg->reg_id, type => $req->param('type')});
+
+    my $new = 0;
+    unless ($adserver) {
+        $new = 1;
+        $adserver = SL::Model::App->resultset('Adserver')->new({
+            reg_id => $reg->reg_id, type => $req->param('type'), });
+    }
+
+    $adserver->pass( Digest::MD5::md5_hex( $req->param('pass') ) );
+
+    # update each attribute
+    foreach my $param qw( login url ) {
+        $adserver->$param( $req->param($param) );
+    }
+
+    $adserver->insert if $new;
+    $adserver->update;
+
+    $r->pnotes('session')->{msg} = 'Ad server settings have been updated';
+    $r->internal_redirect("/app/settings/index");
+    return Apache2::Const::OK;
+}
+
 sub dispatch_payment {
     my ( $self, $r, $args_ref ) = @_;
 
@@ -129,10 +212,10 @@ sub dispatch_payment {
 
         my $output;
         my $ok =
-          $tmpl->process( 'settings/payment.tmpl', \%tmpl_data, \$output, $r );
+          $TMPL->process( 'settings/payment.tmpl', \%tmpl_data, \$output, $r );
         $ok
           ? return $self->ok( $r, $output )
-          : return $self->error( $r, "Template error: " . $tmpl->error() );
+          : return $self->error( $r, "Template error: " . $TMPL->error() );
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
 
@@ -140,7 +223,7 @@ sub dispatch_payment {
         my %profile = (
             required           => [qw( paypal_id payment_threshold )],
             constraint_methods => {
-                paypal_id => email(),
+                paypal_id         => email(),
                 payment_threshold => valid_threshold(),
             }
         );
@@ -149,10 +232,10 @@ sub dispatch_payment {
 
         if ( $results->has_missing or $results->has_invalid ) {
 
-
             my $errors = $self->SUPER::_results_to_errors($results);
-            $r->log->info("posting - ERRORS " 
-                          . Data::Dumper::Dumper($results)) if DEBUG;
+            $r->log->info(
+                "posting - ERRORS " . Data::Dumper::Dumper($results) )
+              if DEBUG;
             return $self->dispatch_payment(
                 $r,
                 {
@@ -162,13 +245,13 @@ sub dispatch_payment {
             );
         }
 
-        $reg->paypal_id($req->param('paypal_id'));
-        $reg->payment_threshold($req->param('payment_threshold'));
+        $reg->paypal_id( $req->param('paypal_id') );
+        $reg->payment_threshold( $req->param('payment_threshold') );
         $reg->update;
 
-		my $sess = $r->pnotes('session');
-		$sess->{msg} = "Payment settings have been updated";
-		$r->pnotes('session' => $sess);
+        my $sess = $r->pnotes('session');
+        $sess->{msg} = "Payment settings have been updated";
+        $r->pnotes( 'session' => $sess );
         $r->internal_redirect("/app/settings/index");
         return Apache2::Const::OK;
     }
@@ -193,10 +276,10 @@ sub dispatch_friends {
 
         my $output;
         my $ok =
-          $tmpl->process( 'settings/friends.tmpl', \%tmpl_data, \$output, $r );
+          $TMPL->process( 'settings/friends.tmpl', \%tmpl_data, \$output, $r );
         $ok
           ? return $self->ok( $r, $output )
-          : return $self->error( $r, "Template error: " . $tmpl->error() );
+          : return $self->error( $r, "Template error: " . $TMPL->error() );
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
 
@@ -239,13 +322,13 @@ sub dispatch_friends {
 }
 
 sub valid_threshold {
-  return sub {
-    my $dfv = shift;
-    my $val = $dfv->get_current_constraint_value;
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
 
-    return $val if (($val =~ m/^\d{1,3}$/) && ($val > 4));
-    return;
-    }
+        return $val if ( ( $val =~ m/^\d{1,3}$/ ) && ( $val > 4 ) );
+        return;
+      }
 }
 
 sub valid_friend {
