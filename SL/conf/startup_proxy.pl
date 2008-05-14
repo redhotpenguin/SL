@@ -59,13 +59,13 @@ use SL::Subrequest   ();
 use SL::RateLimit    ();
 use SL::HTTP::Client ();
 use SL::BrowserUtil  ();
+use SL::User         ();
 
 use Digest::MD5 ();
 use DBI         ();
 use DBD::Pg     ();
 DBI->install_driver('Pg');
 use Sys::Load           ();
-use Params::Validate    ();
 use Encode              ();
 use Template            ();
 use URI                 ();
