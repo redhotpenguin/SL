@@ -5,23 +5,21 @@ use warnings;
 
 use Apache2::Const -compile => qw( HTTP_SERVICE_UNAVAILABLE DONE SERVER_ERROR );
 use Apache2::Log                       ();
+use Crypt::Blowfish_PP                 ();
 use Sys::Load                          ();
 use SL::Model                          ();
 use SL::Model::Proxy::Router           ();
 use SL::Model::Proxy::Router::Location ();
-use Crypt::Blowfish_PP                 ();
-
-use constant DEBUG => $ENV{SL_DEBUG} || 0;
-
 use SL::Config;
+
 our $CONFIG;
 
 BEGIN {
     $CONFIG = SL::Config->new();
 }
 
+use constant DEBUG    => $ENV{SL_DEBUG}             || 0;
 use constant MAX_LOAD => $CONFIG->sl_proxy_max_load || 2;
-
 use constant SSID     => 2;
 use constant PASSWD   => 3;
 use constant FIRMWARE => 4;
@@ -61,14 +59,15 @@ sub handler {
     }
 
     # grab the mac address if there is one
-    my ($macaddr, $version) = $r->uri =~ m/\/(\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2})_?(\d+)?$/;
+    my ( $macaddr, $version ) =
+      $r->uri =~ m/\/(\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2})_?(\d+)?$/;
 
-	# handle perlbal proxy
-	if (defined $r->headers_in->{'X-Forwarded-For'}) {
-	    $r->connection->remote_ip($r->headers_in->{'X-Forwarded-For'});
-	}
+    # set the remote ip from perlbal
+    if ( defined $r->headers_in->{'X-Forwarded-For'} ) {
+        $r->connection->remote_ip( $r->headers_in->{'X-Forwarded-For'} );
+    }
 
-	my %args = ( ip => $r->connection->remote_ip );
+    my %args = ( ip => $r->connection->remote_ip );
     if ( defined $macaddr ) {
         $r->log->debug("$$ Macaddr $macaddr\n") if DEBUG;
         $args{'macaddr'} = $macaddr;
@@ -128,32 +127,36 @@ sub handler {
         if ( $router_ref->[SSID] ) {
             $r->log->debug("$$ ping event for ssid") if DEBUG;
             $events .= _gen_event( ssid => $router_ref->[SSID] );
-            SL::Model::Proxy::Router->reset_events( $router_ref->[0], 'ssid_event' );
+            SL::Model::Proxy::Router->reset_events( $router_ref->[0],
+                'ssid_event' );
         }
         elsif ( $router_ref->[PASSWD] ) {
             $r->log->debug("$$ ping event for passwd") if DEBUG;
             $events .= _gen_event( passwd => $router_ref->[PASSWD] );
-            SL::Model::Proxy::Router->reset_events( $router_ref->[0], 'passwd_event' );
+            SL::Model::Proxy::Router->reset_events( $router_ref->[0],
+                'passwd_event' );
         }
         elsif ( $router_ref->[FIRMWARE] ) {
-              $r->log->debug("$$ ping event for firmware") if DEBUG;
-              $events .= _gen_event( firmware => $router_ref->[FIRMWARE] );
-              SL::Model::Proxy::Router->reset_events( $router_ref->[0], 'firmware_event' );
+            $r->log->debug("$$ ping event for firmware") if DEBUG;
+            $events .= _gen_event( firmware => $router_ref->[FIRMWARE] );
+            SL::Model::Proxy::Router->reset_events( $router_ref->[0],
+                'firmware_event' );
         }
         elsif ( $router_ref->[REBOOT] ) {
-              $r->log->debug("$$ ping event for reboot") if DEBUG;
-              $events .= _gen_event( reboot => $router_ref->[REBOOT] );
-              SL::Model::Proxy::Router->reset_events( $router_ref->[0], 'reboot_event' );
+            $r->log->debug("$$ ping event for reboot") if DEBUG;
+            $events .= _gen_event( reboot => $router_ref->[REBOOT] );
+            SL::Model::Proxy::Router->reset_events( $router_ref->[0],
+                'reboot_event' );
         }
         elsif ( $router_ref->[HALT] ) {
-              $r->log->debug("$$ ping event for halt") if DEBUG;
-              $events .= _gen_event( halt => $router_ref->[HALT] );
-              SL::Model::Proxy::Router->reset_events( $router_ref->[0], 'halt_event' );
+            $r->log->debug("$$ ping event for halt") if DEBUG;
+            $events .= _gen_event( halt => $router_ref->[HALT] );
+            SL::Model::Proxy::Router->reset_events( $router_ref->[0],
+                'halt_event' );
         }
 
-        my $encrypted = _encrypt( $events, $macaddr );
-
-        # encrypt the events
+        # encrypt the events and send them to the client
+        my $encrypted = _encrypt( $events, $macaddr, $version );
         my $bytes = $r->print($encrypted) if $encrypted;
 
     }
@@ -162,36 +165,39 @@ sub handler {
 }
 
 sub _gen_event {
-      my ( $type, $data ) = @_;
-      unless ($data) {
-          warn("no data passed to _gen_event for type $type");
-          return;
-      }
+    my ( $type, $data ) = @_;
+    unless ($data) {
+        warn("no data passed to _gen_event for type $type");
+        return;
+    }
 
-      return "$type:$data\n";
+    return "$type:$data\n";
 }
 
 sub _encrypt {
-      my ( $string, $mac ) = @_;
-      unless ($mac) {
-          require Carp && Carp::cluck("no macaddr passed");
-          return;
-      }
+    my ( $string, $mac, $version ) = @_;
+    unless ($mac) {
+        require Carp && Carp::cluck("no macaddr passed");
+        return;
+    }
 
-      my $mac_salt = join( '', reverse( split( ':', $mac ) ) );
-      warn("$$ mac salt is $mac_salt") if DEBUG;
-      my $blowfish = Crypt::Blowfish_PP->new($mac_salt);
+    # handle the version kludge
+    $mac .= "_$version" if $version;
 
-      # split the string into 8 byte pieces and encrypt
-      my @groups = ( $string =~ /.{1,8}/gs );
-      warn( "$$ groups are " . join( ',', @groups ) ) if DEBUG;
+    my $mac_salt = join ( '', reverse( split ( ':', $mac ) ) );
+    warn("$$ mac salt is $mac_salt") if DEBUG;
+    my $blowfish = Crypt::Blowfish_PP->new($mac_salt);
 
-      my $encrypted = '';
-      foreach my $member (@groups) {
-          $encrypted .= $blowfish->encrypt($member);
-      }
+    # split the string into 8 byte pieces and encrypt
+    my @groups = ( $string =~ /.{1,8}/gs );
+    warn( "$$ groups are " . join ( ',', @groups ) ) if DEBUG;
 
-      return $encrypted;
+    my $encrypted = '';
+    foreach my $member (@groups) {
+        $encrypted .= $blowfish->encrypt($member);
+    }
+
+    return $encrypted;
 }
 
 1;
