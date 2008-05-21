@@ -13,27 +13,26 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: reg; Type: TABLE; Schema: public; Owner: fred; Tablespace: 
+-- Name: account; Type: TABLE; Schema: public; Owner: fred; Tablespace: 
 --
 
 CREATE TABLE bug (
     bug_id SERIAL NOT NULL,
-    image_href text default 'http://www.redhotpenguin.com/images/sl/free_wireless.gif' NOT NULL,
-    link_href text default 'http://64.151.90.20:81/click/795da10ca01f942fd85157d8be9e832e' NOT NULL,
+    image_href text NOT NULL,
+    link_href text NOT NULL,
     cts timestamp without time zone DEFAULT now(),
     mts timestamp without time zone DEFAULT now(),
-    reg_id INTEGER NOT NULL DEFAULT 14,
-    is_default boolean NOT NULL default 'f',
+    account_id INTEGER NOT NULL,
     name text NOT NULL,
-    active boolean NOT NULL default 't'
+    type ad_size NOT NULL
 );
 
 ALTER TABLE ONLY bug
     ADD CONSTRAINT bug_pkey PRIMARY KEY (bug_id);
 
 ALTER TABLE ONLY bug
-    ADD CONSTRAINT bug__reg_id_fkey 
-	FOREIGN KEY (reg_id) REFERENCES reg(reg_id) 
+    ADD CONSTRAINT bug__account_id_fkey 
+	FOREIGN KEY (account_id) REFERENCES account(account_id) 
 	ON UPDATE CASCADE ON DELETE CASCADE;
 
 

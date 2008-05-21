@@ -20,7 +20,8 @@ SET default_with_oids = false;
 
 CREATE TABLE account (
     account_id integer NOT NULL,
-    name text NOT NULL
+    name text NOT NULL,
+    premium boolean DEFAULT false NOT NULL
 );
 
 
