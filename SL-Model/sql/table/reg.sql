@@ -21,20 +21,7 @@ SET default_with_oids = false;
 CREATE TABLE reg (
     reg_id integer DEFAULT nextval('reg_reg_id_seq'::regclass) NOT NULL,
     email character varying(64) DEFAULT ''::character varying NOT NULL,
-    zipcode character varying(10) DEFAULT ''::character varying,
-    firstname character varying(32),
-    lastname character varying(32),
-    description text,
-    street_addr character varying(64),
-    apt_suite character varying(5),
-    referer character varying(32),
-    phone character varying(14),
-    cts timestamp without time zone DEFAULT now(),
     mts timestamp without time zone DEFAULT now(),
-    sponsor character varying(64),
-    street_addr2 character varying(64),
-    city character varying(64),
-    state character(2),
     active boolean DEFAULT true,
     report_email character varying(64) DEFAULT ''::character varying,
     password_md5 character varying(32),
@@ -43,9 +30,8 @@ CREATE TABLE reg (
     send_reports_monthly boolean DEFAULT false,
     send_reports_quarterly boolean DEFAULT false,
     report_email_frequency character varying(16) DEFAULT ''::character varying NOT NULL,
-    paypal_id text,
-    payment_threshold integer DEFAULT 5 NOT NULL,
-    custom_ads boolean DEFAULT false
+    account_id integer DEFAULT 1 NOT NULL,
+    admin boolean DEFAULT false NOT NULL
 );
 
 
@@ -57,6 +43,14 @@ ALTER TABLE public.reg OWNER TO phred;
 
 ALTER TABLE ONLY reg
     ADD CONSTRAINT reg_id_pkey PRIMARY KEY (reg_id);
+
+
+--
+-- Name: reg__account_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
+--
+
+ALTER TABLE ONLY reg
+    ADD CONSTRAINT reg__account_id_fkey FOREIGN KEY (account_id) REFERENCES account(account_id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
