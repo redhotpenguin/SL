@@ -28,10 +28,9 @@
 <input type="submit" value="Save">
 
 </form>
-[% IF reg.custom_ads %]
 <p>Select a type of report:&nbsp;&nbsp;
 
-[% FOREACH mytype = [ 'views', 'clicks', 'rates', 'ads' ] %]
+[% FOREACH mytype = [ 'views' ] %]
     [% UNLESS mytype == type %]
     <a href="[% base_uri %]/app/report/index/?type=[% mytype %]&temporal=[% temporal %]">
     [% END %]
@@ -40,7 +39,7 @@
     &nbsp;
 [% END %]
 </p>
-[% END %]
+
 <p>For this date range:&nbsp;&nbsp;
 
 [% FOREACH mytemporal = [ 'daily', 'weekly', 'monthly', 'quarterly', 'biannually', 'annually' ] %]

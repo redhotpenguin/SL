@@ -25,6 +25,9 @@ Add a New Router[% ELSE %]Edit existing Router '[% router.name %]'[% END %]</h2>
 <form method="POST" action="[% base_uri %]/app/router/edit">
 <input type="hidden" name="router_id" value="[% router.router_id %]">
 
+
+
+
 <!-- name -->
 <tr><td>
 [% IF errors.missing.name %]<font color="red">[% END %]
@@ -37,6 +40,11 @@ Name this router:
 <tr><td colspan="2"><font color="#CCCCCC"><b>100 character limit</b></font></td></tr>
 <tr><td colspan="2"><hr size=1 color="#CCCCCC"></td></tr>
 
+
+
+
+
+
 <!-- SSID -->
 <tr><td>
 [% IF errors.missing.ssid %]<font color="red">[% END %]
@@ -48,6 +56,10 @@ SSID:
 </td></tr>
 <tr><td colspan="2"><font color="#CCCCCC"><b>Allow up to a minute to take effect</b></font></td></tr>
 <tr><td colspan="2"><hr size=1 color="#CCCCCC"></td></tr>
+
+
+
+
 
 <!-- macaddr -->
 <tr><td>
@@ -62,6 +74,9 @@ Mac Address:
 <font color="#CCCCCC"><b>Example:  00:17:f2:43:38:bd</b></font></td></tr>
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
+
+
+
 <!-- serial number -->
 <tr><td>
 [% IF errors.missing.serial_number or errors.invalid.serial_number %]<font color="red">[% END %]
@@ -73,6 +88,9 @@ Serial Number:
  <tr><td colspan="2">
 <font color="#CCCCCC"><b>Optional, to determine router model compatibility, example CL7A0F318014</b></font></td></tr>
  <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+
+
+
  
 <!-- splash page -->
 <tr><td>
@@ -86,6 +104,9 @@ Splash page url:</td>
 <font color="#CCCCCC"><b>Example:  http://www.silverliningnetworks.com/network/</b></font></td></tr>
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
+
+
+
 <!-- splash page timeout -->
 <tr><td>
 [% IF errors.missing.splash_timeout or errors.invalid.splash_timeout %]<font color="red">[% END %]
@@ -96,56 +117,23 @@ Splash page timeout:</td>
 </td></tr>
 <tr><td colspan="2">
 <font color="#CCCCCC"><b>Number of inactive minutes before splash page is shown</b></font></td></tr>
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
-
-<!-- bug link and image -->
-
-<!-- image_href -->
-<tr><td>
-[% IF errors.missing.bug_image_href or errors.invalid.bug_image_href %]<font color="red">
-[% END %]
-Branding Image Location:
-[% IF errors.missing.bug_image_href or errors.invalid.bug_image_href %]</font>[% END %]
-</td>
-<td>
-<input type="text" name="bug_image_href" size="50" maxlength="512" value="[% req.param('bug_image_href') or router.bug_image_href or 'http://www.silverliningnetworks.com/images/silver-lining-ad-bar.gif'  %]">
-</td><td>
-</tr>
-<tr><td colspan=2><font color="#CCCCCC"><b>120 pixels wide by 45 pixels high, Example:  http://www.silverliningnetworks.com/images/silver-lining-ad-bar.gif</b></font></td></tr>
-<tr><td colspan=2>
-<a href="[% router.bug_image_href %]"><img border='0' src="[% router.bug_image_href %]"></a></td>
-<!-- end image_href -->
-
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
-
-<!-- link_href -->
-<tr><td>
-[% IF errors.missing.bug_link_href or errors.invalid.bug_link_href %]<font color="red">[% END %]
-Branding Image Links To:
-[% IF errors.missing.bug_link_href or errors.invalid.bug_link_href %]</font>[% END %]
-</td>
-<td><input type="text" name="bug_link_href" size="50" maxlength="512" 
-value="[% req.param('bug_link_href') or router.bug_link_href or 'http://www.silverliningnetworks.com/?referer=silverlining' %]">
-</td></tr>
-<tr><td colspan=2><font color="#CCCCCC"><b>Example:  http://www.silverliningnetworks.com/?referer=silverlining</b></font></td></tr>
-<tr><td colspan=2><a href="[% req.param('bug_link_href') or router.bug_link_href %]">Link</a></td></tr>
-<!-- end image_href -->
-
 
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
 
-<!-- ad groups -->
-<tr><td colspan="2">Ad Groups associated with this Router</td></tr>
+
+
+<!-- ad zones -->
+<tr><td colspan="2">Ad Zones associated with this Router</td></tr>
 <tr><td colspan="4">
-[% FOREACH ad_group = ad_groups %]
-    <input type="checkbox" name="ad_group" value="[% ad_group.ad_group_id %]" 
-[% IF ad_group.selected or (req.param('ad_group_id') == ad_group.ad_group_id) %]CHECKED[% END %]>
-[% ad_group.name %]&nbsp;&nbsp;
+[% FOREACH ad_zones = ad_zoness %]
+    <input type="checkbox" name="ad_zone" value="[% ad_zone.ad_zone_id %]" 
+[% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]CHECKED[% END %]>
+[% ad_zone.name %]&nbsp;&nbsp;
 [% END %]
 </td></tr>
 <tr><td colspan=4><font color="#CCCCCC">
-<b>Click checkbox to add the Ad Group to the Router</b></font></td></tr>
+<b>Click checkbox to add the Ad Zone to the Router</b></font></td></tr>
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
 <tr><td colspan="2"><input type="Submit" value="Save Router Settings"></td></tr>
