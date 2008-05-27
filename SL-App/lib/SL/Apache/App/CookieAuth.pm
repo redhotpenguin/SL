@@ -17,14 +17,14 @@ use MIME::Lite               ();
 use Apache::Session::DB_File ();
 
 use base 'SL::Apache::App';
-use SL::Model::App ();
+use SL::Model::App    ();
 use SL::App::Template ();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 our $TEMPLATE = SL::App::Template->template();
 
-our( $CONFIG, $CIPHER );
+our ( $CONFIG, $CIPHER, %SESS_OPTS );
 
 BEGIN {
     require SL::Config;
@@ -36,8 +36,20 @@ BEGIN {
         -cipher => 'Blowfish',
     );
 
-}
+    $lock_dir      = '/tmp/app/sessions';
+    $lock_filename = '/tmp/app/sessions/app_sessions.db';
 
+    # session
+    unless ( -d $lock_dir ) {
+        system("mkdir -p $lock_dir") == 0 or die $!;
+    }
+
+    %SESS_OPTS = (
+        FileName      => $lock_filename,
+        LockDirectory => $lock_dir,
+        Transaction   => 1,
+    );
+}
 
 sub authenticate {
     my ( $class, $r ) = @_;
@@ -47,15 +59,18 @@ sub authenticate {
     # subrequests ok
     unless ( $r->is_initial_req ) {
 
+        $r->log->debug("$$ handling authenticate subrequest") if DEBUG;
+
         # FIXME - abstract this out to match auth_ok
         $r->user( $r->prev->user );
         $r->pnotes( $r->user => $r->prev->pnotes( $r->prev->user ) );
-        if ( $r->prev->pnotes('root') ) {
-            $r->pnotes( 'root' => 1 );
-        }
 
         # pass the session from the subrequest
         if ( $r->prev->pnotes('session') ) {
+
+            $r->log->debug( "$$ subrequest previous session "
+                  . Data::Dumper::Dumper( $r->prev->pnotes('session') ) )
+              if DEBUG;
             $r->pnotes( 'session' => $r->prev->pnotes('session') );
         }
         return Apache2::Const::OK;
@@ -75,6 +90,10 @@ sub authenticate {
 
     # decode the cookie
     my %state = $class->decode( $cookie->value );
+
+    $r->log->debug(
+        "$$ state extracted from cookie: " . Data::Dumper::Dumper( \%state ) )
+      if DEBUG;
 
     # check for malformed cookie
     unless ( grep { exists $state{$_} } qw(email last_seen) ) {
@@ -98,26 +117,43 @@ sub authenticate {
             "Nonexistent reg email " . $state{email}, $dest );
     }
 
-    # session
-    my $lock_dir = '/tmp/app/sessions';
-
-    unless ( -d $lock_dir ) {
-        system("mkdir -p $lock_dir") == 0 or die $!;
-    }
-    my $lock_filename = '/tmp/app/sessions/app_sessions.db';
     my %session;
-    my $session_id =
-      ( exists $state{_session_id} ) ? $state{_session_id} : undef;
+    my $session_id = $state{session_id} || undef;
 
-    tie %session, 'Apache::Session::DB_File', $session_id,
-      {
-        FileName      => $lock_filename,
-        LockDirectory => $lock_dir,
-      };
+    if ($session_id) {
+        $r->log->debug("$$ found session id $session_id") if DEBUG;
+
+        # load the session
+        eval {
+            tie %session, 'Apache::Session::DB_File', $session_id, \%SESS_OPTS;
+            $r->log->error(
+                "MY SESSION IS " . Data::Dumper::Dumper( \%session ) );
+        };
+        if ($@) {
+            $r->log->error(
+                "$$ session missing for user " . $reg->email . " $@" );
+
+            # try to make a new session
+            eval {
+                tie %session, 'Apache::Session::DB_File', undef, \%SESS_OPTS;
+            };
+
+            $r->log->error("WOW SOMETHING REALLY BAD HAPPENED: $@") if $@;
+        }
+    }
+    else {
+
+        # make a new session
+        tie %session, 'Apache::Session::DB_File', undef, \%SESS_OPTS;
+    }
+
+    $session_id = $session{_session_id};
+    $r->log->error("$$ new session id $session_id");
+
     $r->pnotes( session => \%session );
 
     # give them a cookie
-    $class->send_cookie( $r, $reg, $session{_session_id} );
+    $class->send_cookie( $r, $reg, $session_id );
 
     return $class->auth_ok( $r, $reg );
 }
@@ -126,11 +162,12 @@ sub logout {
     my ( $class, $r ) = @_;
 
     $class->expire_cookie($r);
+
     my $output;
     my $ok = $TEMPLATE->process( 'logout.tmpl', {}, \$output );
-    $ok
-      ? return $class->ok( $r, $output )
-      : return $class->error( $r, "Template error: " . $TEMPLATE->error() );
+
+    return $class->ok( $r, $output ) if $ok;
+    return $class->error( $r, "Template error: " . $TEMPLATE->error() );
 }
 
 sub login {
@@ -183,8 +220,14 @@ sub login {
                 $dest );
         }
 
+        # create a session
+        my %session;
+        tie %session, 'Apache::Session::DB_File', undef, \%SESS_OPTS;
+        my $session_id = $session{_session_id};
+        $r->pnotes( 'session' => \%session );
+
         # give them a cookie
-        $class->send_cookie( $r, $reg );
+        $class->send_cookie( $r, $reg, $session_id );
 
         # they're ok
         my $destination = $req->param('dest') || '/app/home/index';
@@ -218,14 +261,14 @@ sub expire_cookie {
 sub send_cookie {
     my ( $class, $r, $reg, $session_id ) = @_;
 
+    die 'bad cookie attempt!' unless $reg && $session_id;
+
     # Give the user a new cookie
     my %state = (
-        email     => $reg->email,
-        last_seen => time(),
+        email      => $reg->email,
+        last_seen  => time(),
+        session_id => $session_id,
     );
-    if ( defined $session_id ) {
-        $state{session_id} = $session_id;
-    }
 
     my $cookie = Apache2::Cookie->new(
         $r,
@@ -238,11 +281,7 @@ sub send_cookie {
     $cookie->bake($r);
 
     # they're ok
-    $r->log->debug( "$class user "
-          . $state{email}
-          . ", last seen "
-          . $state{last_seen}
-          . ", authenticated ok, cookie sent" )
+    $r->log->debug( "send_cookie for state " . Data::Dumper::Dumper( \%state ) )
       if DEBUG;
 
     return 1;
@@ -255,26 +294,20 @@ sub auth_ok {
     $r->user( $reg->email );
     $r->pnotes( $r->user => $reg );
 
-    # Check to see if they are a root user
-    my ($root) =
-      SL::Model::App->resultset('Root')->search( { reg_id => $reg->reg_id } );
-    if ($root) {
-        $r->pnotes( 'root' => $root->root_id );
-    }
     return Apache2::Const::OK;
 }
 
 sub encode {
     my ( $class, $state_hashref ) = @_;
-    my $joined = join ( ':',
-        map { join ( ':', $_, $state_hashref->{$_} ) } keys %{$state_hashref} );
+    my $joined = join( ':',
+        map { join( ':', $_, $state_hashref->{$_} ) } keys %{$state_hashref} );
     return $CIPHER->encrypt($joined);
 }
 
 sub decode {
     my ( $class, $val ) = @_;
     my $decrypted = $CIPHER->decrypt($val);
-    return split ( ':', $decrypted );
+    return split( ':', $decrypted );
 }
 
 sub redirect_auth {
@@ -298,20 +331,6 @@ sub valid_macaddr {
         my ($router) =
           SL::Model::App->resultset('Router')->search( { macaddr => $val } );
         return unless $router;
-        return $val;
-      }
-}
-
-sub check_password {
-    return sub {
-        my $dfv    = shift;
-        my $val    = $dfv->get_current_constraint_value;
-        my $data   = $dfv->get_filtered_data;
-        my $pass   = $data->{password};
-        my $retype = $data->{retype};
-
-        return unless ( $pass eq $retype );
-        return unless length($pass) > 4;
         return $val;
       }
 }
@@ -348,8 +367,9 @@ sub signup {
                 paypal_id  => email(),
                 email      => email(),
                 router_mac => valid_macaddr(),
-                password   =>
-                  check_password( { fields => [ 'retype', 'password' ] } ),
+                password   => SL::Apache::App::check_password(
+                    { fields => [ 'retype', 'password' ] }
+                ),
             }
         );
 
@@ -390,17 +410,26 @@ sub signup {
             { router_id => $router->router_id, reg_id => $reg->reg_id } );
         $reg_router->update;
 
-		my $mailer = Mail::Mailer->new('qmail');
-		$mailer->open({
-				'To' => 'sl_reports@redhotpenguin.com',
-				'From' => "SL Signup Daemon <fred\@redhotpenguin.com>",
-				'Subject' => "New signup for " . $reg->email,
-			});
-		print $mailer $reg->email . " has signed up with router mac " .
-			$router->macaddr . "\n";
-		$mailer->close;
+        my $mailer = Mail::Mailer->new('qmail');
+        $mailer->open(
+            {
+                'To'      => 'sl_reports@redhotpenguin.com',
+                'From'    => "SL Signup Daemon <fred\@redhotpenguin.com>",
+                'Subject' => "New signup for " . $reg->email,
+            }
+        );
+        print $mailer $reg->email
+          . " has signed up with router mac "
+          . $router->macaddr . "\n";
+        $mailer->close;
 
-		# auth the user and log them in
+        # create a session
+        my %session;
+        tie %session, 'Apache::Session::DB_File', undef, \%SESS_OPTS;
+        my $session_id = $session{_session_id};
+        $r->pnotes( 'session' => \%session );
+
+        # auth the user and log them in
         $class->send_cookie( $r, $reg );
         $r->internal_redirect("/app/home/index");
         return $class->auth_ok( $r, $reg );
@@ -462,7 +491,7 @@ sub forgot {
             $forgot->update;
             $forgot->discard_changes;
             my $output;
-            my $url = join ( '',
+            my $url = join( '',
                 $CONFIG->sl_app_server, $CONFIG->sl_app_base_uri,
                 '/forgot/reset/?key=' . $forgot->link_md5() );
 

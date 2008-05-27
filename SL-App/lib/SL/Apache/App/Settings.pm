@@ -3,7 +3,7 @@ package SL::Apache::App::Settings;
 use strict;
 use warnings;
 
-use Apache2::Const -compile => qw( OK M_POST M_GET);
+use Apache2::Const -compile => qw( OK M_POST M_GET );
 use Apache2::Log        ();
 use Apache2::Request    ();
 use Apache2::Upload     ();
@@ -23,181 +23,131 @@ our $TMPL      = SL::App::Template->template();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
-if (DEBUG) {
-    require Data::Dumper;
-}
+require Data::Dumper if DEBUG;
 
 sub dispatch_index {
     my ( $self, $r ) = @_;
 
-    my $req = Apache2::Request->new($r);
-
-    # get all routers for this user
-    my @router__regs = $r->pnotes( $r->user )->router__regs;
-    my @routers = map { $_->router_id } @router__regs;
-
-    $r->log->debug(
-        "session now: " . Data::Dumper::Dumper( $r->pnotes('session') ) )
-      if DEBUG;
-
-    # see if this ip is currently unregistered;
     if ( $r->method_number == Apache2::Const::M_GET ) {
-        my %tmpl_data = ( status => $req->param('status') || '', );
-        if ( scalar(@routers) > 0 ) {
-            $tmpl_data{routers} = \@routers;
-        }
 
+        my %tmpl_data = ( msg => delete $r->pnotes('session')->{msg} );
         my $output;
         my $ok =
           $TMPL->process( 'settings/index.tmpl', \%tmpl_data, \$output, $r );
-        $ok
-          ? return $self->ok( $r, $output )
-          : return $self->error( $r, "Template error: " . $TMPL->error() );
+
+        return $self->ok( $r, $output ) if $ok;
+        return $self->error( $r, "Template error: " . $TMPL->error() );
     }
 }
 
 sub dispatch_account {
-    my ( $self, $r, $errors ) = @_;
-    my $req = Apache2::Request->new($r);
-
-    my %tmpl_data = (
-        status           => $req->param('status')           || '',
-        password_updated => $req->param('password_updated') || '',
-    );
-
-    if ( $r->method_number == Apache2::Const::M_GET ) {
-        $tmpl_data{'errors'} = $errors if ( keys %{$errors} );
-
-        my $output;
-        my $ok =
-          $TMPL->process( 'settings/account.tmpl', \%tmpl_data, \$output, $r );
-        $ok
-          ? return $self->ok( $r, $output )
-          : return $self->error( $r, "Template error: " . $TMPL->error );
-    }
-    elsif ( $r->method_number == Apache2::Const::M_POST ) {
-        my %errors;
-
-        $r->method_number(Apache2::Const::M_GET);
-
-        # handle the password if present
-        my $path = '?';
-        if ( $req->param('password') or $req->param('retype') ) {
-            unless ( $req->param('password') eq $req->param('retype') ) {
-                $errors{'password'} = '1';
-            }
-            else {
-
-                # update the password
-                $r->pnotes( $r->user )
-                  ->password_md5(
-                    Digest::MD5::md5_hex( $req->param('password') ) );
-                $r->pnotes( $r->user )->update;
-                $path .= 'password_updated=1&';
-            }
-        }
-
-        # handle errors
-        if ( keys %errors ) {
-            ;
-            return $self->dispatch_account( $r, \%errors );
-        }
-
-        # handle the email
-        if ( $req->param('email')
-            && ( $req->param('email') ne $r->pnotes( $r->user )->email ) )
-        {
-            $r->pnotes( $r->user )->email( $req->param('email') );
-            $r->pnotes( $r->user )->update;
-            $path .= 'email_updated=1&';
-        }
-        $r->pnotes('session')->{msg} = "Settings have been updated";
-        $r->internal_redirect("/app/settings/index");
-        return Apache2::Const::OK;
-    }
-}
-
-sub dispatch_adserver {
     my ( $self, $r, $args_ref ) = @_;
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
-    my $reg = $r->pnotes( $r->user );
-    my $url = $req->param('url');    # weird libapreq bug, can't pass req to tmpl
-
-    my ($adserver) =
-          SL::Model::App->resultset('Adserver')
-          ->search( { reg_id => $reg->reg_id,});
-
+    my $email = $req->param('email');    # libapreq workaround
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
+
         my %tmpl_data = (
             errors => $args_ref->{errors},
             req    => $req,
-            adserver => $adserver,
         );
 
         my $output;
         my $ok =
-          $TMPL->process( 'settings/adserver.tmpl', \%tmpl_data, \$output, $r );
-        $ok
-          ? return $self->ok( $r, $output )
-          : return $self->error( $r, "Template error: " . $TMPL->error() );
+          $TMPL->process( 'settings/account.tmpl', \%tmpl_data, \$output, $r );
+
+        return $self->ok( $r, $output ) if $ok;
+        return $self->error( $r, "Template error: " . $TMPL->error );
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
 
-        # reset method to get for redirect
         $r->method_number(Apache2::Const::M_GET);
+
         my %profile = (
-            required           => [qw( type login pass url )],
+            required => [qw( password retype email first_name last_name)],
             constraint_methods => {
-                url      => $self->valid_link(),
-                pass     => $self->check_openx_login(
-                    { fields => [ 'url', 'login', 'pass' ] }
+                email    => email(),
+                password => SL::Apache::App::check_password(
+                    { fields => [ 'retype', 'password' ] }
                 ),
             },
         );
 
         my $results = Data::FormValidator->check( $req, \%profile );
 
-        # handle form errors
         if ( $results->has_missing or $results->has_invalid ) {
-
             my $errors = $self->SUPER::_results_to_errors($results);
 
-            return $self->dispatch_adserver(
+            $r->log->debug( "$$ form errors:" . Data::Dumper::Dumper($errors) )
+              if DEBUG;
+
+            return $self->dispatch_account(
                 $r,
                 {
                     errors => $errors,
-                    req    => $req,
+                    req    => $req
                 }
             );
         }
+
     }
 
-    ($adserver) =
-          SL::Model::App->resultset('Adserver')
-          ->search( { reg_id => $reg->reg_id, type => $req->param('type')});
+    # update the password
+    my $reg = $r->pnotes( $r->user );
+    $reg->password_md5( Digest::MD5::md5_hex( $req->param('password') ) );
 
-    my $new = 0;
-    unless ($adserver) {
-        $new = 1;
-        $adserver = SL::Model::App->resultset('Adserver')->new({
-            reg_id => $reg->reg_id, type => $req->param('type'), });
+    my $update_cookies;
+    if ( $reg->email ne $req->param('email') ) {
+        $update_cookies = 1;
     }
 
-    $adserver->pass( Digest::MD5::md5_hex( $req->param('pass') ) );
+    foreach my $param (qw( email first_name last_name )) {
+        $reg->$param( $req->param($param) );
+    }
+    $reg->update;
 
-    # update each attribute
-    foreach my $param qw( login url ) {
-        $adserver->$param( $req->param($param) );
+    if ($update_cookies) {
+
+        # gah I hate this part
+        # re-auth the user
+        $r->user( $reg->email );
+        $r->pnotes( $r->user => $reg );
+        SL::Apache::App::CookieAuth->send_cookie( $r, $reg,
+            $r->pnotes('session')->{_session_id} );
     }
 
-    $adserver->insert if $new;
-    $adserver->update;
+    $r->pnotes('session')->{msg} = "Account settings have been updated";
 
-    $r->pnotes('session')->{msg} = 'Ad server settings have been updated';
-    $r->internal_redirect("/app/settings/index");
-    return Apache2::Const::OK;
+    $r->headers_out->set(
+        Location => $r->construct_url('/app/settings/index') );
+    return Apache2::Const::REDIRECT;
+}
+
+sub dispatch_users {
+    my ( $self, $r, $args_ref ) = @_;
+
+    my $reg = $r->pnotes( $r->user );
+    my $req = $args_ref->{req} || Apache2::Request->new($r);
+
+    my @users =
+      SL::Model::App->resultset('Reg')
+      ->search( { account_id => $reg->account_id->account_id } );
+
+    if ( $r->method_number == Apache2::Const::M_GET ) {
+        my %tmpl_data = (
+            errors => $args_ref->{errors},
+            users  => \@users,
+        );
+
+        my $output;
+        my $ok =
+          $TMPL->process( 'settings/users.tmpl', \%tmpl_data, \$output, $r );
+
+        return $self->ok( $r, $output ) if $ok;
+        return $self->error( $r, "Template error: " . $TMPL->error() );
+    }
+
 }
 
 sub dispatch_payment {
@@ -207,15 +157,17 @@ sub dispatch_payment {
     my $req = $args_ref->{req} || Apache2::Request->new($r);
 
     my $paypal_id = $req->param('paypal_id');    # weird libapreq bug
+
     if ( $r->method_number == Apache2::Const::M_GET ) {
+
         my %tmpl_data = ( errors => $args_ref->{errors}, );
 
         my $output;
         my $ok =
           $TMPL->process( 'settings/payment.tmpl', \%tmpl_data, \$output, $r );
-        $ok
-          ? return $self->ok( $r, $output )
-          : return $self->error( $r, "Template error: " . $TMPL->error() );
+
+        return $self->ok( $r, $output ) if $ok;
+        return $self->error( $r, "Template error: " . $TMPL->error() );
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
 
@@ -257,89 +209,12 @@ sub dispatch_payment {
     }
 }
 
-sub dispatch_friends {
-    my ( $self, $r, $args_ref ) = @_;
-
-    my $reg = $r->pnotes( $r->user );
-    my $req = $args_ref->{req} || Apache2::Request->new($r);
-
-    my @friends = $reg->friends;
-
-    my $friend = $req->param('friend');    # weird libapreq bug
-         # see if this ip is currently unregistered;
-    if ( $r->method_number == Apache2::Const::M_GET ) {
-        my %tmpl_data = (
-            friends => \@friends,
-            errors  => $args_ref->{errors},
-            user    => $friend,
-        );
-
-        my $output;
-        my $ok =
-          $TMPL->process( 'settings/friends.tmpl', \%tmpl_data, \$output, $r );
-        $ok
-          ? return $self->ok( $r, $output )
-          : return $self->error( $r, "Template error: " . $TMPL->error() );
-    }
-    elsif ( $r->method_number == Apache2::Const::M_POST ) {
-
-        $r->method_number(Apache2::Const::M_GET);
-        my %friend_profile = (
-            required           => [qw( friend )],
-            constraint_methods => { friend => valid_friend() }
-        );
-
-        my $results = Data::FormValidator->check( $req, \%friend_profile );
-
-        if ( $results->has_missing or $results->has_invalid ) {
-            my $errors = $self->SUPER::_results_to_errors($results);
-            return $self->dispatch_friends(
-                $r,
-                {
-                    errors => $errors,
-                    req    => $req
-                }
-            );
-        }
-    }
-
-    # create the relationship
-    my ($friend_obj) =
-      SL::Model::App->resultset('Reg')
-      ->search( { email => $req->param('friend') } );
-    my ($reg__reg) = SL::Model::App->resultset('RegReg')->create(
-        {
-            first_reg_id => $friend_obj->reg_id,
-            sec_reg_id   => $reg->reg_id
-        }
-    );
-
-    # done with argument processing
-    $r->pnotes('session')->{msg} =
-      sprintf( "User %s was added to your list", $req->param('friend') );
-    $r->internal_redirect("/app/settings/friends");
-    return Apache2::Const::OK;
-}
-
 sub valid_threshold {
     return sub {
         my $dfv = shift;
         my $val = $dfv->get_current_constraint_value;
 
         return $val if ( ( $val =~ m/^\d{1,3}$/ ) && ( $val > 4 ) );
-        return;
-      }
-}
-
-sub valid_friend {
-    return sub {
-        my $dfv = shift;
-        my $val = $dfv->get_current_constraint_value;
-
-        my ($is_friend) =
-          SL::Model::App->resultset('Reg')->search( { email => $val } );
-
-        return $val if $is_friend;
         return;
       }
 }
