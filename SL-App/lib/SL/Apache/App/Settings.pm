@@ -65,9 +65,17 @@ sub dispatch_account {
         $r->method_number(Apache2::Const::M_GET);
 
         my %profile = (
-            required => [qw( password retype email first_name last_name)],
+            required => [
+                qw( password current_email retype email
+                  first_name last_name)
+            ],
             constraint_methods => {
-                email    => email(),
+                email => [
+                    email(),
+                    not_current_user(
+                        { fields => [ 'email', 'current_email' ] },
+                    )
+                ],
                 password => SL::Apache::App::check_password(
                     { fields => [ 'retype', 'password' ] }
                 ),
@@ -207,6 +215,24 @@ sub dispatch_payment {
         $r->internal_redirect("/app/settings/index");
         return Apache2::Const::OK;
     }
+}
+
+sub not_current_user {
+    return sub {
+        my $dfv     = shift;
+        my $val     = $dfv->get_current_constraint_value;
+        my $data    = $dfv->get_filtered_data;
+        my $email   = $data->{email};
+        my $current = $data->{current_email};
+
+        return $val if ( $email eq $current );    # no change
+
+        my ($reg) =
+          SL::Model::App->resultset('Reg')->search( { email => $email } );
+        return if $reg;                           # oops duplicate user attempt;
+
+        return $val;
+      }
 }
 
 sub valid_threshold {
