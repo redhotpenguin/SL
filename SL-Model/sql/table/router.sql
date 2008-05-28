@@ -26,13 +26,10 @@ CREATE TABLE router (
     mts timestamp without time zone DEFAULT now(),
     active boolean DEFAULT true,
     proxy inet,
-    replace_port smallint DEFAULT 8135,
     description text,
     name text,
-    feed_google boolean DEFAULT true,
-    feed_linkshare boolean DEFAULT false,
     splash_timeout integer DEFAULT 60,
-    splash_href text DEFAULT ''::text,
+    splash_href text DEFAULT 'http://www.silverliningnetworks.com/network/'::text,
     firmware_version character varying(4) DEFAULT ''::character varying,
     ssid text DEFAULT ''::text,
     passwd_event text DEFAULT ''::text,
@@ -42,8 +39,7 @@ CREATE TABLE router (
     halt_event text DEFAULT ''::text,
     last_ping timestamp without time zone DEFAULT now(),
     views_daily integer DEFAULT 0 NOT NULL,
-    bug_image_href text DEFAULT 'http://www.redhotpenguin.com/images//sl/free_wireless.gif'::text NOT NULL,
-    bug_link_href text DEFAULT 'http://www.silverliningnetworks.com/'::text NOT NULL
+    account_id integer DEFAULT 1 NOT NULL
 );
 
 
@@ -72,6 +68,14 @@ CREATE TRIGGER update_router_mts
     BEFORE UPDATE ON router
     FOR EACH ROW
     EXECUTE PROCEDURE update_modified_column();
+
+
+--
+-- Name: account_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
+--
+
+ALTER TABLE ONLY router
+    ADD CONSTRAINT account_id_fkey FOREIGN KEY (account_id) REFERENCES account(account_id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
