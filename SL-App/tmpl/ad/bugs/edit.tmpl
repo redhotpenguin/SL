@@ -7,7 +7,7 @@
 <h2>[% PROCESS ad/bugs/nav.tmpl %] > 
 [% UNLESS bug.bug_id  %]Create a New Bug[% ELSE %]Edit an Existing Bug[% END %]</h2>
 
-<hr size="1" color="#CCCCCC">
+<hr class="sl_line">
 <div id="edit_form">
 
 <table class="edit"> 
@@ -26,7 +26,7 @@ Please complete the missing fields</font></td></tr>[% END %]
 [% IF errors.invalid %]
 <tr><td colspan="2"><font color="red">
 Some fields were invalid, please correct them</font></td></tr>[% END %]
-<tr><td colspan=2><hr size="1" color="#CCCCCC"></td></tr>
+<tr><td colspan=2><hr class="sl_line"></td></tr>
 
 <form method="POST" action="[% base_uri %]/app/ad/bugs/edit">
 <input type="hidden" name="id" value="[% bug.bug_id %]">
