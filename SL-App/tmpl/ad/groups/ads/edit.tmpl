@@ -5,7 +5,7 @@
 	<div class="content">
 
 <h2>[% PROCESS ad/groups/ads/nav.tmpl %] > <a href="[% base_uri %]/app/ad/groups/ads/list?ad_group_id=[% ad_group.id %]">Ad Group '[% ad_group.name %]'</a> > [% UNLESS ad_sl.ad_sl_id  %]Create New Ad[% ELSE %]Edit Existing Ad[% END %]</h2>
-<hr size=1 color="#CCCCCC">
+<hr class="sl_line">
 <div id="edit_form">
 
 <table class="edit"> 
@@ -23,7 +23,7 @@
 [% IF errors.invalid %]
 <p><font color="red">Some fields were invalid, please correct them</font></p>
 [% END %]
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+<tr><td colspan=2><hr class="sl_line"></td></tr>
 
 <form method="POST" action="[% base_uri %]/app/ad/groups/ads/edit">
 <input type="hidden" name="ad_sl_id" value="[% ad_sl.ad_sl_id %]">
@@ -37,7 +37,7 @@ Ad Text:
 </td>
 <td><input type="text" name="text" size="50" maxlength="100" value='[% ad_sl.text or req.param('text') %]'></td></tr>
 <tr><td colspan=2><font color="#CCCCCC">(100 character limit)</font></td></tr>
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+<tr><td colspan=2><hr class="sl_line"></td></tr>
 
 <!-- uri -->
 <tr><td>
@@ -49,12 +49,12 @@ Ad Links To:
 <tr><td colspan=4><font color="#CCCCCC">
 (example http://anywebsite.com/)</font></td></tr>
 [% IF ad_sl.uri %]<tr><td colspan=2><a href="[% ad_sl.uri %]">Link</a></td></tr>[% END %]
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+<tr><td colspan=2><hr class="sl_line"></td></tr>
 
 [% IF ad_sl.reg_id %]
 <!-- creator -->
 <tr><td colspan="2">Ad created by <b>[% ad_sl.reg_id.email %]</b></td></tr>
-<tr><td colspan="2"><hr size=1 color="#CCCCCC"></td></tr>
+<tr><td colspan="2"><hr class="sl_line"></td></tr>
 [% END %]
 
 <!-- active -->
@@ -66,7 +66,7 @@ No<input type="radio" name="active" value="0" [% IF ad_sl.ad_id.active == 0 %] c
 Deactivating the ad removes it from the ad serving rotation.<br />To ensure consistency in reporting, ads cannot be deleted.
 </font></td></tr>
 
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+<tr><td colspan=2><hr class="sl_line"></td></tr>
 <tr><td><input type="submit" value="Save"></td></tr>
 </form>
 </table>
