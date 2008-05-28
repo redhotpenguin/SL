@@ -1,0 +1,39 @@
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage Users"  %]
+[% PROCESS left.tmpl %]
+
+<div id="list_center">
+<div class="content">
+
+<h2>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage Account</a> > Manage Users for account '[% reg.account_id.name %]'</h2>
+
+<hr class="sl_line">
+
+<p style="text-align: left; padding-bottom: 5px; width: 600px;">
+
+<table class="list">
+<tr class="list_header">
+<td class="header">Email</td>
+<td class="header">Admin</td>
+</tr>
+
+[% FOREACH user = users %]
+  <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
+
+<!-- email -->	
+<td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+<a href="mailto:[% user.email %]">[% user.email %]</a></td>
+
+
+<!-- admin -->
+<td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+[% IF user.admin %]Yes[% ELSE %]No[% END %]</td>
+
+</tr>
+
+[% END %]
+</table>
+
+</div>
+</div>
+
+[% PROCESS  footer.tmpl %]

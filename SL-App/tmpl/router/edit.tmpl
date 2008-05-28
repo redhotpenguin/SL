@@ -97,6 +97,7 @@ Serial Number:
 [% IF errors.missing.splash_href or errors.invalid.splash_href %]<font color="red">[% END %]
 Splash page url:</td>
 [% IF errors.missing.splash_href or errors.invalid.splash_href %]</font>[% END %]
+
 <td>
 <input type="text" name="splash_href" size="45" maxlength="255" value='[% req.param('splash_href') or router.splash_href or 'http://www.silverliningnetworks.com/network/' %]'>
 </td></tr>
@@ -126,14 +127,19 @@ Splash page timeout:</td>
 <!-- ad zones -->
 <tr><td colspan="2">Ad Zones associated with this Router</td></tr>
 <tr><td colspan="4">
-[% FOREACH ad_zones = ad_zoness %]
+[% IF ad_zones %]
+[% FOREACH ad_zone = ad_zones %]
     <input type="checkbox" name="ad_zone" value="[% ad_zone.ad_zone_id %]" 
 [% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]CHECKED[% END %]>
 [% ad_zone.name %]&nbsp;&nbsp;
 [% END %]
 </td></tr>
 <tr><td colspan=4><font color="#CCCCCC">
-<b>Click checkbox to add the Ad Zone to the Router</b></font></td></tr>
+<b>Click checkbox to add the Ad Zone to the Router (random rotation)</b></font></td></tr>
+[% ELSE %]
+<tr><td colspan=4>You have not created any ad zones, please <a href="/app/ad/groups/list">create a few</a> to serve ads on this router</td></tr>
+[% END %]
+
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
 <tr><td colspan="2"><input type="Submit" value="Save Router Settings"></td></tr>

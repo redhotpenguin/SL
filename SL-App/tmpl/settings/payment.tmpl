@@ -1,33 +1,49 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage Payment Information"  %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Billing and Payment"  %]
 [% PROCESS left.tmpl %]
 
 <div id="list_center">
 	<div class="content">
 
-<h2>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage Account</a> > Payment Info</h2>
-<p><hr size=1 color="#CCCCCC"></p>
-<h3>Payment Info</h3>
-[% IF session.msg %]
-<p><font color="red">[% session.msg %]</p>
-<p><hr size=1 color="#CCCCCC"></p>
-[% END %]
+<h2>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage Account</a> > Billing and Payment</h2>
+
+<p><hr class="sl_line"></p>
+
+<h3>Update your payment preferences</h3>
+<p><hr class="sl_line"></p>
 
 <div id="edit_form">
 
-<span class="edit"> 
-<p style="width: 600px">To receive money for ad views on your network, enter your paypal id (email) and desired payment threshold.</h2><br />
-<p style="width: 600px">You will receive a payment and an email receipt when your account generates revenue equal to the payment threshold.</h2>
-<p><hr size=1 color="#CCCCCC"></p>
+[% IF errors %]
+<p><font color="red">Your submission contained errors, see below</p>
+<p><hr class="sl_line"></p>
+[% END %]
+
+<div id="edit_form">
 <form method="POST" action="[% base_uri %]/app/settings/payment">
-<p><a target="new" href="https://www.paypal.com/us/cgi-bin/webscr?cmd=_registration-run"><img border='0' src="http://www.silverliningnetworks.com/app/dashboard/paypal_silverlining.gif"></a>
-[% IF errors.missing.paypal_id or errors.invalid.paypal_id %]
-<font color="red">[% END %]
+
+<p>A valid credit card is required to place your own ad zones using Silver Lining.  Your card will be charged once a month based on your account rate of <b.$[% reg.account_id.cpm %] CPM</b> (cost per thousand impressions and the number of impressions.  Questions?  <a href="mailto:support@silverliningnetworks.com">Email us</a> or <a href="http://forums.silverliningnetworks.com">visit the forums</a></p>
+
+<p><hr class="sl_line"></p>
+
+<p>Your current CPM: <b>$[% reg.cpm %]</b></p>
+
+
+
+<span class="edit">
+<!-- paypal payment -->
+
+<p><a target="new" href="https://www.paypal.com/us/cgi-bin/webscr?cmd=_registration-run">
+<img border='0' src="http://www.silverliningnetworks.com/app/dashboard/paypal_silverlining.gif"></a>
+
+[% IF errors.missing.paypal_id or errors.invalid.paypal_id %]<font color="red">[% END %]
 PayPal ID:
 [% IF errors.missing.paypal_id or errors.invalid.paypal_id %]</font>[% END %]
 <input type="text" name="paypal_id" size="30" maxlength="30" value="[% req.param('paypal_id') or reg.paypal_id %]">
 </p>
-<p><font color="#CCCCCC">(Enter your PayPal ID)</font></p>
-<p><hr size=1 color="#FFFFFF"></p>
+
+<p><font color="#CCCCCC">Enter your PayPal ID</font></p>
+<p><hr class="sl_line"></p>
+
 <p>
 [% IF errors.missing.payment_threshold or errors.invalid.payment_threshold %]
 <font color="red">[% END %]
@@ -35,24 +51,36 @@ Payment Threshold:
 [% IF errors.missing.payment_threshold or errors.invalid.payment_threshold %]
 </font>[% END %]
 <select name="payment_threshold">
-<option value="5" [% IF reg.payment_threshold == 5 %]SELECTED[% END %]>$5
 <option value="10" [% IF reg.payment_threshold == 10 %]SELECTED[% END %]>$10
 <option value="20" [% IF reg.payment_threshold == 20 %]SELECTED[% END %]>$20
 <option value="50" [% IF reg.payment_threshold == 50 %]SELECTED[% END %]>$50
 <option value="100" [% IF reg.payment_threshold == 100 %]SELECTED[% END %]>$100
 </select>
-<!--
 
 <input type="text" name="payment_threshold" size="5" maxlength="4" value="[% req.param('payment_threshold') or reg.payment_threshold  or '5' %]"> -->
 </p>
 
 <p><font color="#CCCCCC">
-(Send payment when account balance reaches this amount)</font></p>
-<p><hr size=1 color="#CCCCCC"></p>
+Send payment when account balance reaches this amount</font></p>
+
+<p><hr class="sl_line"></p>
+
+<!-- end paypal -->
+
+
+
+
+
+
+
+
+
+
 
 <p><input type="submit" value="Save"></p>
 </form>
 </span>
+
 </div>
 </div>
 </div>

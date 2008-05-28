@@ -1,53 +1,80 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage Personal Information"  %]
 [% PROCESS left.tmpl %]
 
-<div id="list_center">
+<div id="center">
 	<div class="content">
 
-<h2>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage Account</a> > Login Info</h2>
-<hr size=1 color="#CCCCCC">
+<h2>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage Account</a> > My Info</h2>
+
+<p><hr class="sl_line"></p>
+
+<h3>Update your login information</h3>
+<p><hr class="sl_line"></p>
+
 <div id="edit_form">
+<form method="POST" action="[% base_uri %]/app/settings/account">
 
 <table class="edit"> 
 
-<tr><td colspan=2>
-	<h2>Update your login information</h2>
+[% IF errors %]
+<tr><td colspan="2"><font color="red">Please correct the form errors below</font></td></tr>
+[% END %]
+
+[% IF errors.invalid.password %]
+<tr><td colspan="2"><font color="red">Your passwords did not match or were too short</font></td></tr>
+[% END %]
+
+[% IF errors %]
+<tr><td colspan="2"><hr class="sl_line"></td></tr>
+[% END %]
+
+
+<!-- first_name -->
+<tr><td>
+[% IF errors.invalid.first_name or errors.missing.first_name %]<font color="red">[% END %]
+First Name:
+[% IF errors.invalid.first_name or errors.missing.first_name %]
+</font>[% END %]
+</td>
+<td><input type="text" name="first_name" size="25" maxlength="50" value="[% req.param('first_name') or reg.first_name %]">
 </td></tr>
 
-[% IF password_updated %]
-<p><font color="red">Your password has been updated</font></p>
-[% END %]
-
-[% IF errors.password %]
-<p><font color="red">Your passwords did not match</font></p>
-[% END %]
-
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
-
-<form method="POST" action="[% base_uri %]/app/settings/account">
-<tr><td>
-[% IF errors.email %]<font color="red">[% END %]
-Email Address:
-[% IF errors.email %]</font>[% END %]
-</td><td>[% reg.email %]</td>
-</tr>
-
-<tr><td colspan=2><font color="#CCCCCC">(50 character limit)</font></td></tr>
-
-<tr><td colspan=2><hr size=1 color="#FFFFF" style="color: #CCCCCC; width: 500px;"></td></tr>
-
-<tr><td>
-[% IF errors.password %]<font color="red">Password:</font>[% ELSE %]
-Password:
-[% END %]
+<!-- last_name -->
+<tr><td>[% IF errors.invalid.first_name or errors.missing.first_name %]
+<font color="red">[% END %]
+Last Name:
+[% IF errors.invalid.last_name or errors.missing.last_name %]</font>[% END %]
 </td>
+<td><input type="text" name="last_name" size="25" maxlength="50" value="[% req.param('last_name') or reg.last_name %]">
+</td></tr>
 
+<!-- email -->
+
+<input type="hidden" name="current_email" value="[% reg.email %]">
+
+<tr><td>
+[% IF errors.invalid.email or errors.missing.email %]<font color="red">[% END %]
+Email Address:
+[% IF errors.invalid.email or errors.missing.email %]</font>[% END %]
+</td>
+<td><input type="text" name="email" size="25" maxlength="50" value="[% req.param('email') or reg.email %]">
+</td></tr>
+
+
+<tr><td colspan="2"><hr class="sl_line"></td></tr>
+
+<tr><td>
+[% IF errors.invalid.password or errors.missing.password %]
+<font color="red">[% END %]
+Password:
+[% IF errors.invalid.password or errors.missing.password %]
+</font>[% END %]
+</td>
 <td><input type="password" name="password" size="15" maxlength="15" value="">
 </td></tr>
 
-
 <tr><td>
-[% IF errors.password %]<font color="red">Retype Password:</font>[% ELSE %]
+[% IF errors.invalid.password or errors.missing.retype %]<font color="red">Retype Password:</font>[% ELSE %]
 Retype Password:
 [% END %]
 </td>
@@ -55,13 +82,15 @@ Retype Password:
 <td><input type="password" name="retype" size="15" maxlength="15" value="">
 </td></tr>
 
-<tr><td colspan=2><font color="#CCCCCC">
-(Minimum 5 characters)</font></td></tr>
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+<tr><td colspan="2"><font color="#CCCCCC">Minimum 5 characters</font></td></tr>
+<tr><td colspan="2"><hr class="sl_line"></td></tr>
 
 <tr><td><input type="submit" value="Save"></td></tr>
-</form>
 </table>
+
+</form>
+
+
 </div>
 </div>
 </div>

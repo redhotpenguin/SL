@@ -4,11 +4,11 @@
 <div id="list_center">
 <div class="content">
 
-<h2>[% PROCESS ad/groups/nav.tmpl %] > [% count %] Ad Groups Total</h2>
+<h2>[% PROCESS ad/groups/nav.tmpl %] > [% count %] Ad Zones</h2>
 <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
 
 <p style="text-align: left; padding-bottom: 5px; width: 500px;">
-<a href="[% base_uri %]/app/ad/groups/edit">Create a New Ad Group</a></span></p>
+<a href="[% base_uri %]/app/ad/groups/edit">Add a new Ad Zone</a></span></p>
 
 [% IF session.msg %]
 <p><font color="red">[% session.msg %]</font></p>
@@ -16,53 +16,39 @@
 
 <table class="list">
 <tr class="list_header">
-<td class="header">Ad Group</td>
+<td class="header">Ad Zone</td>
 <td class="header">Creator</td>
 <td class="header">Ad Type</td>
 <td class="header">Active</td>
-<td class="header">Number of Ads</td>
 <td class="header">Routers</td>
 </tr>
-[% FOREACH ad_group = ad_groups %]
+[% FOREACH ad_zone = ad_zones %]
   <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
 
 <!-- name -->	
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-<a href="[% base_uri %]/app/ad/groups/edit/?id=[% ad_group.ad_group_id %]">
-[% ad_group.name %]</a></td>
+<a href="[% base_uri %]/app/ad/groups/edit/?id=[% ad_zone.ad_zone_id %]">
+[% ad_zone.name %]</a></td>
 
 <!-- creator -->
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-<a href="mailto:[% ad_group.reg_id.email %]">[% ad_group.reg_id.email %]</a></td>
+<a href="mailto:[% ad_zone.reg_id.email %]">[% ad_zone.reg_id.email %]</a></td>
 
 <!-- type -->
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% ad_group.type %]</td>
+[% ad_zone.type %]</td>
 
 <!-- active -->	
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% IF ad_group.active %]Yes[% ELSE %]No[% END %]</td>
-
-<!-- ad count -->	
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% IF ad_group.ad_count == 'NA' %]
-  [% ad_group.ad_count %]
-[% ELSIF ad_group.ad_count != 0 %]
-  <a href="[% base_uri %]/app/ad/groups/ads/list?ad_group_id=[% ad_group.ad_group_id %]">
-[% ad_group.ad_count %]</a>
-[% ELSIF ad_group.ad_count == 0 %]
-  <a href="[% base_uri %]/app/ad/groups/ads/edit?ad_group_id=[% ad_group.ad_group_id %]">
-  [% ad_group.ad_count %] (add ads)</a>
-[% END %]</td>
+[% IF ad_zone.active %]Yes[% ELSE %]No[% END %]</td>
 
 <!-- routers -->
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% IF ad_group.router_count == 0 %]
-<a href="[% base_uri %]/app/router/edit?ad_group_id=[% ad_group.ad_group_id %]">
-[% ad_group.router_count %] (add routers)</a>
+[% IF ad_zone.router_count == 0 %]
+    [% ad_zone.router_count %]
 [% ELSE %]
-<a href="[% base_uri %]/app/router/list?ad_group_id=[% ad_group.ad_group_id %]">
-[% ad_group.router_count %]</a>
+<a href="[% base_uri %]/app/router/list?ad_group_id=[% ad_zone.ad_zone_id %]">
+[% ad_zone.router_count %]</a>
 [% END %]
 </td>
 
