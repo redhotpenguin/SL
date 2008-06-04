@@ -10,7 +10,7 @@ use warnings;
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 15;
+use Test::More tests => 16;
 my $pkg;
 
 BEGIN {
@@ -64,4 +64,9 @@ $user_agent = "Mozilla/5.0 (Danger hiptop 3.4; U; AvantGo 3.2)";
 ok($browser = $pkg->is_a_browser( $user_agent), 'sidekick 3 is a browser');
 
 $user_agent = "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.10) Gecko/20071115 Firefox/2.0.0.10";
-ok($browser = $pkg->is_a_browser( $user_agent), 'firefox 2 is a browswer');
+ok($browser = $pkg->is_a_browser( $user_agent), 'firefox 2 is a browser');
+
+$user_agent = "Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420.1 (KHTML, like Gecko) Version/3.0 Mobile/4A102 Safari/419.3";
+
+ok($browser = $pkg->is_a_browser( $user_agent), 'iphone is a browser');
+
