@@ -36,8 +36,8 @@ BEGIN {
         -cipher => 'Blowfish',
     );
 
-    $lock_dir      = '/tmp/app/sessions';
-    $lock_filename = '/tmp/app/sessions/app_sessions.db';
+    my $lock_dir      = '/tmp/app/sessions';
+    my $lock_filename = '/tmp/app/sessions/app_sessions.db';
 
     # session
     unless ( -d $lock_dir ) {
@@ -126,9 +126,9 @@ sub authenticate {
         # load the session
         eval {
             tie %session, 'Apache::Session::DB_File', $session_id, \%SESS_OPTS;
-            $r->log->error(
-                "MY SESSION IS " . Data::Dumper::Dumper( \%session ) );
+            $r->log->debug( "tied session id " . $session{_session_id} ) if DEBUG;
         };
+
         if ($@) {
             $r->log->error(
                 "$$ session missing for user " . $reg->email . " $@" );
@@ -145,10 +145,10 @@ sub authenticate {
 
         # make a new session
         tie %session, 'Apache::Session::DB_File', undef, \%SESS_OPTS;
+        $r->log->debug("$$ new session id " . $session{_$session_id}) if DEBUG;
     }
 
     $session_id = $session{_session_id};
-    $r->log->error("$$ new session id $session_id");
 
     $r->pnotes( session => \%session );
 
