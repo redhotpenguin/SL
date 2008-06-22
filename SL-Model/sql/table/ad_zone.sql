@@ -14,6 +14,8 @@ SET default_tablespace = '';
 
 SET default_with_oids = false;
 
+create type ad_size as enum ( 'Leaderboard (728x90)', 'Full Banner (468x60)', 'Text Ad (600x30)');
+
 --
 -- Name: ad_zone; Type: TABLE; Schema: public; Owner: phred; Tablespace: 
 --
