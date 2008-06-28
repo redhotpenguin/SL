@@ -1,67 +1,47 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage Image Bugs"%]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Ad zone branding images"%]
 [% PROCESS left.tmpl %]
 
 <div id="list_center">
 <div class="content">
 
-<h2>[% PROCESS ad/bugs/nav.tmpl %] > [% count %] Bugs Total</h2>
-
-[% IF session.msg %]
-<tr><td colspan=2><hr class="sl_line" width=600px></td></tr>
-<tr><td><font color="red">[% session.msg %]</td></tr>
+<h2>[% PROCESS ad/bugs/nav.tmpl %] > [% count %] images</h2>
+<hr class="sl_line"></p>
+ 
+[% IF msg %]
+<p><font color="red">[% msg %]</p>
+<p><hr class="sl_line"></p>
 [% END %]
 
-<hr class="sl_line">
-
 <p style="text-align: left; padding-bottom: 5px;">
-<a href="[% base_uri %]/app/ad/bugs/edit">Create a New Bug Image</a></span></p>
+<a href="[% base_uri %]/app/ad/bugs/edit">Add an ad zone branding image</a></span></p>
+
 <table class="list">
 <tr class="list_header">
-<td>Name</td>
-<td>Image</td>
-<td>Active</td>
+
+<td class="header">Image</td>
+<td class="header">Ad zone size</td>
+<td class="header">Image link</td>
 </tr>
+
 [% FOREACH bug = bugs %]
   <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
 	
-  <td style="color: #639D63">&nbsp;&nbsp;
-<!-- name -->
-<a href="[% base_uri %]/app/ad/bugs/edit/?id=[% bug.bug_id %]">[% bug.name or 'unnamed' %]</a></td>
-
 <!-- image href -->
 <td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
-<a href="[% bug.link_href %]"><img src="[% bug.image_href %]"></a></td>
+<a href="[% base_uri %]/app/ad/bugs/edit/?id=[% bug.bug_id %]"><img src="[% bug.image_href %]"></a></td>
 
-<!-- active -->
+<!-- zone type -->
 <td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
-[% IF bug.active %]Yes[% ELSE %]No[% END %]</td>
+[% bug.ad_size_id.name %] ([% bug.ad_size_id.width %]x[% bug.ad_size_id.height %])</td>
+
+<!-- link -->
+<td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
+<a href="[% bug.link_href %]">[% bug.link_href %]</a></td>
 
 </tr>
 [% END %]
 </table>
 
-<p style="text-align: left; padding-bottom: 5px;">
-Default bugs available</p>
-<table class="list">
-<tr class="list_header">
-<td>Name</td>
-<td>Image</td>
-</tr>
-
-[% FOREACH bug = default_bugs %]
-  <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
-	
-<!-- name -->
-  <td style="color: #639D63">&nbsp;&nbsp;[% bug.name or 'unnamed' %]</td>
-
-<!-- image href -->
-<td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
-<a href="[% bug.link_href %]"><img src="[% bug.image_href %]"></a></td>
-
-</tr>
-[% END %]
-
-</table>
 </div>
 </div>
 [% PROCESS footer.tmpl %]

@@ -1,15 +1,16 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage Personal Information"  %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  My info"  %]
 [% PROCESS left.tmpl %]
 
 <div id="center">
-	<div class="content">
+<div class="content">
 
-<h2>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage Account</a> > My Info</h2>
+<h2>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage account</a> > My info</h2>
 
-<p><hr class="sl_line"></p>
+<hr class="sl_line">
 
 <h3>Update your login information</h3>
-<p><hr class="sl_line"></p>
+
+<hr class="sl_line">
 
 <div id="edit_form">
 <form method="POST" action="[% base_uri %]/app/settings/account">
@@ -17,76 +18,81 @@
 <table class="edit"> 
 
 [% IF errors %]
-<tr><td colspan="2"><font color="red">Please correct the form errors below</font></td></tr>
+<p><font color="red">Please correct the form errors below</font></p>
 [% END %]
 
 [% IF errors.invalid.password %]
-<tr><td colspan="2"><font color="red">Your passwords did not match or were too short</font></td></tr>
+<p><font color="red">Your passwords did not match or were too short</font></p>
 [% END %]
 
 [% IF errors %]
-<tr><td colspan="2"><hr class="sl_line"></td></tr>
+<hr class="sl_line">
 [% END %]
 
-
-<!-- first_name -->
-<tr><td>
-[% IF errors.invalid.first_name or errors.missing.first_name %]<font color="red">[% END %]
-First Name:
-[% IF errors.invalid.first_name or errors.missing.first_name %]
-</font>[% END %]
-</td>
-<td><input type="text" name="first_name" size="25" maxlength="50" value="[% req.param('first_name') or reg.first_name %]">
-</td></tr>
-
-<!-- last_name -->
-<tr><td>[% IF errors.invalid.first_name or errors.missing.first_name %]
-<font color="red">[% END %]
-Last Name:
-[% IF errors.invalid.last_name or errors.missing.last_name %]</font>[% END %]
-</td>
-<td><input type="text" name="last_name" size="25" maxlength="50" value="[% req.param('last_name') or reg.last_name %]">
-</td></tr>
 
 <!-- email -->
 
 <input type="hidden" name="current_email" value="[% reg.email %]">
 
-<tr><td>
+<p>
 [% IF errors.invalid.email or errors.missing.email %]<font color="red">[% END %]
-Email Address:
+Email address:&nbsp;&nbsp;
 [% IF errors.invalid.email or errors.missing.email %]</font>[% END %]
-</td>
-<td><input type="text" name="email" size="25" maxlength="50" value="[% req.param('email') or reg.email %]">
-</td></tr>
+<input type="text" name="email" size="25" maxlength="50" value="[% req.param('email') or reg.email %]"></p>
+
+<!-- end email -->
 
 
-<tr><td colspan="2"><hr class="sl_line"></td></tr>
 
-<tr><td>
-[% IF errors.invalid.password or errors.missing.password %]
-<font color="red">[% END %]
-Password:
-[% IF errors.invalid.password or errors.missing.password %]
-</font>[% END %]
-</td>
-<td><input type="password" name="password" size="15" maxlength="15" value="">
-</td></tr>
 
-<tr><td>
-[% IF errors.invalid.password or errors.missing.retype %]<font color="red">Retype Password:</font>[% ELSE %]
-Retype Password:
-[% END %]
-</td>
 
-<td><input type="password" name="retype" size="15" maxlength="15" value="">
-</td></tr>
 
-<tr><td colspan="2"><font color="#CCCCCC">Minimum 5 characters</font></td></tr>
-<tr><td colspan="2"><hr class="sl_line"></td></tr>
 
-<tr><td><input type="submit" value="Save"></td></tr>
-</table>
+<hr class="sl_line">
+
+
+
+
+<!-- password -->
+
+<p>
+[% IF errors.invalid.password or errors.missing.password %]<font color="red">[% END %]
+Password:&nbsp;&nbsp;
+[% IF errors.invalid.password or errors.missing.password %]</font>[% END %]
+<input type="password" name="password" size="15" maxlength="15" value=""></p>
+<p><font color="#CCCCCC">Minimum 5 characters</font></p>
+
+<!-- end password -->
+
+
+
+
+
+<hr class="sl_line">
+
+
+
+
+
+<!-- retype -->
+
+<p>
+[% IF errors.invalid.password or errors.missing.retype %]<font color="red">[% END %]
+Retype password:&nbsp;&nbsp;
+[% IF errors.invalid.password or errors.missing.retype %]</font>[% END %]
+<input type="password" name="retype" size="15" maxlength="15" value=""></p>
+<p><font color="#CCCCCC">Please retype your password</font></p>
+
+
+<!-- end retype -->
+
+
+
+<hr class="sl_line">
+
+
+
+<p><input type="submit" value="Save"></p>
 
 </form>
 

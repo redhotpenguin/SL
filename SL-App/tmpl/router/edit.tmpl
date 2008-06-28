@@ -1,15 +1,14 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Create or Edit Router"  %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Create or edit router"  %]
 [% PROCESS left.tmpl %]
 
 <div id="list_center">
-	<div class="content">
+<div class="content">
 
 <h2>[% PROCESS router/nav.tmpl %] > 
-[% UNLESS router.router_id  %]
-Add a New Router[% ELSE %]Edit existing Router '[% router.name %]'[% END %]</h2>
-<hr size=1 color="#CCCCCC">
+[% UNLESS router.router_id  %]New router[% ELSE %]Edit router '[% router.name %]'[% END %]</h2>
+<hr class="sl_line">
 
-<h3>Router '[% router.name or 'New Router' %]'</h3>
+<h3>[% IF router.name %][% router.name %][% ELSE %]New router[% END %]</h3>
 <div id="edit_form">
 
 [% IF errors.missing %]
@@ -19,145 +18,125 @@ Add a New Router[% ELSE %]Edit existing Router '[% router.name %]'[% END %]</h2>
 <p><font color="red">Some fields were invalid, please correct them</font></p>
 [% END %]
 
-<table class="edit">
-<tr><td colspan="2"><hr></td></tr>
+<hr class="sl_line">
 
+<div class="edit_form">
 <form method="POST" action="[% base_uri %]/app/router/edit">
 <input type="hidden" name="router_id" value="[% router.router_id %]">
 
 
-
-
 <!-- name -->
-<tr><td>
 [% IF errors.missing.name %]<font color="red">[% END %]
-Name this router:
+<p>Name:&nbsp;&nbsp;
 [% IF errors.missing.name %]<font color="red">[% END %]
-</td>
-<td>
-<input type="text" name = "name" size="45" maxlength="50" value='[% req.param('name') or router.name %]'>
-</td></tr>
-<tr><td colspan="2"><font color="#CCCCCC"><b>100 character limit</b></font></td></tr>
-<tr><td colspan="2"><hr size=1 color="#CCCCCC"></td></tr>
+<input type="text" name = "name" size="45" maxlength="50" value='[% req.param('name') or router.name %]'></p>
+<p><font color="#CCCCCC"><b>100 character limit</b></font></p>
 
 
-
+<hr class="sl_line">
 
 
 
 <!-- SSID -->
-<tr><td>
 [% IF errors.missing.ssid %]<font color="red">[% END %]
-SSID:
+<p>SSID:&nbsp;&nbsp;
 [% IF errors.missing.ssid %]<font color="red">[% END %]
-</td>
-<td>
-<input type="text" name = "ssid" size="25" maxlength="25" value='[% req.param('ssid') or router.ssid %]'>
-</td></tr>
-<tr><td colspan="2"><font color="#CCCCCC"><b>Allow up to a minute to take effect</b></font></td></tr>
-<tr><td colspan="2"><hr size=1 color="#CCCCCC"></td></tr>
+<input type="text" name = "ssid" size="25" maxlength="25" value='[% req.param('ssid') or router.ssid %]'></p>
+<p<font color="#CCCCCC"><b>Allow up to a minute to take effect</b></font></p>
 
 
+<hr class="sl_line">
 
 
 
 <!-- macaddr -->
-<tr><td>
 [% IF errors.missing.macaddr or errors.invalid.macaddr %]<font color="red">[% END %]
-Mac Address:
+<p>Mac address:&nbsp;&nbsp;
 [% IF errors.missing.macaddr or errors.invalid.macaddr %]</font>[% END %]
-</td>
-<td>
-<input type="text" name = "macaddr" size="17" maxlength="17" value='[% req.param('macaddr') or router.macaddr%]'>
-</td></tr>
-<tr><td colspan="2">
-<font color="#CCCCCC"><b>Example:  00:17:f2:43:38:bd</b></font></td></tr>
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+<input type="text" name = "macaddr" size="17" maxlength="17" value='[% req.param('macaddr') or router.macaddr%]'></p>
+<p><font color="#CCCCCC"><b>Example:  00:17:f2:43:38:bd</b></font></p>
 
 
+<hr class="sl_line">
 
 
 <!-- serial number -->
-<tr><td>
+<p>
 [% IF errors.missing.serial_number or errors.invalid.serial_number %]<font color="red">[% END %]
-Serial Number:
+Serial number:&nbsp;&nbsp;
 [% IF errors.missing.serial_number or errors.invalid.serial_number %]</font>[% END %]
- <td>
-<input type="text" name="serial_number" size="25" maxlength="25" value='[% router.serial_number %]'>
- </td></tr>
- <tr><td colspan="2">
-<font color="#CCCCCC"><b>Optional, to determine router model compatibility, example CL7A0F318014</b></font></td></tr>
- <tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+<input type="text" name="serial_number" size="25" maxlength="25" value='[% router.serial_number %]'></p>
+<p><font color="#CCCCCC"><b>Optional, to determine router model compatibility, example CL7A0F318014</b></font></p>
 
 
+<hr class="sl_line">
 
  
 <!-- splash page -->
-<tr><td>
+<p>
 [% IF errors.missing.splash_href or errors.invalid.splash_href %]<font color="red">[% END %]
-Splash page url:</td>
+Splash page url:&nbsp;&nbsp;
 [% IF errors.missing.splash_href or errors.invalid.splash_href %]</font>[% END %]
+<input type="text" name="splash_href" size="45" maxlength="255" value='[% req.param('splash_href') or router.splash_href or 'http://www.silverliningnetworks.com/network/' %]'></p>
+<p><font color="#CCCCCC"><b>Example:  http://www.silverliningnetworks.com/network/</b></font></p>
 
-<td>
-<input type="text" name="splash_href" size="45" maxlength="255" value='[% req.param('splash_href') or router.splash_href or 'http://www.silverliningnetworks.com/network/' %]'>
-</td></tr>
-<tr><td colspan="2">
-<font color="#CCCCCC"><b>Example:  http://www.silverliningnetworks.com/network/</b></font></td></tr>
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+
+<hr class="sl_line">
 
 
 
 
 <!-- splash page timeout -->
-<tr><td>
+<p>
 [% IF errors.missing.splash_timeout or errors.invalid.splash_timeout %]<font color="red">[% END %]
-Splash page timeout:</td>
+Splash page timeout:&nbsp;&nbsp;
 [% IF errors.missing.splash_timeout or errors.invalid.splash_timeout %]</font>[% END %]
-<td>
-<input type="text" name="splash_timeout" size="3" maxlength="3" value='[% req.param('splash_timeout') or router.splash_timeout or '20' %]'>
-</td></tr>
-<tr><td colspan="2">
-<font color="#CCCCCC"><b>Number of inactive minutes before splash page is shown</b></font></td></tr>
+<input type="text" name="splash_timeout" size="3" maxlength="3" value='[% req.param('splash_timeout') or router.splash_timeout or '20' %]'></p>
+<p><font color="#CCCCCC"><b>Number of inactive minutes before splash page is shown</b></font></p>
 
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+<hr class="sl_line">
 
 
 
 
 <!-- ad zones -->
-<tr><td colspan="2">Ad Zones associated with this Router</td></tr>
-<tr><td colspan="4">
+<p>Ad zones associated with this router</p>
+<p>
 [% IF ad_zones %]
 [% FOREACH ad_zone = ad_zones %]
     <input type="checkbox" name="ad_zone" value="[% ad_zone.ad_zone_id %]" 
 [% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]CHECKED[% END %]>
 [% ad_zone.name %]&nbsp;&nbsp;
 [% END %]
-</td></tr>
-<tr><td colspan=4><font color="#CCCCCC">
-<b>Click checkbox to add the Ad Zone to the Router (random rotation)</b></font></td></tr>
+</p>
+<p><font color="#CCCCCC"><b>Click checkbox to add the ad zone to the router (random rotation)</b></font></p>
 [% ELSE %]
-<tr><td colspan=4>You have not created any ad zones, please <a href="/app/ad/groups/list">create a few</a> to serve ads on this router</td></tr>
+<p>You have not created any ad zones, please <a href="/app/ad/groups/list">create a few</a> to serve ads on this router</p>
 [% END %]
 
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+<hr class="sl_line">
+<br />
+<br />
 
-<tr><td colspan="2"><input type="Submit" value="Save Router Settings"></td></tr>
+<input type="Submit" value="Save router settings">
+
+<br />
+<br />
+<br />
 
 [% IF locations != '' %]
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
-<tr><td colspan="2">
-This router has been registered at the following locations:</td></tr>
+
+<hr class="sl_line">
+<p>This router has been registered at the following locations:</p>
 
 [% FOREACH location = locations %]
-  <tr><td colspan="2"><ul>
+<p><ul>
       <li>[% IF location.name %][% location.name %] - [% ELSE %][% END %]
           [% location.ip %]</li>
-  </ul></td></tr>
+  </ul></p>
 [% END %]
 
 [% END %]
-  </table>
 
 </div>
 </div>

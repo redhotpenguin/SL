@@ -62,7 +62,7 @@ use SL::Apache::App::Settings   ();
 use SL::Apache::App::Logon      ();
 use SL::Apache::App::CookieAuth ();
 use SL::Model                   ();
-use SL::Model::Ad               ();
+use SL::Model::App              ();
 use SL::Model::Report           ();
 use SL::Cache                   ();
 use DBI                         ();

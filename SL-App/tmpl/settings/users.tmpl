@@ -4,7 +4,8 @@
 <div id="list_center">
 <div class="content">
 
-<h2>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage Account</a> > Manage Users for account '[% reg.account_id.name %]'</h2>
+
+<h2>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage account</a> > Manage users for account '[% reg.account_id.name %]'</h2>
 
 <hr class="sl_line">
 
@@ -13,7 +14,8 @@
 <table class="list">
 <tr class="list_header">
 <td class="header">Email</td>
-<td class="header">Admin</td>
+<td class="header">Active</td>
+<!-- <td class="header">Admin</td> -->
 </tr>
 
 [% FOREACH user = users %]
@@ -24,9 +26,15 @@
 <a href="mailto:[% user.email %]">[% user.email %]</a></td>
 
 
-<!-- admin -->
+<!-- active -->
 <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% IF user.admin %]Yes[% ELSE %]No[% END %]</td>
+[% IF user.active %]Yes[% ELSE %]No[% END %]</td>
+
+
+<!-- admin -->
+<!-- <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+[% IF user.admin %]Yes[% ELSE %]No[% END %]</td> -->
+
 
 </tr>
 

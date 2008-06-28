@@ -30,7 +30,6 @@ sub process {
   	$data_hashref->{bug_url} = $r->unparsed_uri;
 	$data_hashref->{email} = $r->user;
 	$data_hashref->{reg}   = $r->pnotes($r->user);
-	$data_hashref->{root}  = $r->pnotes('root');
     $data_hashref->{session} = $r->pnotes('session');
   }
 	my $ok = $self->SUPER::process( $tmpl_name, { %{$data_hashref}, %TMPL_DATA, },

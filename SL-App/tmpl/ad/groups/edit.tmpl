@@ -1,26 +1,26 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Add or Edit Ad Zone" %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Add or edit ad zone" %]
 [% PROCESS left.tmpl %]
 
 <div id="list_center">
-	<div class="content">
+<div class="content">
 
-<h2>[% PROCESS ad/groups/nav.tmpl %] > 
+<h2>[% PROCESS ad/groups/nav.tmpl %] > [% UNLESS ad_zone.ad_zone_id  %]Add a new ad zone[% ELSE %]Edit ad zone '[% ad_zone.name %]'[% END %]</h2>
 
-[% UNLESS ad_zone.ad_zone_id  %]Add a New Ad Zone[% ELSE %]Edit an existing Ad Zone[% END %]</h2>
 <hr class="sl_line">
+
 <div id="edit_form">
 
-<table class="edit"> 
-
-<tr><td colspan=2>
+<p>
 [% IF ad_zone.ad_zone_id %]
-	<h2>You are editing Ad Zone '[% ad_zone.name %]'</h2>
+	<h2>You are editing ad zone '[% ad_zone.name %]'</h2>
 [% ELSE %]
-<h2>You are adding a new Ad Zone</h2></td></tr>
+<h2>You are adding a new ad zone</h2>
 [% END %]
+</p>
+
 
 [% IF status == 'update_ok' %]
-<p><font color="red">Your Ad Zone has been updated.</font></p>
+<p><font color="red">Your ad zone has been updated.</font></p>
 [% END %]
 
 [% IF errors.missing %]
@@ -31,79 +31,159 @@
 <p><font color="red">Some fields were invalid, please correct them</font></p>
 [% END %]
 
-<tr><td colspan=2><hr class="sl_line"></td></tr>
+
+
+<hr class="sl_line">
+
+
 
 <form method="POST" action="[% base_uri %]/app/ad/groups/edit">
 
-<!-- name -->
-<tr><td>
-[% IF errors.missing.name %]<font color="red">[% END %]
-Ad Zone Name:
-[% IF errors.missing.name %]</font>[% END %]</td>
-<td><input type="text" name="name" size="30" value='[% req.param('name') or ad_zone.name %]'>
-</td></tr>
 
-<tr><td colspan=2><hr class="sl_line"></td></tr>
+<!-- name -->
+<p>
+[% IF errors.missing.name %]<font color="red">[% END %]
+Name:&nbsp;&nbsp;
+[% IF errors.missing.name %]</font>[% END %]
+<input type="text" name="name" size="30" value='[% req.param('name') or ad_zone.name %]'></p>
+
+<!-- end name -->
+
+
+
+<hr class="sl_line">
 
 
 <!-- invocation code -->
-<tr><td colspan=2>
+<p>
 [% IF errors.missing.code %]<font color="red">[% END %]
-Invocation Code:
+Invocation code:&nbsp;&nbsp;
 [% IF errors.missing.code %]</font>[% END %]
-</td></tr>
 
-<tr><td colspan=2><textarea name="code" rows="10" cols="60">
+<p><textarea name="code" rows="10" cols="60">
 [% req.param('code') or ad_zone.code %]
 </textarea>
-</td></tr>
+</p>
 
-<tr><td colspan=2>
-<font color="#CCCCCC">Provided by your ad server</font></td></tr>
-<tr><td colspan=2><hr class="sl_line"></td></tr>
+<p><font color="#CCCCCC">Provided by your ad server</font></p>
+<!-- end invocation code -->
 
 
-<!-- type -->
-<tr><td colspan=2>
-[% IF errors.missing.type %]<font color="red">[% END %]
-Ad Format: &nbsp;&nbsp;
-[% IF errors.missing.type %]</font>[% END %]
-<select name="type">
+<hr class="sl_line">
 
-<option value="" [% IF ad_zone.type == '' %]SELECTED[% END %]>Select Ad Format</option>
 
-[% FOREACH type = types %]
-<option value="[% type %]" [% IF ad_zone.type == type %]SELECTED[% END %]>[% type %]</option>
+
+<!-- ad_size_id -->
+
+
+<p>
+[% IF errors.missing.ad_size_id %]<font color="red">[% END %]
+Size:&nbsp;&nbsp;
+[% IF errors.missing.ad_size_id %]</font>[% END %]
+
+<script type="text/javascript">
+function changeBugList() {
+
+    // hide all sub lists
+    for (var i = 1; i < 4; i++) {
+
+        document.getElementById('bug_list_' + i).style.display='none';
+    }
+
+
+    // what ad size is selected?
+    size = document.getElementById('ad_size_id').value;
+
+    if (size != '') {
+        document.getElementById('bug_list_' + size).style.display='block';
+    }
+}
+
+function setBugList(ad_size_id) {
+
+    document.getElementById('bug_list_' + ad_size_id).style.display='block';
+}
+</script>
+
+<select name="ad_size_id" id="ad_size_id" onChange="changeBugList();void 0;">
+
+<option value="" [% IF ! bug.ad_size_id and req.param('ad_size_id') == '' %][% END %]>Select ad zone size</option>
+
+
+[% FOREACH ad_size = ad_sizes %]
+
+[% IF ! req.param('ad_size_id') %]
+<option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size_id.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %] ([% ad_size.width %]x[% ad_size.height %])</option>
+
+[% ELSIF req.param('ad_size_id') %]
+<option value="[% ad_size_id.ad_size_id %]" [% IF req.param('ad_size_id') == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %] ([% ad_size.width %]x[% ad_size.height %])</option>
 [% END %]
-</select>
-</td></tr>
 
-<tr><td colspan=2>
-<font color="#CCCCCC">Format that corresponds to invocation code</font></td></tr>
-<tr><td colspan=2><hr class="sl_line"></td></tr>
+[% END %]
+
+</select>
+</p>
+
+<p><font color="#CCCCCC">Size that best corresponds to your invocation code for this ad zone</font></p>
+
+<!-- end ad_size_id -->
+
+
+<hr class="sl_line">
+
+
+
+
+<!-- branding image -->
+
+[% FOREACH buglist = [ 'bug_list_1', 'bug_list_2', 'bug_list_3' ] %]
+
+<div id="[% buglist %]" [% IF "bug_list_${ad_zone.ad_size_id.ad_size_id}" != buglist %]style="display: none;"[% END %]>
+
+<p>Select a branding image for this ad zone:</p>
+
+[% FOREACH bug = $buglist %]
+<p><input type="radio" name="bug_id" value="[% bug.bug_id %]" [% IF ad_zone.bug_id.bug_id == bug.bug_id %]checked[% END %]>&nbsp;&nbsp;<a href="[% bug.link_href %]"><img src="[% bug.image_href %]" border="1"></a></p>
+[% END %]
+
+
+<hr class="sl_line"> <!-- don't move this :) -->
+
+</div>
+
+[% END %]
+
+<!-- end branding image -->
 
 
 
 
 <!-- active -->
-<tr><td>Active:</font></td>
-<td>
-Yes<input type="radio" name="active" value="t" [% IF (ad_zone.active == 1) or (! ad_zone) %]checked[% END %]>&nbsp;
-No<input type="radio" name="active" value="f" [% IF ad_zone.active == 0 %] checked [% END %]></td></tr>
 
-<tr><td colspan=2><font color="#CCCCCC">
-Deactivating the ad zone removes it from the ad serving rotation.<br />To ensure consistency in reporting, ad zones cannot be deleted.
-</font></td></tr>
-<tr><td colspan=2><hr class="sl_line"></td></tr>
+<p>Active:&nbsp;&nbsp;Yes<input type="radio" name="active" value="t" [% IF (ad_zone.active == 1) or (! ad_zone) %]checked[% END %]>&nbsp;
+No<input type="radio" name="active" value="f" [% IF ad_zone.active == 0 %] checked [% END %]></p>
+
+<p><font color="#CCCCCC">
+Deactivating the ad zone removes it from the available ad serving rotation.<br />To ensure consistency in reporting, ad zones cannot be deleted.
+</font></p>
 
 
+<!-- end active -->
 
 
-<tr><td><input type="submit" value="Save Ad Zone"></td></tr>
+<hr class="sl_line">
+
+
+
+
+<input type="submit" value="Save ad zone">
+
+[% IF ad_zone.ad_zone_id %]
 <input type="hidden" name="id" value="[% ad_zone.ad_zone_id %]">
+[% END %]
+
 </form>
 
-</table>
 </div>
 </div>
 </div>

@@ -1,17 +1,22 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage Your Ads" %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage ads" %]
 [% PROCESS left.tmpl %]
 
 <div id="list_center">
 <div class="content">
 
-<h2>[% PROCESS dashboard.tmpl %] > Manage Your Ads</h2>
-<tr><td colspan=2><hr size=1 color="#CCCCCC"></td></tr>
+<h2>[% PROCESS dashboard.tmpl %] > Manage ads</h2>
 
-<p>This is the home page for managing ads.
+<hr class="sl_line">
+
+<p>This is the home page for managing ad zones.
   <ul>
-  <li><a href="[% base_uri %]/app/ad/groups/list">Add and edit ad groups</a></li>
+  <li><a href="[% base_uri %]/app/ad/groups/list">Edit ad zones</a></li>
+  <li><a href="[% base_uri %]/app/ad/bugs/list">Edit ad zone branding images</a></li>
 </ul>
 </p>
+
+
 </div>
 </div>
+
 [% PROCESS footer.tmpl %]

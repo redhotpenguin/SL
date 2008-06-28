@@ -5,7 +5,7 @@
 	<div class="content">
 
 <h2>[% PROCESS ad/bugs/nav.tmpl %] > 
-[% UNLESS bug.bug_id  %]Create a New Bug[% ELSE %]Edit an Existing Bug[% END %]</h2>
+[% UNLESS bug.bug_id  %]New branding image[% ELSE %]Edit existing branding image[% END %]</h2>
 
 <hr class="sl_line">
 <div id="edit_form">
@@ -14,90 +14,139 @@
 
 <tr><td colspan="2">
 [% IF bug.bug_id %]
-	<h2>Edit Existing Image Bug Id '[% bug.bug_id %]'</h2>
+	<h2>Edit existing branding image</h2>
 [% ELSE %]
-<h2>Create a New Image Bug</h2></td></tr>
+<h2>Create a new branding image</h2></td></tr>
 [% END %]
 </td></tr>
 
+
+
 [% IF errors.missing %]
-<tr><td colspan="2"><font color="red">
-Please complete the missing fields</font></td></tr>[% END %]
+<tr><td colspan="2">
+<font color="red">Please complete the missing fields</font>
+</td></tr>
+[% END %]
+
 [% IF errors.invalid %]
-<tr><td colspan="2"><font color="red">
-Some fields were invalid, please correct them</font></td></tr>[% END %]
+<tr><td colspan="2">
+<font color="red">Some fields were invalid, please correct them</font>
+</td></tr>
+[% END %]
+
+
 <tr><td colspan=2><hr class="sl_line"></td></tr>
 
 <form method="POST" action="[% base_uri %]/app/ad/bugs/edit">
+
+[% IF bug.bug_id %]
 <input type="hidden" name="id" value="[% bug.bug_id %]">
+[% END %]
 
-<!-- bug name -->
-<tr><td>
-[% IF errors.missing.name %]<font color="red">[% END %]
-Bug Name:
-[% IF errors.missing.name %]</font>[% END %]
-</td>
-<td><input type="text" name="name" size="50" maxlength="100" value="[% req.param('name') or bug.name %]">
-</td></tr>
-<tr><td colspan=2><font color="#CCCCCC">(100 character limit)</font></td></tr>
-<!-- end bug name -->
 
-<tr><td colspan=2><hr class="sl_line"></td></tr>
+
 
 <!-- image_href -->
+[% IF errors.missing.image_href or errors.invalid.image_href%]<font color="red">
+
+<tr><td colspan="2">
+[% IF errors.missing.image_href or errors.invalid.image_href%]<font color="red">
+[% IF req.param('ad_size_id') or bug.ad_size_id %]
+- Image must be exactly as tall as the selected ad zone<br />
+[% END %]
+- Image may not be more than 3x1 width to height ratio<br />
+- Image must be less than 10,240 bytes (10k) in size<br />
+[% END %]
+</td></tr>
+[% END %]
+
 <tr><td>
 [% IF errors.missing.image_href or errors.invalid.image_href%]<font color="red">
 [% END %]
-Bug Image link:
+Branding image location:
 [% IF errors.missing.image_href or errors.invalid.image_href %]</font>[% END %]
 </td>
+
 <td><input type="text" name="image_href" size="50" maxlength="512" value="
-[% UNLESS  bug.bug_id  %]
-[% IF req.param('image_href') %][% req.param('image_href') %]
-[% ELSE %]http://[% END %]
-[% ELSE %][% req.param('image_href') or bug.image_href %]
-[% END %]">
+[% req.param('image_href') or bug.image_href or 'http://' %]">
 </td></tr>
+
 <tr><td colspan=2><font color="#CCCCCC">
-(example http://www.redhotpenguin.com/img/free_wireless.gif)</font></td></tr>
+Example http://www.silverliningnetworks.com/images/silver-lining-ad-bar.gif
+</font></td></tr>
+
 [% IF req.param('image_href') or bug.image_href %]
 <tr><td colspan=2>
-<img src="[% req.param('image_href') or bug.image_href %]"></td></tr>[% END %]
+<img border="1" src="[% req.param('image_href') or bug.image_href %]">
+</td></tr>
+[% END %]
+
 <!-- end image_href -->
+
+
 
 <tr><td colspan=2><hr class="sl_line"></td></tr>
 
+
+
+
+
 <!-- link_href -->
+
 <tr><td>
 [% IF errors.missing.link_href or errors.invalid.link_href %]<font color="red">
 [% END %]
-Bug links to:
+Branding image links to:
 [% IF errors.missing.link_href or errors.invalid.link_href %]</font>[% END %]
 </td>
-<td><input type="text" name="link_href" size="50" maxlength="512" 
-value="
-[% UNLESS  bug.bug_id  %]
-[% IF req.param('link_href') %][% req.param('link_href') %]
-[% ELSE %]http://[% END %]
-[% ELSE %][% req.param('link_href') or bug.link_href %]
-[% END %]">
+
+<td>
+<input type="text" name="link_href" size="50" maxlength="512" value="[% req.param('link_href') or bug.link_href or 'http://' %]">
 </td></tr>
+
 <tr><td colspan=2><font color="#CCCCCC">
-(example http://www.redhotpenguin.com/?referer=silverlining)</font></td></tr>
+Example http://www.silverliningnetworks.com/?referer=silverlining</font></td></tr>
+
 [% IF bug.link_href %]
-<tr><td colspan=2><a href="[% bug.link_href %]">Link</a></td></tr>[% END %]
-<!-- end image_href -->
+<tr><td colspan=2><a href="[% bug.link_href %]">Branding image link</a></td></tr>[% END %]
+<!-- end link_href -->
+
+
+
+
+
+
 
 <tr><td colspan=2><hr class="sl_line"></td></tr>
 
-<!-- active -->
-<tr><td>Active:</td><td>
-Yes<input type="radio" name="active" value="1" [% IF bug.active == 1 ||  ! bug.bug_id %] checked [% END %]>
-No<input type="radio" name="active" value="0" [% IF bug.active == 0 %] checked [% END %]></td></tr>
-<tr><td colspan=3><font color="#CCCCCC">
-Deactivating the bug deactivates it.
-</font></td></tr>
-<!-- end active -->
+
+<!-- ad_size -->
+<tr><td colspan=2>
+[% IF errors.missing.ad_size_id %]<font color="red">[% END %]
+Ad zone type associated with this branding image:&nbsp;&nbsp;
+[% IF errors.missing.ad_size_id %]</font>[% END %]
+<select name="ad_size_id">
+
+<option value="" [% IF ! bug.ad_size_id and req.param('ad_size_id') == '' %]SELECTED[% END %]>Select Ad Format</option>
+
+[% FOREACH ad_size = ad_sizes %]
+
+[% IF ! req.param('ad_size_id') %]
+<option value="[% ad_size.ad_size_id %]" [% IF bug.ad_size_id.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %] ([% ad_size.width %]x[% ad_size.height %])</option>
+
+[% ELSIF req.param('ad_size_id') %]
+<option value="[% ad_size_id.ad_size_id %]" [% IF req.param('ad_size_id') == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %] ([% ad_size.width %]x[% ad_size.height %])</option>
+[% END %]
+
+[% END %]
+</select>
+</td></tr>
+
+<tr><td colspan=2>
+<font color="#CCCCCC">Choose the ad zone type which this image is associated with.</font>
+</td></tr>
+
+
 
 <tr><td colspan=2><hr class="sl_line"></td></tr>
 <tr><td><input type="submit" value="Save"></td></tr>

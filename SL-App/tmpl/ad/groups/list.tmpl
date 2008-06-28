@@ -1,27 +1,29 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage Your Ad Groups" %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Ad zones" %]
 [% PROCESS left.tmpl %]
 
 <div id="list_center">
 <div class="content">
 
-<h2>[% PROCESS ad/groups/nav.tmpl %] > [% count %] Ad Zones</h2>
-<tr><td colspan=2><hr class="sl_line"></td></tr>
-
-<p style="text-align: left; padding-bottom: 5px; width: 500px;">
-<a href="[% base_uri %]/app/ad/groups/edit">Add a new Ad Zone</a></span></p>
+<h2>[% PROCESS ad/groups/nav.tmpl %] > [% count %] Ad zones</h2>
+<hr class="sl_line">
 
 [% IF session.msg %]
-<p><font color="red">[% session.msg %]</font></p>
+<p><font color="red">[% session.msg %]</p>
+<p><hr class="sl_line"></p>
 [% END %]
+
+<p style="text-align: left; padding-bottom: 5px;">
+<a href="[% base_uri %]/app/ad/groups/edit">New ad zone</a></span></p>
 
 <table class="list">
 <tr class="list_header">
-<td class="header">Ad Zone</td>
-<td class="header">Creator</td>
-<td class="header">Ad Type</td>
+
+<td class="header">Name</td>
+<td class="header">Size</td>
 <td class="header">Active</td>
 <td class="header">Routers</td>
 </tr>
+
 [% FOREACH ad_zone = ad_zones %]
   <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
 
@@ -30,13 +32,9 @@
 <a href="[% base_uri %]/app/ad/groups/edit/?id=[% ad_zone.ad_zone_id %]">
 [% ad_zone.name %]</a></td>
 
-<!-- creator -->
+<!-- ad_size -->
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-<a href="mailto:[% ad_zone.reg_id.email %]">[% ad_zone.reg_id.email %]</a></td>
-
-<!-- type -->
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% ad_zone.type %]</td>
+[% ad_zone.ad_size_id.name %] ([% ad_zone.ad_size_id.width %]x[% ad_zone.ad_size_id.height %])</td>
 
 <!-- active -->	
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
@@ -47,7 +45,7 @@
 [% IF ad_zone.router_count == 0 %]
     [% ad_zone.router_count %]
 [% ELSE %]
-<a href="[% base_uri %]/app/router/list?ad_group_id=[% ad_zone.ad_zone_id %]">
+<a href="[% base_uri %]/app/router/list?ad_zone_id=[% ad_zone.ad_zone_id %]">
 [% ad_zone.router_count %]</a>
 [% END %]
 </td>

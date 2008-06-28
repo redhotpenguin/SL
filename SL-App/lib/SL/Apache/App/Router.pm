@@ -6,259 +6,242 @@ use warnings;
 use Apache2::Const -compile => qw(OK SERVER_ERROR NOT_FOUND M_GET M_POST);
 use Apache2::Log        ();
 use Apache2::SubRequest ();
-use Data::FormValidator ();
 use Apache2::Request    ();
 use Apache2::SubRequest ();
 
+use Data::FormValidator ();
+
 use base 'SL::Apache::App';
-
-use SL::App::Template ();
-our $tmpl = SL::App::Template->template();
-
-use constant DEBUG => $ENV{SL_DEBUG} || 0;
-
-# this specific template logic
-if (DEBUG) {
-  require Data::Dumper;
-}
 
 use SL::Model;
 use SL::Model::App;    # works for now
+use SL::App::Template ();
+
+our $TMPL = SL::App::Template->template();
+
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
+
+require Data::Dumper if DEBUG;
 
 sub dispatch_index {
-    my ($self, $r) = @_;
+    my ( $self, $r ) = @_;
 
-    my %tmpl_data;
     my $output;
-    my $ok = $tmpl->process('router/index.tmpl', \%tmpl_data, \$output, $r);
-    $ok ? return $self->ok($r, $output) 
-        : return $self->error($r, "Template error: " . $tmpl->error());
-}
+    my $ok = $TMPL->process( 'router/index.tmpl', {}, \$output, $r );
 
+    return $self->ok( $r, $output ) if $ok;
+    return $self->error( $r, "Template error: " . $TMPL->error() );
+}
 
 sub dispatch_edit {
     my ( $self, $r, $args_ref ) = @_;
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
+    my $reg = $r->pnotes( $r->user );
 
-    my $reg = $r->pnotes($r->user);
-    my ( @locations, @reg__ad_groups, $router, $output, $link );
+    # ad zones for this account
+    my @ad_zones =
+      SL::Model::App->resultset('AdZone')
+      ->search( { account_id => $reg->account_id->account_id } );
+
+    my ( %router__ad_zones, @locations, $router, $output );
     if ( $req->param('router_id') ) {    # edit existing router
 
-      my ($router__reg) =
-        SL::Model::App->resultset('RouterReg')->search({
-                   reg_id    => $reg->reg_id,
-                   router_id => $req->param('router_id'), });
+        ($router) = SL::Model::App->resultset('Router')->search(
+            {
+                account_id => $reg->account_id->account_id,
+                router_id  => $req->param('router_id'),
+            }
+        );
 
-      unless ($router__reg) {
-          $r->log->error(sprintf("unauthorized access, router %s, reg %s",
-                               $req->param('router_id'), $reg->reg_id ));
-          return Apache2::Const::NOT_FOUND;
-      }
-      $router = $router__reg->router_id;
-
-      # get the locations for the router
-      @locations = map { $_->location_id } $router->router__locations;
-   }
-
-    # ugh this code sucks, but it basically populates which ad groups are
-    # selected for the router, and also handles the case of adding new
-    # ad groups to routers
-    my @router__ad_groups;
-    if ($router) {
-      # current associations for this router
-      @router__ad_groups = map { $_->ad_group_id } $router->router__ad_groups;
-    }
-      # ad groups allowed for this user
-    @reg__ad_groups = map { $_->ad_group_id } $reg->reg__ad_groups;
-
-    if ($router) {
-      # mark the already associated ad groups as selected
-      foreach my $reg__ad_group ( @reg__ad_groups ) {
-        if ( grep { $reg__ad_group->ad_group_id eq $_ } @router__ad_groups ) {
-          $reg__ad_group->{selected} = 1;
+        unless ($router) {
+            $r->log->error(
+                sprintf(
+                    "unauthorized access, router %s, reg %s",
+                    $req->param('router_id'),
+                    $reg->reg_id
+                )
+            );
+            return Apache2::Const::NOT_FOUND;
         }
-      }
+
+        # get the locations for the router
+        @locations = map { $_->location_id } $router->router__locations;
+
+        # current associations for this router
+        %router__ad_zones =
+          map { $_->ad_zone_id->ad_zone_id => 1 } $router->router__ad_zones;
+
+        foreach my $ad_zone (@ad_zones) {
+            if ( exists $router__ad_zones{ $ad_zone->ad_zone_id } ) {
+                $ad_zone->{selected} = 1;
+            }
+
+        }
     }
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
-            ad_groups => \@reg__ad_groups,
-            router   => $router,
-            locations => scalar(@locations > 0) ? \@locations :  '',
-            errors   => $args_ref->{errors},
-            req      => $req,
+            ad_zones  => \@ad_zones,
+            router    => $router,
+            locations => scalar( @locations > 0 ) ? \@locations : '',
+            errors    => $args_ref->{errors},
+            req       => $req,
         );
 
-        my $ok = $tmpl->process( 'router/edit.tmpl', \%tmpl_data, \$output, $r );
-        $ok
-          ? return $self->ok( $r, $output )
-          : return $self->error( $r, "Template error: " . $tmpl->error() );
+        my $ok =
+          $TMPL->process( 'router/edit.tmpl', \%tmpl_data, \$output, $r );
+        
+        return $self->ok( $r, $output ) if $ok;
+        return $self->error( $r, "Template error: " . $TMPL->error() );
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
 
         # reset method to get for redirect
         $r->method_number(Apache2::Const::M_GET);
         my %router_profile = (
-            required           => [qw( name macaddr ssid bug_image_href bug_link_href)],
-			optional           => [qw( splash_href splash_timeout serial_number ) ],
-            constraint_methods => { macaddr => valid_macaddr(), 
-									splash_href => splash_href(),
-                                    bug_image_href => splash_href(),
-                                    bug_link_href => splash_href(),}
+            required => [qw( name macaddr ssid )],
+            optional => [qw( splash_href splash_timeout serial_number )],
+            constraint_methods => {
+                macaddr     => valid_macaddr(),
+                splash_href => splash_href(),
+            }
         );
         my $results = Data::FormValidator->check( $req, \%router_profile );
 
         # handle form errors
         if ( $results->has_missing or $results->has_invalid ) {
-          my $errors = $self->SUPER::_results_to_errors($results);
-            return $self->dispatch_edit($r,{
+            my $errors = $self->SUPER::_results_to_errors($results);
+            return $self->dispatch_edit(
+                $r,
+                {
                     errors => $errors,
                     req    => $req
-                });
+                }
+            );
         }
-      }
-
-	my $reg = $r->pnotes( $r->user);
-    if ( not defined $router ) {
-        # this logic in here is a bit sticky, since someone else could have
-        # registered this router, but this user wants to use it also
-        # see if there is a router we don't know about that someone else added
-        ($router) =
-          SL::Model::App->resultset('Router')
-          ->search( { macaddr => $req->param('macaddr') } );
-        unless ($router) {
-
-            # adding a new router
-            $router =
-              SL::Model::App->resultset('Router')->new( { active => 't' } );
-            $router->insert;
-            $router->update;
-          }
-
-        # see if a router reg exists
-        my %reg_args = (
-            reg_id    => $reg->reg_id,
-            router_id => $router->router_id,
-        );
-        my ($router__reg) =
-          SL::Model::App->resultset('RouterReg')->search( \%reg_args );
-
-        unless ($router__reg) {
-
-            # nothing so make a new one
-            $router__reg =
-              SL::Model::App->resultset('RouterReg')->new( \%reg_args );
-          }
-        $router__reg->insert;
-        $router__reg->update;
-      }
-
-    # no errors update the router
-	if ($reg->custom_ads) {
-		my $feed_google = $req->param('feed_google') || 0;
-		my $feed_linkshare = $req->param('feed_linkshare')  || 0;
-		$router->feed_google($feed_google);
-		$router->feed_linkshare($feed_linkshare);
-	}
-
-	# create an ssid event if the ssid changed
-	if ($router->ssid ne $req->param('ssid')) {
-		$router->ssid_event($req->param('ssid'));
-	}
-
-	# update each attribute
-	foreach my $param qw( name macaddr splash_href 
-                          serial_number ssid splash_timeout
-                           bug_image_href bug_link_href ) {
-        $router->$param( $req->param($param) );
     }
-    $router->update;
 
-    # and update the associated ad groups for this router
+    unless ($router) {
+
+        # adding a new router
+        $router = SL::Model::App->resultset('Router')->new(
+            {
+                active     => 't',
+                account_id => $reg->account_id->account_id
+            }
+        );
+        $router->insert;
+        $router->update;
+    }
+
+    # create an ssid event if the ssid changed
+    if ( $router->ssid ne $req->param('ssid') ) {
+        $router->ssid_event( $req->param('ssid') );
+    }
+
+    # update each attribute
+    foreach my $param qw( name macaddr splash_href
+      serial_number ssid splash_timeout ) {
+        $router->$param( $req->param($param) );
+      }
+
+      $router->update;
+
+    # and update the associated ad zones for this router
     # first get rid of the old associations
-    SL::Model::App->resultset('RouterAdGroup')->search(
-          {router_id => $router->router_id })->delete_all;
+    SL::Model::App->resultset('RouterAdZone')
+      ->search( { router_id => $router->router_id } )->delete_all;
 
-    foreach my $ad_group_id ( $req->param('ad_group') ) {
-      SL::Model::App->resultset('RouterAdGroup')->find_or_create({
-          router_id => $router->router_id,
-          ad_group_id => $ad_group_id, });
+    foreach my $ad_zone_id ( $req->param('ad_zone') ) {
+        $r->log->debug("$$ associating router with ad zone $ad_zone_id")
+          if DEBUG;
+        SL::Model::App->resultset('RouterAdZone')->find_or_create(
+            {
+                router_id  => $router->router_id,
+                ad_zone_id => $ad_zone_id,
+            }
+        );
     }
 
     my $status = $req->param('router_id') ? 'updated' : 'created';
-    $r->pnotes('session')->{msg} = sprintf("Router '%s' was %s",
-                                             $router->name, $status);
-    $r->internal_redirect("/app/router/list");
-    return Apache2::Const::OK;
+    $r->pnotes('session')->{msg} =
+      sprintf( "Router '%s' was %s", $router->name, $status );
+
+    $r->headers_out->set(
+        Location => $r->construct_url('/app/router/list') );
+    return Apache2::Const::REDIRECT;
 }
 
 sub dispatch_list {
     my ( $self, $r, $args_ref ) = @_;
 
-    my $reg = $r->pnotes($r->user);
+    my $reg = $r->pnotes( $r->user );
     my $req = Apache2::Request->new($r);
 
-    my @routers = $reg->get_routers( $req->param('ad_group_id') );
+    my @routers = $reg->get_routers( $req->param('ad_zone_id') );
 
-	foreach my $router (@routers) {
-		my $dt = DateTime::Format::Pg->parse_datetime( $router->last_ping );
-		# hack for pacific time
-		my $sec = (time - $dt->epoch - 3600*7); # FIXME daylight savings time breaks
-		my $minutes = sprintf('%d', $sec/60);
-		if ( $sec <= 60) {
-			$router->{'last_seen'} = "$sec sec";
-			$router->{'seen_index'} = 1;
-		} elsif (($sec > 60) && ($minutes <= 60)) {
-			$router->{'last_seen'} = "$minutes min";
-			$router->{'seen_index'} = 2;
-		} elsif (($minutes > 60) && ($minutes < 1440) ) {
-			my $hours = sprintf('%d', $minutes/60);
-			$router->{'last_seen'} = "$hours hours";
-			$router->{'seen_index'} = 3;
-		} else {
-				$router->{'last_seen'} = sprintf('%d', $minutes/1440) . ' days';
-			$router->{'seen_index'} = 4;
-		}
-	}
+    foreach my $router (@routers) {
+        my $dt = DateTime::Format::Pg->parse_datetime( $router->last_ping );
 
-	@routers = 
-		sort { $b->views_daily <=> $a->views_daily }
-		sort { $a->{'seen_index'} <=> $b->{'seen_index'} }
-		sort { $b->{'cpm_monthly'} <=> $a->{'cpm_monthly'} }
-		sort { $a->{'last_seen'} <=> $b->{'last_seen'} }
-            @routers;
+        # hack for pacific time
+        my $sec =
+          ( time - $dt->epoch - 3600 * 7 ); # FIXME daylight savings time breaks
+        my $minutes = sprintf( '%d', $sec / 60 );
+        if ( $sec <= 60 ) {
+            $router->{'last_seen'}  = "$sec sec";
+            $router->{'seen_index'} = 1;
+        }
+        elsif ( ( $sec > 60 ) && ( $minutes <= 60 ) ) {
+            $router->{'last_seen'}  = "$minutes min";
+            $router->{'seen_index'} = 2;
+        }
+        elsif ( ( $minutes > 60 ) && ( $minutes < 1440 ) ) {
+            my $hours = sprintf( '%d', $minutes / 60 );
+            $router->{'last_seen'}  = "$hours hours";
+            $router->{'seen_index'} = 3;
+        }
+        else {
+            $router->{'last_seen'} = sprintf( '%d', $minutes / 1440 ) . ' days';
+            $router->{'seen_index'} = 4;
+        }
+    }
 
-	my %tmpl_data = (
+    @routers =
+      sort { $b->views_daily <=> $a->views_daily }
+      sort { $a->{'seen_index'} <=> $b->{'seen_index'} }
+      sort { $a->{'last_seen'} cmp $b->{'last_seen'} } @routers;
+
+    my %tmpl_data = (
         session => $r->pnotes('session'),
         routers => \@routers,
-        count => scalar(@routers),
+        count   => scalar(@routers),
     );
 
     my $output;
-    my $ok = $tmpl->process( 'router/list.tmpl', \%tmpl_data, \$output, $r );
+    my $ok = $TMPL->process( 'router/list.tmpl', \%tmpl_data, \$output, $r );
     $ok
       ? return $self->ok( $r, $output )
-      : return $self->error( $r, "Template error: " . $tmpl->error() );
+      : return $self->error( $r, "Template error: " . $TMPL->error() );
 }
 
 sub splash_timeout {
-	return sub {
-		my $dfv = shift;
-		my $val = $dfv->get_current_constraint_value;
-		return $val if ( $val =~ m/^\d{1,3}$/ );
-		return;
-	}
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+        return $val if ( $val =~ m/^\d{1,3}$/ );
+        return;
+      }
 }
 
 sub splash_href {
-  return sub {
-    my $dfv = shift;
-    my $val = $dfv->get_current_constraint_value;
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
 
-	return $val if ( $val =~ m/^https?:\/\/\w+/ );
-    return;
-    }
+        return $val if ( $val =~ m/^https?:\/\/\w+/ );
+        return;
+      }
 }
 
 sub valid_macaddr {
@@ -266,7 +249,7 @@ sub valid_macaddr {
         my $dfv = shift;
         my $val = $dfv->get_current_constraint_value;
 
-		return $val if ( $val =~ m/^([0-9a-f]{2}([:-]|$)){6}$/i );
+        return $val if ( $val =~ m/^([0-9a-f]{2}([:-]|$)){6}$/i );
         return;
       }
 }

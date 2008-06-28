@@ -3,8 +3,11 @@
 
 <div id="list_center">
 <div class="content">
-<h2>[% PROCESS dashboard.tmpl %] > View Reports</h2>
-<p><hr class="sl_line"></p>
+
+<h2>[% PROCESS dashboard.tmpl %] > View reports</h2>
+
+<hr class="sl_line">
+
 <h3>View Reports</h3>
 [% IF status == 'updated' %]
 <p><font color="red">Email preferences updated</font></p>
@@ -33,19 +36,27 @@
 
 [% FOREACH mytemporal = [ 'daily', 'weekly', 'monthly', 'quarterly', 'biannually', 'annually' ] %]
     [% UNLESS mytemporal == temporal %]
-    <a href="[% base_uri %]/app/report/index/?type=[% type %]&temporal=[% mytemporal %]">
+    <a href="[% base_uri %]/app/report/index/?temporal=[% mytemporal %]">
     [% END %]
     [% temporals.$mytemporal %]
     [% UNLESS mytemporal == temporal %]</a>[% END %]
     &nbsp;
 [% END %]
-</[>
-<hr>
-<h2>Viewing reports for [% types.$type %] in the last [% temporals.$temporal %]</h2>
+</p>
+
+
+<hr class="sl_line">
+
+
+<h2>Viewing ad insertion report for the last [% temporals.$temporal %]</h2>
 
 <p style="width: 600px;">
 <img width="600" src="[% report_uri %]/[% type %]_[% temporal %].png"></p>
-<hr>
+
+
+<hr class="sl_line">
+
+
 </div>
 </div>
 

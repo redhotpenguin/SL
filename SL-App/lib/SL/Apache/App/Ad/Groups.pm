@@ -3,7 +3,8 @@ package SL::Apache::App::Ad::Groups;
 use strict;
 use warnings;
 
-use Apache2::Const -compile => qw(OK SERVER_ERROR NOT_FOUND M_GET M_POST);
+use Apache2::Const -compile =>
+  qw(OK SERVER_ERROR NOT_FOUND REDIRECT M_GET M_POST);
 use Apache2::Log        ();
 use Apache2::SubRequest ();
 use Data::FormValidator ();
@@ -12,26 +13,23 @@ use Apache2::SubRequest ();
 
 use base 'SL::Apache::App';
 
-use SL::App::Template ();
-our $tmpl = SL::App::Template->template();
-
-# this specific template logic
-use Data::Dumper;
 use SL::Model;
-use SL::Model::App;    # works for now
+use SL::Model::App;
+use SL::App::Template ();
+
+our $TMPL = SL::App::Template->template();
+
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
+require Data::Dumper if DEBUG;
 
 sub dispatch_index {
     my ( $self, $r ) = @_;
 
-    my %tmpl_data = (
-        root  => $r->pnotes('root'),
-        email => $r->user
-    );
     my $output;
-    my $ok = $tmpl->process( 'ad/groups/index.tmpl', \%tmpl_data, \$output, $r );
-    $ok
-      ? return $self->ok( $r, $output )
-      : return $self->error( $r, "Template error: " . $tmpl->error() );
+    my $ok = $TMPL->process( 'ad/groups/index.tmpl', {}, \$output, $r );
+
+    return $self->ok( $r, $output ) if $ok;
+    return $self->error( $r, "Template error: " . $TMPL->error() );
 }
 
 sub dispatch_edit {
@@ -40,50 +38,63 @@ sub dispatch_edit {
     my $req = $args_ref->{req} || Apache2::Request->new($r);
     my $reg = $r->pnotes( $r->user );
 
-    # get the list of friends
-    my @friends = $reg->friends;
-    my ( $ad_group, $output);
+    my $ad_zone;
 
-    if ( my $ad_group_id = $req->param('id') ) {
+    if ( my $ad_zone_id = $req->param('id') ) {
 
-        # edit existing ad group
-
-        $ad_group = $reg->get_ad_group($ad_group_id);
-        return Apache2::Const::NOT_FOUND unless $ad_group;
-
-        # i can has ad_group
-        foreach my $friend (@friends) {
-          my ($has_adgroup) = SL::Model::App->resultset('RegAdGroup')->search({
-                       ad_group_id => $ad_group_id,
-                       reg_id => $friend->reg_id });
-          $friend->{selected} = 1 if $has_adgroup;
-        }
+        # edit existing ad zone
+        $ad_zone = $reg->get_ad_zone($ad_zone_id);
+        return Apache2::Const::NOT_FOUND unless $ad_zone;
     }
 
-	if ( $r->method_number == Apache2::Const::M_GET ) {
+    if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
-            reg      => $reg,
-            friends  => \@friends,
-            ad_group => $ad_group,
-            errors   => $args_ref->{errors},
-            status   => $args_ref->{status},
-            req      => $req,
+            ad_sizes   => [ SL::Model::App->resultset('AdSize')->all ],
+            ad_zone    => $ad_zone,
+            errors     => $args_ref->{errors},
+            req        => $req,
+            bug_list_1 => [
+                SL::Model::App->resultset('Bug')->search(
+                    {
+                        account_id => $reg->account_id->account_id,
+                        ad_size_id => 1
+                    }
+                )
+            ],
+            bug_list_2 => [
+                SL::Model::App->resultset('Bug')->search(
+                    {
+                        account_id => $reg->account_id->account_id,
+                        ad_size_id => 2
+                    }
+                )
+            ],
+            bug_list_3 => [
+                SL::Model::App->resultset('Bug')->search(
+                    {
+                        account_id => $reg->account_id->account_id,
+                        ad_size_id => 3
+                    }
+                )
+            ],
         );
 
-        my $ok = $tmpl->process( 'ad/groups/edit.tmpl', \%tmpl_data, \$output, $r );
-        $ok
-          ? return $self->ok( $r, $output )
-          : return $self->error( $r, "Template error: " . $tmpl->error() );
+        my $output;
+        my $ok =
+          $TMPL->process( 'ad/groups/edit.tmpl', \%tmpl_data, \$output, $r );
+
+        return $self->ok( $r, $output ) if $ok;
+        return $self->error( $r, "Template error: " . $TMPL->error() );
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
+
+        # reset the method
         $r->method_number(Apache2::Const::M_GET);
 
         # validate input
-        my %ad_group_profile = (
-            required           => [qw( name active )],
-        );
+        my %profile = ( required => [qw( name active ad_size_id code )], );
 
-        my $results = Data::FormValidator->check( $req, \%ad_group_profile );
+        my $results = Data::FormValidator->check( $req, \%profile );
 
         if ( $results->has_missing or $results->has_invalid ) {
             my $errors = $self->SUPER::_results_to_errors($results);
@@ -100,59 +111,30 @@ sub dispatch_edit {
 
     unless ( $req->param('id') ) {
 
-        # create a new ad group
-        $ad_group =
-          SL::Model::App->resultset('AdGroup')->create( {
-                is_default => 'f', reg_id => $reg->reg_id } );
+        # create a new ad zone
+        $ad_zone = SL::Model::App->resultset('AdZone')->create(
+            {
+                reg_id     => $reg->reg_id,
+                account_id => $reg->account_id->account_id
+            }
+        );
     }
 
     # add arguments
-    foreach my $param qw( name active ) {
-        $ad_group->$param( $req->param($param) );
+    foreach my $param qw( name code ad_size_id bug_id ) {
+        $ad_zone->$param( $req->param($param) );
     }
-    $r->log->debug("ISA: " . join(',', @SL::Model::App::AdGroup::ISA));
 
-    $ad_group->update;
-
-    my $reg__ad_group =
-      SL::Model::App->resultset('RegAdGroup')->update_or_create(
-        {
-            reg_id      => $r->pnotes( $r->user )->reg_id,
-            ad_group_id => $ad_group->ad_group_id
-        }
-      );
-
-
-    # add the permissions for this ad
-    if ( $ad_group->reg_id->reg_id == $reg->reg_id )
-    {
-        my %update_friends = map { $_ => 1 } $req->param('friends');
-        foreach my $friend (@friends) {
-            my %search = (
-                ad_group_id => $ad_group->ad_group_id,
-                reg_id      => $friend->reg_id
-            );
-
-            if ( exists $update_friends{ $friend->reg_id } ) {
-
-                # give access
-                my $rs = SL::Model::App->resultset('RegAdGroup')
-                  ->find_or_create( \%search );
-
-            }
-            else {
-                SL::Model::App->resultset('RegAdGroup')->search( \%search )
-                  ->delete;
-            }
-        }
-    }
+    $ad_zone->update;
 
     # done with argument processing
-   my $status = $req->param('id') ? 'updated' : 'created';
+    my $status = $req->param('id') ? 'updated' : 'created';
     $r->pnotes('session')->{msg} =
-      sprintf( "Ad group '%s' was %s", $ad_group->name, $status );
-    $r->internal_redirect("/app/ad/groups/list");
-    return Apache2::Const::OK;
+      sprintf( "Ad Zone '%s' was %s", $ad_zone->name, $status );
+
+    $r->headers_out->set(
+        Location => $r->construct_url('/app/ad/groups/list') );
+    return Apache2::Const::REDIRECT;
 }
 
 sub dispatch_list {
@@ -160,32 +142,23 @@ sub dispatch_list {
 
     my $reg = $r->pnotes( $r->user );
 
-    # get the ad groups this user has access to
-    my @ad_groups = $reg->get_ad_groups;
+    # get the ad zones this user has access to
+    my @ad_zones = $reg->get_ad_zones;
 
-    foreach my $ad_group (@ad_groups) {
-
-        # Hack
-        if ( $ad_group->template eq 'text_ad.tmpl' ) {
-            $ad_group->{type} = 'Static Text';
-        }
-        else {
-            $ad_group->{type} = 'Other';
-        }
-    }
+    $r->log->debug( "ad zones: " . Data::Dumper::Dumper( \@ad_zones ) )
+      if DEBUG;
 
     my %tmpl_data = (
-        root      => $r->pnotes('root'),
-        session   => $r->pnotes('session'),
-        ad_groups => \@ad_groups,
-        count     => scalar(@ad_groups),
+        session  => $r->pnotes('session'),
+        ad_zones => \@ad_zones,
+        count    => scalar(@ad_zones),
     );
 
     my $output;
-    my $ok = $tmpl->process( 'ad/groups/list.tmpl', \%tmpl_data, \$output, $r );
-    $ok
-      ? return $self->ok( $r, $output )
-      : return $self->error( $r, "Template error: " . $tmpl->error() );
+    my $ok = $TMPL->process( 'ad/groups/list.tmpl', \%tmpl_data, \$output, $r );
+
+    return $self->ok( $r, $output ) if $ok;
+    return $self->error( $r, "Template error: " . $TMPL->error() );
 }
 
 1;

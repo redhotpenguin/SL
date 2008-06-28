@@ -9,7 +9,7 @@ use Apache::TestUtil;
 # don't follow redirects
 Apache::TestRequest::user_agent(requests_redirectable => 0, cookie_jar => {});
 
-plan tests => 36, need_lwp;
+plan tests => 34, need_lwp;
 
 # Test Apache2::Foo->dispatch_index
 my $uri = '/';
@@ -25,7 +25,7 @@ like($res->header('Location'), qr/\Q\/login\/?dest=\/app\E/);
 $uri = '/login';
 ok GET_OK $uri;
 
-my $email = 'phredwolf@yahoo.com';
+my $email = 'fred@redhotpenguin.com';
 my $password = 'yomaing420';
 $res = POST $uri, [email => $email, password => $password ];
 
@@ -36,22 +36,22 @@ like($res->header('Location'), qr{/app/home/index}, 'redirect to /app ok');
 # any 404s or 500s
 my @uris = qw(
               /app/home/index
+
               /app/settings/index
+              /app/settings/users
+
               /app/ad/index
               /app/report/index
 
               /app/blacklist/index
               /app/blacklist/edit/?url_id=-1
 
-              /app/router/index
               /app/router/list
               /app/router/edit
 
-              /app/ad/groups/index
-              /app/ad/groups/edit
               /app/ad/groups/list
+              /app/ad/groups/edit
 
-              /app/ad/bugs/index
               /app/ad/bugs/list
               /app/ad/bugs/edit
 );

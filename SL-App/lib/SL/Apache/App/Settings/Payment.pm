@@ -1,4 +1,4 @@
-package SL::Apache::App::Settings;
+package SL::Apache::App::Settings::Payment;
 
 use strict;
 use warnings;
@@ -33,132 +33,14 @@ sub dispatch_index {
         my %tmpl_data = ( msg => delete $r->pnotes('session')->{msg} );
         my $output;
         my $ok =
-          $TMPL->process( 'settings/index.tmpl', \%tmpl_data, \$output, $r );
+          $TMPL->process( 'settings/payment/index.tmpl', \%tmpl_data, \$output, $r );
 
         return $self->ok( $r, $output ) if $ok;
         return $self->error( $r, "Template error: " . $TMPL->error() );
     }
 }
 
-sub dispatch_account {
-    my ( $self, $r, $args_ref ) = @_;
-
-    my $req = $args_ref->{req} || Apache2::Request->new($r);
-    my $email = $req->param('email');    # libapreq workaround
-
-    if ( $r->method_number == Apache2::Const::M_GET ) {
-
-        my %tmpl_data = (
-            errors => $args_ref->{errors},
-            req    => $req,
-        );
-
-        my $output;
-        my $ok =
-          $TMPL->process( 'settings/account.tmpl', \%tmpl_data, \$output, $r );
-
-        return $self->ok( $r, $output ) if $ok;
-        return $self->error( $r, "Template error: " . $TMPL->error );
-    }
-    elsif ( $r->method_number == Apache2::Const::M_POST ) {
-
-        $r->method_number(Apache2::Const::M_GET);
-
-        my %profile = (
-            required => [
-                qw( password current_email retype email
-                  first_name last_name)
-            ],
-            constraint_methods => {
-                email => [
-                    email(),
-                    not_current_user(
-                        { fields => [ 'email', 'current_email' ] },
-                    )
-                ],
-                password => SL::Apache::App::check_password(
-                    { fields => [ 'retype', 'password' ] }
-                ),
-            },
-        );
-
-        my $results = Data::FormValidator->check( $req, \%profile );
-
-        if ( $results->has_missing or $results->has_invalid ) {
-            my $errors = $self->SUPER::_results_to_errors($results);
-
-            $r->log->debug( "$$ form errors:" . Data::Dumper::Dumper($errors) )
-              if DEBUG;
-
-            return $self->dispatch_account(
-                $r,
-                {
-                    errors => $errors,
-                    req    => $req
-                }
-            );
-        }
-
-    }
-
-    # update the password
-    my $reg = $r->pnotes( $r->user );
-    $reg->password_md5( Digest::MD5::md5_hex( $req->param('password') ) );
-
-    my $update_cookies;
-    if ( $reg->email ne $req->param('email') ) {
-        $update_cookies = 1;
-    }
-
-    foreach my $param (qw( email first_name last_name )) {
-        $reg->$param( $req->param($param) );
-    }
-    $reg->update;
-
-    if ($update_cookies) {
-
-        # gah I hate this part
-        # re-auth the user
-        $r->user( $reg->email );
-        $r->pnotes( $r->user => $reg );
-        SL::Apache::App::CookieAuth->send_cookie( $r, $reg,
-            $r->pnotes('session')->{_session_id} );
-    }
-
-    $r->pnotes('session')->{msg} = "Account settings have been updated";
-
-    $r->headers_out->set(
-        Location => $r->construct_url('/app/settings/index') );
-    return Apache2::Const::REDIRECT;
-}
-
-sub dispatch_users {
-    my ( $self, $r, $args_ref ) = @_;
-
-    my $reg = $r->pnotes( $r->user );
-    my $req = $args_ref->{req} || Apache2::Request->new($r);
-
-    my @users =
-      SL::Model::App->resultset('Reg')
-      ->search( { account_id => $reg->account_id->account_id } );
-
-    if ( $r->method_number == Apache2::Const::M_GET ) {
-        my %tmpl_data = (
-            errors => $args_ref->{errors},
-            users  => \@users,
-        );
-
-        my $output;
-        my $ok =
-          $TMPL->process( 'settings/users.tmpl', \%tmpl_data, \$output, $r );
-
-        return $self->ok( $r, $output ) if $ok;
-        return $self->error( $r, "Template error: " . $TMPL->error() );
-    }
-
-}
-
-sub dispatch_paymentfoo {
+sub dispatch_payment {
     my ( $self, $r, $args_ref ) = @_;
 
     my $reg = $r->pnotes( $r->user );
@@ -291,24 +173,6 @@ sub valid_card {
                 "request succeeded: " . Data::Dumper::Dumper( \%resp ) . "\n" );
             return $val;
         }
-      }
-}
-
-sub not_current_user {
-    return sub {
-        my $dfv     = shift;
-        my $val     = $dfv->get_current_constraint_value;
-        my $data    = $dfv->get_filtered_data;
-        my $email   = $data->{email};
-        my $current = $data->{current_email};
-
-        return $val if ( $email eq $current );    # no change
-
-        my ($reg) =
-          SL::Model::App->resultset('Reg')->search( { email => $email } );
-        return if $reg;                           # oops duplicate user attempt;
-
-        return $val;
       }
 }
 

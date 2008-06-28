@@ -1,27 +1,30 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  View Existing Routers"  %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  View routers"  %]
 [% PROCESS left.tmpl %]
 
 <div id="list_center">
 <div class="content">
 
-<h2>[% PROCESS router/nav.tmpl %] > [% count %] Routers Total</h2>
+<h2>[% PROCESS router/nav.tmpl %] > [% count %] routers</h2>
 
-<hr size=1 color="#CCCCCC">
+<hr class="sl_line">
 
 <p style="text-align: left; padding-bottom: 5px; width: 600px;">
-<a href="[% base_uri %]/app/router/edit">Add a new Router</a></span></p>
+<a href="[% base_uri %]/app/router/edit">New router</a></p>
+
+<br />
 
 [% IF session.msg %]
 <p><font color="red">[% session.msg %]</font></p>
+<br />
 [% END %]
 
 <table class="list">
 <tr class="list_header">
 <td class="header">Name</td>
-<td class="header">Mac Address</td>
+<td class="header">Mac address</td>
 <td class="header">SSID</td>
-<td class="header">Last Seen</td>
-<td class="header">Views last 24 Hours</td>
+<td class="header">Last seen</td>
+<td class="header">Ad insertions previous 24 hours</td>
 </tr>
 [% FOREACH router = routers %]
   <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">

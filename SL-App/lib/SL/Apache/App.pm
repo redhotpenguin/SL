@@ -5,20 +5,45 @@ use warnings;
 
 our $VERSION = 0.16;
 
-use Apache2::Const -compile => qw(OK SERVER_ERROR NOT_FOUND M_GET M_POST);
+use Apache2::Const -compile =>
+  qw(OK SERVER_ERROR NOT_FOUND M_GET M_POST REDIRECT );
 use Apache2::Log       ();
 use Apache2::RequestIO ();
-use LWP::UserAgent     ();
-use URI                ();
-use RPC::XML::Client   ();
 
+use LWP::UserAgent ();
+use URI            ();
+use Image::Size    ();
+
+use SL::Model::App    ();
 use SL::App::Template ();
 
 my $UA = LWP::UserAgent->new;
 $UA->timeout(10);    # needs to respond somewhat quickly
 our $TMPL = SL::App::Template->template();
 
+use constant MAX_IMAGE_BYTES => 10_240;
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
+
+require Data::Dumper if DEBUG;
+
+our %AD_ZONE_TYPES = (
+    'Leaderboard (728x90)' => {
+        type   => 'leaderboard',
+        height => 90,
+        width  => 728,
+    },
+
+    'Full Banner (468x60)' => {
+        type   => 'full_banner',
+        height => 60,
+        width  => 468,
+    },
+    'Text Ad (600x30)' => {
+        type   => 'text_ad',
+        height => 30,
+        width  => 600,
+    },
+);
 
 =head1 METHODS
 
@@ -35,15 +60,23 @@ This method serves of the master ad control panel for now
 sub dispatch_index {
     my ( $self, $r ) = @_;
 
-    my %tmpl_data = (
-        root  => $r->pnotes('root'),
-        email => $r->user
-    );
+    if ( $r->user ) {
+
+        $r->log->debug( "$$ authenticated user " . $r->user . " detected" )
+          if DEBUG;
+
+        # authenticated user, send to the dashboard home page
+
+        $r->headers_out->set(
+            Location => $r->construct_url('/app/home/index') );
+        return Apache2::Const::REDIRECT;
+    }
+
     my $output;
-    my $ok = $TMPL->process( 'index.tmpl', \%tmpl_data, \$output );
-    $ok
-      ? return $self->ok( $r, $output )
-      : return $self->error( $r, "Template error: " . $TMPL->error() );
+    my $ok = $TMPL->process( 'index.tmpl', {}, \$output );
+
+    return $self->ok( $r, $output ) if $ok;
+    return $self->error( $r, "Template error: " . $TMPL->error() );
 }
 
 sub ok {
@@ -86,34 +119,47 @@ sub valid_link {
       }
 }
 
-sub check_openx_login {
+sub check_password {
     return sub {
-        my $dfv   = shift;
-        my $val   = $dfv->get_current_constraint_value;
-        my $data  = $dfv->get_filtered_data;
-        my $url   = $data->{url};
-        my $login = $data->{login};
-        my $pass  = $data->{pass};
+        my $dfv    = shift;
+        my $val    = $dfv->get_current_constraint_value;
+        my $data   = $dfv->get_filtered_data;
+        my $pass   = $data->{password};
+        my $retype = $data->{retype};
 
-        my $rpc_path = '/www/api/v1/xmlrpc/LogonXmlRpcService.php';
-        my $uri      = URI->new( $url . $rpc_path );
-        my $rpc      = RPC::XML::Client->new( $uri->as_string );
+        return unless ( $pass eq $retype );
+        return unless length($pass) > 4;
+        return $val;
+      }
+}
 
-        # try to logon
-        my $res = $rpc->send_request( 'logon', $login, $pass );
-        if ( ref $res eq 'RPC::XML::fault' ) {
-            warn( "$$ rpc fault: %s" . $res->{faultString}->value ) if DEBUG;
-            return;
-        }
-        elsif ( ref $res eq 'RPC::XML::string' ) {
+sub image_zone {
+    return sub {
+        my $dfv            = shift;
+        my $image_href_val = $dfv->get_current_constraint_value;
+        my $data           = $dfv->get_filtered_data;
+        my $image_href     = $data->{image_href};
+        my $ad_size_id     = $data->{ad_size_id};
 
-            # login attempt successful
-            return $res->value;
-        }
-        else {
-            return;
-        }
-    }
+        my ($ad_size) = SL::Model::App->resultset('AdSize')->search({
+            ad_size_id =>  $ad_size_id });
+
+        return unless $ad_size;
+        my $response = $UA->get( URI->new($image_href) );
+
+        my ( $width, $height ) = Image::Size::imgsize( \$response->content );
+
+        # image too big?
+        return unless $response->headers->header('content-length') < MAX_IMAGE_BYTES;
+
+        # check the image height
+        return unless $height == $ad_size->height;;
+
+        # only allow bugs that are 3x1 ratio width to height or less
+        return unless $width < ( $ad_size->height * 3 );
+
+        return $image_href_val;
+      }
 }
 
 1;

@@ -6,44 +6,44 @@ use warnings;
 use Apache2::Const -compile => qw(OK SERVER_ERROR NOT_FOUND M_GET M_POST);
 use Apache2::Log        ();
 use Apache2::SubRequest ();
-use Data::FormValidator ();
 use Apache2::Request    ();
 use Apache2::SubRequest ();
 
+use Data::FormValidator ();
+
 use base 'SL::Apache::App';
-
 use SL::App::Template ();
-our $tmpl = SL::App::Template->template();
-
-# this specific template logic
-use Data::Dumper;
 use SL::Model;
 use SL::Model::App;    # works for now
+
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
+
+require Data::Dumper if DEBUG;
+
+our $TMPL = SL::App::Template->template();
 
 sub dispatch_index {
     my ( $self, $r ) = @_;
 
-    my %tmpl_data = (
-        root  => $r->pnotes('root'),
-        email => $r->user
-    );
     my $output;
-    my $ok = $tmpl->process( 'ad/bugs/index.tmpl', \%tmpl_data, \$output, $r );
-    $ok
-      ? return $self->ok( $r, $output )
-      : return $self->error( $r, "Template error: " . $tmpl->error() );
+    my $ok = $TMPL->process( 'ad/bugs/index.tmpl', {}, \$output, $r );
+
+    return $self->ok( $r, $output ) if $ok;
+    return $self->error( $r, "Template error: " . $TMPL->error() );
 }
 
 sub dispatch_edit {
     my ( $self, $r, $args_ref ) = @_;
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
+
     my $reg = $r->pnotes( $r->user );
+
     my ( $bug, $output, $link );
     if ( $req->param('id') ) {    # edit existing ad group
         ($bug) = SL::Model::App->resultset('Bug')->search(
             {
-                reg_id => $r->pnotes( $r->user )->reg_id,
+                account_id => $r->pnotes( $r->user )->account_id->account_id,
                 bug_id => $req->param('id'),
             }
         );
@@ -53,29 +53,35 @@ sub dispatch_edit {
 
     # get the bugs
     if ( $r->method_number == Apache2::Const::M_GET ) {
+
         my %tmpl_data = (
-            root   => $r->pnotes('root'),
-            reg    => $reg,
             bug    => $bug,
             errors => $args_ref->{errors},
-            status => $args_ref->{status},
             req    => $req,
+            ad_sizes => [ SL::Model::App->resultset('AdSize')->all ],
         );
 
-        my $ok = $tmpl->process( 'ad/bugs/edit.tmpl', \%tmpl_data, \$output, $r );
-        $ok
-          ? return $self->ok( $r, $output )
-          : return $self->error( $r, "Template error: " . $tmpl->error() );
+        my $ok =
+          $TMPL->process( 'ad/bugs/edit.tmpl', \%tmpl_data, \$output, $r );
+
+        return $self->ok( $r, $output ) if $ok;
+        return $self->error( $r, "Template error: " . $TMPL->error() );
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
         $r->method_number(Apache2::Const::M_GET);
 
         # validate input
         my %bug_profile = (
-            required           => [qw( name link_href image_href active )],
+            required           => [qw( ad_size_id link_href image_href )],
             constraint_methods => {
+
                 link_href  => SL::Apache::App::valid_link(),
-                image_href => SL::Apache::App::valid_link(),
+                image_href => [
+                    SL::Apache::App::valid_link(),
+                    SL::Apache::App::image_zone(
+                        { fields => [ 'image_href', 'ad_size_id' ] }
+                    ),
+                ],
             }
         );
 
@@ -94,50 +100,52 @@ sub dispatch_edit {
         }
     }
 
-    unless ( $req->param('id') ) {
+    unless ($bug) {
 
         # create a new bug
-        $bug = SL::Model::App->resultset('Bug')->create( { active => 't' } );
+        $bug =
+          SL::Model::App->resultset('Bug')
+          ->new( { ad_size_id => $req->param('ad_size_id') } );
     }
 
     # add arguments
-    foreach my $param qw( name link_href image_href bug_id active ) {
+    foreach my $param qw( link_href image_href ad_size_id ) {
         $bug->$param( $req->param($param) );
     }
-    $bug->reg_id( $reg->reg_id );
-    $bug->update;
+    $bug->account_id( $reg->account_id->account_id );
+
+    $req->param('id') ? $bug->update : $bug->insert;
 
     my $status = $req->param('id') ? 'updated' : 'created';
-    $r->pnotes('session')->{msg} =
-      sprintf( "Bug '%s' was %s", $bug->name, $status );
+    $r->pnotes('session')->{msg} = "Branding image $status successfully";
 
-    $r->internal_redirect("/app/ad/bugs/list");
-    return Apache2::Const::OK;
+    $r->headers_out->set( Location => $r->construct_url('/app/ad/bugs/list') );
+    return Apache2::Const::REDIRECT;
 }
 
 sub dispatch_list {
     my ( $self, $r, $args_ref ) = @_;
 
+    my $reg = $r->pnotes( $r->user );
+
     my @bugs =
       SL::Model::App->resultset('Bug')
-      ->search( { reg_id => $r->pnotes( $r->user )->reg_id } );
+      ->search( { account_id => $reg->account_id->account_id } );
 
-    my @default_bugs = SL::Model::App->resultset('Bug')
-	  ->search({ is_default => 1 });
+    my $msg = delete $r->pnotes('session')->{msg};
 
     my %tmpl_data = (
         bugs    => \@bugs,
-		default_bugs => \@default_bugs,
         count   => scalar(@bugs),
-        root    => $r->pnotes('root'),
         session => $r->pnotes('session'),
+        msg => $msg,
     );
 
     my $output;
-    my $ok = $tmpl->process( 'ad/bugs/list.tmpl', \%tmpl_data, \$output, $r );
-    $ok
-      ? return $self->ok( $r, $output )
-      : return $self->error( $r, "Template error: " . $tmpl->error() );
+    my $ok = $TMPL->process( 'ad/bugs/list.tmpl', \%tmpl_data, \$output, $r );
+
+    return $self->ok( $r, $output ) if $ok;
+    return $self->error( $r, "Template error: " . $TMPL->error() );
 }
 
 1;

@@ -1,24 +1,23 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage Account Settings"  %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage account"  %]
 [% PROCESS left.tmpl %]
 
 <div id="center">
-	<div class="content">
+<div class="content">
 
-<h2>[% PROCESS settings/nav.tmpl %] > Manage Account</h2>
-<p><hr class="sl_line"></p>
+<h2>[% PROCESS settings/nav.tmpl %] > Manage account</h2>
+<hr class="sl_line">
 
 [% IF msg %]
 <p><font color="red">[% msg %]</font></p>
 <p><hr class="sl_line"></p>
 [% END %]
 
-<h3>Manage Account</h3>
-<p><hr class="sl_line"></p>
-<p><a href="[% base_uri %]/app/settings/account">My Info</p>
-[% IF reg.admin %]
-<p><a href="[% base_uri %]/app/settings/payment">Billing and Payment</a></p>
-<p><a href="[% base_uri %]/app/settings/users">Account Users</a></p>
-[% END %]
+<h3>Manage account</h3>
+<hr class="sl_line">
+<p><a href="[% base_uri %]/app/settings/account">My info</p>
+<!-- <p><a href="[% base_uri %]/app/settings/payment">Billing</a></p> -->
+<p><a href="[% base_uri %]/app/settings/users">Users</a></p>
+
 <p><hr class="sl_line"></p>
 
     </div>

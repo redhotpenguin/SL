@@ -45,17 +45,13 @@ PerlSetVar data_root "[% cfg.sl_app_root %]/data"
 PerlModule           Apache2::Reload
 PerlInitHandler      Apache2::Reload
 PerlSetVar           ReloadAll On
-PerlSetVar ReloadModules "SL::* Apache2::* ModPerl::*"
+PerlSetVar ReloadModules "SL::*"
 
 [% IF cfg.sl_prof %]
 	PerlModule Apache::DProf
 [% END %]
 
 PerlPostReadRequestHandler Apache2::Const::OK
-
-# turning these on screws up the css serving
-#PerlMapToStorageHandler    Apache2::Const::OK
-#PerlTransHandler		   Apache2::Const::OK
 
 PerlLoadModule Apache2::Dispatch
 
