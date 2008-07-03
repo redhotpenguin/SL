@@ -7,7 +7,7 @@ use warnings FATAL => 'all';
 
 use Test::More tests => 42;
 
-BEGIN { use_ok('SL::Cache::Subrequest') or die }
+BEGIN { use_ok('SL::Subrequest') or die }
 
 # setup the database
 my $base_url = "http://example.com";
@@ -29,8 +29,8 @@ my $in = join ( ',', map { "'" . $_ . "'" } @urls );
 # some content with one subreq and one normal link
 my $content = do { local $/; <DATA> };
 
-my $subreq = SL::Cache::Subrequest->new();
-isa_ok( $subreq, 'SL::Cache::Subrequest' );
+my $subreq = SL::Subrequest->new();
+isa_ok( $subreq, 'SL::Subrequest' );
 
 # clear out the cache
 $subreq->{cache}->clear;

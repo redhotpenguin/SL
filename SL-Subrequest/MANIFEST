@@ -4,7 +4,6 @@ MANIFEST
 README
 lib/SL/Subrequest.pm
 t/SL-Subrequest.t
-t/SL-Subrequest
 t/SL-Subrequest-Leknott.t
 t/SL-Subrequest-Sfgate.t
 t/SL-Subrequest-WSJ.t

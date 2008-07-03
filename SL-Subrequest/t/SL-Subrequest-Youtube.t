@@ -47,7 +47,7 @@ my $replaced = $subreq->replace_subrequests(
 cmp_ok($replaced, '==', 154, "154 urls replaced");
 
 $interval = tv_interval( $start, [gettimeofday] );
-$limit = 0.025;    # 25 milliseconds
+$limit = 0.15;
 diag("replacement took $interval seconds");
 cmp_ok( $interval, '<', $limit, "replace_subrequests took $interval seconds" );
 

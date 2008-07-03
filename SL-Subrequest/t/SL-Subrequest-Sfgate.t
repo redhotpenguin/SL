@@ -23,7 +23,7 @@ my $interval = tv_interval( $start, [gettimeofday] );
 
 is( scalar( @{$subreq_ref} ), 59, 'subrequests extracted' );
 diag("extraction took $interval seconds");
-my $limit = 0.12;
+my $limit = 0.15;
 cmp_ok( $interval, '<', $limit,
     "subrequests extracted in $interval seconds" );
 
@@ -48,7 +48,6 @@ close(FH);
 
 ok($ok, 'replace_subrequests ok');
 $interval = tv_interval( $start, [gettimeofday] );
-$limit = 0.04;
 diag("replacement took $interval seconds");
 cmp_ok( $interval, '<', $limit, "replace_subrequests took $interval seconds" );
 

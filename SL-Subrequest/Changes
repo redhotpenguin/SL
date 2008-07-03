@@ -1,6 +1,9 @@
 Revision history for Perl extension SL::Subrequest.
 
-0.01  Wed May  7 22:07:28 2008
+0.02  Wed Jul 02 22:22:00 2008
+    - fix tests and stuff
+
+0.01  Wed May 07 22:07:28 2008
     - extracted from SL::Cache 0.23
 	- original version; created by h2xs 1.23 with options
 		-X SL::Subrequest

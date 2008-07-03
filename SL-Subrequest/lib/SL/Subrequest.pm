@@ -3,13 +3,13 @@ package SL::Subrequest;
 use strict;
 use warnings;
 
-our $VERSION = 0.01;
+our $VERSION = 0.02;
 
 use String::Strip    ();
 use HTML::TokeParser ();
 use URI              ();
 
-use SL::Cache        ();
+use SL::Cache ();
 use base 'SL::Cache';
 
 use SL::Static ();
@@ -77,10 +77,10 @@ sub collect_subrequests {
     my ( $self,        %args )     = @_;
     my ( $content_ref, $base_url ) = @args{qw(content_ref base_url)};
 
-	unless ($$content_ref ne '') {
-		warn("$$ SL::Subrequest::collect_subrequests missing content_ref");
-		return;
-	}
+    unless ( $$content_ref ne '' ) {
+        warn("$$ SL::Subrequest::collect_subrequests missing content_ref");
+        return;
+    }
 
     my $parser = HTML::TokeParser->new($content_ref);
     $parser->attr_encoded(1);
@@ -102,7 +102,7 @@ sub collect_subrequests {
             # only handle static content links
             if ( defined $url ) {
                 next
-                  unless SL::Static::is_static_content(
+                  unless SL::Static->is_static_content(
                     { url => $url, type => $attrs->{type} } );
             }
         }
@@ -132,17 +132,18 @@ sub collect_subrequests {
 
         # put it in the cache
         $self->{cache}
-          ->set( join ( '|', 'subreq', $normalized_url ) => $token->[0] );
+          ->set( join( '|', 'subreq', $normalized_url ) => $token->[0] );
     }
 
     # ok now also grab any full urls embedded in <script> tags
     my @script_urls =
-      $$content_ref =~ m{<script[^>]+>.*?(http\:/\/\w+[^\/\'\"]+).*?<\/script>}sg;
+      $$content_ref =~
+      m{<script[^>]+>.*?(http\:/\/\w+[^\/\'\"]+).*?<\/script>}sg;
 
     # get the unique urls
     my %unique;
     my @jses = map { [ $_ . '/', $_ . '/', '_script' ] }
-      grep (!$unique{$_}++, @script_urls);
+      grep ( !$unique{$_}++, @script_urls );
 
     return [ @subrequests, @jses ];
 }
@@ -186,17 +187,17 @@ sub replace_subrequests {
               s/(\=\s?['"]?\s{0,3}?)\Q$orig_url\E/$1$replacement_url/sg;
             $replaced += $matched;
 
-			if (DEBUG) {
-	            warn("did not replace $orig_url with $replacement_url ok")
-		          unless $matched;
-			    warn("replaced $matched urls for $replacement_url");
-			}
+            if (DEBUG) {
+                warn("did not replace $orig_url with $replacement_url ok")
+                  unless $matched;
+                warn("replaced $matched urls for $replacement_url");
+            }
         }
         elsif ($is_script) {
             my $is_script_replace =
+
               # thanks to dave_the_m on perlmonks for this gem
-              $$content_ref =~
-                s{(<script[^>]+>.*?<\/script>)}{
+              $$content_ref =~ s{(<script[^>]+>.*?<\/script>)}{
                   my $s = $1;
                   $s =~ s{\Q$orig_url\E}{$replacement_url}gs;
                   $s;
@@ -217,7 +218,7 @@ sub is_subrequest {
     return 0 unless $url;
 
     # look for the URL
-    my $exists = $self->{cache}->get( join ( '|', 'subreq', $url ) );
+    my $exists = $self->{cache}->get( join( '|', 'subreq', $url ) );
     return $exists;
 }
 
