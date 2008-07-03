@@ -112,7 +112,8 @@ __PACKAGE__->belongs_to("reg_id", "SL::Model::App::Reg", { reg_id => "reg_id" })
 
 # These lines were loaded from '/Users/phred/dev/svn/sl/trunk/SL-Model/lib/SL/Model/App/Payment.pm' found in @INC.# They are now part of the custom portion of this file# for you to hand-edit.  If you do not either delete# this section or remove that file from @INC, this section# will be repeated redundantly when you re-create this# file again via Loader!
 
-use Business::PayPal::API qw( MassPay );
+use Business::PayPal::API qw( MassPay DirectPayments );
+use Business::PayPal::API::DirectPayments;
 use SL::Model::App;
 use Mail::Mailer;
 
@@ -173,6 +174,7 @@ sub collect {
 
     die "not a receivable"
       unless $recv && $recv->isa('SL::Model::App::Payment');
+
     die "ugh mutated transaction, DANGER!\n" . Dumper($recv) . "\n"
       unless ( ( $recv->payable == 0 )
         && ( $recv->receivable == 1 )

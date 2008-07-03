@@ -23,8 +23,7 @@ CREATE TABLE bug (
     cts timestamp without time zone DEFAULT now(),
     mts timestamp without time zone DEFAULT now(),
     account_id INTEGER NOT NULL,
-    name text NOT NULL,
-    type ad_size NOT NULL
+    ad_size_id INTEGER NOT NULL
 );
 
 ALTER TABLE ONLY bug
@@ -36,3 +35,7 @@ ALTER TABLE ONLY bug
 	ON UPDATE CASCADE ON DELETE CASCADE;
 
 
+ALTER TABLE ONLY bug
+    ADD CONSTRAINT bug__ad_size_id_fkey 
+	FOREIGN KEY (ad_size_id) REFERENCES ad_size(ad_size_id) 
+	ON UPDATE CASCADE ON DELETE CASCADE;

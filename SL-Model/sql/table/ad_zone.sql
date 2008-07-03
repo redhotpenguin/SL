@@ -14,8 +14,6 @@ SET default_tablespace = '';
 
 SET default_with_oids = false;
 
-create type ad_size as enum ( 'Leaderboard (728x90)', 'Full Banner (468x60)', 'Text Ad (600x30)');
-
 --
 -- Name: ad_zone; Type: TABLE; Schema: public; Owner: phred; Tablespace: 
 --
@@ -25,7 +23,7 @@ CREATE TABLE ad_zone (
     code text NOT NULL,
     name text NOT NULL,
     account_id integer NOT NULL,
-    type ad_size NOT NULL,
+    ad_size_id integer NOT NULL,
     active boolean NOT NULL default 't'
 );
 
@@ -75,6 +73,9 @@ ALTER TABLE ONLY ad_zone
 ALTER TABLE ONLY ad_zone
     ADD CONSTRAINT account_id_fkey FOREIGN KEY (account_id) REFERENCES account(account_id) ON UPDATE CASCADE ON DELETE CASCADE;
 
+
+ALTER TABLE ONLY ad_zone
+    ADD CONSTRAINT ad_size_id_fkey FOREIGN KEY (ad_size_id) REFERENCES ad_size(ad_size_id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 --
 -- PostgreSQL database dump complete

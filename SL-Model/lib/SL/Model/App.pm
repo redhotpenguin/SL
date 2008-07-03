@@ -6,13 +6,16 @@ use warnings;
 use SL::Model;
 use base qw(DBIx::Class::Schema::Loader);
 
-our $DEBUG = 0;
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
-__PACKAGE__->loader_options(
-	relationships => 1,
-	debug => $DEBUG,
-#    dump_directory => '/tmp/foo', # use to update dynamic classes
-);
+our %LOADER_OPTIONS = ( relationships => 1 );
+
+if (DEBUG) {
+    $LOADER_OPTIONS{debug} = DEBUG;
+    $LOADER_OPTIONS{dump_directory} = '/tmp/sl_model',
+}
+
+__PACKAGE__->loader_options( %LOADER_OPTIONS );
 
 my $params_ref = SL::Model->connect_params();
 

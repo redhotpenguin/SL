@@ -3,11 +3,20 @@
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 30;
+use Test::More tests => 28;
+
+my $pkg;
 
 BEGIN {
-    use_ok('SL::Model::Ad');
+    $pkg = 'SL::Model::Ad';
+    use_ok($pkg);
+
+    can_ok(
+        $pkg, qw( random _random_ad_from_mac process_ad_template
+          log_view container stacked body_regex )
+    );
 }
+
 my $HTML = <<HTML;
 <html>
    <head>
@@ -61,8 +70,10 @@ cmp_ok( $interval, '<', 0.002, 'HTML Ad inserted in less than 2 milliseconds' );
 diag('check the default ad serving logic');
 
 diag('put a test router in place');
+
 use SL::Model::Proxy::Router::Location;
 use SL::Model;
+
 my $ip      = '127.0.0.1';
 my $macaddr = '00:02:B3:4D:BD:87';
 my $url     = 'http://www.foo.com/';
@@ -70,59 +81,75 @@ my $user    = 'phred';
 
 # get rid of routers and locations
 my $dbh = SL::Model->connect;
-$dbh->do("DELETE FROM location WHERE ip = '$ip'") or die $DBI::errstr;
-diag('putting a test router in place');
-$dbh->do("DELETE FROM router WHERE macaddr = '$macaddr'") or die $DBI::errstr;
-diag('routers deleted');
-diag('deleting ad_groups where ad_group_id > 1');
-$dbh->do("DELETE FROM ad_group where ad_group_id > 1") or die $DBI::errstr;
 
-# get a registered router
-diag("looking for router with ip $ip, mac $macaddr");
-my $router;
-unless (
-    $router = SL::Model::Proxy::Router::Location->get_registered(
-        { ip => $ip, macaddr => $macaddr }
-    )
-  )
-{
-    diag("couldn't find router, registering new router");
-    $router =
-      SL::Model::Proxy::Router::Location->register(
-        { ip => $ip, macaddr => $macaddr  } )
-      or die 'could not register';
-}
+# make some test data
+my $router =
+  SL::Model::App->resultset('Router')
+  ->find_or_create( { ip => $ip, macaddr => $macaddr } )
+  or die 'no router';
+
+# make a new ad
+my $account_id = 1;
+my $ad_zone    = SL::Model::App->resultset('AdZone')->create(
+    {
+        code       => 'foo',
+        name       => 'test',
+        account_id => $account_id,
+        ad_size_id => 1,
+        bug_id     => 1
+    }
+) or die 'no ad zone';
+$ad_zone->update;
+
+my $account__ad_zone =
+  SL::Model::App->resultset('AccountAdZone')
+  ->create( { account_id => $account_id, ad_zone_id => $ad_zone->ad_zone_id } )
+  or die;
+$account__ad_zone->update;
+
+my $router__ad_zone =
+  SL::Model::App->resultset('RouterAdZone')
+  ->create(
+    { ad_zone_id => $ad_zone->ad_zone_id, router_id => $router->router_id } )
+  or die;
+$router__ad_zone->update;
 
 ##############################
+
+# evil
+use constant AD_ZONE_ID      => 0;
+use constant AD_ZONE_CODE    => 1;
+use constant AD_SIZE_CSS_URL => 2;
+use constant BUG_IMAGE_HREF  => 3;
+use constant BUG_LINK_HREF   => 4;
+use constant PREMIUM         => 5;
+use constant OUTPUT_REF      => 6;
 
 diag('make sure that the default works');
 
 # make sure we have a default ad
-my ($default_adgroup) =
-  SL::Model::App->resultset('AdGroup')->search( { is_default => 't' } );
-unless ($default_adgroup) {
-    $default_adgroup = SL::Model::App->resultset('AdGroup')->find_or_create(
-        {
-            name       => 'default_test',
-            is_default => 't',
-        }
-    );
-    my $test_ad = SL::Model::App->resultset('Ad')->find_or_create(
-        {
-            active      => 't',
-            ad_group_id => $default_adgroup->ad_group_id
-        }
-    );
-    my $ad_sl = SL::Model::App->resultset('AdSl')->create(
-        {
-            ad_id => $test_ad->ad_id,
-            text  => 'default test ad',
-            uri   => 'http://www.redhotpenguin.com/',
-        }
-    );
-}
+my $Default_Ad_Data = $SL::Model::Ad::Default_Ad_Data;
+ok( defined $Default_Ad_Data, 'default ad zone present' );
 
-my $test_ad = SL::Model::Ad->_sl_default(
+ok( defined $Default_Ad_Data->[AD_ZONE_ID],      'id' );
+ok( defined $Default_Ad_Data->[AD_ZONE_CODE],    'code' );
+ok( defined $Default_Ad_Data->[AD_SIZE_CSS_URL], 'css' );
+ok( defined $Default_Ad_Data->[BUG_IMAGE_HREF],  'image' );
+ok( defined $Default_Ad_Data->[BUG_LINK_HREF],   'link' );
+ok( defined $Default_Ad_Data->[PREMIUM],         'premium' );
+
+my $test_ad = $pkg->_random_ad_from_mac($macaddr);
+
+ok( $test_ad, 'test ad present' );
+
+ok( defined $test_ad->[AD_ZONE_ID],      'id' );
+ok( defined $test_ad->[AD_ZONE_CODE],    'code' );
+ok( defined $test_ad->[AD_SIZE_CSS_URL], 'css' );
+ok( defined $test_ad->[BUG_IMAGE_HREF],  'image' );
+ok( defined $test_ad->[BUG_LINK_HREF],   'link' );
+ok( defined $test_ad->[PREMIUM],         'premium' );
+
+my ( $ad_zone_id, $output, $css ) = SL::Model::Ad->random(
     {
         ip   => $ip,
         mac  => $macaddr,
@@ -131,163 +158,9 @@ my $test_ad = SL::Model::Ad->_sl_default(
     }
 );
 
-# evil evil copied from Ad.pm
-use constant AD_ID_IDX      => 0;
-use constant TEXT_IDX       => 1;
-use constant MD5_IDX        => 2;
-use constant URI_IDX        => 3;
-use constant TEMPLATE_IDX   => 4;
-use constant CSS_URL_IDX    => 5;
-use constant IMAGE_HREF_IDX => 6;
-use constant LINK_HREF_IDX  => 7;
-
-like( $test_ad->[TEXT_IDX], qr/\w+/, 'text present' );
-cmp_ok( $test_ad->[CSS_URL_IDX],  'eq', $css_link );
-cmp_ok( $test_ad->[TEMPLATE_IDX], 'eq', $template );
-
-################################
-
-diag('which means random better work');
-my ( $ad_id, $ad_content_ref, $css_url_ref ) =
-  SL::Model::Ad->random(
-    { ip => $ip, mac => $macaddr, url => $url, user => $user } );
-like( $ad_id, qr/^\d+$/, 'ad_id is a number' );
-cmp_ok( ref $ad_content_ref, 'eq', 'SCALAR', 'ad_content_ref isa scalar' );
-cmp_ok( $$css_url_ref, 'eq', $css_link, 'css default link ok' );
-
-#############################
-
-diag('check the no_default feature');
-my $sth =
-  $dbh->prepare("update location set default_ok = 'f' where ip = '$ip'");
-$sth->execute;
-$test_ad = SL::Model::Ad->_sl_default(
-    {
-        ip   => $ip,
-        mac  => $macaddr,
-        user => $user,
-        url  => $url
-    }
-);
-ok( !exists $test_ad->[TEXT_IDX], 'text not present' );
-
-#################################
-
-diag('test the router sticky feature');
-
-# make a new ad group
-my $css      = 'http://example.com/sl.css';
-my $name     = 'testadgroup';
-my $ad_group = SL::Model::App->resultset('AdGroup')->create(
-    {
-        name     => $name,
-        css_url  => $css,
-        template => $template,
-    }
-);
-print STDERR "created ad_group_id " . $ad_group->ad_group_id . "\n";
-
-# make an ad (cover your eyes unless you want to witness pain)
-$ad = SL::Model::App->resultset('Ad')->create(
-    {
-        active      => 't',
-        ad_group_id => $ad_group->ad_group_id,
-    }
-);
-
-my $reg =
-  SL::Model::App->resultset('Reg')->new( { email => 'flimflam@foo.com' } )
-  ->insert->update;
-
-my $test_text = 'testzimzimfoobar';
-my $sl_ad     = SL::Model::App->resultset('AdSl')->create(
-    {
-        ad_id  => $ad->ad_id,
-        text   => $test_text,
-        uri    => 'http://foo.com',
-        reg_id => $reg->reg_id,
-    }
-);
-print STDERR "created sl_ad id " . $sl_ad->ad_sl_id . "\n";
-
-# put it in the ad group for this router
-print STDERR "router is " . $router->[0] . "\n";
-my $router__ad_group = SL::Model::App->resultset('RouterAdGroup')->create(
-    {
-        router_id   => $router->[0],
-        ad_group_id => $ad_group->ad_group_id,
-    }
-);
-
-################################
-
-# Now get the ad
-my $limit = 0.015;
-$start   = [gettimeofday];
-$test_ad = SL::Model::Ad->_sl_router(
-    {
-        mac  => $macaddr,
-        ip   => $ip,
-        user => $user,
-        url  => $url
-    }
-);
-$interval = tv_interval( $start, [gettimeofday] );
-cmp_ok( $interval, '<', $limit, "_sl_router() took $interval seconds" );
-
-#use Data::Dumper;
-#print STDERR "obj is " . Dumper($test_ad) . "\n";
-cmp_ok( $test_ad->[TEXT_IDX], 'eq', $test_text, 'ad text is what we put in' );
-cmp_ok( $test_ad->[CSS_URL_IDX],  'eq', $css,      'css oky doky' );
-cmp_ok( $test_ad->[TEMPLATE_IDX], 'eq', $template, 'template came through ok' );
-
-###############################
-
-diag('test out location override');
-my $location__ad_group = SL::Model::App->resultset('LocationAdGroup')->new(
-    {
-        location_id => $router->[1],
-        ad_group_id => $ad_group->ad_group_id
-    }
-)->insert->update;
-
-# change the text
-$test_text = 'flooberflobber';
-$sl_ad->text($test_text);
-$sl_ad->update;
-$start   = [gettimeofday];
-$test_ad = SL::Model::Ad->_sl_location(
-    {
-        mac  => $macaddr,
-        ip   => $ip,
-        user => $user,
-        url  => $url
-    }
-);
-$interval = tv_interval( $start, [gettimeofday] );
-$limit = 0.01;
-cmp_ok( $interval, '<', $limit, "_sl_location took $interval seconds" );
-cmp_ok( $test_ad->[TEXT_IDX], 'eq', $test_text, 'ad text is what we put in' );
-cmp_ok( $test_ad->[TEMPLATE_IDX], 'eq', $template );
-cmp_ok( $test_ad->[CSS_URL_IDX],  'eq', $css );
-
-############################
-
-diag('random should return the location default');
-$test_text = 'bimbamboom';
-$sl_ad->text($test_text);
-$sl_ad->update;
-$start = [gettimeofday];
-( $ad_id, $ad_content_ref, $css_url_ref ) =
-  SL::Model::Ad->random(
-    { mac => $macaddr, ip => $ip, url => $url, user => $user } );
-
-$interval = tv_interval( $start, [gettimeofday] );
-cmp_ok( $interval, '<', $limit, "random() took $interval seconds" );
-is( $ad_id, $ad->ad_id, 'ad_id is a number' );
-cmp_ok( ref $ad_content_ref, 'eq', 'SCALAR', 'ad_content_ref isa scalar' );
-cmp_ok( $$css_url_ref, 'eq', $css, 'css url ok' );
-like( $$ad_content_ref, qr/$test_text/, 'ad text found' );
+ok( $ad_zone_id, 'ad_zone_id present' );
+cmp_ok( ref $output, 'eq', 'SCALAR', 'output' );
+cmp_ok( ref $css,    'eq', 'SCALAR', 'css' );
 
 1;
 

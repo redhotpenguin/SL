@@ -40,9 +40,9 @@ BEGIN {
         return $default_group if $default_group;
         my $dbh = $class->connect;
         my $sql = <<SQL;
-SELECT ad_group.ad_group_id
-FROM ad_group
-WHERE ad_group_id = ?
+SELECT ad_zone.ad_zone_id
+FROM ad_zone
+WHERE ad_zone_id = ?
 SQL
         my $sth = $dbh->prepare($sql);
         $sth->bind_param( 1, DEFAULT_GROUP_ID );
