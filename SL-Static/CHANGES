@@ -1,5 +1,8 @@
 Revision history for SL-Static
 
+0.13 Wed Jul 02 22:18:00 2008 PST
+    - put the type detection back in
+
 0.12 Wed May 07 20:09:00 2008 PST
     - add .mkv extension
 

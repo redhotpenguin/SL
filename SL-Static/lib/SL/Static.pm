@@ -6,7 +6,7 @@ use warnings;
 use Regexp::Assemble;
 use SL::Config;
 
-our $VERSION = 0.12;
+our $VERSION = 0.13;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 our ($CONFIG, $EXT_REGEX);
@@ -29,10 +29,16 @@ BEGIN {
 }
 
 sub is_static_content {
-    my ($class, $args_ref) = shift;
+    my ($class, $args_ref) = @_;
+
     unless (exists $args_ref->{url}) {
         warn("is_static_content called without url");
         return;
+    }
+
+    if ($args_ref->{type}) {
+        # check the type first, everything is static except html
+        return 1 if ($args_ref->{type} ne 'text/html');
     }
 
     return 1 if ( $args_ref->{url} =~ m{\.(?:$EXT_REGEX)}i );
