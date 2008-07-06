@@ -52,8 +52,6 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => undef,
   },
-  "replace_port",
-  { data_type => "smallint", default_value => 8135, is_nullable => 1, size => 2 },
   "description",
   {
     data_type => "text",
@@ -68,26 +66,12 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => undef,
   },
-  "feed_google",
-  {
-    data_type => "boolean",
-    default_value => "false",
-    is_nullable => 1,
-    size => 1,
-  },
-  "feed_linkshare",
-  {
-    data_type => "boolean",
-    default_value => "false",
-    is_nullable => 1,
-    size => 1,
-  },
   "splash_timeout",
   { data_type => "integer", default_value => 60, is_nullable => 1, size => 4 },
   "splash_href",
   {
     data_type => "text",
-    default_value => "''::text",
+    default_value => "'http://www.silverliningnetworks.com/network/'::text",
     is_nullable => 1,
     size => undef,
   },
@@ -147,18 +131,22 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 8,
   },
- "views_daily",
-  { data_type => "integer", default_value => 0, is_nullable => 1, size => 4 },
+  "views_daily",
+  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  "account_id",
+  { data_type => "integer", default_value => 1, is_nullable => 0, size => 4 },
 );
 __PACKAGE__->set_primary_key("router_id");
-__PACKAGE__->has_many(
-  "views",
-  "SL::Model::App::View",
-  { "foreign.router_id" => "self.router_id" },
+__PACKAGE__->add_unique_constraint("router_pkey", ["router_id"]);
+__PACKAGE__->add_unique_constraint("madaddr_uniq", ["macaddr"]);
+__PACKAGE__->belongs_to(
+  "account_id",
+  "SL::Model::App::Account",
+  { account_id => "account_id" },
 );
 __PACKAGE__->has_many(
-  "router__ad_groups",
-  "SL::Model::App::RouterAdGroup",
+  "router__ad_zones",
+  "SL::Model::App::RouterAdZone",
   { "foreign.router_id" => "self.router_id" },
 );
 __PACKAGE__->has_many(
@@ -167,14 +155,16 @@ __PACKAGE__->has_many(
   { "foreign.router_id" => "self.router_id" },
 );
 __PACKAGE__->has_many(
-  "router__regs",
-  "SL::Model::App::RouterReg",
+  "views",
+  "SL::Model::App::View",
   { "foreign.router_id" => "self.router_id" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04002 @ 2007-12-18 15:37:05
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4/k+Hf1HfHP78EUCq6zn1g
+# Created by DBIx::Class::Schema::Loader v0.04002 @ 2008-07-05 18:47:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qIZOvhr6Pcc2K1Hfw1x5Ng
+
+# These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Router.pm' found in @INC.# They are now part of the custom portion of this file# for you to hand-edit.  If you do not either delete# this section or remove that file from @INC, this section# will be repeated redundantly when you re-create this# file again via Loader!
 
 use SL::Model::App;
 use DateTime::Format::Pg;
