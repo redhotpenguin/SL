@@ -221,10 +221,10 @@ sub _random_ad_from_mac {
 sub random {
     my ( $class, $args ) = @_;
 
-    my $ip      = $args->{ip}      || warn("no ip passed")   && return;
-    my $url     = $args->{url}     || warn("no url passed")  && return;
-    my $mac     = $args->{mac}     || warn("no mac passed")  && return;
-    my $user    = $args->{user}    || warn("no user passed") && return;
+    my $ip   = $args->{ip}   || warn("no ip passed")   && return;
+    my $url  = $args->{url}  || warn("no url passed")  && return;
+    my $mac  = $args->{mac}  || warn("no mac passed")  && return;
+    my $user = $args->{user} || warn("no user passed") && return;
     my $premium = $args->{premium};
 
     # get the list of ad zones we can server for this router
@@ -234,7 +234,8 @@ sub random {
     my $output_ref = $class->process_ad_template( $ad_data, $premium );
 
     # return the id, string output ref, and css url
-    return ( $ad_data->[AD_ZONE_ID], $output_ref, \$ad_data->[AD_SIZE_CSS_URL], );
+    return ( $ad_data->[AD_ZONE_ID], $output_ref, \$ad_data->[AD_SIZE_CSS_URL],
+    );
 }
 
 # takes ad_data, returns scalar reference of output
@@ -268,7 +269,7 @@ sub process_ad_template {
 use constant LOG_VIEW_SQL => q{
 -- LOG_VIEW_SQL
 INSERT INTO view
-( ad_id, location_id, router_id, usr_id, url, referer, ip )
+( ad_zone_id, location_id, router_id, usr_id, url, referer, ip )
 values
 ( ?,     (select location_id from location where ip = ?),
                       (select router_id from router where macaddr = ?),
@@ -279,17 +280,18 @@ values
 sub log_view {
     my ( $class, $args_ref ) = @_;
 
-    my $ip    = $args_ref->{ip}    || warn("no ip passed")    && return;
-    my $url   = $args_ref->{url}   || warn("no url passed")   && return;
-    my $mac   = $args_ref->{mac}   || warn("no mac passed")   && return;
-    my $user  = $args_ref->{user}  || warn("no user passed")  && return;
-    my $ad_id = $args_ref->{ad_id} || warn("no ad_id passed") && return;
+    my $ip   = $args_ref->{ip}   || warn("no ip passed")   && return;
+    my $url  = $args_ref->{url}  || warn("no url passed")  && return;
+    my $mac  = $args_ref->{mac}  || warn("no mac passed")  && return;
+    my $user = $args_ref->{user} || warn("no user passed") && return;
+    my $ad_zone_id = $args_ref->{ad_zone_id}
+      || warn("no ad_zone_id passed") && return;
     my $referer = $args_ref->{referer} || '';
 
     my $dbh = SL::Model->db_Main();
     my $sth = $dbh->prepare(LOG_VIEW_SQL);
 
-    $sth->bind_param( 1, $ad_id );
+    $sth->bind_param( 1, $ad_zone_id );
     $sth->bind_param( 2, $ip );
     $sth->bind_param( 3, $mac );
     $sth->bind_param( 4, $user );
@@ -301,8 +303,8 @@ sub log_view {
     unless ( $rv = $sth->execute ) {
         warn(
             sprintf(
-"$$ Error, could not log ad_id %d, ip %s, url %s, router %s, user %s",
-                $ad_id, $ip, $url, $mac, $user
+"$$ Error, could not log ad_zone_id %d, ip %s, url %s, router %s, user %s",
+                $ad_zone_id, $ip, $url, $mac, $user
             )
         );
     }
