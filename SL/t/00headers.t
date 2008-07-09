@@ -3,15 +3,17 @@
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 7;
+use Test::More tests => 8;
 
 use SL::Config;
 my $CONFIG = SL::Config->new;
 my ( $host, $port ) = split ( /:/, $CONFIG->sl_proxy_apache_listen );
 
-use SL::Client::HTTP;
+use SL::HTTP::Client;
+$SL::HTTP::Client::Test = 1;
 
-my $ping_url = "http://localhost/sl_secret_ping_button/FF:FF:FF:FF:FF:FF";
+my $mac = '00:17:f2:43:38:bd';
+my $ping_url = "http://localhost/sl_secret_ping_button/$mac";
 
 my %args = (
     url     => $ping_url,
@@ -20,7 +22,7 @@ my %args = (
 );
 
 # ping the server
-my $res = SL::Client::HTTP->get( \%args);
+my $res = SL::HTTP::Client->get( \%args);
 cmp_ok($res->code, '==', 200, 'ping 200');
 
 my $remote_host = 'www.google.com';
@@ -32,10 +34,13 @@ my $url         = "http://$remote_host/";
     port    => $port,
 );
 
-my $proxy_res = SL::Client::HTTP->get( \%args );
+diag("grabbing $url through proxy to check for headers");
+my $proxy_res = SL::HTTP::Client->get( \%args );
 
-$res = SL::Client::HTTP->get( { %args, port => 80, host => $remote_host } );
+diag("grabbing $url to check for headers");
+$res = SL::HTTP::Client->get( { %args, port => 80, host => $remote_host } );
 
+$DB::single = 1;
 cmp_ok( $res->code, '==', $proxy_res->code, 'check code' );
 my $regex = qr/(\w+,\s\d+\s\w+\s\d+)/;
 my ($res_date)       = $res->headers->header('Date')       =~ m/$regex/;
@@ -71,3 +76,9 @@ cmp_ok(
     'compare server header'
 );
 
+cmp_ok(
+    length($proxy_res->headers->header('Set-Cookie')),
+    '==',
+    length($res->headers->header('Set-Cookie')),
+    'compare cookie header'
+);
