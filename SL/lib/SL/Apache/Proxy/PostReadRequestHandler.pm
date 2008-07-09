@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Apache2::RequestRec ();
-use Apache2::Const -compile => qw( OK DONE );
+use Apache2::Const -compile => qw( DECLINED DONE );
 use Apache2::Log         ();
 use APR::Table           ();
 use Apache2::RequestUtil ();
@@ -13,11 +13,14 @@ use constant DEBUG      => $ENV{SL_DEBUG}      || 0;
 use constant TIMING     => $ENV{SL_TIMING}     || 0;
 use constant REQ_TIMING => $ENV{SL_REQ_TIMING} || 0;
 
-my $TIMER;
+our $TIMER;
 if ( TIMING or REQ_TIMING ) {
     require RHP::Timer;
     $TIMER = RHP::Timer->new();
 }
+
+# handle missing user agent and apache internal mod_proxy connections
+# also start the global request timer
 
 sub handler {
     my $r = shift;

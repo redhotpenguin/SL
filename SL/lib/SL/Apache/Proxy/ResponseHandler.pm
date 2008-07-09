@@ -20,7 +20,7 @@ Mostly Apache2 and HTTP class based.
 # mp core
 use Apache2::Const -compile => qw( OK SERVER_ERROR NOT_FOUND DECLINED
   REDIRECT LOG_DEBUG LOG_ERR LOG_INFO CONN_KEEPALIVE HTTP_BAD_REQUEST
-  HTTP_UNAUTHORIZED HTTP_SEE_OTHER HTTP_MOVED_PERMANENTLY
+  HTTP_UNAUTHORIZED HTTP_SEE_OTHER HTTP_MOVED_PERMANENTLY DONE
   HTTP_NO_CONTENT HTTP_PARTIAL_CONTENT HTTP_NOT_MODIFIED );
 use Apache2::Connection  ();
 use Apache2::Log         ();
@@ -35,7 +35,7 @@ use Apache2::Filter      ();
 use APR::Table           ();
 
 # sl libraries
-use SL::Config;
+use SL::Config               ();
 use SL::HTTP::Client         ();
 use SL::Model::Ad            ();
 use SL::Cache                ();
@@ -59,11 +59,9 @@ BEGIN {
 }
 
 use constant NOOP_RESPONSE => $CONFIG->sl_noop_response || 0;
-
 use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 use constant TIMING        => $ENV{SL_TIMING}        || 0;
-
 use constant REPLACE_PORT => 8135;
 
 # unencoded http responses must be this big to get an ad
@@ -75,9 +73,7 @@ if (TIMING) {
     $REMOTE_TIMER = RHP::Timer->new();
 }
 
-if ( DEBUG or VERBOSE_DEBUG ) {
-    require Data::Dumper;
-}
+require Data::Dumper if ( DEBUG or VERBOSE_DEBUG);
 
 our %response_map = (
     200 => 'twohundred',
@@ -85,22 +81,20 @@ our %response_map = (
     206 => 'twoohsix',
     301 => 'threeohone',
     302 => 'redirect',
-    303 => 'threeohthree',
+    303 => 'redirect',
     304 => 'threeohfour',
     307 => 'redirect',
-    400 => 'badrequest',
-    401 => 'fourohone',
-    403 => 'fourohthree',
-    404 => 'fourohfour',
+    400 => 'bsod',
+    401 => 'bsod',
+    403 => 'bsod',
+    404 => 'bsod',
     500 => 'bsod',
     503 => 'bsod',
 );
 
 our $CACHE              = SL::Cache->new( type => 'raw' );
 our $RATE_LIMIT         = SL::RateLimit->new;
-our $SUBREQUEST_TRACKER = SL::Cache::Subrequest->new;
-
-use SL::Page::Cache;
+our $SUBREQUEST_TRACKER = SL::Subrequest->new;
 
 =head1 AD SERVING
 
@@ -179,7 +173,6 @@ The question at hand for container is 'will it work?'
 
 =cut
 
-
 sub _build_request_headers {
     my $r = shift;
 
@@ -189,21 +182,18 @@ sub _build_request_headers {
             my $k = shift;
             my $v = shift;
 
-            # skip sl headers
-            return 1 if substr( lc($k), 0, 4 ) eq 'x-sl';
+            # skip connection or keep alive headers, are added by SL::HTTP::Client
+#            return 1 if $k =~ m/^keep-alive/i;
+#            return 1 if $k =~ m/^connection/i;
 
-            # skip connection or keep alive headers
-            return 1 if $k =~ m/^keep-alive/i;
-            return 1 if $k =~ m/^connection/i;
-
-            # skip perlbal headers
-            return 1 if substr( lc($k), 0, 11 ) eq 'x-forwarded';
-            return 1 if substr( lc($k), 0, 7 )  eq 'x-proxy';
-
+            if ($k =~ m/^connection/i) {
+                $headers{$k} = 'keep-alive';
+                return 1;
+            }
             # pass this header onto the remote request
             $headers{$k} = $v;
 
-            return 1;    # don't remove me
+            return 1;    # don't remove me or you will burn in hell baby
         }
     );
 
@@ -237,7 +227,6 @@ sub handler {
     # Build the request headers
     my $headers = _build_request_headers($r);
 
-    # the code above is not a bottleneck
     # start the clock
     $TIMER->start('make_remote_request') if TIMING;
 
@@ -245,20 +234,28 @@ sub handler {
     my $response = eval {
         SL::HTTP::Client->get(
             {
-                headers => $headers,
-                url     => $r->pnotes('url'),
+                headers      => $headers,
+                url          => $r->pnotes('url'),
+                headers_only => 1,
             }
         );
     };
 
+    # dns error or socket timeout, give em the craxy page
     if ($@) {
-        $r->log->info( "$$ error fetching url " . $r->pnotes('url') );
+        $r->log->error( "$$ error fetching url " . $r->pnotes('url') . ": $@" );
         return &crazypage($r);    # haha this page is kwazy!
+    }
+
+    # no response means non html or html too big
+    unless ($response) {
+      $r->log->debug("$$ response non html or too big") if DEBUG;
+      return _non_html_two_hundred( $r );
     }
 
     $r->log->debug(
         "$$ Response headers from proxy request\n",
-        Data::Dumper::Dumper( $response->headers )
+        Data::Dumper::Dumper( $response )
       )
       if DEBUG;
 
@@ -278,8 +275,14 @@ sub handler {
         );
         $sub = $response_map{'404'};
     }
+
+    $r->log->debug(
+        sprintf( "$$ Request returned %d response: %s",
+            $response->code,  $response->as_string )
+      )
+      if VERBOSE_DEBUG;
+
     no strict 'refs';
-    $r->log->debug( "$$ Response code " . $response->code ) if DEBUG;
     return $sub->( $r, $response );
 }
 
@@ -295,65 +298,24 @@ sub crazypage {
     return Apache2::Const::OK;
 }
 
+# handles header translation for non 200 responses
 sub _translate_headers {
     my ( $r, $res ) = @_;
 
+    #############################
     # clear the current headers
     $r->headers_out->clear();
 
-    # first the cookies
-    if ( my @cookies = $res->header('set-cookie') ) {
-        foreach my $cookie (@cookies) {
-            $r->log->debug(
-                sprintf( "err_headers_out add cookie %s", $cookie ) )
-              if VERBOSE_DEBUG;
+    _translate_cookie_and_auth_headers($r, $res);
 
-            $r->err_headers_out->add( 'Set-Cookie' => $cookie );
-
-            # and remove it from the response headers
-            $res->headers->remove_header('Set-Cookie');
-        }
-    }
-
-    # auth headers
-    if ( my @auth_headers = $res->header('www-authenticate') ) {
-
-        $r->log->debug(
-            "Auth headers are " . Data::Dumper::Dumper( \@auth_headers ) )
-          if DEBUG;
-
-        $r->err_headers_out->add( 'www-authenticate' => $_ ) for @auth_headers;
-
-        # remove from response
-        $res->headers->remove_header('www-authenticate');
-    }
-
+    #########################
     # Create a hash with the remaining HTTP::Response HTTP::Headers attributes
     my %headers;
     $res->scan( sub { $headers{ $_[0] } = $_[1]; } );
 
-    # now output the headers to the $r->headers_out->set
-    foreach my $key ( keys %headers ) {
-        next if $key =~ m/^Client/;    # skip HTTP::Response inserted headers
-
-        # some headers have an unecessary newline appended so chomp the value
-        chomp( $headers{$key} );
-
-        # not sure why chomp doesn't fix this
-        if ( $headers{$key} =~ m/\n/ ) {
-            $headers{$key} =~ s/\n/ /g;
-        }
-
-        $r->log->debug(
-            sprintf(
-                "Setting key %s, value %s to headers",
-                $key, $headers{$key}
-            )
-          )
-          if VERBOSE_DEBUG;
-
-        $r->headers_out->set( $key => $headers{$key} );
-    }
+    ##########################################
+    # this is for any additional headers, usually site specific
+    _translate_remaining_headers($r, \%headers);
 
     # set the server header
     $headers{Server} ||= 'sl';
@@ -366,22 +328,11 @@ sub _translate_headers {
 sub twoohfour {
     my ( $r, $res ) = @_;
 
-    $r->log->debug( "$$ Request returned 204 response ",
-        Data::Dumper::Dumper($res) )
-      if VERBOSE_DEBUG;
-
     # status line 204 response
     $r->status( $res->code );
 
     # translate the headers from the remote response to the proxy response
     my $translated = _translate_headers( $r, $res );
-    $r->log->error(
-        sprintf(
-            "header translation error \$r: %s, \$res %s",
-            $r->as_string, Data::Dumper::Dumper($res)
-        )
-      )
-      unless $translated;
 
     # rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
@@ -394,22 +345,13 @@ sub twoohfour {
 sub twoohsix {
     my ( $r, $res ) = @_;
 
-    $r->log->debug( "$$ Request returned 206 response ",
-        Data::Dumper::Dumper($res) )
-      if VERBOSE_DEBUG;
+    # set the status line here and I will beat you with a stick
 
     my $content_type = $res->content_type;
     $r->content_type($content_type) if $content_type;
 
     # translate the headers from the remote response to the proxy response
     my $translated = _translate_headers( $r, $res );
-    $r->log->error(
-        sprintf(
-            "$$ header translation error \$r: %s, \$res %s",
-            $r->as_string, Data::Dumper::Dumper($res)
-        )
-      )
-      unless $translated;
 
     # rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
@@ -424,34 +366,6 @@ sub twoohsix {
 sub bsod {
     my ( $r, $res ) = @_;
 
-    $r->log->debug( "$$ Request returned 500, response ",
-        Data::Dumper::Dumper($res) )
-      if VERBOSE_DEBUG;
-
-    # setup response
-    $r->status( $res->code );
-
-    my $content_type = $res->content_type;
-    $r->content_type($content_type) if $content_type;
-
-    # translate the headers from the remote response to the proxy response
-    my $translated = _translate_headers( $r, $res );
-
-    # rflush() flushes the headers to the client
-    # thanks to gozer's mod_perl for speed presentation
-
-    $r->rflush();
-    $r->print( $res->content );
-    return Apache2::Const::OK;
-}
-
-sub badrequest {
-    my ( $r, $res ) = @_;
-
-    $r->log->debug( "$$ Request returned 400, response ",
-        Data::Dumper::Dumper($res) )
-      if VERBOSE_DEBUG;
-
     # setup response
     $r->status( $res->code );
 
@@ -465,269 +379,110 @@ sub badrequest {
     # thanks to gozer's mod_perl for speed presentation
     $r->rflush();
 
-    # send the response (400 in status line)
     $r->print( $res->content );
-    return Apache2::Const::OK;
-}
 
-sub fourohone {
-    my ( $r, $res ) = @_;
-
-    $r->log->debug( "$$ Request returned 401, auth headers: ",
-        Data::Dumper::Dumper( $res->header('www-authenticate') ) )
-      if DEBUG;
-
-    # setup response
-    $r->status( $res->code );
-
-    my $content_type = $res->content_type;
-    $r->content_type($content_type) if $content_type;
-
-    my $translated = _translate_headers( $r, $res );
-
-    # rflush() flushes the headers to the client
-    # thanks to gozer's mod_perl for speed presentation
-    $r->rflush();
-
-    # print the custom response content, and return OK (401 in status_line)
-    $r->print( $res->content );
-    return Apache2::Const::OK;
-}
-
-sub fourohthree {
-    my ( $r, $res ) = @_;
-
-    $r->log->debug( "$$ Request returned 403, response ",
-        Data::Dumper::Dumper($res) )
-      if VERBOSE_DEBUG;
-
-    # set the status
-    $r->status( $res->code );
-
-    my $content_type = $res->content_type;
-    $r->content_type($content_type) if $content_type;
-
-    my $translated = _translate_headers( $r, $res );
-
-    # rflush() flushes the headers to the client
-    # thanks to gozer's mod_perl for speed presentation
-    $r->rflush();
-
-    # print the custom response content, and return OK (401 in status_line)
-    $r->print( $res->content );
-    return Apache2::Const::OK;
-}
-
-sub fourohfour {
-    my ( $r, $res ) = @_;
-
-    $r->log->debug( "$$ Request returned 404, response ",
-        Data::Dumper::Dumper($res) )
-      if VERBOSE_DEBUG;
-
-    # setup response
-    $r->status( $res->code );
-
-    my $content_type = $res->content_type;
-    $r->content_type($content_type) if $content_type;
-
-    my $translated = _translate_headers( $r, $res );
-
-    # rflush() flushes the headers to the client
-    # thanks to gozer's mod_perl for speed presentation
-    $r->rflush();
-
-    # send the response (404 in status line)
-    $r->print( $res->content );
     return Apache2::Const::OK;
 }
 
 sub threeohone {
     my ( $r, $res ) = @_;
 
-    $r->log->debug(
-        sprintf(
-            "$$ status line %s, response: %s",
-            $res->status_line, Data::Dumper::Dumper($res)
-        )
-      )
-      if VERBOSE_DEBUG;
-
-    # set the status line
-    #$r->status($res->code);
-    $r->log->debug( "$$ status line is " . $res->status_line ) if DEBUG;
-
     my $content_type = $res->content_type;
     $r->content_type($content_type) if $content_type;
 
     # translate the headers from the remote response to the proxy response
     my $translated = _translate_headers( $r, $res );
-    $r->log->error(
-        sprintf(
-            "$$ header translation error \$r: %s, \b$res %s",
-            $r->as_string, Data::Dumper::Dumper($res)
-        )
-      )
-      unless $translated;
-
-    # rflush() flushes the headers to the client
-    # thanks to gozer's mod_perl for speed presentation
-    #$r->rflush();
-
-    $r->log->debug( "$$ Request: \n" . $r->as_string ) if VERBOSE_DEBUG;
 
     # do not change this line
     return Apache2::Const::HTTP_MOVED_PERMANENTLY;
 }
 
+# 302, 303, 307
 sub redirect {
     my ( $r, $res ) = @_;
 
-    $r->log->debug(
-        sprintf(
-            "$$ status line %s, response: %s",
-            $res->status_line, Data::Dumper::Dumper($res)
-        )
-      )
-      if DEBUG;
-
-    # set the status line
-    #$r->status($res->code);
-    
-    $r->log->debug( "$$ status line is " . $res->status_line ) if DEBUG;
-
     # translate the headers from the remote response to the proxy response
     my $translated = _translate_headers( $r, $res );
-
-    # no content type needed
-    $r->headers_out->unset('Content-Type');
-$r->headers_out->add('TEST' => 1);
-    # rflush breaks things, do not change this!
-    # $r->rflush();
-
-    $r->log->error(
-        sprintf(
-            "header translation error \$r: %s, \$res %s",
-            $r->as_string, Data::Dumper::Dumper($res)
-        )
-      )
-      unless $translated;
-
-    $r->log->debug( "$$ Request: \n" . $r->as_string ) if VERBOSE_DEBUG;
 
     # do not change this line
     return Apache2::Const::REDIRECT;
 }
 
-# same as a 302 just different status line and constants
-sub threeohthree {
-    my ( $r, $res ) = @_;
-
-    # set the status line
-    #$r->status($res->code);
-    $r->log->debug( "status line is " . $res->status_line ) if DEBUG;
-
-    # translate the headers from the remote response to the proxy response
-    my $translated = _translate_headers( $r, $res );
-
-    # rflush breaks things, do not change this!
-    # $r->rflush();
-
-    $r->log->error(
-        sprintf(
-            "header translation error \$r: %s, \$res %s",
-            $r->as_string, Data::Dumper::Dumper($res)
-        )
-      )
-      unless $translated;
-
-    $r->log->debug( "$$ Request: \n" . $r->as_string ) if VERBOSE_DEBUG;
-
-    # do not change this line
-    return Apache2::Const::REDIRECT;
-}
-
-# same as a 302 just different status line and constants
 sub threeohfour {
     my ( $r, $res ) = @_;
 
     # set the status line
     $r->status( $res->code );
-    $r->log->debug( "status line is " . $res->status_line ) if DEBUG;
 
     # translate the headers from the remote response to the proxy response
     my $translated = _translate_headers( $r, $res );
-
-    # rflush breaks things, do not change this!
-    # $r->rflush();
-
-    $r->log->error(
-        sprintf(
-            "header translation error \$r: %s, \$res %s",
-            $r->as_string, Data::Dumper::Dumper($res)
-        )
-      )
-      unless $translated;
-
-    $r->log->debug( "$$ Request: \n" . $r->as_string ) if VERBOSE_DEBUG;
 
     # do not change this line
     return Apache2::Const::OK;
 }
 
 sub _non_html_two_hundred {
-    my ( $r, $res ) = @_;
+    my $r = shift;
 
-    # set the status
-    $r->status( $res->code );
+    my $url = $r->construct_url( $r->unparsed_uri );
 
-    my $content_type = $res->content_type;
-    $r->content_type($content_type) if $content_type;
+    # send to perlbal to reproxy
+    $r->headers_out->add( 'X-REPROXY-URL' => $url );
+    $r->set_handlers( PerlLogHandler => undef );
 
-    my $translated = _translate_headers( $r, $res );
+    return Apache2::Const::DONE;
+}
 
-    $r->rflush();
+sub _translate_cookie_and_auth_headers {
+    my ($r, $res) = @_;
 
-    $r->print( $res->content );
+    ################################################
+    # process the www-auth and set-cookie headers
+    no strict 'refs';
+    foreach my $header_type qw( set-cookie www-authenticate ) {
+        next unless defined $res->header($header_type);
 
-    return Apache2::Const::OK;
+        my @headers = $res->header($header_type);
+        foreach my $header (@headers) {
+            $r->log->debug("setting header $header_type value $header") if DEBUG;
+            $r->err_headers_out->add( $header_type => $header );
+        }
+
+        # and remove it from the response headers
+        my $removed = $res->headers->remove_header($header_type);
+        $r->log->debug("$$ translated $removed $header_type headers") if DEBUG;
+    }
+
+    return 1;
 }
 
 sub _set_response_headers {
-    my ( $r, $response, $response_content_ref ) = @_;
+    my ( $r, $res, $response_content_ref ) = @_;
 
     # This loops over the response headers and adds them to headers_out.
     # Override any headers with our own here
     my %headers;
     $r->headers_out->clear();
 
-    # Handle the cookies first.  We'll get multiple headers for set-cookie
-    # for example with sites with netflix.  We need to have a generic method
-    # of dealing with headers that are returning multiple values per key,
-    # we're covering the set-cookie header but I'm sure we're missing some
-    # other headers that will bite us at some point, so FIXME TODO
-    foreach my $cookie ( $response->header('set-cookie') ) {
-        $r->headers_out->add( 'Set-Cookie' => $cookie );
-    }
-    $response->headers->remove_header('Set-Cookie');
+    _translate_cookie_and_auth_headers($r, $res);
 
     # Create a hash with the HTTP::Response HTTP::Headers attributes
-    $response->scan( sub { $headers{ $_[0] } = $_[1]; } );
+    $res->scan( sub { $headers{ $_[0] } = $_[1]; } );
     $r->log->debug(
-        sprintf( "Response headers: %s", Data::Dumper::Dumper( \%headers ) ) )
+        sprintf( "not cookie/auth headers: %s", Data::Dumper::Dumper( \%headers ) ))
       if DEBUG;
 
     ## Set the response content type from the request, preserving charset
-    my $content_type = $response->header('content-type');
+    my $content_type = $res->header('content-type');
     $r->content_type( $headers{'Content-Type'} || '' );
     delete $headers{'Content-Type'};
 
     #############################
     ## Content languages
     if ( defined $headers{'content-language'} ) {
-        $r->content_languages( [ $response->header('content-language') ] );
+        $r->content_languages( [ $res->header('content-language') ] );
         $r->log->debug( "$$ content languages set to "
-              . $response->header('content_language') )
+              . $res->header('content_language') )
           if DEBUG;
         delete $headers{'Content-Language'};
     }
@@ -795,28 +550,7 @@ sub _set_response_headers {
 
     ##########################################
     # this is for any additional headers, usually site specific
-    foreach my $key ( keys %headers ) {
-
-        # we set this manually
-        next if lc($key) eq 'server';
-
-        # skip HTTP::Response inserted headers
-        next if substr( lc($key), 0, 6 ) eq 'client';
-
-        # let apache set these
-        next if substr( lc($key), 0, 10 ) eq 'connection';
-        next if substr( lc($key), 0, 10 ) eq 'keep-alive';
-
-        # some headers have an unecessary newline appended so chomp the value
-        chomp( $headers{$key} );
-        if ( $headers{$key} =~ m/\n/ ) {
-            $headers{$key} =~ s/\n/ /g;
-        }
-
-        $r->log->debug( "Setting header key $key, value " . $headers{$key} )
-          if DEBUG;
-        $r->headers_out->set( $key => $headers{$key} );
-    }
+    _translate_remaining_headers($r, \%headers);
 
     ###############################
     # possible through a nasty hack, set the server version
@@ -829,22 +563,45 @@ sub _set_response_headers {
     return 1;
 }
 
+sub _translate_remaining_headers {
+    my ($r, $headers) = @_;
+
+    foreach my $key ( keys %{$headers} ) {
+
+        # we set this manually
+        next if lc($key) eq 'server';
+
+        # skip HTTP::Response inserted headers
+        next if substr( lc($key), 0, 6 ) eq 'client';
+
+        # let apache set these
+        next if substr( lc($key), 0, 10 ) eq 'connection';
+        next if substr( lc($key), 0, 10 ) eq 'keep-alive';
+
+        # some headers have an unecessary newline appended so chomp the value
+        chomp( $headers->{$key} );
+        if ( $headers->{$key} =~ m/\n/ ) {
+            $headers->{$key} =~ s/\n/ /g;
+        }
+
+        $r->log->debug( "Setting header key $key, value " . $headers->{$key} )
+          if DEBUG;
+        $r->headers_out->set( $key => $headers->{$key} );
+    }
+
+    return 1;
+}
+
 sub twohundred {
     my ( $r, $response ) = @_;
 
     my $url = $r->pnotes('url');
-    $r->log->debug("$$ Request to $url returned 200") if DEBUG;
 
-    # Cache the content_type
-    if ( defined $response->content_type && ( $response->content_type ne '' ) )
-    {
-        $CACHE->add_known_html( $url => $response->content_type );
-    }
+    return _non_html_two_hundred( $r ) if !$response->is_html;
 
-    # check to make sure it's HTML first
-    $r->log->debug("$$ ===> request is_html: " . $response->is_html ) if DEBUG;
-    
-    return _non_html_two_hundred( $r, $response ) unless $response->is_html;
+    # Cache the content_type, some misnomers in this section re: html
+    $CACHE->add_known_html( $url => $response->content_type );
+
     # code above is not a bottleneck
     ####################################
 
@@ -863,12 +620,8 @@ sub twohundred {
     # ad-serving page, and it's not too soon after a previous ad was served
     my $response_content_ref;
     my $ad_served;
-    if (
-
-        # not enough content means it's probably not a real page
-        ( not $is_toofast )
-        and ( not $SUBREQUEST_TRACKER->is_subrequest( url => $url ) )
-      )
+    if (    ( not $is_toofast )
+        and ( not $SUBREQUEST_TRACKER->is_subrequest( url => $url ) ) )
     {
 
         # put an ad in the response
@@ -877,9 +630,9 @@ sub twohundred {
         if ( !$response_content_ref ) {
 
             # we could not serve an ad on this page for some reason
-            $r->log->info(
+            $r->log->debug(
                 "$$ ad not served, _generate_response failed url $url");
-            return _non_html_two_hundred( $r, $response );
+            return _non_html_two_hundred( $r );
 
         }
         else {
@@ -897,9 +650,7 @@ sub twohundred {
     }
 
     # settings for ad not served
-    unless ($ad_served) {
-        $response_content_ref = \$response->decoded_content;
-    }
+    $response_content_ref = \$response->decoded_content unless $ad_served;
 
     ##############################################
     # grab the links from the page and stash them
@@ -979,7 +730,7 @@ sub _generate_response {
     my $ua      = $r->pnotes('ua');
     my $referer = $r->pnotes('referer');
 
-    # It is a fix for sites like google, yahoo who send encoded UTF-8 et al
+    # grab the decoded content
     my $decoded_content        = $response->decoded_content;
     my $content_needs_encoding = 1;
 
@@ -993,36 +744,35 @@ sub _generate_response {
         $content_needs_encoding = 0;
     }
 
-    # check to make sure that the content can accept an ad	
+    # check to make sure that the content can accept an ad
+    $r->log->debug("$$ content length is " . length($decoded_content)) if DEBUG;
+
 	unless (length($decoded_content) > MIN_CONTENT_LENGTH) {
 	    $r->log->debug("$$ content too small for ad: " . length($decoded_content))
             if DEBUG;
-        $r->log->debug("$$ small content is \n$decoded_content\n") if DEBUG;
+        $r->log->debug("$$ small content is \n$decoded_content\n") if VERBOSE_DEBUG;
 
         ## TODO - mark for perlbal next time
 		return;
 	}
 
-    $r->log->debug("$$ content length is " . length($decoded_content)) if DEBUG;
-
     ##############################################################
-    # put the ad in the response
+    # grab an ad
     $TIMER->start('random_ad') if TIMING;
 
-    my ( $ad_id, $ad_content_ref, $css_url ) = SL::Model::Ad->random(
-        {
+    my %ad_args = (
             ip   => $r->connection->remote_ip,
             url  => $url,
             mac  => $r->pnotes('router_mac'),
             user => $r->pnotes('hash_mac'),
-        }
     );
+    $ad_args{premium} = 1 if $r->pnotes('premium');
+    my ( $ad_zone_id, $ad_content_ref, $css_url ) = SL::Model::Ad->random(\%ad_args);
 
     # checkpoint random ad
     $r->log->info(
         sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
       if TIMING;
-
 
     $r->log->debug("Ad content is \n$$ad_content_ref\n") if VERBOSE_DEBUG;
 
@@ -1030,76 +780,34 @@ sub _generate_response {
         $r->log->error("$$ Hmm, we didn't get an ad for url $url");
         return;
     }
-   
+
+    ########################################
+    # put the ad in the page
     $TIMER->start('container insertion') if TIMING;
+    my $ok =
+      SL::Model::Ad::container( $css_url, \$decoded_content, $ad_content_ref );
 
-    # Skip ad insertion if $skips regex match on decoded_content
-    # It is a fix for sites like google, yahoo who send encoded UTF-8 et al
-    my $decoded_content        = $response->decoded_content;
-    my $content_needs_encoding = 1;
+    # checkpoint
+    $r->log->info(
+        sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
+      if TIMING;
 
-    unless ( length($decoded_content) > MIN_CONTENT_LENGTH ) {
-        $r->log->debug("$$ content too small, skipping ad insertion") if DEBUG;
-        return;
-    }
+    unless ($ok) {
 
-    unless ( defined $decoded_content ) {
-
-        # hmmm, in some cases decoded_content is null so we use regular content
-        # https://www.redhotpenguin.com/bugzilla/show_bug.cgi?id=424
-        $decoded_content = $response->content;
-
-        # don't try to re-encode it in this case
-        $content_needs_encoding = 0;
-    }
-
-    if ( $decoded_content =~ m/$SKIPS/is ) {
-        $r->log->debug("$$ Skipping ad insertion from skips regex")
-          if DEBUG;
-        return;
-    }
-    else {
-        $TIMER->start('container insertion') if TIMING;
-
-        # put the ad in the page
-        my $ok =
-          SL::Model::Ad::container( $css_url, \$decoded_content,
-            $ad_content_ref );
-
-        # checkpoint
+        # TODO - mark url to be skipped next time
         $r->log->info(
-            sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
-          if TIMING;
-
-        unless ($ok) {
-
-            # TODO - mark url to be skipped next time
-            $r->log->info(
-                "could not insert ad id $ad_id into url $url, css $css_url");
-            return;
-    }
-
-    # Check to see if the ad is inserted
-    unless ( grep( $$ad_content_ref, $decoded_content ) ) {
-        require Data::Dumper;
-        $r->log->error(
-            sprintf( "$$ Ad insertion failed, response: %s",
-                Data::Dumper::Dumper($response) )
-        );
-        $r->log->error(
-            "$$ Munged response $decoded_content, ad $$ad_content_ref");
+            "could not insert ad id $ad_zone_id into url $url, css $css_url");
         return;
     }
 
     # We've made it this far so we're looking good
-    $r->log->debug("$$ Ad inserted url $url; referer: $referer;")
-      if DEBUG;
+    $r->log->debug("$$ Ad inserted url $url; referer: $referer;") if DEBUG;
 
     $r->log->debug("$$ Munged response is \n $decoded_content")
       if VERBOSE_DEBUG;
 
     # Log the ad view later
-    $r->pnotes( ad_id => $ad_id );
+    $r->pnotes( ad_zone_id => $ad_zone_id );
 
     # re-encode content if needed
     if ($content_needs_encoding) {

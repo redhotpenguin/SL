@@ -23,3 +23,4 @@ my %args = (
 
 my $proxy_res = SL::Client::HTTP->get( \%args );
 cmp_ok($proxy_res->code, '==', 200, 'check 200 rc');
+

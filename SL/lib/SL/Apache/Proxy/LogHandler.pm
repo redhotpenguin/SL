@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use SL::Model::Ad ();
-use Apache2::Const -compile => qw( DECLINED LOG_INFO);
+use Apache2::Const -compile => qw( DECLINED );
 use Apache2::RequestUtil ();
 use Apache2::Log         ();
 
@@ -15,10 +15,10 @@ BEGIN {
     $CONFIG = SL::Config->new;
 }
 
-use constant TIMING     => $ENV{SL_TIMING}     || 0;
-use constant REQ_TIMING => $ENV{SL_REQ_TIMING} || 0;
-use constant DEBUG      => $ENV{SL_DEBUG}      || 0;
-use constant VERBOSE_DEBUG      => $ENV{SL_VERBOSE_DEBUG}      || 0;
+use constant TIMING        => $ENV{SL_TIMING}        || 0;
+use constant REQ_TIMING    => $ENV{SL_REQ_TIMING}    || 0;
+use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
+use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 
 my $TIMER;
 if (TIMING) {
@@ -35,7 +35,7 @@ sub handler {
     unless ($url) {
         $r->log->error("$$ no url in loghandler, something is broken");
         return Apache2::Const::DECLINED;
-      }
+    }
 
     $r->log->debug("$$ executing LogHandler for url $url") if VERBOSE_DEBUG;
     if ( $url =~ m/sl_secret/ ) {
@@ -43,15 +43,20 @@ sub handler {
         return Apache2::Const::DECLINED;
     }
 
-	if ( (! $r->pnotes('hash_mac') ) or 
-		 (! $r->pnotes('router_mac')) ) {
-		# something is weird, so log it
-		$r->log->error(sprintf(
-			"e: args sl_header %s, hash_mac %s, router %s, url %s, ip %s, ad_id %d",
-		   	$r->pnotes('sl_header'), $r->pnotes('hash_mac'),
-            $r->pnotes('router_mac'),
-			$r->pnotes('url'), $r->connection->remote_ip, $r->pnotes('ad_id')));
-	}
+    if (   ( !$r->pnotes('hash_mac') )
+        or ( !$r->pnotes('router_mac') ) )
+    {
+
+        # something is weird, so log it
+        $r->log->error(
+            sprintf(
+"e: args sl_header %s, hash_mac %s, router %s, url %s, ip %s, ad_id %d",
+                $r->pnotes('sl_header'),   $r->pnotes('hash_mac'),
+                $r->pnotes('router_mac'),  $r->pnotes('url'),
+                $r->connection->remote_ip, $r->pnotes('ad_zone_id')
+            )
+        );
+    }
 
     $r->subprocess_env( "SL_URL" => sprintf( 'sl_url|%s', $url ) );
 
@@ -68,35 +73,35 @@ sub handler {
     }
 
     # for subrequests we don't have any log_data since no ad was inserted
-    return Apache2::Const::DECLINED unless $r->pnotes('ad_id');
+    return Apache2::Const::DECLINED unless $r->pnotes('ad_zone_id');
 
     $TIMER->start('log_ad_view') if TIMING;
     my $logged = SL::Model::Ad->log_view(
         {
-            ad_id   => $r->pnotes('ad_id'),
-            ip      => $r->connection->remote_ip,
-            user    => $r->pnotes('hash_mac'),
-            mac     => $r->pnotes('router_mac'),
-            url     => $r->pnotes('url'),
-            referer => $r->pnotes('referer') || ''
+            ad_zone_id => $r->pnotes('ad_zone_id'),
+            ip         => $r->connection->remote_ip,
+            user       => $r->pnotes('hash_mac'),
+            mac        => $r->pnotes('router_mac'),
+            url        => $r->pnotes('url'),
+            referer    => $r->pnotes('referer') || ''
         }
     );
     $r->log->debug(
         sprintf(
-            "$$ logging view for url %s, ad_id %d",
-            $url, $r->pnotes('ad_id')
+            "$$ logging view for url %s, ad_zone_id %d",
+            $url, $r->pnotes('ad_zone_id')
         )
-      )
-      if DEBUG;
+    ) if DEBUG;
 
     $r->log->error(
-        sprintf( "$$ Error logging view  ad_id %d",
-            @{ $r->pnotes('log_data') } )
-      )
-      unless $logged;
+        sprintf(
+            "$$ Error logging view ad_id %d", @{ $r->pnotes('log_data') }
+        )
+    ) unless $logged;
 
     # checkpoint
-    $r->log->info( sprintf( "$$ timer %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
+    $r->log->info(
+        sprintf( "$$ timer %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
       if TIMING;
 
     return Apache2::Const::DECLINED;

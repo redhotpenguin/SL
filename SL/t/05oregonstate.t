@@ -10,7 +10,8 @@ use SL::Config;
 my $CONFIG = SL::Config->new;
 my ( $host, $port ) = split ( /:/, $CONFIG->sl_proxy_apache_listen );
 
-use SL::Client::HTTP;
+use SL::HTTP::Client;
+$SL::HTTP::Client::Test = 1;
 
 my %args = (
     host => $host,
@@ -19,7 +20,7 @@ my %args = (
 
 my $url   = 'http://coed.bus.oregonstate.edu/FSSearch.aspx';
 
-my $res = SL::Client::HTTP->get( { %args, url => $url, } );
+my $res = SL::HTTP::Client->get( { %args, url => $url, } );
 
 cmp_ok($res->code, '==', 401, 'check 401 rc');
 

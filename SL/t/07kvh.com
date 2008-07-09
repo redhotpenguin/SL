@@ -3,13 +3,14 @@
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 4;
+use Test::More tests => 7;
 
 use SL::Config;
 my $CONFIG = SL::Config->new;
 my ( $host, $port ) = split ( /:/, $CONFIG->sl_proxy_apache_listen );
 
-use SL::Client::HTTP;
+use SL::HTTP::Client;
+$SL::HTTP::Client::Test = 1;
 
 my $remote_host = 'www.kauaivacationhideaway.com';
 my $url         = "http://$remote_host/";
@@ -20,8 +21,8 @@ my %args = (
     port    => $port,
 );
 
-my $proxy_res = SL::Client::HTTP->get( \%args );
-my $res = SL::Client::HTTP->get( { %args, port => 80, host => $remote_host } );
+my $proxy_res = SL::HTTP::Client->get( \%args );
+my $res = SL::HTTP::Client->get( { %args, port => 80, host => $remote_host } );
 
 my @headers = qw( date content-length transfer-encoding );
 $" = '|';

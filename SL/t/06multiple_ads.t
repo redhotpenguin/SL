@@ -20,7 +20,8 @@ use SL::Config;
 my $CONFIG = SL::Config->new;
 my ( $host, $port ) = split ( /:/, $CONFIG->sl_proxy_apache_listen );
 
-use SL::Client::HTTP;
+use SL::HTTP::Client;
+$SL::HTTP::Client::Test = 1;
 
 my %args = (
     host => $host,
@@ -37,7 +38,7 @@ my @urls = qw(
   );
 
 foreach my $url (@urls) {
-    my $response = SL::Client::HTTP->get( { %args, url => $url, } );
+    my $response = SL::HTTP::Client->get( { %args, url => $url, } );
 
     cmp_ok($response->code, '==', 200, 'check 200 rc');
 
@@ -66,7 +67,7 @@ sub _test_subrequests {
         }
 
         # check that the sub-req doesn't have ads
-        my $response = SL::Client::HTTP->get( { %args, url => $url, } );
+        my $response = SL::HTTP::Client->get( { %args, url => $url, } );
         cmp_ok($response->code, '==', 200, 'check 200 rc');
         ok($response->decoded_content !~ m{sl_ad_text}i,
             "no silverlining content for $url");

@@ -1,7 +1,7 @@
 0.13
     - handle version in firmware 0.19
     - cleanup the compression logic
-	- fix bug with 'Close this Bar'
+    - fix bug with 'Close this Bar'
     - opera browser handler
 
 0.12 Dec 03 23:02:08 2007

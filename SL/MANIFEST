@@ -17,16 +17,10 @@ conf/startup_proxy.pl
 conf/mime.types
 bin/configure_httpd_ssl_2_2
 bin/httpd_single_start
-bin/run_fw.pl
 bin/httpd_proxy_start
-bin/firewall_gateway
 bin/sl_proxy
-bin/grab.pl
-bin/linksys_configure.pl
-bin/perlbal
 bin/configure_httpd_2_0
 bin/configure_httpd_2_2
-bin/firewall_bridge
 src/Text-Balanced-v2.0.0.tar.gz
 src/Class-C3-0.14.tar.gz
 src/IO-Compress-Base-2.001.tar.gz

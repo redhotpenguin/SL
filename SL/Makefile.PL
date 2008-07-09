@@ -5,7 +5,7 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
               NAME      => 'SL',
-              VERSION   => '0.12',
+              VERSION   => '0.13',
               PREREQ_PM => {
                             'Apache::DBI'          => 1.06,
                             'Cache::FastMmap'      => 1.14,
@@ -22,7 +22,7 @@ WriteMakefile(
                             'SL::RateLimit'        => 0.01,
                             'SL::Subrequest'       => 0.01,
                             'SL::Config'           => 0.14,
-                            'SL::HTTP::Client'     => 0.01,
+                            'SL::HTTP::Client'     => 0.02,
                             'SL::Static'           => 0.12,
                             'SL::Model'            => 0.14,
                             'RHP::Timer'           => 0.1,

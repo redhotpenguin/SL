@@ -13,13 +13,13 @@ use SL::Model::Proxy::Location ();
 sub handler {
     my $r = shift;
 
-    # allow /sl_secret_ping_button to pass through
+    # allow /sl_secret_ping_button to pass through so that routers can register
     my $url = $r->construct_url( $r->unparsed_uri );
-    if ( $url =~ m!/sl_secret_ping_button! ) {
+    if ( substr( $r->unparsed_uri, 0, 22 ) eq '/sl_secret_ping_button' ) {
         return Apache2::Const::OK;
     }
 
-    # perlbal proxy
+    # delete the X-Forwarded header and set the connection ip
     if ( defined $r->headers_in->{'X-Forwarded-For'} ) {
         $r->connection->remote_ip( $r->headers_in->{'X-Forwarded-For'} );
         delete $r->headers_in->{'X-Forwarded-For'};
@@ -54,7 +54,7 @@ sub handler {
     }
     elsif ( !$location_id ) {
 
-        # unauthorized attempt
+        # unauthorized attempt, probably a bot
         $r->log->error(
             sprintf(
                 "client ip %s unregistered access attempt to url %s",

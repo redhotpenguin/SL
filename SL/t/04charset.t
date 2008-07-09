@@ -17,7 +17,8 @@ use SL::Config;
 my $CONFIG = SL::Config->new;
 my ( $host, $port ) = split ( /:/, $CONFIG->sl_proxy_apache_listen );
 
-use SL::Client::HTTP;
+use SL::HTTP::Client;
+$SL::HTTP::Client = 1;
 
 my %args = (
     host => $host,
@@ -40,7 +41,7 @@ SKIP: {
     foreach my $test (@tests) {
         my ( $url, $expected_charset ) = @$test;
 
-        my $response = SL::Client::HTTP->get( { %args, url => $url, } );
+        my $response = SL::HTTP::Client->get( { %args, url => $url, } );
 
         # pull out the character set from the content-type header
         my $charset;
