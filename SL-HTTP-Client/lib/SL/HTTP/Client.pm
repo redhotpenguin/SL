@@ -3,7 +3,7 @@ package SL::HTTP::Client;
 use strict;
 use warnings;
 
-our $VERSION = 0.01;
+our $VERSION = 0.02;
 
 =head1 NAME
 
@@ -66,27 +66,40 @@ use HTTP::Response;
 use HTTP::Headers;
 use Carp qw(croak);
 
+use SL::Config;
+our $Config;
+
+our $Test = 0;
+
+BEGIN {
+    $Config = SL::Config->new;
+}
+
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
+use constant MAX_CONTENT_LENGTH => $Config->sl_max_content_length || 131072;
+
 my %default_headers = (
     'Accept-Encoding' => 'gzip,deflate',
     'Accept-Charset'  => 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
     'Accept-Lang'     => 'en-us,en;q=0.5',
-    'Accept'          =>
+    'Accept' =>
 'text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5',
     'User-Agent' =>
 'Mozilla/5.0 (Macintosh; U; PPC Mac OS X Mach-O; en-US; rv:1.8.0.2) Gecko/20060308 Firefox/1.5.0.2',
+    'X-SL' => '12345678|0017f24338bd',
 );
 
 sub get {
-    my ($self, $args_ref)  = @_;
-    unless ($args_ref->{url}) {
-      warn("$$ no url passed, returning");
-      return;
+    my ( $self, $args_ref ) = @_;
+    unless ( $args_ref->{url} ) {
+        warn("$$ no url passed, returning");
+        return;
     }
-    my $url = $args_ref->{url};
+    my $url  = $args_ref->{url};
     my $host = $args_ref->{host} || $args_ref->{headers}->{Host} || 'localhost';
     my $port = $args_ref->{port} || 80;
 
-    $url = URI->new( $url )
+    $url = URI->new($url)
       or warn("Unable to parse url '$url'.") && return;
 
     my $headers = $args_ref->{headers} || \%default_headers;
@@ -98,8 +111,7 @@ sub get {
         Host     => $url->host,
         PeerAddr => $host,
         PeerPort => $port
-      )
-      || die $@;
+    ) || die $@;
 
     # set keep alive
     $http->keep_alive(1);
@@ -117,15 +129,40 @@ sub get {
 
     # read response body
     my $body = "";
+    my $response = _build_response( $code, $mess, \@headers_out, \$body );
+
+    if ( !$SL::HTTP::Client::Test ) {
+
+        # is this response html?
+        #return unless $response->is_html;
+
+        # is this response too big?
+        my $content_length = $response->headers->header('Content-Length') || 0;
+        if ( $content_length > MAX_CONTENT_LENGTH ) {
+            warn("content length $content_length exceeds maximum limit")
+              if DEBUG;
+            return;
+        }
+    }
+
     while (1) {
+
         my $buf;
         my $n = $http->read_entity_body( $buf, 10240 );
         die "read failed: $!" unless defined $n;
         last                  unless $n;
         $body .= $buf;
+
+        if ( !$SL::HTTP::Client::Test ) {
+            if ( length($body) > MAX_CONTENT_LENGTH ) {
+                warn("content length " . length($body) . " exceeds maximum limit")
+                  if DEBUG;
+                return;
+            }
+        }
     }
 
-    my $response = _build_response( $code, $mess, \@headers_out, \$body );
+    $response->content_ref( \$body );
     return $response;
 }
 
@@ -149,7 +186,8 @@ sub _build_response {
 
     *HTTP::Response::should_compress = sub {
         $" = '|';
-        my @compressibles; # = qw( text/html text/xml text/plain application/pdf );
+        my @compressibles
+          ;    # = qw( text/html text/xml text/plain application/pdf );
         return 1 if ( shift->content_type =~ m/(?:@compressibles)/ );
         return;
     };
