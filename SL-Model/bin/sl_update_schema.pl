@@ -48,11 +48,10 @@ $dbh->do("drop table ad_group");
 
 $dbh->do("drop table bug");
 
+warn("dropping router columns");
 $dbh->do("alter table router drop column replace_port");
 $dbh->do("alter table router drop column bug_image_href");
 $dbh->do("alter table router drop column bug_link_href");
-
-warn("drop the feeds");
 $dbh->do("alter table router drop column feed_google");
 $dbh->do("alter table router drop column feed_linkshare");
 
@@ -62,6 +61,7 @@ $dbh->do("alter table reg drop column $_")
             payment_threshold );
 
 # load the acccount table
+warn("updating accounts");
 `psql -d $db -f $sql_root/account.sql`;
 $dbh->do("insert into account (name) values ('Silver Lining')");
 $dbh->do("insert into account (name) values ('Kharma Consulting')");
@@ -80,7 +80,11 @@ $dbh->do("insert into account (name) values ('DavidWu')");
 $dbh->do("insert into account (name) values ('Lane-8')");
 $dbh->do("insert into account (name) values ('Marina Roof')");
 $dbh->do("insert into account (name) values ('Medhat')");
+$dbh->do("insert into account (name) values ('TMN')");
 
+$dbh->do("update account set premium='t' where account_id = 2");
+
+warn("updating reg");
 $dbh->do("alter table reg add column account_id integer not null default 1 references account(account_id) on update cascade on delete cascade");
 $dbh->do("update reg set account_id = 2 where reg_id in ( 62, 60 )"); # kharma
 $dbh->do("update reg set account_id = 3 where reg_id in ( 64 )"); # desitec
@@ -98,13 +102,18 @@ $dbh->do("update reg set account_id = 14 where reg_id in ( 65 )"); # David Wu
 $dbh->do("update reg set account_id = 15 where reg_id in ( 66 )"); # Lane-8
 $dbh->do("update reg set account_id = 16 where reg_id in ( 57 )"); # Marina Roof
 $dbh->do("update reg set account_id = 17 where reg_id in ( 63 )"); # Medhat
+$dbh->do("update reg set account_id = 18 where reg_id in ( 69 )"); # Thomas Norcio
+
+
+
+warn("updating routers");
 
 $dbh->do("alter table router add column account_id integer not null default 1 references account(account_id) on update cascade on delete cascade");
 
 $dbh->do("update router set account_id = 2 where router_id in ( 80,61,60,62, 58, 64,69, 63 )");
 $dbh->do("update router set account_id = 3 where router_id in ( 79 )");
-
 $dbh->do("update router set account_id = 6 where router_id in ( 45 )");
+$dbh->do("update router set account_id = 7 where router_id in ( 66 )");
 $dbh->do("update router set account_id = 8 where router_id in ( 37 )");
 $dbh->do("update router set account_id = 9 where router_id in ( 33, 52 )");
 $dbh->do("update router set account_id = 10 where router_id in ( 38, 68 )"); # ad val
@@ -114,6 +123,7 @@ $dbh->do("update router set account_id = 14 where router_id in ( 81 )"); # david
 $dbh->do("update router set account_id = 15 where router_id in ( 72 )"); # essam lane-8
 $dbh->do("update router set account_id = 16  where router_id in ( 48 )"); # blaine
 $dbh->do("update router set account_id = 17  where router_id in ( 70 )"); # medhat
+$dbh->do("update router set account_id = 18  where router_id in ( 89 )"); # medhat
 
 
 $dbh->do("update reg set active = 'f'  where reg_id in ( 17,20, 50 )"); # old reg
@@ -126,7 +136,6 @@ $dbh->do("update reg set active = 'f'  where reg_id in ( 17,20, 50 )"); # old re
 $dbh->do("insert into ad_zone (code, name, account_id, ad_size_id) values ('legacy code', 'legacy', 1, 3)");
 
 `psql -d $db -f $sql_root/bug.sql`;
-
 `psql -d $db -f $sql_root/account__ad_zone.sql`;
 `psql -d $db -f $sql_root/router__ad_zone.sql`;
 
@@ -134,7 +143,6 @@ $dbh->do("insert into ad_zone (code, name, account_id, ad_size_id) values ('lega
 $dbh->do("alter table view rename COLUMN ad_id TO ad_zone_id");
 $dbh->do("update view set ad_zone_id = '1'");
 $dbh->do("alter table only view add constraint view__ad_zone_id_fkey foreign key (ad_zone_id) references ad_zone(ad_zone_id) on update cascade on delete cascade");
-
 
 $dbh->do("alter table payment drop column reg_id");
 $dbh->do("delete from payment");

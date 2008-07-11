@@ -25,7 +25,8 @@ use constant AD_SIZE_CSS_URL => 2;
 use constant BUG_IMAGE_HREF  => 3;
 use constant BUG_LINK_HREF   => 4;
 use constant PREMIUM         => 5;
-use constant OUTPUT_REF      => 6;
+use constant PREMIUM         => 6;
+use constant OUTPUT_REF      => 7;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
@@ -49,7 +50,8 @@ ad_size.css_url,
 bug.image_href,
 bug.link_href,
 
-0
+0, -- premium
+1  -- close box
 
 FROM ad_zone, bug, ad_size
 
@@ -182,6 +184,7 @@ bug.image_href,
 bug.link_href,
 
 account.premium
+account.close_box
 
 FROM ad_zone, bug, router, router__ad_zone, ad_size, account, account__ad_zone
 
