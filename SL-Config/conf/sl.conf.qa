@@ -19,14 +19,6 @@ sl_db_pass
 sl_db_ping_timeout 30
 sl_db_debug 0
 
-# google ad stuff
-sl_google_client_id 578595112578004
-sl_google_base_url  http://pagead(\d+)\.googlesyndication.com
-sl_google_base_url_length  36
-sl_google_client_id_offset 62
-sl_google_ad_group_id 16
-sl_google_ad_id 255
-
 # paypal production creds
 sl_paypal_prod_username phredwolf_api1.yahoo.com
 sl_paypal_prod_password 2VCJ55DWKQR5YFCP
@@ -40,9 +32,6 @@ sl_paypal_sandbox_signature AOYQzn1Msof3mkz-n7Z8-H.oD8YvAlpivvadPTh1EhrTZwOxrQ0w
 # payment thresholds
 sl_default_cpm 1
 sl_default_views 5000
-
-# mogilefs
-sl_mogile_host  127.0.0.1:7001
 
 # default identity
 sl_default_hash_mac aabbccffdd
@@ -97,5 +86,8 @@ sl_app_cookie_name SLApp
 sl_app_auth_uri '/login'
 sl_app_base_uri ''
 sl_app_home_uri http://www.silverliningnetworks.com/
+sl_app_css_uri http://www.silverliningnetworks.com/css/app.css
+sl_app_report_uri http://www.redhotpenguin.com/img/data
 sl_app_server https://www.redhotpenguin.com
-
+sl_app_session_dir /tmp/app/sessions
+sl_app_session_lock_file app_sessions.db

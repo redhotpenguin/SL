@@ -2,7 +2,7 @@ sl_root  /Users/phred/dev/sl/trunk/SL
 sl_httpd_root  /Users/phred/dev/sl/httpd2
 sl_version  trunk
 
-sl_data_root /tmp/data/sl
+sl_data_root /tmp/data/sl2
 sl_ip_cache_file	/tmp/sl_ips
 
 sl_cache_url http://app.silverliningnetworks.com/cache
@@ -11,7 +11,7 @@ sl_cache_url http://app.silverliningnetworks.com/cache
 sl_report_admin fred@redhotpenguin.com
 
 # configure the database connection
-sl_db_name  sl
+sl_db_name  sl3
 sl_db_host  127.0.0.1
 sl_db_user  phred
 sl_db_pass  
@@ -25,18 +25,15 @@ sl_db_ping_timeout 5
 #sl_status 1
 #sl_small_prof  1
 
-# google ad stuff
-sl_google_client_id 578595112578004
-sl_google_base_url  http://pagead(\d+)\.googlesyndication.com
-sl_google_base_url_length  36
-sl_google_client_id_offset 62
-sl_google_ad_group_id 16
-sl_google_ad_id 255
+# paypal production creds
+sl_paypal_prod_username phredwolf_api1.yahoo.com
+sl_paypal_prod_password 2VCJ55DWKQR5YFCP
+sl_paypal_prod_signature AQU0e5vuZCvSg-XJploSa.sGUDlpA3aEJbJvqrODbc-xmNzelj7DrWDI
 
-# paypal creds
-sl_paypal_username phredwolf_api1.yahoo.com
-sl_paypal_password 2VCJ55DWKQR5YFCP
-sl_paypal_signature AQU0e5vuZCvSg-XJploSa.sGUDlpA3aEJbJvqrODbc-xmNzelj7DrWDI
+# paypal test creds
+sl_paypal_sandbox_username fred_s_1199482080_biz_api1.redhotpenguin.com
+sl_paypal_sandbox_password 1199482097
+sl_paypal_sandbox_signature AOYQzn1Msof3mkz-n7Z8-H.oD8YvAlpivvadPTh1EhrTZwOxrQ0w8Ocs
 
 # payment thresholds
 sl_default_cpm 1
@@ -92,5 +89,6 @@ sl_app_base_uri ''
 sl_app_home_uri http://www.silverliningnetworks.com/
 sl_app_css_uri http://127.0.0.1:7777/css/app.css
 sl_app_report_uri http://127.0.0.1:7777/img/data
-
 sl_app_server https://www.redhotpenguin.com
+sl_app_session_dir /tmp/app/sessions
+sl_app_session_lock_file app_sessions.db

@@ -21,15 +21,6 @@ sl_db_debug 0
 #sl_prof  1
 #sl_status 1
 
-# google ad stuff
-sl_google_client_id 578595112578004
-sl_google_base_url  http://pagead(\d+)\.googlesyndication.com
-sl_google_base_url_length  36
-sl_google_client_id_offset 62
-sl_google_ad_group_id 16
-sl_google_ad_id 255
-#sl_google_stealth 1
-
 # paypal production creds
 sl_paypal_prod_username phredwolf_api1.yahoo.com
 sl_paypal_prod_password 2VCJ55DWKQR5YFCP
@@ -44,8 +35,6 @@ sl_paypal_sandbox_signature AOYQzn1Msof3mkz-n7Z8-H.oD8YvAlpivvadPTh1EhrTZwOxrQ0w
 sl_default_hash_mac aabbccffdd
 sl_default_router_mac aabbccddeeff
 
-# mogilefs
-sl_mogile_host 127.0.0.1:7001
 
 # proxy server settings
 sl_proxy_apache_request_threshold 3 # num seconds for logging requests
@@ -86,14 +75,15 @@ sl_app_apache_min_spare_servers  8
 sl_app_apache_keepalive  On
 sl_app_apache_user  phred
 sl_app_apache_group  users
-sl_app_http_port  81
+sl_app_http_port  8888
 sl_app_cookie_name SLApp
 sl_app_auth_uri '/login'
 sl_app_auth_secret kEa+!&MrJ=EzTjup@YWB-bF#&KLmxSH$bj=W#rkn_c?wem+BP!BxLmVWr@#XP#@$
-sl_app_base_uri '/sl'
+sl_app_base_uri '/sl2'
 sl_app_home_uri http://www.silverliningnetworks.com/
-sl_app_css_uri http://www.redhotpenguin.com/css/app.css
+sl_app_css_uri http://www.silverliningnetworks.com/css/app.css
 sl_app_report_uri https://www.redhotpenguin.com/img/data
 sl_app_server https://app.silverliningnetworks.com
-
+sl_app_session_dir /tmp/app/sessions
+sl_app_session_lock_file app_sessions.db
 
