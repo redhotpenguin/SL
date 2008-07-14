@@ -22,7 +22,7 @@ use SL::App::Template ();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
-our $TEMPLATE = SL::App::Template->template();
+our $Template = SL::App::Template->template();
 
 our ( $Config, $CIPHER, %SESS_OPTS );
 
@@ -162,10 +162,10 @@ sub logout {
     $class->expire_cookie($r);
 
     my $output;
-    my $ok = $TEMPLATE->process( 'logout.tmpl', {}, \$output );
+    my $ok = $Template->process( 'logout.tmpl', {}, \$output );
 
     return $class->ok( $r, $output ) if $ok;
-    return $class->error( $r, "Template error: " . $TEMPLATE->error() );
+    return $class->error( $r, "Template error: " . $Template->error() );
 }
 
 sub login {
@@ -175,7 +175,7 @@ sub login {
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my $output;
-        my $ok = $TEMPLATE->process(
+        my $ok = $Template->process(
             'login.tmpl',
             {
                 status => $req->param('status') || '',
@@ -188,7 +188,7 @@ sub login {
 
         $ok
           ? return $class->ok( $r, $output )
-          : return $class->ok( $r, "Template error: " . $TEMPLATE->error() );
+          : return $class->ok( $r, "Template error: " . $Template->error() );
     }
 
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
@@ -339,9 +339,10 @@ sub signup {
 
     # invoke this before anything else, bug in Apache2::Request
     my $email = $req->param('email');
+
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my $output;
-        my $ok = $TEMPLATE->process(
+        my $ok = $Template->process(
             'signup.tmpl',
             {
                 errors => $args_ref->{'errors'},
@@ -353,12 +354,13 @@ sub signup {
 
         $ok
           ? return $class->ok( $r, $output )
-          : return $class->ok( $r, "Template error: " . $TEMPLATE->error() );
+          : return $class->ok( $r, "Template error: " . $Template->error() );
 
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
         $r->method_number(Apache2::Const::M_GET);
-        my %profile = (
+
+	my %profile = (
             required           => [qw( email password retype router_mac )],
             optional           => [qw( paypal_id )],
             constraint_methods => {
@@ -429,6 +431,7 @@ sub signup {
 
         # auth the user and log them in
         $class->send_cookie( $r, $reg );
+
         $r->internal_redirect("/app/home/index");
         return $class->auth_ok( $r, $reg );
     }
@@ -440,32 +443,33 @@ sub forgot {
 
     my $req = Apache2::Request->new($r);
 
+    my $email = $req->param('forgot_email');
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my $output;
-        my $ok = $TEMPLATE->process(
+        my $ok = $Template->process(
             'forgot.tmpl',
             {
                 status => $req->param('status') || '',
-                email => $req->param('email')
+                forgot_email => $email,
             },
             \$output,
             $r
         );
 
-        $ok
-          ? return $class->ok( $r, $output )
-          : return $class->ok( $r, "Template error: " . $TEMPLATE->error() );
+        return $class->ok( $r, $output ) if $ok;
+        return $class->ok( $r, "Template error: " . $Template->error() );
 
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
-        $r->log->debug("$$ POSTING...") if DEBUG;
-        my $email;
-        unless ( $email = $req->param('email') ) {
+        $r->method_number(Apache2::Const::M_GET);
+
+	$r->log->debug("$$ POSTING...") if DEBUG;
+        unless ( $email ) {
 
             # missing email
-            $r->method_number(Apache2::Const::M_GET);
-            $r->internal_redirect('/forgot/?status=blank');
-            return Apache2::Const::OK;
+	    $r->headers_out->set(
+        	Location => $r->construct_url('/forgot/?status=blank') );
+            return Apache2::Const::REDIRECT;
         }
 
         my ($reg) =
@@ -473,11 +477,10 @@ sub forgot {
 
         unless ($reg) {
 
-            # bad email address
-            $r->method_number(Apache2::Const::M_GET);
-            $r->internal_redirect(
-                '/forgot/?status=notfound&email=' . $req->param('email') );
-
+	    $r->headers_out->set(
+        	Location => $r->construct_url(
+		'/forgot/?status=notfound&forgot_email=' . $req->param('forgot_email')  ) );
+	    return Apache2::Const::REDIRECT;
         }
         else {
 
@@ -494,7 +497,7 @@ sub forgot {
                 '/forgot/reset/?key=' . $forgot->link_md5() );
 
             my $ok =
-              $TEMPLATE->process( 'forgot_email.tmpl',
+              $Template->process( 'forgot_email.tmpl',
                 { url => $url, email => $reg->email }, \$output );
 
             my $msg = MIME::Lite->new(
@@ -508,10 +511,13 @@ sub forgot {
             $msg->send;
 
             #$msg->send_by_smtp('www.redhotpenguin.com');
-            $r->method_number(Apache2::Const::M_GET);
-            $r->internal_redirect("/forgot/?status=sent&email=$email");
+            
+    	    $r->headers_out->set(
+        	Location => $r->construct_url(
+			"/forgot/?status=sent&forgot_email=$email") );
+	    return Apache2::Const::REDIRECT;
+	    
         }
-        return Apache2::Const::OK;
     }
 }
 
@@ -525,6 +531,7 @@ sub forgot_reset {
     my ($forgot) =
       SL::Model::App->resultset('Forgot')
       ->search( { link_md5 => $req->param('key'), expired => 'f' } );
+
     return Apache2::Const::NOT_FOUND unless $forgot;
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
@@ -534,7 +541,7 @@ sub forgot_reset {
         my $url =
           $r->construct_url( '/forgot/reset/?key=' . $forgot->link_md5() );
 
-        my $ok = $TEMPLATE->process(
+        my $ok = $Template->process(
             'forgot_reset.tmpl',
             {
                 key   => $req->param('key'),
@@ -543,19 +550,21 @@ sub forgot_reset {
             \$output
         );
 
-        $ok
-          ? return $class->ok( $r, $output )
-          : return $class->ok( $r, "Template error: " . $TEMPLATE->error() );
+        return $class->ok( $r, $output ) if $ok;
+        return $class->ok( $r, "Template error: " . $Template->error() );
 
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
-        unless ( ( $req->param('password') && $req->param('retype') )
+        $r->method_number(Apache2::Const::M_GET);
+
+	unless ( ( $req->param('password') && $req->param('retype') )
             && ( $req->param('password') eq $req->param('retype') ) )
         {
-            $r->method_number(Apache2::Const::M_GET);
-            $r->internal_redirect(
-                '/forgot/reset/?error=mismatch&key=' . $req->param('key') );
-            return Apache2::Const::OK;
+
+	    $r->headers_out->set(
+        	Location => $r->construct_url(
+		'/forgot/reset/?error=mismatch&key=' . $req->param('key') ) );
+            return Apache2::Const::REDIRECT;
         }
 
         # update the password
@@ -568,9 +577,9 @@ sub forgot_reset {
         $forgot->update;
 
         # send to the login page
-        $r->method_number(Apache2::Const::M_GET);
-        $r->internal_redirect('/login/?status=password_updated');
-        return Apache2::Const::OK;
+	$r->headers_out->set(
+        	Location => $r->construct_url('/login/?status=password_updated') );
+        return Apache2::Const::REDIRECT;
     }
 }
 
