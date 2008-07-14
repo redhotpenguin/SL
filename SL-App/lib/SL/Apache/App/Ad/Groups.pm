@@ -109,20 +109,25 @@ sub dispatch_edit {
         }
     }
 
-    unless ( $req->param('id') ) {
+    if  ( ! $req->param('id') ) {
 
         # create a new ad zone
         $ad_zone = SL::Model::App->resultset('AdZone')->create(
             {
                 reg_id     => $reg->reg_id,
-                account_id => $reg->account_id->account_id
-            }
+                account_id => $reg->account_id->account_id,
+		code => $req->param('code'),
+		ad_size_id => $req->param('ad_size_id'),
+		bug_id => $req->param('bug_id'),
+		name => $req->param('name'),
+	    }
         );
-    }
+    } else {
 
-    # add arguments
-    foreach my $param qw( name code ad_size_id bug_id ) {
-        $ad_zone->$param( $req->param($param) );
+    	# add arguments
+    	foreach my $param qw( name code ad_size_id bug_id ) {
+        	$ad_zone->$param( $req->param($param) );
+    	}
     }
 
     $ad_zone->update;
