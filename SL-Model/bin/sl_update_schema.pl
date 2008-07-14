@@ -81,6 +81,8 @@ $dbh->do("insert into account (name) values ('Lane-8')");
 $dbh->do("insert into account (name) values ('Marina Roof')");
 $dbh->do("insert into account (name) values ('Medhat')");
 $dbh->do("insert into account (name) values ('TMN')");
+$dbh->do("insert into account (name) values ('Kohout')");
+$dbh->do("insert into account (name) values ('Ferdzter')");
 
 $dbh->do("update account set premium='t' where account_id = 2");
 
@@ -103,6 +105,8 @@ $dbh->do("update reg set account_id = 15 where reg_id in ( 66 )"); # Lane-8
 $dbh->do("update reg set account_id = 16 where reg_id in ( 57 )"); # Marina Roof
 $dbh->do("update reg set account_id = 17 where reg_id in ( 63 )"); # Medhat
 $dbh->do("update reg set account_id = 18 where reg_id in ( 69 )"); # Thomas Norcio
+$dbh->do("update reg set account_id = 19 where reg_id in ( 67 )"); # Mike Kohout
+$dbh->do("update reg set account_id = 20 where reg_id in ( 68 )"); # ferdzter
 
 
 
@@ -123,7 +127,9 @@ $dbh->do("update router set account_id = 14 where router_id in ( 81 )"); # david
 $dbh->do("update router set account_id = 15 where router_id in ( 72 )"); # essam lane-8
 $dbh->do("update router set account_id = 16  where router_id in ( 48 )"); # blaine
 $dbh->do("update router set account_id = 17  where router_id in ( 70 )"); # medhat
-$dbh->do("update router set account_id = 18  where router_id in ( 89 )"); # medhat
+$dbh->do("update router set account_id = 18  where router_id in ( 89 )"); # norcio
+$dbh->do("update router set account_id = 19  where router_id in ( 84 )"); # kohout
+$dbh->do("update router set account_id = 20  where router_id in ( 88 )"); # ferdzter
 
 
 $dbh->do("update reg set active = 'f'  where reg_id in ( 17,20, 50 )"); # old reg
