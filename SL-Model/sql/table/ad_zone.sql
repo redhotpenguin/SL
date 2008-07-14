@@ -24,7 +24,8 @@ CREATE TABLE ad_zone (
     name text NOT NULL,
     account_id integer NOT NULL,
     ad_size_id integer NOT NULL,
-    active boolean NOT NULL default 't'
+    active boolean DEFAULT true NOT NULL,
+    bug_id integer DEFAULT 1 NOT NULL
 );
 
 
@@ -35,7 +36,6 @@ ALTER TABLE public.ad_zone OWNER TO phred;
 --
 
 CREATE SEQUENCE ad_zone_ad_zone_id_seq
-    START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
     NO MINVALUE
@@ -74,8 +74,21 @@ ALTER TABLE ONLY ad_zone
     ADD CONSTRAINT account_id_fkey FOREIGN KEY (account_id) REFERENCES account(account_id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
+--
+-- Name: ad_size_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
+--
+
 ALTER TABLE ONLY ad_zone
     ADD CONSTRAINT ad_size_id_fkey FOREIGN KEY (ad_size_id) REFERENCES ad_size(ad_size_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: ad_zone_bug_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
+--
+
+ALTER TABLE ONLY ad_zone
+    ADD CONSTRAINT ad_zone_bug_id_fkey FOREIGN KEY (bug_id) REFERENCES bug(bug_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
 
 --
 -- PostgreSQL database dump complete
