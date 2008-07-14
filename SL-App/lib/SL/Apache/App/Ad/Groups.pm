@@ -92,7 +92,7 @@ sub dispatch_edit {
         $r->method_number(Apache2::Const::M_GET);
 
         # validate input
-        my %profile = ( required => [qw( name active ad_size_id code )], );
+        my %profile = ( required => [qw( name active ad_size_id code bug_id )], );
 
         my $results = Data::FormValidator->check( $req, \%profile );
 

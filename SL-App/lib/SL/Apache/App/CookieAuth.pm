@@ -24,29 +24,27 @@ use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 our $TEMPLATE = SL::App::Template->template();
 
-our ( $CONFIG, $CIPHER, %SESS_OPTS );
+our ( $Config, $CIPHER, %SESS_OPTS );
 
 BEGIN {
     require SL::Config;
-    $CONFIG = SL::Config->new();
+    $Config = SL::Config->new();
 
     require Crypt::CBC;
     $CIPHER = Crypt::CBC->new(
-        -key    => $CONFIG->sl_app_auth_secret,
+        -key    => $Config->sl_app_auth_secret,
         -cipher => 'Blowfish',
     );
 
-    my $lock_dir      = '/tmp/app/sessions';
-    my $lock_filename = '/tmp/app/sessions/app_sessions.db';
-
-    # session
-    unless ( -d $lock_dir ) {
-        system("mkdir -p $lock_dir") == 0 or die $!;
+# session
+    unless ( -d $Config->sl_app_session_dir ) {
+        system('mkdir -p ' . $Config->sl_app_session_dir) == 0 or die $!;
     }
 
     %SESS_OPTS = (
-        FileName      => $lock_filename,
-        LockDirectory => $lock_dir,
+        FileName      => join('/', $Config->sl_app_session_dir,
+	                           $Config->sl_app_session_lock_file ),
+        LockDirectory => $Config->sl_app_session_dir,
         Transaction   => 1,
     );
 }
@@ -78,8 +76,8 @@ sub authenticate {
 
     # grab the cookies
     my $jar    = Apache2::Cookie::Jar->new($r);
-    my $cookie = $jar->cookies( $CONFIG->sl_app_cookie_name );
-    my $dest   = $r->construct_url( $CONFIG->sl_app_auth_uri );
+    my $cookie = $jar->cookies( $Config->sl_app_cookie_name );
+    my $dest   = $r->construct_url( $Config->sl_app_auth_uri );
 
     # user doesn't have a cookie?
     unless ($cookie) {
@@ -199,7 +197,7 @@ sub login {
         unless ( $req->param('email') && $req->param('password') ) {
             my $dest =
               $r->construct_url(
-                $CONFIG->sl_app_auth_uri . '/?error=incomplete' );
+                $Config->sl_app_auth_uri . '/?error=incomplete' );
             return $class->redirect_auth( $r, "username, password missing",
                 $dest );
         }
@@ -215,7 +213,7 @@ sub login {
         # send them back to the login page if pass is invalid
         unless ($reg) {
             my $dest =
-              $r->construct_url( $CONFIG->sl_app_auth_uri . '/?error=invalid' );
+              $r->construct_url( $Config->sl_app_auth_uri . '/?error=invalid' );
             return $class->redirect_auth( $r, "username, password missing",
                 $dest );
         }
@@ -248,10 +246,10 @@ sub expire_cookie {
 
     my $cookie = Apache2::Cookie->new(
         $r,
-        -name    => $CONFIG->sl_app_cookie_name,
+        -name    => $Config->sl_app_cookie_name,
         -value   => '',
         -expires => 'Mon, 21-May-1971 00:00:00 GMT',
-        -path    => $CONFIG->sl_app_base_uri . '/app/',
+        -path    => $Config->sl_app_base_uri . '/app/',
     );
 
     $cookie->bake($r);
@@ -272,10 +270,10 @@ sub send_cookie {
 
     my $cookie = Apache2::Cookie->new(
         $r,
-        -name    => $CONFIG->sl_app_cookie_name,
+        -name    => $Config->sl_app_cookie_name,
         -value   => $class->encode( \%state ),
         -expires => '14D',
-        -path    => $CONFIG->sl_app_base_uri . '/app/',
+        -path    => $Config->sl_app_base_uri . '/app/',
     );
 
     $cookie->bake($r);
@@ -492,7 +490,7 @@ sub forgot {
             $forgot->discard_changes;
             my $output;
             my $url = join( '',
-                $CONFIG->sl_app_server, $CONFIG->sl_app_base_uri,
+                $Config->sl_app_server, $Config->sl_app_base_uri,
                 '/forgot/reset/?key=' . $forgot->link_md5() );
 
             my $ok =

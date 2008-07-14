@@ -135,17 +135,24 @@ function setBugList(ad_size_id) {
 
 
 <!-- branding image -->
+[% IF errors.missing.bug_id %]<font color="red">[% END %]
+You need a valid branding image for this ad zone.
+[% IF errors.missing.bug_id %]</font>[% END %]
 
 [% FOREACH buglist = [ 'bug_list_1', 'bug_list_2', 'bug_list_3' ] %]
 
 <div id="[% buglist %]" [% IF "bug_list_${ad_zone.ad_size_id.ad_size_id}" != buglist %]style="display: none;"[% END %]>
 
+[% IF buglist.0 %]
 <p>Select a branding image for this ad zone:</p>
 
 [% FOREACH bug = $buglist %]
 <p><input type="radio" name="bug_id" value="[% bug.bug_id %]" [% IF ad_zone.bug_id.bug_id == bug.bug_id %]checked[% END %]>&nbsp;&nbsp;<a href="[% bug.link_href %]"><img src="[% bug.image_href %]" border="1"></a></p>
 [% END %]
 
+[% ELSE %]
+<p>You haven't created any <a href="[% base_uri %]/app/ad/bugs/edit">branding images yet</a> for this ad zone size,<br /> please do so to create this zone.</p>
+[% END %]
 
 <hr class="sl_line"> <!-- don't move this :) -->
 

@@ -27,12 +27,12 @@ sub process {
 
   # data for all templates
   if ($r) {
-  	$data_hashref->{bug_url} = $r->unparsed_uri;
-	$data_hashref->{email} = $r->user;
-	$data_hashref->{reg}   = $r->pnotes($r->user);
-    $data_hashref->{session} = $r->pnotes('session');
+        $data_hashref->{bug_url} = $r->unparsed_uri;
+        $data_hashref->{email} = $r->user;
+        $data_hashref->{reg}   = $r->pnotes($r->user);
+        $data_hashref->{session} = $r->pnotes('session');
   }
-	my $ok = $self->SUPER::process( $tmpl_name, { %{$data_hashref}, %TMPL_DATA, },
+  my $ok = $self->SUPER::process( $tmpl_name, { %{$data_hashref}, %TMPL_DATA, },
                            $output_ref);
 
   return $ok if defined $ok;

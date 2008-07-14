@@ -64,7 +64,7 @@ use SL::Apache::App::CookieAuth ();
 use SL::Model                   ();
 use SL::Model::App              ();
 use SL::Model::Report           ();
-use SL::Cache                   ();
+
 use DBI                         ();
 use DBD::Pg                     ();
 DBI->install_driver('Pg');
