@@ -11,11 +11,8 @@
 <p style="text-align: left; padding-bottom: 5px; width: 600px;">
 <a href="[% base_uri %]/app/router/edit">New router</a></p>
 
-<br />
-
-[% IF session.msg %]
-<p><font color="red">[% session.msg %]</font></p>
-<br />
+[% IF msg %]
+<p><font color="red">[% msg %]</font></p>
 [% END %]
 
 <table class="list">

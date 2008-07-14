@@ -30,7 +30,7 @@ sub dispatch_index {
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
-        my %tmpl_data = ( msg => delete $r->pnotes('session')->{msg} );
+        my %tmpl_data;
         my $output;
         my $ok =
           $TMPL->process( 'settings/index.tmpl', \%tmpl_data, \$output, $r );

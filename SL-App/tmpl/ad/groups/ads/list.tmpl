@@ -7,8 +7,8 @@
 <h2>[% PROCESS ad/groups/ads/nav.tmpl %] > Ad Group '[% ad_group.name %]'</h2>
 <hr class="sl_line">
 
-[% IF session.msg %]
-<p><font color="red">[% session.msg %]</font></p>
+[% IF msg %]
+<p><font color="red">[% msg %]</font></p>
 [% END %]
 <p style="text-align: left; padding-bottom: 5px;">
 <a href="[% base_uri %]/app/ad/groups/ads/edit?ad_group_id=[% ad_group.ad_group_id %]">Create a new Ad for Ad Group '[% ad_group.name %]'</a></span></p>
