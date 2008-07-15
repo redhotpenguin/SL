@@ -189,7 +189,7 @@ sub run_query {
 }
 
 our $views_sql = <<SQL;
-SELECT ad_id, count(view_id)
+SELECT ad_zone_id, count(view_id)
 FROM view
 WHERE view.cts BETWEEN ? AND ?
 AND router_id = ?
@@ -198,8 +198,8 @@ SQL
 
 
 # @views = (
-#         { ad => $ad_one_obj, count => '5' },
-#         { ad => $ad_two_obj, count => '3' }, );
+#         { ad_zone => $ad_zone_one_obj, count => '5' },
+#         { ad_zone => $ad_zone_two_obj, count => '3' }, );
 
 sub ad_views {
     my ( $self, $start, $end) = @_;
@@ -209,9 +209,9 @@ sub ad_views {
     my @views;
 
     foreach my $ary ( @{$ary_ref} ) {
-        my ($ad) =
-          SL::Model::App->resultset('Ad')->search( { ad_id => $ary->[0] } );
-        push @views, { ad => $ad, count => $ary->[1] };
+        my ($ad_zone) =
+          SL::Model::App->resultset('AdZone')->search( { ad_zone_id => $ary->[0] } );
+        push @views, { ad_zone => $ad_zone, count => $ary->[1] };
     }
 
     my $count = 0;
@@ -236,51 +236,5 @@ sub views_count {
     return $count;
 }
 
-our $clicks_sql = <<SQL;
-SELECT ad_id, count(click_id)
-FROM click
-WHERE cts BETWEEN ? AND ?
-AND router_id = ?
-GROUP BY ad_id
-SQL
-
-# @clicks = (
-#         { ad => $ad_one_obj, count => '5' },
-#         { ad => $ad_two_obj, count => '3' }, );
-
-sub ad_clicks {
-    my ( $self, $start, $end) = @_;
-    die unless SL::Model::App::validate_dt( $start, $end );
-
-    my $ary_ref = $self->run_query( $clicks_sql, $start, $end, $self->router_id );
-
-    my @clicks;
-    foreach my $ary ( @{$ary_ref} ) {
-        my ($ad) =
-          SL::Model::App->resultset('Ad')->search( { ad_id => $ary->[0] } );
-        push @clicks, { ad => $ad, count => $ary->[1] };
-    }
-
-    my $count = 0;
-    foreach my $click (@clicks) {
-        $count += $click->{count};
-    }
-
-    return ( $count, \@clicks );
-}
-
-sub clicks_count {
-    my ( $self, $start, $end) = @_;
-    die unless SL::Model::App::validate_dt( $start, $end );
-
-    my $ary_ref = $self->run_query( $clicks_sql, $start, $end, $self->router_id );
-
-    my $count = 0;
-    foreach my $ary ( @{$ary_ref} ) {
-      $count += $ary->[1];
-    }
-
-    return $count;
-}
 
 1;
