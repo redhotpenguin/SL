@@ -27,12 +27,14 @@ sub process {
 
   # data for all templates
   if ($r) {
-  
-	$tmpl_data->{msg} = delete $r->pnotes('session')->{msg};
-  	$tmpl_data->{bug_url} = $r->unparsed_uri;
+ 
+ 	if ($r->pnotes('session')) {
+	    $tmpl_data->{msg} = delete $r->pnotes('session')->{msg};
+            $tmpl_data->{session} = $r->pnotes('session');
+	}
+	$tmpl_data->{bug_url} = $r->unparsed_uri;
         $tmpl_data->{email} = $r->user;
         $tmpl_data->{reg}   = $r->pnotes($r->user);
-        $tmpl_data->{session} = $r->pnotes('session');
   }
   my $ok = $self->SUPER::process( $tmpl_name, { %{$tmpl_data}, %Tmpl_global, },
                            $output_ref);

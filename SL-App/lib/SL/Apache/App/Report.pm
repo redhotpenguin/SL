@@ -3,14 +3,14 @@ package SL::Apache::App::Report;
 use strict;
 use warnings;
 
-use Apache2::Const -compile => qw( OK M_POST M_GET );
+use Apache2::Const -compile => qw( OK M_POST M_GET REDIRECT );
 use Apache2::Log ();
 
 use base 'SL::Apache::App';
 
-our %TYPES = ( 'views' => 'Ad Views', );
+our %Types = ( 'views' => 'Ad Views', );
 
-our %TEMPORALS = (
+our %Temporals = (
     'daily'      => '24 hours',
     'weekly'     => '7 days',
     'monthly'    => '30 days',
@@ -32,11 +32,12 @@ sub dispatch_index {
     my $temporal = $req->param('temporal') || 'daily';
     my $reg      = $r->pnotes( $r->user );
 
-    my $report_uri = join( '/', $Config->sl_app_report_uri, $reg->report_base );
+    my $report_uri = join( '/', $Config->sl_app_report_uri,
+    	$reg->account_id->report_base );
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
-            temporals              => \%TEMPORALS,
+            temporals              => \%Temporals,
             report_uri             => $report_uri,
             reg                    => $reg,
             status                 => $req->param('status') || '',
@@ -59,10 +60,11 @@ sub dispatch_index {
           ->report_email_frequency( $req->param('report_email_frequency') );
         $r->pnotes( $r->user )->update;
 
-        $r->internal_redirect(
-            $r->construct_url( $r->uri . "?temporal=$temporal&status=updated" )
-        );
-        return Apache2::Const::OK;
+
+    $r->headers_out->set(
+        Location => 
+            $r->construct_url( $r->uri . "?temporal=$temporal&status=updated" ));
+    return Apache2::Const::REDIRECT;
     }
 }
 
