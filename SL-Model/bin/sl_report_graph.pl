@@ -96,6 +96,7 @@ foreach my $temporal (@intervals) {
         );
         print STDERR "==> burned graph $filename\n" if DEBUG;
 
+        if (0) {
         ########################
         # get the click data
         my $clicks = SL::Model::Report->clicks(
@@ -162,7 +163,7 @@ foreach my $temporal (@intervals) {
             }
         );
         print STDERR "==> burned graph $filename\n" if DEBUG;
-
+      }
     }
 
     print STDERR "\nFinished processing $temporal reports\n" if DEBUG;
