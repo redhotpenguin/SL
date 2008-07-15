@@ -138,10 +138,10 @@ __PACKAGE__->has_many(
 
 # These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Reg.pm' found in @INC.# They are now part of the custom portion of this file# for you to hand-edit.  If you do not either delete# this section or remove that file from @INC, this section# will be repeated redundantly when you re-create this# file again via Loader!
 
-
-use File::Path qw(mkpath);
-use SL::Model::App;
-use SL::Config;
+use Digest::MD5      ();
+use File::Path       ();
+use SL::Model::App   ();
+use SL::Config       ();
 
 our $config = SL::Config->new();
 
@@ -156,22 +156,15 @@ sub report_dir_base {
     # make the directory to store the reporting data
      my $dir = join ( '/', $config->sl_data_root, $self->report_base );
 
-    mkpath($dir) unless ( -d $dir );
+    File::Path::mkpath($dir) unless ( -d $dir );
 
     $self->{report_dir_base} = $dir;
     return $dir;
 }
 
-sub _happy_email {
-  my $self = shift;
-    my $email = $self->email;
-  $email =~ s/(\@|\.)/_/g;
-  return $email;
-}
-
 sub report_base {
   my $self = shift;
-  return join('/', $self->_happy_email, 'report');
+  return join('/', Digest::MD5::md5_hex( $self->account_id->name ), 'report');
 }
 
 sub get_ad_zone {
