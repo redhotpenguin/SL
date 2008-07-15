@@ -182,14 +182,14 @@ sub views {
 
     # unpack
     my $filename     = $params_ref->{filename}     or die;
-    my $account      = $params_ref->{account}          or die;
+    my $account      = $params_ref->{account}      or die;
     my $data_hashref = $params_ref->{data_hashref} or die;
     my $temporal     = $params_ref->{temporal}     or die;
 
-	my $title = $class->title({ 
-			temporal => $duration_hash{ $temporal},
-			lead => sprintf("%s total Ad Views", $data_hashref->{total}),
-	});
+    my $title = $class->title({ 
+	temporal => $duration_hash{ $temporal},
+	lead => sprintf("%s total ad insertions", $data_hashref->{total}),
+    });
 
 	# burn the graph
     eval {
@@ -199,7 +199,7 @@ sub views {
                 title    => $title,
 				y_max_value   => $class->max($data_hashref->{max}),
                 y_tick_number => $class->tick($data_hashref->{max}),
-                y_label       => 'Number of ad views',
+                y_label       => 'Number of ad insertions',
                 data_ref      => [
                     [ @{ $data_hashref->{headers} } ],
                     @{ $data_hashref->{data} }

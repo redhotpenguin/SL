@@ -10,7 +10,7 @@ use warnings FATAL => 'all';
 =head1 SYNOPSIS
 
  perl sl_report_graph.pl --interval=daily --interval=weekly --interval=monthly
-	--interval=quarterly
+	--interval=quarterly --interval biannually --interval annually
 
  perl sl_report_graph.pl --help
 
