@@ -161,7 +161,8 @@ $dbh->do("drop sequence root_root_id_seq");
 $dbh->do("drop table subrequest");
 
 warn("deleting unused routers");
-$dbh->do("delete from router where router_id in (13,16,18,19,20,21,22,23,24,28)");
+$dbh->do("delete from router where router_id in (9,13,16,18,19,20,21,22,23,24,28,50)");
+$dbh->do("update router set active='f' where router_id in (1,4,8,46,47,57,59,71,73,74,76,78)");
 
 
 

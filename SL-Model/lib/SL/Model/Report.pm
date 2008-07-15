@@ -13,9 +13,9 @@ use Text::Wrap;
 $Text::Wrap::columns = 25;
 
 use Number::Format;
-my $de = Number::Format->new;
+our $De = Number::Format->new;
 
-use constant DEBUG => $ENV{SL_DEBUG} || 0;
+use constant DEBUG => $ENV{SL_DEBUG} || 1;
 
 sub _ad_text_from_id {
     my ( $class, $ad_id ) = @_;
@@ -107,7 +107,7 @@ sub validate {
     my ( $class, $params ) = @_;
 
     # validate
-    my $reg      = $params->{reg}      or die;
+    my $account      = $params->{account}      or die;
     my $temporal = $params->{temporal} or die;
     my $routers_aryref = $params->{routers}
       or ( require Carp && Carp::confess("no routers") );
@@ -119,12 +119,13 @@ sub validate {
     die "Invalid temporal parameter passed"
       unless grep { $temporal eq $_ } keys %time_hash;
 
-    return ( $reg, $temporal, $routers_aryref );
+    return ( $account, $temporal, $routers_aryref );
 }
 
 sub _series {
   my $routers_aryref = shift;
-  return [ map { sprintf('%s (%s)', $_->name, $_->ssid) }
+ 
+  return [ map { sprintf('%s (%s)', $_->name || 'unnamed', $_->ssid || 'no ssid') }
                            sort { $a->router_id <=> $b->router_id }
                            @{ $routers_aryref } ];
 }
@@ -145,7 +146,8 @@ sub _series {
 
 sub views {
     my ( $class, $params ) = @_;
-    my ( $reg, $temporal, $routers_aryref ) = $class->validate($params);
+
+    my ( $account, $temporal, $routers_aryref ) = $class->validate($params);
 
     # init
     my $results =
@@ -160,7 +162,7 @@ sub views {
 
     for ( @{ $time_hash{$temporal}->{range} } ) {
 
-        print STDERR "processing time slice $_\n" if DEBUG;
+        print STDERR "==> processing time slice $_\n" if DEBUG;
 
         # add the date in the format specified, this is the header
         my $start =
@@ -169,7 +171,7 @@ sub views {
           $start->strftime( $time_hash{$temporal}->{format} );
 
         # Ads viewed data for routers
-        my $views_hashref = $reg->views_count( $start, $end, $routers_aryref );
+        my $views_hashref = $account->views_count( $start, $end, $routers_aryref );
 
         # add the data
         my $i = 0;    # router1, router2, etc
@@ -223,292 +225,9 @@ sub views {
         $results->{series}->[0] = 'empty dataset';
     }
 
-    $results->{total} = $de->format_number( $results->{total} );
-    return $results;
-}
-
-sub clicks {
-    my ( $class, $params ) = @_;
-    my ( $reg, $temporal, $routers_aryref ) = $class->validate($params);
-
-    # init
-    my $results =
-      { max => 0, headers => [], data => [], series => [], total => 0 };
-
-    # report end time
-    my $end = DateTime->now( time_zone => 'local' );
-    $end->truncate( to => 'hour' );
-
-    # create the series
-    $results->{series} = _series($routers_aryref);
-
-    for ( @{ $time_hash{$temporal}->{range} } ) {
-
-        print STDERR "processing time slice $_\n" if DEBUG;
-
-        # add the date in the format specified, this is the header
-        my $start =
-          $end->clone->subtract( @{ $time_hash{$temporal}->{interval} } );
-        push @{ $results->{headers} },
-          $start->strftime( $time_hash{$temporal}->{format} ) . ' - '
-          . $end->strftime( $time_hash{$temporal}->{format} );
-
-        # Ads clicks data for locations
-        my $clicks_hashref =
-          $reg->clicks_count( $start, $end, $routers_aryref );
-
-        # add the data
-        my $i = 0;    # location1, location2, etc
-        foreach my $router_id ( keys %{ $clicks_hashref->{routers} } ) {
-            push @{ $results->{data}->[ $i++ ] },
-              $clicks_hashref->{routers}->{$router_id}->{count};
-        }
-
-        # update the max
-        if ( $clicks_hashref->{total} > $results->{max} ) {
-            $results->{max} = $clicks_hashref->{total};
-        }
-
-        $results->{total} += $clicks_hashref->{total};
-
-        # shift the end point
-        $end = $start->clone;
-    }
-    $results->{total} = $de->format_number( $results->{total} );
-    return $results;
-}
-
-# $results = {
-#          headers => [ 'Sun May 5th', 'Mon May 6th' ], # x values
-#          data    => [                                 # y values
-#                       [  '100', '420' ],              # location one
-#                       [  '150', '120' ],              # location two
-#                     ],
-#          series  => [ 'location one desc', 'location two desc' ],
-#          max     => [ '420' ]  # used to determine max y value
-# };
-
-sub ads_by_click {
-    my ( $class, $params ) = @_;
-    my ( $reg, $temporal, $routers_aryref ) = $class->validate($params);
-
-    die "no routers passed\n" unless $routers_aryref->[0]->isa("SL::Model::App::Router");
-
-    # init
-    my $results = { max => 0, headers => [], data => [], series => [] };
-    my $max     = 0;
-
-    # report times
-    my $end = DateTime->now( time_zone => 'local' );
-    $end->truncate( to => 'hour' );
-    my $start = $end->clone->subtract( $time_hash{$temporal}->{subtract} );
-
-    # get the ads grcouped
-    my $ads_by_click = $reg->ads_by_click( $start, $end, $routers_aryref );
-
-    $results->{max} = $ads_by_click->{max};
-
-    foreach my $ad_id ( keys %{ $ads_by_click->{ads} } ) {
-
-        push @{ $results->{headers} },
-          $class->_ad_text_from_id($ad_id);           # header
-        push @{ $results->{data} },
-          $ads_by_click->{ads}->{$ad_id}->{count};    # data
-
-        if ( $ads_by_click->{ads}->{$ad_id}->{count} > $max ) {
-            $max = $ads_by_click->{ads}->{$ad_id};
-        }
-    }
-
-    # handle race condition
-    if ( scalar( @{ $results->{headers} } ) == 0 ) {
-        $results->{headers} = ['No Ad Clicks'];
-        $results->{data}    = [0];
-    }
-
-    # create the series
-    @{ $results->{series} } = ('Ad Clicks for all locations');
-
-    return $results;
-}
-
-sub click_rates {
-    my ( $class, $params ) = @_;
-    my ( $reg, $temporal, $routers_aryref ) = $class->validate($params);
-    die "no routers passed\n" unless $routers_aryref->[0]->isa("SL::Model::App::Router");
-
-    # init
-    my $results = { max => 0, headers => [], data => [], series => [] };
-    my $max     = 0;
-
-    # report times
-    my $end = DateTime->now( time_zone => 'local' );
-    $end->truncate( to => 'hour' );
-    my $start = $end->clone->subtract( $time_hash{$temporal}->{subtract} );
-
-    # get the click rates
-    my $click_rates = $reg->click_rates( $start, $end, $routers_aryref );
-
-    $results->{max} = $click_rates->{max};
-
-    foreach my $ad_id ( keys %{ $click_rates->{ads} } ) {
-        push @{ $results->{headers} },
-          $class->_ad_text_from_id($ad_id);         # header
-        push @{ $results->{data} },
-          $click_rates->{ads}->{$ad_id}->{rate};    # data
-    }
-
-    # handle race condition
-    if ( scalar( @{ $results->{headers} } ) == 0 ) {
-        $results->{headers} = ['No Ad Clicks'];
-        $results->{data}    = [0];
-    }
-
-    # create the series
-    @{ $results->{series} } = ('Ad Clicks for all routers');
-
+    $results->{total} = $De->format_number( $results->{total} );
     return $results;
 }
 
 1;
 
-__END__
-
-
-# SL::Model::Report
-# bubild the ad summary
-sub ad_summary {
-    my ( $class, $ip, $start_date, $now ) = @_;
-    my $ad_clicks_ref = SL::Model::Report->ip_clicks( $start_date, $now, $ip );
-
-    my @ad_clicks_data;
-    my $max_ad_clicks = 0;
-    # sort by count of ad_id
-    foreach my $ref ( sort { $a->[1] <=> $b->[1] } @{$ad_clicks_ref} ) {
-
-        my $ad_text = $ref->[0];
-
-        unshift @{ $ad_clicks_data[0] }, $ad_text;
-        unshift @{ $ad_clicks_data[1] }, $ref->[1];
-
-        # set the max number of ad clicks
-        if ( $ref->[1] > $max_ad_clicks ) {
-            $max_ad_clicks = $ref->[1];
-        }
-    }
-
-    # handle those unfortunately empty report entries
-    $max_ad_clicks ||= 1;
-    $ad_clicks_data[0] ||= [0];
-    $ad_clicks_data[1] ||= [0];
-
-    my %return = (
-                  max => $max_ad_clicks,
-                  data => \@ad_clicks_data,
-                  );
-    return \%return;
-}
-
-
-#####################################
-
-# queries for the reporting page
-my $ip_views = <<SQL;
-SELECT ad_id, count(view_id) 
-FROM view
-WHERE view.cts BETWEEN ? AND ?
-AND ip = ?
-GROUP BY ad_id
-SQL
-
-# returns views for an ip within for $start to $end
-sub ip_views {
-    my ( $class, $start, $end, $ip ) = @_;
-    die unless $start->isa('DateTime');
-    die unless $end->isa('DateTime');
-    die unless $end > $start;
-
-    my $ary_ref = $class->run_query( $ip_views, $start, $end, $ip );
-
-    my @ary = map { { ad_id => $_->[0], count => $_->[1] } } @{$ary_ref};
-    return \@ary;
-}
-
-sub ip_count_views {
-    my ( $class, $start, $end, $ip ) = @_;
-
-    my $ip_views = $class->ip_views( $start, $end, $ip );
-    my $count = 0;
-    foreach my $view (@{$ip_views}) {
-      $count += $view->{count};
-    }
-    return $count;
-}
-
-
-########################################
-
-
-my $ip_clicks = <<SQL;
-SELECT ad_id, count(click_id)
-FROM click
-WHERE cts BETWEEN ? AND ?
-AND ip = ?
-GROUP BY click_id
-SQL
-
-# returns clicks for an ip within for $start to $end
-sub ip_clicks {
-    my ( $class, $start, $end, $ip ) = @_;
-
-    die unless $start->isa('DateTime');
-    die unless $end->isa('DateTime');
-    die unless $end > $start;
-
-    my $ary_ref = $class->run_query( $ip_views, $start, $end, $ip );
-
-    my @ary = map { { ad_id => $_->[0], count => $_->[1] } } @{$ary_ref};
-    return \@ary;
-}
-
-sub ip_count_clicks {
-    my ( $class, $start, $end, $ip ) = @_;
-
-    my $ip_clicks = $class->ip_clicks( $start, $end, $ip );
-    my $count = 0;
-    foreach my $clicks (@{$ip_clicks}) {
-      $count += $clicks->{count};
-    }
-    return $count;
-}
-
-sub data_weekly_ip {
-    my ( $class, $ip ) = @_;
-
-    my (
-        $max_view_results, @view_results,   $max_click_results,
-        @click_results,    $max_click_rate, @click_rates
-    );
-    $max_view_results = $max_click_results = $max_click_rate = 0;
-
-    my $now = DateTime->now( time_zone => 'local' );
-    $now->truncate( to => 'hour' );
-
-    for ( 0 .. 6 ) {
-        my $previous = $now->clone->subtract( hours => 24 );
-
-        # Ads viewed
-        my $views_count =
-          SL::Model::Report->ip_count_views( $previous, $now, $ip );
-
-        # add the date in the format "Mon 1pm to Mon 2pm"
-        unshift @{ $view_results[0] },
-          $previous->strftime("%a %l %p");
-        unshift @{ $view_results[1] }, $views_count->[0]->[0];
-        if ( $views_count->[0]->[0] > $max_view_results ) {
-            $max_view_results = $views_count->[0]->[0];
-        }
-
-    }
-
-}

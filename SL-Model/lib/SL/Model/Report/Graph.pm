@@ -182,7 +182,7 @@ sub views {
 
     # unpack
     my $filename     = $params_ref->{filename}     or die;
-    my $reg          = $params_ref->{reg}          or die;
+    my $account      = $params_ref->{account}          or die;
     my $data_hashref = $params_ref->{data_hashref} or die;
     my $temporal     = $params_ref->{temporal}     or die;
 
@@ -205,112 +205,6 @@ sub views {
                     @{ $data_hashref->{data} }
                 ],
                 legend => $data_hashref->{series},
-            }
-        );
-    };
-    die $@ if $@;
-
-    return 1;
-}
-
-sub clicks {
-    my ( $class, $params_ref ) = @_;
-
-    # unpack
-    my $filename     = $params_ref->{filename}     or die;
-    my $reg          = $params_ref->{reg}          or die;
-    my $data_hashref = $params_ref->{data_hashref} or die;
-    my $temporal     = $params_ref->{temporal}     or die;
-
-	my $title = $class->title({ 
-			temporal => $duration_hash{ $temporal},
-			lead => sprintf("%s total Ad Clicks", $data_hashref->{total}),
-	});
-
-    eval {
-        SL::Model::Report::Graph->bars_many(
-            {
-                filename => $filename,
-                title    => $title,
-				y_max_value   => $class->max($data_hashref->{max}),
-                y_tick_number => $class->tick($data_hashref->{max}),
-                y_label       => 'Number of Ad Clicks',
-                data_ref      => [
-                    [ @{ $data_hashref->{headers} } ],
-                    @{ $data_hashref->{data} }
-                ],
-                legend => $data_hashref->{series},
-            }
-        );
-    };
-    die $@ if $@;
-    return 1;
-}
-
-sub ads_by_click {
-    my ( $class, $params_ref ) = @_;
-
-    # unpack
-    my $filename     = $params_ref->{filename}     or die;
-    my $reg          = $params_ref->{reg}          or die;
-    my $data_hashref = $params_ref->{data_hashref} or die;
-    my $temporal     = $params_ref->{temporal}     or die;
-
-	my $title = $class->title({ 
-			temporal => $duration_hash{ $temporal},
-			lead => 'Ads by Clicks' });
-
-    # burn the graph
-    eval {
-        $class->hbars(
-            {
-                filename => $filename,
-                title    => $title,
-				y_max_value   => $class->max($data_hashref->{max}),
-                y_tick_number => $class->tick($data_hashref->{max}),
-                y_label       => 'Clicks',
-                data_ref      => [
-                    [ @{ $data_hashref->{headers} } ],
-                    $data_hashref->{data}, # ref of one element
-                ],
-                legend => $data_hashref->{series},
-            }
-        );
-    };
-    die $@ if $@;
-
-    return 1;
-}
-
-sub click_rates {
-    my ( $class, $params_ref ) = @_;
-
-    # unpack
-    my $filename     = $params_ref->{filename}     or die;
-    my $reg          = $params_ref->{reg}          or die;
-    my $data_hashref = $params_ref->{data_hashref} or die;
-    my $temporal     = $params_ref->{temporal}     or die;
-
-	my $title = $class->title({ 
-			temporal => $duration_hash{ $temporal},
-			lead => 'Ad Click Rate' });
-
-    # burn the graph
-    eval {
-        SL::Model::Report::Graph->hbars(
-            {
-                filename => $filename,
-                title    => $title,
-				y_max_value   => ($class->max($data_hashref->{max}) > 100) ? 
-					100 : $class->max($data_hashref->{max}),
-                y_tick_number => $class->tick($data_hashref->{max}),
-                data_ref      => [
-                    [ @{ $data_hashref->{headers} } ],
-                    $data_hashref->{data},
-                ],
-                legend          => $data_hashref->{series},
-                y_number_format => '%.1f%%',
-                y_label         => 'Click Rate',
             }
         );
     };

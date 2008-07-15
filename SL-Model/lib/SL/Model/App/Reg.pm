@@ -138,34 +138,10 @@ __PACKAGE__->has_many(
 
 # These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Reg.pm' found in @INC.# They are now part of the custom portion of this file# for you to hand-edit.  If you do not either delete# this section or remove that file from @INC, this section# will be repeated redundantly when you re-create this# file again via Loader!
 
-use Digest::MD5      ();
-use File::Path       ();
 use SL::Model::App   ();
 use SL::Config       ();
 
 our $config = SL::Config->new();
-
-use constant DEBUG => $ENV{SL_DEBUG} || 0;
-require Data::Dumper if DEBUG;
-
-sub report_dir_base {
-    my $self = shift;
-
-    return $self->{report_dir_base} if $self->{report_dir_base};
-
-    # make the directory to store the reporting data
-     my $dir = join ( '/', $config->sl_data_root, $self->report_base );
-
-    File::Path::mkpath($dir) unless ( -d $dir );
-
-    $self->{report_dir_base} = $dir;
-    return $dir;
-}
-
-sub report_base {
-  my $self = shift;
-  return join('/', Digest::MD5::md5_hex( $self->account_id->name ), 'report');
-}
 
 sub get_ad_zone {
     my ( $self, $ad_zone_id ) = @_;
@@ -259,28 +235,6 @@ sub get_routers {
     return unless scalar(@filtered_routers) > 0;
     $self->process_router($_) for @filtered_routers;
     return @filtered_routers;
-}
-
-# same as views but just count
-sub views_count {
-    my ( $self, $start, $end, $routers_aryref ) = @_;
-    die 'start and end invalid'
-      unless SL::Model::App::validate_dt( $start, $end );
-    die 'please specify routers' unless $routers_aryref;
-
-    my $views_hashref;
-    my $total = 0;
-    foreach my $router ( sort { $a->router_id <=> $b->router_id }
-                         @{$routers_aryref} ) {
-        my $count = $router->views_count( $start, $end );
-        $total += $count;
-
-        $views_hashref->{routers}->{ $router->router_id }->{count} =
-          $count || 0;
-    }
-    $views_hashref->{total} = $total;
-
-    return $views_hashref;
 }
 
 1;

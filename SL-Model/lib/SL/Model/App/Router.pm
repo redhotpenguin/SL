@@ -193,7 +193,7 @@ SELECT ad_zone_id, count(view_id)
 FROM view
 WHERE view.cts BETWEEN ? AND ?
 AND router_id = ?
-GROUP BY ad_id
+GROUP BY ad_zone_id
 SQL
 
 

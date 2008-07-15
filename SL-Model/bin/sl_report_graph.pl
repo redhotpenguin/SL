@@ -55,23 +55,22 @@ our %duration_hash = (
     annually   => '365 days',
 );
 
-use constant DEBUG => $ENV{SL_DEBUG} || 0;
+use constant DEBUG => $ENV{SL_DEBUG} || 1;
 
-my @regs = SL::Model::App->resultset('Reg')->search( { active => 1, });
-# email => 'fred@redhotpenguin.com' } );
+my @accounts = SL::Model::App->resultset('Account')->all;
 
 foreach my $temporal (@intervals) {
-    my %global;
-    my %reg_data;
-    print STDERR "Processing temporal $temporal\n";
 
-    foreach my $reg (@regs) {
-        print STDERR sprintf( "=> Processing account %s \n", $reg->email )
-          if DEBUG;
+    print "Processing temporal $temporal\n" if DEBUG;
 
-        my @routers = $reg->get_routers;
+    foreach my $account ( @accounts ) {
+        print sprintf( "=> Processing account %s \n", $account->name ) if DEBUG;
+
+        my @routers = SL::Model::App->resultset('Router')->search({
+		account_id => $account->account_id, active => 't' });
+
         unless (@routers) {
-          print STDERR "no routers for " . $reg->email . "\n" if DEBUG;
+          print STDERR "no routers for account " . $account->name . "\n";
           next;
         }
 
@@ -79,7 +78,7 @@ foreach my $temporal (@intervals) {
         # get the view data
         my $views = SL::Model::Report->views(
             {
-                reg      => $reg,
+                account  => $account,
                 temporal => $temporal,
                 routers  => \@routers
             }
@@ -87,88 +86,20 @@ foreach my $temporal (@intervals) {
 
         # burn the view graph
         my $filename =
-          join ( '/', $reg->report_dir_base, "views_$temporal.png" );
+          join ( '/', $account->report_dir_base, "views_$temporal.png" );
+
         SL::Model::Report::Graph->views(
             {
                 data_hashref => $views,
                 filename     => $filename,
-                reg          => $reg,
+                account      => $account,
                 temporal     => $temporal,
             }
         );
-        print STDERR "==> burned graph $filename\n" if DEBUG;
-
-        if (0) {
-        ########################
-        # get the click data
-        my $clicks = SL::Model::Report->clicks(
-            {
-                reg      => $reg,
-                temporal => $temporal,
-                routers  => \@routers,
-            }
-        );
-
-        # burn the click graph
-        $filename = join ( '/', $reg->report_dir_base, "clicks_$temporal.png" );
-        SL::Model::Report::Graph->clicks(
-            {
-                data_hashref => $clicks,
-                filename     => $filename,
-                reg          => $reg,
-                temporal     => $temporal,
-            }
-        );
-        print STDERR "==> burned graph $filename\n" if DEBUG;
-
-        #########################
-        # get ad breakdown for all routers
-        my $ads_by_click = SL::Model::Report->ads_by_click(
-            {
-                reg       => $reg,
-                temporal  => $temporal,
-                routers => \@routers,
-            }
-        );
-
-        # burn the click by ad graph
-        $filename = join ( '/', $reg->report_dir_base, "ads_$temporal.png" );
-        SL::Model::Report::Graph->ads_by_click(
-            {
-                data_hashref => $ads_by_click,
-                filename     => $filename,
-                reg          => $reg,
-                temporal     => $temporal,
-            }
-        );
-        print STDERR "==> burned graph $filename\n" if DEBUG;
-
-        #########################
-        # click rates
-        my $click_rates = SL::Model::Report->click_rates(
-            {
-                reg       => $reg,
-                temporal  => $temporal,
-                routers => \@routers,
-            }
-        );
-        print STDERR "==> got ad data for " . $reg->email . "\n" if DEBUG;
-
-        # burn the click by ad graph
-        $filename = join ( '/', $reg->report_dir_base, "rates_$temporal.png" );
-        SL::Model::Report::Graph->click_rates(
-            {
-                data_hashref => $click_rates,
-                filename     => $filename,
-                reg          => $reg,
-                temporal     => $temporal,
-            }
-        );
-        print STDERR "==> burned graph $filename\n" if DEBUG;
-      }
+        print "==> burned graph $filename\n" if DEBUG;
     }
 
-    print STDERR "\nFinished processing $temporal reports\n" if DEBUG;
+    print "\nFinished processing $temporal reports\n" if DEBUG;
 }
 
 1;
