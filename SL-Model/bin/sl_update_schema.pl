@@ -160,7 +160,8 @@ $dbh->do("drop table root");
 $dbh->do("drop sequence root_root_id_seq");
 $dbh->do("drop table subrequest");
 
-
+warn("deleting unused routers");
+$dbh->do("delete from router where router_id in (13,16,18,19,20,21,22,23,24,28)");
 
 
 
