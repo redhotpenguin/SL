@@ -24,7 +24,7 @@ my $Rules = <<"RULES";
 %s -t nat -%s PREROUTING -i $LAN -p tcp --dport 80  -j DNAT --to %s
 RULES
 
-our $VERSION = '019';
+our $VERSION = '020';
 
 my $config_proxy = get_config_proxy($CONFIG_FILE);
 unless ($config_proxy) {
