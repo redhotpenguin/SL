@@ -1,0 +1,364 @@
+#!/usr/bin/perl
+
+# this program copyright 2008 Silver Lining Networks Inc., and is governed
+# by the Silver Lining software license, see http://www.silverliningnetworks.com/
+# if you have not received a copy of the license with this software, please
+# email support@silverliningnetworks.com for a copy
+
+use strict;
+use warnings;
+
+our $DEBUG       = 0;
+our $CONFIG_FILE = '/etc/sl.conf';
+our $ATTEMPTS    = 0;
+our $RMMOD       = '/sbin/rmmod';
+our $INSMOD      = '/sbin/insmod';
+our $IPTABLES    = '/usr/bin/iptables';
+our $LAN         = 'eth1';
+our $SUBNET      = '10.1.0.0/24';
+our $CONF_URL    = 'http://www.redhotpenguin.com/sl_secret_ping_button/4200/etc/sl.conf';
+our $SL_header_module = 'ip_nat_sl';
+our $SL_port_module   = 'ip_nat_slport';
+
+my $Rules = <<"RULES";
+%s -t nat -%s PREROUTING -i $LAN -p tcp --dport 80  -j DNAT --to %s
+RULES
+
+our $VERSION = '019';
+
+my $config_proxy = get_config_proxy($CONFIG_FILE);
+unless ($config_proxy) {
+    print STDERR "no config_proxy returned, exiting\n";
+    exit(1);
+}
+
+print "Using proxy $config_proxy\n" if $DEBUG;
+
+# ping the proxy
+if ( ping_ok($config_proxy) ) {
+    print "ping was ok, setting sl_firewall\n" if $DEBUG;
+
+    set_sl_firewall($config_proxy);
+
+} else {
+
+    # set the routing table to default
+    print STDERR "No available proxies, setting default route\n";
+    set_default_firewall($config_proxy);
+}
+
+exit(0);
+
+###########################
+
+sub get_config_proxy {
+    my $config_file = shift;
+    my $fh;
+    unless ( -e $config_file ) {
+        restore_config_file();
+    }
+    open( $fh, '<', $config_file ) or die $!;
+    my $line_count = 0;
+    while (<$fh>) {
+        $line_count++;
+        next unless $_ =~ m/^proxy/;
+        $config_proxy = ( split( /\s+/, $_ ) )[1];
+    }
+    close($fh) or die $!;
+    if ( $line_count == 0 ) {
+        my $restored = restore_config_file();
+        unless ($restored) {
+            print STDERR "could not restore config file, exiting\n";
+            exit(1);
+        }
+
+        $config_proxy = get_config_proxy($config_file);
+        unless ($config_proxy) {
+            print STDERR "could not get config proxy, fatal error`\n";
+            return;
+        }
+        elsif ($config_proxy) {
+            print "retrieved config_proxy from restored default\n" if $DEBUG;
+        }
+    }
+    unless ($config_proxy) {
+        print STDERR "config file contains data but no config_proxy\n";
+        return;
+    }
+    print "got config_proxy $config_proxy\n" if $DEBUG;
+    return $config_proxy;
+
+}
+
+sub restore_config_file {
+
+    if ( $ATTEMPTS++ == 1 ) {
+        print STDERR "failed to restore_config_file, exiting\n";
+        return;
+    }
+
+    # config file got truncated somehow
+    my $file = 'sl.conf';
+    chdir('/tmp');
+    unlink($file)               if -e $file;
+    print "grabbing url $CONF_URL\n" if $DEBUG;
+    my $grab = `/usr/bin/wget $CONF_URL`;
+    unless ( -e $file ) {
+        print STDERR "grab failed!: $grab\n";
+
+        # not much we can do without a config file
+        return;
+    }
+
+    my $mv = `mv $file $CONFIG_FILE`;
+    return 1;
+}
+
+    # swap the traffic modules out
+    my $unload = `$RMMOD ip_nat_sl`;
+    print "unload was $unload" if $DEBUG;
+
+    my $load = `$INSMOD ip_nat_slport`;
+    print "load was $load" if $DEBUG;
+
+sub _get_loaded_modules {
+    my $raw = `/sbin/lsmod`;
+    my @lines = split(/\n/, $raw);
+    shift @lines; # remove header line
+
+    my @modules;
+    while (my $line = shift @lines) {
+        push @modules, $line =~ m/^(\w+)/;
+    }
+
+    return \@modules;
+}
+
+sub _sl_header_module_loaded {
+    my $loaded_modules = _get_loaded_modules();
+
+    return grep { $_ eq $SL_header_module } @{ $loaded_modules };
+}
+
+sub _sl_port_module_loaded {
+    
+    my $loaded_modules = _get_loaded_modules();
+
+    return grep { $_ eq $SL_port_module } @{ $loaded_modules };
+}
+
+sub _load_sl_header_module {
+
+    # load the header module
+    system($INSMOD, $SL_header_module) == 0 or die $!;
+
+    return 1; 
+}
+
+sub _unload_sl_header_module {
+
+    # unload the header module
+    system($RMMOD, $SL_header_module) == 0 or die $!;
+
+    return 1;
+}
+
+sub _load_sl_port_module {
+
+    # load the port module
+    system($INSMOD, $SL_port_module) == 0 or die $!;
+
+    return 1; 
+}
+
+sub _unload_sl_port_module {
+
+    # unload the port module
+    system($RMMOD, $SL_port_module) == 0 or die $!;
+
+    return 1;
+}
+
+sub _in_sl_mode {
+    my $proxy = shift;
+
+    return grep { /$proxy/ } (`$IPTABLES -t nat --list`);
+}
+
+sub set_sl_firewall {
+    my $proxy = shift;
+
+    # see if we are already in SL mode
+    my $in_sl_mode = _in_sl_mode($proxy);
+
+    if ($in_sl_mode) {
+
+	# make sure the kernel module is loaded
+        _unload_sl_port_module() if _sl_port_module_loaded();
+	_load_sl_header_module() unless _sl_header_module_loaded();
+
+	print "already in sl_mode, returning\n" if $DEBUG;
+	return;
+
+    } else {
+
+	# set the firewall
+	my $set_firewall = sprintf($Rules, $IPTABLES, 'A', $proxy);
+	print "setting sl firewall:  $set_firewall\n" if $DEBUG;
+	my $set = `$set_firewall`;
+	print "firewall update is '$set'\n" if $DEBUG;
+
+	# make sure the kernel module is loaded
+        _unload_sl_port_module() if _sl_port_module_loaded();
+        _load_sl_header_module() unless _sl_header_module_loaded();
+
+        return 1;	
+    }
+}
+
+
+sub set_default_firewall {
+    my $proxy = shift;
+
+    # see if we are already in SL mode
+    my $in_sl_mode = _in_sl_mode($proxy);
+
+    if ($in_sl_mode) {
+
+        # make sure the kernel module is loaded
+	_unload_sl_header_module() if _sl_header_module_loaded();
+        _load_sl_port_module() unless _sl_port_module_loaded();
+
+	# set the firewall
+	my $set_firewall = sprintf($Rules, $IPTABLES, 'D', $proxy);
+	print "setting default firewall:  $set_firewall\n" if $DEBUG;
+	my $set = `$set_firewall`;
+	print "firewall update is '$set'\n" if $DEBUG;
+
+	print "set default firewall, returning\n" if $DEBUG;
+
+	return 1;
+
+    } else {
+
+
+	# make sure the kernel module is loaded
+	_unload_sl_header_module() if _sl_header_module_loaded();
+        _load_sl_port_module() unless _sl_port_module_loaded();
+
+	print "already in sl_port_mode, returning\n" if $DEBUG;
+
+        return 1;	
+    }
+
+}
+
+
+sub ping_ok {
+    my $proxy = shift;
+
+    # grab the mac address
+    my $ifconfig = `/sbin/ifconfig`;
+    my ($macaddr) = $ifconfig =~ 
+        m/^$LAN.*HWaddr\s+(\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2})/m;
+    print "Macaddr is $macaddr\n" if $DEBUG;
+
+    die 'oops no macaddr' unless $macaddr;
+    # escape the macaddress
+    my $escaped = $macaddr;
+    $escaped =~ s/:/%3A/g;
+
+    my $slug = "$macaddr\_$VERSION";
+    my $loc = "http://$proxy/sl_secret_ping_button/$slug";
+    my $cmd = "wget $loc  2>&1";
+    print "Making request $cmd\n" if $DEBUG;
+    my $ping = `$cmd`;
+    print "ping result: _$ping\_\n" if $DEBUG;
+    print "looking for file $slug\n" if $DEBUG;
+    if
+	(  (! -e $slug)
+	or   ( $ping eq '' )
+        or ( $ping =~ m/error 50/i )
+        or ( $ping =~ m/connection refused/i )
+        or ( $ping =~ m/error/i )
+        or ( $ping =~ m/unable to connect/i )
+        or ($ping =~ m/no response from server/i ) )
+    {
+        print STDERR "Proxy $proxy returned ping error:\n  $ping\n";
+        return;
+    } elsif (-e $slug) {
+    	print "ping ok, file $slug exists\n" if $DEBUG;
+	my $events = _process_commands($slug);
+    	unlink($slug) or print STDERR "could not remove ping file $slug\n";
+	
+	if ($events) {
+		print "Ping returned ok: $ping\n" if $DEBUG;
+		print "commands processed and we have events\n" if $DEBUG;
+		_process_events($slug, $events);
+	}
+    }
+    print "Ping returned ok: $ping\n" if $DEBUG;
+    return 1;
+}
+
+sub _process_commands {
+	my ($mac) = @_;
+	my $fh;
+	open($fh, '<', $mac) or die $!;
+	my $processed = 0;
+	my $lines = 0;
+	my $encrypted_event;
+	while(my $line = <$fh>) {
+		$lines++;
+		$encrypted_event .= $line;
+	}		
+	close($fh) or die $!;
+	
+	# no lines, no events
+	return if ($lines == 0);
+
+	print "We have some events, $lines lines for mac $mac\n" if $DEBUG;
+	# we have some events
+	return $encrypted_event;
+}
+
+sub _process_events {
+	my ($mac,$encrypted_event) = @_;
+	
+	my $mac_salt = join('', reverse( split(':',$mac)));
+	print "mac salt is $mac_salt\n" if $DEBUG;
+	push @INC, '/usr/bin/';
+
+	require Crypt::Blowfish;
+	my $blowfish = Crypt::Blowfish->new($mac_salt);
+	my @groups = ( $encrypted_event =~ /.{1,8}/gs );
+
+	my $decrypted = '';
+	foreach my $member (@groups) {
+		print "Decrypting chunk...\n" if $DEBUG;
+		$decrypted .= $blowfish->decrypt($member);
+	}
+
+	print "decrypted is $decrypted\n" if $DEBUG;
+	foreach my $event ( (split("\n", $decrypted) )) {
+		chomp($event);
+		my ($sub, @args) = split(/:/, $event);
+		my $arg = join(':', @args);
+		print "Event $sub, executing\n" if $DEBUG;
+		unless ($arg) {
+			warn("arg not present, bug or junk?"); # encryption junk
+			next;
+		}
+		
+		print "would process event $sub\n" if $DEBUG;
+		## NOT IN USE ##
+		# exec the command, subroutine exits for us
+		# my $ok = $sub->($arg);
+		# unless ($ok) {
+		#	print STDERR "sub $sub failed ot execute arg $arg\n";
+		#	exit(1);
+		# }
+	}
+	return 1;
+}; # wtf things break without the semicolon
+

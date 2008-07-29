@@ -1,0 +1,5 @@
+# ping the proxy server to see if it's alive
+* * * * * /usr/bin/perl /usr/sbin/sl_fw_ha
+
+# grab the latest configuration data once a day, five minutes after restart
+5 0 * * * /usr/bin/perl /usr/sbin/sl_config_update
