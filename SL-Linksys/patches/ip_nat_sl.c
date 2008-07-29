@@ -18,6 +18,9 @@ MODULE_LICENSE("SL");
 MODULE_DESCRIPTION("Connection helper for SL HTTP requests");
 MODULE_AUTHOR("Fred Moyer <fred@redhotpenguin.com>");
 
+/* big packet munging is currently broken */
+#define BIG_PACKET 0
+
 /* salt for the hashing */
 #define JHASH_SALT 420
 
@@ -186,7 +189,7 @@ static int sl_data_fixup(
     }
 
     /* check for full packet, remove ka and conn headers */
-    if ((packet_len + SL_HEADER_LEN) >= MAX_PACKET_LEN) {
+    if ((BIG_PACKET == 1) && ((packet_len + SL_HEADER_LEN) >= MAX_PACKET_LEN)) {
 
         /* remove the keep-alive and connection headers */
         /* pointers to keep alive and connection headers */
