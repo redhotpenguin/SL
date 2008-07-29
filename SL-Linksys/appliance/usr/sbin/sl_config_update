@@ -6,7 +6,7 @@
 use strict;
 use warnings;
 
-our $DEBUG       = 1;
+our $DEBUG       = 0;
 our $CONFIG_FILE = '/etc/sl.conf';
 our $DEFAULT_CONFIG_URL =
   'http://www.redhotpenguin.com/sl_secret_ping_button/4200/etc/sl.conf';
