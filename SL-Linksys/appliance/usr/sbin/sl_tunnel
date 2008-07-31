@@ -17,7 +17,7 @@ my $req = HTTP::Request->new( 'GET', $url );
 
 my $response = $ua->request($req);
 
-my $port = '-R 30683:lcalhost:20022';
+my $port = '-R 30683:localhost:20022';
 
 if ( $response->content eq '0' ) {
 
