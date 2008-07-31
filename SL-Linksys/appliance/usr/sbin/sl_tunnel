@@ -1,0 +1,47 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use HTTP::Request;
+use LWP::UserAgent;
+use IPC::Run3;
+
+my $debug = 0;
+my $user  = 'phred';
+my $host  = 'www.redhotpenguin.com';
+my $url   = "https://$host/cgi-bin/tunnel.cgi?host=aircloud";
+my $ua    = LWP::UserAgent->new;
+
+my $req = HTTP::Request->new( 'GET', $url );
+
+my $response = $ua->request($req);
+
+my $port = '-R 30683:lcalhost:20022';
+
+if ( $response->content eq '0' ) {
+
+    # Tunnel down
+    print STDERR "Tunnel down\n";
+
+    # Check to see if the process is running
+    my $proc = `ps aux | grep $port`;
+    if ( $proc && ( !$proc =~ m/^grep/ ) ) {
+        print STDERR "Existing tunnel process found: $proc\n";
+        print STDERR "Killing it\n";
+        my ( $user, $pid ) = $proc =~ m/^(\w+)\s+(\d+)/;
+        my $procs_killed = kill 9, $pid;
+        print STDERR "Killed $procs_killed for pid $pid\n";
+    }
+
+    # Restart the tunnel
+    print "Starting tunnel\n" if $debug;
+    my ( $in, $out, $err );
+    my @cmd = ( "ssh", "-2", "-f", "-N", $port, "$user\@$host" );
+    run3( \@cmd, \$in, \$out, \$err );
+    print "Tunnel started\n" if $debug;
+}
+elsif ( $response->content eq '1' ) {
+    print "Tunnel up\n" if $debug;
+}
+
