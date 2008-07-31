@@ -35,11 +35,11 @@ if ( $response->content eq '0' ) {
     }
 
     # Restart the tunnel
-    print "Starting tunnel\n" if $debug;
+    print STDERR "Starting tunnel\n";
     my ( $in, $out, $err );
     my @cmd = ( "ssh", "-2", "-f", "-N", $port, "$user\@$host" );
     run3( \@cmd, \$in, \$out, \$err );
-    print "Tunnel started\n" if $debug;
+    print STDERR "Tunnel started\n";
 }
 elsif ( $response->content eq '1' ) {
     print "Tunnel up\n" if $debug;
