@@ -767,6 +767,7 @@ sub _generate_response {
             user => $r->pnotes('hash_mac'),
     );
     $ad_args{premium} = 1 if $r->pnotes('premium');
+    $ad_args{close_box} = 1 unless $r->pnotes('noclose');
     my ( $ad_zone_id, $ad_content_ref, $css_url ) = SL::Model::Ad->random(\%ad_args);
 
     # checkpoint random ad
