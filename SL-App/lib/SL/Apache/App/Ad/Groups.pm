@@ -77,6 +77,31 @@ sub dispatch_edit {
                     }
                 )
             ],
+            bug_list_4 => [
+                SL::Model::App->resultset('Bug')->search(
+                    {
+                        account_id => $reg->account_id->account_id,
+                        ad_size_id => 4
+                    }
+                )
+            ],
+             bug_list_5 => [
+                SL::Model::App->resultset('Bug')->search(
+                    {
+                        account_id => $reg->account_id->account_id,
+                        ad_size_id => 5
+                    }
+                )
+            ],
+             bug_list_6 => [
+                SL::Model::App->resultset('Bug')->search(
+                    {
+                        account_id => $reg->account_id->account_id,
+                        ad_size_id => 6
+                    }
+                )
+            ],
+
         );
 
         my $output;

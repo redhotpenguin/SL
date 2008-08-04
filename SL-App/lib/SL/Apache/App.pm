@@ -26,25 +26,6 @@ use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 require Data::Dumper if DEBUG;
 
-our %AD_ZONE_TYPES = (
-    'Leaderboard (728x90)' => {
-        type   => 'leaderboard',
-        height => 90,
-        width  => 728,
-    },
-
-    'Full Banner (468x60)' => {
-        type   => 'full_banner',
-        height => 60,
-        width  => 468,
-    },
-    'Text Ad (600x30)' => {
-        type   => 'text_ad',
-        height => 30,
-        width  => 600,
-    },
-);
-
 =head1 METHODS
 
 =over 4
@@ -153,10 +134,15 @@ sub image_zone {
         return unless $response->headers->header('content-length') < MAX_IMAGE_BYTES;
 
         # check the image height
-        return unless $height == $ad_size->height;;
-
         # only allow bugs that are 3x1 ratio width to height or less
-        return unless $width < ( $ad_size->height * 3 );
+        if ($ad_size->ad_size_id < 4) {
+            return unless $height == $ad_size->height;
+            return unless $width < ( $ad_size->height * 3 );
+        } else {
+            return unless $width == $ad_size->width;
+            return unless $height < ( $ad_size->width * 3 );
+        }
+
 
         return $image_href_val;
       }

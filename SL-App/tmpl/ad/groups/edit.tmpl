@@ -85,7 +85,7 @@ Size:&nbsp;&nbsp;
 function changeBugList() {
 
     // hide all sub lists
-    for (var i = 1; i < 4; i++) {
+    for (var i = 1; i < 7; i++) {
 
         document.getElementById('bug_list_' + i).style.display='none';
     }
@@ -134,7 +134,7 @@ function setBugList(ad_size_id) {
 <hr class="sl_line">
 [% END %]
 
-[% FOREACH buglist = [ 'bug_list_1', 'bug_list_2', 'bug_list_3' ] %]
+[% FOREACH buglist = [ 'bug_list_1', 'bug_list_2', 'bug_list_3', 'bug_list_4', 'bug_list_5', 'bug_list_6' ] %]
 
 <div id="[% buglist %]" [% IF "bug_list_$ad_size_id" != buglist %][% IF ! ad_zone OR ad_zone.ad_size_id.ad_size_id != $buglist.0.ad_size_id.ad_size_id %]style="display: none;";[% END %][% END %]>
 
