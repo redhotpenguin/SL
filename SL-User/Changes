@@ -1,0 +1,6 @@
+Revision history for Perl extension SL::User.
+
+0.01  Sun May 11 13:33:34 2008
+	- original version; created by h2xs 1.23 with options
+		-X SL::User
+
