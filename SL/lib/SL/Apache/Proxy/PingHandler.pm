@@ -19,7 +19,7 @@ BEGIN {
 }
 
 use constant DEBUG    => $ENV{SL_DEBUG}             || 0;
-use constant MAX_LOAD => $CONFIG->sl_proxy_max_load || 2;
+use constant MAX_LOAD => $CONFIG->sl_proxy_max_load || 4;
 use constant SSID     => 2;
 use constant PASSWD   => 3;
 use constant FIRMWARE => 4;
