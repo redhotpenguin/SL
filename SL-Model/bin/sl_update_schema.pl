@@ -157,7 +157,6 @@ $dbh->do("INSERT INTO bug (account_id, ad_size_id, image_href, link_href ) value
 `psql -d $db -f $sql_root/ad_zone.sql`;
 $dbh->do("insert into ad_zone (code, name, account_id, ad_size_id) values ('legacy code', 'legacy', 1, 3)");
 
-`psql -d $db -f $sql_root/account__ad_zone.sql`;
 `psql -d $db -f $sql_root/router__ad_zone.sql`;
 
 # update the view table
