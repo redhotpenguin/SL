@@ -183,13 +183,12 @@ ad_size.css_url,
 bug.image_href,
 bug.link_href,
 
-account.premium
+account.premium,
 account.close_box
 
-FROM ad_zone, bug, router, router__ad_zone, ad_size, account, account__ad_zone
+FROM ad_zone, bug, router, router__ad_zone, ad_size, account
 
 WHERE router.macaddr = ?
-AND account__ad_zone.ad_zone_id = ad_zone.ad_zone_id
 AND router__ad_zone.router_id = router.router_id
 AND ad_zone.bug_id = bug.bug_id
 AND ad_zone.ad_size_id = ad_size.ad_size_id
