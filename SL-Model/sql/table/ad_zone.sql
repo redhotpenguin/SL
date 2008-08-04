@@ -25,7 +25,8 @@ CREATE TABLE ad_zone (
     account_id integer NOT NULL,
     ad_size_id integer NOT NULL,
     active boolean DEFAULT true NOT NULL,
-    bug_id integer DEFAULT 1 NOT NULL
+    bug_id integer DEFAULT 1 NOT NULL,
+    reg_id integer DEFAULT 1 NOT NULL
 );
 
 
@@ -90,6 +91,8 @@ ALTER TABLE ONLY ad_zone
     ADD CONSTRAINT ad_zone_bug_id_fkey FOREIGN KEY (bug_id) REFERENCES bug(bug_id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
+ALTER TABLE ONLY ad_zone
+    ADD CONSTRAINT ad_zone_reg_id_fkey FOREIGN KEY (reg_id) REFERENCES reg(reg_id) ON UPDATE CASCADE ON DELETE CASCADE;
 --
 -- PostgreSQL database dump complete
 --

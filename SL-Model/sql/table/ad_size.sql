@@ -71,6 +71,9 @@ COPY ad_size (ad_size_id, name, height, width, css_url) FROM stdin;
 1	Leaderboard	90	728	http://www.silverliningnetworks.com/css/sl_leaderboard.css
 2	Full Banner	60	468	http://www.silverliningnetworks.com/css/sl_full_banner.css
 3	Text Ad	45	600	http://www.silverliningnetworks.com/css/sl_text_ad.css
+4	Skyscraper	600	120	http://www.silverliningnetworks.com/css/sl_skyscraper.css
+5	Wide Skyscraper	600	160	http://www.silverliningnetworks.com/css/sl_wide_skyscraper.css
+6	Half Page Ad	600	300	http://www.silverliningnetworks.com/css/sl_half_page_ad.css
 \.
 
 

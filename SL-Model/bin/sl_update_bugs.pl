@@ -20,7 +20,23 @@ my @bugs = ( { ad_size_id => 1,
 	ad_size_id => 3,
 	image_href => 'http://www.silverliningnetworks.com/bugs/sl/text_ad_sponsored_by.gif',
 	link_href => 'http://www.silverliningnetworks.com/?referer=silverlining', },
-	);
+
+	{
+	ad_size_id => 4,
+	image_href => 'http://www.silverliningnetworks.com/bugs/sl/skyscraper_sponsored_by.gif',
+	link_href => 'http://www.silverliningnetworks.com/?referer=silverlining', },
+
+	{
+	ad_size_id => 5,
+	image_href => 'http://www.silverliningnetworks.com/bugs/sl/wide_skyscraper_sponsored_by.gif',
+	link_href => 'http://www.silverliningnetworks.com/?referer=silverlining', },
+
+	{
+	ad_size_id => 6,
+	image_href => 'http://www.silverliningnetworks.com/bugs/sl/half_page_ad_sponsored_by.gif',
+	link_href => 'http://www.silverliningnetworks.com/?referer=silverlining', },
+
+    );
 
 foreach my $account (@accounts) {
     foreach my $bug (@bugs) {
