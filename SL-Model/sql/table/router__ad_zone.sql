@@ -27,25 +27,6 @@ CREATE TABLE router__ad_zone (
 ALTER TABLE public.router__ad_zone OWNER TO phred;
 
 
-COPY router__ad_zone (router_id, ad_zone_id) FROM stdin;
-2	1
-35	1
-80	3
-58	3
-64	3
-62	3
-63	3
-60	3
-61	3
-69	3
-79	5
-89	6
-90	7
-\.
-
-
-
-
 --
 -- Name: router__ad_zone__pkey; Type: CONSTRAINT; Schema: public; Owner: phred; Tablespace: 
 --
