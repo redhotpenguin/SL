@@ -1,16 +1,12 @@
-<p class="sl">
-
 <a class="sl_bug_link" href="[% bug_link_href %]">
-<img class="sl_bug_img" src="[% bug_image_href %]">
-&nbsp;&nbsp;
-<span class="sl_code">[% code %]</span>
+<img align="left" class="sl_bug_img" src="[% bug_image_href %]"></a>
 
-[% IF close_box %]
+<p class="sl">
+<span class="sl_code">[% code %]</span>
+</p>
+
 <span class="sl_black"><a href="/sl_secret_blacklist_button">Close X</a></span>
-[% END %]
 
 [% IF ! premium %]
 <span class="sl_link"><a href="http://www.silverliningnetworks.com/">Silver Lining</a></span>
 [% END %]
-
-</p>
