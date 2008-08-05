@@ -21,7 +21,6 @@ p.sl {
 .sl_code {
 	position: absolute;
 	top: 0px;
-	left: 90px;
 	vertical-align: 50%;
 	text-decoration: underline;
     font-weight: bold;
@@ -33,7 +32,7 @@ p.sl {
 img.sl_bug_img  {
     border: 0px;
     padding: 0px;
-    margin: 0px 10px 0px 0px;
+    margin: 0px;
     vertical-align: top;
 }
 
