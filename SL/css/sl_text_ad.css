@@ -28,12 +28,14 @@ p.sl {
 	position: relative;
 	top: 0px;
     font-size: 14px;
+    margin: 0px;
+    padding: 0px;
 }
 
 img.sl_bug_img {
     border: 0px;
     padding: 0px;
-    margin: 0px;
+    margin: 0px 10px 0px 0px;
     vertical-align: top;
 }
 
