@@ -28,13 +28,16 @@ use constant PREMIUM         => 5;
 use constant PREMIUM         => 6;
 use constant OUTPUT_REF      => 7;
 
-use constant DEBUG => $ENV{SL_DEBUG} || 1;
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
+
 
 our ( $CONFIG, $TEMPLATE );
 our $Default_Ad_Data;
 
 BEGIN {
     $CONFIG = SL::Config->new;
+
+    require Data::Dumper if DEBUG;
 
     # create the default ad on startup and cache the data
 
