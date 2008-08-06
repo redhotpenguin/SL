@@ -11,6 +11,8 @@ $|++;
 use SL::Config ();
 my $config = SL::Config->new();
 
+print STDOUT "Starting SL::Proxy server on port "
+  . $config->sl_proxy_apache_listen . "\n";
 print STDOUT "Loading modules...\n";
 
 # status
@@ -37,7 +39,6 @@ use APR::Table              ();
 
 use SL::Model                          ();
 use SL::Model::Ad                      ();
-use SL::Model::Ad::Google              ();
 use SL::Model::URL                     ();
 use SL::Model::Proxy::Router           ();
 use SL::Model::Proxy::Location         ();
