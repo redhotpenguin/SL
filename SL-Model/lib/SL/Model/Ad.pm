@@ -28,7 +28,7 @@ use constant PREMIUM         => 5;
 use constant PREMIUM         => 6;
 use constant OUTPUT_REF      => 7;
 
-use constant DEBUG => $ENV{SL_DEBUG} || 0;
+use constant DEBUG => $ENV{SL_DEBUG} || 1;
 
 our ( $CONFIG, $TEMPLATE );
 our $Default_Ad_Data;
@@ -190,9 +190,10 @@ FROM ad_zone, bug, router, router__ad_zone, ad_size, account
 
 WHERE router.macaddr = ?
 AND router__ad_zone.router_id = router.router_id
+AND router__ad_zone.ad_zone_id = ad_zone.ad_zone_id
 AND ad_zone.bug_id = bug.bug_id
 AND ad_zone.ad_size_id = ad_size.ad_size_id
-
+AND ad_zone.account_id = account.account_id
 ORDER BY RANDOM()
 LIMIT 1
 };
@@ -213,7 +214,12 @@ sub _random_ad_from_mac {
     my $ad_data = $sth->fetchrow_arrayref;
     $sth->finish;
 
-    return unless defined $ad_data->[AD_ZONE_ID];
+    unless (defined $ad_data->[AD_ZONE_ID]) {
+        warn("No random ads returned for mac $mac") if DEBUG;
+        return;
+    }
+
+    warn( "Random ad zone id found for mac $mac:" . $ad_data->[AD_ZONE_ID]) if DEBUG;
     return $ad_data;
 }
 
