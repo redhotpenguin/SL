@@ -22,11 +22,12 @@ This serves ads, ya see?
 use constant AD_ZONE_ID      => 0;
 use constant AD_ZONE_CODE    => 1;
 use constant AD_SIZE_CSS_URL => 2;
-use constant BUG_IMAGE_HREF  => 3;
-use constant BUG_LINK_HREF   => 4;
-use constant PREMIUM         => 5;
+use constant AD_SIZE_ID      => 3;
+use constant BUG_IMAGE_HREF  => 4;
+use constant BUG_LINK_HREF   => 5;
 use constant PREMIUM         => 6;
-use constant OUTPUT_REF      => 7;
+use constant PREMIUM         => 7;
+use constant OUTPUT_REF      => 8;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
@@ -49,6 +50,7 @@ ad_zone.ad_zone_id,
 ad_zone.code,
 
 ad_size.css_url,
+ad_size.ad_size_id,
 
 bug.image_href,
 bug.link_href,
@@ -92,6 +94,7 @@ Method for ad insertion which wraps the whole page in a stylesheet
 
 our ( $regex, $second_regex, $uber_match, $end_body_match );
 our ( $top, $container, $tail );
+our ( $sky_top, $sky_container, $sky_tail );
 
 BEGIN {
     $top       = qq{<div id="sl_top">};
@@ -102,10 +105,28 @@ BEGIN {
     $uber_match     = qr{\G(?:</\s*?head\s*?>)}i;
     $second_regex   = qr{\G(.*?)<body([^>]*?)>(.*)$}is;
     $end_body_match = qr{^(.*)(<\s*?/body\s*?>.*)$}is;
+
+    $sky_top = qq{<div id="sl_ctr"><div id="sl_left">};
+    $sky_container = qq{</div><div id="sl_right">};
+    $sky_tail      = qq{</div>};
+
+
 }
 
 sub container {
-    my ( $css_url_ref, $decoded_content_ref, $ad_ref ) = @_;
+    my ( $css_url_ref, $decoded_content_ref, $ad_ref, $ad_size_id ) = @_;
+
+    my ($mytop, $mycontainer, $mytail);
+
+    if ($ad_size_id > 3) {
+	$mytop = $sky_top;
+	$mycontainer = $sky_container;
+	$mytail = $sky_tail;
+    } else {
+        $mytop = $top;
+	$mycontainer = $container;
+	$mytail = $tail;
+    }
 
     # check to make sure that we can insert all parts of the ad
     return
@@ -125,11 +146,11 @@ sub container {
 
     # Insert the rest of the pieces
     $matched = $$decoded_content_ref =~ s{$second_regex}
-                         {$1<body$2>$top$$ad_ref$container$3};
+                         {$1<body$2>$mytop$$ad_ref$mycontainer$3};
     warn( 'failed to insert ad content ' . $$ad_ref ) unless $matched;
 
     # insert the tail
-    $matched = $$decoded_content_ref =~ s{$end_body_match}{$1$tail$2};
+    $matched = $$decoded_content_ref =~ s{$end_body_match}{$1$mytail$2};
     warn('failed to insert closing div') unless $matched;
 
     return 1;
@@ -182,6 +203,7 @@ ad_zone.ad_zone_id,
 ad_zone.code,
 
 ad_size.css_url,
+ad_size.ad_size_id,
 
 bug.image_href,
 bug.link_href,
@@ -245,8 +267,7 @@ sub random {
     my $output_ref = $class->process_ad_template( $ad_data, $premium );
 
     # return the id, string output ref, and css url
-    return ( $ad_data->[AD_ZONE_ID], $output_ref, \$ad_data->[AD_SIZE_CSS_URL],
-    );
+    return ( $ad_data->[AD_ZONE_ID], $output_ref, \$ad_data->[AD_SIZE_CSS_URL], $ad_data->[AD_SIZE_ID]);
 }
 
 # takes ad_data, returns scalar reference of output
@@ -271,7 +292,8 @@ sub process_ad_template {
 
     # generate the ad
     my $output;
-    $TEMPLATE->process( "ad.tmpl", \%tmpl_vars, \$output )
+    my $tmpl = ( $ad_data->[AD_SIZE_ID] > 3 ) ? "sky_ad.tmpl" : "ad.tmpl";
+    $TEMPLATE->process( $tmpl, \%tmpl_vars, \$output )
       || die $TEMPLATE->error();
 
     return \$output;
