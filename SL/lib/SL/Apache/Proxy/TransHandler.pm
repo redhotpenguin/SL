@@ -22,7 +22,6 @@ use SL::Config;
 use SL::Model       ();
 use SL::Model::URL  ();
 use SL::BrowserUtil ();
-use SL::Util        ();
 use SL::Cache       ();
 use SL::User        ();
 use SL::Subrequest  ();
@@ -133,6 +132,9 @@ sub handler {
         return &perlbal($r);
     }
 
+    # this for testing only!
+    $r->headers_in->{'x-sl'} = '12345678|00188bf9406f';
+
     #####################################
     # process the sl header
     if ( my $sl_header = $r->headers_in->{'x-sl'} ) {
@@ -141,6 +143,9 @@ sub handler {
 
         my ( $hash_mac, $router_mac ) =
           split ( /\|/, $r->pnotes('sl_header') );
+
+        $r->log->error("$$ Found sl_header $sl_header")
+	    unless ((length($hash_mac) == 8) && (length($router_mac) == 12));
 
         unless ( $router_mac && $hash_mac ) {
             $r->log->error("$$ sl_header present but no hash or router mac");
