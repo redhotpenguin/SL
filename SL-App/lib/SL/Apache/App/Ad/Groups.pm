@@ -173,7 +173,7 @@ sub dispatch_list {
     my $reg = $r->pnotes( $r->user );
 
     # get the ad zones this user has access to
-    my @ad_zones = $reg->get_ad_zones;
+    my @ad_zones = $reg->account_id->get_ad_zones;
 
     $r->log->debug( "ad zones: " . Data::Dumper::Dumper( \@ad_zones ) )
       if DEBUG;
