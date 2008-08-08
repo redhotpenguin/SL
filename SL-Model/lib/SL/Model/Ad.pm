@@ -26,7 +26,7 @@ use constant AD_SIZE_ID      => 3;
 use constant BUG_IMAGE_HREF  => 4;
 use constant BUG_LINK_HREF   => 5;
 use constant PREMIUM         => 6;
-use constant PREMIUM         => 7;
+use constant CLOSE_BOX       => 7;
 use constant OUTPUT_REF      => 8;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
@@ -264,15 +264,16 @@ sub random {
     my $ad_data = $class->_random_ad_from_mac($mac) || $Default_Ad_Data;
 
     # process the template
-    my $output_ref = $class->process_ad_template( $ad_data, $premium );
+    my $output_ref = $class->process_ad_template( $ad_data );
 
     # return the id, string output ref, and css url
-    return ( $ad_data->[AD_ZONE_ID], $output_ref, \$ad_data->[AD_SIZE_CSS_URL], $ad_data->[AD_SIZE_ID]);
+    return ( $ad_data->[AD_ZONE_ID], $output_ref, \$ad_data->[AD_SIZE_CSS_URL],
+             $ad_data->[AD_SIZE_ID]);
 }
 
 # takes ad_data, returns scalar reference of output
 sub process_ad_template {
-    my ( $class, $ad_data, $premium ) = @_;
+    my ( $class, $ad_data ) = @_;
 
     unless ($ad_data) {
         require Carp
@@ -284,9 +285,9 @@ sub process_ad_template {
         code           => $ad_data->[AD_ZONE_CODE],
         bug_image_href => $ad_data->[BUG_IMAGE_HREF],
         bug_link_href  => $ad_data->[BUG_LINK_HREF],
+        premium        => $ad_data->[PREMIUM],
+	close_box      => $ad_data->[CLOSE_BOX],
     );
-
-    $tmpl_vars{premium} = 1 if $premium;
 
     warn( "tmpl vars: " . Data::Dumper::Dumper( \%tmpl_vars ) ) if DEBUG;
 

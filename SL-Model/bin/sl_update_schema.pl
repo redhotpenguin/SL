@@ -80,7 +80,7 @@ $dbh->do("insert into account (name) values ('DavidWu')");
 $dbh->do("insert into account (name) values ('Lane-8')");
 $dbh->do("insert into account (name) values ('Marina Roof')");
 $dbh->do("insert into account (name) values ('Medhat')");
-$dbh->do("insert into account (name) values ('TMN')");
+$dbh->do("insert into account (name) values ('BLANK')");
 $dbh->do("insert into account (name) values ('Kohout')");
 $dbh->do("insert into account (name) values ('Ferdzter')");
 $dbh->do("insert into account (name) values ('airCloud')");
@@ -108,7 +108,7 @@ $dbh->do("update reg set account_id = 14 where reg_id in ( 65 )"); # David Wu
 $dbh->do("update reg set account_id = 15 where reg_id in ( 66 )"); # Lane-8
 $dbh->do("update reg set account_id = 16 where reg_id in ( 57 )"); # Marina Roof
 $dbh->do("update reg set account_id = 17 where reg_id in ( 63 )"); # Medhat
-$dbh->do("update reg set account_id = 18 where reg_id in ( 69 )"); # Thomas Norcio
+#$dbh->do("update reg set account_id = 18 where reg_id in ( 69 )"); # Thomas Norcio
 $dbh->do("update reg set account_id = 19 where reg_id in ( 67 )"); # Mike Kohout
 $dbh->do("update reg set account_id = 20 where reg_id in ( 68 )"); # ferdzter
 $dbh->do("update reg set account_id = 21 where reg_id in ( 71 )"); # airCloud
@@ -121,7 +121,7 @@ warn("updating routers");
 
 $dbh->do("alter table router add column account_id integer not null default 1 references account(account_id) on update cascade on delete cascade");
 
-$dbh->do("update router set account_id = 2 where router_id in ( 80,61,60,62,58,64,69,63,91 )");
+$dbh->do("update router set account_id = 2 where router_id in ( 80,61,60,62,58,64,69,63 )");
 $dbh->do("update router set account_id = 3 where router_id in ( 79 )");
 $dbh->do("update router set account_id = 6 where router_id in ( 45 )");
 $dbh->do("update router set account_id = 7 where router_id in ( 66 )");
@@ -149,15 +149,24 @@ $dbh->do("update reg set active = 'f'  where reg_id in ( 17,20, 50 )"); # old re
 `psql -d $db -f $sql_root/ad_size.sql`;
 `psql -d $db -f $sql_root/bug.sql`;
 
-$dbh->do("INSERT INTO bug (account_id, ad_size_id, image_href, link_href ) values (1, 1, 'http://www.silverliningnetworks.com/bugs/sl/leaderboard_sponsored_by.gif','http://www.silverliningnetworks.com/?referer=silverlining' )");
-$dbh->do("INSERT INTO bug (account_id, ad_size_id, image_href, link_href ) values (1, 2, 'http://www.silverliningnetworks.com/bugs/sl/full_banner_sponsored_by.gif','http://www.silverliningnetworks.com/?referer=silverlining') ");
-$dbh->do("INSERT INTO bug (account_id, ad_size_id, image_href, link_href ) values (1, 3, 'http://www.silverliningnetworks.com/bugs/sl/text_ad_sponsored_by.gif', 'http://www.silverliningnetworks.com/?referer=silverlining' ) " );
+`psql -d $db -f $sql_root/data/bug.sql`;
+
+
+
+#$dbh->do("INSERT INTO bug (account_id, ad_size_id, image_href, link_href ) values (1, 1, 'http://www.silverliningnetworks.com/bugs/sl/leaderboard_sponsored_by.gif','http://www.silverliningnetworks.com/?referer=silverlining' )");
+#$dbh->do("INSERT INTO bug (account_id, ad_size_id, image_href, link_href ) values (1, 2, 'http://www.silverliningnetworks.com/bugs/sl/full_banner_sponsored_by.gif','http://www.silverliningnetworks.com/?referer=silverlining') ");
+#$dbh->do("INSERT INTO bug (account_id, ad_size_id, image_href, link_href ) values (1, 3, 'http://www.silverliningnetworks.com/bugs/sl/text_ad_sponsored_by.gif', 'http://www.silverliningnetworks.com/?referer=silverlining' ) " );
 
 
 `psql -d $db -f $sql_root/ad_zone.sql`;
-$dbh->do("insert into ad_zone (code, name, account_id, ad_size_id) values ('legacy code', 'legacy', 1, 3)");
+#$dbh->do("insert into ad_zone (code, name, account_id, ad_size_id) values ('legacy code', 'legacy', 1, 3)");
+`psql -d $db -f $sql_root/data/ad_zone.sql`;
+
 
 `psql -d $db -f $sql_root/router__ad_zone.sql`;
+`psql -d $db -f $sql_root/data/router__ad_zone.sql`;
+
+
 
 # update the view table
 $dbh->do("alter table view rename COLUMN ad_id TO ad_zone_id");

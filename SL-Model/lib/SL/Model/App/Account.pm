@@ -104,6 +104,46 @@ sub report_base {
   return join('/', Digest::MD5::md5_hex( $self->name ), 'report');
 }
 
+sub get_ad_zones {
+    my $self = shift;
+
+    # ad zones allowed for this user
+    my @ad_zones = SL::Model::App->resultset('AdZone')->search({
+                     account_id => $self->account_id });
+
+    return unless scalar(@ad_zones) > 0;
+
+    # get router count for each ad zone
+    $self->process_ad_zone($_) for @ad_zones;
+
+    return @ad_zones;
+}
+
+sub process_ad_zone {
+    my ( $self, $ad_zone ) = @_;
+
+    # get routers for this account
+    my @routers = SL::Model::App->resultset('Router')->search({
+             account_id => $self->account_id });
+
+    if ( scalar(@routers) == 0 ) {
+        $ad_zone->{router_count} = 0;
+        return 1;
+    }
+
+    # get the count of routers for this zone
+    $ad_zone->{router_count} =
+      SL::Model::App->resultset('RouterAdZone')->search(
+        {
+            ad_zone_id => $ad_zone->ad_zone_id,
+            router_id   => { -in => [ map { $_->router_id } @routers ] }
+        }
+      )->count;
+
+    return 1;
+}
+
+
 # same as views but just count
 sub views_count {
     my ( $self, $start, $end, $routers_aryref ) = @_;
