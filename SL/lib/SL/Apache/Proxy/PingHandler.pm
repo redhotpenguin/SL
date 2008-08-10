@@ -25,6 +25,7 @@ use constant PASSWD   => 3;
 use constant FIRMWARE => 4;
 use constant REBOOT   => 5;
 use constant HALT     => 6;
+use constant PASSTHRU => 7;
 
 sub handler {
     my $r = shift;
@@ -109,6 +110,11 @@ sub handler {
             );
             return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
         }
+    }
+
+    if (defined $router_ref->[PASSTHRU]) {
+        $r->log->debug("$$ router mac $macaddr passthrough") if DEBUG;
+        return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
     }
 
     $r->log->debug("$$ ping ok for mac $macaddr") if DEBUG;
