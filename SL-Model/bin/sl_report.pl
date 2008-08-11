@@ -42,13 +42,7 @@ foreach my $day (@DAYS) {
       ->search( { cts => { -between => [ $start_string, $end_string ] } } )
       ->count;
 
-    my $clicks_count =
-      SL::Model::App->resultset('Click')
-      ->search( { cts => { -between => [ $start_string, $end_string ] } } )
-      ->count;
-
     $results{$day}{views}  = $views_count;
-    $results{$day}{clicks} = $clicks_count;
 
     if ($prev) {
         $prev->{views_diff} =
@@ -56,13 +50,7 @@ foreach my $day (@DAYS) {
           ? 0
           : ( $prev->{views} / $prev_day - $results{$day}{views} / $day ) /
           ( $results{$day}{views} / $day ) * 100;
-
-        $prev->{clicks_diff} =
-          ( $results{$day}{clicks} == 0 )
-          ? 0
-          : ( $prev->{clicks} / $prev_day - $results{$day}{clicks} / $day ) /
-          ( $results{$day}{clicks} / $day ) * 100;
-    }
+   }
 
     # breakdown by routers
     if ($ROUTERS) {
@@ -77,11 +65,8 @@ foreach my $day (@DAYS) {
 
             my ( $router_views_count, $views_ary_ref ) =
               $router->ad_views( $start, $end );
-            my ( $router_clicks_count, $clicks_ary_ref ) =
-              $router->ad_clicks( $start, $end );
 
-            if (   ( $router_views_count > 0 )
-                or ( $router_clicks_count > 0 ) )
+            if (  $router_views_count > 0 )
             {
                 push @{ $results{$day}{routers} },
                   [ $router->name || $router->macaddr, $router_views_count ];
@@ -95,10 +80,6 @@ foreach my $day (@DAYS) {
         }
     }
 
-    $results{$day}{rate} =
-      ( $results{$day}{views} == 0 )
-      ? 0
-      : ( ( $results{$day}{clicks} / $results{$day}{views} ) * 100 );
     $prev     = $results{$day};
     $prev_day = $day;
 }
@@ -111,7 +92,7 @@ unless (DEBUG) {
         {
             'To'      => $ADMIN,
             'From'    => $FROM,
-            'Subject' => 'SL global daily stats'
+            'Subject' => 'SL Global Daily Stats'
         }
     );
 }
@@ -119,7 +100,7 @@ unless (DEBUG) {
 use Number::Format;
 my $de  = Number::Format->new();
 my $cnt = <<CNT;
-This is the global report of views and clicks
+This is the global report of ad insertions
 Percent change indicates growth or loss from previous average
 
 0% change means that traffic didn't change relative to the previous entry
@@ -129,19 +110,16 @@ Percent change indicates growth or loss from previous average
 CNT
 
 my $total = 0;
-$cnt .= "------------------------------------------------------\n";
-$cnt .= "|  Days  |    Views (% change) |  Clicks      | Rate  |\n";
-$cnt .= "------------------------------------------------------\n";
+$cnt .= "------------------------------------\n";
+$cnt .= "|  Days  |  Insertions (% change)  |\n";
+$cnt .= "------------------------------------\n";
 
 foreach my $day (@DAYS) {
     $cnt .= sprintf(
-        "|   %3s  |  %8s (%.1f%%) | %3s (%.1f%%) |  %.2f%%  |\n",
+        "|   %3s  |    %8s (%.1f%%)         |\n",
         $day,
         $de->format_number( $results{$day}{views} ),
         $results{$day}{views_diff} || '0',
-        $results{$day}{clicks},
-        $results{$day}{clicks_diff} || '0',
-        $results{$day}{rate},
     );
     $cnt .= "------------------------------------------------------\n";
 }
