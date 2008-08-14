@@ -36,6 +36,10 @@ use Apache2::ServerRec   ();
 use Apache2::ServerUtil  ();
 use Apache2::URI         ();
 
+use Net::DNS ();
+
+our $resolver = Net::DNS::Resolver->new;
+
 our ($CONFIG, $BLACKLIST_REGEX);
 
 BEGIN {
@@ -133,7 +137,7 @@ sub handler {
     }
 
     # this for testing only!
-    $r->headers_in->{'x-sl'} = '12345678|00188bf9406f';
+   # $r->headers_in->{'x-sl'} = '12345678|00188bf9406f';
 
     #####################################
     # process the sl header
@@ -366,7 +370,6 @@ sub perlbal {
     _unset_proxy_headers($r);
 
     if ( $r->headers_in->{Cookie} ) {
-
         # sorry perlbal doesn't reproxy requests with cookies
         return mod_proxy($r);
     }
@@ -374,7 +377,27 @@ sub perlbal {
     ##########
     # Use perlbal to do the proxying
     my $uri = $r->construct_url( $r->unparsed_uri );
-    $r->headers_out->add( 'X-REPROXY-URL' => $uri );
+
+    my $hostname = $r->hostname;
+    my $ip;
+    my $query = $resolver->query($hostname);
+      if ($query) {
+	  foreach my $rr ($query->answer) {
+	      next unless $rr->type eq "A";
+	      $ip = $rr->address;
+	      last;
+          }
+      } else {
+	    $r->log->error("$$ DNS query failed for host $hostname: ",
+	    $resolver->errorstring);
+	    return mod_proxy($r);
+    }
+
+    my $new_uri = $uri;
+    $new_uri =~ s/$hostname/$ip/;
+    $r->log->debug("$$ ip for host $hostname is $ip, new uri is $new_uri") if DEBUG;
+
+    $r->headers_out->add( 'X-REPROXY-URL' => $new_uri );
     $r->set_handlers( PerlResponseHandler => undef );
     $r->set_handlers( PerlLogHandler      => undef );
     $r->log->debug("$$ X-REPROXY-URL for $uri") if DEBUG;
