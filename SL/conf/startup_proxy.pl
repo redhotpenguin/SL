@@ -78,6 +78,8 @@ use Compress::Bzip2     ();
 use Crypt::Blowfish_PP  ();
 use HTTP::Headers::Util ();
 
+use Net::DNS            ();
+
 BEGIN {
 
     require 'utf8_heavy.pl';
