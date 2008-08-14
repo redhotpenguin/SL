@@ -794,7 +794,7 @@ sub _generate_response {
     unless ($ok) {
 
         # TODO - mark url to be skipped next time
-        $r->log->info(
+        $r->log->error(
             "could not insert ad id $ad_zone_id into url $url, css $css_url");
         return;
     }
