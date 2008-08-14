@@ -379,25 +379,27 @@ sub perlbal {
     my $uri = $r->construct_url( $r->unparsed_uri );
 
     my $hostname = $r->hostname;
-    my $ip;
-    my $query = $resolver->query($hostname);
-      if ($query) {
-	  foreach my $rr ($query->answer) {
-	      next unless $rr->type eq "A";
-	      $ip = $rr->address;
-	      last;
-          }
-      } else {
-	    $r->log->error("$$ DNS query failed for host $hostname: ",
+    # don't resolve ip addresses
+    unless ($hostname =~ m/\d+\.\d+\.\d+\.\d+/) {
+        my $ip;
+        my $query = $resolver->query($hostname);
+          if ($query) {
+	      foreach my $rr ($query->answer) {
+	          next unless $rr->type eq "A";
+	          $ip = $rr->address;
+	          last;
+              }
+          } else {
+	       $r->log->error("$$ DNS query failed for host $hostname: ",
 	    $resolver->errorstring);
 	    return mod_proxy($r);
+        }
+
+        $uri =~ s/$hostname/$ip/;
+        $r->log->debug("$$ ip for host $hostname is $ip, new uri is $uri") if DEBUG;
+
     }
-
-    my $new_uri = $uri;
-    $new_uri =~ s/$hostname/$ip/;
-    $r->log->debug("$$ ip for host $hostname is $ip, new uri is $new_uri") if DEBUG;
-
-    $r->headers_out->add( 'X-REPROXY-URL' => $new_uri );
+    $r->headers_out->add( 'X-REPROXY-URL' => $uri );
     $r->set_handlers( PerlResponseHandler => undef );
     $r->set_handlers( PerlLogHandler      => undef );
     $r->log->debug("$$ X-REPROXY-URL for $uri") if DEBUG;
