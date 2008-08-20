@@ -77,7 +77,7 @@ Serial number:&nbsp;&nbsp;
 [% IF errors.missing.splash_href or errors.invalid.splash_href %]<font color="red">[% END %]
 Splash page url:&nbsp;&nbsp;
 [% IF errors.missing.splash_href or errors.invalid.splash_href %]</font>[% END %]
-<input type="text" name="splash_href" size="45" maxlength="255" value='[% req.param('splash_href') or router.splash_href or 'http://www.silverliningnetworks.com/network/' %]'></p>
+<input type="text" name="splash_href" size="45" maxlength="255" value='[% req.param('splash_href') or router.splash_href %]'></p>
 <p><font color="#CCCCCC"><b>Example:  http://www.silverliningnetworks.com/network/</b></font></p>
 
 
