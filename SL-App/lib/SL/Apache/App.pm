@@ -137,10 +137,10 @@ sub image_zone {
         # only allow bugs that are 3x1 ratio width to height or less
         if ($ad_size->ad_size_id < 4) {
             return unless $height == $ad_size->height;
-            return unless $width < ( $ad_size->height * 3 );
+            return unless $width < ( $ad_size->height * 5 );
         } else {
             return unless $width == $ad_size->width;
-            return unless $height < ( $ad_size->width * 3 );
+            return unless $height < ( $ad_size->width * 5 );
         }
 
 
