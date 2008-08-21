@@ -14,14 +14,14 @@ our ($CONFIG, $EXT_REGEX);
 BEGIN {
     $CONFIG = SL::Config->new();
     my @extensions = qw(
-		ad ads avi
+		ad ads avi aac
 		bin bz2 bzip class css dll dms doc exe fla flv
 		gif gz ico img jar jpg jpeg js
 		lha lzh mar mkv mov mp3 mpg mpeg
-		ogg pdf png ppt psf
+		ogg pdf pls png ppt psf
 		rar rdf rss sit so swf
 		tar tgz tif tiff torrent txt
-		wmv vob xls xpi zip );
+		wav wmv vob xls xpi zip );
 
 
 	$EXT_REGEX = Regexp::Assemble->new->add(@extensions)->re;
