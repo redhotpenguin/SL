@@ -101,6 +101,15 @@ sub dispatch_edit {
                     }
                 )
             ],
+     bug_list_7 => [
+                SL::Model::App->resultset('Bug')->search(
+                    {
+                        account_id => $reg->account_id->account_id,
+                        ad_size_id => 7
+                    }
+                )
+            ],
+
 
         );
 

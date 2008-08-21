@@ -102,12 +102,16 @@ Splash page timeout:&nbsp;&nbsp;
 <!-- ad zones -->
 <p>Ad zones associated with this router</p>
 <p>
+<table>
 [% IF ad_zones %]
 [% FOREACH ad_zone = ad_zones %]
-    <input type="checkbox" name="ad_zone" value="[% ad_zone.ad_zone_id %]" 
+[% IF loop.index % 2 == 0 %] <tr>[% END %]
+    <td><input type="checkbox" name="ad_zone" value="[% ad_zone.ad_zone_id %]"
 [% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]CHECKED[% END %]>
-[% ad_zone.name %]&nbsp;&nbsp;
+[% ad_zone.name %]&nbsp;&nbsp;</td>
+[% IF loop.index % 2 != 0 %] </tr>[% END %]
 [% END %]
+</table>
 </p>
 <p><font color="#CCCCCC"><b>Click checkbox to add the ad zone to the router (random rotation)</b></font></p>
 [% ELSE %]
