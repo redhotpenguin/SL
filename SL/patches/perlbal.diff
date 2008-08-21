@@ -1,6 +1,6 @@
 Index: lib/Perlbal/ClientHTTPBase.pm
 ===================================================================
---- lib/Perlbal/ClientHTTPBase.pm	(revision 771)
+--- lib/Perlbal/ClientHTTPBase.pm	(revision 786)
 +++ lib/Perlbal/ClientHTTPBase.pm	(working copy)
 @@ -44,17 +44,38 @@
  
@@ -70,7 +70,7 @@ Index: lib/Perlbal/ClientHTTPBase.pm
      my $ims     = $hd->header("If-Modified-Since") || "";
 Index: lib/Perlbal/ClientProxy.pm
 ===================================================================
---- lib/Perlbal/ClientProxy.pm	(revision 771)
+--- lib/Perlbal/ClientProxy.pm	(revision 786)
 +++ lib/Perlbal/ClientProxy.pm	(working copy)
 @@ -261,6 +261,10 @@
  
@@ -83,11 +83,19 @@ Index: lib/Perlbal/ClientProxy.pm
          return 0 if $code == 416;
          return 1;
      };
+@@ -780,6 +784,7 @@
+     } else {
+         # get the backend request process moving, since we aren't buffering
+         $self->{is_buffering} = 0;
++        $self->watch_read(0);
+ 
+         # if reproxy-caching is enabled, we can often bypass needing to allocate a BackendHTTP connection:
+         return if $svc->{reproxy_cache} && $self->satisfy_request_from_cache;
 Index: lib/Perlbal/BackendHTTP.pm
 ===================================================================
---- lib/Perlbal/BackendHTTP.pm	(revision 771)
+--- lib/Perlbal/BackendHTTP.pm	(revision 786)
 +++ lib/Perlbal/BackendHTTP.pm	(working copy)
-@@ -260,10 +260,6 @@
+@@ -262,10 +262,6 @@
  
      $hds->header("Connection", $persist ? "keep-alive" : "close");
  
@@ -98,7 +106,7 @@ Index: lib/Perlbal/BackendHTTP.pm
      # decide whether we trust the upstream or not, to give us useful
      # forwarding info headers
      if ($svc->trusted_ip($client_ip)) {
-@@ -511,7 +511,10 @@
+@@ -525,7 +521,10 @@
      }
  
      print "  writing response headers to client\n" if Perlbal::DEBUG >= 3;
