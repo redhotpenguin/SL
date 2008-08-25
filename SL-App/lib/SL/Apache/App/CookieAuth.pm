@@ -388,27 +388,29 @@ sub signup {
             );
         }
 
+	# create an account
+	my $account = SL::Model::App->resultset('Account')->find_or_create({ name => $req->param('email') });
+	$account->update;
+
         # signup was ok, first create the user account
         my %reg_args = (
             email        => $req->param('email'),
             password_md5 => Digest::MD5::md5_hex( $req->param('password') ),
+	    account_id   => $account->account_id,
         );
         if ( $req->param('paypal_id') ) {
             $reg_args{'paypal_id'} = $req->param('paypal_id');
         }
 
-        my $reg = SL::Model::App->resultset('Reg')->create( \%reg_args );
+        my $reg = SL::Model::App->resultset('Reg')->find_or_create( \%reg_args );
         $reg->update;
 
         # link the reg to the router
         my ($router) =
-          SL::Model::App->resultset('Router')
-          ->search( { macaddr => $req->param('router_mac') } );
-        my $reg_router =
-          SL::Model::App->resultset('RouterReg')
-          ->find_or_create(
-            { router_id => $router->router_id, reg_id => $reg->reg_id } );
-        $reg_router->update;
+          SL::Model::App->resultset('Router')->find_or_create({ macaddr => $req->param('router_mac') });
+	$router->account_id( $account->account_id );
+	$router->update;
+
 
         my $mailer = Mail::Mailer->new('qmail');
         $mailer->open(
