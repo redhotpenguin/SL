@@ -131,12 +131,18 @@ sub dispatch_edit {
                 account_id => $reg->account_id->account_id
             }
         );
-        $router->insert;
+
+      	foreach my $param qw( name macaddr splash_href
+  	    serial_number ssid splash_timeout ) {
+        	$router->$param( $req->param($param) );
+     	}
+
+	$router->insert;
         $router->update;
-    }
+    } elsif ($router) {
 
     # create an ssid event if the ssid changed
-    if ( $router->ssid ne $req->param('ssid') ) {
+    if ( defined $router->ssid && ( $router->ssid ne $req->param('ssid')  ) ) {
         $router->ssid_event( $req->param('ssid') );
     }
 
@@ -147,6 +153,7 @@ sub dispatch_edit {
       }
 
       $router->update;
+	}
 
     # and update the associated ad zones for this router
     # first get rid of the old associations
