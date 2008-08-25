@@ -412,6 +412,66 @@ sub signup {
 	$router->update;
 
 
+my @bugs = ( { ad_size_id => 1,
+	image_href => 'http://www.silverliningnetworks.com/bugs/sl/leaderboard_sponsored_by.gif',
+	link_href => 'http://www.silverliningnetworks.com/?referer=silverlining', },
+
+	{ ad_size_id => 2,
+	image_href => 'http://www.silverliningnetworks.com/bugs/sl/full_banner_sponsored_by.gif',
+	link_href => 'http://www.silverliningnetworks.com/?referer=silverlining', },
+	{
+	ad_size_id => 3,
+	image_href => 'http://www.silverliningnetworks.com/bugs/sl/text_ad_sponsored_by.gif',
+	link_href => 'http://www.silverliningnetworks.com/?referer=silverlining', },
+
+	{
+	ad_size_id => 4,
+	image_href => 'http://www.silverliningnetworks.com/bugs/sl/skyscraper_sponsored_by.gif',
+	link_href => 'http://www.silverliningnetworks.com/?referer=silverlining', },
+
+	{
+	ad_size_id => 5,
+	image_href => 'http://www.silverliningnetworks.com/bugs/sl/wide_skyscraper_sponsored_by.gif',
+	link_href => 'http://www.silverliningnetworks.com/?referer=silverlining', },
+
+	{
+	ad_size_id => 6,
+	image_href => 'http://www.silverliningnetworks.com/bugs/sl/half_page_ad_sponsored_by.gif',
+	link_href => 'http://www.silverliningnetworks.com/?referer=silverlining', },
+	{
+	ad_size_id => 7,
+	image_href => 'http://www.silverliningnetworks.com/bugs/sl/wide_skyscraper_sponsored_by.gif',
+	link_href => 'http://www.silverliningnetworks.com/?referer=silverlining', },
+
+    );
+
+    foreach my $bug (@bugs) {
+	$bug->{account_id} = $account->account_id;
+
+	my $newbug = SL::Model::App->resultset('Bug')->find_or_create( $bug );
+	$newbug->update;
+    }
+
+	# add default ad zones
+my @zones = SL::Model::App->resultset('AdZone')->search({
+   name => { like => 'Silver Lining%' } });
+
+    foreach my $zone (@zones) {
+
+	my %zone_hash = map {  $_ => $zone->$_ } qw( bug_id reg_id active ad_size_id account_id name code );
+
+	my ($bug) = SL::Model::App->resultset('Bug')->search({
+	    account_id => $account->account_id,
+	    ad_size_id => $zone->ad_size_id->ad_size_id, });
+	die unless $bug;
+	$zone_hash{bug_id} = $bug->bug_id;
+	$zone_hash{account_id} = $account->account_id;
+
+	my $newzone = SL::Model::App->resultset('AdZone')->find_or_create( \%zone_hash);
+	$newzone->update;
+    }
+
+
         my $mailer = Mail::Mailer->new('qmail');
         $mailer->open(
             {
