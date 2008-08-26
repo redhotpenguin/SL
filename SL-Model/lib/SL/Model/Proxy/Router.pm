@@ -5,6 +5,33 @@ use warnings;
 
 use base 'SL::Model';
 
+use constant LATEST_MAC_FROM_IP => q{
+SELECT macaddr
+FROM router,router__location, location
+WHERE location.ip = ?
+AND router__location.location_id = location.location_id
+AND router__location.router_id = router.router_id
+ORDER BY router__location.mts desc
+LIMIT 1
+};
+
+sub _get_router_mac_from_ip {
+    my ( $class, $ip ) = @_;
+
+    unless ($ip) {
+        require Carp && Carp::cluck("$$ no ip passed");
+        return;
+    }
+
+    my $sth = $class->connect->prepare_cached(LATEST_MAC_FROM_IP);
+    $sth->bind_param( 1, $ip );
+    $sth->execute or return;
+    my $router_mac = $sth->fetchall_arrayref->[0]->[0];
+    $sth->finish;
+
+    return unless $router_mac;
+    return $router_mac;
+}
 
 use constant SELECT_ROUTER_ID => q{
 SELECT router_id
@@ -17,8 +44,8 @@ sub get_router_id_from_mac {
     my ( $class, $macaddr ) = @_;
 
     unless ($macaddr) {
-      require Carp && Carp::cluck("$$ no macaddr passed");
-      return;
+        require Carp && Carp::cluck("$$ no macaddr passed");
+        return;
     }
 
     # see if we have a router with this mac
@@ -26,7 +53,7 @@ sub get_router_id_from_mac {
     $sth->bind_param( 1, $macaddr );
     $sth->execute or return;
     my $router_id = $sth->fetchall_arrayref->[0]->[0];
-	$sth->finish;
+    $sth->finish;
 
     return unless $router_id;
     return $router_id;
@@ -43,8 +70,8 @@ sub add_router_from_mac {
     my ( $class, $macaddr ) = @_;
 
     unless ($macaddr) {
-      require Carp && Carp::cluck("no maccaddr passed");
-      return;
+        require Carp && Carp::cluck("no maccaddr passed");
+        return;
     }
 
     my $dbh = $class->connect;
@@ -53,14 +80,14 @@ sub add_router_from_mac {
         return;
     }
 
-	my $sth = $dbh->prepare_cached(INSERT_ROUTER_SQL);
-	$sth->bind_param( 1, $macaddr );
-	my $rv = $sth->execute;
-    unless($rv) {
-      require Carp && Carp::cluck("could not insert router sql mac $macaddr");
-      return;
+    my $sth = $dbh->prepare_cached(INSERT_ROUTER_SQL);
+    $sth->bind_param( 1, $macaddr );
+    my $rv = $sth->execute;
+    unless ($rv) {
+        require Carp && Carp::cluck("could not insert router sql mac $macaddr");
+        return;
     }
-	$sth->finish;
+    $sth->finish;
 
     my $router_id = $class->get_router_id_from_mac($macaddr);
     die "router add for macaddr $macaddr failed!" unless $router_id;
@@ -68,11 +95,11 @@ sub add_router_from_mac {
 }
 
 sub reset_events {
-    my ($class, $router_id, $event) = @_;
+    my ( $class, $router_id, $event ) = @_;
 
     unless ($event) {
-      require Carp && Carp::cluck("no event passed");
-      return;
+        require Carp && Carp::cluck("no event passed");
+        return;
     }
 
     my $sql = <<RESET_EVENT_SQL;
@@ -87,14 +114,14 @@ RESET_EVENT_SQL
         return;
     }
 
-	my $sth = $dbh->prepare_cached($sql);
-	$sth->bind_param( 1, $router_id );
-	my $rv = $sth->execute;
-    unless($rv) {
-      require Carp && Carp::cluck("could not $sql with $router_id");
-      return;
+    my $sth = $dbh->prepare_cached($sql);
+    $sth->bind_param( 1, $router_id );
+    my $rv = $sth->execute;
+    unless ($rv) {
+        require Carp && Carp::cluck("could not $sql with $router_id");
+        return;
     }
-	$sth->finish;
+    $sth->finish;
     return 1;
 }
 
@@ -104,25 +131,23 @@ FROM router
 WHERE router.macaddr = ?
 };
 
-
 sub splash_page {
-  my ($class, $macaddr) = @_;
+    my ( $class, $macaddr ) = @_;
 
-  unless ($macaddr) {
-    require Carp && Carp::cluck("no macaddr passed");
-    return;
-  }
+    unless ($macaddr) {
+        require Carp && Carp::cluck("no macaddr passed");
+        return;
+    }
 
-  my $sth = $class->connect->prepare_cached(SPLASH_PAGE_SQL);
-  $sth->bind_param(1, $macaddr);
-  $sth->execute or return;
-  my $ary_ref = $sth->fetchrow_arrayref;
-  $sth->finish;
+    my $sth = $class->connect->prepare_cached(SPLASH_PAGE_SQL);
+    $sth->bind_param( 1, $macaddr );
+    $sth->execute or return;
+    my $ary_ref = $sth->fetchrow_arrayref;
+    $sth->finish;
 
-  return unless $ary_ref;
-  return ($ary_ref->[0], $ary_ref->[1]);
+    return unless $ary_ref;
+    return ( $ary_ref->[0], $ary_ref->[1] );
 }
-
 
 use constant REPLACE_PORT_SQL => q{
 SELECT router.router_id, router.replace_port
@@ -133,15 +158,15 @@ AND router.router_id = router__location.router_id
 };
 
 sub replace_port {
-    my ($class, $ip) = @_;
+    my ( $class, $ip ) = @_;
     my $sth = $class->connect->prepare_cached(REPLACE_PORT_SQL);
     $sth->bind_param( 1, $ip );
     $sth->execute or return;
     my $ary_ref = $sth->fetchrow_arrayref;
-	$sth->finish;
-	return unless (scalar(@{$ary_ref}) > 0);
+    $sth->finish;
+    return unless ( scalar( @{$ary_ref} ) > 0 );
     return unless defined $ary_ref->[1];
-	return $ary_ref;
+    return $ary_ref;
 }
 
 1;
