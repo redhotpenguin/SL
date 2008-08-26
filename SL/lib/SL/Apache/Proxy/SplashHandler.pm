@@ -15,8 +15,7 @@ sub handler {
 
     # timed out, redirect to the splash page
     my $splash_url = $r->pnotes('splash_url');
-    my $location =
-      "$splash_url?url=" . URI::Escape::uri_escape( $r->pnotes('url') );
+    my $location = "$splash_url?url=" .  $r->pnotes('url');
     $r->log->debug("splash page redirecting to $location") if DEBUG;
 
     $r->headers_out->set( Location => $location );

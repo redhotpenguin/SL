@@ -3,7 +3,7 @@ package SL::Apache::Proxy::PingHandler;
 use strict;
 use warnings;
 
-use Apache2::Const -compile => qw( HTTP_SERVICE_UNAVAILABLE DONE SERVER_ERROR );
+use Apache2::Const -compile => qw( HTTP_SERVICE_UNAVAILABLE DONE SERVER_ERROR OK );
 use Apache2::Log                       ();
 use Crypt::Blowfish_PP                 ();
 use Sys::Load                          ();
@@ -56,7 +56,7 @@ sub handler {
                 $minute_avg, $post_count
             )
         );
-        return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
+	return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
     }
 
     # grab the mac address if there is one
@@ -112,50 +112,59 @@ sub handler {
         }
     }
 
-    if (defined $router_ref->[PASSTHRU]) {
-        $r->log->debug("$$ router mac $macaddr passthrough") if DEBUG;
-        return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
+    if (defined $router_ref->[PASSTHRU] && ($router_ref->[PASSTHRU] == 1)) {
+        $r->log->error("$$ router mac $macaddr passthrough");
+#	$r->assbackwards(1);
+#	$r->status_line("503 SL Passthrough");
+#	$r->connection->keepalive(1);
+#	$r->connection->keepalives($r->connection->keepalives+1);
+#    	$r->set_handlers( PerlResponseHandler => undef );
+#    	$r->set_handlers( PerlLogHandler      => undef );
+	$r->custom_response(Apache2::Const::SERVER_ERROR, 'SL Passthrough');
+	
+	return Apache2::Const::SERVER_ERROR;
     }
 
     $r->log->debug("$$ ping ok for mac $macaddr") if DEBUG;
 
     # see if there are any events for this router to process
     if (
-        ( defined $router_ref->[SSID] )     or    # ssid event
-        ( defined $router_ref->[PASSWD] )   or    # passwd event
-        ( defined $router_ref->[FIRMWARE] ) or    # firmware event
-        ( defined $router_ref->[REBOOT] )   or    # reboot event
-        ( defined $router_ref->[HALT] )           # halt event
+        ( defined $router_ref->[SSID] && ($router_ref->[SSID] ne ''))     or    # ssid event
+        ( defined $router_ref->[PASSWD] &&  ($router_ref->[PASSWD] ne ''))   or    # passwd event
+        ( defined $router_ref->[FIRMWARE] && ($router_ref->[FIRMWARE] ne '')) or    # firmware event
+        ( defined $router_ref->[REBOOT] &&  ($router_ref->[REBOOT] ne ''))   or    # reboot event
+        ( defined $router_ref->[HALT] &&  ($router_ref->[HALT] ne ''))           # halt event
       )
     {
         my $events = '';
 
-        if ( $router_ref->[SSID] ) {
-            $r->log->debug("$$ ping event for ssid") if DEBUG;
+	$r->log->error("processing some events");
+        if ( defined $router_ref->[SSID] && ($router_ref->[SSID] ne '')) {
+            $r->log->error("$$ ping event for ssid: " . $router_ref->[SSID]);
             $events .= _gen_event( ssid => $router_ref->[SSID] );
             SL::Model::Proxy::Router->reset_events( $router_ref->[0],
                 'ssid_event' );
         }
-        elsif ( $router_ref->[PASSWD] ) {
-            $r->log->debug("$$ ping event for passwd") if DEBUG;
+        elsif ( defined $router_ref->[PASSWD] && ($router_ref->[PASSWD] ne '')) {
+            $r->log->error("$$ ping event for passwd: " . $router_ref->[PASSWD]);
             $events .= _gen_event( passwd => $router_ref->[PASSWD] );
             SL::Model::Proxy::Router->reset_events( $router_ref->[0],
                 'passwd_event' );
         }
-        elsif ( $router_ref->[FIRMWARE] ) {
-            $r->log->debug("$$ ping event for firmware") if DEBUG;
+        elsif ( defined $router_ref->[FIRMWARE] && ($router_ref->[FIRMWARE] ne '')) {
+            $r->log->error("$$ ping event for firmware" . $router_ref->[FIRMWARE]);;
             $events .= _gen_event( firmware => $router_ref->[FIRMWARE] );
             SL::Model::Proxy::Router->reset_events( $router_ref->[0],
                 'firmware_event' );
         }
-        elsif ( $router_ref->[REBOOT] ) {
-            $r->log->debug("$$ ping event for reboot") if DEBUG;
+        elsif ( defined $router_ref->[REBOOT] && ($router_ref->[REBOOT] ne '')) {
+            $r->log->error("$$ ping event for reboot: " . $router_ref->[REBOOT]);
             $events .= _gen_event( reboot => $router_ref->[REBOOT] );
             SL::Model::Proxy::Router->reset_events( $router_ref->[0],
                 'reboot_event' );
         }
-        elsif ( $router_ref->[HALT] ) {
-            $r->log->debug("$$ ping event for halt") if DEBUG;
+        elsif ( defined $router_ref->[HALT] && ($router_ref->[HALT] ne '')) {
+            $r->log->error("$$ ping event for halt" . $router_ref->[HALT]);
             $events .= _gen_event( halt => $router_ref->[HALT] );
             SL::Model::Proxy::Router->reset_events( $router_ref->[0],
                 'halt_event' );
