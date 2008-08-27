@@ -15,7 +15,7 @@ ORDER BY router__location.mts desc
 LIMIT 1
 };
 
-sub _get_router_mac_from_ip {
+sub _mac_from_ip {
     my ( $class, $ip ) = @_;
 
     unless ($ip) {
