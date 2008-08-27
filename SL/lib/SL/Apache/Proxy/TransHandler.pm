@@ -187,7 +187,7 @@ sub handler {
     # ok check for a splash page if we have a routerm_ac
     if ($router_mac) {
         my ( $splash_url, $timeout ) =
-          SL::Model::Proxy::Router->splash_page($router_mac) );
+          SL::Model::Proxy::Router->splash_page($router_mac);
 
         if ($splash_url) {
               my $show_splash = handle_splash( $r, $splash_url, $timeout );
