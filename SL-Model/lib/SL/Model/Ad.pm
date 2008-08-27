@@ -131,8 +131,8 @@ sub container {
     # check to make sure that we can insert all parts of the ad
     return
       unless ( ( $$decoded_content_ref =~ m/$regex/ )
-        && ( $$decoded_content_ref =~ m/$second_regex/ )
-        && ( $$decoded_content_ref =~ m/$end_body_match/ ) );
+        && ( $$decoded_content_ref =~ m/$second_regex/ ) );
+#        && ( $$decoded_content_ref =~ m/$end_body_match/ ) );
 
     my $link =
       qq{<link rel="stylesheet" href="$$css_url_ref" type="text/css" />};
