@@ -151,7 +151,9 @@ sub container {
 
     # insert the tail
     $matched = $$decoded_content_ref =~ s{$end_body_match}{$1$mytail$2};
-    warn('failed to insert closing div') unless $matched;
+    if (DEBUG) {
+ 	 warn('failed to insert closing div') unless $matched;
+    }
 
     return 1;
 }
