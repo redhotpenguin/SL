@@ -185,7 +185,7 @@ sub handler {
 
     ###################################
     # ok check for a splash page if we have a routerm_ac
-    if ($router_mac) {
+    if ($r->pnotes('sl_header')) {
         my ( $splash_url, $timeout ) =
           SL::Model::Proxy::Router->splash_page($router_mac);
 
@@ -290,6 +290,8 @@ sub handle_splash {
 
 sub user_blacklisted {
       my ( $r, $dbh ) = @_;
+
+      return unless $r->pnotes('sl_header');
 
       my $user_id =
         join( '|', $r->pnotes('sl_header'), $r->construct_server() );
