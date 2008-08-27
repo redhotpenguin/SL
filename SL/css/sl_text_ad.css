@@ -25,8 +25,13 @@ p.sl {
     clear: none;
 }
 
+.sl_code a {
+    padding: 0px;
+}
+
+
 .sl_code {
-	position: relative;
+    position: relative;
 	top: 0px;
     font-size: 14px;
     margin: 0px;

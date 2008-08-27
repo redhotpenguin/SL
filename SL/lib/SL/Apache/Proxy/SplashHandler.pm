@@ -15,7 +15,16 @@ sub handler {
 
     # timed out, redirect to the splash page
     my $splash_url = $r->pnotes('splash_url');
-    my $location = "$splash_url?url=" .  $r->pnotes('url');
+
+    my $separator;
+    if ($splash_url =~ m/\?/) {
+        # user has some args
+        $separator = '&';
+    } else {
+        $separator = '?';
+    }
+    
+    my $location = $splash_url . $separator . 'url=' .  $r->pnotes('url');
     $r->log->debug("splash page redirecting to $location") if DEBUG;
 
     $r->headers_out->set( Location => $location );
