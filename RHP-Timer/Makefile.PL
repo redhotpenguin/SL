@@ -1,4 +1,4 @@
-use 5.008006;
+use 5.009006;
 use ExtUtils::MakeMaker;
 WriteMakefile(
               NAME      => 'RHP::Timer',

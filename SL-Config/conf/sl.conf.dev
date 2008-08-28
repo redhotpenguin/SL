@@ -11,7 +11,7 @@ sl_cache_url http://app.silverliningnetworks.com/cache
 sl_report_admin fred@redhotpenguin.com
 
 # configure the database connection
-sl_db_name  sl3
+sl_db_name  sl4
 sl_db_host  127.0.0.1
 sl_db_user  phred
 sl_db_pass  
