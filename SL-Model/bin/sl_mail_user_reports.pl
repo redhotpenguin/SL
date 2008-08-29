@@ -7,7 +7,7 @@ use warnings;
 
 =head1 SYNOPSIS
 
- perl sl_mail_user_reports.pl --to=specific_user_email --interval=daily --interval=weekly --interval=monthly --interval=quarterly --interval biannually --interval annually
+ perl sl_mail_user_reports.pl --to=specific_user_email --interval=daily
 
  perl sl_mail_user_reports.pl --help
 
@@ -18,18 +18,18 @@ use warnings;
 use Getopt::Long;
 use Pod::Usage;
 
-my ( @intervals, $to );
-my ( $help,      $man );
+my ( $interval, $to );
+my ( $help,     $man );
 
 pod2usage(1) unless @ARGV;
 GetOptions(
     'to=s'       => \$to,
-    'interval=s' => \@intervals,
+    'interval=s' => $interval,
     'help'       => \$help,
     'man'        => \$man,
 ) or pod2usage(2);
 
-pod2usage(1) unless ( $intervals[0] );
+pod2usage(1) unless ($interval);
 pod2usage(1) if $help;
 pod2usage( -verbose => 2 ) if $man;
 
@@ -37,7 +37,7 @@ use MIME::Lite;
 use SL::Model::App;
 
 my $FROM    = "SL Reporting Daemon <support\@silverliningnetworks.com>";
-my $SUBJECT = "SilverLining Report Graphs";
+my $SUBJECT = "Silver Lining Report Graphs";
 my @users;
 
 if ($to) {
@@ -59,12 +59,16 @@ foreach my $user (@users) {
     closedir(DIR);
     next unless $has_pngs;
 
+    next
+      unless ( defined $user->report_email_frequency
+        && ( $user->report_email_frequency eq $interval ) );
+
     my $email = $user->email;
 
     my $data = <<DATA;
 Hi $email,
 
-Attached are the reporting graphs for your Silver Lining routers.
+Please find attached the reporting graphs for your Silver Lining nodes.
 
 To edit your report delivery settings visit the Silver Lining dashboard:
 
@@ -80,9 +84,11 @@ DATA
     );
 
     my $attached_something = 0;
-    foreach my $temporal (@intervals) {
+    foreach
+      my $temporal (qw( daily weekly monthly quarterly biannually annually ))
+    {
 
-        foreach my $type qw( views ) {    # clicks rates ads ) {
+        foreach my $type qw( views ) {
             my $filename = "$type\_$temporal.png";
             next unless -e "$dir/$filename";
 
