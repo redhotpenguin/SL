@@ -121,7 +121,7 @@ foreach my $day (@DAYS) {
         $de->format_number( $results{$day}{views} ),
         $results{$day}{views_diff} || '0',
     );
-    $cnt .= "------------------------------------------------------\n";
+    $cnt .= "------------------------------------\n";
 }
 
 if ($ROUTERS) {
