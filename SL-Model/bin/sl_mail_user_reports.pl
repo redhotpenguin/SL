@@ -24,7 +24,7 @@ my ( $help,     $man );
 pod2usage(1) unless @ARGV;
 GetOptions(
     'to=s'       => \$to,
-    'interval=s' => $interval,
+    'interval=s' => \$interval,
     'help'       => \$help,
     'man'        => \$man,
 ) or pod2usage(2);
