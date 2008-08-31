@@ -27,7 +27,7 @@ WriteMakefile(
                             'SL::Model'            => 0.14,
                             'RHP::Timer'           => 0.1,
                            },
-              EXE_FILES => [qw( bin/sl_proxy )],
+              EXE_FILES => [qw( bin/sl_proxy bin/sl_perlbal_watch )],
               ABSTRACT  => 'An ad serving proxy server',
               AUTHOR    => 'Fred Moyer <fred@redhotpenguin.com>',
              );
