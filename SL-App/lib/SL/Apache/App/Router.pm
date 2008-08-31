@@ -100,8 +100,8 @@ sub dispatch_edit {
         # reset method to get for redirect
         $r->method_number(Apache2::Const::M_GET);
         my %router_profile = (
-            required => [qw( name macaddr ssid )],
-            optional => [qw( splash_href splash_timeout serial_number )],
+            required => [qw( name macaddr ssid serial_number )],
+            optional => [qw( splash_href splash_timeout )],
             constraint_methods => {
                 macaddr     => valid_macaddr(),
                 splash_href => splash_href(),

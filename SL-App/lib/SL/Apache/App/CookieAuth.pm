@@ -361,7 +361,7 @@ sub signup {
         $r->method_number(Apache2::Const::M_GET);
 
 	my %profile = (
-            required           => [qw( email password retype router_mac )],
+            required           => [qw( email password retype router_mac serial_number )],
             optional           => [qw( paypal_id )],
             constraint_methods => {
                 paypal_id  => email(),
@@ -409,6 +409,7 @@ sub signup {
         my ($router) =
           SL::Model::App->resultset('Router')->find_or_create({ macaddr => $req->param('router_mac') });
 	$router->account_id( $account->account_id );
+	$router->serial_number( $req->param('serial_nmber'));
 	$router->update;
 
 
