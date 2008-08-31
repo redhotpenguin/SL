@@ -100,10 +100,10 @@ sub dispatch_edit {
         # reset method to get for redirect
         $r->method_number(Apache2::Const::M_GET);
         my @required;
-        if ($router) { # hack for backwards compatilibity
-            @required = qw( name macaddr ssid serial_number );
-        } else {
+        if ($router && ( $router->serial_number eq '')) { # hack for backwards compatilibity
             @required = qw( name macaddr ssid );
+        } elsif (! $router or $router && $router->serial_number ne '') {
+            @required = qw( name macaddr ssid serial_number );
         }
 
         my %router_profile = (
