@@ -20,12 +20,39 @@
 
 <p><hr class="sl_line"></p>
 
+[% IF reg.root %]
+<form method="POST" action="[% base_uri %]/app/settings/root">
+
+
+<p>
+<select name="account_id" id="account_id">
+
+[% FOREACH account = accounts %]
+
+<option value="[% account.account_id %]" [% IF reg.account_id.account_id == account.account_id %]SELECTED[% END %]>[% account.name %]</option>
+
+[% END %]
+&nbsp;&nbsp;
+<input type="submit" value="Account">
+</form>
+
+[% END %]
+</p>
+
+
+<p><hr class="sl_line"></p>
+
 <h3>Service Uptime</h3>
 <br />
 <iframe width="480" height="340" align="middle" src="http://www.siteuptime.com/prem_statistics.php?Id=617&&UserId=87549">
 
+
+
+
+
     </div>
 </div>
+
 
 [% PROCESS footer.tmpl %]
 

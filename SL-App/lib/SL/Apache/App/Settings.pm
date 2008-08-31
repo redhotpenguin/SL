@@ -32,6 +32,12 @@ sub dispatch_index {
 
         my %tmpl_data;
         my $output;
+
+        if ($r->pnotes( $r->user )->root) {
+            my @accounts = SL::Model::App->resultset('Account')->all;
+            $tmpl_data{accounts} = \@accounts;
+        }
+
         my $ok =
           $TMPL->process( 'settings/index.tmpl', \%tmpl_data, \$output, $r );
 
@@ -39,6 +45,26 @@ sub dispatch_index {
         return $self->error( $r, "Template error: " . $TMPL->error() );
     }
 }
+
+sub dispatch_root {
+    my ( $self, $r, $args_ref ) = @_;
+
+    my $reg = $r->pnotes( $r->user );
+    return $self->error( $r, "Root error for user " . $r->user) unless ($reg->root);
+
+    # this user can proceed
+    my $req = $args_ref->{req} || Apache2::Request->new($r);
+    my $account_id = $req->param('account_id');
+    return $self->error( $r, "No account for " . $r->user) unless $account_id;
+    $reg->account_id( $account_id );
+    $reg->update;
+
+    $r->headers_out->set(
+        Location => $r->headers_in->{'Referer'}  );
+    return Apache2::Const::REDIRECT;
+
+}
+
 
 sub dispatch_account {
     my ( $self, $r, $args_ref ) = @_;
