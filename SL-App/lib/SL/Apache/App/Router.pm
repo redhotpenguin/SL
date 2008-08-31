@@ -99,8 +99,15 @@ sub dispatch_edit {
 
         # reset method to get for redirect
         $r->method_number(Apache2::Const::M_GET);
+        my @required;
+        if ($router) { # hack for backwards compatilibity
+            @required = qw( name macaddr ssid serial_number );
+        } else {
+            @required = qw( name macaddr ssid );
+        }
+
         my %router_profile = (
-            required => [qw( name macaddr ssid serial_number )],
+            required => \@required,
             optional => [qw( splash_href splash_timeout )],
             constraint_methods => {
                 macaddr     => valid_macaddr(),
