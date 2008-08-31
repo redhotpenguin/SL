@@ -29,6 +29,20 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 8,
   },
+  "city",
+  {
+    data_type => "character varying",
+    default_value => undef,
+    is_nullable => 1,
+    size => 64,
+  },
+  "state",
+  {
+    data_type => "character",
+    default_value => undef,
+    is_nullable => 1,
+    size => 2,
+  },
   "active",
   {
     data_type => "boolean",
@@ -87,26 +101,12 @@ __PACKAGE__->add_columns(
   },
   "account_id",
   { data_type => "integer", default_value => 1, is_nullable => 0, size => 4 },
-  "admin",
+  "root",
   {
     data_type => "boolean",
-    default_value => "true",
+    default_value => "false",
     is_nullable => 0,
     size => 1,
-  },
-  "first_name",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 0,
-    size => undef,
-  },
-  "last_name",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 0,
-    size => undef,
   },
 );
 __PACKAGE__->set_primary_key("reg_id");
@@ -131,7 +131,6 @@ __PACKAGE__->has_many(
   "SL::Model::App::Url",
   { "foreign.reg_id" => "self.reg_id" },
 );
-
 
 # Created by DBIx::Class::Schema::Loader v0.04002 @ 2008-05-27 12:35:20
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dLewfI+AHp21rBSj7zc6UA
