@@ -1,0 +1,6 @@
+SHELL=/bin/bash
+MAILTO=phred
+
+# watch for perlbal outages
+* * * * * /home/phred2/dev/perl/bin/perl /home/phred2/dev/perl/bin/sl_perlbal_watch
+
