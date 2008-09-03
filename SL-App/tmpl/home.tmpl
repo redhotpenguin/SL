@@ -6,6 +6,16 @@
 
 <h3>News</h3>
 
+
+<hr class="sl_line">
+
+<h2>September 3rd, 2008 - Labor Day systems upgrade details</h2>
+<p>Over the Labor Day weekend we added additional servers to the cluster powering Silver Lining.  As a result of migrating the reporting engine to a dedicated server, the links to reports were invalid for the previous day.  The links were corrected as of 12:20 pm PST September 2nd.</p>
+<p>No service downtime was experienced as a result of these upgrades.  However on Sunday August 31st we experienced a 15 minute unscheduled load balancer outage at 9:43 am PST.  End users online at the time would have experienced an average period of 30 seconds where no web site connections could be made before the gateways adjusted their routing tables.  During the 15 minute outage, users could surf normally but no ads were being inserted.  To prevent further outages of this nature, we have implemented a monitoring daemon which will restart the load balancer in the event of an unplanned failure.</p>
+
+<br />
+
+
 <hr class="sl_line">
 
 <h2>July 13th, 2008 - Dashboard 2.0 Preview</h2>
