@@ -51,9 +51,12 @@
 <h2>Viewing ad insertion report for the last [% temporals.$temporal %]</h2>
 
 <p style="width: 600px;">
-<img width="600" src="[% report_uri %]/views_[% temporal %].png"></p>
-
-
+[% IF report_uri %]
+<img width="600" src="[% report_uri %]">
+[% ELSE %]
+No report is available for this reporting period yet.
+[% END %]
+</p>
 <hr class="sl_line">
 
 

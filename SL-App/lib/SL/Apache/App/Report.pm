@@ -33,13 +33,16 @@ sub dispatch_index {
     my $reg      = $r->pnotes( $r->user );
 
     my $report_uri = join( '/', $Config->sl_app_report_uri,
-    	$reg->account_id->report_base );
+    	$reg->account_id->report_base, 'views_' . $temporal . '.png' );
+
+    # fetch the report
+    my $response = $self->SUPER::ua->get( URI->new($report_uri) );
+    undef $report_uri unless $response->is_success;
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
             temporals              => \%Temporals,
             report_uri             => $report_uri,
-            reg                    => $reg,
             status                 => $req->param('status') || '',
             report_email_frequency => $reg->report_email_frequency,
             temporal               => $temporal,
