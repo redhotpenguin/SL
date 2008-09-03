@@ -125,7 +125,7 @@ use constant DEBUG => $ENV{SL_DEBUG} || 0;
 # email receipt parameters
 our $FROM = "SL Payment Daemon <support\@silverliningnetworks.com>";
 
-sub new {
+sub newpayment {
     my ( $class, $mode ) = @_;
     $mode ||= 'sandbox';
 
