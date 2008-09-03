@@ -55,7 +55,7 @@ our %duration_hash = (
     annually   => '365 days',
 );
 
-use constant DEBUG => $ENV{SL_DEBUG} || 1;
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 my @accounts = SL::Model::App->resultset('Account')->all;
 
