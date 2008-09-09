@@ -1,0 +1,80 @@
+To get the total
+
+sl2=# select count(*) from view where router_id in (  select distinct(router_id) from router where account_id in ( select account_id from reg where email like '%kharma%') ) and cts between '2008-08-01 00:00:00' and '2008-09-01 00:00:00'
+
+(1 row)
+
+58,047
+
+
+To get the day breakdown
+
+select count(view.view_id), date_trunc('day',view.cts) from view where 
+router_id in (  select distinct(router_id) from router where account_id in 
+( select account_id from reg where email like '%kharma%') ) and view.cts 
+between 
+'2008-08-01 00:00:00' and '2008-09-01 00:00:00' group by date_trunc('day', 
+view.cts) order by date_trunc('day', view.cts);
+
+ count |     date_trunc      
+-------+---------------------
+  1620 | 2008-08-01 00:00:00
+  1295 | 2008-08-02 00:00:00
+  2319 | 2008-08-03 00:00:00
+  1648 | 2008-08-04 00:00:00
+  1404 | 2008-08-05 00:00:00
+  1541 | 2008-08-06 00:00:00
+  1206 | 2008-08-07 00:00:00
+  2380 | 2008-08-08 00:00:00
+  1920 | 2008-08-09 00:00:00
+   880 | 2008-08-10 00:00:00
+   583 | 2008-08-11 00:00:00
+   780 | 2008-08-12 00:00:00
+   820 | 2008-08-13 00:00:00
+  1522 | 2008-08-14 00:00:00
+   660 | 2008-08-15 00:00:00
+  1219 | 2008-08-16 00:00:00
+   662 | 2008-08-17 00:00:00
+  1714 | 2008-08-18 00:00:00
+  1528 | 2008-08-19 00:00:00
+  2082 | 2008-08-20 00:00:00
+  2628 | 2008-08-21 00:00:00
+  2559 | 2008-08-22 00:00:00
+  3308 | 2008-08-23 00:00:00
+  1186 | 2008-08-24 00:00:00
+  2481 | 2008-08-25 00:00:00
+  2139 | 2008-08-26 00:00:00
+  6127 | 2008-08-27 00:00:00
+  4127 | 2008-08-28 00:00:00
+  2145 | 2008-08-29 00:00:00
+  2727 | 2008-08-30 00:00:00
+   837 | 2008-08-31 00:00:00
+(31 rows)
+
+
+To get the router breakdown:
+
+select count(view.router_id), view.router_id, router.name, router.macaddr, router.serial_number from view, router
+where view.router_id in (  select distinct(router_id) from router  where
+account_id in ( select account_id from reg where email like '%kharma%') ) and
+view.cts between '2008-08-01 00:00:00' and '2008-09-01 00:00:00' and
+router.router_id = view.router_id group by view.router_id, router.name,
+router.macaddr, router.serial_number order
+by count(view.router_id) desc
+
+ count | router_id |           name            |      macaddr      | serial_number 
+-------+-----------+---------------------------+-------------------+---------------
+ 25396 |        58 | 810 WILLOW                | 00:13:10:2d:69:76 |             
+ 15336 |        55 | THE ENCLAVE               | 00:1d:7e:53:8d:76 | CL7C1GA11827
+  4916 |        69 | DEAD                      | 00:0f:66:cc:95:0e | cdf50d7c5834
+  3457 |        62 | PULLED                    | 00:16:b6:1c:93:e7 |             
+  1917 |        64 | 214 W 5th gateway         | 00:13:10:2d:69:73 |             
+  1850 |         3 | 410 WEST 5TH              | 00:16:b6:28:7a:b2 | CL7AF21874  
+  1577 |        63 | PULLED                    | 00:16:b6:1c:93:f3 |             
+  1557 |        61 | RENOS                     | 00:16:b6:1c:95:0d |             
+  1137 |        48 | BAKER HOUSE               | 00:1a:70:e6:86:c8 | CL7B1G425669
+   765 |        80 | PULLED                    | 00:12:17:3f:90:bd | cdf50da35503
+   139 |        60 | kharma consulting gateway | 00:13:10:2d:69:85 | cdf80e256780
+(11 rows)
+
+
