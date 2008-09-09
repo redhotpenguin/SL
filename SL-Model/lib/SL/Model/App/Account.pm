@@ -36,6 +36,13 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 1,
   },
+  "active",
+  {
+    data_type => "boolean",
+    default_value => "true",
+    is_nullable => 1,
+    size => 1,
+  },
 );
 __PACKAGE__->set_primary_key("account_id");
 __PACKAGE__->add_unique_constraint("account_pkey", ["account_id"]);

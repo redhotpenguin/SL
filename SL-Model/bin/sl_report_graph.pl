@@ -58,7 +58,7 @@ our %duration_hash = (
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
-my @accounts = SL::Model::App->resultset('Account')->all;
+my @accounts = SL::Model::App->resultset('Account')->search({ active => 't' });
 
 foreach my $temporal (@intervals) {
 
