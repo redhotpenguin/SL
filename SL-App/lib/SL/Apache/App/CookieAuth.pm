@@ -409,7 +409,7 @@ sub signup {
         my ($router) =
           SL::Model::App->resultset('Router')->find_or_create({ macaddr => $req->param('router_mac') });
 	$router->account_id( $account->account_id );
-	$router->serial_number( $req->param('serial_nmber'));
+	$router->serial_number( $req->param('serial_number'));
 	$router->update;
 
 
@@ -454,8 +454,8 @@ my @bugs = ( { ad_size_id => 1,
     }
 
 	# add default ad zones
-my @zones = SL::Model::App->resultset('AdZone')->search({
-   name => { like => 'Silver Lining%' } });
+    my @zones = SL::Model::App->resultset('AdZone')->search({
+        name => { like => 'Silver Lining%' } });
 
     foreach my $zone (@zones) {
 
