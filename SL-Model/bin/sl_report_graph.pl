@@ -58,8 +58,7 @@ our %duration_hash = (
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
-#my @accounts = SL::Model::App->resultset('Account')->all;
-my @accounts = SL::Model::App->resultset('Account')->search({ name => 'airCloud' });;
+my @accounts = SL::Model::App->resultset('Account')->all;
 
 foreach my $temporal (@intervals) {
 
