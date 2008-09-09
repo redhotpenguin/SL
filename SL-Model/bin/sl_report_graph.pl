@@ -47,6 +47,7 @@ use SL::Model::Report::Graph;
 use SL::Model::App;
 
 our %duration_hash = (
+
     daily      => '24 hours',
     weekly     => '7 days',
     monthly    => '30 days',
@@ -57,7 +58,8 @@ our %duration_hash = (
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
-my @accounts = SL::Model::App->resultset('Account')->all;
+#my @accounts = SL::Model::App->resultset('Account')->all;
+my @accounts = SL::Model::App->resultset('Account')->search({ name => 'airCloud' });;
 
 foreach my $temporal (@intervals) {
 
@@ -73,7 +75,7 @@ foreach my $temporal (@intervals) {
           print STDERR "no routers for account " . $account->name . "\n";
           next;
         }
-
+        
         ######################
         # get the view data
         my $views = SL::Model::Report->views(
@@ -88,7 +90,7 @@ foreach my $temporal (@intervals) {
         my $filename =
           join ( '/', $account->report_dir_base, "views_$temporal.png" );
 
-        SL::Model::Report::Graph->views(
+          SL::Model::Report::Graph->views(
             {
                 data_hashref => $views,
                 filename     => $filename,
@@ -97,6 +99,31 @@ foreach my $temporal (@intervals) {
             }
         );
         print "==> burned graph $filename\n" if DEBUG;
+
+        ######################
+        # get the users data
+        my $users = SL::Model::Report->users(
+            {
+                account  => $account,
+                temporal => $temporal,
+                routers  => \@routers
+            }
+        );
+
+        # burn the users graph
+        $filename =
+          join ( '/', $account->report_dir_base, "users_$temporal.png" );
+
+        SL::Model::Report::Graph->users(
+            {
+                data_hashref => $users,
+                filename     => $filename,
+                account      => $account,
+                temporal     => $temporal,
+            }
+        );
+        print "==> burned graph $filename\n" if DEBUG;
+
     }
 
     print "\nFinished processing $temporal reports\n" if DEBUG;

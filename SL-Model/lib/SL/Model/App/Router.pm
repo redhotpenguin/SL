@@ -236,5 +236,22 @@ sub views_count {
     return $count;
 }
 
+our $users_sql = <<SQL;
+SELECT count(distinct usr_id)
+FROM view
+WHERE view.cts BETWEEN ? AND ?
+AND router_id = ?
+SQL
+
+sub users_count {
+    my ( $self, $start, $end) = @_;
+    die unless SL::Model::App::validate_dt( $start, $end );
+
+    my $ary_ref = $self->run_query( $users_sql, $start, $end, $self->router_id );
+
+    return $ary_ref->[0]->[0];
+}
+
+
 
 1;

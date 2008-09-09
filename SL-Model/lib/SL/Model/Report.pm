@@ -229,5 +229,113 @@ sub views {
     return $results;
 }
 
+# generates the graph data for user counts
+#
+# return data structure, first array index is headers, rest are data
+# $results = {
+#          headers => [ 'Sun May 5th', 'Mon May 6th' ], # x values
+#          data    => [                                 # y values
+#                       [  '100', '420' ],              # location one
+#                       [  '150', '120' ],              # location two
+#                     ],
+#          series  => [ 'location one desc', 'location two desc' ],
+#          max     => [ '420' ]  # used to determine max y value
+#          total  =>  '15235' # total number of users
+# };
+
+sub users {
+    my ( $class, $params ) = @_;
+
+    my ( $account, $temporal, $routers_aryref ) = $class->validate($params);
+
+    # init
+    my $results =
+      { max => 0, headers => [], data => [], series => [], total => 0 };
+
+    # report end time
+    my $end = DateTime->now( time_zone => 'local' );
+    $end->truncate( to => 'hour' );
+
+    # create the series
+    $results->{series} = _series($routers_aryref);
+
+    my ($global_start, $global_end);
+    $global_start = $end;
+    for ( @{ $time_hash{$temporal}->{range} } ) {
+
+        print STDERR "==> processing time slice $_\n" if DEBUG;
+
+        # add the date in the format specified, this is the header
+        my $start = $end->clone->subtract( @{ $time_hash{$temporal}->{interval} } );
+        unshift @{ $results->{headers} },
+          $start->strftime( $time_hash{$temporal}->{format} );
+
+        # users
+        my $users_hashref = $account->users_count( $start, $end, $routers_aryref );
+
+        # add the data
+        my $i = 0;    # router1, router2, etc
+        foreach my $router_id ( sort {$a <=> $b }
+                                keys %{ $users_hashref->{routers} } ) {
+            unshift @{ $results->{data}->[ $i++ ] },
+              $users_hashref->{routers}->{$router_id}->{count};
+        }
+
+        # update the max
+        if ( $users_hashref->{total} > $results->{max} ) {
+            $results->{max} = $users_hashref->{total};
+        }
+
+        $results->{total} += $users_hashref->{total};
+
+        # shift the end point
+        $end = $start->clone;
+
+        $global_end = $end;
+    }
+
+    # now weed out the series that don't have any data other than 0
+    my @series = @{ $results->{series} };
+    my @remove_indices;
+    for ( 0 .. $#series ) {
+        my $row_aryref = $results->{data}->[$_];
+        my $only_zeros = 1;
+        foreach my $col ( @{$row_aryref} ) {
+            if ( $col != 0 ) {
+                $only_zeros = 0;
+                last;
+            }
+        }
+        if ( $only_zeros == 1 ) {
+
+            # this series only has zeros, so splice the arrays
+            push @remove_indices, $_;
+        }
+    }
+    my $num_splices = 0;
+    foreach my $index (@remove_indices) {
+        $index -= $num_splices++;
+        splice( @{ $results->{series} }, $index, 1 );
+        splice( @{ $results->{data} },   $index, 1 );
+
+    }
+
+    # make sure we are left with something
+    if ( scalar( @{ $results->{data} } ) == 0 ) {
+        push @{ $results->{data} },
+          [0] for 0 .. scalar( @{ $results->{headers} } );
+        $results->{series}->[0] = 'empty dataset';
+    }
+
+    $results->{total} = $De->format_number( $results->{total} );
+
+    # compute the total unique users
+    $DB::single = 1;
+    my $total_unique = $account->users_unique( $global_end, $global_start, $routers_aryref );
+
+    $results->{unique} = $total_unique;
+    return $results;
+}
+
 1;
 

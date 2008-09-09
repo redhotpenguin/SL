@@ -143,7 +143,6 @@ sub process_ad_zone {
     return 1;
 }
 
-
 # same as views but just count
 sub views_count {
     my ( $self, $start, $end, $routers_aryref ) = @_;
@@ -156,10 +155,10 @@ sub views_count {
     foreach my $router ( sort { $a->router_id <=> $b->router_id }
                          @{$routers_aryref} ) {
 
-	my $router_name = $router->name || $router->macaddr ||
-	    sprintf('empty router id %d', $router->router_id);
-	print "===> processing router $router_name\n" if DEBUG;
-	my $count = $router->views_count( $start, $end );
+    my $router_name = $router->name || $router->macaddr ||
+        sprintf('empty router id %d', $router->router_id);
+    print "===> processing router $router_name\n" if DEBUG;
+    my $count = $router->views_count( $start, $end );
         $total += $count;
 
         $views_hashref->{routers}->{ $router->router_id }->{count} =
@@ -168,6 +167,41 @@ sub views_count {
     $views_hashref->{total} = $total;
 
     return $views_hashref;
+}
+
+
+# number of users seen in a time period
+sub users_count {
+    my ( $self, $start, $end, $routers_aryref ) = @_;
+    die 'start and end invalid'
+      unless SL::Model::App::validate_dt( $start, $end );
+    die 'please specify routers' unless $routers_aryref;
+
+    my $users_hashref;
+    my $total = 0;
+    foreach my $router ( sort { $a->router_id <=> $b->router_id }
+                         @{$routers_aryref} ) {
+
+	    my $router_name = $router->name || $router->macaddr ||
+	        sprintf('empty router id %d', $router->router_id);
+
+        print "===> processing router $router_name\n" if DEBUG;
+	    my $count = $router->users_count( $start, $end );
+        $total += $count;
+
+        $users_hashref->{routers}->{ $router->router_id }->{count} =
+          $count || 0;
+    }
+    $users_hashref->{total} = $total;
+
+    return $users_hashref;
+}
+
+sub users_unique {
+    my ( $self, $start, $end, $routers_aryref ) = @_;
+    my $users_hashref = $self->users_count( $start, $end, $routers_aryref);
+
+    return $users_hashref->{total};
 }
 
 1;

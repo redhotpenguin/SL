@@ -88,7 +88,7 @@ DATA
       my $temporal (qw( daily weekly monthly quarterly biannually annually ))
     {
 
-        foreach my $type qw( views ) {
+        foreach my $type qw( views users ) {
             my $filename = "$type\_$temporal.png";
             next unless -e "$dir/$filename";
 

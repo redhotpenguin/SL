@@ -213,6 +213,43 @@ sub views {
     return 1;
 }
 
+sub users {
+    my ( $class, $params_ref ) = @_;
+
+    # unpack
+    my $filename     = $params_ref->{filename}     or die;
+    my $account      = $params_ref->{account}      or die;
+    my $data_hashref = $params_ref->{data_hashref} or die;
+    my $temporal     = $params_ref->{temporal}     or die;
+
+    my $title = $class->title({ 
+	temporal => $duration_hash{ $temporal},
+	lead => sprintf("%s unique max, %s unique total", $data_hashref->{max},
+        $data_hashref->{unique}),
+    });
+
+	# burn the graph
+    eval {
+        $class->bars_many(
+            {
+                filename => $filename,
+                title    => $title,
+				y_max_value   => $class->max($data_hashref->{max}),
+                y_tick_number => $class->tick($data_hashref->{max}),
+                y_label       => 'Number of users',
+                data_ref      => [
+                    [ @{ $data_hashref->{headers} } ],
+                    @{ $data_hashref->{data} }
+                ],
+                legend => $data_hashref->{series},
+            }
+        );
+    };
+    die $@ if $@;
+
+    return 1;
+}
+
 sub max {
 	my ($class, $data) = @_;
 	my $max = int($data*1.1)+1;
