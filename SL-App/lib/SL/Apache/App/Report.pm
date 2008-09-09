@@ -8,7 +8,7 @@ use Apache2::Log ();
 
 use base 'SL::Apache::App';
 
-our %Types = ( 'views' => 'Ad Views', );
+our %Types = ( 'views' => 'Ad Insertions', 'users' => 'Unique Users');
 
 our %Temporals = (
     'daily'      => '24 hours',
@@ -30,10 +30,11 @@ sub dispatch_index {
 
     my $req      = Apache2::Request->new($r);
     my $temporal = $req->param('temporal') || 'daily';
+    my $type = $req->param('type') || 'views';
     my $reg      = $r->pnotes( $r->user );
 
     my $report_uri = join( '/', $Config->sl_app_report_uri,
-    	$reg->account_id->report_base, 'views_' . $temporal . '.png' );
+    	$reg->account_id->report_base, $type . '_' . $temporal . '.png' );
 
     # fetch the report
     my $response = $self->SUPER::ua->get( URI->new($report_uri) );
@@ -41,6 +42,8 @@ sub dispatch_index {
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
+            types                  => \%Types,
+            type                   => $type,
             temporals              => \%Temporals,
             report_uri             => $report_uri,
             status                 => $req->param('status') || '',

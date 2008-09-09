@@ -31,7 +31,17 @@
 <input type="submit" value="Save">
 
 </form>
-
+<p>Select a type of report:&nbsp;&nbsp;
+ 
+[% FOREACH mytype = [ 'views', 'users' ] %]
+    [% UNLESS mytype == type %]
+    <a href="[% base_uri %]/app/report/index/?type=[% mytype %]&temporal=[% temporal %]">
+    [% END %]
+    [% types.$mytype %]
+    [% UNLESS mytype == type %]</a>[% END %]
+    &nbsp;
+[% END %]
+</p>
 <p>Select a date range:&nbsp;&nbsp;
 
 [% FOREACH mytemporal = [ 'daily', 'weekly', 'monthly', 'quarterly', 'biannually', 'annually' ] %]
@@ -48,7 +58,7 @@
 <hr class="sl_line">
 
 
-<h2>Viewing ad insertion report for the last [% temporals.$temporal %]</h2>
+<h2>Viewing [% types.$type %] report for the last [% temporals.$temporal %]</h2>
 
 <p style="width: 600px;">
 [% IF report_uri %]
