@@ -1,10 +1,25 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  News" %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Announcements" %]
 [% PROCESS left.tmpl %]
  
 <div id="center">
 <div class="content">
 
-<h3>News</h3>
+<h3>Announcements</h3>
+
+
+[% FOREACH rss = rss_list %]
+
+
+<hr class="sl_line">
+
+<h2><a href="[% rss.link %]">[% rss.title %]</a></h2>
+
+<p>[% rss.description %]</p>
+
+<br />
+[% END %]
+
+
 
 
 <hr class="sl_line">
@@ -83,7 +98,6 @@
 
 <h2>November 18th, 2006 - Private Beta Launch</h2>
 <p>Welcome to your Silver Lining Dashboard!  We are pleased to announce the private beta of our application are excited that you have decided to participate.  You can <a href="[% base_uri %]/app/ad/groups/list">manage your current ads</a> and <a href="[% base_uri %]/app/report/index">view a report of ad views and clicks</a>.  If you need help please visit <a href="http://forums.silverliningnetworks.com/">our forum.</a></p>
-
 
 </div>
 </div>

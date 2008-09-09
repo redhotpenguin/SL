@@ -11,6 +11,10 @@ use base 'SL::Apache::App';
 use SL::App::Template ();
 our $tmpl = SL::App::Template->template();
 
+use XML::RAI ();
+
+use constant FORUM_URL => 'http://forums.silverliningnetworks.com/forums/5/posts.rss';
+
 =head1 METHODS
 
 =over 4
@@ -26,8 +30,9 @@ This method serves of the master ad control panel for now
 sub dispatch_index {
     my ($self, $r) = @_;
 
-    my %tmpl_data = ( root => $r->pnotes('root'),
-                       email => $r->user);
+    my $rai = XML::RAI->parse_uri( FORUM_URL );
+
+    my %tmpl_data = ( rss_list => $rai->items );
     my $output;
     my $ok = $tmpl->process('home.tmpl', \%tmpl_data, \$output, $r);
     $ok ? return $self->ok($r, $output) 

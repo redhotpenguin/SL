@@ -76,6 +76,7 @@ use DBIx::Class                 ();
 use DBIx::Class::Schema::Loader ();
 use Crypt::CBC                  ();
 use Crypt::DES                  ();
+use XML::RAI                    ();
 
 print STDOUT "Modules loaded, initializing database connections\n";
 
