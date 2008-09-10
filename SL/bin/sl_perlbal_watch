@@ -9,8 +9,8 @@ unless ( _is_perlbal_running()) {
     # uh oh, houston we have a problem
     warn("$$ Uh oh, perlbal is not running.  Trying to start it...");
 
-    my $start_perlbal = `/home/$perlbal_user/dev/perl/bin/perl /home/perlbal_user/dev/perl/bin/perlbal -d`;
-
+    my $start_perlbal = `/home/$perlbal_user/dev/perl/bin/perl /home/$perlbal_user/dev/perl/bin/perlbal -d`;
+    
     if ( my $running = _is_perlbal_running()) {
         warn("perlbal was started ok: $running");
 	exit(0);

@@ -151,11 +151,16 @@ sub handler {
         ( $hash_mac, $router_mac ) =
           split( /\|/, $r->pnotes('sl_header') );
 
+	# the leading zero is omitted on some sl_headers
+	if (length($hash_mac) == 7) {
+		$hash_mac = '0' . $hash_mac;
+	}
+
         $r->log->error("$$ Found sl_header $sl_header")
           unless ( ( length($hash_mac) == 8 )
             && ( length($router_mac) == 12 ) );
-
-        unless ( $router_mac && $hash_mac ) {
+        
+	unless ( $router_mac && $hash_mac ) {
             $r->log->error("$$ sl_header present but no hash or router mac");
             return Apache2::Const::SERVER_ERROR;    # not really anything better
         }
