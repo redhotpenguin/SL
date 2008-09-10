@@ -17,18 +17,20 @@ sub handler {
     my $splash_url = $r->pnotes('splash_url');
 
     my $separator;
-    if ($splash_url =~ m/\?/) {
+    if ( $splash_url =~ m/\?/ ) {
+
         # user has some args
         $separator = '&';
-    } else {
+    }
+    else {
         $separator = '?';
     }
-    
-    my $location = $splash_url . $separator . 'url=' .  $r->pnotes('url');
+
+    my $location = $splash_url . $separator . 'url=' . $r->pnotes('url');
     $r->log->debug("splash page redirecting to $location") if DEBUG;
 
     $r->headers_out->set( Location => $location );
-    $r->server->add_version_component( 'sl' );
+    $r->server->add_version_component('sl');
     $r->no_cache(1);
 
     # rflush breaks SL!
