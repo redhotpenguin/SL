@@ -151,16 +151,16 @@ sub handler {
         ( $hash_mac, $router_mac ) =
           split( /\|/, $r->pnotes('sl_header') );
 
-	# the leading zero is omitted on some sl_headers
-	if (length($hash_mac) == 7) {
-		$hash_mac = '0' . $hash_mac;
-	}
+        # the leading zero is omitted on some sl_headers
+        if ( length($hash_mac) == 7 ) {
+            $hash_mac = '0' . $hash_mac;
+        }
 
         $r->log->error("$$ Found sl_header $sl_header")
           unless ( ( length($hash_mac) == 8 )
             && ( length($router_mac) == 12 ) );
-        
-	unless ( $router_mac && $hash_mac ) {
+
+        unless ( $router_mac && $hash_mac ) {
             $r->log->error("$$ sl_header present but no hash or router mac");
             return Apache2::Const::SERVER_ERROR;    # not really anything better
         }
@@ -190,13 +190,13 @@ sub handler {
 
     ###################################
     # ok check for a splash page if we have a routerm_ac
-    if ($r->pnotes('sl_header')) {
+    if ( $r->pnotes('sl_header') ) {
         my ( $splash_url, $timeout ) =
           SL::Model::Proxy::Router->splash_page($router_mac);
 
         if ($splash_url) {
-              my $show_splash = handle_splash( $r, $splash_url, $timeout );
-              return Apache2::Const::OK if $show_splash;
+            my $show_splash = handle_splash( $r, $splash_url, $timeout );
+            return Apache2::Const::OK if $show_splash;
         }
     }
 
@@ -204,8 +204,8 @@ sub handler {
     # blacklisted urls
     $r->log->debug("$$ checking blacklisted urls") if DEBUG;
     if ( url_blacklisted($url) ) {
-          $r->log->debug("$$ url $url blacklisted") if DEBUG;
-          return &proxy_request($r);
+        $r->log->debug("$$ url $url blacklisted") if DEBUG;
+        return &proxy_request($r);
     }
 
     ###################################
@@ -213,8 +213,8 @@ sub handler {
     # Close this bar
     $r->log->debug("$$ checking blacklisted users") if DEBUG;
     if ( user_blacklisted( $r, $dbh ) ) {
-          $r->log->debug("$$ user blacklisted") if DEBUG;
-          return &handle_user_blacklisted($r);
+        $r->log->debug("$$ user blacklisted") if DEBUG;
+        return &handle_user_blacklisted($r);
     }
 
     ###################################
@@ -229,202 +229,203 @@ sub handler {
     $r->log->debug("$$ EndTranshandler") if DEBUG;
 
     $r->log->info(
-          sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
+        sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
       if TIMING;
 
-    unless ($router_mac or $hash_mac) {
+    unless ( $router_mac or $hash_mac ) {
+
         # valid request that made it through, assign default
-        $r->pnotes('router_mac' =>
-                   SL::Model::Proxy::Router->_mac_from_ip(
-                                                          $r->connection->remote_ip
-                                                         ) );
-        $r->pnotes('hash_mac' => DEFAULT_HASH_MAC );
-      }
+        $r->pnotes(
+            'router_mac' => SL::Model::Proxy::Router->_mac_from_ip(
+                $r->connection->remote_ip
+            )
+        );
+        $r->pnotes( 'hash_mac' => DEFAULT_HASH_MAC );
+    }
 
     return Apache2::Const::OK;
 }
 
 sub handle_user_blacklisted {
-      my $r = shift;
+    my $r = shift;
 
-      # delete any caching headers to make sure we get a fresh page
-      $r->headers_in->unset($_) for qw( If-Modified-Since If-None-Match );
+    # delete any caching headers to make sure we get a fresh page
+    $r->headers_in->unset($_) for qw( If-Modified-Since If-None-Match );
 
-      return &proxy_request($r);
+    return &proxy_request($r);
 }
 
 sub handle_opera_redirect {
-      my $r = shift;
+    my $r = shift;
 
-      $r->set_handlers(
-          PerlResponseHandler => ['SL::Apache::Proxy::OperaHandler'] );
-      return Apache2::Const::OK;
+    $r->set_handlers(
+        PerlResponseHandler => ['SL::Apache::Proxy::OperaHandler'] );
+    return Apache2::Const::OK;
 }
 
 sub handle_splash {
-      my ( $r, $splash_url, $timeout ) = @_;
+    my ( $r, $splash_url, $timeout ) = @_;
 
-      $r->log->debug( "$$ splash $splash_url, timeout $timeout, x-sl "
-            . $r->pnotes('sl_header') )
-        if DEBUG;
+    $r->log->debug( "$$ splash $splash_url, timeout $timeout, x-sl "
+          . $r->pnotes('sl_header') )
+      if DEBUG;
 
-      # aha splash page, check when the last time we saw this user was
-      my $last_seen = $USER_CACHE->get_last_seen( $r->pnotes('sl_header') );
-      $r->log->debug( "$$ last seen $last_seen seen, time " . time() )
-        if ( DEBUG && defined $last_seen );
+    # aha splash page, check when the last time we saw this user was
+    my $last_seen = $USER_CACHE->get_last_seen( $r->pnotes('sl_header') );
+    $r->log->debug( "$$ last seen $last_seen seen, time " . time() )
+      if ( DEBUG && defined $last_seen );
 
-      my $set_ok = $USER_CACHE->set_last_seen( $r->pnotes('sl_header') );
+    my $set_ok = $USER_CACHE->set_last_seen( $r->pnotes('sl_header') );
 
-      if ( !$last_seen
-          or ( ( $timeout * 60 ) < ( time() - $last_seen ) ) )
-      {
+    if ( !$last_seen
+        or ( ( $timeout * 60 ) < ( time() - $last_seen ) ) )
+    {
 
-          $r->log->debug("$$ sending to splash handler for url $splash_url")
-            if DEBUG;
-          $r->pnotes( 'splash_url' => $splash_url );
+        $r->log->debug("$$ sending to splash handler for url $splash_url")
+          if DEBUG;
+        $r->pnotes( 'splash_url' => $splash_url );
+        $r->pnotes( 'last_seen' => $last_seen ) if defined $last_seen;
+        $r->set_handlers(
+            PerlResponseHandler => ['SL::Apache::Proxy::SplashHandler'] );
+        return 1;
+    }
+    else {
 
-          $r->set_handlers(
-              PerlResponseHandler => ['SL::Apache::Proxy::SplashHandler'] );
-          return 1;
-      }
-      else {
-
-          return;
-      }
+        return;
+    }
 }
 
 sub user_blacklisted {
-      my ( $r, $dbh ) = @_;
+    my ( $r, $dbh ) = @_;
 
-      return unless $r->pnotes('sl_header');
+    return unless $r->pnotes('sl_header');
 
-      my $user_id =
-        join( '|', $r->pnotes('sl_header'), $r->construct_server() );
+    my $user_id = join( '|', $r->pnotes('sl_header'), $r->construct_server() );
 
-      $r->log->debug("==> user_blacklist check with user_id $user_id") if DEBUG;
+    $r->log->debug("==> user_blacklist check with user_id $user_id") if DEBUG;
 
-      my $sth =
-        $dbh->prepare(
-          "SELECT count(user_id) FROM user_blacklist WHERE user_id = ?");
+    my $sth =
+      $dbh->prepare(
+        "SELECT count(user_id) FROM user_blacklist WHERE user_id = ?");
 
-      $sth->bind_param( 1, $user_id );
-      my $rv = $sth->execute;
-      unless ($rv) {
-          $r->log->error("$$ user_blacklist query failed for user id $user_id");
-          $sth->finish;
-          return;
-      }
+    $sth->bind_param( 1, $user_id );
+    my $rv = $sth->execute;
+    unless ($rv) {
+        $r->log->error("$$ user_blacklist query failed for user id $user_id");
+        $sth->finish;
+        return;
+    }
 
-      my $ary_ref = $sth->fetchrow_arrayref;
-      $sth->finish;
+    my $ary_ref = $sth->fetchrow_arrayref;
+    $sth->finish;
 
-      return 1 if $ary_ref->[0] > 0;
-      return;
+    return 1 if $ary_ref->[0] > 0;
+    return;
 }
 
 sub url_blacklisted {
-      my $url = shift;
+    my $url = shift;
 
-      my $ping = SL::Model::URL->ping_blacklist_regex;
-      if ($ping) {    # update the blacklist if it has changed
-          $BLACKLIST_REGEX = $ping;
-      }
-      return 1 if ( $url =~ m{$BLACKLIST_REGEX}i );
+    my $ping = SL::Model::URL->ping_blacklist_regex;
+    if ($ping) {    # update the blacklist if it has changed
+        $BLACKLIST_REGEX = $ping;
+    }
+    return 1 if ( $url =~ m{$BLACKLIST_REGEX}i );
 }
 
 sub proxy_request {
-      my $r = shift;
+    my $r = shift;
 
-      return &perlbal($r);
+    return &perlbal($r);
 }
 
 sub _unset_proxy_headers {
-      my $r = shift;
-      $r->headers_in->unset($_)
-        for qw( X-Proxy-Capabilities X-SL X-Forwarded-For );
+    my $r = shift;
+    $r->headers_in->unset($_)
+      for qw( X-Proxy-Capabilities X-SL X-Forwarded-For );
 
-      return 1;
+    return 1;
 }
 
 sub mod_proxy {
-      my ( $r, $uri ) = @_;
+    my ( $r, $uri ) = @_;
 
-      die("oops called proxy_request without \$r") unless ($r);
+    die("oops called proxy_request without \$r") unless ($r);
 
-      _unset_proxy_headers($r);
+    _unset_proxy_headers($r);
 
-      ## Don't change this next line even if you think you should
-      my $url = $r->construct_url;
+    ## Don't change this next line even if you think you should
+    my $url = $r->construct_url;
 
-      ## Use mod_proxy to do the proxying
-      $r->log->debug("$$ mod_proxy handling request for $url") if DEBUG;
+    ## Use mod_proxy to do the proxying
+    $r->log->debug("$$ mod_proxy handling request for $url") if DEBUG;
 
-      # Don't change these lines either or you'll be hurting
-      if ($uri) {
-          $r->uri($uri);
-          $r->unparsed_uri($uri);
-      }
+    # Don't change these lines either or you'll be hurting
+    if ($uri) {
+        $r->uri($uri);
+        $r->unparsed_uri($uri);
+    }
 
-      # Don't change this stuff either unless you are on a desert island alone
-      # with a solar powered computer
-      $r->filename("proxy:$url");
-      $r->log->debug( "$$ filename is " . $r->filename ) if DEBUG;
+    # Don't change this stuff either unless you are on a desert island alone
+    # with a solar powered computer
+    $r->filename("proxy:$url");
+    $r->log->debug( "$$ filename is " . $r->filename ) if DEBUG;
 
-      $r->set_handlers( PerlResponseHandler => undef );
-      $r->set_handlers( PerlLogHandler      => undef );
+    $r->set_handlers( PerlResponseHandler => undef );
+    $r->set_handlers( PerlLogHandler      => undef );
 
-      $r->handler('proxy-server');    # hrm this causes perl response as well
-      $r->proxyreq(1);
+    $r->handler('proxy-server');    # hrm this causes perl response as well
+    $r->proxyreq(1);
 
-      $r->server->add_version_component('sl');    # need to patch mod_proxy
+    $r->server->add_version_component('sl');    # need to patch mod_proxy
 
-      return Apache2::Const::DECLINED;
+    return Apache2::Const::DECLINED;
 }
 
 sub perlbal {
-      my $r = shift;
+    my $r = shift;
 
-      _unset_proxy_headers($r);
+    _unset_proxy_headers($r);
 
-      if ( $r->headers_in->{Cookie} ) {
+    if ( $r->headers_in->{Cookie} ) {
 
-          # sorry perlbal doesn't reproxy requests with cookies
-          return mod_proxy($r);
-      }
+        # sorry perlbal doesn't reproxy requests with cookies
+        return mod_proxy($r);
+    }
 
-      ##########
-      # Use perlbal to do the proxying
-      my $uri = $r->construct_url( $r->unparsed_uri );
+    ##########
+    # Use perlbal to do the proxying
+    my $uri = $r->construct_url( $r->unparsed_uri );
 
-      my $hostname = $r->hostname;
+    my $hostname = $r->hostname;
 
-      # don't resolve ip addresses
-      unless ( $hostname =~ m/\d+\.\d+\.\d+\.\d+/ ) {
-          my $ip;
-          my $query = $resolver->query($hostname);
-          if ($query) {
-              foreach my $rr ( $query->answer ) {
-                  next unless $rr->type eq "A";
-                  $ip = $rr->address;
-                  last;
-              }
-          }
-          else {
-              $r->log->error( "$$ DNS query failed for host $hostname: ",
-                  $resolver->errorstring );
-              return mod_proxy($r);
-          }
+    # don't resolve ip addresses
+    unless ( $hostname =~ m/\d+\.\d+\.\d+\.\d+/ ) {
+        my $ip;
+        my $query = $resolver->query($hostname);
+        if ($query) {
+            foreach my $rr ( $query->answer ) {
+                next unless $rr->type eq "A";
+                $ip = $rr->address;
+                last;
+            }
+        }
+        else {
+            $r->log->error( "$$ DNS query failed for host $hostname: ",
+                $resolver->errorstring );
+            return mod_proxy($r);
+        }
 
-          $uri =~ s/$hostname/$ip/;
-          $r->log->debug("$$ ip for host $hostname is $ip, new uri is $uri")
-            if DEBUG;
+        $uri =~ s/$hostname/$ip/;
+        $r->log->debug("$$ ip for host $hostname is $ip, new uri is $uri")
+          if DEBUG;
 
-      }
-      $r->headers_out->add( 'X-REPROXY-URL' => $uri );
-      $r->set_handlers( PerlResponseHandler => undef );
-      $r->set_handlers( PerlLogHandler      => undef );
-      $r->log->debug("$$ X-REPROXY-URL for $uri") if DEBUG;
-      return Apache2::Const::OK;
+    }
+    $r->headers_out->add( 'X-REPROXY-URL' => $uri );
+    $r->set_handlers( PerlResponseHandler => undef );
+    $r->set_handlers( PerlLogHandler      => undef );
+    $r->log->debug("$$ X-REPROXY-URL for $uri") if DEBUG;
+    return Apache2::Const::OK;
 }
 
 1;
