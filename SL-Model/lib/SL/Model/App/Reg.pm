@@ -209,7 +209,8 @@ sub get_routers {
     my ( $self, $ad_zone_id ) = @_;
 
     my @routers = SL::Model::App->resultset('Router')->search({
-        account_id => $self->account_id->account_id });
+        account_id => $self->account_id->account_id,
+	active => 't' });
 
     return unless scalar(@routers) > 0;
 
