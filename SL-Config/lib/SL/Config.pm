@@ -26,7 +26,7 @@ are really fast.
 
 =cut
 
-our $VERSION = 0.14;
+our $VERSION = 0.15;
 
 our( $config, $conf_dir );
 our $file = 'sl.conf';
@@ -40,7 +40,15 @@ sub new {
     return $config if $config;
 
     my @config_files;
-    if ( -e "/etc/sl/$file" ) {
+    # check the local conf dir first
+    if ( -d "$FindBin::Bin/../conf" && ( -e "$FindBin::Bin/../conf/$file" ) )
+    {
+
+        # development
+        $conf_dir = "$FindBin::Bin/../conf";
+        @config_files = ( "$conf_dir/$file", "$conf_dir/../$file" );
+    # then  check for a global conf file
+    } elsif ( -e "/etc/sl/$file" ) {
 
         # global sl dir
         $conf_dir     = "/etc/sl";
@@ -52,14 +60,7 @@ sub new {
         $conf_dir     = "/etc";
         @config_files = ("$conf_dir/$file");
     }
-    elsif ( -d "$FindBin::Bin/../conf" && ( -e "$FindBin::Bin/../conf/$file" ) )
-    {
-
-        # development
-        $conf_dir = "$FindBin::Bin/../conf";
-        @config_files = ( "$conf_dir/$file", "$conf_dir/../$file" );
-    }
-    else {
+   else {
         die "\nNo file $file found in  "
           . "$FindBin::Bin/../conf/ or /etc/sl/!\n";
     }

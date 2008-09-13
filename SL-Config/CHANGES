@@ -1,5 +1,8 @@
 Revision history for SL-Config
 
+0.15 Sat Sep 13 11:48:00 2008
+    - set priority for local conf dir first
+
 0.14 Thu Jan 10 00:13:14 2008
     - Diablo options
 
