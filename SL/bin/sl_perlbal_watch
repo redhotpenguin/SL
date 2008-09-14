@@ -5,11 +5,13 @@ use warnings;
 
 my $perlbal_user = 'phred2';
 
+my $perlbal = "/home/$perlbal_user/dev/perl/bin/perl /home/$perlbal_user/dev/perl/bin/perlbal -d";
+
 unless ( _is_perlbal_running()) {
     # uh oh, houston we have a problem
     warn("$$ Uh oh, perlbal is not running.  Trying to start it...");
 
-    my $start_perlbal = `/home/$perlbal_user/dev/perl/bin/perl /home/$perlbal_user/dev/perl/bin/perlbal -d`;
+    my $start = `$perlbal`; 
     
     if ( my $running = _is_perlbal_running()) {
         warn("perlbal was started ok: $running");
@@ -22,7 +24,7 @@ unless ( _is_perlbal_running()) {
 
 sub _is_perlbal_running {
 
-	my $is_perlbal_running = `ps aux  | grep 'perlbal -d' | grep -v 'grep'`;
+	my $is_perlbal_running = `ps aux  | grep '$perlbal' | grep -v 'grep'`;
 	chomp($is_perlbal_running);
 
 	return if ($is_perlbal_running eq '');
