@@ -35,7 +35,7 @@ sub dispatch_index {
 
         if ($r->pnotes( $r->user )->root) {
             my @accounts = SL::Model::App->resultset('Account')->search({ active => 't' });
-            $tmpl_data{accounts} = \@accounts;
+            $tmpl_data{accounts} = [ sort { lc($a->name) cmp lc($b->name) } @accounts ];
         }
 
         my $ok =
