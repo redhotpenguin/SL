@@ -132,19 +132,19 @@ sub dispatch_edit {
     unless ($router) {
 
         # adding a new router
-        $router = SL::Model::App->resultset('Router')->new(
+        $router = SL::Model::App->resultset('Router')->find_or_create(
             {
-                active     => 't',
-                account_id => $reg->account_id->account_id
+                macaddr => $req->param('macaddr'),,
             }
         );
+	# steal the router from someone if they have it
 
-      	foreach my $param qw( name macaddr splash_href
+      	foreach my $param qw( name splash_href
   	    serial_number ssid splash_timeout ) {
         	$router->$param( $req->param($param) );
      	}
-
-	$router->insert;
+	$router->active(1);
+	$router->account_id( $reg->account_id->account_id );
         $router->update;
     } elsif ($router) {
 
