@@ -1,6 +1,6 @@
 Index: htdocs/css/app.css
 ===================================================================
---- htdocs/css/app.css	(revision 1877)
+--- htdocs/css/app.css	(revision 1905)
 +++ htdocs/css/app.css	(working copy)
 @@ -4,7 +4,8 @@
  	text-align: center;
@@ -35,7 +35,7 @@ Index: htdocs/css/app.css
  }
 Index: lib/SL/Apache/App/Ad/Groups.pm
 ===================================================================
---- lib/SL/Apache/App/Ad/Groups.pm	(revision 1877)
+--- lib/SL/Apache/App/Ad/Groups.pm	(revision 1905)
 +++ lib/SL/Apache/App/Ad/Groups.pm	(working copy)
 @@ -47,71 +47,37 @@
          return Apache2::Const::NOT_FOUND unless $ad_zone;
@@ -187,28 +187,39 @@ Index: lib/SL/Apache/App/Ad/Groups.pm
      $ad_zone->update;
 Index: lib/SL/Apache/App.pm
 ===================================================================
---- lib/SL/Apache/App.pm	(revision 1877)
+--- lib/SL/Apache/App.pm	(revision 1905)
 +++ lib/SL/Apache/App.pm	(working copy)
 @@ -21,7 +21,7 @@
  $UA->timeout(10);    # needs to respond somewhat quickly
  our $TMPL = SL::App::Template->template();
  
 -use constant MAX_IMAGE_BYTES => 10_240;
-+use constant MAX_IMAGE_BYTES => 20_480;
++use constant MAX_IMAGE_BYTES => 40_960;
  use constant DEBUG => $ENV{SL_DEBUG} || 0;
  
  require Data::Dumper if DEBUG;
-@@ -128,22 +128,18 @@
-         return unless $ad_size;
-         my $response = $UA->get( URI->new($image_href) );
+@@ -32,7 +32,7 @@
  
-+warn("response is " . $response->is_success);
-         my ( $width, $height ) = Image::Size::imgsize( \$response->content );
+ =item C<dispatch_index>
  
-         # image too big?
-+        warn("length is " . $response->headers->header('content-length'));
+-This method serves of the master ad control panel for now
++This is the home page
+ 
+ =back
+ 
+@@ -76,6 +76,10 @@
+     return Apache2::Const::SERVER_ERROR;
+ }
+ 
++sub ua {
++    return $UA;
++}
++
+ sub _results_to_errors {
+     my ( $self, $results ) = @_;
+     my %errors;
+@@ -139,16 +143,9 @@
          return unless $response->headers->header('content-length') < MAX_IMAGE_BYTES;
-+warn("height is $height, width is $width");
  
          # check the image height
 -        # only allow bugs that are 3x1 ratio width to height or less
@@ -226,22 +237,317 @@ Index: lib/SL/Apache/App.pm
          return $image_href_val;
        }
  }
+Index: patch.diff
+===================================================================
+--- patch.diff	(revision 1905)
++++ patch.diff	(working copy)
+@@ -1,6 +1,6 @@
+ Index: htdocs/css/app.css
+ ===================================================================
+---- htdocs/css/app.css	(revision 1877)
++--- htdocs/css/app.css	(revision 1905)
+ +++ htdocs/css/app.css	(working copy)
+ @@ -4,7 +4,8 @@
+  	text-align: center;
+@@ -35,7 +35,7 @@
+  }
+ Index: lib/SL/Apache/App/Ad/Groups.pm
+ ===================================================================
+---- lib/SL/Apache/App/Ad/Groups.pm	(revision 1877)
++--- lib/SL/Apache/App/Ad/Groups.pm	(revision 1905)
+ +++ lib/SL/Apache/App/Ad/Groups.pm	(working copy)
+ @@ -47,71 +47,37 @@
+          return Apache2::Const::NOT_FOUND unless $ad_zone;
+@@ -187,28 +187,39 @@
+      $ad_zone->update;
+ Index: lib/SL/Apache/App.pm
+ ===================================================================
+---- lib/SL/Apache/App.pm	(revision 1877)
++--- lib/SL/Apache/App.pm	(revision 1905)
+ +++ lib/SL/Apache/App.pm	(working copy)
+ @@ -21,7 +21,7 @@
+  $UA->timeout(10);    # needs to respond somewhat quickly
+  our $TMPL = SL::App::Template->template();
+  
+ -use constant MAX_IMAGE_BYTES => 10_240;
+-+use constant MAX_IMAGE_BYTES => 20_480;
+++use constant MAX_IMAGE_BYTES => 40_960;
+  use constant DEBUG => $ENV{SL_DEBUG} || 0;
+  
+  require Data::Dumper if DEBUG;
+-@@ -128,22 +128,18 @@
+-         return unless $ad_size;
+-         my $response = $UA->get( URI->new($image_href) );
++@@ -32,7 +32,7 @@
+  
+-+warn("response is " . $response->is_success);
+-         my ( $width, $height ) = Image::Size::imgsize( \$response->content );
++ =item C<dispatch_index>
+  
+-         # image too big?
+-+        warn("length is " . $response->headers->header('content-length'));
++-This method serves of the master ad control panel for now
+++This is the home page
++ 
++ =back
++ 
++@@ -76,6 +76,10 @@
++     return Apache2::Const::SERVER_ERROR;
++ }
++ 
+++sub ua {
+++    return $UA;
+++}
+++
++ sub _results_to_errors {
++     my ( $self, $results ) = @_;
++     my %errors;
++@@ -139,16 +143,9 @@
+          return unless $response->headers->header('content-length') < MAX_IMAGE_BYTES;
+-+warn("height is $height, width is $width");
+  
+          # check the image height
+ -        # only allow bugs that are 3x1 ratio width to height or less
+@@ -226,155 +237,3 @@
+          return $image_href_val;
+        }
+  }
+-Index: tmpl/ad/groups/edit.tmpl
+-===================================================================
+---- tmpl/ad/groups/edit.tmpl	(revision 1877)
+-+++ tmpl/ad/groups/edit.tmpl	(working copy)
+-@@ -71,7 +71,25 @@
+- <hr class="sl_line">
+- 
+- 
+-+<!-- invocation double code -->
+-+<p>
+-+[% IF errors.missing.code_double %]<font color="red">[% END %]
+-+Second Ad Invocation Code (provided by your ad server):&nbsp;&nbsp;
+-+[% IF errors.missing.code_double %]</font>[% END %]
+- 
+-+<p><textarea name="code" rows="10" cols="60">
+-+[% req.param('code_double') or ad_zone.code_double %]
+-+</textarea>
+-+</p>
+-+
+-+<!-- end invocation code -->
+-+
+-+
+-+<hr class="sl_line">
+-+
+-+
+-+
+-+
+- <!-- ad_size_id -->
+- 
+- 
+-@@ -84,7 +102,7 @@
+- function changeBugList() {
+- 
+-     // hide all sub lists
+--    for (var i = 1; i < 7; i++) {
+-+    for (var i = 1; i < 10; i++) {
+- 
+-         document.getElementById('bug_list_' + i).style.display='none';
+-     }
+-@@ -111,7 +129,7 @@
+- 
+- [% FOREACH ad_size = ad_sizes %]
+- 
+--<option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size_id.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %] ([% ad_size.width %]x[% ad_size.height %])</option>
+-+<option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size_id.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %]</option>
+- 
+- [% END %]
+- 
+-@@ -133,11 +151,11 @@
+- <hr class="sl_line">
+- [% END %]
+- 
+--[% FOREACH buglist = [ 'bug_list_1', 'bug_list_2', 'bug_list_3', 'bug_list_4', 'bug_list_5', 'bug_list_6' 'bug_list_7' ] %]
+-+[% FOREACH buglist = bug_lists %]
+- 
+--<div id="[% buglist %]" [% IF "bug_list_$ad_size_id" != buglist %][% IF ! ad_zone OR ad_zone.ad_size_id.ad_size_id != $buglist.0.ad_size_id.ad_size_id %]style="display: none;";[% END %][% END %]>
+-+<div id="[% buglist %]" [% IF $buglist.0.ad_size_id.ad_size_id != ad_size_id %]style="display: none;"[% END %]>
+- 
+--[% IF $buglist.0  %]
+-+[% IF $buglist.0.ad_size_id.ad_size_id %]
+- <p>Select a branding image for this ad zone:</p>
+- 
+- [% FOREACH bug = $buglist %]
+-Index: tmpl/ad/bugs/edit.tmpl
+-===================================================================
+---- tmpl/ad/bugs/edit.tmpl	(revision 1877)
+-+++ tmpl/ad/bugs/edit.tmpl	(working copy)
+-@@ -8,10 +8,12 @@
+- [% UNLESS bug.bug_id  %]New branding image[% ELSE %]Edit existing branding image[% END %]</h2>
+- 
+- <hr class="sl_line">
+-+
+- <div id="edit_form">
+- 
+- <table class="edit"> 
+- 
+-+
+- <tr><td colspan="2">
+- [% IF bug.bug_id %]
+- 	<h2>Edit existing branding image</h2>
+-@@ -21,7 +23,6 @@
+- </td></tr>
+- 
+- 
+--
+- [% IF errors.missing %]
+- <tr><td colspan="2">
+- <font color="red">Please complete the missing fields</font>
+-@@ -52,10 +53,10 @@
+- <tr><td colspan="2">
+- [% IF errors.missing.image_href or errors.invalid.image_href%]<font color="red">
+- [% IF req.param('ad_size_id') or bug.ad_size_id %]
+--- Image must be exactly as tall or wide as the selected ad zone (tall for horizontal, wide for skyscraper)<br />
+-+- Image must match the ad zone type dimensions shown in the select box<br />
+- [% END %]
+--- Image may not be more than 3x1 ratio<br />
+--- Image must be less than 10,240 bytes (10k) in size<br />
+-+- Image must be less than 20,480 bytes (20k) in size<br />
+-+- Image should be .png format for best results<br />
+- [% END %]
+- </td></tr>
+- [% END %]
+-@@ -111,12 +112,6 @@
+- <tr><td colspan=2><a href="[% bug.link_href %]">Branding image link</a></td></tr>[% END %]
+- <!-- end link_href -->
+- 
+--
+--
+--
+--
+--
+--
+- <tr><td colspan=2><hr class="sl_line"></td></tr>
+- 
+- 
+-@@ -132,10 +127,10 @@
+- [% FOREACH ad_size = ad_sizes %]
+- 
+- [% IF ! req.param('ad_size_id') %]
+--<option value="[% ad_size.ad_size_id %]" [% IF bug.ad_size_id.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %] ([% ad_size.width %]x[% ad_size.height %])</option>
+-+<option value="[% ad_size.ad_size_id %]" [% IF bug.ad_size_id.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %] - image [% ad_size.bug_width %]px wide x [% ad_size.bug_height %]px tall</option>
+- 
+- [% ELSIF req.param('ad_size_id') %]
+--<option value="[% ad_size_id.ad_size_id %]" [% IF req.param('ad_size_id') == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %] ([% ad_size.width %]x[% ad_size.height %])</option>
+-+<option value="[% ad_size_id.ad_size_id %]" [% IF req.param('ad_size_id') == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %] - image [% ad_size.bug_width %]px wide x [% ad_size.bug_height %]px tall</option>
+- [% END %]
+- 
+- [% END %]
+-Index: tmpl/ad/bugs/list.tmpl
+-===================================================================
+---- tmpl/ad/bugs/list.tmpl	(revision 1877)
+-+++ tmpl/ad/bugs/list.tmpl	(working copy)
+-@@ -18,8 +18,8 @@
+- <table class="list">
+- <tr class="list_header">
+- 
+--<td class="header">Image</td>
+--<td class="header">Ad zone size</td>
+-+<td class="header">Image (click to edit)</td>
+-+<td class="header">Ad zone type bug size</td>
+- <td class="header">Image link</td>
+- </tr>
+- 
+-@@ -32,7 +32,7 @@
+- 
+- <!-- zone type -->
+- <td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
+--[% bug.ad_size_id.name %] ([% bug.ad_size_id.width %]x[% bug.ad_size_id.height %])</td>
+-+[% bug.ad_size_id.name %] - [% bug.ad_size_id.bug_width %]px wide x [% bug.ad_size_id.bug_height %]px tall</td>
+- 
+- <!-- link -->
+- <td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
 Index: tmpl/ad/groups/edit.tmpl
 ===================================================================
---- tmpl/ad/groups/edit.tmpl	(revision 1877)
+--- tmpl/ad/groups/edit.tmpl	(revision 1905)
 +++ tmpl/ad/groups/edit.tmpl	(working copy)
-@@ -71,7 +71,25 @@
+@@ -50,31 +50,11 @@
+ <!-- end name -->
+ 
+ 
+-
  <hr class="sl_line">
  
  
-+<!-- invocation double code -->
-+<p>
-+[% IF errors.missing.code_double %]<font color="red">[% END %]
-+Second Ad Invocation Code (provided by your ad server):&nbsp;&nbsp;
-+[% IF errors.missing.code_double %]</font>[% END %]
+-<!-- invocation code -->
+-<p>
+-[% IF errors.missing.code %]<font color="red">[% END %]
+-Ad Invocation Code (provided by your ad server):&nbsp;&nbsp;
+-[% IF errors.missing.code %]</font>[% END %]
  
+-<p><textarea name="code" rows="10" cols="60">
+-[% req.param('code') or ad_zone.code %]
+-</textarea>
+-</p>
+-
+-<!-- end invocation code -->
+-
+-
+-<hr class="sl_line">
+-
+-
+-
+ <!-- ad_size_id -->
+-
+-
+ <p>
+ [% IF errors.missing.ad_size_id %]<font color="red">[% END %]
+ Ad Size:&nbsp;&nbsp;
+@@ -84,7 +64,7 @@
+ function changeBugList() {
+ 
+     // hide all sub lists
+-    for (var i = 1; i < 7; i++) {
++    for (var i = 1; i < 10; i++) {
+ 
+         document.getElementById('bug_list_' + i).style.display='none';
+     }
+@@ -96,8 +76,16 @@
+     if (size != '') {
+         document.getElementById('bug_list_' + size).style.display='block';
+     }
++
++    // show second box for double ad zones
++    if (size > 6) {
++        document.getElementById('double_code').style.display='block';
++    } else {
++        document.getElementById('double_code').style.display='none';
++   }
+ }
+ 
++
+ function setBugList(ad_size_id) {
+ 
+     document.getElementById('bug_list_' + ad_size_id).style.display='block';
+@@ -111,7 +99,7 @@
+ 
+ [% FOREACH ad_size = ad_sizes %]
+ 
+-<option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size_id.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %] ([% ad_size.width %]x[% ad_size.height %])</option>
++<option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size_id.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %]</option>
+ 
+ [% END %]
+ 
+@@ -128,16 +116,58 @@
+ 
+ 
+ 
++
++<!-- invocation code -->
++<p>
++[% IF errors.missing.code %]<font color="red">[% END %]
++Ad Invocation Code (provided by your ad server):&nbsp;&nbsp;
++[% IF errors.missing.code %]</font>[% END %]
++
 +<p><textarea name="code" rows="10" cols="60">
-+[% req.param('code_double') or ad_zone.code_double %]
++[% req.param('code') or ad_zone.code %]
 +</textarea>
 +</p>
 +
@@ -253,28 +559,30 @@ Index: tmpl/ad/groups/edit.tmpl
 +
 +
 +
- <!-- ad_size_id -->
- 
- 
-@@ -84,7 +102,7 @@
- function changeBugList() {
- 
-     // hide all sub lists
--    for (var i = 1; i < 7; i++) {
-+    for (var i = 1; i < 10; i++) {
- 
-         document.getElementById('bug_list_' + i).style.display='none';
-     }
-@@ -111,7 +129,7 @@
- 
- [% FOREACH ad_size = ad_sizes %]
- 
--<option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size_id.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %] ([% ad_size.width %]x[% ad_size.height %])</option>
-+<option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size_id.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %]</option>
- 
- [% END %]
- 
-@@ -133,11 +151,11 @@
++<div id="double_code" style="display: none;">
++
++<!-- invocation double code -->
++<p>
++[% IF errors.missing.code_double %]<font color="red">[% END %]
++Double Ad Zone Vertical Zone Code (provided by your ad server):&nbsp;&nbsp;
++[% IF errors.missing.code_double %]</font>[% END %]
++
++<p><textarea name="code" rows="10" cols="60">
++[% req.param('code_double') or ad_zone.code_double %]
++</textarea>
++</p>
++
++<!-- end invocation code -->
++
++
++<hr class="sl_line">
++
++</div>
++
++
++
+ <!-- branding image -->
+ [% IF errors.missing.bug_id %]<font color="red">You need a valid branding image for this ad zone.</font>
  <hr class="sl_line">
  [% END %]
  
@@ -289,9 +597,22 @@ Index: tmpl/ad/groups/edit.tmpl
  <p>Select a branding image for this ad zone:</p>
  
  [% FOREACH bug = $buglist %]
+Index: tmpl/ad/groups/list.tmpl
+===================================================================
+--- tmpl/ad/groups/list.tmpl	(revision 1905)
++++ tmpl/ad/groups/list.tmpl	(working copy)
+@@ -34,7 +34,7 @@
+ 
+ <!-- ad_size -->
+   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+-[% ad_zone.ad_size_id.name %] ([% ad_zone.ad_size_id.width %]x[% ad_zone.ad_size_id.height %])</td>
++[% ad_zone.ad_size_id.name %]</td>
+ 
+ <!-- active -->	
+   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
 Index: tmpl/ad/bugs/edit.tmpl
 ===================================================================
---- tmpl/ad/bugs/edit.tmpl	(revision 1877)
+--- tmpl/ad/bugs/edit.tmpl	(revision 1905)
 +++ tmpl/ad/bugs/edit.tmpl	(working copy)
 @@ -8,10 +8,12 @@
  [% UNLESS bug.bug_id  %]New branding image[% ELSE %]Edit existing branding image[% END %]</h2>
@@ -356,7 +677,7 @@ Index: tmpl/ad/bugs/edit.tmpl
  [% END %]
 Index: tmpl/ad/bugs/list.tmpl
 ===================================================================
---- tmpl/ad/bugs/list.tmpl	(revision 1877)
+--- tmpl/ad/bugs/list.tmpl	(revision 1905)
 +++ tmpl/ad/bugs/list.tmpl	(working copy)
 @@ -18,8 +18,8 @@
  <table class="list">
