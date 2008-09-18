@@ -66,7 +66,7 @@ sub dispatch_edit {
         }
 
         # get the locations for the router
-        @locations = map { $_->location_id } $router->router__locations;
+        @locations = sort { $b->mts cmp $a->mts } map { $_->location_id } $router->router__locations;
 
         # current associations for this router
         %router__ad_zones =

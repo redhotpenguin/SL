@@ -127,12 +127,12 @@ Splash page timeout:&nbsp;&nbsp;
 [% IF locations != '' %]
 
 <hr class="sl_line">
-<p>This router has been registered at the following locations:</p>
+<p>This router has been registered at the following locations and times:</p>
 
 [% FOREACH location = locations %]
 <p><ul>
       <li>[% IF location.name %][% location.name %] - [% ELSE %][% END %]
-          [% location.ip %]</li>
+          [% location.ip %] - [% location.mts %]</li>
   </ul></p>
 [% END %]
 
