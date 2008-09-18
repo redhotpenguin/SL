@@ -21,9 +21,9 @@ SET default_with_oids = false;
 CREATE TABLE ad_size (
     ad_size_id integer NOT NULL,
     name text,
-    height integer NOT NULL,
-    width integer NOT NULL,
-    css_url text NOT NULL
+    css_url text NOT NULL,
+    bug_height integer,
+    bug_width integer
 );
 
 
@@ -50,31 +50,10 @@ ALTER SEQUENCE ad_size_ad_size_id_seq OWNED BY ad_size.ad_size_id;
 
 
 --
--- Name: ad_size_ad_size_id_seq; Type: SEQUENCE SET; Schema: public; Owner: phred
---
-
-SELECT pg_catalog.setval('ad_size_ad_size_id_seq', 3, true);
-
-
---
 -- Name: ad_size_id; Type: DEFAULT; Schema: public; Owner: phred
 --
 
 ALTER TABLE ad_size ALTER COLUMN ad_size_id SET DEFAULT nextval('ad_size_ad_size_id_seq'::regclass);
-
-
---
--- Data for Name: ad_size; Type: TABLE DATA; Schema: public; Owner: phred
---
-
-COPY ad_size (ad_size_id, name, height, width, css_url) FROM stdin;
-1	Leaderboard	90	728	http://www.silverliningnetworks.com/css/sl_leaderboard.css
-2	Full Banner	60	468	http://www.silverliningnetworks.com/css/sl_full_banner.css
-3	Text Ad	45	600	http://www.silverliningnetworks.com/css/sl_text_ad.css
-4	Skyscraper	600	120	http://www.silverliningnetworks.com/css/sl_skyscraper.css
-5	Wide Skyscraper	600	160	http://www.silverliningnetworks.com/css/sl_wide_skyscraper.css
-6	Half Page Ad	600	300	http://www.silverliningnetworks.com/css/sl_half_page_ad.css
-\.
 
 
 --
