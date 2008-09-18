@@ -8,9 +8,11 @@
 [% UNLESS bug.bug_id  %]New branding image[% ELSE %]Edit existing branding image[% END %]</h2>
 
 <hr class="sl_line">
+
 <div id="edit_form">
 
 <table class="edit"> 
+
 
 <tr><td colspan="2">
 [% IF bug.bug_id %]
@@ -19,7 +21,6 @@
 <h2>Create a new branding image</h2></td></tr>
 [% END %]
 </td></tr>
-
 
 
 [% IF errors.missing %]
@@ -52,10 +53,10 @@
 <tr><td colspan="2">
 [% IF errors.missing.image_href or errors.invalid.image_href%]<font color="red">
 [% IF req.param('ad_size_id') or bug.ad_size_id %]
-- Image must be exactly as tall or wide as the selected ad zone (tall for horizontal, wide for skyscraper)<br />
+- Image must match the ad zone type dimensions shown in the select box<br />
 [% END %]
-- Image may not be more than 3x1 ratio<br />
-- Image must be less than 10,240 bytes (10k) in size<br />
+- Image must be less than 20,480 bytes (20k) in size<br />
+- Image should be .png format for best results<br />
 [% END %]
 </td></tr>
 [% END %]
@@ -111,12 +112,6 @@ Example http://www.silverliningnetworks.com/?referer=silverlining</font></td></t
 <tr><td colspan=2><a href="[% bug.link_href %]">Branding image link</a></td></tr>[% END %]
 <!-- end link_href -->
 
-
-
-
-
-
-
 <tr><td colspan=2><hr class="sl_line"></td></tr>
 
 
@@ -132,10 +127,10 @@ Ad zone type associated with this branding image:&nbsp;&nbsp;
 [% FOREACH ad_size = ad_sizes %]
 
 [% IF ! req.param('ad_size_id') %]
-<option value="[% ad_size.ad_size_id %]" [% IF bug.ad_size_id.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %] ([% ad_size.width %]x[% ad_size.height %])</option>
+<option value="[% ad_size.ad_size_id %]" [% IF bug.ad_size_id.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %] - image [% ad_size.bug_width %]px wide x [% ad_size.bug_height %]px tall</option>
 
 [% ELSIF req.param('ad_size_id') %]
-<option value="[% ad_size_id.ad_size_id %]" [% IF req.param('ad_size_id') == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %] ([% ad_size.width %]x[% ad_size.height %])</option>
+<option value="[% ad_size_id.ad_size_id %]" [% IF req.param('ad_size_id') == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %] - image [% ad_size.bug_width %]px wide x [% ad_size.bug_height %]px tall</option>
 [% END %]
 
 [% END %]

@@ -47,71 +47,37 @@ sub dispatch_edit {
         return Apache2::Const::NOT_FOUND unless $ad_zone;
     }
 
+    my $ad_size_id;
+    if ($ad_zone) {
+        $ad_size_id = $req->param('ad_size_id')
+          || $ad_zone->ad_size_id->ad_size_id;
+    }
+    else {
+        $ad_size_id = $req->param('ad_size_id') || '';
+    }
+
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
-            ad_sizes   => [ SL::Model::App->resultset('AdSize')->all ],
-            ad_zone    => $ad_zone,
-            errors     => $args_ref->{errors},
-            req        => $req,
-            bug_list_1 => [
-                SL::Model::App->resultset('Bug')->search(
-                    {
-                        account_id => $reg->account_id->account_id,
-                        ad_size_id => 1
-                    }
-                )
-            ],
-            bug_list_2 => [
-                SL::Model::App->resultset('Bug')->search(
-                    {
-                        account_id => $reg->account_id->account_id,
-                        ad_size_id => 2
-                    }
-                )
-            ],
-            bug_list_3 => [
-                SL::Model::App->resultset('Bug')->search(
-                    {
-                        account_id => $reg->account_id->account_id,
-                        ad_size_id => 3
-                    }
-                )
-            ],
-            bug_list_4 => [
-                SL::Model::App->resultset('Bug')->search(
-                    {
-                        account_id => $reg->account_id->account_id,
-                        ad_size_id => 4
-                    }
-                )
-            ],
-             bug_list_5 => [
-                SL::Model::App->resultset('Bug')->search(
-                    {
-                        account_id => $reg->account_id->account_id,
-                        ad_size_id => 5
-                    }
-                )
-            ],
-             bug_list_6 => [
-                SL::Model::App->resultset('Bug')->search(
-                    {
-                        account_id => $reg->account_id->account_id,
-                        ad_size_id => 6
-                    }
-                )
-            ],
-     bug_list_7 => [
-                SL::Model::App->resultset('Bug')->search(
-                    {
-                        account_id => $reg->account_id->account_id,
-                        ad_size_id => 7
-                    }
-                )
-            ],
-
-
+            ad_sizes => [ SL::Model::App->resultset('AdSize')->all ],
+            ad_zone  => $ad_zone,
+            errors   => $args_ref->{errors},
+            req      => $req,
         );
+        if ($ad_size_id) {
+            $tmpl_data{ad_size_id} = $ad_size_id;
+        }
+        my @bug_lists;
+        foreach my $ad_size ( SL::Model::App->resultset('AdSize')->all ) {
+            my @bugs = SL::Model::App->resultset('Bug')->search(
+                {
+                    account_id => $reg->account_id->account_id,
+                    ad_size_id => $ad_size->ad_size_id
+                }
+            );
+            $tmpl_data{ 'bug_list_' . $ad_size->ad_size_id } = \@bugs;
+            push @bug_lists, 'bug_list_' . $ad_size->ad_size_id;
+        }
+        $tmpl_data{bug_lists} = \@bug_lists;
 
         my $output;
         my $ok =
@@ -126,7 +92,8 @@ sub dispatch_edit {
         $r->method_number(Apache2::Const::M_GET);
 
         # validate input
-        my %profile = ( required => [qw( name active ad_size_id code bug_id )], );
+        my %profile =
+          ( required => [qw( name active ad_size_id code bug_id )], );
 
         my $results = Data::FormValidator->check( $req, \%profile );
 
@@ -143,25 +110,31 @@ sub dispatch_edit {
         }
     }
 
-    if  ( ! $req->param('id') ) {
+    my $code =
+      $req->param('code');    # remove this line and suffer the consequences
+
+    my %args = (
+        reg_id     => $reg->reg_id,
+        account_id => $reg->account_id->account_id,
+        code       => $code,
+        ad_size_id => $req->param('ad_size_id'),
+        bug_id     => $req->param('bug_id'),
+        name       => $req->param('name'),
+    );
+
+    if ( my $double = $req->param('code_double') ) {
+        $args{'code_double'} = $double;
+    }
+
+    if ( !$req->param('id') ) {
 
         # create a new ad zone
-        $ad_zone = SL::Model::App->resultset('AdZone')->create(
-            {
-                reg_id     => $reg->reg_id,
-                account_id => $reg->account_id->account_id,
-		code => $req->param('code'),
-		ad_size_id => $req->param('ad_size_id'),
-		bug_id => $req->param('bug_id'),
-		name => $req->param('name'),
-	    }
-        );
-    } else {
+        $ad_zone = SL::Model::App->resultset('AdZone')->create( \%args );
+    }
+    else {
 
-    	# add arguments
-    	foreach my $param qw( name code ad_size_id bug_id ) {
-        	$ad_zone->$param( $req->param($param) );
-    	}
+        # add arguments
+        $ad_zone->$_( $args{$_} ) for keys %args;
     }
 
     $ad_zone->update;

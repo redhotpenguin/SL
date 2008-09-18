@@ -18,8 +18,8 @@
 <table class="list">
 <tr class="list_header">
 
-<td class="header">Image</td>
-<td class="header">Ad zone size</td>
+<td class="header">Image (click to edit)</td>
+<td class="header">Ad zone type bug size</td>
 <td class="header">Image link</td>
 </tr>
 
@@ -32,7 +32,7 @@
 
 <!-- zone type -->
 <td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
-[% bug.ad_size_id.name %] ([% bug.ad_size_id.width %]x[% bug.ad_size_id.height %])</td>
+[% bug.ad_size_id.name %] - [% bug.ad_size_id.bug_width %]px wide x [% bug.ad_size_id.bug_height %]px tall</td>
 
 <!-- link -->
 <td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">

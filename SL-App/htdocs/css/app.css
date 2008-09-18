@@ -4,7 +4,8 @@ body {
 	text-align: center;
 }
 
-#wrap       { width:900px; margin:0 auto; text-align: left;} /* "auto" makes the left and right margins center the wrapper */  
+#wrap       { width: 100%;
+    margin:0 auto; text-align: left;} /* "auto" makes the left and right margins center the wrapper */  
 
 a {
 	text-decoration: underline;
@@ -105,7 +106,8 @@ a .banner-alt { display: none; }
 	margin-right: auto;
 	margin-left: auto;
 	padding: 0px;
-	width: 900px;
+/*	width: 900px; */
+	width: 100%;
 	background-color: #FFFFFF;
 }
 
@@ -155,7 +157,8 @@ a .banner-alt { display: none; }
 	background-color: #FFFFFF;
 	color: #666666;
 	font-family: 'Trebuchet MS', Verdana, sans-serif;
-	}
+
+}
 
 .sidebar {
 	padding: 0px;

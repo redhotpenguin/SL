@@ -21,7 +21,7 @@ my $UA = LWP::UserAgent->new;
 $UA->timeout(10);    # needs to respond somewhat quickly
 our $TMPL = SL::App::Template->template();
 
-use constant MAX_IMAGE_BYTES => 10_240;
+use constant MAX_IMAGE_BYTES => 40_960;
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 require Data::Dumper if DEBUG;
@@ -32,7 +32,7 @@ require Data::Dumper if DEBUG;
 
 =item C<dispatch_index>
 
-This method serves of the master ad control panel for now
+This is the home page
 
 =back
 
@@ -74,6 +74,10 @@ sub error {
     my ( $self, $r, $error ) = @_;
     $r->log->error($error);
     return Apache2::Const::SERVER_ERROR;
+}
+
+sub ua {
+    return $UA;
 }
 
 sub _results_to_errors {
@@ -139,15 +143,8 @@ sub image_zone {
         return unless $response->headers->header('content-length') < MAX_IMAGE_BYTES;
 
         # check the image height
-        # only allow bugs that are 3x1 ratio width to height or less
-        if ($ad_size->ad_size_id < 4) {
-            return unless $height == $ad_size->height;
-            return unless $width <= ( $ad_size->height * 3 );
-        } else {
-            return unless $width == $ad_size->width;
-            return unless $height <= ( $ad_size->width * 3 );
-        }
-
+        return unless $height == $ad_size->bug_height;
+        return unless $width == $ad_size->bug_width;
 
         return $image_href_val;
       }

@@ -13,15 +13,17 @@
 [% END %]
 
 <p style="text-align: left; padding-bottom: 5px;">
-<a href="[% base_uri %]/app/ad/groups/edit">New ad zone</a></span></p>
+<a href="[% base_uri %]/app/ad/groups/edit">New ad zone</a></p>
+
 
 <table class="list">
 <tr class="list_header">
 
-<td class="header">Name</td>
-<td class="header">Size</td>
+<td class="header">Ad Zone Name</td>
+<td class="header">Ad Zone Type</td>
 <td class="header">Active</td>
-<td class="header">Routers</td>
+<td class="header">Assigned Routers</td>
+<td class="header">Last Modified By</td>
 </tr>
 
 [% FOREACH ad_zone = ad_zones %]
@@ -34,11 +36,13 @@
 
 <!-- ad_size -->
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% ad_zone.ad_size_id.name %] ([% ad_zone.ad_size_id.width %]x[% ad_zone.ad_size_id.height %])</td>
+[% ad_zone.ad_size_id.name %]</td>
 
 <!-- active -->	
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
 [% IF ad_zone.active %]Yes[% ELSE %]No[% END %]</td>
+
+
 
 <!-- routers -->
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
@@ -49,6 +53,13 @@
 [% ad_zone.router_count %]</a>
 [% END %]
 </td>
+
+
+<!-- last modified -->	
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+<a href="mailto:[% ad_zone.reg_id.email %]">[% ad_zone.reg_id.email %]</td>
+
+
 
 </tr>
 [% END %]
