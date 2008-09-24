@@ -44,14 +44,6 @@ h1, h2, h3 {
     width: 325px;
 }
 
-/*	
-a#banner-img {
-	display: block;
-	height: 100px;
-	background: #FFFFFF url("http://www.redhotpenguin.com/images/dashboard_banner.gif") 
-}
-*/
-
 a .banner-alt { display: none; }
 
 #top {
@@ -106,7 +98,6 @@ a .banner-alt { display: none; }
 	margin-right: auto;
 	margin-left: auto;
 	padding: 0px;
-/*	width: 900px; */
 	width: 100%;
 	background-color: #FFFFFF;
 }
@@ -291,7 +282,8 @@ table.list {
 }
 
 tr.list_header {
-	color: #FFFFFF;
+    text-align: center;
+    color: #FFFFFF;
 	background-color:  #578B67;
 }
 
