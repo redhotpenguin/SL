@@ -93,11 +93,6 @@ sub _results_to_errors {
     return \%errors;
 }
 
-sub ua {
-	return $UA;
-}
-
-
 sub valid_link {
     return sub {
         my $dfv = shift;
