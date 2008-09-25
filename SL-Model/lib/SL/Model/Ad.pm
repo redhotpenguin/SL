@@ -19,15 +19,17 @@ This serves ads, ya see?
 
 =cut
 
-use constant AD_ZONE_ID      => 0;
-use constant AD_ZONE_CODE    => 1;
-use constant AD_SIZE_CSS_URL => 2;
-use constant AD_SIZE_ID      => 3;
-use constant BUG_IMAGE_HREF  => 4;
-use constant BUG_LINK_HREF   => 5;
-use constant PREMIUM         => 6;
-use constant CLOSE_BOX       => 7;
-use constant OUTPUT_REF      => 8;
+use constant AD_ZONE_ID          => 0;
+use constant AD_ZONE_CODE        => 1;
+use constant AD_ZONE_CODE_DOUBLE => 2;
+use constant AD_SIZE_CSS_URL     => 3;
+use constant AD_SIZE_TEMPLATE    => 4;
+use constant AD_SIZE_ID          => 5;
+use constant BUG_IMAGE_HREF      => 6;
+use constant BUG_LINK_HREF       => 7;
+use constant PREMIUM             => 8;
+use constant CLOSE_BOX           => 9;
+use constant OUTPUT_REF          => 10;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
@@ -48,8 +50,10 @@ SELECT
 
 ad_zone.ad_zone_id,
 ad_zone.code,
+ad_zone.code_double,
 
 ad_size.css_url,
+ad_size.template,
 ad_size.ad_size_id,
 
 bug.image_href,
@@ -92,13 +96,9 @@ Method for ad insertion which wraps the whole page in a stylesheet
 
 =cut
 
-our ( $regex, $second_regex, $uber_match, $end_body_match );
-our ( $top, $container, $tail );
-our ( $sky_top, $sky_container, $sky_tail );
+our ( $regex, $second_regex, $uber_match, $end_body_match, $tail );
 
 BEGIN {
-    $top       = qq{<div id="sl_top">};
-    $container = qq{</div><div id="sl_ctr">};
     $tail      = qq{</div>};
 
     $regex          = qr{^(.*?<\s*?head\s*?[^>]*?>)(.*)$}is;
@@ -106,27 +106,10 @@ BEGIN {
     $second_regex   = qr{\G(.*?)<body([^>]*?)>(.*)$}is;
     $end_body_match = qr{^(.*)(<\s*?/body\s*?>.*)$}is;
 
-    $sky_top = qq{<div id="sl_ctr"><div id="sl_left">};
-    $sky_container = qq{</div><div id="sl_right">};
-    $sky_tail      = qq{</div>};
-
-
 }
 
 sub container {
     my ( $css_url_ref, $decoded_content_ref, $ad_ref, $ad_size_id ) = @_;
-
-    my ($mytop, $mycontainer, $mytail);
-
-    if ($ad_size_id > 3) {
-	$mytop = $sky_top;
-	$mycontainer = $sky_container;
-	$mytail = $sky_tail;
-    } else {
-        $mytop = $top;
-	$mycontainer = $container;
-	$mytail = $tail;
-    }
 
     # check to make sure that we can insert all parts of the ad
     return
@@ -134,8 +117,19 @@ sub container {
         && ( $$decoded_content_ref =~ m/$second_regex/ ) );
 #        && ( $$decoded_content_ref =~ m/$end_body_match/ ) );
 
-    my $link =
-      qq{<link rel="stylesheet" href="$$css_url_ref" type="text/css" />};
+    my $link = <<LINK;
+<link rel="stylesheet" href="$$css_url_ref" type="text/css" />
+<script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script>
+<script type="text/javascript">
+  \$(document).ready(function()
+   {
+    \$('a#silver_lining_close').click(function()
+     {
+      \$('div#silver_lining_ad_horizontal').hide("slow");
+     });
+   });
+</script>
+LINK
 
     # Insert the stylesheet link
     my $matched = $$decoded_content_ref =~ s{$regex}{$1$link$2};
@@ -146,11 +140,11 @@ sub container {
 
     # Insert the rest of the pieces
     $matched = $$decoded_content_ref =~ s{$second_regex}
-                         {$1<body$2>$mytop$$ad_ref$mycontainer$3};
+                         {$1<body$2>$$ad_ref$3};
     warn( 'failed to insert ad content ' . $$ad_ref ) unless $matched;
 
     # insert the tail
-    $matched = $$decoded_content_ref =~ s{$end_body_match}{$1$mytail$2};
+    $matched = $$decoded_content_ref =~ s{$end_body_match}{$1$tail$2};
     if (DEBUG) {
  	 warn('failed to insert closing div') unless $matched;
     }
@@ -203,8 +197,10 @@ SELECT
 
 ad_zone.ad_zone_id,
 ad_zone.code,
+ad_zone.code_double,
 
 ad_size.css_url,
+ad_size.template,
 ad_size.ad_size_id,
 
 bug.image_href,
@@ -285,18 +281,18 @@ sub process_ad_template {
 
     my %tmpl_vars = (
         code           => $ad_data->[AD_ZONE_CODE],
+        code_double    => $ad_data->[AD_ZONE_CODE_DOUBLE],
         bug_image_href => $ad_data->[BUG_IMAGE_HREF],
         bug_link_href  => $ad_data->[BUG_LINK_HREF],
         premium        => $ad_data->[PREMIUM],
-	close_box      => $ad_data->[CLOSE_BOX],
+  	    close_box      => $ad_data->[CLOSE_BOX],
     );
 
     warn( "tmpl vars: " . Data::Dumper::Dumper( \%tmpl_vars ) ) if DEBUG;
 
     # generate the ad
     my $output;
-    my $tmpl = ( $ad_data->[AD_SIZE_ID] > 3 ) ? "sky_ad.tmpl" : "ad.tmpl";
-    $TEMPLATE->process( $tmpl, \%tmpl_vars, \$output )
+    $TEMPLATE->process( $ad_data->[AD_SIZE_TEMPLATE], \%tmpl_vars, \$output )
       || die $TEMPLATE->error();
 
     return \$output;
