@@ -57,11 +57,7 @@ sub handler {
         $separator = '?';
     }
 
-    my $location = $splash_url
-      . $separator . 'url='
-      . $r->pnotes('url')
-      . '&auth_param='
-      . int( rand(1_000_000_000) );
+    my $location = $splash_url . $separator . 'url=' . $r->pnotes('url');
     $r->log->debug("splash page redirecting to $location") if DEBUG;
 
     $r->headers_out->set( Location => $location );

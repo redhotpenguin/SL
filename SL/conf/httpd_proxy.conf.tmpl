@@ -49,6 +49,7 @@ ServerName           [% cfg.sl_proxy_servername %]
 # ErrorDocument        500	/500.html
 
 LoadModule perl_module        modules/mod_perl.so
+
 [% IF cfg.sl_prof %]
 <Perl>
     require Apache::DB;
@@ -121,6 +122,3 @@ PerlTransHandler SL::Apache::Proxy::TransHandler
   PerlResponseHandler SL::Apache::Proxy::PingHandler
 </Location>
 
-<Location /sl_secret_blacklist_button>
-  PerlResponseHandler SL::Apache::Proxy::BlacklistHandler
-</Location>
