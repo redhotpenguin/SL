@@ -109,31 +109,18 @@ BEGIN {
 }
 
 sub container {
-    my ( $css_url_ref, $decoded_content_ref, $ad_ref, $ad_size_id ) = @_;
+    my ( $head_ref, $decoded_content_ref, $ad_ref, $ad_size_id ) = @_;
 
     # check to make sure that we can insert all parts of the ad
     return
       unless ( ( $$decoded_content_ref =~ m/$regex/ )
         && ( $$decoded_content_ref =~ m/$second_regex/ ) );
+	# ignore failed tail matches
 #        && ( $$decoded_content_ref =~ m/$end_body_match/ ) );
 
-    my $link = <<LINK;
-<link rel="stylesheet" href="$$css_url_ref" type="text/css" />
-<script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script>
-<script type="text/javascript">
-  \$(document).ready(function()
-   {
-    \$('a#silver_lining_close').click(function()
-     {
-      \$('div#silver_lining_ad_horizontal').hide("slow");
-     });
-   });
-</script>
-LINK
-
-    # Insert the stylesheet link
-    my $matched = $$decoded_content_ref =~ s{$regex}{$1$link$2};
-    warn('failed to insert stylesheet link') unless $matched;
+    # Insert the head content
+    my $matched = $$decoded_content_ref =~ s{$regex}{$1$$head_ref$2};
+    warn('failed to insert head content') unless $matched;
 
     # move the pointer - optimization, 0.5 milliseconds
     $$decoded_content_ref =~ m/$uber_match/;
