@@ -45,22 +45,24 @@ height: 215px;
 z-index: 99;
 overflow: visible;
 }
+#silver_lining_cloud_wrapper {
+position: relative;
+}
 #silver_lining_cloud {
 width: 295px;
 height: 215px;
 overflow: visible ;
 background: url(../images/backgrounds/floating_cloud_large.png) no-repeat top left;
-position: relative;
 }
-#silver_lining_cloud #silver_lining_close {
+#silver_lining_cloud_wrapper #silver_lining_close {
 position: absolute;
-top: 0px;
-right: 25px;
+top: 115px;
+right: 20px;
 border: none;
 cursor: pointer;
 z-index: 1000;
 }
-#silver_lining_cloud #silver_lining_homepage {
+#silver_lining_cloud_wrapper #silver_lining_homepage {
 text-decoration: none;
 font-family: Helvetica, Verdana, Arial, serif;
 font-size: 11px;
@@ -70,7 +72,7 @@ bottom: 30px;
 left: 90px;
 z-index: 300;
 }
-#silver_lining_cloud #silver_lining_client_ad {
+#silver_lining_cloud_wrapper #silver_lining_client_ad {
 position: absolute;
 top: 90px;
 left: 70px;
@@ -82,10 +84,10 @@ line-height: 18px;
 color: #087877;
 overflow: hidden;
 }
-#silver_lining_cloud #silver_lining_client_ad a {
+#silver_lining_cloud_wrapper #silver_lining_client_ad a {
 text-decoration: none;
 color: #087877;
 }
-#silver_lining_cloud #silver_lining_close img {
+#silver_lining_cloud_wrapper #silver_lining_close img {
 border: none;
 }

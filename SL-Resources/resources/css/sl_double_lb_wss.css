@@ -32,7 +32,9 @@ top: -7px;
 right: -7px;
 border: none;
 }
-
+#silver_lining_webpage {
+position: relative;
+}
 
 /*= LEADERBOARD
 === === === === === === === === === === === === === */
@@ -75,6 +77,7 @@ text-indent: -3000px;
 bottom: -40px;
 right: 5px;
 border: none;
+z-index: 1000;
 }
 * html #silver_lining_leaderboard #silver_lining_homepage {
 background: url(../images/logos/sl_logo_small_low.png) no-repeat top left;

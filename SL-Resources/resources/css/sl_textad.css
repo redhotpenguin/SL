@@ -18,7 +18,9 @@ text-align: center;
 padding: 10px 0px 16px 0px;
 background: #FFF url(../images/backgrounds/border.png) repeat-x bottom left; 
 }
-
+#silver_lining_webpage {
+position: relative;
+}
 
 /*= TEXT AD
 === === === === === === === === === === === === === */
@@ -74,6 +76,7 @@ text-indent: -3000px;
 bottom: -40px;
 right: 5px;
 border: none;
+z-index: 1000;
 }
 * html #silver_lining_text_ad #silver_lining_homepage {
 background: url(../images/logos/sl_logo_small_low.png) no-repeat top left;

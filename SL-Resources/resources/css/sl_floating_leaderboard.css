@@ -4,8 +4,6 @@ Version: 2.0
 Author: SILVER LINING NETWORKS INC.
 ---------------------------------------------*/
 
-
-
 /*= GENERAL
 === === === === === === === === === === === === === */
 body {
@@ -65,6 +63,7 @@ text-indent: -3000px;
 bottom: -40px;
 right: 5px;
 border: none;
+z-index: 1000;
 }
 #silver_lining_leaderboard #silver_lining_close {
 position: absolute;

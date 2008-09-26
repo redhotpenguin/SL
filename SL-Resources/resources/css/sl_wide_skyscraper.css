@@ -21,7 +21,9 @@ bottom: 0;
 padding:10px 16px 10px 10px;
 background: #FFF url(../images/backgrounds/border_vertical.png) repeat-y top right; 
 }
-
+#silver_lining_webpage {
+position: relative;
+}
 
 /*= WIDE SKYSCRAPER
 === === === === === === === === === === === === === */
@@ -72,6 +74,7 @@ text-indent: -3000px;
 bottom: -40px;
 right: -45px;
 border: none;
+z-index: 1000;
 }
 * html #silver_lining_wide_skyscraper #silver_lining_homepage {
 background: url(../images/logos/sl_logo_small_low.png) no-repeat top left;
