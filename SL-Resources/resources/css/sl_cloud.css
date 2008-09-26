@@ -4,6 +4,26 @@ Version: 2.0
 Author: SILVER LINING NETWORKS INC.
 ---------------------------------------------*/
 
+/*= IE 6 HACKS
+=== === === === === === === === === === === === === */
+* html #silver_lining_ad_floating_footer {
+position: absolute;
+z-index: 100;
+bottom: 0px;
+right: 20px;
+}
+* html #silver_lining_cloud {
+background: none !important;
+filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='/resources/images/backgrounds/floating_cloud_large.png',sizingMethod='scale');
+width: 295px;
+height: 215px;
+z-index: 10;
+}
+* html, body {
+height: 100%; overflow: auto;
+}
+
+
 /*= GENERAL
 === === === === === === === === === === === === === */
 body {
@@ -18,31 +38,27 @@ clear: both;
 === === === === === === === === === === === === === */
 #silver_lining_ad_floating_footer {
 position: fixed;
-bottom: -5px;
+bottom: 0px;
 right: 0px;
 width: 295px;
 height: 215px;
-}
-* html #silver_lining_ad_floating_footer {
-position: absolute;
-z-index: 100;
+z-index: 99;
+overflow: visible;
 }
 #silver_lining_cloud {
 width: 295px;
 height: 215px;
-overflow: hidden;
+overflow: visible ;
 background: url(../images/backgrounds/floating_cloud_large.png) no-repeat top left;
 position: relative;
 }
-*html #silver_lining_cloud {
-background: url(../images/backgrounds/floating_cloud_large.gif) no-repeat top left; 
-}
 #silver_lining_cloud #silver_lining_close {
 position: absolute;
-top: 115px;
+top: 0px;
 right: 25px;
 border: none;
-z-index: 200;
+cursor: pointer;
+z-index: 1000;
 }
 #silver_lining_cloud #silver_lining_homepage {
 text-decoration: none;

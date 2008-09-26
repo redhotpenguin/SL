@@ -4,11 +4,13 @@ Version: 2.0
 Author: SILVER LINING NETWORKS INC.
 ---------------------------------------------*/
 
+
+
 /*= GENERAL
 === === === === === === === === === === === === === */
 body {
 margin: 0;
-padding: 0;
+padding: 116px 0px 0px 0px;
 }
 .silver_lining_clear {
 clear: both;
@@ -18,6 +20,7 @@ position: fixed;
 top: 0;
 left: 0;
 right: 0;
+z-index: 99;
 text-align: center;
 padding: 10px 0px 16px 0px;
 background: #FFF url(../images/backgrounds/border.png) repeat-x bottom left; 
@@ -34,9 +37,6 @@ max-width: 1100px;
 min-width: 960px;
 height: 90px;
 position: relative;
-}
-* html #silver_lining_leaderboard {
-width:960px;
 }
 #silver_lining_leaderboard #silver_lining_bug {
 float: left; 
@@ -66,9 +66,6 @@ bottom: -40px;
 right: 5px;
 border: none;
 }
-* html #silver_lining_leaderboard #silver_lining_homepage {
-background: url(../images/logos/sl_logo_small_low.png) no-repeat top left;
-}
 #silver_lining_leaderboard #silver_lining_close {
 position: absolute;
 top: 0px;
@@ -78,4 +75,23 @@ border: none;
 #silver_lining_leaderboard #silver_lining_close img,
 #silver_lining_leaderboard #silver_lining_homepage img{
 border: none;
+}
+
+
+/*= IE 6 HACKS
+=== === === === === === === === === === === === === */
+* html #silver_lining_floating_horizontal {
+position: absolute;
+z-index: 100;
+top:0px
+width: expression(document.body.clientWidth);
+}
+* html body {
+height: 100%; overflow: auto;
+}
+* html #silver_lining_leaderboard {
+width:960px;
+}
+* html #silver_lining_leaderboard #silver_lining_homepage {
+background: url(../images/logos/sl_logo_small_low.png) no-repeat top left;
 }
