@@ -18,7 +18,9 @@ text-align: center;
 padding: 10px 0px 16px 0px;
 background: #FFF url(../images/backgrounds/border.png) repeat-x bottom left; 
 }
-
+#silver_lining_webpage {
+position: relative;
+}
 
 /*= LEADERBOARD
 === === === === === === === === === === === === === */
