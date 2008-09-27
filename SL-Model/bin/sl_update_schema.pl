@@ -138,7 +138,7 @@ $css_url = <<'CSS';
 CSS
 
 $css_url = $dbh->quote($css_url);
-$dbh->do("insert into ad_size (ad_size_id, name, css_url, bug_height, bug_width, template) values (12, 'Floating Footer Leaderboard', $css_url, 60, 200, 'floating_footer_leaderboard.tmpl') ");
+$dbh->do("insert into ad_size (ad_size_id, name, css_url, bug_height, bug_width, template) values (12, 'Floating Footer Leaderboard', $css_url, 90, 200, 'floating_footer_leaderboard.tmpl') ");
 
 
 
