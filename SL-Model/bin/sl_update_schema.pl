@@ -133,12 +133,11 @@ $dbh->do("insert into ad_size (ad_size_id, name, css_url, bug_height, bug_width,
 
 ##############################
 $css_url = <<'CSS';
-<link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_floating_full_banner.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script>
-<script type="text/javascript">$(document).ready(function(){$('a#silver_lining_close').click(function(){$('div#silver_lining_floating_horizontal').hide("slow");$('body').css("padding-bottom", "0px");$('html').css("padding-bottom", "0px");});  });</script><!--[if lte IE 6]><style type="text/css" media="screen">html {padding-bottom:116px;overflow:hidden;} body {padding-bottom:0; }</style><![endif]-->
+<link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_floating_footer_leaderboard.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function(){$('a#silver_lining_close').click(function(){$('div#silver_lining_floating_horizontal').hide("slow");$('body').css("padding-bottom", "0px");$('html').css("padding-bottom", "0px");});  });</script><!--[if lte IE 6]><style type="text/css" media="screen">html {padding-bottom:116px;overflow:hidden;} body {padding-bottom:0; }</style><![endif]-->
 CSS
 
 $css_url = $dbh->quote($css_url);
-$dbh->do("insert into ad_size (ad_size_id, name, css_url, bug_height, bug_width, template) values (12, 'Floating Footer Leaderboard', $css_url, 90, 200, 'floating_footer_leaderboard.tmpl') ");
+$dbh->do("insert into ad_size (ad_size_id, name, css_url, bug_height, bug_width, template) values (12, 'Floating Footer Leaderboard', $css_url, 90, 200, 'floating_leaderboard.tmpl') ");
 
 
 
