@@ -22,6 +22,7 @@
 <td class="header">Ad Zone Name</td>
 <td class="header">Ad Zone Type</td>
 <td class="header">Active</td>
+<td class="header">Public</td>
 <td class="header">Assigned Routers</td>
 <td class="header">Last Modified By</td>
 </tr>
@@ -41,6 +42,11 @@
 <!-- active -->	
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
 [% IF ad_zone.active %]Yes[% ELSE %]No[% END %]</td>
+
+
+<!-- public -->	
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+[% IF ad_zone.public %]Yes[% ELSE %]No[% END %]</td>
 
 
 

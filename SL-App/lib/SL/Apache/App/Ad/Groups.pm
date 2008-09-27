@@ -113,6 +113,8 @@ sub dispatch_edit {
     my $code =
       $req->param('code');    # remove this line and suffer the consequences
 
+	# fredify the invocation code for size
+	$code =~ s/(?:\t|\r|\n|\s{2,})//g;
     my %args = (
         reg_id     => $reg->reg_id,
         account_id => $reg->account_id->account_id,
@@ -123,6 +125,7 @@ sub dispatch_edit {
     );
 
     if ( my $double = $req->param('code_double') ) {
+		$double =~ s/(?:\t|\r|\n|\s{2,})//g;
         $args{'code_double'} = $double;
     }
 

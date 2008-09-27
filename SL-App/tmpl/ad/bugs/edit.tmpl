@@ -78,8 +78,7 @@ Example http://www.silverliningnetworks.com/images/silver-lining-ad-bar.gif
 
 [% IF req.param('image_href') or bug.image_href %]
 <tr><td colspan=2>
-<img border="1" src="[% req.param('image_href') or bug.image_href %]">
-</td></tr>
+<img border="1" src="[% req.param('image_href') or bug.image_href %]">&nbsp;&nbsp;[% bug.ad_size_id.bug_width %]px wide by [% bug.ad_size_id.bug_height %]px tall</td></tr>
 [% END %]
 
 <!-- end image_href -->
