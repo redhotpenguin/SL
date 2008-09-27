@@ -4,16 +4,17 @@
    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
    <meta name="author" content="Silver Lining Networks" />
    <title>Floating Leaderboard Ad Zone</title>
-   <link rel="stylesheet" type="text/css" href="resources/css/sl_floating_footer.css" /> 
+   <link rel="stylesheet" type="text/css" href="resources/css/sl_floating_footer_leaderboard.css" /> 
    <script type="text/javascript" src="resources/js/jquery.js"></script>
    <script type="text/javascript">
      $(document).ready(function()
       {
-       $('a#silver_lining_close').click(function()
+       $('a#silver_lining_close').click(function(event)
         {
          $('div#silver_lining_floating_horizontal').hide("slow");
-         $('body').css("padding-bottom", "0px");
-         $('html').css("padding-bottom", "0px");
+         $('body').css("padding-bottom", "0px !important");
+         $('html').css("padding-bottom", "0px !important");
+         event.preventDefault();
         });  
       });
    </script>
@@ -21,11 +22,11 @@
 
 		<style type="text/css" media="screen">
 			html {
-			padding-bottom:116px;	
+			padding-bottom:116px !important;	
 		  overflow:hidden;
 			}			
 			body {
-			padding-bottom:0;	
+			padding-bottom:0 !important;	
 			}
 
 		</style>
@@ -45,7 +46,7 @@
         <!-- ACTUAL AD MARKUP END -->  
         
     </div>
-    <a id="silver_lining_close" href="#"><img src="resources/images/icons/close_blue.png" title="Hide Advertisement" alt="close" /></a>
+    <a id="silver_lining_close" href="http://www.silverliningnetworks.com/"><img src="resources/images/icons/close_blue.png" title="Hide Advertisement" alt="close" /></a>
     <a id="silver_lining_homepage" href="http://www.silverliningnetworks.com/" target="_blank">Silver Lining Networks</a>
     <div class="silver_lining_clear"></div>
   </div>
