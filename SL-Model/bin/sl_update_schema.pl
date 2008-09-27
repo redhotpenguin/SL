@@ -133,7 +133,6 @@ $dbh->do("insert into ad_size (ad_size_id, name, css_url, bug_height, bug_width,
 
 ##############################
 $css_url = <<'CSS';
-<<<<<<< .mine
 <link rel="stylesheet" type="text/css" href="http://www.silverliningnetworks.com/resources/css/sl_floating_footer_leaderboard.css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function(){$('a#silver_lining_close').click(function(event){$('div#silver_lining_floating_horizontal').hide("slow");$('body').css("padding-bottom", "0px !important");$('html').css("padding-bottom", "0px !important");event.preventDefault();});  });</script><!--[if lte IE 6]><style type="text/css" media="screen">html {padding-bottom:116px !important;overflow:hidden;}body {padding-bottom:0 !important;}</style><![endif]-->
 CSS
 
