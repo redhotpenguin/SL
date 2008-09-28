@@ -9,15 +9,17 @@
    <script type="text/javascript">
      $(document).ready(function()
       {
-       $('a#silver_lining_close').click(function()
+       $('a#silver_lining_close').click(function(silver_lining_event_1)
         {
          $('div#silver_lining_ad_horizontal').hide("slow");
          $('div#silver_lining_double_ad_lb').css("top", "0")
+         silver_lining_event_1.preventDefault();
         });
-        $('a#silver_lining_close_vert').click(function()
+        $('a#silver_lining_close_vert').click(function(silver_lining_event)
         {
          $('div#silver_lining_double_ad_lb').hide("slow");
          $('div#silver_lining_wideskyscraper_webpage').css("margin-left", "0px");
+         silver_lining_event.preventDefault();
         });
 
       });

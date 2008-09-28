@@ -9,9 +9,10 @@
    <script type="text/javascript">
      $(document).ready(function()
       {
-       $('a#silver_lining_close').click(function()
+       $('a#silver_lining_close').click(function(silver_lining_event)
         {
          $('div#silver_lining_ad_horizontal').hide("slow");
+         silver_lining_event.preventDefault();
         });
       });
    </script>

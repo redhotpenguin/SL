@@ -1,0 +1,30 @@
+* {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+body {
+	font-family: "Lucida Grande", Georgia, sans-serif;
+	font-size: 67.5%;
+}
+
+p {
+	font-size: 1.1em;
+	line-height: 1.6em;
+}
+
+#page_wrap {
+	width: 600px;
+	z-index: 1;
+	margin: 10px auto;
+}
+
+#bottom_fade {
+	width: 600px;
+	height: 200px;
+	z-index: 99;
+	position: fixed;
+	bottom: 0px;
+	background: url("bottom-fade.png") bottom center no-repeat;
+}
