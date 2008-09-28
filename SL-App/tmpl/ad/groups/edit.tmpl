@@ -39,7 +39,7 @@
 <hr class="sl_line">
 
 
-[% IF ad_zone.public == 1  && reg.root != 1 %]
+[% IF ! ad_zone.public or reg.root != 1 %]
 <form method="POST" action="[% base_uri %]/app/ad/groups/edit">
 [% END %]
 
