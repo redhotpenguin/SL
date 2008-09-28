@@ -33,7 +33,7 @@ $dbh->do("alter table ad_size add column template text not null default '';");
 ##############################
 $dbh->do("update ad_size set bug_width='200' where ad_size_id = 1");
 $css_url = <<'CSS';
-<link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_leaderboard.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function() { $('a#silver_lining_close').click(function() { $('div#silver_lining_ad_horizontal').hide("slow"); }); }); </script>
+<link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_leaderboard.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function() { $('a#silver_lining_close').click(function(silver_lining_event) { $('div#silver_lining_ad_horizontal').hide("slow"); silver_lining_event.preventDefault(); }); }); </script>
 CSS
 
 $css_url = $dbh->quote($css_url);
@@ -43,7 +43,7 @@ $dbh->do("update ad_size set template='horizontal_leaderboard.tmpl' where ad_siz
 ##############################
 $dbh->do("update ad_size set bug_width='200' where ad_size_id = 2");
 $css_url = <<'CSS';
-<link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_fullbanner.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function() { $('a#silver_lining_close').click(function() { $('div#silver_lining_ad_horizontal').hide("slow"); }); }); </script>
+<link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_fullbanner.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function() { $('a#silver_lining_close').click(function(silver_lining_event) { $('div#silver_lining_ad_horizontal').hide("slow"); silver_lining_event.preventDefault(); }); }); </script>
 CSS
 $css_url = $dbh->quote($css_url);
 $dbh->do("update ad_size set css_url=$css_url where ad_size_id = 2");
@@ -52,7 +52,7 @@ $dbh->do("update ad_size set template='horizontal_full_banner.tmpl' where ad_siz
 ##############################
 $dbh->do("update ad_size set bug_width='120' where ad_size_id = 3");
 $css_url = <<'CSS';
-<link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_textad.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function() { $('a#silver_lining_close').click(function() { $('div#silver_lining_ad_horizontal').hide("slow"); }); }); </script>
+<link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_textad.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function() { $('a#silver_lining_close').click(function(silver_lining_event) { $('div#silver_lining_ad_horizontal').hide("slow"); silver_lining_event.preventDefault();}); }); </script>
 CSS
 $css_url = $dbh->quote($css_url);
 $dbh->do("update ad_size set css_url=$css_url where ad_size_id = 3");
@@ -61,7 +61,7 @@ $dbh->do("update ad_size set template='horizontal_textad.tmpl' where ad_size_id 
 ##############################
 $dbh->do("update ad_size set bug_height='90' where ad_size_id = 4");
 $css_url = <<'CSS';
-<link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_skyscraper.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function() { $('a#silver_lining_close').click(function() { $('div#silver_lining_ad_vertical').hide("slow");$('div#silver_lining_skyscraper_webpage').css("margin-left", "0px"); }); }); </script>
+<link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_skyscraper.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function() { $('a#silver_lining_close').click(function(silver_lining_event) { $('div#silver_lining_ad_vertical').hide("slow");$('div#silver_lining_skyscraper_webpage').css("margin-left", "0px"); silver_lining_event.preventDefault(); }); }); </script>
 CSS
 $css_url = $dbh->quote($css_url);
 $dbh->do("update ad_size set css_url=$css_url where ad_size_id = 4");
@@ -70,7 +70,7 @@ $dbh->do("update ad_size set template='vertical_skyscraper.tmpl' where ad_size_i
 ##############################
 $dbh->do("update ad_size set bug_height='90' where ad_size_id = 5");
 $css_url = <<'CSS';
-<link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_wide_skyscraper.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function() { $('a#silver_lining_close').click(function() { $('div#silver_lining_ad_vertical').hide("slow");$('div#silver_lining_wideskyscraper_webpage').css("margin-left", "0px"); }); }); </script>
+<link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_wide_skyscraper.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function() { $('a#silver_lining_close').click(function(silver_lining_event) { $('div#silver_lining_ad_vertical').hide("slow");$('div#silver_lining_wideskyscraper_webpage').css("margin-left", "0px"); silver_lining_event.preventDefault();}); }); </script>
 CSS
 $css_url = $dbh->quote($css_url);
 $dbh->do("update ad_size set css_url=$css_url where ad_size_id = 5");
@@ -79,7 +79,7 @@ $dbh->do("update ad_size set template='vertical_wide_skyscraper.tmpl' where ad_s
 ##############################
 $dbh->do("update ad_size set bug_height='90' where ad_size_id = 6");
 $css_url = <<'CSS';
-<link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_halfpage.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function() { $('a#silver_lining_close').click(function() { $('div#silver_lining_ad_vertical').hide("slow");$('div#silver_lining_halfpage_webpage').css("margin-left", "0px"); }); }); </script>
+<link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_halfpage.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function() { $('a#silver_lining_close').click(function(silver_lining_event) { $('div#silver_lining_ad_vertical').hide("slow");$('div#silver_lining_halfpage_webpage').css("margin-left", "0px"); silver_lining_event.preventDefault();}); }); </script>
 CSS
 $css_url = $dbh->quote($css_url);
 $dbh->do("update ad_size set css_url=$css_url where ad_size_id = 6");
@@ -94,7 +94,7 @@ $dbh->do("update ad_size set name='Full Banner & Skyscraper' where ad_size_id = 
 $dbh->do("update ad_size set bug_height='60' where ad_size_id = 7");
 $dbh->do("update ad_size set bug_width='120' where ad_size_id = 7");
 $css_url = <<'CSS';
-<link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_double_fb_ss.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function() { $('a#silver_lining_close').click(function() {$('div#silver_lining_ad_horizontal').hide("slow"); $('div#silver_lining_double_ad_fb').css("top", "0")});$('a#silver_lining_close'_vert').click(function(){$('div#silver_lining_double_ad_fb').hide("slow");$('div#silver_lining_skyscraper_webpage').css("margin-left", "0px");});});</script>
+<link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_double_fb_ss.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function() { $('a#silver_lining_close').click(function(silver_lining_event_1) {$('div#silver_lining_ad_horizontal').hide("slow"); $('div#silver_lining_double_ad_fb').css("top", "0"); silver_lining_event.preventDefault(); });$('a#silver_lining_close'_vert').click(function(silver_lining_event){$('div#silver_lining_double_ad_fb').hide("slow");$('div#silver_lining_skyscraper_webpage').css("margin-left", "0px"); silver_lining_event.preventDefault(); });});</script>
 CSS
 $css_url = $dbh->quote($css_url);
 $dbh->do("update ad_size set css_url=$css_url where ad_size_id = 7");
@@ -102,7 +102,7 @@ $dbh->do("update ad_size set template='double_fullbanner_skyscraper.tmpl' where 
 
 ##############################
 $css_url = <<'CSS';
-<link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_double_lb_ss.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function(){$('a#silver_lining_close').click(function(){$('div#silver_lining_ad_horizontal').hide("slow");$('div#silver_lining_double_ad_lb').css("top", "0")});$('a#silver_lining_close'_vert').click(function(){$('div#silver_lining_double_ad_lb').hide("slow");$('div#silver_lining_skyscraper_webpage').css("margin-left", "0px");});});</script>
+<link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_double_lb_ss.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function(){$('a#silver_lining_close').click(function(silver_lining_event_1){$('div#silver_lining_ad_horizontal').hide("slow");$('div#silver_lining_double_ad_lb').css("top", "0"); silver_lining_event_1.preventDefault(); });$('a#silver_lining_close'_vert').click(function(silver_lining_event){$('div#silver_lining_double_ad_lb').hide("slow");$('div#silver_lining_skyscraper_webpage').css("margin-left", "0px"); silver_lining_event.preventDefault(); });});</script>
 CSS
 $css_url = $dbh->quote($css_url);
 $dbh->do("insert into ad_size (ad_size_id, name, css_url, bug_height, bug_width, template) values (8, 'Leaderboard & Skyscraper', $css_url, 90, 120, 'double_leaderboard_skyscraper.tmpl') ");
@@ -118,14 +118,14 @@ $dbh->do("insert into ad_size (ad_size_id, name, css_url, bug_height, bug_width,
 
 ##############################
 $css_url = <<'CSS';
-<link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_floating_leaderboard.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function(){$('a#silver_lining_close').click(function(){$('div#silver_lining_floating_horizontal').hide("slow");$(body).css("padding-top", "0px");$('html').css("padding-top", "0px");});});</script><!--[if lte IE 6]><style type="text/css" media="screen">html {padding-top:116px;overflow:hidden;}body {padding-top:0;}</style><![endif]--></head>
+<link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_floating_leaderboard.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function(){$('a#silver_lining_close').click(function(silver_lining_event){$('div#silver_lining_floating_horizontal').hide("slow");$(body).css("padding-top", "0px");$('html').css("padding-top", "0px");silver_lining_event.preventDefault();});});</script><!--[if lte IE 6]><style type="text/css" media="screen">html {padding-top:116px;overflow:hidden;}body {padding-top:0;}</style><![endif]--></head>
 CSS
 $css_url = $dbh->quote($css_url);
 $dbh->do("insert into ad_size (ad_size_id, name, css_url, bug_height, bug_width, template) values (10, 'Floating Leaderboard', $css_url, 90, 200, 'floating_leaderboard.tmpl') ");
 
 ##############################
 $css_url = <<'CSS';
-<link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_floating_full_banner.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function(){$(body).css("padding-top", "86px");$('a#silver_lining_close').click(function(){$('div#silver_lining_floating_horizontal').hide("slow");$(body).css("padding-top", "0px");});});</script>
+<link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_floating_full_banner.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function(){$(body).css("padding-top", "86px");$('a#silver_lining_close').click(function(silver_lining_event){$('div#silver_lining_floating_horizontal').hide("slow");$(body).css("padding-top", "0px"); silver_lining_event.preventDefault(); });});</script>
 CSS
 
 $css_url = $dbh->quote($css_url);
@@ -133,7 +133,7 @@ $dbh->do("insert into ad_size (ad_size_id, name, css_url, bug_height, bug_width,
 
 ##############################
 $css_url = <<'CSS';
-<link rel="stylesheet" type="text/css" href="http://www.silverliningnetworks.com/resources/css/sl_floating_footer_leaderboard.css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function(){$('a#silver_lining_close').click(function(event){$('div#silver_lining_floating_horizontal').hide("slow");$('body').css("padding-bottom", "0px !important");$('html').css("padding-bottom", "0px !important");event.preventDefault();});  });</script><!--[if lte IE 6]><style type="text/css" media="screen">html {padding-bottom:116px !important;overflow:hidden;}body {padding-bottom:0 !important;}</style><![endif]-->
+<link rel="stylesheet" type="text/css" href="http://www.silverliningnetworks.com/resources/css/sl_floating_footer_leaderboard.css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function(){$('a#silver_lining_close').click(function(silver_lining_event){$('div#silver_lining_floating_horizontal').hide("slow");$('body').css("padding-bottom", "0px !important");$('html').css("padding-bottom", "0px !important");silver_lining_event.preventDefault();});  });</script><!--[if lte IE 6]><style type="text/css" media="screen">html {padding-bottom:116px !important;overflow:hidden;}body {padding-bottom:0 !important;}</style><![endif]-->
 CSS
 
 $css_url = $dbh->quote($css_url);
