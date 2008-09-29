@@ -69,7 +69,7 @@ foreach my $day (@DAYS) {
             if (  $router_views_count > 0 )
             {
                 push @{ $results{$day}{routers} },
-                  [ $router->name || $router->macaddr, $router_views_count ];
+                  [ $router->name || $router->macaddr, $router_views_count, $router->account_id->account_id ];
             }
 
             # HACK - update the router count
@@ -131,8 +131,8 @@ if ($ROUTERS) {
         foreach my $router ( sort { $b->[1] <=> $a->[1] }
             @{ $results{$day}{routers} } )
         {
-            $cnt .= sprintf( "  Router %s had %u views\n",
-                $router->[0], $router->[1] );
+            $cnt .= sprintf( "Account %s  Router %s had %u views\n",
+                $router->[2], $router->[0], $router->[1] );
         }
         $cnt .= "\n";
     }
