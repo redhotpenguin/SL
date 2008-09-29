@@ -96,14 +96,15 @@ Method for ad insertion which wraps the whole page in a stylesheet
 
 =cut
 
-our ( $regex, $second_regex, $uber_match, $end_body_match, $tail );
+our ( $head_regex, $start_body_regex, $uber_match, $end_body_match, $tail );
 
 BEGIN {
     $tail      = qq{</div>};
 
-    $regex          = qr{^(.*?<\s*?head\s*?[^>]*?>)(.*)$}is;
+	$head_regex          = qr{^(.*?<\s*?head\s*?[^>]*?>)(.*)$}is; # start of head
+	#$head_regex          = qr{^(.*)(<\s*?\/head\s*?>.*)$}is;  # end of head
     $uber_match     = qr{\G(?:</\s*?head\s*?>)}i;
-    $second_regex   = qr{\G(.*?)<body([^>]*?)>(.*)$}is;
+    $start_body_regex   = qr{\G(.*?)<body([^>]*?)>(.*)$}is;
     $end_body_match = qr{^(.*)(<\s*?/body\s*?>.*)$}is;
 
 }
@@ -113,20 +114,21 @@ sub container {
 
     # check to make sure that we can insert all parts of the ad
     return
-      unless ( ( $$decoded_content_ref =~ m/$regex/ )
-        && ( $$decoded_content_ref =~ m/$second_regex/ ) );
+      unless ( ( $$decoded_content_ref =~ m/$head_regex/ )
+        && ( $$decoded_content_ref =~ m/$start_body_regex/ ) );
+
 	# ignore failed tail matches
 #        && ( $$decoded_content_ref =~ m/$end_body_match/ ) );
 
     # Insert the head content
-    my $matched = $$decoded_content_ref =~ s{$regex}{$1$$head_ref$2};
+    my $matched = $$decoded_content_ref =~ s{$head_regex}{$1$$head_ref$2};
     warn('failed to insert head content') unless $matched;
 
-    # move the pointer - optimization, 0.5 milliseconds
+    # move the pointer to the end of the head tag - optimization, 0.5 milliseconds
     $$decoded_content_ref =~ m/$uber_match/;
 
     # Insert the rest of the pieces
-    $matched = $$decoded_content_ref =~ s{$second_regex}
+    $matched = $$decoded_content_ref =~ s{$start_body_regex}
                          {$1<body$2>$$ad_ref$3};
     warn( 'failed to insert ad content ' . $$ad_ref ) unless $matched;
 

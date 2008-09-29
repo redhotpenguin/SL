@@ -147,10 +147,12 @@ sub get_ad_zone {
 
     my ($ad_zone) =
       SL::Model::App->resultset('AdZone')
-      ->search( { ad_zone_id => $ad_zone_id,
-                  account_id => $self->account_id->account_id } );
+      ->search( { ad_zone_id => $ad_zone_id, });
 
-    return unless $ad_zone;
+	if (!$ad_zone->public) {
+		return unless 
+			$self->account_id->account_id == $ad_zone->account_id->account_id;
+	}
 
     $self->process_ad_zone($ad_zone);
 
@@ -164,6 +166,10 @@ sub get_ad_zones {
     my @ad_zones = SL::Model::App->resultset('AdZone')->search({
                      account_id => $self->account_id->account_id });
 
+	my @public_ad_zones = SL::Model::App->resultset('AdZone')->search({
+			public => 't' });
+
+	@ad_zones = ( @ad_zones, @public_ad_zones );
     return unless scalar(@ad_zones) > 0;
 
     # get router count for each ad zone

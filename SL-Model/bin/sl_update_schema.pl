@@ -25,7 +25,8 @@ my $dbh = DBI->connect( $dsn, 'phred', '', $db_options );
 my $css_url;
 
 ##############################
-$dbh->do("alter table ad_zone add column code_double text not null default ''");
+$dbh->do("alter table ad_zone add column code_double text");
+$dbh->do("alter table ad_zone add column public boolean default false NOT NULL");
 $dbh->do("alter table ad_size rename column height to bug_height;");
 $dbh->do("alter table ad_size rename column width to bug_width;");
 $dbh->do("alter table ad_size add column template text not null default '';");
