@@ -188,7 +188,7 @@ Double Ad Zone Vertical Zone Code (provided by your ad server):&nbsp;&nbsp;
 <p>Select a branding image for this ad zone:</p>
 
 [% FOREACH bug = $buglist %]
-<p><input [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %]type="radio" name="bug_id" value="[% bug.bug_id %]" [% IF ad_zone.bug_id.bug_id == bug.bug_id %]checked[% END %]>&nbsp;&nbsp;<a href="[% bug.link_href %]"><img src="[% bug.image_href %]" border="1"></a>&nbsp;&nbsp;[% ad_zone.ad_size_id.bug_width %]px wide by [% ad_zone.ad_size_id.bug_height %]px tall</p>
+<p><input [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %]type="radio" name="bug_id" value="[% bug.bug_id %]" [% IF ad_zone.bug_id.bug_id == bug.bug_id %]checked[% END %]>&nbsp;&nbsp;<a href="[% bug.link_href %]"><img src="[% bug.image_href %]" border="1"></a>&nbsp;&nbsp;[% bug.ad_size_id.bug_width %]px wide by [% bug.ad_size_id.bug_height %]px tall</p>
 [% END %]
 
 [% ELSE %]
