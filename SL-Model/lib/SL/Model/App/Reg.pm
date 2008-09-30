@@ -164,6 +164,7 @@ sub get_ad_zones {
 
     # ad zones allowed for this user
     my @ad_zones = SL::Model::App->resultset('AdZone')->search({
+					 active => 't',
                      account_id => $self->account_id->account_id });
 
 	my @public_ad_zones = SL::Model::App->resultset('AdZone')->search({

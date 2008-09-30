@@ -117,9 +117,8 @@ our $HEAD = <<HEAD;
 HEAD
 
 sub container {
-    my ( $css_url_ref, $js_url_ref, $$head_html_ref, $decoded_content_ref,
-        $ad_ref, $ad_size_id )
-      = @_;
+    my ( $css_url_ref, $js_url_ref, $head_html_ref, $decoded_content_ref,
+        $ad_ref, $ad_size_id ) = @_;
 
     # check to make sure that we can insert all parts of the ad
     return
@@ -130,10 +129,10 @@ sub container {
     #        && ( $$decoded_content_ref =~ m/$end_body_match/ ) );
 
     # build the head content
-    my $head = sprintf( $HEAD, $$css_url_ref, $$js_url_ref, $$head_html_ref );
+    my $head = sprintf( "$HEAD", $$css_url_ref, $$js_url_ref, $$head_html_ref );
 
     # Insert the head content
-    my $matched = $$decoded_content_ref =~ s{$head_regex}{$1$$head$2};
+    my $matched = $$decoded_content_ref =~ s{$head_regex}{$1$head$2};
     warn('failed to insert head content') unless $matched;
 
   # move the pointer to the end of the head tag - optimization, 0.5 milliseconds
