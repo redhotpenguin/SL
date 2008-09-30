@@ -58,7 +58,8 @@ sub dispatch_edit {
             bug    => $bug,
             errors => $args_ref->{errors},
             req    => $req,
-            ad_sizes => [ SL::Model::App->resultset('AdSize')->all ],
+            ad_sizes => [ sort { $a->grouping <=> $b->grouping } 
+				SL::Model::App->resultset('AdSize')->all ],
         );
 
         my $ok =
