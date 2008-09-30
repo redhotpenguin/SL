@@ -99,7 +99,10 @@ Method for ad insertion which wraps the whole page in a stylesheet
 
 =cut
 
-our ( $head_regex, $start_body_regex, $uber_match, $end_body_match, $tail );
+our (
+    $html_regex, $head_regex,     $start_body_regex,
+    $uber_match, $end_body_match, $tail
+);
 
 BEGIN {
     $tail = qq{</div>};
@@ -109,8 +112,13 @@ BEGIN {
     $uber_match       = qr{\G(?:</\s*?head\s*?>)}i;
     $start_body_regex = qr{\G(.*?)<body([^>]*?)>(.*)$}is;
     $end_body_match   = qr{^(.*)(<\s*?/body\s*?>.*)$}is;
-
+    $html_regex       = qr{^(.*?<\s*?html\s*?>)(.*)$}is;
 }
+
+our $DOCTYPE = <<DTDTYPE;
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+DTDTYPE
 
 our $HEAD = <<HEAD;
 <link rel="stylesheet" type="text/css" href="%s" /><script type="text/javascript" src="%s"></script>%s
@@ -118,12 +126,15 @@ HEAD
 
 sub container {
     my ( $css_url_ref, $js_url_ref, $head_html_ref, $decoded_content_ref,
-        $ad_ref, $ad_size_id ) = @_;
+        $ad_ref, $ad_size_id )
+      = @_;
 
     # check to make sure that we can insert all parts of the ad
     return
       unless ( ( $$decoded_content_ref =~ m/$head_regex/ )
         && ( $$decoded_content_ref =~ m/$start_body_regex/ ) );
+
+    my $matched = $$decoded_content_ref =~ s{$html_regex}{$DOCTYPE$2};
 
     # ignore failed tail matches
     #        && ( $$decoded_content_ref =~ m/$end_body_match/ ) );
@@ -132,7 +143,7 @@ sub container {
     my $head = sprintf( "$HEAD", $$css_url_ref, $$js_url_ref, $$head_html_ref );
 
     # Insert the head content
-    my $matched = $$decoded_content_ref =~ s{$head_regex}{$1$head$2};
+    $matched = $$decoded_content_ref =~ s{$head_regex}{$1$$head$2};
     warn('failed to insert head content') unless $matched;
 
   # move the pointer to the end of the head tag - optimization, 0.5 milliseconds
@@ -269,12 +280,9 @@ sub random {
 
     # return the id, string output ref, and css url
     return (
-        $ad_data->[AD_ZONE_ID],
-        $output_ref,
-        \$ad_data->[AD_SIZE_CSS_URL],
-        \$ad_data->[AD_SIZE_JS_URL],
-        \$ad_data->[AD_SIZE_HEAD_HTML],
-        $ad_data->[AD_SIZE_ID]
+        $ad_data->[AD_ZONE_ID],         $output_ref,
+        \$ad_data->[AD_SIZE_CSS_URL],   \$ad_data->[AD_SIZE_JS_URL],
+        \$ad_data->[AD_SIZE_HEAD_HTML], $ad_data->[AD_SIZE_ID]
     );
 }
 
