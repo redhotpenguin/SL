@@ -112,12 +112,11 @@ BEGIN {
     $uber_match       = qr{\G(?:</\s*?head\s*?>)}i;
     $start_body_regex = qr{\G(.*?)<body([^>]*?)>(.*)$}is;
     $end_body_match   = qr{^(.*)(<\s*?/body\s*?>.*)$}is;
-    $html_regex       = qr{^(.*?<\s*?html\s*?>)(.*)$}is;
+    yhtml_regex       = qr{^(.*?<\s*?html[^>]*?>)(.*)$}is;
 }
 
 our $DOCTYPE = <<DTDTYPE;
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
 DTDTYPE
 
 our $HEAD = <<HEAD;
@@ -135,6 +134,7 @@ sub container {
         && ( $$decoded_content_ref =~ m/$start_body_regex/ ) );
 
     my $matched = $$decoded_content_ref =~ s{$html_regex}{$DOCTYPE$2};
+    warn('failed to insert html content') unless $matched;
 
     # ignore failed tail matches
     #        && ( $$decoded_content_ref =~ m/$end_body_match/ ) );
@@ -143,7 +143,7 @@ sub container {
     my $head = sprintf( "$HEAD", $$css_url_ref, $$js_url_ref, $$head_html_ref );
 
     # Insert the head content
-    $matched = $$decoded_content_ref =~ s{$head_regex}{$1$$head$2};
+    $matched = $$decoded_content_ref =~ s{$head_regex}{$1$head$2};
     warn('failed to insert head content') unless $matched;
 
   # move the pointer to the end of the head tag - optimization, 0.5 milliseconds
