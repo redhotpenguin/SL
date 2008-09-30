@@ -24,13 +24,14 @@ use constant AD_ZONE_CODE        => 1;
 use constant AD_ZONE_CODE_DOUBLE => 2;
 use constant AD_SIZE_CSS_URL     => 3;
 use constant AD_SIZE_JS_URL      => 4;
-use constant AD_SIZE_TEMPLATE    => 5;
-use constant AD_SIZE_ID          => 6;
-use constant BUG_IMAGE_HREF      => 7;
-use constant BUG_LINK_HREF       => 8;
-use constant PREMIUM             => 9;
-use constant CLOSE_BOX           => 10;
-use constant OUTPUT_REF          => 11;
+use constant AD_SIZE_HEAD_HTML   => 5;
+use constant AD_SIZE_TEMPLATE    => 6;
+use constant AD_SIZE_ID          => 7;
+use constant BUG_IMAGE_HREF      => 8;
+use constant BUG_LINK_HREF       => 9;
+use constant PREMIUM             => 10;
+use constant CLOSE_BOX           => 11;
+use constant OUTPUT_REF          => 12;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
@@ -54,6 +55,7 @@ ad_zone.code_double,
 
 ad_size.css_url,
 ad_size.js_url,
+ad_size.head_html,
 ad_size.template,
 ad_size.ad_size_id,
 
@@ -111,11 +113,12 @@ BEGIN {
 }
 
 our $HEAD = <<HEAD;
-<link rel="stylesheet" type="text/css" href="%s" /><script type="text/javascript" src="%s"></script>
+<link rel="stylesheet" type="text/css" href="%s" /><script type="text/javascript" src="%s"></script>%s
 HEAD
 
 sub container {
-    my ( $css_url_ref, $js_url_ref, $decoded_content_ref, $ad_ref, $ad_size_id )
+    my ( $css_url_ref, $js_url_ref, $$head_html_ref, $decoded_content_ref,
+        $ad_ref, $ad_size_id )
       = @_;
 
     # check to make sure that we can insert all parts of the ad
@@ -127,7 +130,7 @@ sub container {
     #        && ( $$decoded_content_ref =~ m/$end_body_match/ ) );
 
     # build the head content
-    my $head = sprintf($HEAD, $$css_url_ref, $$js_url_ref);
+    my $head = sprintf( $HEAD, $$css_url_ref, $$js_url_ref, $$head_html_ref );
 
     # Insert the head content
     my $matched = $$decoded_content_ref =~ s{$head_regex}{$1$$head$2};
@@ -199,6 +202,7 @@ ad_zone.code_double,
 
 ad_size.css_url,
 ad_size.js_url,
+ad_size.head_html,
 ad_size.template,
 ad_size.ad_size_id,
 
@@ -270,6 +274,7 @@ sub random {
         $output_ref,
         \$ad_data->[AD_SIZE_CSS_URL],
         \$ad_data->[AD_SIZE_JS_URL],
+        \$ad_data->[AD_SIZE_HEAD_HTML],
         $ad_data->[AD_SIZE_ID]
     );
 }

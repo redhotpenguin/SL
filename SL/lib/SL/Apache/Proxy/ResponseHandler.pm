@@ -770,8 +770,10 @@ sub _generate_response {
     );
     $ad_args{premium} = 1 if $r->pnotes('premium');
     $ad_args{close_box} = 1 unless $r->pnotes('noclose');
-    my ( $ad_zone_id, $ad_content_ref, $css_url_ref, $js_url_ref, $ad_size_id )
-      = SL::Model::Ad->random( \%ad_args );
+    my (
+        $ad_zone_id, $ad_content_ref, $css_url_ref,
+        $js_url_ref, $head_html_ref,  $ad_size_id
+    ) = SL::Model::Ad->random( \%ad_args );
 
     # checkpoint random ad
     $r->log->info(
@@ -788,9 +790,10 @@ sub _generate_response {
     ########################################
     # put the ad in the page
     $TIMER->start('container insertion') if TIMING;
-    my $ok =
-      SL::Model::Ad::container( $css_url_ref, $js_url_ref, \$decoded_content,
-        $ad_content_ref, $ad_size_id );
+    my $ok = SL::Model::Ad::container(
+        $css_url_ref,      $js_url_ref,     $head_html_ref,
+        \$decoded_content, $ad_content_ref, $ad_size_id
+    );
 
     # checkpoint
     $r->log->info(
