@@ -10,11 +10,12 @@ use Apache2::SubRequest ();
 use Data::FormValidator ();
 use Apache2::Request    ();
 use Apache2::SubRequest ();
+#use JavaScript::Minifier::XS qw(minify);
 
 use base 'SL::Apache::App';
 
-use SL::Model;
-use SL::Model::App;
+use SL::Model ();
+use SL::Model::App ();
 use SL::App::Template ();
 
 our $TMPL = SL::App::Template->template();
@@ -58,7 +59,7 @@ sub dispatch_edit {
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
-            ad_sizes => [ SL::Model::App->resultset('AdSize')->all ],
+            ad_sizes => [ sort { $a->grouping <=> $b->grouping } SL::Model::App->resultset('AdSize')->all ],
             ad_zone  => $ad_zone,
             errors   => $args_ref->{errors},
             req      => $req,
@@ -114,8 +115,9 @@ sub dispatch_edit {
       $req->param('code');    # remove this line and suffer the consequences
 
 	# fredify the invocation code for size
-	$code =~ s/(?:\t|\r|\n|\s{2,})//g;
-    my %args = (
+	#$code =~ s/(?:\t|\r|\n|\s{2,})/ /g;
+	# $code = minify( $code );
+	my %args = (
         reg_id     => $reg->reg_id,
         account_id => $reg->account_id->account_id,
         code       => $code,
@@ -125,7 +127,8 @@ sub dispatch_edit {
     );
 
     if ( my $double = $req->param('code_double') ) {
-		$double =~ s/(?:\t|\r|\n|\s{2,})//g;
+		#$double = minify( $double );
+#		$double =~ s/(?:\t|\r|\n|\s{2,})/ /g;
         $args{'code_double'} = $double;
     }
 

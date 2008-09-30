@@ -22,7 +22,6 @@
 <td class="header">Ad Zone Name</td>
 <td class="header">Ad Zone Type</td>
 <td class="header">Active</td>
-<td class="header">Public</td>
 <td class="header">Assigned Routers</td>
 <td class="header">Last Modified By</td>
 </tr>
@@ -44,11 +43,6 @@
 [% IF ad_zone.active %]Yes[% ELSE %]No[% END %]</td>
 
 
-<!-- public -->	
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% IF ad_zone.public %]Yes[% ELSE %]No[% END %]</td>
-
-
 
 <!-- routers -->
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
@@ -63,7 +57,7 @@
 
 <!-- last modified -->	
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-<a href="mailto:[% ad_zone.reg_id.email %]">[% ad_zone.reg_id.email %]</td>
+<a href="mailto:[% ad_zone.reg_id.email %]">[% ad_zone.reg_id.email %]</a></td>
 
 
 

@@ -77,6 +77,7 @@ use DBIx::Class::Schema::Loader ();
 use Crypt::CBC                  ();
 use Crypt::DES                  ();
 use XML::RAI                    ();
+#use JavaScript::Minifier::XS    ();
 
 print STDOUT "Modules loaded, initializing database connections\n";
 

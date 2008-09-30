@@ -103,6 +103,10 @@ function setBugList(ad_size_id) {
 
 [% FOREACH ad_size = ad_sizes %]
 
+[% IF loop.prev.grouping != ad_size.grouping %]
+<option value="">---</option>
+[% END %]
+
 <option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size_id.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %]</option>
 
 [% END %]
