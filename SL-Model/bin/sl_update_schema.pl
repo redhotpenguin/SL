@@ -30,6 +30,8 @@ $dbh->do("alter table ad_zone add column public boolean default false NOT NULL")
 $dbh->do("alter table ad_size rename column height to bug_height;");
 $dbh->do("alter table ad_size rename column width to bug_width;");
 $dbh->do("alter table ad_size add column template text not null default '';");
+$dbh->do("alter table ad_size add column grouping  integer not null default 1");
+
 
 ##############################
 $dbh->do("update ad_size set bug_width='200' where ad_size_id = 1");
@@ -66,6 +68,7 @@ $css_url = <<'CSS';
 CSS
 $css_url = $dbh->quote($css_url);
 $dbh->do("update ad_size set css_url=$css_url where ad_size_id = 4");
+$dbh->do("update ad_size set grouping=2 where ad_size_id = 4");
 $dbh->do("update ad_size set template='vertical_skyscraper.tmpl' where ad_size_id = 4");
 
 ##############################
@@ -73,6 +76,8 @@ $dbh->do("update ad_size set bug_height='90' where ad_size_id = 5");
 $css_url = <<'CSS';
 <link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_wide_skyscraper.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function() { $('a#silver_lining_close').click(function(silver_lining_event) { $('div#silver_lining_ad_vertical').hide("slow");$('div#silver_lining_wideskyscraper_webpage').css("margin-left", "0px"); silver_lining_event.preventDefault();}); }); </script>
 CSS
+
+$dbh->do("update ad_size set grouping=2 where ad_size_id = 5");
 $css_url = $dbh->quote($css_url);
 $dbh->do("update ad_size set css_url=$css_url where ad_size_id = 5");
 $dbh->do("update ad_size set template='vertical_wide_skyscraper.tmpl' where ad_size_id = 5");
@@ -84,6 +89,7 @@ $css_url = <<'CSS';
 CSS
 $css_url = $dbh->quote($css_url);
 $dbh->do("update ad_size set css_url=$css_url where ad_size_id = 6");
+$dbh->do("update ad_size set grouping=2 where ad_size_id = 6");
 $dbh->do("update ad_size set template='vertical_half_page.tmpl' where ad_size_id = 6");
 
 
@@ -91,7 +97,7 @@ $dbh->do("update ad_size set template='vertical_half_page.tmpl' where ad_size_id
 $dbh->do("update ad_zone set ad_size_id = 5 where ad_size_id = 7");
 
 ##############################
-$dbh->do("update ad_size set name='Full Banner & Skyscraper' where ad_size_id = 7");
+$dbh->do("update ad_size set name='Double (Full Banner & Skyscraper)' where ad_size_id = 7");
 $dbh->do("update ad_size set bug_height='60' where ad_size_id = 7");
 $dbh->do("update ad_size set bug_width='120' where ad_size_id = 7");
 $css_url = <<'CSS';
@@ -99,6 +105,7 @@ $css_url = <<'CSS';
 CSS
 $css_url = $dbh->quote($css_url);
 $dbh->do("update ad_size set css_url=$css_url where ad_size_id = 7");
+$dbh->do("update ad_size set grouping=3 where ad_size_id = 7");
 $dbh->do("update ad_size set template='double_fullbanner_skyscraper.tmpl' where ad_size_id = 7");
 
 ##############################
@@ -106,7 +113,8 @@ $css_url = <<'CSS';
 <link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_double_lb_ss.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function(){$('a#silver_lining_close').click(function(silver_lining_event_1){$('div#silver_lining_ad_horizontal').hide("slow");$('div#silver_lining_double_ad_lb').css("top", "0"); silver_lining_event_1.preventDefault(); });$('a#silver_lining_close'_vert').click(function(silver_lining_event){$('div#silver_lining_double_ad_lb').hide("slow");$('div#silver_lining_skyscraper_webpage').css("margin-left", "0px"); silver_lining_event.preventDefault(); });});</script>
 CSS
 $css_url = $dbh->quote($css_url);
-$dbh->do("insert into ad_size (ad_size_id, name, css_url, bug_height, bug_width, template) values (8, 'Leaderboard & Skyscraper', $css_url, 90, 120, 'double_leaderboard_skyscraper.tmpl') ");
+$dbh->do("insert into ad_size (ad_size_id, name, css_url, bug_height, bug_width, template) values (8, 'Double (Leaderboard & Skyscraper)', $css_url, 90, 120, 'double_leaderboard_skyscraper.tmpl') ");
+$dbh->do("update ad_size set grouping=3 where ad_size_id = 8");
 
 
 ##############################
@@ -114,8 +122,9 @@ $css_url = <<'CSS';
 <link rel="stylesheet" href="http://www.silverliningnetworks.com/resources/css/sl_double_lb_wss.css" type="text/css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function(){$('a#silver_lining_close').click(function(){$('div#silver_lining_ad_horizontal').hide("slow");$('div#silver_lining_double_ad_lb').css("top", "0")});$('a#silver_lining_close'_vert').click(function(){$('div#silver_lining_double_ad_lb').hide("slow");$('div#silver_lining_wideskyscraper_webpage').css("margin-left", "0px");});});</script>
 CSS
 $css_url = $dbh->quote($css_url);
-$dbh->do("insert into ad_size (ad_size_id, name, css_url, bug_height, bug_width, template) values (9, 'Leaderboard & Wide Skyscraper', $css_url, 90, 160, 'double_leaderboard_wide_skyscraper.tmpl') ");
+$dbh->do("insert into ad_size (ad_size_id, name, css_url, bug_height, bug_width, template) values (9, 'Double (Leaderboard & Wide Skyscraper)', $css_url, 90, 160, 'double_leaderboard_wide_skyscraper.tmpl') ");
 
+$dbh->do("update ad_size set grouping=3 where ad_size_id = 9");
 
 ##############################
 $css_url = <<'CSS';
@@ -123,6 +132,7 @@ $css_url = <<'CSS';
 CSS
 $css_url = $dbh->quote($css_url);
 $dbh->do("insert into ad_size (ad_size_id, name, css_url, bug_height, bug_width, template) values (10, 'Floating Leaderboard', $css_url, 90, 200, 'floating_leaderboard.tmpl') ");
+$dbh->do("update ad_size set grouping=4 where ad_size_id = 10");
 
 ##############################
 $css_url = <<'CSS';
@@ -131,14 +141,16 @@ CSS
 
 $css_url = $dbh->quote($css_url);
 $dbh->do("insert into ad_size (ad_size_id, name, css_url, bug_height, bug_width, template) values (11, 'Floating Full Banner', $css_url, 60, 200, 'floating_full_banner.tmpl') ");
+$dbh->do("update ad_size set grouping=4 where ad_size_id = 11");
 
 ##############################
 $css_url = <<'CSS';
-<link rel="stylesheet" type="text/css" href="http://www.silverliningnetworks.com/resources/css/sl_floating_footer_leaderboard.css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/jquery.js"></script><script type="text/javascript">$(document).ready(function(){$('a#silver_lining_close').click(function(silver_lining_event){$('div#silver_lining_floating_horizontal').hide("slow");$('body').css("padding-bottom", "0px !important");$('html').css("padding-bottom", "0px !important");silver_lining_event.preventDefault();});  });</script><!--[if lte IE 6]><style type="text/css" media="screen">html {padding-bottom:116px !important;overflow:hidden;}body {padding-bottom:0 !important;}</style><![endif]-->
+<link rel="stylesheet" type="text/css" href="http://www.silverliningnetworks.com/resources/css/sl_floating_footer_leaderboard.css" /><script type="text/javascript" src="http://www.silverliningnetworks.com/resources/js/floating_footer.js"></script><!--[if lte IE 6]><style type="text/css" media="screen">html {padding-bottom:116px !important; overflow:hidden;}body {padding-bottom:0 !important;}</style><![endif]-->
 CSS
 
 $css_url = $dbh->quote($css_url);
-$dbh->do("insert into ad_size (ad_size_id, name, css_url, bug_height, bug_width, template) values (12, 'Floating Footer Leaderboard', $css_url, 90, 200, 'floating_leaderboard.tmpl') ");
+$dbh->do("insert into ad_size (ad_size_id, name, css_url, bug_height, bug_width, template) values (12, 'Floating Footer Leaderboard', $css_url, 90, 200, 'floating_footer_leaderboard.tmpl') ");
+$dbh->do("update ad_size set grouping=4 where ad_size_id = 12");
 
 
 
