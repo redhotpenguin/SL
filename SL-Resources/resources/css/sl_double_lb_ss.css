@@ -79,7 +79,7 @@ text-indent: -3000px;
 bottom: -40px;
 right: 5px;
 border: none;
-z-index: 1000;
+z-index: 5000;
 }
 * html #silver_lining_leaderboard #silver_lining_homepage {
 background: url(../images/logos/sl_logo_small_low.png) no-repeat top left;
@@ -100,6 +100,7 @@ border: none;
 === === === === === === === === === === === === === */
 #silver_lining_skyscraper_webpage {
 margin-left: 146px;
+position: relative;
 }
 #silver_lining_skyscraper {
 width: 120px;
@@ -132,11 +133,4 @@ text-decoration: underline;
 }
 #silver_lining_skyscraper #silver_lining_close_vert img {
 border: none;
-}
-
-
-/*= WEBPAGE
-=== === === === === === === === === === === === === */
-#silver_lining_webpage {
-position: relative;
 }
