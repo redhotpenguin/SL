@@ -16,7 +16,8 @@ clear: both;
 #silver_lining_ad_horizontal {
 text-align: center;
 padding: 10px 0px 16px 0px;
-background: #FFF url(../images/backgrounds/border.png) repeat-x bottom left; 
+background: #FFF url(../images/backgrounds/border.png) repeat-x bottom left;
+position: relative; 
 }
 #silver_lining_double_ad_lb {
 position: absolute;
