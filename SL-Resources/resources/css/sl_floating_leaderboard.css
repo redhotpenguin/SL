@@ -18,10 +18,10 @@ position: fixed;
 top: 0;
 left: 0;
 right: 0;
-z-index: 99;
 text-align: center;
 padding: 10px 0px 16px 0px;
 background: #FFF url(../images/backgrounds/border.png) repeat-x bottom left; 
+z-index: 3000;
 }
 
 
@@ -63,13 +63,14 @@ text-indent: -3000px;
 bottom: -40px;
 right: 5px;
 border: none;
-z-index: 1000;
+z-index: 5000;
 }
 #silver_lining_leaderboard #silver_lining_close {
 position: absolute;
 top: 0px;
 right: 10px;
 border: none;
+z-index: 5000;
 }
 #silver_lining_leaderboard #silver_lining_close img,
 #silver_lining_leaderboard #silver_lining_homepage img{
@@ -81,7 +82,7 @@ border: none;
 === === === === === === === === === === === === === */
 * html #silver_lining_floating_horizontal {
 position: absolute;
-z-index: 100;
+z-index: 3000;
 top:0px
 width: expression(document.body.clientWidth);
 }

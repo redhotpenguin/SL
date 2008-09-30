@@ -17,7 +17,7 @@ background: none !important;
 filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='/resources/images/backgrounds/floating_cloud_large.png',sizingMethod='scale');
 width: 295px;
 height: 215px;
-z-index: 10;
+z-index: 1000;
 }
 * html, body {
 height: 100%; overflow: auto;
@@ -42,7 +42,7 @@ bottom: 0px;
 right: 0px;
 width: 295px;
 height: 215px;
-z-index: 99;
+z-index: 3000;
 overflow: visible;
 }
 #silver_lining_cloud_wrapper {
@@ -60,7 +60,7 @@ top: 115px;
 right: 20px;
 border: none;
 cursor: pointer;
-z-index: 1000;
+z-index: 5000;
 }
 #silver_lining_cloud_wrapper #silver_lining_homepage {
 text-decoration: none;
@@ -70,7 +70,7 @@ color: #41a05f;
 position: absolute;
 bottom: 30px;
 left: 90px;
-z-index: 300;
+z-index: 5000;
 }
 #silver_lining_cloud_wrapper #silver_lining_client_ad {
 position: absolute;
