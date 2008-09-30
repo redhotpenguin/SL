@@ -125,6 +125,11 @@ Ad zone type associated with this branding image:&nbsp;&nbsp;
 
 [% FOREACH ad_size = ad_sizes %]
 
+
+[% IF loop.prev.grouping != ad_size.grouping %]
+<option value="">---</option>
+[% END %]
+
 [% IF ! req.param('ad_size_id') %]
 <option value="[% ad_size.ad_size_id %]" [% IF bug.ad_size_id.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %] - image [% ad_size.bug_width %]px wide x [% ad_size.bug_height %]px tall</option>
 
