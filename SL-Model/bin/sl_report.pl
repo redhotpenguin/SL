@@ -69,7 +69,8 @@ foreach my $day (@DAYS) {
             if (  $router_views_count > 0 )
             {
                 push @{ $results{$day}{routers} },
-                  [ $router->name || $router->macaddr, $router_views_count, $router->account_id->account_id ];
+                  [ $router->name || $router->macaddr, $router_views_count, $router->account_id->name ];
+
             }
 
             # HACK - update the router count
