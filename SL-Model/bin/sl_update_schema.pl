@@ -123,7 +123,7 @@ my $head_html;
 $js_url='http://www.silverliningnetworks.com/resources/js/floating_top.js';
 $css_url='http://www.silverliningnetworks.com/resources/css/sl_floating_leaderboard.css';
 $head_html = <<HTML;
-<!--[if lte IE 6]><style type="text/css" media="screen"> html { padding-top:116px;overflow:hidden;}  body {padding-top:0;  } </style><![endif]-->
+<!--[if lte IE 6]><style type="text/css" media="screen"> html { padding-top:116px;overflow:hidden;}  body {padding-top:0 !important;} #silver_lining_webpage { width: 98%; }</style><![endif]-->
 HTML
 
 $dbh->do("insert into ad_size (ad_size_id, name, css_url, js_url, head_html, bug_height, bug_width, template) values (10, 'Floating Leaderboard', " .  $dbh->quote($css_url) . ", " . $dbh->quote($js_url) . ", " . $dbh->quote($head_html) . ", 90, 200, 'floating_leaderboard.tmpl') ");
