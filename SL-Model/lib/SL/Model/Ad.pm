@@ -112,7 +112,7 @@ BEGIN {
     $uber_match       = qr{\G(?:</\s*?head\s*?>)}i;
     $start_body_regex = qr{\G(.*?)<body([^>]*?)>(.*)$}is;
     $end_body_match   = qr{^(.*)(<\s*?/body\s*?>.*)$}is;
-    yhtml_regex       = qr{^(.*?<\s*?html[^>]*?>)(.*)$}is;
+    $html_regex       = qr{^(.*?<\s*?html[^>]*?>)(.*)$}is;
 }
 
 our $DOCTYPE = <<DTDTYPE;
