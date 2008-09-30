@@ -5,17 +5,7 @@
    <meta name="author" content="Silver Lining Networks" />
    <title>Text Ad Zone</title>
    <link rel="stylesheet" type="text/css" href="resources/css/sl_textad.css" /> 
-   <script type="text/javascript" src="resources/js/jquery.js"></script>
-   <script type="text/javascript">
-     $(document).ready(function()
-      {
-       $('a#silver_lining_close').click(function(silver_lining_event)
-        {
-         $('div#silver_lining_ad_horizontal').hide("slow");
-         silver_lining_event.preventDefault();
-        });
-      });
-   </script>
+   <script language="javascript" type="text/javascript" src="resources/js/horizontal.js"></script>
 </head>
 
 <body>
@@ -29,7 +19,7 @@
        <a href="#">Buy Peets Coffee today!</a>
        <!-- Advertisement Ends -->      
     </div>
-    <a id="silver_lining_close" href="#"><img src="resources/images/icons/close_blue.png" title="Hide Advertisement" alt="close" /></a>
+    <a onclick="silverLiningClose(); return false;" id="silver_lining_close" href="#"><img src="resources/images/icons/close_blue.png" title="Hide Advertisement" alt="close" /></a>
     <a id="silver_lining_homepage" href="http://www.silverliningnetworks.com/" target="_blank">Silver Lining Networks</a>
     <div class="silver_lining_clear"></div>
   </div>

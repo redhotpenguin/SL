@@ -5,25 +5,7 @@
    <meta name="author" content="Silver Lining Networks" />
    <title>Double Ad Zone - Full Banner &amp; Skyscraper</title>
    <link rel="stylesheet" type="text/css" href="resources/css/sl_double_lb_wss.css" /> 
-   <script type="text/javascript" src="resources/js/jquery.js"></script>
-   <script type="text/javascript">
-     $(document).ready(function()
-      {
-       $('a#silver_lining_close').click(function(silver_lining_event_1)
-        {
-         $('div#silver_lining_ad_horizontal').hide("slow");
-         $('div#silver_lining_double_ad_lb').css("top", "0")
-         silver_lining_event_1.preventDefault();
-        });
-        $('a#silver_lining_close_vert').click(function(silver_lining_event)
-        {
-         $('div#silver_lining_double_ad_lb').hide("slow");
-         $('div#silver_lining_wideskyscraper_webpage').css("margin-left", "0px");
-         silver_lining_event.preventDefault();
-        });
-
-      });
-   </script>
+   <script type="text/javascript" src="resources/js/double_lb_wss.js"></script>
 </head>
 
 <body>
@@ -39,7 +21,7 @@
         <!-- ACTUAL AD MARKUP END -->  
         
     </div>
-    <a id="silver_lining_close" href="#"><img src="resources/images/icons/close_blue.png" title="Hide Advertisement" alt="close" /></a>
+    <a onclick="silverLiningClose(); return false;" id="silver_lining_close" href="#"><img src="resources/images/icons/close_blue.png" title="Hide Advertisement" alt="close" /></a>
     <a id="silver_lining_homepage" href="http://www.silverliningnetworks.com/" target="_blank">Silver Lining Networks</a>
     <div class="silver_lining_clear"></div>
   </div>
@@ -60,7 +42,7 @@
         <!-- ACTUAL AD MARKUP END -->  
         
     </div>
-    <a id="silver_lining_close_vert" href="#"><img src="resources/images/icons/close_blue.png" title="Hide Advertisement" alt="close" /></a>
+    <a onclick="silverLiningClose(); return false;" id="silver_lining_close_vert" href="#"><img src="resources/images/icons/close_blue.png" title="Hide Advertisement" alt="close" /></a>
     <div class="silver_lining_clear"></div>
   </div>
 </div>
