@@ -22,7 +22,7 @@ my $dsn = "dbi:Pg:dbname='$db';";
 my $dbh = DBI->connect( $dsn, 'phred', '', $db_options );
 
 # get to work
-my $css_url, $js_url;
+my ($css_url, $js_url);
 
 ##############################
 $dbh->do("alter table ad_zone add column code_double text");
@@ -106,7 +106,7 @@ $dbh->do("update ad_size set template='double_fullbanner_skyscraper.tmpl' where 
 $js_url='http://www.silverliningnetworks.com/resources/js/double_lb_ss.js';
 $css_url='http://www.silverliningnetworks.com/resources/css/sl_double_lb_ss.css';
 
-$dbh->do("insert into ad_size (ad_size_id, name, css_url, js_url, bug_height, bug_width, template) values (8, 'Double (Leaderboard & Skyscraper)', $css_url, $js_url, 90, 120, 'double_leaderboard_skyscraper.tmpl') ");
+$dbh->do("insert into ad_size (ad_size_id, name, css_url, js_url, bug_height, bug_width, template) values (8, 'Double (Leaderboard & Skyscraper)', " . $dbh->quote($css_url) . ", " . $dbh->quote($js_url) . ", 90, 120, 'double_leaderboard_skyscraper.tmpl') ");
 $dbh->do("update ad_size set grouping=3 where ad_size_id = 8");
 
 
@@ -114,7 +114,7 @@ $dbh->do("update ad_size set grouping=3 where ad_size_id = 8");
 $js_url='http://www.silverliningnetworks.com/resources/js/double_lb_wss.js';
 $css_url='http://www.silverliningnetworks.com/resources/css/sl_double_lb_wss.css';
 
-$dbh->do("insert into ad_size (ad_size_id, name, css_url, js_url, bug_height, bug_width, template) values (9, 'Double (Leaderboard & Wide Skyscraper)', $css_url, $js_url, 90, 160, 'double_leaderboard_wide_skyscraper.tmpl') ");
+$dbh->do("insert into ad_size (ad_size_id, name, css_url, js_url, bug_height, bug_width, template) values (9, 'Double (Leaderboard & Wide Skyscraper)', " .  $dbh->quote($css_url) .  ", " . $dbh->quote($js_url) . ", 90, 160, 'double_leaderboard_wide_skyscraper.tmpl') ");
 
 $dbh->do("update ad_size set grouping=3 where ad_size_id = 9");
 
@@ -126,7 +126,7 @@ $head_html = <<HTML;
 <!--[if lte IE 6]><style type="text/css" media="screen"> html { padding-top:116px;overflow:hidden;}  body {padding-top:0;  } </style><![endif]-->
 HTML
 
-$dbh->do("insert into ad_size (ad_size_id, name, css_url, js_url, head_html, bug_height, bug_width, template) values (10, 'Floating Leaderboard', $css_url, $js_url, $head_html, 90, 200, 'floating_leaderboard.tmpl') ");
+$dbh->do("insert into ad_size (ad_size_id, name, css_url, js_url, head_html, bug_height, bug_width, template) values (10, 'Floating Leaderboard', " .  $dbh->quote($css_url) . ", " . $dbh->quote($js_url) . ", " . $dbh->quote($head_html) . ", 90, 200, 'floating_leaderboard.tmpl') ");
 $dbh->do("update ad_size set grouping=4 where ad_size_id = 10");
 
 ##############################
@@ -136,7 +136,7 @@ $head_html = <<HTML;
 <!--[if lte IE 6]><style type="text/css" media="screen">html {padding-top:86px; overflow:hidden;}body {padding-top:0;  }</style><![endif]-->
 HTML
 
-$dbh->do("insert into ad_size (ad_size_id, name, css_url, js_url, head_html, bug_height, bug_width, template) values (11, 'Floating Full Banner', $css_url, $js_url, $head_html, 60, 200, 'floating_full_banner.tmpl') ");
+$dbh->do("insert into ad_size (ad_size_id, name, css_url, js_url, head_html, bug_height, bug_width, template) values (11, 'Floating Full Banner', " . $dbh->quote($css_url) . ", " . $dbh->quote($js_url) . ", " . $dbh->quote($head_html) . ", 60, 200, 'floating_full_banner.tmpl') ");
 $dbh->do("update ad_size set grouping=4 where ad_size_id = 11");
 
 ##############################
@@ -146,7 +146,7 @@ $head_html = <<HTML;
 <!--[if lte IE 6]><style type="text/css" media="screen">html {padding-bottom:116px !important;  overflow:hidden;} body {padding-bottom:0 !important;}</style><![endif]-->
 HTML
 
-$dbh->do("insert into ad_size (ad_size_id, name, css_url, js_url, head_html, bug_height, bug_width, template) values (12, 'Floating Footer Leaderboard', $css_url, $js_url, $head_html, 90, 200, 'floating_footer_leaderboard.tmpl') ");
+$dbh->do("insert into ad_size (ad_size_id, name, css_url, js_url, head_html, bug_height, bug_width, template) values (12, 'Floating Footer Leaderboard', " .  $dbh->quote($css_url) . ", " .  $dbh->quote($js_url) . ", " . $dbh->quote($head_html) . ", 90, 200, 'floating_footer_leaderboard.tmpl') ");
 $dbh->do("update ad_size set grouping=4 where ad_size_id = 12");
 
 ##############################
@@ -157,7 +157,7 @@ $head_html = <<HTML;
 HTML
 
 
-$dbh->do("insert into ad_size (ad_size_id, name, css_url, js_url, head_html, bug_height, bug_width, template) values (13, 'Floating Footer Full Banner', $css_url, $js_url, $head_html, 60, 200, 'floating_footer_full_banner.tmpl') ");
+$dbh->do("insert into ad_size (ad_size_id, name, css_url, js_url, head_html, bug_height, bug_width, template) values (13, 'Floating Footer Full Banner', " . $dbh->quote($css_url) . ", " . $dbh->quote($js_url) . ", " . $dbh->quote($head_html) . ", 60, 200, 'floating_footer_full_banner.tmpl') ");
 $dbh->do("update ad_size set grouping=4 where ad_size_id = 13");
 
 
