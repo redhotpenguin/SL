@@ -23,16 +23,16 @@ use constant AD_ZONE_ID          => 0;
 use constant AD_ZONE_CODE        => 1;
 use constant AD_ZONE_CODE_DOUBLE => 2;
 use constant AD_SIZE_CSS_URL     => 3;
-use constant AD_SIZE_TEMPLATE    => 4;
-use constant AD_SIZE_ID          => 5;
-use constant BUG_IMAGE_HREF      => 6;
-use constant BUG_LINK_HREF       => 7;
-use constant PREMIUM             => 8;
-use constant CLOSE_BOX           => 9;
-use constant OUTPUT_REF          => 10;
+use constant AD_SIZE_JS_URL      => 4;
+use constant AD_SIZE_TEMPLATE    => 5;
+use constant AD_SIZE_ID          => 6;
+use constant BUG_IMAGE_HREF      => 7;
+use constant BUG_LINK_HREF       => 8;
+use constant PREMIUM             => 9;
+use constant CLOSE_BOX           => 10;
+use constant OUTPUT_REF          => 11;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
-
 
 our ( $CONFIG, $TEMPLATE );
 our $Default_Ad_Data;
@@ -53,6 +53,7 @@ ad_zone.code,
 ad_zone.code_double,
 
 ad_size.css_url,
+ad_size.js_url,
 ad_size.template,
 ad_size.ad_size_id,
 
@@ -99,32 +100,40 @@ Method for ad insertion which wraps the whole page in a stylesheet
 our ( $head_regex, $start_body_regex, $uber_match, $end_body_match, $tail );
 
 BEGIN {
-    $tail      = qq{</div>};
+    $tail = qq{</div>};
 
-	$head_regex          = qr{^(.*?<\s*?head\s*?[^>]*?>)(.*)$}is; # start of head
-	#$head_regex          = qr{^(.*)(<\s*?\/head\s*?>.*)$}is;  # end of head
-    $uber_match     = qr{\G(?:</\s*?head\s*?>)}i;
-    $start_body_regex   = qr{\G(.*?)<body([^>]*?)>(.*)$}is;
-    $end_body_match = qr{^(.*)(<\s*?/body\s*?>.*)$}is;
+    $head_regex = qr{^(.*?<\s*?head\s*?[^>]*?>)(.*)$}is;    # start of head
+        #$head_regex          = qr{^(.*)(<\s*?\/head\s*?>.*)$}is;  # end of head
+    $uber_match       = qr{\G(?:</\s*?head\s*?>)}i;
+    $start_body_regex = qr{\G(.*?)<body([^>]*?)>(.*)$}is;
+    $end_body_match   = qr{^(.*)(<\s*?/body\s*?>.*)$}is;
 
 }
 
+our $HEAD = <<HEAD;
+<link rel="stylesheet" type="text/css" href="%s" /><script type="text/javascript" src="%s"></script>
+HEAD
+
 sub container {
-    my ( $head_ref, $decoded_content_ref, $ad_ref, $ad_size_id ) = @_;
+    my ( $css_url_ref, $js_url_ref, $decoded_content_ref, $ad_ref, $ad_size_id )
+      = @_;
 
     # check to make sure that we can insert all parts of the ad
     return
       unless ( ( $$decoded_content_ref =~ m/$head_regex/ )
         && ( $$decoded_content_ref =~ m/$start_body_regex/ ) );
 
-	# ignore failed tail matches
-#        && ( $$decoded_content_ref =~ m/$end_body_match/ ) );
+    # ignore failed tail matches
+    #        && ( $$decoded_content_ref =~ m/$end_body_match/ ) );
+
+    # build the head content
+    my $head = sprintf($HEAD, $$css_url_ref, $$js_url_ref);
 
     # Insert the head content
-    my $matched = $$decoded_content_ref =~ s{$head_regex}{$1$$head_ref$2};
+    my $matched = $$decoded_content_ref =~ s{$head_regex}{$1$$head$2};
     warn('failed to insert head content') unless $matched;
 
-    # move the pointer to the end of the head tag - optimization, 0.5 milliseconds
+  # move the pointer to the end of the head tag - optimization, 0.5 milliseconds
     $$decoded_content_ref =~ m/$uber_match/;
 
     # Insert the rest of the pieces
@@ -135,7 +144,7 @@ sub container {
     # insert the tail
     $matched = $$decoded_content_ref =~ s{$end_body_match}{$1$tail$2};
     if (DEBUG) {
- 	 warn('failed to insert closing div') unless $matched;
+        warn('failed to insert closing div') unless $matched;
     }
 
     return 1;
@@ -189,6 +198,7 @@ ad_zone.code,
 ad_zone.code_double,
 
 ad_size.css_url,
+ad_size.js_url,
 ad_size.template,
 ad_size.ad_size_id,
 
@@ -226,12 +236,13 @@ sub _random_ad_from_mac {
     my $ad_data = $sth->fetchrow_arrayref;
     $sth->finish;
 
-    unless (defined $ad_data->[AD_ZONE_ID]) {
+    unless ( defined $ad_data->[AD_ZONE_ID] ) {
         warn("No random ads returned for mac $mac") if DEBUG;
         return;
     }
 
-    warn( "Random ad zone id found for mac $mac:" . $ad_data->[AD_ZONE_ID]) if DEBUG;
+    warn( "Random ad zone id found for mac $mac:" . $ad_data->[AD_ZONE_ID] )
+      if DEBUG;
     return $ad_data;
 }
 
@@ -251,11 +262,16 @@ sub random {
     my $ad_data = $class->_random_ad_from_mac($mac) || $Default_Ad_Data;
 
     # process the template
-    my $output_ref = $class->process_ad_template( $ad_data );
+    my $output_ref = $class->process_ad_template($ad_data);
 
     # return the id, string output ref, and css url
-    return ( $ad_data->[AD_ZONE_ID], $output_ref, \$ad_data->[AD_SIZE_CSS_URL],
-             $ad_data->[AD_SIZE_ID]);
+    return (
+        $ad_data->[AD_ZONE_ID],
+        $output_ref,
+        \$ad_data->[AD_SIZE_CSS_URL],
+        \$ad_data->[AD_SIZE_JS_URL],
+        $ad_data->[AD_SIZE_ID]
+    );
 }
 
 # takes ad_data, returns scalar reference of output
@@ -274,7 +290,7 @@ sub process_ad_template {
         bug_image_href => $ad_data->[BUG_IMAGE_HREF],
         bug_link_href  => $ad_data->[BUG_LINK_HREF],
         premium        => $ad_data->[PREMIUM],
-  	    close_box      => $ad_data->[CLOSE_BOX],
+        close_box      => $ad_data->[CLOSE_BOX],
     );
 
     warn( "tmpl vars: " . Data::Dumper::Dumper( \%tmpl_vars ) ) if DEBUG;

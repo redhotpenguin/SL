@@ -59,21 +59,21 @@ BEGIN {
 }
 
 use constant NOOP_RESPONSE => $CONFIG->sl_noop_response || 0;
-use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
-use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
-use constant TIMING        => $ENV{SL_TIMING}        || 0;
-use constant REPLACE_PORT => 8135;
+use constant DEBUG         => $ENV{SL_DEBUG}            || 0;
+use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG}    || 0;
+use constant TIMING        => $ENV{SL_TIMING}           || 0;
+use constant REPLACE_PORT  => 8135;
 
 # unencoded http responses must be this big to get an ad
 use constant MIN_CONTENT_LENGTH => $CONFIG->sl_min_content_length || 2500;
 
-our( $TIMER, $REMOTE_TIMER );
+our ( $TIMER, $REMOTE_TIMER );
 if (TIMING) {
     $TIMER        = RHP::Timer->new();
     $REMOTE_TIMER = RHP::Timer->new();
 }
 
-require Data::Dumper if ( DEBUG or VERBOSE_DEBUG);
+require Data::Dumper if ( DEBUG or VERBOSE_DEBUG );
 
 our %response_map = (
     200 => 'twohundred',
@@ -182,14 +182,15 @@ sub _build_request_headers {
             my $k = shift;
             my $v = shift;
 
-            # skip connection or keep alive headers, are added by SL::HTTP::Client
-#            return 1 if $k =~ m/^keep-alive/i;
-#            return 1 if $k =~ m/^connection/i;
+          # skip connection or keep alive headers, are added by SL::HTTP::Client
+          #            return 1 if $k =~ m/^keep-alive/i;
+          #            return 1 if $k =~ m/^connection/i;
 
-            if ($k =~ m/^connection/i) {
+            if ( $k =~ m/^connection/i ) {
                 $headers{$k} = 'keep-alive';
                 return 1;
             }
+
             # pass this header onto the remote request
             $headers{$k} = $v;
 
@@ -249,14 +250,12 @@ sub handler {
 
     # no response means non html or html too big
     unless ($response) {
-      $r->log->debug("$$ response non html or too big") if DEBUG;
-      return _non_html_two_hundred( $r );
+        $r->log->debug("$$ response non html or too big") if DEBUG;
+        return _non_html_two_hundred($r);
     }
 
-    $r->log->debug(
-        "$$ Response headers from proxy request\n",
-        Data::Dumper::Dumper( $response )
-      )
+    $r->log->debug( "$$ Response headers from proxy request\n",
+        Data::Dumper::Dumper($response) )
       if DEBUG;
 
     # checkpoint make remote request
@@ -277,10 +276,11 @@ sub handler {
     }
 
     $r->log->debug(
-        sprintf( "$$ Request returned %d response: %s",
-            $response->code,  $response->as_string )
-      )
-      if VERBOSE_DEBUG;
+        sprintf(
+            "$$ Request returned %d response: %s",
+            $response->code, $response->as_string
+        )
+    ) if VERBOSE_DEBUG;
 
     no strict 'refs';
     return $sub->( $r, $response );
@@ -306,7 +306,7 @@ sub _translate_headers {
     # clear the current headers
     $r->headers_out->clear();
 
-    _translate_cookie_and_auth_headers($r, $res);
+    _translate_cookie_and_auth_headers( $r, $res );
 
     #########################
     # Create a hash with the remaining HTTP::Response HTTP::Headers attributes
@@ -315,12 +315,12 @@ sub _translate_headers {
 
     ##########################################
     # this is for any additional headers, usually site specific
-    _translate_remaining_headers($r, \%headers);
+    _translate_remaining_headers( $r, \%headers );
 
     # set the server header
     $headers{Server} ||= 'sl';
     $r->log->debug( "$$ server header is " . $headers{Server} ) if DEBUG;
-    $r->server->add_version_component( $headers{Server}  );
+    $r->server->add_version_component( $headers{Server} );
 
     return 1;
 }
@@ -434,7 +434,7 @@ sub _non_html_two_hundred {
 }
 
 sub _translate_cookie_and_auth_headers {
-    my ($r, $res) = @_;
+    my ( $r, $res ) = @_;
 
     ################################################
     # process the www-auth and set-cookie headers
@@ -444,7 +444,8 @@ sub _translate_cookie_and_auth_headers {
 
         my @headers = $res->header($header_type);
         foreach my $header (@headers) {
-            $r->log->debug("setting header $header_type value $header") if DEBUG;
+            $r->log->debug("setting header $header_type value $header")
+              if DEBUG;
             $r->err_headers_out->add( $header_type => $header );
         }
 
@@ -464,13 +465,14 @@ sub _set_response_headers {
     my %headers;
     $r->headers_out->clear();
 
-    _translate_cookie_and_auth_headers($r, $res);
+    _translate_cookie_and_auth_headers( $r, $res );
 
     # Create a hash with the HTTP::Response HTTP::Headers attributes
     $res->scan( sub { $headers{ $_[0] } = $_[1]; } );
     $r->log->debug(
-        sprintf( "not cookie/auth headers: %s", Data::Dumper::Dumper( \%headers ) ))
-      if DEBUG;
+        sprintf( "not cookie/auth headers: %s",
+            Data::Dumper::Dumper( \%headers ) )
+    ) if DEBUG;
 
     ## Set the response content type from the request, preserving charset
     my $content_type = $res->header('content-type');
@@ -481,8 +483,8 @@ sub _set_response_headers {
     ## Content languages
     if ( defined $headers{'content-language'} ) {
         $r->content_languages( [ $res->header('content-language') ] );
-        $r->log->debug( "$$ content languages set to "
-              . $res->header('content_language') )
+        $r->log->debug(
+            "$$ content languages set to " . $res->header('content_language') )
           if DEBUG;
         delete $headers{'Content-Language'};
     }
@@ -501,7 +503,7 @@ sub _set_response_headers {
           map { $_->[0] }
           HTTP::Headers::Util::split_header_words(
             $r->pnotes('client_supports_compression') );
-        $r->log->debug( "$$ header words are " . join ( ',', @h ) ) if DEBUG;
+        $r->log->debug( "$$ header words are " . join( ',', @h ) ) if DEBUG;
 
         # use the first acceptable compression, ordered by
         if ( grep { $_ eq 'x-bzip2' } @h ) {
@@ -532,7 +534,7 @@ sub _set_response_headers {
         }
         else {
             $r->log->error( "$$ unknown content-encoding encountered:  "
-                  . join ( ',', @h ) );
+                  . join( ',', @h ) );
         }
     }
 
@@ -550,7 +552,7 @@ sub _set_response_headers {
 
     ##########################################
     # this is for any additional headers, usually site specific
-    _translate_remaining_headers($r, \%headers);
+    _translate_remaining_headers( $r, \%headers );
 
     ###############################
     # possible through a nasty hack, set the server version
@@ -564,7 +566,7 @@ sub _set_response_headers {
 }
 
 sub _translate_remaining_headers {
-    my ($r, $headers) = @_;
+    my ( $r, $headers ) = @_;
 
     foreach my $key ( keys %{$headers} ) {
 
@@ -597,7 +599,7 @@ sub twohundred {
 
     my $url = $r->pnotes('url');
 
-    return _non_html_two_hundred( $r ) if !$response->is_html;
+    return _non_html_two_hundred($r) if !$response->is_html;
 
     # Cache the content_type, some misnomers in this section re: html
     $CACHE->add_known_html( $url => $response->content_type );
@@ -608,7 +610,7 @@ sub twohundred {
     ################################
     # the request rate limiter
     $TIMER->start('rate_limiter') if TIMING;
-    my $user_id = join ( '|', $r->pnotes('hash_mac'), $r->pnotes('ua') );
+    my $user_id = join( '|', $r->pnotes('hash_mac'), $r->pnotes('ua') );
     my $is_toofast = $RATE_LIMIT->check_violation($user_id) || 0;
     $r->log->debug("$$ ===> $url check_violation: $is_toofast") if DEBUG;
     $r->log->info(
@@ -706,8 +708,7 @@ sub twohundred {
     $r->log->info(
         sprintf( "$bytes_sent bytes sent, timer $$ %s %s %d %s %f",
             @{ $TIMER->checkpoint } )
-      )
-      if TIMING;
+    ) if TIMING;
 
     return Apache2::Const::OK;
 }
@@ -732,7 +733,7 @@ sub _generate_response {
     my $decoded_content        = $response->decoded_content;
     my $content_needs_encoding = 1;
 
-	unless ( defined $decoded_content ) {
+    unless ( defined $decoded_content ) {
 
         # hmmm, in some cases decoded_content is null so we use regular content
         # https://www.redhotpenguin.com/bugzilla/show_bug.cgi?id=424
@@ -743,30 +744,34 @@ sub _generate_response {
     }
 
     # check to make sure that the content can accept an ad
-    $r->log->debug("$$ content length is " . length($decoded_content)) if DEBUG;
+    $r->log->debug( "$$ content length is " . length($decoded_content) )
+      if DEBUG;
 
-	unless (length($decoded_content) > MIN_CONTENT_LENGTH) {
-	    $r->log->debug("$$ content too small for ad: " . length($decoded_content))
-            if DEBUG;
-        $r->log->debug("$$ small content is \n$decoded_content\n") if VERBOSE_DEBUG;
+    unless ( length($decoded_content) > MIN_CONTENT_LENGTH ) {
+        $r->log->debug(
+            "$$ content too small for ad: " . length($decoded_content) )
+          if DEBUG;
+        $r->log->debug("$$ small content is \n$decoded_content\n")
+          if VERBOSE_DEBUG;
 
         ## TODO - mark for perlbal next time
-		return;
-	}
+        return;
+    }
 
     ##############################################################
     # grab an ad
     $TIMER->start('random_ad') if TIMING;
 
     my %ad_args = (
-            ip   => $r->connection->remote_ip,
-            url  => $url,
-            mac  => $r->pnotes('router_mac'),
-            user => $r->pnotes('hash_mac'),
+        ip   => $r->connection->remote_ip,
+        url  => $url,
+        mac  => $r->pnotes('router_mac'),
+        user => $r->pnotes('hash_mac'),
     );
     $ad_args{premium} = 1 if $r->pnotes('premium');
     $ad_args{close_box} = 1 unless $r->pnotes('noclose');
-    my ( $ad_zone_id, $ad_content_ref, $css_url, $ad_size_id ) = SL::Model::Ad->random(\%ad_args);
+    my ( $ad_zone_id, $ad_content_ref, $css_url_ref, $js_url_ref, $ad_size_id )
+      = SL::Model::Ad->random( \%ad_args );
 
     # checkpoint random ad
     $r->log->info(
@@ -784,7 +789,8 @@ sub _generate_response {
     # put the ad in the page
     $TIMER->start('container insertion') if TIMING;
     my $ok =
-      SL::Model::Ad::container( $css_url, \$decoded_content, $ad_content_ref, $ad_size_id );
+      SL::Model::Ad::container( $css_url_ref, $js_url_ref, \$decoded_content,
+        $ad_content_ref, $ad_size_id );
 
     # checkpoint
     $r->log->info(
@@ -794,8 +800,7 @@ sub _generate_response {
     unless ($ok) {
 
         # TODO - mark url to be skipped next time
-        $r->log->error(
-            "could not insert ad id $ad_zone_id into url $url, css $css_url");
+        $r->log->error("could not insert ad zone id $ad_zone_id into url $url");
         return;
     }
 
