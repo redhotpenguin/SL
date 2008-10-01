@@ -17,7 +17,6 @@ clear: both;
 position: absolute;
 left: 0;
 top: 0;
-bottom: 0;
 padding:10px 16px 10px 10px;
 background: #FFF url(../images/backgrounds/border_vertical.png) repeat-y top right; 
 z-index: 3000;
