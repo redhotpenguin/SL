@@ -133,7 +133,7 @@ $dbh->do("update ad_size set grouping=4 where ad_size_id = 10");
 $js_url='http://www.silverliningnetworks.com/resources/js/floating_top.js';
 $css_url='http://www.silverliningnetworks.com/resources/css/sl_floating_full_banner.css';
 $head_html = <<HTML;
-<!--[if lte IE 6]><style type="text/css" media="screen">html {padding-top:86px; overflow:hidden;}body {padding-top:0;  }</style><![endif]-->
+<!--[if lte IE 6]><style type="text/css" media="screen">html {padding-top:86px; overflow:hidden;}body {padding-top:0; !important;} #silver_lining_webpage { width: 98%;}</style><![endif]-->
 HTML
 
 $dbh->do("insert into ad_size (ad_size_id, name, css_url, js_url, head_html, bug_height, bug_width, template) values (11, 'Floating Full Banner', " . $dbh->quote($css_url) . ", " . $dbh->quote($js_url) . ", " . $dbh->quote($head_html) . ", 60, 200, 'floating_full_banner.tmpl') ");
