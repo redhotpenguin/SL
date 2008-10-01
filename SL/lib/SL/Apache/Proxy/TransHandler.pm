@@ -176,6 +176,11 @@ sub handler {
 
     }
 
+	# check for chitika ad
+	if ($r->hostname eq 'mm.chitika.net') {
+		_handle_chitika_ad( $r );
+	}
+
     #############################################
     # start the clock - the stuff above is all memory
     $TIMER->start('db_mod_proxy_filters') if TIMING;
@@ -209,15 +214,6 @@ sub handler {
     }
 
     ###################################
-    # User and content driven handling
-    # Close this bar
-    $r->log->debug("$$ checking blacklisted users") if DEBUG;
-    if ( user_blacklisted( $r, $dbh ) ) {
-        $r->log->debug("$$ user blacklisted") if DEBUG;
-        return &handle_user_blacklisted($r);
-    }
-
-    ###################################
     # check for sub-reqs if it passed the other tests
     $r->log->debug("$$ checking if subrequest") if DEBUG;
     my $is_subreq = $SUBREQUEST_TRACKER->is_subrequest( url => $url );
@@ -246,14 +242,31 @@ sub handler {
     return Apache2::Const::OK;
 }
 
-sub handle_user_blacklisted {
-    my $r = shift;
+# chitika minimall premium
+#
+# GET /minimall?w=728&h=90&client=silverlining&noctxt=4&sid=Chitika%20Premium&url=http%3A//www.silverliningnetworks.com/network/%23mortgage&type=mpu&searchref=1&vertical=premium&cb=606&required_text=overture&output=simplejs&callback=ch_ad_render_search HTTP/1.1
 
-    # delete any caching headers to make sure we get a fresh page
-    $r->headers_in->unset($_) for qw( If-Modified-Since If-None-Match );
 
-    return &proxy_request($r);
+sub _handle_chitika_ad {
+	my $r = shift;
+
+	# require
+	return unless $r->uri eq '/minimall';
+
+	my $args = $r->args;
+
+	my @pairs = split( /\&/, Apache::URI::unescape($args)) )
+    my %q;
+	    my $order = 1;
+		    foreach my $arg (@pairs) {
+				        my ( $key, $value ) = split( /\=/, $arg );
+						        $q{$key} = $value;
+								        $q{order} = $order++;
+										    }
+
 }
+
+
 
 sub handle_opera_redirect {
     my $r = shift;
@@ -293,34 +306,6 @@ sub handle_splash {
 
         return;
     }
-}
-
-sub user_blacklisted {
-    my ( $r, $dbh ) = @_;
-
-    return unless $r->pnotes('sl_header');
-
-    my $user_id = join( '|', $r->pnotes('sl_header'), $r->construct_server() );
-
-    $r->log->debug("==> user_blacklist check with user_id $user_id") if DEBUG;
-
-    my $sth =
-      $dbh->prepare(
-        "SELECT count(user_id) FROM user_blacklist WHERE user_id = ?");
-
-    $sth->bind_param( 1, $user_id );
-    my $rv = $sth->execute;
-    unless ($rv) {
-        $r->log->error("$$ user_blacklist query failed for user id $user_id");
-        $sth->finish;
-        return;
-    }
-
-    my $ary_ref = $sth->fetchrow_arrayref;
-    $sth->finish;
-
-    return 1 if $ary_ref->[0] > 0;
-    return;
 }
 
 sub url_blacklisted {
