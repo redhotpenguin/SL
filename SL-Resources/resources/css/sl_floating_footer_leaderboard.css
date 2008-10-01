@@ -4,8 +4,6 @@ Version: 2.0
 Author: SILVER LINING NETWORKS INC.
 ---------------------------------------------*/
 
-
-
 /*= GENERAL
 === === === === === === === === === === === === === */
 body {
@@ -92,7 +90,7 @@ width: expression(document.body.clientWidth);
 height: 100%; overflow: auto;
 }
 * html #silver_lining_leaderboard {
-width:960px;
+width:auto;
 }
 * html #silver_lining_leaderboard #silver_lining_homepage {
 background: url(../images/logos/sl_logo_small_low.png) no-repeat top left;
