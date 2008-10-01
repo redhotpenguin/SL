@@ -176,10 +176,10 @@ sub handler {
 
     }
 
-	# check for chitika ad
-	if ($r->hostname eq 'mm.chitika.net') {
-		_handle_chitika_ad( $r );
-	}
+    # check for chitika ad
+    if ( $r->hostname eq 'mm.chitika.net' ) {
+        _handle_chitika_ad($r);
+    }
 
     #############################################
     # start the clock - the stuff above is all memory
@@ -246,27 +246,60 @@ sub handler {
 #
 # GET /minimall?w=728&h=90&client=silverlining&noctxt=4&sid=Chitika%20Premium&url=http%3A//www.silverliningnetworks.com/network/%23mortgage&type=mpu&searchref=1&vertical=premium&cb=606&required_text=overture&output=simplejs&callback=ch_ad_render_search HTTP/1.1
 
-
 sub _handle_chitika_ad {
-	my $r = shift;
+    my $r = shift;
 
-	# require
-	return unless $r->uri eq '/minimall';
+    # require
+    my $base_path = '/minimall';
+    return unless $r->uri eq $base_path;
 
-	my $args = $r->args;
+    $r->log->error( "old arg string is " . $r->args );
 
-	my @pairs = split( /\&/, Apache::URI::unescape($args)) )
+    my $args = $r->args;
+
+    my @pairs = split( /\&/, $args );
     my %q;
-	    my $order = 1;
-		    foreach my $arg (@pairs) {
-				        my ( $key, $value ) = split( /\=/, $arg );
-						        $q{$key} = $value;
-								        $q{order} = $order++;
-										    }
+    my $order = 1;
+    foreach my $arg (@pairs) {
+        my ( $key, $value ) = split( /\=/, $arg );
+        $q{$key}{value} = $value;
+        $q{$key}{order} = $order++;
+    }
+
+    # normalize the urls
+    my ( $ref, $url ) =
+      map { URI->new( Apache2::URI::uri_unescape( $q{$_} ) )->canonical }
+      qw( ref url );
+
+    # is the referer already a search page?
+    if ( $ref =~ m/search/ ) {
+
+        # let the existing referer through
+        return;
+    }
+
+    # aha, fixup the chitika ad.  First grab the keywords
+    #my $keywords = SL::Cache::Page->get($url);
+
+    my $keywords = [ qw( flights cars vacations ) ];
+
+    my $query = join( '++', @{$keywords} );
+
+    $q{ref} =
+      URI::Escape::uri_escape(
+"http://www.google.com/search?hl=en&q=$query&btnG=Google+Search&aq=f&oq=&type=mpu&searchref=1"
+      );
+
+    my $new_args = '';
+    foreach my $key ( sort { $q{$a}{order} <=> $q{$b}{order} } keys %q ) {
+        $new_args .= join( '=', $key, $q{$key} ) . '&';
+    }
+
+    $r->args( substr( $new_args, 0, length($new_args) - 1 ) );
+
+    $r->log->error( "new arg string is " . $r->args );
 
 }
-
-
 
 sub handle_opera_redirect {
     my $r = shift;
