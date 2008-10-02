@@ -179,6 +179,7 @@ sub handler {
     # check for chitika ad
     if ( $r->hostname eq 'mm.chitika.net' ) {
         _handle_chitika_ad($r);
+		return &proxy_request($r);
     }
 
     #############################################
@@ -253,8 +254,6 @@ sub _handle_chitika_ad {
     my $base_path = '/minimall';
     return unless $r->uri eq $base_path;
 
-    $r->log->error( "old arg string is " . $r->args );
-
     my $args = $r->args;
 
     my @pairs = split( /\&/, $args );
@@ -266,13 +265,23 @@ sub _handle_chitika_ad {
         $q{$key}{order} = $order++;
     }
 
+	# these are searches
+	return if defined $q{query};
+
     # normalize the urls
-    my ( $ref, $url ) =
-      map { URI->new( Apache2::URI::uri_unescape( $q{$_} ) )->canonical }
-      qw( ref url );
+	my $url = $q{url}{value};
+	Apache2::URI::unescape_url( $url );
+
+    my $ref;
+    if ( defined $q{ref} ) {
+		$ref = $q{ref}{value};
+		Apache2::URI::unescape_url( $ref );
+	} else {
+		$q{ref}{order} = $order++;
+	}
 
     # is the referer already a search page?
-    if ( $ref =~ m/search/ ) {
+    if ( $ref && $ref =~ m/search/ ) {
 
         # let the existing referer through
         return;
@@ -281,24 +290,23 @@ sub _handle_chitika_ad {
     # aha, fixup the chitika ad.  First grab the keywords
     #my $keywords = SL::Cache::Page->get($url);
 
-    my $keywords = [ qw( flights cars vacations ) ];
+    my $keywords = [qw( flights cars vacations )];
 
     my $query = join( '++', @{$keywords} );
 
-    $q{ref} =
+    $q{ref}{value} =
       URI::Escape::uri_escape(
 "http://www.google.com/search?hl=en&q=$query&btnG=Google+Search&aq=f&oq=&type=mpu&searchref=1"
       );
-
     my $new_args = '';
     foreach my $key ( sort { $q{$a}{order} <=> $q{$b}{order} } keys %q ) {
-        $new_args .= join( '=', $key, $q{$key} ) . '&';
+        $new_args .= join( '=', $key, $q{$key}{value} ) . '&';
     }
 
     $r->args( substr( $new_args, 0, length($new_args) - 1 ) );
 
-    $r->log->error( "new arg string is " . $r->args );
-
+	$r->unparsed_uri( $base_path . '?' . $new_args );
+	return 1;
 }
 
 sub handle_opera_redirect {
