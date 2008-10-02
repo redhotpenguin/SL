@@ -33,7 +33,7 @@ $dbh->do("alter table ad_size add column template text not null default '';");
 $dbh->do("alter table ad_size add column grouping  integer not null default 1");
 $dbh->do("alter table ad_size add column js_url text not null default ''");
 $dbh->do("alter table ad_size add column head_html text");
-
+$dbh->do("update acccount set premium='t'");
 
 ##############################
 $dbh->do("update ad_size set bug_width='200' where ad_size_id = 1");
