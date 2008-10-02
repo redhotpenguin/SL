@@ -51,7 +51,7 @@ sub collect_keywords {
         foreach my $keyword (@keywords) {
             next
               if $keyword =~
-m/^(?:img|image|rss|new|com|the|and|or|by|for|are|this|that|who|with|your|set|home|more)$/;
+m/^(?:was|all|see|img|image|rss|new|com|the|and|or|by|for|are|this|that|who|with|your|set|home|more)$/;
             next if length($keyword) < 3;
             $keywords{$keyword} += $increment;
         }
