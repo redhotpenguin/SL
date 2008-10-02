@@ -27,6 +27,7 @@ WriteMakefile(
                             'SL::Model'            => 0.14,
                             'SL::User'             => 0.02,
                             'RHP::Timer'           => 0.1,
+                            'Cache::Memcached'     => 1.24,
                            },
               EXE_FILES => [qw( bin/sl_proxy bin/sl_perlbal_watch )],
               ABSTRACT  => 'An ad serving proxy server',

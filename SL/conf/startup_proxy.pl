@@ -77,7 +77,7 @@ use Compress::Zlib      ();
 use Compress::Bzip2     ();
 use Crypt::Blowfish_PP  ();
 use HTTP::Headers::Util ();
-
+use Cache::Memcached    ();
 use Net::DNS            ();
 
 BEGIN {

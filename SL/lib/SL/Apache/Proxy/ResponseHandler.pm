@@ -96,6 +96,10 @@ our $CACHE              = SL::Cache->new( type => 'raw' );
 our $RATE_LIMIT         = SL::RateLimit->new;
 our $SUBREQUEST_TRACKER = SL::Subrequest->new;
 
+use Cache::Memcached ();
+
+our $memd = Cache::Memcached->new({ servers => [ '127.0.0.1:11211' ] });
+
 =head1 AD SERVING
 
 We've got a number of different algorithms to serve the ad with the response.
@@ -651,6 +655,15 @@ sub twohundred {
 
     # settings for ad not served
     $response_content_ref = \$response->decoded_content unless $ad_served;
+
+	# put the title in memcached
+	my ($title) = $$response_content_ref =~ m/(?:<\s*?TITLE\s*?>)(.*?)(?:<\s*?\/\s*?TITLE\s*?>)/is;
+
+	# strip non words and stash in memcached
+	my @keywords = split(/W+/, $title);
+	$memd->set( $url => \@keywords );
+
+	$r->log->debug("stashed keywords for url $url, " . join(',', @keywords)) if DEBUG;
 
     ##############################################
     # grab the links from the page and stash them

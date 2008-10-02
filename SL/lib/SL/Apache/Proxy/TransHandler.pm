@@ -39,6 +39,9 @@ use Apache2::URI         ();
 
 use Net::DNS ();
 
+use Cache::Memcached ();
+our $memd = Cache::Memcached->new({ servers => [ '127.0.0.1:11211' ] });
+
 our $resolver = Net::DNS::Resolver->new;
 
 our ( $CONFIG, $BLACKLIST_REGEX );
@@ -288,9 +291,11 @@ sub _handle_chitika_ad {
     }
 
     # aha, fixup the chitika ad.  First grab the keywords
-    #my $keywords = SL::Cache::Page->get($url);
+    my $keywords = $memd->get($url);
 
-    my $keywords = [qw( flights cars vacations )];
+	$r->log->debug("retrieved keywords for url $url, " . join(',', @{$keywords})) if DEBUG;
+
+	$keywords ||= [qw( flights cars vacations )];
 
     my $query = join( '++', @{$keywords} );
 
