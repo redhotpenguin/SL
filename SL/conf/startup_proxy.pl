@@ -61,6 +61,7 @@ use SL::RateLimit    ();
 use SL::HTTP::Client ();
 use SL::BrowserUtil  ();
 use SL::User         ();
+use SL::Context      ();
 
 use Digest::MD5 ();
 use DBI         ();

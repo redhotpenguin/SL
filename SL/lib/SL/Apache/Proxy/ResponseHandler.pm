@@ -43,6 +43,7 @@ use SL::Subrequest           ();
 use SL::RateLimit            ();
 use SL::Model::Proxy::Router ();
 use SL::Static               ();
+use SL::Context              ();
 
 # non core perl libs
 use Encode           ();
@@ -98,7 +99,7 @@ our $SUBREQUEST_TRACKER = SL::Subrequest->new;
 
 use Cache::Memcached ();
 
-our $memd = Cache::Memcached->new({ servers => [ '127.0.0.1:11211' ] });
+our $memd = Cache::Memcached->new( { servers => ['127.0.0.1:11211'] } );
 
 =head1 AD SERVING
 
@@ -656,14 +657,20 @@ sub twohundred {
     # settings for ad not served
     $response_content_ref = \$response->decoded_content unless $ad_served;
 
-	# put the title in memcached
-	my ($title) = $$response_content_ref =~ m/(?:<\s*?TITLE\s*?>)(.*?)(?:<\s*?\/\s*?TITLE\s*?>)/is;
+    my $keywords =
+      SL::Context->collect_keywords( content_ref => $response_content_ref );
 
-	# strip non words and stash in memcached
-	my @keywords = split(/W+/, $title);
-	$memd->set( $url => \@keywords );
+# put the title in memcached
+#	my ($title) = $$response_content_ref =~ m/(?:<\s*?TITLE\s*?>)(.*?)(?:<\s*?\/\s*?TITLE\s*?>)/is;
 
-	$r->log->debug("stashed keywords for url $url, " . join(',', @keywords)) if DEBUG;
+    # strip non words and stash in memcached
+    #	my @keywords = split(/W+/, $title);
+    $memd->set( $url =>
+          [ sort { $keywords->{$b} <=> $keywords->{$a} } keys %{$keywords} ] );
+
+    $r->log->debug(
+        "stashed keywords for url $url, " . join( ',', keys %{keywords} ) )
+      if DEBUG;
 
     ##############################################
     # grab the links from the page and stash them
