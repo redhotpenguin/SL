@@ -139,8 +139,12 @@ sub container {
     # ignore failed tail matches
     #        && ( $$decoded_content_ref =~ m/$end_body_match/ ) );
 
+	if (! defined $$head_html_ref) {
+		$$head_html_ref = '';
+	}
+
     # build the head content
-    my $head = sprintf( "$HEAD", $$css_url_ref, $$js_url_ref, $$head_html_ref );
+	my $head = sprintf( "$HEAD", $$css_url_ref, $$js_url_ref, $$head_html_ref );
 
     # Insert the head content
     my $matched = $$decoded_content_ref =~ s{$head_regex}{$1$head$2};
