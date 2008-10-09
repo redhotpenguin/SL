@@ -20,8 +20,9 @@ sub handler {
     }
 
     # delete the X-Forwarded header and set the connection ip
-    if ( my $forwarded =  delete $r->headers_in->{'X-Forwarded-For'} ) {
-        $r->connection->remote_ip( $forwarded );
+    if ( defined $r->headers_in->{'X-Forwarded-For'} ) {
+	        $r->connection->remote_ip( $r->headers_in->{'X-Forwarded-For'} );
+	        delete $r->headers_in->{'X-Forwarded-For'};
     }
 
     # see if we know this ip is registered
