@@ -5,10 +5,12 @@ use warnings;
 
 use SL::Config;
 use Cache::FastMmap;
+use Cache::Memcached ();
+
 
 our $VERSION = 0.23;
 
-our( $RAW_CACHE, $OBJ_CACHE );
+our( $RAW_CACHE, $OBJ_CACHE, $MEMD );
 
 BEGIN {
     our $CONFIG = SL::Config->new;
@@ -21,6 +23,12 @@ BEGIN {
         cache_size => $CONFIG->sl_obj_cache_size || '64m',
         share_file => $CONFIG->sl_obj_cache_file || '/tmp/sl_obj_cache ',
     );
+
+    $MEMD = Cache::Memcached->new({ servers => [ '127.0.0.1:11211' ] });
+}
+
+sub memd {
+  return $MEMD;
 }
 
 sub new {

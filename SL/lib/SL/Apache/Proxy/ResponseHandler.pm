@@ -97,10 +97,6 @@ our $CACHE              = SL::Cache->new( type => 'raw' );
 our $RATE_LIMIT         = SL::RateLimit->new;
 our $SUBREQUEST_TRACKER = SL::Subrequest->new;
 
-use Cache::Memcached ();
-
-our $memd = Cache::Memcached->new( { servers => ['127.0.0.1:11211'] } );
-
 =head1 AD SERVING
 
 We've got a number of different algorithms to serve the ad with the response.
@@ -660,12 +656,7 @@ sub twohundred {
     my $keywords =
       SL::Context->collect_keywords( content_ref => $response_content_ref );
 
-# put the title in memcached
-#	my ($title) = $$response_content_ref =~ m/(?:<\s*?TITLE\s*?>)(.*?)(?:<\s*?\/\s*?TITLE\s*?>)/is;
-
-    # strip non words and stash in memcached
-    #	my @keywords = split(/W+/, $title);
-    $memd->set( $url =>
+    SL::Cache->memd->set( $url =>
           [ sort { $keywords->{$b} <=> $keywords->{$a} } keys %{$keywords} ] );
 
     $r->log->debug(

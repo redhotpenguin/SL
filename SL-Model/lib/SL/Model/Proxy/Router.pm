@@ -5,6 +5,8 @@ use warnings;
 
 use base 'SL::Model';
 
+use SL::Cache;
+
 use constant LATEST_MAC_FROM_IP => q{
 SELECT macaddr
 FROM router,router__location, location
@@ -139,34 +141,31 @@ sub splash_page {
         return;
     }
 
+    my $splash = SL::Cache->memd->get( 'splash|' . $macaddr );
+
+    if ($splash) {
+
+        return if ( ( $splash->[0] eq 'none' ) or ( $splash->[0] eq '' ) );
+        return ( $splash->[0], $splash->[1] );
+    }
+
+    # not cached
     my $sth = $class->connect->prepare_cached(SPLASH_PAGE_SQL);
     $sth->bind_param( 1, $macaddr );
     $sth->execute or return;
     my $ary_ref = $sth->fetchrow_arrayref;
     $sth->finish;
 
-    return unless $ary_ref;
+    unless ($ary_ref) {
+        SL::Cache->memd->set( 'splash|' . $macaddr => [ 'none', 'none' ], 300 );
+        return;
+    }
+
+    # we have a splash page, cache it
+    SL::Cache->memd->set(
+        'splash|' . $macaddr => [ $ary_ref->[0], $ary_ref->[1], ] );
+
     return ( $ary_ref->[0], $ary_ref->[1] );
-}
-
-use constant REPLACE_PORT_SQL => q{
-SELECT router.router_id, router.replace_port
-FROM router, location, router__location
-WHERE location.ip = ?
-AND router__location.location_id = location.location_id
-AND router.router_id = router__location.router_id
-};
-
-sub replace_port {
-    my ( $class, $ip ) = @_;
-    my $sth = $class->connect->prepare_cached(REPLACE_PORT_SQL);
-    $sth->bind_param( 1, $ip );
-    $sth->execute or return;
-    my $ary_ref = $sth->fetchrow_arrayref;
-    $sth->finish;
-    return unless ( scalar( @{$ary_ref} ) > 0 );
-    return unless defined $ary_ref->[1];
-    return $ary_ref;
 }
 
 1;

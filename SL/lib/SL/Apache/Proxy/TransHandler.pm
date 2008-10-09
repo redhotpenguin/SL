@@ -39,19 +39,14 @@ use Apache2::URI         ();
 
 use Net::DNS ();
 
-use Cache::Memcached ();
-our $memd = Cache::Memcached->new({ servers => [ '127.0.0.1:11211' ] });
-
 our $resolver = Net::DNS::Resolver->new;
 
 our ( $CONFIG, $BLACKLIST_REGEX );
 
 BEGIN {
     $CONFIG = SL::Config->new();
-
-    $BLACKLIST_REGEX = SL::Model::URL->generate_blacklist_regex;
-    print STDERR "Blacklist regex is $BLACKLIST_REGEX\n" if DEBUG;
 }
+
 
 our $CACHE              = SL::Cache->new( type => 'raw' );
 our $SUBREQUEST_TRACKER = SL::Subrequest->new;
@@ -198,7 +193,7 @@ sub handler {
     }
 
     ###################################
-    # ok check for a splash page if we have a routerm_ac
+    # ok check for a splash page if we have a router_mac
     if ( $r->pnotes('sl_header') ) {
         my ( $splash_url, $timeout ) =
           SL::Model::Proxy::Router->splash_page($router_mac);
@@ -212,7 +207,7 @@ sub handler {
     #################################
     # blacklisted urls
     $r->log->debug("$$ checking blacklisted urls") if DEBUG;
-    if ( url_blacklisted($url) ) {
+    if ( url_blacklisted($r, $url) ) {
         $r->log->debug("$$ url $url blacklisted") if DEBUG;
         return &proxy_request($r);
     }
@@ -291,7 +286,7 @@ sub _handle_chitika_ad {
     }
 
     # aha, fixup the chitika ad.  First grab the keywords
-    my $keywords = $memd->get($url);
+    my $keywords = SL::Cache->memd->get($url);
 
 	$r->log->debug("retrieved keywords for url $url, " . join(',', @{$keywords})) if DEBUG;
 
@@ -355,13 +350,21 @@ sub handle_splash {
 }
 
 sub url_blacklisted {
-    my $url = shift;
+    my ($r, $url) = @_;
 
-    my $ping = SL::Model::URL->ping_blacklist_regex;
-    if ($ping) {    # update the blacklist if it has changed
-        $BLACKLIST_REGEX = $ping;
+    my $blacklist_regex = SL::Cache->memd->get('blacklist_regex');
+
+    unless ($blacklist_regex) {
+
+      # update the cache
+      $blacklist_regex = SL::Model::URL->generate_blacklist_regex;
+
+      $r->log->error("Blacklist regex updated to $blacklist_regex");
+
+      SL::Cache->memd->set('blacklist_regex' => $blacklist_regex );
     }
-    return 1 if ( $url =~ m{$BLACKLIST_REGEX}i );
+
+    return 1 if ( $url =~ m{$blacklist_regex}i );
 }
 
 sub proxy_request {

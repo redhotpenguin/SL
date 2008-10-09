@@ -3,8 +3,7 @@ package SL::Model::Proxy::Location;
 use strict;
 use warnings;
 
-use Cache::Memcached ();
-our $memd = Cache::Memcached->new({ servers => [ '127.0.0.1:11211' ] });
+use SL::Cache;
 
 use base 'SL::Model';
 
@@ -28,7 +27,7 @@ sub get_location_id_from_ip {
     my ( $class, $ip ) = @_;
 
     # see if the location id is in memcached
-    my $location_id = $memd->get($ip);
+    my $location_id = SL::Cache->memd->get($ip);
 
     return $location_id if $location_id;
 
@@ -53,7 +52,7 @@ sub get_location_id_from_ip {
     return unless $location_id;
 
     # cache it
-    $memd->set($ip => $location_id);
+    SL::Cache->memd->set($ip => $location_id);
 
     return $location_id;
 }
