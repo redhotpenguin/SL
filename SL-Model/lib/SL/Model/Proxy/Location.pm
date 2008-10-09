@@ -3,6 +3,9 @@ package SL::Model::Proxy::Location;
 use strict;
 use warnings;
 
+use Cache::Memcached ();
+our $memd = Cache::Memcached->new({ servers => [ '127.0.0.1:11211' ] });
+
 use base 'SL::Model';
 
 use constant INSERT_LOCATION_SQL => q{
@@ -24,6 +27,12 @@ ip = ?
 sub get_location_id_from_ip {
     my ( $class, $ip ) = @_;
 
+    # see if the location id is in memcached
+    my $location_id = $memd->get($ip);
+
+    return $location_id if $location_id;
+
+    # not in there, look in the database
     my $dbh = $class->connect;
     unless ($dbh) {
       die("$$ unable to get database handle: " . $DBI::errstr);
@@ -38,10 +47,14 @@ sub get_location_id_from_ip {
       return;
     }
 
-    my $location_id = $sth->fetchall_arrayref->[0]->[0];
+    $location_id = $sth->fetchall_arrayref->[0]->[0];
     $sth->finish;
 
     return unless $location_id;
+
+    # cache it
+    $memd->set($ip => $location_id);
+
     return $location_id;
 }
 

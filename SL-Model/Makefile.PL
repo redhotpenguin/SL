@@ -20,11 +20,12 @@ WriteMakefile(
         'Regexp::Assemble'            => 0.34,
         'URI'                         => 1.37,
         'Text::Wrap'                  => 2005.0824_01,
+        'Cache::Memcached'            => 1.24,
     },
     EXE_FILES => [
         qw( bin/sl_mail_user_reports.pl
-            bin/sl_report.pl bin/sl_report_graph.pl 
-            bin/sl_close_expire.pl )
+          bin/sl_report.pl bin/sl_report_graph.pl
+          bin/sl_close_expire.pl )
     ],
     ABSTRACT => 'The database abstraction layer for SL',
     AUTHOR   => 'Fred Moyer <fred@redhotpenguin.com>',
