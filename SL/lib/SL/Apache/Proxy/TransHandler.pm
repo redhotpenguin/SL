@@ -284,7 +284,7 @@ sub _handle_chitika_ad {
 	}
 
     # is the referer already a search page?
-    if ( $ref && $ref =~ m/search/ ) {
+    if ( $r->hostname eq 'www.google.com' or $r->hostname eq 'search.yahoo.com' ) {
 
         # let the existing referer through
         return;

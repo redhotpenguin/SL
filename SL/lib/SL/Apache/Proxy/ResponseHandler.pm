@@ -669,7 +669,7 @@ sub twohundred {
           [ sort { $keywords->{$b} <=> $keywords->{$a} } keys %{$keywords} ] );
 
     $r->log->debug(
-        "stashed keywords for url $url, " . join( ',', keys %{keywords} ) )
+        "stashed keywords for url $url, " . join( ',', keys %{$keywords} ) )
       if DEBUG;
 
     ##############################################
