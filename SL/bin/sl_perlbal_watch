@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-my $perlbal_user = 'phred2';
+my $perlbal_user = 'phred';
 
 my $perlbal = "/home/$perlbal_user/dev/perl/bin/perl /home/$perlbal_user/dev/perl/bin/perlbal -d";
 
