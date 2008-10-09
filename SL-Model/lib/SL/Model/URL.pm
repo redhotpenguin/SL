@@ -40,10 +40,6 @@ our $MAX_URL_ID;
 @URLS = __PACKAGE__->get_blacklisted_urls();
 $BLACKLIST_REGEX = __PACKAGE__->generate_blacklist_regex(\@URLS);
 
-use Cache::Memcached ();
-our $memd = Cache::Memcached->new({ servers => [ '127.0.0.1:11211' ] });
-
-
 sub get_blacklisted_urls {
     my $class = shift;
     my $dbh     = SL::Model->connect;
@@ -74,11 +70,8 @@ sub ping_blacklist_regex {
         # if nothing has changed, return the existing regex
         return unless ($they_are_different);
     }
-
-    $blacklist = $class->generate_blacklist_regex(\@recent_urls);
-    $memd->set('blacklist_regex' => $blacklist );
-
-    return $blacklist;
+    
+    return $class->generate_blacklist_regex(\@recent_urls);
 }
 
 sub generate_blacklist_regex {
