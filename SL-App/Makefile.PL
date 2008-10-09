@@ -18,6 +18,7 @@ ModPerl::MM::WriteMakefile(
         'Apache::DBI'         => 1.06,
         'Apache::Session'     => 1.83,
         'Crypt::Blowfish'     => 2.10,
+        'Crypt::CBC'	      => 2.30,
         'Crypt::DES'          => 2.05,
         'Data::FormValidator' => 4.50,
         'DBD::Pg'             => 1.49,
