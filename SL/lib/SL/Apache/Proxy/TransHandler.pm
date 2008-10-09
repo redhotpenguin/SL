@@ -45,6 +45,8 @@ our ( $CONFIG, $BLACKLIST_REGEX );
 
 BEGIN {
     $CONFIG = SL::Config->new();
+	$BLACKLIST_REGEX = SL::Model::URL->generate_blacklist_regex;
+    print STDERR "Blacklist regex is $BLACKLIST_REGEX\n" if DEBUG;
 }
 
 
@@ -207,7 +209,7 @@ sub handler {
     #################################
     # blacklisted urls
     $r->log->debug("$$ checking blacklisted urls") if DEBUG;
-    if ( url_blacklisted($r, $url) ) {
+    if ( url_blacklisted($url) ) {
         $r->log->debug("$$ url $url blacklisted") if DEBUG;
         return &proxy_request($r);
     }
@@ -350,21 +352,15 @@ sub handle_splash {
 }
 
 sub url_blacklisted {
-    my ($r, $url) = @_;
+    my $url = shift;
 
-    my $blacklist_regex = SL::Cache->memd->get('blacklist_regex');
+ 
+    my $ping = SL::Model::URL->ping_blacklist_regex;
+    if ($ping) {    # update the blacklist if it has changed
+	        $BLACKLIST_REGEX = $ping;
+	}
+	return 1 if ( $url =~ m{$BLACKLIST_REGEX}i );
 
-    unless ($blacklist_regex) {
-
-      # update the cache
-      $blacklist_regex = SL::Model::URL->generate_blacklist_regex;
-
-      $r->log->error("Blacklist regex updated to $blacklist_regex");
-
-      SL::Cache->memd->set('blacklist_regex' => $blacklist_regex );
-    }
-
-    return 1 if ( $url =~ m{$blacklist_regex}i );
 }
 
 sub proxy_request {
