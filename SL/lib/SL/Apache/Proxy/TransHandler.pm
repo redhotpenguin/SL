@@ -41,18 +41,17 @@ use Net::DNS ();
 
 our $resolver = Net::DNS::Resolver->new;
 
-our ( $CONFIG, $BLACKLIST_REGEX );
+our ( $Config, $Blacklist );
 
 BEGIN {
-    $CONFIG = SL::Config->new();
-	$BLACKLIST_REGEX = SL::Model::URL->generate_blacklist_regex;
-    print STDERR "Blacklist regex is $BLACKLIST_REGEX\n" if DEBUG;
+    $Config    = SL::Config->new();
+    $Blacklist = SL::Model::URL->generate_blacklist_regex;
+    print STDERR "Blacklist regex is $Blacklist\n" if DEBUG;
 }
 
-
-our $CACHE              = SL::Cache->new( type => 'raw' );
-our $SUBREQUEST_TRACKER = SL::Subrequest->new;
-our $USER_CACHE         = SL::User->new;
+our $Cache      = SL::Cache->new( type => 'raw' );
+our $Subrequest = SL::Subrequest->new;
+our $User       = SL::User->new;
 
 our $TIMER;
 if (TIMING) {
@@ -179,7 +178,7 @@ sub handler {
     # check for chitika ad
     if ( $r->hostname eq 'mm.chitika.net' ) {
         _handle_chitika_ad($r);
-		return &proxy_request($r);
+        return &proxy_request($r);
     }
 
     #############################################
@@ -208,7 +207,6 @@ sub handler {
 
     #################################
     # blacklisted urls
-    $r->log->debug("$$ checking blacklisted urls") if DEBUG;
     if ( url_blacklisted($url) ) {
         $r->log->debug("$$ url $url blacklisted") if DEBUG;
         return &proxy_request($r);
@@ -216,13 +214,25 @@ sub handler {
 
     ###################################
     # check for sub-reqs if it passed the other tests
-    $r->log->debug("$$ checking if subrequest") if DEBUG;
-    my $is_subreq = $SUBREQUEST_TRACKER->is_subrequest( url => $url );
-    return &proxy_request($r) if $is_subreq;
+    my $is_subreq = $Subrequest->is_subrequest( url => $url );
+    if ($is_subreq) {
+        $r->log->debug("$$ Url $url is a subrequest, proxying") if DEBUG;
+        return &proxy_request($r);
+    }
+
+    ################################
+    # check to see if an ad was just served on the referer of this page
+    my $ad_just_served = SL::Cache->memd->get("ad_just_served|$referer");
+    if ($ad_just_served) {
+        $r->log->debug(
+            "$$ Ad just served on referer $referer for url $url, proxying")
+          if DEBUG;
+        return &proxy_request($r);
+    }
 
     ###################################
     ## Check the cache for a static content match
-    return &proxy_request($r)            if $CACHE->is_known_not_html($url);
+    return &proxy_request($r)            if $Cache->is_known_not_html($url);
     $r->log->debug("$$ EndTranshandler") if DEBUG;
 
     $r->log->info(
@@ -265,23 +275,26 @@ sub _handle_chitika_ad {
         $q{$key}{order} = $order++;
     }
 
-	# these are searches
-	return if defined $q{query};
+    # these are searches
+    return if defined $q{query};
 
     # normalize the urls
-	my $url = $q{url}{value};
-	Apache2::URI::unescape_url( $url );
+    my $url = $q{url}{value};
+    Apache2::URI::unescape_url($url);
 
     my $ref;
     if ( defined $q{ref} ) {
-		$ref = $q{ref}{value};
-		Apache2::URI::unescape_url( $ref );
-	} else {
-		$q{ref}{order} = $order++;
-	}
+        $ref = $q{ref}{value};
+        Apache2::URI::unescape_url($ref);
+    }
+    else {
+        $q{ref}{order} = $order++;
+    }
 
     # is the referer already a search page?
-    if ( $r->hostname eq 'www.google.com' or $r->hostname eq 'search.yahoo.com' ) {
+    if (   $r->hostname eq 'www.google.com'
+        or $r->hostname eq 'search.yahoo.com' )
+    {
 
         # let the existing referer through
         return;
@@ -290,9 +303,11 @@ sub _handle_chitika_ad {
     # aha, fixup the chitika ad.  First grab the keywords
     my $keywords = SL::Cache->memd->get($url);
 
-	$r->log->debug("retrieved keywords for url $url, " . join(',', @{$keywords})) if DEBUG;
+    $r->log->debug(
+        "retrieved keywords for url $url, " . join( ',', @{$keywords} ) )
+      if DEBUG;
 
-	$keywords ||= [qw( flights cars vacations )];
+    $keywords ||= [qw( flights cars vacations )];
 
     my $query = join( '++', @{$keywords} );
 
@@ -307,8 +322,8 @@ sub _handle_chitika_ad {
 
     $r->args( substr( $new_args, 0, length($new_args) - 1 ) );
 
-	$r->unparsed_uri( $base_path . '?' . $new_args );
-	return 1;
+    $r->unparsed_uri( $base_path . '?' . $new_args );
+    return 1;
 }
 
 sub handle_opera_redirect {
@@ -327,11 +342,11 @@ sub handle_splash {
       if DEBUG;
 
     # aha splash page, check when the last time we saw this user was
-    my $last_seen = $USER_CACHE->get_last_seen( $r->pnotes('sl_header') );
+    my $last_seen = $User->get_last_seen( $r->pnotes('sl_header') );
     $r->log->debug( "$$ last seen $last_seen seen, time " . time() )
       if ( DEBUG && defined $last_seen );
 
-    my $set_ok = $USER_CACHE->set_last_seen( $r->pnotes('sl_header') );
+    my $set_ok = $User->set_last_seen( $r->pnotes('sl_header') );
 
     if ( !$last_seen
         or ( ( $timeout * 60 ) < ( time() - $last_seen ) ) )
@@ -354,12 +369,14 @@ sub handle_splash {
 sub url_blacklisted {
     my $url = shift;
 
- 
     my $ping = SL::Model::URL->ping_blacklist_regex;
+
     if ($ping) {    # update the blacklist if it has changed
-	        $BLACKLIST_REGEX = $ping;
-	}
-	return 1 if ( $url =~ m{$BLACKLIST_REGEX}i );
+
+        $Blacklist = $ping;
+    }
+
+    return 1 if ( $url =~ m{$Blacklist}i );
 
 }
 

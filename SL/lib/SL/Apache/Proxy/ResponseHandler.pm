@@ -53,20 +53,24 @@ use Compress::Zlib   ();
 use Compress::Bzip2  ();
 use URI::Escape      ();
 
-our $CONFIG;
+our $Config;
 
 BEGIN {
-    $CONFIG = SL::Config->new;
+    $Config = SL::Config->new;
 }
 
-use constant NOOP_RESPONSE => $CONFIG->sl_noop_response || 0;
+use constant NOOP_RESPONSE => $Config->sl_noop_response || 0;
 use constant DEBUG         => $ENV{SL_DEBUG}            || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG}    || 0;
 use constant TIMING        => $ENV{SL_TIMING}           || 0;
 use constant REPLACE_PORT  => 8135;
 
+# number of seconds to wait before serving an ad on a referer of a url that just had one served
+use constant AD_JUST_SERVED_EXPIRATION => $Config->ad_just_served_expiration || 2;
+
+
 # unencoded http responses must be this big to get an ad
-use constant MIN_CONTENT_LENGTH => $CONFIG->sl_min_content_length || 2500;
+use constant MIN_CONTENT_LENGTH => $Config->sl_min_content_length || 2500;
 
 our ( $TIMER, $REMOTE_TIMER );
 if (TIMING) {
@@ -93,9 +97,9 @@ our %response_map = (
     503 => 'bsod',
 );
 
-our $CACHE              = SL::Cache->new( type => 'raw' );
+our $Cache              = SL::Cache->new( type => 'raw' );
 our $RATE_LIMIT         = SL::RateLimit->new;
-our $SUBREQUEST_TRACKER = SL::Subrequest->new;
+our $Subrequest = SL::Subrequest->new;
 
 =head1 AD SERVING
 
@@ -603,7 +607,7 @@ sub twohundred {
     return _non_html_two_hundred($r) if !$response->is_html;
 
     # Cache the content_type, some misnomers in this section re: html
-    $CACHE->add_known_html( $url => $response->content_type );
+    $Cache->add_known_html( $url => $response->content_type );
 
     # code above is not a bottleneck
     ####################################
@@ -624,7 +628,7 @@ sub twohundred {
     my $response_content_ref;
     my $ad_served;
     if (    ( not $is_toofast )
-        and ( not $SUBREQUEST_TRACKER->is_subrequest( url => $url ) ) )
+        and ( not $Subrequest->is_subrequest( url => $url ) ) )
     {
 
         # put an ad in the response
@@ -641,6 +645,7 @@ sub twohundred {
             # we served an ad, note the ad-serving time for the rate-limiter
             $ad_served = 1;
             $RATE_LIMIT->record_ad_serve($user_id);
+            SL::Cache->memd->set( "ad_just_served|$url" => 1, AD_JUST_SERVED_EXPIRATION );
         }
 
     }    # end 'if ('
@@ -666,7 +671,7 @@ sub twohundred {
     ##############################################
     # grab the links from the page and stash them
     $TIMER->start('collect_subrequests') if TIMING;
-    my $subrequests_ref = $SUBREQUEST_TRACKER->collect_subrequests(
+    my $subrequests_ref = $Subrequest->collect_subrequests(
         content_ref => $response_content_ref,
         base_url    => $url,
     );
@@ -682,7 +687,7 @@ sub twohundred {
     if ( defined $subrequests_ref ) {
 
         # setting in place, replace the links
-        my $ok = $SUBREQUEST_TRACKER->replace_subrequests(
+        my $ok = $Subrequest->replace_subrequests(
             {
                 port        => REPLACE_PORT,
                 subreq_ref  => $subrequests_ref,
