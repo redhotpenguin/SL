@@ -412,7 +412,7 @@ sub signup {
 	$router->serial_number( $req->param('serial_number'));
 	$router->update;
 
-
+=cut
 my @bugs = ( { ad_size_id => 1,
 	image_href => 'http://www.silverliningnetworks.com/bugs/sl/leaderboard_sponsored_by.gif',
 	link_href => 'http://www.silverliningnetworks.com/?referer=silverlining', },
@@ -453,6 +453,7 @@ my @bugs = ( { ad_size_id => 1,
 	$newbug->update;
     }
 
+
 	# add default ad zones
     my @zones = SL::Model::App->resultset('AdZone')->search({
         name => { like => 'Silver Lining%' } });
@@ -472,12 +473,14 @@ my @bugs = ( { ad_size_id => 1,
 	$newzone->update;
     }
 
+=cut
 
+        my $support = "SLN Support <support\@silverliningnetworks.com>";
         my $mailer = Mail::Mailer->new('qmail');
         $mailer->open(
             {
-                'To'      => 'sl_reports@redhotpenguin.com',
-                'From'    => "SL Signup Daemon <fred\@redhotpenguin.com>",
+                'To'      => $support,
+                'From'    => $support,
                 'Subject' => "New signup for " . $reg->email,
             }
         );
@@ -485,6 +488,28 @@ my @bugs = ( { ad_size_id => 1,
           . " has signed up with router mac "
           . $router->macaddr . "\n";
         $mailer->close;
+
+        $mailer->open(
+            {
+                'To'      => $reg->email,
+                'From'    => $support,
+                'CC'      => $support,
+                'Subject' => "Welcome to Silver Lining Networks ",
+            }
+        );
+        print $mailer <<MAIL;
+Hi $reg->email,
+
+Thank you for registering with Silver Lining Networks. Please feel free to write us with any questions about the service at support\@silverliningnetworks.com.
+
+Sincerely,
+Jacob
+Silver Lining Networks Support
+
+MAIL
+
+        $mailer->close;
+
 
         # create a session
         my %session;
