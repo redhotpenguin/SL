@@ -15,11 +15,11 @@ BEGIN {
     $CONFIG = SL::Config->new();
     my @extensions = qw(
 		ad ads avi aac
-		bin bz2 bzip class css dll dms doc exe fla flv
+		bin bz2 bzip class css dll dms doc exe fla flv flac
 		gif gz ico img jar jpg jpeg js
 		lha lzh mar mkv mov mp3 mpg mpeg
 		ogg pdf pls png ppt psf
-		rar rdf rss sit so swf
+		rar rdf rss sit shn so swf
 		tar tgz tif tiff torrent txt
 		wav wmv vob xls xpi zip );
 
