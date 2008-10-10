@@ -2,7 +2,7 @@ sl_root  /home/phred/dev/sl/trunk/SL
 sl_httpd_root  /home/phred/dev/sl/httpd2
 sl_version  trunk
 
-sl_data_root /tmp/data/sl
+sl_data_root /home/phred/dev/sl/trunk/SL-App/htdocs/img/reports
 sl_ip_cache_file	/tmp/sl_ips
 
 # configure the database connection
