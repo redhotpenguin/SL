@@ -68,7 +68,6 @@ sl_proxy_apache_max_requests_per_child 250
 sl_clickserver_url  http://localhost:9000/click/
 sl_whitelist  Off
 sl_method  Container
-sl_css_uri  http://www.redhotpenguin.com/css/sl.css
 
 # app server settings
 sl_app_root  /Users/phred/dev/sl/trunk/SL-App

@@ -61,7 +61,6 @@ sl_clickserver_url http://69.36.240.29:81/click/
 sl_whitelist  Off
 sl_method  Container
 sl_proxy  mod_proxy
-sl_css_uri  http://www.redhotpenguin.com/css/sl.css
 
 # app server settings
 sl_app_root /home/phred/dev/sl/sl_app_root
