@@ -46,7 +46,7 @@
 
 [% FOREACH mytemporal = [ 'daily', 'weekly', 'monthly', 'quarterly', 'biannually', 'annually' ] %]
     [% UNLESS mytemporal == temporal %]
-    <a href="[% base_uri %]/app/report/index/?temporal=[% mytemporal %]">
+    <a href="[% base_uri %]/app/report/index/?temporal=[% mytemporal %]&type=[% type %]">
     [% END %]
     [% temporals.$mytemporal %]
     [% UNLESS mytemporal == temporal %]</a>[% END %]
