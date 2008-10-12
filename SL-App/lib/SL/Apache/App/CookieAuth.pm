@@ -321,6 +321,17 @@ sub redirect_auth {
     return Apache2::Const::REDIRECT;
 }
 
+sub valid_serial {
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+
+	return if $val eq 'CL7A0F318014';
+
+        return $val;
+      }
+}
+
 sub valid_macaddr {
     return sub {
         my $dfv = shift;
@@ -329,6 +340,8 @@ sub valid_macaddr {
         # first see if the mac is valid
         # thx regexp::common
         return unless $val =~ m/$RE{net}{MAC}/;
+
+	return if $val eq '00:17:f2:43:38:bd';
 
         return $val;
       }
@@ -368,6 +381,7 @@ sub signup {
                 paypal_id  => email(),
                 email      => email(),
                 router_mac => valid_macaddr(),
+                serial_number => valid_serial(),
                 password   => SL::Apache::App::check_password(
                     { fields => [ 'retype', 'password' ] }
                 ),
@@ -380,8 +394,6 @@ sub signup {
 
             my $errors = $class->SUPER::_results_to_errors($results);
 
-            use Data::Dumper;
-            warn Dumper($errors);
             return $class->signup(
                 $r,
                 {

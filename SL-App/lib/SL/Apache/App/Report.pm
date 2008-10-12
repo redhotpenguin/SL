@@ -33,19 +33,28 @@ sub dispatch_index {
     my $type = $req->param('type') || 'views';
     my $reg      = $r->pnotes( $r->user );
 
-    my $report_uri = join( '/', $Config->sl_app_base_uri, '/img/reports/',
+    my $report_base = join('/', 
     	$reg->account_id->report_base, $type . '_' . $temporal . '.png' );
+
+    my $report_uri;
+    if (-f join('/', $Config->sl_data_root, $report_base)) {
+
+	    $report_uri = join( '/', $Config->sl_app_base_uri, '/img/reports', $report_base);
+    }
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
             types                  => \%Types,
             type                   => $type,
             temporals              => \%Temporals,
-            report_uri             => $report_uri,
             status                 => $req->param('status') || '',
             report_email_frequency => $reg->report_email_frequency,
             temporal               => $temporal,
         );
+
+	if ($report_uri) {
+		$tmpl_data{report_uri} = $report_uri;
+	}
 
         my $output;
         my $ok = $tmpl->process( 'report.tmpl', \%tmpl_data, \$output, $r );
