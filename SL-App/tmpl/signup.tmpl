@@ -48,14 +48,15 @@ Retype Password:
 
 <!-- mac address -->
 
-<p style='text-align: right';>
+<p style='text-align: right;'>
 [% IF errors.missing.router_mac or errors.invalid.router_mac %]<font color="red">[% END %]
 Router MAC Address:
 [% IF errors.missing.router_mac or errors.invalid.router_mac %]</font>[% END %]
 <input type="text" size="17" maxlength="17" name="router_mac" value="[% req.param('router_mac') %]"></p>
+<p style='text-align: right;'><font color="#CCCCCC">example <b>00:17:f2:43:38:bd</b></font></p>
 
 <p style='text-align: right';>
-<font color="#CCCCCC">Required, you need to have an active router to signup for an account, example <b>00:17:f2:43:38:bd</b> (don't forget the colons)</font><p>
+<font color="#CCCCCC">Required, you need to have an active router to signup for an account</font><p>
 </div>
 
 
@@ -69,9 +70,10 @@ Router MAC Address:
 Serial Number:
 [% IF errors.missing.serial_number or errors.invalid.serial_number %]</font>[% END %]
 <input type="text" name="serial_number" size="25" maxlength="25" value="[% req.param('serial_number') %]"></p>
+<p style='text-align: right;'><font color="#CCCCCC">example CL7A0F318014<b></b></font></p>
 
 <p style='text-align: right';>
-<font color="#CCCCCC"><b>Required, to determine router model compatibility, example CL7A0F318014</b></font></p>
+<font color="#CCCCCC"><b>Required, to determine router model compatibility</b></font></p>
  
 </div>
 
@@ -88,7 +90,7 @@ PayPal ID:
 [% IF errors.missing.paypal_id or errors.invalid.paypal_id %]</font>[% END %]
 <input type="text" size="20" maxlength="96" name="paypal_id" value="[% req.param('paypal_id') %]"></p>
 <p style='text-align: right';>
-<font color="#CCCCCC">(Optional, can add later for payments, is an email address)</font><p>
+<font color="#CCCCCC">Optional, can add later for payments, is an email address</font><p>
 
 <p style='text-align: right';>
 <font color="#CCCCCC">

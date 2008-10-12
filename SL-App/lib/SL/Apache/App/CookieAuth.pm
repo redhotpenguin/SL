@@ -15,6 +15,7 @@ use Mail::Mailer;
 use Digest::MD5              ();
 use MIME::Lite               ();
 use Apache::Session::DB_File ();
+use Regexp::Common          qw( net );
 
 use base 'SL::Apache::App';
 use SL::Model::App    ();
@@ -36,14 +37,14 @@ BEGIN {
         -cipher => 'Blowfish',
     );
 
-# session
+    # session
     unless ( -d $Config->sl_app_session_dir ) {
-        system('mkdir -p ' . $Config->sl_app_session_dir) == 0 or die $!;
+        system( 'mkdir -p ' . $Config->sl_app_session_dir ) == 0 or die $!;
     }
 
     %SESS_OPTS = (
-        FileName      => join('/', $Config->sl_app_session_dir,
-	                           $Config->sl_app_session_lock_file ),
+        FileName => join( '/',
+            $Config->sl_app_session_dir, $Config->sl_app_session_lock_file ),
         LockDirectory => $Config->sl_app_session_dir,
         Transaction   => 1,
     );
@@ -124,7 +125,8 @@ sub authenticate {
         # load the session
         eval {
             tie %session, 'Apache::Session::DB_File', $session_id, \%SESS_OPTS;
-            $r->log->debug( "tied session id " . $session{_session_id} ) if DEBUG;
+            $r->log->debug( "tied session id " . $session{_session_id} )
+              if DEBUG;
         };
 
         if ($@) {
@@ -143,7 +145,8 @@ sub authenticate {
 
         # make a new session
         tie %session, 'Apache::Session::DB_File', undef, \%SESS_OPTS;
-        $r->log->debug("$$ new session id " . $session{_$session_id}) if DEBUG;
+        $r->log->debug( "$$ new session id " . $session{ _ $session_id} )
+          if DEBUG;
     }
 
     $session_id = $session{_session_id};
@@ -259,7 +262,8 @@ sub expire_cookie {
 sub send_cookie {
     my ( $class, $r, $reg, $session_id ) = @_;
 
-    die 'bad cookie attempt!' unless $reg && $session_id;
+    require Carp  && Carp::confess('bad cookie attempt!')
+      unless $reg && $session_id;
 
     # Give the user a new cookie
     my %state = (
@@ -323,12 +327,9 @@ sub valid_macaddr {
         my $val = $dfv->get_current_constraint_value;
 
         # first see if the mac is valid
-        return unless ( $val =~ m/^([0-9a-f]{2}([:-]|$)){6}$/i );
+        # thx regexp::common
+        return unless $val =~ m/$RE{net}{MAC}/;
 
-        # second see if it has been registered
-        my ($router) =
-          SL::Model::App->resultset('Router')->search( { macaddr => $val } );
-        return unless $router;
         return $val;
       }
 }
@@ -360,9 +361,9 @@ sub signup {
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
         $r->method_number(Apache2::Const::M_GET);
 
-	my %profile = (
-            required           => [qw( email password retype router_mac serial_number )],
-            optional           => [qw( paypal_id )],
+        my %profile = (
+            required => [qw( email password retype router_mac serial_number )],
+            optional => [qw( paypal_id )],
             constraint_methods => {
                 paypal_id  => email(),
                 email      => email(),
@@ -379,6 +380,8 @@ sub signup {
 
             my $errors = $class->SUPER::_results_to_errors($results);
 
+            use Data::Dumper;
+            warn Dumper($errors);
             return $class->signup(
                 $r,
                 {
@@ -388,98 +391,39 @@ sub signup {
             );
         }
 
-	# create an account
-	my $account = SL::Model::App->resultset('Account')->find_or_create({ name => $req->param('email') });
-	$account->update;
+        # create an account
+        my $account =
+          SL::Model::App->resultset('Account')
+          ->find_or_create( { name => $req->param('email') } );
+        $account->update;
 
-	$account->update_example_ad_zones;
-	$account->update;
+        $account->update_example_ad_zones;
+        $account->update;
 
         # signup was ok, first create the user account
         my %reg_args = (
             email        => $req->param('email'),
             password_md5 => Digest::MD5::md5_hex( $req->param('password') ),
-	    account_id   => $account->account_id,
+            account_id   => $account->account_id,
         );
         if ( $req->param('paypal_id') ) {
             $reg_args{'paypal_id'} = $req->param('paypal_id');
         }
 
-        my $reg = SL::Model::App->resultset('Reg')->find_or_create( \%reg_args );
+        my $reg =
+          SL::Model::App->resultset('Reg')->find_or_create( \%reg_args );
         $reg->update;
 
         # link the reg to the router
         my ($router) =
-          SL::Model::App->resultset('Router')->find_or_create({ macaddr => $req->param('router_mac') });
-	$router->account_id( $account->account_id );
-	$router->serial_number( $req->param('serial_number'));
-	$router->update;
-
-=cut
-my @bugs = ( { ad_size_id => 1,
-	image_href => 'http://www.silverliningnetworks.com/bugs/sl/leaderboard_sponsored_by.gif',
-	link_href => 'http://www.silverliningnetworks.com/?referer=silverlining', },
-
-	{ ad_size_id => 2,
-	image_href => 'http://www.silverliningnetworks.com/bugs/sl/full_banner_sponsored_by.gif',
-	link_href => 'http://www.silverliningnetworks.com/?referer=silverlining', },
-	{
-	ad_size_id => 3,
-	image_href => 'http://www.silverliningnetworks.com/bugs/sl/text_ad_sponsored_by.gif',
-	link_href => 'http://www.silverliningnetworks.com/?referer=silverlining', },
-
-	{
-	ad_size_id => 4,
-	image_href => 'http://www.silverliningnetworks.com/bugs/sl/skyscraper_sponsored_by.gif',
-	link_href => 'http://www.silverliningnetworks.com/?referer=silverlining', },
-
-	{
-	ad_size_id => 5,
-	image_href => 'http://www.silverliningnetworks.com/bugs/sl/wide_skyscraper_sponsored_by.gif',
-	link_href => 'http://www.silverliningnetworks.com/?referer=silverlining', },
-
-	{
-	ad_size_id => 6,
-	image_href => 'http://www.silverliningnetworks.com/bugs/sl/half_page_ad_sponsored_by.gif',
-	link_href => 'http://www.silverliningnetworks.com/?referer=silverlining', },
-	{
-	ad_size_id => 7,
-	image_href => 'http://www.silverliningnetworks.com/bugs/sl/wide_skyscraper_sponsored_by.gif',
-	link_href => 'http://www.silverliningnetworks.com/?referer=silverlining', },
-
-    );
-
-    foreach my $bug (@bugs) {
-	$bug->{account_id} = $account->account_id;
-
-	my $newbug = SL::Model::App->resultset('Bug')->find_or_create( $bug );
-	$newbug->update;
-    }
-
-
-	# add default ad zones
-    my @zones = SL::Model::App->resultset('AdZone')->search({
-        name => { like => 'Silver Lining%' } });
-
-    foreach my $zone (@zones) {
-
-	my %zone_hash = map {  $_ => $zone->$_ } qw( bug_id reg_id active ad_size_id account_id name code );
-
-	my ($bug) = SL::Model::App->resultset('Bug')->search({
-	    account_id => $account->account_id,
-	    ad_size_id => $zone->ad_size_id->ad_size_id, });
-	die unless $bug;
-	$zone_hash{bug_id} = $bug->bug_id;
-	$zone_hash{account_id} = $account->account_id;
-
-	my $newzone = SL::Model::App->resultset('AdZone')->find_or_create( \%zone_hash);
-	$newzone->update;
-    }
-
-=cut
+          SL::Model::App->resultset('Router')
+          ->find_or_create( { macaddr => $req->param('router_mac') } );
+        $router->account_id( $account->account_id );
+        $router->serial_number( $req->param('serial_number') );
+        $router->update;
 
         my $support = "SLN Support <support\@silverliningnetworks.com>";
-        my $mailer = Mail::Mailer->new('qmail');
+        my $mailer  = Mail::Mailer->new('qmail');
         $mailer->open(
             {
                 'To'      => $support,
@@ -513,7 +457,6 @@ MAIL
 
         $mailer->close;
 
-
         # create a session
         my %session;
         tie %session, 'Apache::Session::DB_File', undef, \%SESS_OPTS;
@@ -521,7 +464,7 @@ MAIL
         $r->pnotes( 'session' => \%session );
 
         # auth the user and log them in
-        $class->send_cookie( $r, $reg );
+        $class->send_cookie( $r, $reg, $session_id );
 
         $r->internal_redirect("/app/home/index");
         return $class->auth_ok( $r, $reg );
@@ -554,12 +497,12 @@ sub forgot {
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
         $r->method_number(Apache2::Const::M_GET);
 
-	$r->log->debug("$$ POSTING...") if DEBUG;
-        unless ( $email ) {
+        $r->log->debug("$$ POSTING...") if DEBUG;
+        unless ($email) {
 
             # missing email
-	    $r->headers_out->set(
-        	Location => $r->construct_url('/forgot/?status=blank') );
+            $r->headers_out->set(
+                Location => $r->construct_url('/forgot/?status=blank') );
             return Apache2::Const::REDIRECT;
         }
 
@@ -568,10 +511,13 @@ sub forgot {
 
         unless ($reg) {
 
-	    $r->headers_out->set(
-        	Location => $r->construct_url(
-		'/forgot/?status=notfound&forgot_email=' . $req->param('forgot_email')  ) );
-	    return Apache2::Const::REDIRECT;
+            $r->headers_out->set(
+                Location => $r->construct_url(
+                    '/forgot/?status=notfound&forgot_email='
+                      . $req->param('forgot_email')
+                )
+            );
+            return Apache2::Const::REDIRECT;
         }
         else {
 
@@ -602,12 +548,12 @@ sub forgot {
             $msg->send;
 
             #$msg->send_by_smtp('www.redhotpenguin.com');
-            
-    	    $r->headers_out->set(
-        	Location => $r->construct_url(
-			"/forgot/?status=sent&forgot_email=$email") );
-	    return Apache2::Const::REDIRECT;
-	    
+
+            $r->headers_out->set( Location =>
+                  $r->construct_url("/forgot/?status=sent&forgot_email=$email")
+            );
+            return Apache2::Const::REDIRECT;
+
         }
     }
 }
@@ -648,13 +594,15 @@ sub forgot_reset {
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
         $r->method_number(Apache2::Const::M_GET);
 
-	unless ( ( $req->param('password') && $req->param('retype') )
+        unless ( ( $req->param('password') && $req->param('retype') )
             && ( $req->param('password') eq $req->param('retype') ) )
         {
 
-	    $r->headers_out->set(
-        	Location => $r->construct_url(
-		'/forgot/reset/?error=mismatch&key=' . $req->param('key') ) );
+            $r->headers_out->set(
+                Location => $r->construct_url(
+                    '/forgot/reset/?error=mismatch&key=' . $req->param('key')
+                )
+            );
             return Apache2::Const::REDIRECT;
         }
 
@@ -668,8 +616,8 @@ sub forgot_reset {
         $forgot->update;
 
         # send to the login page
-	$r->headers_out->set(
-        	Location => $r->construct_url('/login/?status=password_updated') );
+        $r->headers_out->set(
+            Location => $r->construct_url('/login/?status=password_updated') );
         return Apache2::Const::REDIRECT;
     }
 }
