@@ -448,16 +448,18 @@ sub signup {
           . $router->macaddr . "\n";
         $mailer->close;
 
+	my $to_email = $reg->email;
         $mailer->open(
             {
-                'To'      => $reg->email,
+                'To'      => $to_email,
                 'From'    => $support,
                 'CC'      => $support,
                 'Subject' => "Welcome to Silver Lining Networks ",
             }
         );
-        print $mailer <<MAIL;
-Hi $reg->email,
+
+print $mailer <<MAIL;
+Hi $to_email,
 
 Thank you for registering with Silver Lining Networks. Please feel free to write us with any questions about the service at support\@silverliningnetworks.com.
 
