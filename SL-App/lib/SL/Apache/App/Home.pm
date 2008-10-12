@@ -13,7 +13,8 @@ our $tmpl = SL::App::Template->template();
 
 use XML::RAI ();
 
-use constant FORUM_URL => 'http://forums.silverliningnetworks.com/forums/5/posts.rss';
+#use constant FORUM_URL => 'http://forums.silverliningnetworks.com/forums/5/posts.rss';
+use constant FORUM_URL => 'http://forums.silverliningnetworks.com/posts.rss';
 
 =head1 METHODS
 

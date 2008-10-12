@@ -392,6 +392,9 @@ sub signup {
 	my $account = SL::Model::App->resultset('Account')->find_or_create({ name => $req->param('email') });
 	$account->update;
 
+	$account->update_example_ad_zones;
+	$account->update;
+
         # signup was ok, first create the user account
         my %reg_args = (
             email        => $req->param('email'),
