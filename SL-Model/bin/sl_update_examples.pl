@@ -9,6 +9,12 @@ use SL::Model::App;
 
 my @accounts = SL::Model::App->resultset('Account')->all;
 
-my @example_ad_zones = SL::Model
+foreach my $account (@accounts) {
 
+    next if $account->account_id == 1;
+
+    warn( "updating example ad zones for account " . $account->name );
+    $account->update_example_ad_zones;
+
+}
 

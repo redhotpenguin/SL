@@ -111,6 +111,60 @@ sub report_base {
   return join('/', Digest::MD5::md5_hex( $self->name ), 'report');
 }
 
+
+sub update_example_ad_zones {
+    my $self = shift;
+
+    my %base_example_ad_zones = map { $_->name => $_ }
+        SL::Model::App->resultset('AdZone')->search({
+           account_id => 1,
+           name => { like => 'SLN Example%', }, });
+
+    my %account_example_ad_zones = map { $_->name => $_ }
+        SL::Model::App->resultset('AdZone')->search({
+           account_id => $self->account_id,
+           name => { like => 'SLN Example%', }, });
+
+    foreach my $base_example ( keys %base_example_ad_zones ) {
+
+        # don't modify existing examples slick.  maybe some day.  They might modify
+        # theirs and then suddenly you fucked up their production ad zones.  Nice :)
+        next if $account_example_ad_zones{$base_example};
+
+        my $example = $base_example_ad_zones{$base_example};
+        my $ex_bug = $example->bug_id;
+
+        # create one
+         my $bug_example = SL::Model::App->resultset('Bug')->new({
+                image_href => $ex_bug->image_href,
+                link_href  => $ex_bug->link_href,
+                account_id => $self->account_id,
+                ad_size_id => $ex_bug->ad_size_id->ad_size_id, });
+
+          $bug_example->insert;
+          $bug_example->update;
+
+        # add the ad zone
+        my $new_ad_zone = SL::Model::App->resultset('AdZone')->new({
+                account_id => $self->account_id,
+                bug_id => $bug_example->bug_id,
+                reg_id => 1,
+                name => $example->name,
+                code => $example->code,
+                code_double => $example->code_double,
+                ad_size_id => $example->ad_size_id->ad_size_id,
+            });
+
+        $new_ad_zone->insert;
+        $new_ad_zone->update;
+
+        warn("added example ad zone " . $new_ad_zone->name ) if DEBUG;
+    }
+
+
+}
+
+
 sub get_ad_zones {
     my $self = shift;
 
