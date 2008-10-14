@@ -40,9 +40,7 @@ sub dispatch_edit {
     my $reg = $r->pnotes( $r->user );
 
     # ad zones for this account
-    my @ad_zones =
-      SL::Model::App->resultset('AdZone')
-      ->search( { account_id => $reg->account_id->account_id } );
+    my @ad_zones = $reg->get_ad_zones;
 
     my ( %router__ad_zones, @locations, $router, $output );
     if ( $req->param('router_id') ) {    # edit existing router
