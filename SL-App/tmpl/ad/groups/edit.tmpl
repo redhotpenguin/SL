@@ -131,9 +131,7 @@ function setBugList(ad_size_id) {
 Ad Invocation Code (provided by your ad server):&nbsp;&nbsp;
 [% IF errors.missing.code %]</font>[% END %]
 
-<p><textarea [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %]name="code" rows="10" cols="80">
-[% req.param('code') or ad_zone.code %]
-</textarea>
+<p><textarea [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %]name="code" rows="10" cols="80">[% req.param('code') or ad_zone.code %]</textarea>
 </p>
 
 [% IF req.param('code') or ad_zone.code %]
@@ -203,8 +201,8 @@ Double Ad Zone Vertical Zone Code (provided by your ad server):&nbsp;&nbsp;
 <hr class="sl_line"> <!-- don't move this :) -->
 
 </div>
-
 [% END %]
+
 
 <!-- end branding image -->
 

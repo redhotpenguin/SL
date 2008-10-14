@@ -124,6 +124,7 @@ sub dispatch_edit {
         ad_size_id => $req->param('ad_size_id'),
         bug_id     => $req->param('bug_id'),
         name       => $req->param('name'),
+        active     => $req->param('active'),
     );
 
     if ( my $double = $req->param('code_double') ) {
