@@ -129,7 +129,7 @@ sub dispatch_list {
 
     my $reg = $r->pnotes( $r->user );
 
-    my @bugs =
+    my @bugs = sort { $b->mts cmp $a->mts }
       SL::Model::App->resultset('Bug')
       ->search( { account_id => $reg->account_id->account_id } );
 
