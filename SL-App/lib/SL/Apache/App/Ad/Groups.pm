@@ -59,7 +59,7 @@ sub dispatch_edit {
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
-            ad_sizes => [ sort { $a->grouping <=> $b->grouping } SL::Model::App->resultset('AdSize')->all ],
+            ad_sizes => [ sort { $a->grouping <=> $b->grouping }  sort { $a->name cmp $b->name } SL::Model::App->resultset('AdSize')->all ],
             ad_zone  => $ad_zone,
             errors   => $args_ref->{errors},
             req      => $req,

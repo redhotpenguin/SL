@@ -68,7 +68,7 @@ Ad Size:&nbsp;&nbsp;
 function changeBugList() {
 
     // hide all sub lists
-    for (var i = 1; i < 13; i++) {
+    for (var i = 1; i < 14; i++) {
 
         document.getElementById('bug_list_' + i).style.display='none';
     }
@@ -82,7 +82,7 @@ function changeBugList() {
     }
 
     // show second box for double ad zones
-    if ((size > 6) && (size < 10) or (size == 14)) {
+    if (((size > 6) && (size < 10) ) || ( size == 14 )) {
         document.getElementById('code_double').style.display='block';
     } else {
         document.getElementById('code_double').style.display='none';
@@ -151,7 +151,7 @@ Ad Invocation Code (provided by your ad server):&nbsp;&nbsp;
 <!-- invocation double code -->
 <p>
 [% IF errors.missing.code_double %]<font color="red">[% END %]
-Double Ad Zone Vertical Zone Code (provided by your ad server):&nbsp;&nbsp;
+Double Ad Zone Code (provided by your ad server):&nbsp;&nbsp;
 [% IF errors.missing.code_double %]</font>[% END %]
 
 <p>
