@@ -130,6 +130,8 @@ function setBugList(ad_size_id) {
 [% IF errors.missing.code %]<font color="red">[% END %]
 Ad Invocation Code (provided by your ad server):&nbsp;&nbsp;
 [% IF errors.missing.code %]</font>[% END %]
+</p>
+<p><font color="#CCCCCC">For optimum ad serving speed, use secure (https) links to your ad server resources</font></p>
 
 <p><textarea [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %]name="code" rows="10" cols="80">[% req.param('code') or ad_zone.code %]</textarea>
 </p>
@@ -153,9 +155,11 @@ Ad Invocation Code (provided by your ad server):&nbsp;&nbsp;
 [% IF errors.missing.code_double %]<font color="red">[% END %]
 Double Ad Zone Code (provided by your ad server):&nbsp;&nbsp;
 [% IF errors.missing.code_double %]</font>[% END %]
+</p>
+
+<p><font color="#CCCCCC">For optimum ad serving speed, use secure (https) links to your ad server resources</font></p>
 
 <p>
-
 <textarea name="code_double" rows="10" cols="80">[% req.param('code_double') or ad_zone.code_double %]</textarea>
 
 [% IF req.param('code_double') or ad_zone.code_double %][% req.param('code_double') or ad_zone.code_double %][% END %]
