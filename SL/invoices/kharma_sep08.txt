@@ -1,26 +1,35 @@
-To get the total
+Silver Lining Networks, Inc.
+
+Invoice for Services
+
+Representative:  Jeff Lennan <jeff@silverliningnetworks.com>
+
+Billing Period:
+
+Aug 1, 2008 00:00:00 PST - Sep 1, 2008 00:00:00 PST
+
+                       Ad Insertions:  97,032
+                            CPM Rate:  $3.75
+                               Total:  $363.87
+
+Ad insertions by router:
+
+ count | router_id |           name
+-------+-----------+---------------------------
+ 33885 |        58 | 810 WILLOW
+ 28564 |        55 | THE ENCLAVE
+ 19533 |        62 | RIVERFRONT EAST GATEWAY
+  8042 |        48 | BAKER HOUSE
+  2796 |        61 | RENOS
+  2149 |         3 | 410 WEST 5TH
+  1656 |        60 | kharma consulting gateway
+   394 |        63 | 214 WEST 5TH
+    13 |        80 | PULLED
 
 
-sl_prod=# select count(*) from view where router_id in (  select
-distinct(router_id) from router where account_id in ( select account_id from reg where email like '%kharma%') ) and cts between '2008-09-01 00:00:00' and '2008-10-01 00:00:00';
-   
-count 
--------
-97032
-(1 row)
+Ad insertions by time:
 
-To get the day breakdown
-
-sl_prod=# select count(view.view_id), date_trunc('day',view.cts) from view
-where
-router_id in (  select distinct(router_id) from router where account_id in
-( select account_id from reg where email like '%kharma%') ) and view.cts
-between
-'2008-09-01 00:00:00' and '2008-10-01 00:00:00' group by date_trunc('day',
-view.cts) order by date_trunc('day', view.cts);
-
-
- count |     date_trunc      
+ count |     date
 -------+---------------------
    986 | 2008-09-01 00:00:00
   2230 | 2008-09-02 00:00:00
@@ -52,29 +61,3 @@ view.cts) order by date_trunc('day', view.cts);
   8106 | 2008-09-28 00:00:00
   4435 | 2008-09-29 00:00:00
   3090 | 2008-09-30 00:00:00
-(30 rows)
-
-
-
-To get the router breakdown:
-
-
-sl_prod=# select count(view.router_id), view.router_id, router.name from view, router where view.router_id in (  select distinct(router_id) from router  where
-account_id in ( select account_id from reg where email like '%kharma%') ) and
-view.cts between '2008-09-01 00:00:00' and '2008-10-01 00:00:00' and
-router.router_id = view.router_id group by view.router_id, router.name order
-by count(view.router_id) desc;
-
-
- count | router_id |           name            
--------+-----------+---------------------------
- 33885 |        58 | 810 WILLOW
- 28564 |        55 | THE ENCLAVE
- 19533 |        62 | RIVERFRONT EAST GATEWAY
-  8042 |        48 | BAKER HOUSE
-  2796 |        61 | RENOS
-  2149 |         3 | 410 WEST 5TH
-  1656 |        60 | kharma consulting gateway
-   394 |        63 | 214 WEST 5TH
-    13 |        80 | PULLED
-(9 rows)
