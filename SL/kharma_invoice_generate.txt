@@ -1,75 +1,80 @@
 To get the total
 
-sl2=# select count(*) from view where router_id in (  select distinct(router_id) from router where account_id in ( select account_id from reg where email like '%kharma%') ) and cts between '2008-07-01 00:00:00' and '2008-08-01 00:00:00'
 
+sl_prod=# select count(*) from view where router_id in (  select
+distinct(router_id) from router where account_id in ( select account_id from reg where email like '%kharma%') ) and cts between '2008-09-01 00:00:00' and '2008-10-01 00:00:00';
+   
+count 
+-------
+97032
 (1 row)
-
-62,776
-
 
 To get the day breakdown
 
-select count(view.view_id), date_trunc('day',view.cts) from view where 
-router_id in (  select distinct(router_id) from router where account_id in 
-( select account_id from reg where email like '%kharma%') ) and view.cts 
-between 
-'2008-07-01 00:00:00' and '2008-08-01 00:00:00' group by date_trunc('day', 
+sl_prod=# select count(view.view_id), date_trunc('day',view.cts) from view
+where
+router_id in (  select distinct(router_id) from router where account_id in
+( select account_id from reg where email like '%kharma%') ) and view.cts
+between
+'2008-09-01 00:00:00' and '2008-10-01 00:00:00' group by date_trunc('day',
 view.cts) order by date_trunc('day', view.cts);
- 
+
+
  count |     date_trunc      
 -------+---------------------
-  2194 | 2008-07-01 00:00:00
-  2197 | 2008-07-02 00:00:00
-  1302 | 2008-07-03 00:00:00
-  1359 | 2008-07-04 00:00:00
-  1109 | 2008-07-05 00:00:00
-  2246 | 2008-07-06 00:00:00
-  1485 | 2008-07-07 00:00:00
-  1188 | 2008-07-08 00:00:00
-  1530 | 2008-07-09 00:00:00
-  1814 | 2008-07-10 00:00:00
-  1946 | 2008-07-11 00:00:00
-  1777 | 2008-07-12 00:00:00
-  2852 | 2008-07-13 00:00:00
-  2344 | 2008-07-14 00:00:00
-  2199 | 2008-07-15 00:00:00
-  2631 | 2008-07-16 00:00:00
-  1995 | 2008-07-17 00:00:00
-  1879 | 2008-07-18 00:00:00
-  1929 | 2008-07-19 00:00:00
-  3852 | 2008-07-20 00:00:00
-  2644 | 2008-07-21 00:00:00
-  2694 | 2008-07-22 00:00:00
-  1731 | 2008-07-23 00:00:00
-  2509 | 2008-07-24 00:00:00
-  2109 | 2008-07-25 00:00:00
-  1325 | 2008-07-26 00:00:00
-  2346 | 2008-07-27 00:00:00
-  1993 | 2008-07-28 00:00:00
-  2238 | 2008-07-29 00:00:00
-  1536 | 2008-07-30 00:00:00
-  1823 | 2008-07-31 00:00:00
-(31 rows)
+   986 | 2008-09-01 00:00:00
+  2230 | 2008-09-02 00:00:00
+  2217 | 2008-09-03 00:00:00
+  2215 | 2008-09-04 00:00:00
+  1767 | 2008-09-05 00:00:00
+  2124 | 2008-09-06 00:00:00
+  2756 | 2008-09-07 00:00:00
+  2667 | 2008-09-08 00:00:00
+  2754 | 2008-09-09 00:00:00
+  3628 | 2008-09-10 00:00:00
+  3391 | 2008-09-11 00:00:00
+  3329 | 2008-09-12 00:00:00
+  3684 | 2008-09-13 00:00:00
+  2144 | 2008-09-14 00:00:00
+  2893 | 2008-09-15 00:00:00
+  2383 | 2008-09-16 00:00:00
+  2387 | 2008-09-17 00:00:00
+  2431 | 2008-09-18 00:00:00
+  2063 | 2008-09-19 00:00:00
+  2349 | 2008-09-20 00:00:00
+  1662 | 2008-09-21 00:00:00
+  2477 | 2008-09-22 00:00:00
+  3042 | 2008-09-23 00:00:00
+  3877 | 2008-09-24 00:00:00
+  5682 | 2008-09-25 00:00:00
+  7355 | 2008-09-26 00:00:00
+  6908 | 2008-09-27 00:00:00
+  8106 | 2008-09-28 00:00:00
+  4435 | 2008-09-29 00:00:00
+  3090 | 2008-09-30 00:00:00
+(30 rows)
+
 
 
 To get the router breakdown:
 
-elect count(view.router_id), view.router_id, router.name from view, router
-where view.router_id in (  select distinct(router_id) from router  where
+
+sl_prod=# select count(view.router_id), view.router_id, router.name from view, router where view.router_id in (  select distinct(router_id) from router  where
 account_id in ( select account_id from reg where email like '%kharma%') ) and
-view.cts between '2008-07-01 00:00:00' and '2008-08-01 00:00:00' and
+view.cts between '2008-09-01 00:00:00' and '2008-10-01 00:00:00' and
 router.router_id = view.router_id group by view.router_id, router.name order
-by count(view.router_id) desc
+by count(view.router_id) desc;
+
 
  count | router_id |           name            
 -------+-----------+---------------------------
- 26696 |        69 | DEAD
- 19325 |        58 | 810 WILLOW
-  4714 |        48 | BAKER HOUSE
-  4647 |        64 | 214 W 5th gateway
-  3854 |        62 | PULLED
-  1610 |        61 | RENOS
-  1495 |        63 | PULLED
-   417 |        60 | kharma consulting gateway
-    18 |        55 | THE ENCLAVE
+ 33885 |        58 | 810 WILLOW
+ 28564 |        55 | THE ENCLAVE
+ 19533 |        62 | RIVERFRONT EAST GATEWAY
+  8042 |        48 | BAKER HOUSE
+  2796 |        61 | RENOS
+  2149 |         3 | 410 WEST 5TH
+  1656 |        60 | kharma consulting gateway
+   394 |        63 | 214 WEST 5TH
+    13 |        80 | PULLED
 (9 rows)
