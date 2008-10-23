@@ -220,16 +220,6 @@ sub handler {
         return &proxy_request($r);
     }
 
-    ################################
-    # check to see if an ad was just served on the referer of this page
-    my $ad_just_served = SL::Cache->memd->get("ad_just_served|$referer");
-    if ($ad_just_served) {
-        $r->log->debug(
-            "$$ Ad just served on referer $referer for url $url, proxying")
-          if DEBUG;
-        return &proxy_request($r);
-    }
-
     ###################################
     ## Check the cache for a static content match
     return &proxy_request($r)            if $Cache->is_known_not_html($url);

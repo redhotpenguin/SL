@@ -65,10 +65,6 @@ use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG}    || 0;
 use constant TIMING        => $ENV{SL_TIMING}           || 0;
 use constant REPLACE_PORT  => 8135;
 
-# number of seconds to wait before serving an ad on a referer of a url that just had one served
-use constant AD_JUST_SERVED_EXPIRATION => $Config->ad_just_served_expiration || 2;
-
-
 # unencoded http responses must be this big to get an ad
 use constant MIN_CONTENT_LENGTH => $Config->sl_min_content_length || 2500;
 
@@ -645,7 +641,6 @@ sub twohundred {
             # we served an ad, note the ad-serving time for the rate-limiter
             $ad_served = 1;
             $RATE_LIMIT->record_ad_serve($user_id);
-            SL::Cache->memd->set( "ad_just_served|$url" => 1, AD_JUST_SERVED_EXPIRATION );
         }
 
     }    # end 'if ('
