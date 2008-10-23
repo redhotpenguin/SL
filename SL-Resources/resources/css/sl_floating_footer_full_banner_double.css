@@ -8,7 +8,7 @@ Author: SILVER LINING NETWORKS INC.
 === === === === === === === === === === === === === */
 body {
 margin: 0;
-padding: 0px 0px 86px 0px !important;
+padding: 0px 0px 116px 0px !important;
 }
 .silver_lining_clear {
 clear: both;
@@ -31,7 +31,8 @@ z-index: 3000;
 text-align: left;
 margin-left:auto;
 margin-right: auto;
-width: 1100px;
+max-width: 1100px;
+min-width: 1100px;
 height: 90px;
 position: relative;
 }
@@ -43,14 +44,25 @@ background-position: top left !important;
 background-repeat: no-repeat !important;
 overflow: hidden;
 }
-#silver_lining_full_banner #silver_lining_client_ad, 
-#silver_lining_full_banner #silver_lining_client_ad_2 {
+#silver_lining_full_banner #silver_lining_client_ad_wide {
 float: left;
+height: 60px;
+overflow: hidden;
 margin-top: 15px;
+margin-left: 10px;
+width: 940px;
+}
+#silver_lining_client_zone_1 {
+float: left;
 height: 60px;
 width: 468px;
 overflow: hidden;
-margin-left: 10px;
+}
+#silver_lining_client_zone_2 {
+float: right;
+height: 60px;
+width: 468px;
+overflow: hidden;
 }
 
 #silver_lining_full_banner #silver_lining_homepage {
@@ -70,7 +82,7 @@ z-index: 5000;
 #silver_lining_full_banner #silver_lining_close {
 position: absolute;
 bottom: 0px;
-right: 20px;
+right: 0px;
 border: none;
 z-index: 5000;
 }
