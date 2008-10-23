@@ -51,7 +51,7 @@ sub collect_keywords {
         foreach my $keyword (@keywords) {
             next
               if $keyword =~
-m/^(?:what|have|want|one|goes|latest|gets|again|top|how|into|not|out|you|has|will|was|from|all|see|img|image|rss|new|com|the|and|or|by|for|are|this|that|who|with|your|set|home|more)$/;
+m/^(?:what|have|off|want|one|goes|latest|gets|again|top|how|into|not|out|you|has|will|was|from|all|see|img|image|rss|new|com|the|and|or|by|for|are|this|that|who|with|your|set|home|more)$/;
             next if length($keyword) < 3;
             $keywords{$keyword} += $increment;
         }
@@ -67,7 +67,7 @@ m/^(?:what|have|want|one|goes|latest|gets|again|top|how|into|not|out|you|has|wil
       my $key ( sort { $keywords{$b} <=> $keywords{$a} } keys %keywords )
     {
         delete $keywords{$key}
-          if $i++ > 10;
+          if $i++ > 6; # number of keywords
 
     }
 
