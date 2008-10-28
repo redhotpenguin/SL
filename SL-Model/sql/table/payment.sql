@@ -20,22 +20,17 @@ SET default_with_oids = false;
 
 CREATE TABLE payment (
     payment_id integer NOT NULL,
-    reg_id integer NOT NULL,
-    cts timestamp without time zone DEFAULT now(),
-    approved_ts timestamp without time zone,
-    approved boolean DEFAULT false,
-    approved_reg_id integer DEFAULT 1 NOT NULL,
-    num_views integer NOT NULL,
-    cpm money NOT NULL,
+    account_id integer NOT NULL,
+    usr_id integer NOT NULL,
     amount money NOT NULL,
-    pp_timestamp timestamp with time zone,
-    pp_correlation_id text DEFAULT ''::text,
-    pp_version text DEFAULT ''::text,
-    pp_build text DEFAULT ''::text,
-    payable boolean DEFAULT false NOT NULL,
-    receivable boolean DEFAULT false NOT NULL,
-    collected boolean DEFAULT false NOT NULL,
-    paid boolean DEFAULT false NOT NULL
+    start timestamp without time zone DEFAULT now() NOT NULL,
+    stop timestamp without time zone NOT NULL,
+    authorization_code integer,
+    error_message text,
+    cts timestamp without time zone DEFAULT now() NOT NULL,
+    approved boolean,
+    last_four integer NOT NULL,
+    card_type text NOT NULL
 );
 
 
@@ -46,6 +41,7 @@ ALTER TABLE public.payment OWNER TO phred;
 --
 
 CREATE SEQUENCE payment_payment_id_seq
+    START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
     NO MINVALUE
@@ -65,7 +61,7 @@ ALTER SEQUENCE payment_payment_id_seq OWNED BY payment.payment_id;
 -- Name: payment_payment_id_seq; Type: SEQUENCE SET; Schema: public; Owner: phred
 --
 
-SELECT pg_catalog.setval('payment_payment_id_seq', 1, true);
+SELECT pg_catalog.setval('payment_payment_id_seq', 1, false);
 
 
 --
@@ -79,7 +75,8 @@ ALTER TABLE payment ALTER COLUMN payment_id SET DEFAULT nextval('payment_payment
 -- Data for Name: payment; Type: TABLE DATA; Schema: public; Owner: phred
 --
 
-INSERT INTO payment VALUES (1, 14, '2008-01-04 01:17:32.667096', NULL, true, 14, 10000, '$1.00', '$0.01', NULL, '', '', '', false, false, false, false);
+COPY payment (payment_id, account_id, usr_id, amount, start, stop, authorization_code, error_message, cts, approved, last_four, card_type) FROM stdin;
+\.
 
 
 --
@@ -91,11 +88,19 @@ ALTER TABLE ONLY payment
 
 
 --
--- Name: reg_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
+-- Name: payment_account_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
 --
 
 ALTER TABLE ONLY payment
-    ADD CONSTRAINT reg_id_fkey FOREIGN KEY (reg_id) REFERENCES reg(reg_id) ON UPDATE CASCADE ON DELETE CASCADE;
+    ADD CONSTRAINT payment_account_id_fkey FOREIGN KEY (account_id) REFERENCES account(account_id);
+
+
+--
+-- Name: payment_usr_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
+--
+
+ALTER TABLE ONLY payment
+    ADD CONSTRAINT payment_usr_id_fkey FOREIGN KEY (usr_id) REFERENCES usr(usr_id);
 
 
 --
