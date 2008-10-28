@@ -1,0 +1,6 @@
+Revision history for Perl extension SL-Auth.
+
+0.01  Mon Oct 27 18:16:26 2008
+	- original version; created by h2xs 1.23 with options
+		-X SL-Auth
+
