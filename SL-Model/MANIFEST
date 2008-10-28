@@ -19,7 +19,6 @@ lib/SL/Model/App/Router.pm
 lib/SL/Model/App/Payment.pm
 lib/SL/Model/App/Reg.pm
 lib/SL/Model/App.pm
-lib/SL/Model/Test.pm
 lib/SL/Model/Proxy/Location.pm
 lib/SL/Model/Proxy/Router/Location.pm
 lib/SL/Model/Proxy/Router.pm
