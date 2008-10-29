@@ -3,14 +3,15 @@ package SL::CP::IPTables;
 use strict;
 use warnings;
 
-use SL::Config ();
+use SL::Config     ();
+use LWP::UserAgent ();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 our (
     $Config,   $Iptables, $Ext_if,         %tables_chains,
     $Int_if,   $Auth_ip,  $Cp_server_port, $Gateway_ip,
-    $Ad_proxy, $Mark_op
+    $Ad_proxy, $Mark_op,  $Auth_token_url,
 );
 
 BEGIN {
@@ -19,6 +20,7 @@ BEGIN {
     $Ext_if         = $Config->sl_ext_if || die 'oops';
     $Int_if         = $Config->sl_int_if || die 'oops';
     $Auth_ip        = $Config->sl_auth_server_ip || die 'oops';
+    $Auth_token_url = $Config->sl_cp_auth_token_url || die 'oops';
     $Cp_server_port = $Config->sl_apache_listen || die 'oops';
     $Gateway_ip     = $Config->sl_gateway_ip || die 'oops';
     $Ad_proxy       = $Config->sl_proxy || die 'oops';
@@ -29,11 +31,16 @@ BEGIN {
         mangle => [qw( slBLK slINC slOUT slTRU )],
         nat    => [qw( slOUT slADS )],
     );
+
 }
 
-sub init_firewall {
+our $UA = LWP::UserAgent->new;
+$UA->timeout(60);
 
-    clear_firewall();
+sub init_firewall {
+    my $class = shift;
+
+    $class->clear_firewall();
 
     # create the chains
     foreach my $table ( sort keys %tables_chains ) {
@@ -113,16 +120,8 @@ sub add_rules {
     }
 }
 
-sub iptables {
-    my $cmd = shift;
-
-    system("$Iptables $cmd") == 0
-      or die "could not iptables '$cmd', err: $!, ret: $?\n";
-
-    return 1;
-}
-
 sub clear_firewall {
+    my $class = shift;
 
     # clear all tables
     iptables("-t $_ -F") for keys %tables_chains;
@@ -134,8 +133,23 @@ sub clear_firewall {
     iptables("-t nat -A POSTROUTING -o $Ext_if -j MASQUERADE");
 }
 
+sub iptables {
+    my $cmd = shift;
+
+    system("$Iptables $cmd") == 0
+      or die "could not iptables '$cmd', err: $!, ret: $?\n";
+
+    return 1;
+}
+
 sub add_to_paid_chain {
-    my ( $mac, $ip ) = @_;
+    my ( $class, $mac, $ip, $token ) = @_;
+
+    # fetch the token and validate
+    my $res = $UA->get( $Auth_token_url . '/' . $mac . '|' . $token );
+
+    die "error validating mac $mac with token $token:  " . $res->status_line
+      unless $res->is_success;
 
     do_iptables(
 "-t mangle -A slNET -s $ip -m mac --mac-source $mac -j MARK $Mark_op 0x500"
@@ -145,7 +159,7 @@ sub add_to_paid_chain {
 }
 
 sub add_to_ads_chain {
-    my ( $mac, $ip ) = @_;
+    my ( $class, $mac, $ip ) = @_;
 
     do_iptables(
 "-t mangle -D slNET -s $ip -m mac --mac-source $mac -j MARK $Mark_op 0x500"

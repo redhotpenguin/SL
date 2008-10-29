@@ -12,7 +12,7 @@ use SL::Config       ();
 use SL::CP::IPTables ();
 
 our ( $Config, $Ad_post_auth_url, $Ad_auth_url, $Paid_post_auth_url,
-    $Lease_file );
+    $Lease_file, $Auth_url, $Auth_token_url );
 
 BEGIN {
     $Config             = SL::Config->new;
@@ -39,7 +39,7 @@ sub handler {
 sub ads {
     my ( $class, $r ) = @_;
 
-    my $mac = _mac_from_ip($r);
+    my ($mac, $ip) = _mac_from_ip($r);
     return Apache2::Const::NOT_FOUND unless $mac;
 
     eval { SL::CP::IPTables->add_to_ads_chain($mac); };
@@ -60,10 +60,12 @@ sub ads {
 sub paid {
     my ( $class, $r ) = @_;
 
-    my $mac = _mac_from_ip($r);
+    my ($mac, $ip) = _mac_from_ip($r);
     return Apache2::Const::NOT_FOUND unless $mac;
 
-    eval { SL::CP::IPTables->add_to_paid_chain($mac); };
+    my $token = $r->args();
+
+    eval { SL::CP::IPTables->add_to_paid_chain($mac, $ip, $token); };
 
     if ($@) {
 
@@ -101,7 +103,7 @@ sub _mac_from_ip {
 
     $r->log->info("$$ found mac address $mac for ip $ip");
 
-    return $mac;
+    return ($mac, $ip);
 }
 
 1;
