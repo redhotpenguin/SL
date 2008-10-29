@@ -26,7 +26,7 @@ are really fast.
 
 =cut
 
-our $VERSION = 0.15;
+our $VERSION = 0.16;
 
 our( $config, $conf_dir );
 our $file = 'sl.conf';
@@ -41,7 +41,14 @@ sub new {
 
     my @config_files;
     # check the local conf dir first
-    if ( -d "$FindBin::Bin/../conf" && ( -e "$FindBin::Bin/../conf/$file" ) )
+    if ( -d "./conf" && ( -e "./conf/$file" ) )
+    {
+
+        $conf_dir = "./conf";
+        @config_files = ( "$conf_dir/$file" );
+ 
+    }
+    elsif ( -d "$FindBin::Bin/../conf" && ( -e "$FindBin::Bin/../conf/$file" ) )
     {
 
         # development
