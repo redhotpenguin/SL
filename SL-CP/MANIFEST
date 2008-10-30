@@ -2,5 +2,5 @@ Changes
 Makefile.PL
 MANIFEST
 README
-t/SL-CP.t
-lib/SL-CP.pm
+lib/SL/CP.pm
+lib/SL/CP/IPTables.pm
