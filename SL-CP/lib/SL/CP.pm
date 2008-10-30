@@ -11,6 +11,8 @@ use Apache2::Log ();
 use SL::Config       ();
 use SL::CP::IPTables ();
 
+our $VERSION = 0.01;
+
 our ( $Config, $Ad_post_auth_url, $Ad_auth_url, $Paid_post_auth_url,
     $Lease_file, $Auth_url, $Auth_token_url );
 
