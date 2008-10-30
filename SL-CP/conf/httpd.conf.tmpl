@@ -13,7 +13,7 @@ KeepAliveTimeout     300
 MinSpareServers      4
 MaxSpareServers      8
 StartServers         16
-LogLevel             [% cfs.sl_apache_loglevel %]
+LogLevel             info
 MaxClients           64
 ErrorLog             [% cfg.sl_root %]/logs/httpd_proxy_error_log
 TransferLog          [% cfg.sl_root %]/logs/httpd_proxy_access_log
@@ -31,7 +31,8 @@ ServerName [% cfg.sl_servername %]
 ErrorDocument        404  /404.html
 ErrorDocument        500  /500.html
 
-LoadModule modules/mod_perl.so
+LoadModule perl_module modules/mod_perl.so
+PerlPostConfigRequire "[% cfg.sl_root %]/conf/startup.pl"
 
 PerlPostReadRequestHandler Apache2::Const::OK
 PerlMapToStorageHandler Apache2::Const::OK

@@ -14,7 +14,7 @@ WriteMakefile(
         'Template'       => 2.18,
         'LWP::UserAgent' => 2.33,
     },
-    ABSTRACT_FROM => 'lib/SL/CP.pm',
+    ABSTRACT      => 'Silver Lining Captive Portal',
     AUTHOR        => 'Fred Moyer <fred@silverliningnetworks.com>',
 
 );
