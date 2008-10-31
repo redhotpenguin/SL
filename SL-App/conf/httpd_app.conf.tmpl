@@ -77,6 +77,10 @@ PerlLoadModule Apache2::Dispatch
     SetHandler default-handler
 </Location>
 
+<Location /resources>
+    SetHandler default-handler
+</Location>
+
 
 ## the user application, need to be logged in
 <Location  /app>
@@ -87,6 +91,10 @@ PerlLoadModule Apache2::Dispatch
 	PerlAuthzHandler Apache2::Const::OK
 	require valid-user
 </Location>
+
+
+
+## method handlers for authentication and signup
 
 <Location /login>
 	SetHandler modperl
@@ -114,7 +122,32 @@ PerlLoadModule Apache2::Dispatch
 </Location>
 
 
-# optimizations, mod_perl for speed freaks
+## captive portal handler
+
+<Location /auth>
+    SetHandler modperl
+    PerlResponseHandler SL::Apache::App::CP->auth
+</Location>
+
+
+<Location /auth/paid>
+    SetHandler modperl
+    PerlResponseHandler SL::Apache::App::CP->paid
+</Location>
+
+
+<Location /auth/post/paid>
+    SetHandler modperl
+    PerlResponseHandler SL::Apache::App::CP->post_paid
+</Location>
+
+<Location /auth/post/ad>
+    SetHandler modperl
+    PerlResponseHandler SL::Apache::App::CP->ad
+</Location>
+
+
+## optimizations, mod_perl for speed freaks
 
 <Directory />
     AllowOverride None
