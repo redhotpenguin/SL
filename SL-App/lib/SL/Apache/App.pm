@@ -19,7 +19,7 @@ use SL::App::Template ();
 
 my $UA = LWP::UserAgent->new;
 $UA->timeout(10);    # needs to respond somewhat quickly
-our $TMPL = SL::App::Template->template();
+our $Tmpl = SL::App::Template->template();
 
 use constant MAX_IMAGE_BYTES => 40_960;
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
@@ -54,11 +54,13 @@ sub dispatch_index {
     }
 
     my $output;
-    my $ok = $TMPL->process( 'index.tmpl', {}, \$output );
+    my $ok = $Tmpl->process( 'index.tmpl', {}, \$output );
 
     return $self->ok( $r, $output ) if $ok;
-    return $self->error( $r, "Template error: " . $TMPL->error() );
+    return $self->error( $r, "Template error: " . $Tmpl->error() );
 }
+
+
 
 sub ok {
     my ( $self, $r, $output ) = @_;
