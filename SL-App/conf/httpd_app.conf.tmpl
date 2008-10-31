@@ -85,7 +85,7 @@ PerlLoadModule Apache2::Dispatch
 	SetHandler modperl
 	PerlAuthenHandler SL::Apache::App::CookieAuth->authenticate
 	PerlAuthzHandler Apache2::Const::OK
-	require valid-use
+	require valid-user
 </Location>
 
 <Location /login>
@@ -113,31 +113,13 @@ PerlLoadModule Apache2::Dispatch
     PerlResponseHandler SL::Apache::App::CookieAuth->forgot_reset
 </Location>
 
-## registration
-<Location /reg>
-	SetHandler modperl
-	PerlResponseHandler SL::Apache::App::reg
-</Location>
 
-## handle click requests
-<Location /click>
-    SetHandler          modperl
- 	PerlHeaderParserHandler Apache2::Const::OK
-    PerlAccessHandler       Apache2::Const::OK
-    PerlAuthenHandler       Apache2::Const::OK
-    PerlAuthzHandler        Apache2::Const::OK
-    PerlTypeHandler         Apache2::Const::OK
-[% IF cfg.sl_debug %]
-    PerlFixupHandler +Apache::DB
-[% ELSE %]
-    PerlFixupHandler        Apache2::Const::OK
-[% END %]
-    PerlResponseHandler     SL::Apache::App::Click
-</Location>
+# optimizations, mod_perl for speed freaks
 
 <Directory />
     AllowOverride None
 </Directory>
+
 [% IF cfg.sl_proxy_deflate %]
 Include [% cfg.sl_app_root %]/conf/deflate.conf
 [% END %]
