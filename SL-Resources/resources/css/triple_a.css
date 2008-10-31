@@ -1,0 +1,460 @@
+/*---------------------------------------------
+COMMON STYLE SHEET FOR RESETING PAGE ELEMENTS
+---------------------------------------------*/
+
+/*---------------------------------------------
+ERIC MEYER RESET RELOAD
+WEBSITE: http://meyerweb.com/eric/thoughts/2007/05/01/reset-reloaded/
+---------------------------------------------*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, font, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	font-weight: inherit;
+	font-style: inherit;
+	font-size: 100%;
+	font-family: inherit;
+	vertical-align: baseline;
+}
+/* remember to define focus styles! */
+:focus {
+	outline: 0;
+}
+body {
+	line-height: 1;
+	color: black;
+	background: white;
+}
+ol, ul {
+	list-style: none;
+}
+/* tables still need 'cellspacing="0"' in the markup */
+table {
+	border-collapse: separate;
+	border-spacing: 0;
+}
+caption, th, td {
+	text-align: left;
+	font-weight: normal;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: "";
+}
+blockquote, q {
+	quotes: "" "";
+}
+/*---------------------------------------------
+END ERIC MEYER RESET RELOAD
+---------------------------------------------*/
+
+/*STANDARD COMMANDS 
+=== === === === === === === === === === */
+.clear {
+	clear:both;
+}
+.left {
+	float:left;
+}
+.right {
+	float:right;
+}
+.block {
+display:block;
+}
+.inline {
+display: inline;
+}
+strong {
+font-weight: bold;
+}
+em {
+font-style: italic;
+}
+/*LINKS
+=== === === === === === === === === === */
+a {
+color:#1064d3;
+}
+.red_link {
+	color: #FF0000;
+}
+
+
+/*FONTS 
+=== === === === === === === === === === */
+body {font:13px verdana,arial,helvetica,clean,sans-serif;}
+table {font-size:inherit;font-size:100%;}
+select, input, textarea {font:99% arial,helvetica,clean,sans-serif;}
+
+pre, code {font:115% monospace;}
+body * {line-height:1.22em;}
+
+
+
+/*LAYOT 
+=== === === === === === === === === === */
+.center {
+margin: 0 auto;
+width: 800px;
+}
+.one_sixth {
+width:110px;
+margin-left:20px;
+}
+.one_third {
+width:240px;
+margin-left:20px;
+}
+.half_page {
+width:370px;
+margin-left:20px;
+}
+.two_thirds {
+width:500px;
+margin-left:20px;
+}
+.five_sixths {
+width:630px;
+margin-left:20px;
+}
+.full_page {
+width:760px;
+margin-left:20px;
+}
+.margin_right {
+margin-left:0px;
+margin-right:20px;
+}
+.large_ads {
+width: 300px;
+margin-left: 20px;
+}
+.large_ads a {
+margin-bottom: 20px;
+display: block;
+}
+.small_ads {
+width: 400px;
+margin-left: 40px;
+}
+.small_ads p {
+text-align: left;
+font-size: 77%;
+}
+.iab_button1 {
+width: 120px;
+margin-right: 20px;
+}
+.iab_button1_last {
+width: 120px;
+margin: 0;
+}
+.small_ad_box {
+margin-bottom: 20px;
+}
+
+/*PAGE STYLES 
+=== === === === === === === === === === */
+.bg_color_2 {
+background-color: #5db0ca;
+}
+
+h1#logo {
+height: 176px;
+width: 244px;
+overflow: hidden;
+position: relative;
+font-size: 162%;
+text-align: center;
+font-family: 'Helvetica Neue', Helvetica, Verdana, Arial, san-serif;
+}
+h1#logo a {
+color:#666;
+text-decoration: none;
+line-height: 200px;
+}
+h1#logo span {
+height: 175px;
+width: 244px;
+overflow: hidden;
+background:url(../images/logos/sl_logo.png) no-repeat top left;
+position: absolute;
+top: 0;
+left: 0px;
+}
+h1#logo_240 {
+height: 176px;
+width: 240px;
+overflow: hidden;
+position: relative;
+font-size: 162%;
+text-align: center;
+font-family: 'Helvetica Neue', Helvetica, Verdana, Arial, san-serif;
+}
+h1#logo_240 a {
+color:#666;
+text-decoration: none;
+line-height: 200px;
+}
+h1#logo_240 span {
+height: 176px;
+width: 240px;
+overflow: hidden;
+background:url(../images/logos/sl_logo_240.png) no-repeat top left;
+position: absolute;
+top: 0;
+left: 0px;
+}
+h2 {
+font-family: 'Helvetica Neue', Helvetica, Verdana, Arial, san-serif;
+font-size: 207%;
+font-weight: bold;
+margin-bottom: 10px;
+color: #666;
+}
+p {
+color: #666;
+line-height: 24px;
+font-family: Verdana, Arial, san-serif;
+font-size: 92%;
+text-align: justify;
+}
+.free_service {
+margin: 40px 0px;
+width: 204px;
+height: 204px;
+background:url(../images/buttons/free_service.png) no-repeat top left;
+display: block;
+overflow: hidden;
+text-indent: -3000px;
+}
+.paid_service_199 {
+margin: 40px 0px;
+width: 204px;
+height: 204px;
+background:url(../images/buttons/199_service.png) no-repeat top left;
+display: block;
+overflow: hidden;
+text-indent: -3000px;
+}
+.paid_service_399 {
+margin: 40px 0px;
+width: 204px;
+height: 204px;
+background:url(../images/buttons/399_service.png) no-repeat top left;
+display: block;
+overflow: hidden;
+text-indent: -3000px;
+}
+.paid_service_1999 {
+width: 204px;
+height: 204px;
+background:url(../images/buttons/1999_service.png) no-repeat top left;
+display: block;
+overflow: hidden;
+text-indent: -3000px;
+}
+.padding_top {
+padding-top: 20px;
+}
+
+
+/*SECTION ONE
+=== === === === === === === === === === */
+#section_one  {
+padding: 20px 0px;
+background: #FFF url(../images/backgrounds/rainbow_white.png) no-repeat right bottom;
+}
+#section_one h2 {
+color: #a7d325;
+}
+#section_one h2.choose_wifi {
+width: 310px;
+height: 35px;
+background:url(../images/backgrounds/title_choose_wifi.png) no-repeat right bottom;
+overflow: hidden;
+text-indent: -3000px;
+margin-left: -2px;
+}
+
+/*FORMS
+=== === === === === === === === === === */
+dl {
+padding: 25px;
+background-color:#fff ;
+border: 2px solid #9fd4e4;
+margin-top: -85px;
+}
+dt {
+margin-bottom: 5px;
+clear: both;
+}
+dd {
+margin-bottom: 10px;
+clear: both;
+}
+dd.standard_margin {
+margin-bottom: 20px;
+}
+dd.large_margin {
+margin-bottom: 40px;
+}
+dt label {
+font-weight: bold;
+font-size: 92%;
+font-family: 'Helvetica Neue', Helvetica, Verdana, Arial, san-serif;
+color: #333;
+}
+dd span  {
+float: left;
+margin-right: 15px;
+}
+dd span input, 
+dd span select {
+padding: 2px;
+font-size: 100%;
+margin-bottom: 3px;
+width: 95%;
+color: #44879a;
+}
+dd span input{
+border: 1px solid #CCC;
+border-top: 1px solid #999;
+border-bottom: 1px solid #EEE;
+}
+dd span label {
+display: block;
+color: #999;
+font-size: 85%;
+margin-left: 3px;
+}
+input:focus, input:active {
+background-color: #ffffdf;
+border: 1px solid #8fcd1b;
+}
+#submit {
+font-size: 162%;
+}
+dd .full {
+width: 90%;
+}
+dd .three_quarters {
+width: 65%;
+}
+dd .half {
+width: 40%;
+}
+dd .quarter {
+width: 20%;
+}
+#card_type {
+width: 60%;
+}
+dd img {
+margin-top: -2px;
+margin-left: 10px;
+}
+dd .terms, dd #terms {
+margin-right: 5px;
+float: left;
+}
+dd .terms { 
+color: #333;
+margin-top: 3px;
+}
+#terms_of_service {
+height: 100px;
+overflow: auto;
+border: 1px solid #CCC;
+margin-right: none;
+margin-top: 5px;
+}
+
+/*SECTION TWO
+=== === === === === === === === === === */
+#section_two  {
+background:#5db0ca url(../images/backgrounds/section_2_bg.png) repeat-x right top;
+}
+#section_two #section_two_inner {
+padding: 40px 0px;
+background:url(../images/backgrounds/rainbow_blue.png) no-repeat right top;
+}
+#section_two h2.monthly_plan {
+width: 301px;
+height: 33px;
+background:url(../images/backgrounds/title_monthly.png) no-repeat right bottom;
+overflow: hidden;
+text-indent: -3000px;
+margin-top: 2px;
+}
+#section_two a {
+color:#1c708a;
+}
+
+
+/*SECTION THREE
+=== === === === === === === === === === */
+#section_three  {
+padding: 40px 0px;
+background:#19657d url(../images/backgrounds/section_3_bg.png) repeat-x right top;
+}
+#section_three h2 {
+color: #FFF;
+}
+#section_three h3 {
+font-family: 'Helvetica Neue', Helvetica, Verdana, Arial, san-serif;
+font-size: 100%;
+font-weight: bold;
+margin-bottom: 10px;
+color: #c2ffa0;
+}
+#section_three p {
+color: #FFF;
+}
+#section_three a {
+color: #c2ffa0;
+}
+
+
+/*FORM VALIDATION
+=== === === === === === === === === === */
+.LV_validation_message{
+font-weight:bold;
+margin:0 0 0 3px;
+display:block;
+float: none;
+font-size: 77%;
+}
+.LV_valid {
+color:#00CC00;
+}
+.LV_invalid {
+color:#CC0000;
+}
+.LV_valid_field,
+input.LV_valid_field:hover, 
+input.LV_valid_field:active,
+textarea.LV_valid_field:hover, 
+textarea.LV_valid_field:active {
+border: 1px solid #00CC00;
+}
+.LV_invalid_field, 
+input.LV_invalid_field:hover, 
+input.LV_invalid_field:active,
+textarea.LV_invalid_field:hover, 
+textarea.LV_invalid_field:active {
+border: 2px solid #CC0000;
+}
+
+
+
