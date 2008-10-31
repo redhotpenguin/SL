@@ -14,7 +14,9 @@ use SL::Config ();
 
 our $Config = SL::Config->new();
 
+use APR::Table ();
 use Apache2::RequestRec ();
+use Apache2::RequestUtil ();
 use Apache2::Log        ();
 use Apache2::Connection ();
 use Apache2::ServerUtil ();

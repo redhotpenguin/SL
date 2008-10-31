@@ -7,9 +7,13 @@ use Apache2::RequestRec ();
 use Apache2::Connection ();
 use Apache2::Const -compile => qw( NOT_FOUND OK REDIRECT SERVER_ERROR );
 use Apache2::Log ();
+use APR::Table ();
+use Apache2::RequestUtil ();
 
 use SL::Config       ();
 use SL::CP::IPTables ();
+
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 our $VERSION = 0.01;
 
@@ -26,14 +30,18 @@ BEGIN {
 
 sub handler {
     my $r = shift;
+	    
+    $r->log->debug("$$ handling new request for " . $r->connection->remote_ip)
+	if DEBUG;
 
-    my $mac = _mac_from_ip($r);
+    my ($mac, $ip) = _mac_from_ip($r);
     return Apache2::Const::NOT_FOUND unless $mac;
 
     # at this point the mac obviously has not been put into a rule chain
-    # so redirect to the auth server
+    # so redirect to the auth server/
 
-    $r->headers_out->set( Location => $Auth_url . '/' . $mac );
+    my $location = join('/', $Auth_url, $mac );
+    $r->headers_out->set( Location => $location );
     $r->no_cache(1);
     return Apache2::Const::REDIRECT;
 }
@@ -96,6 +104,8 @@ sub _mac_from_ip {
     }
 
     chomp($lease);
+
+
 
     my ($mac) = $lease =~ m/^\d+\s(\S+)\s/;
     unless ($mac) {

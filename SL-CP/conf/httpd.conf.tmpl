@@ -35,23 +35,22 @@ LoadModule perl_module modules/mod_perl.so
 PerlPostConfigRequire "[% cfg.sl_root %]/conf/startup.pl"
 
 PerlPostReadRequestHandler Apache2::Const::OK
-#PerlMapToStorageHandler Apache2::Const::OK # this breaks error docs
-#PerlTransHandler Apache2::Const::OK
+PerlMapToStorageHandler Apache2::Const::OK # this breaks error docs
+PerlTransHandler Apache2::Const::OK
 
 <Location />
-    SetHandler mod_perl
+    SetHandler modperl
     PerlHeaderParserHandler Apache2::Const::OK
     PerlAccessHandler       Apache2::Const::OK
     PerlAuthenHandler       Apache2::Const::OK
     PerlAuthzHandler        Apache2::Const::OK
     PerlTypeHandler         Apache2::Const::OK
     PerlFixupHandler        Apache2::Const::OK
-
     PerlResponseHandler SL::CP
 </Location>
 
 <Location /ads>
-    SetHandler mod_perl
+    SetHandler modperl
     PerlHeaderParserHandler Apache2::Const::OK
     PerlAccessHandler       Apache2::Const::OK
     PerlAuthenHandler       Apache2::Const::OK
@@ -63,7 +62,7 @@ PerlPostReadRequestHandler Apache2::Const::OK
 </Location>
 
 <Location /paid>
-    SetHandler mod_perl
+    SetHandler modperl
     PerlHeaderParserHandler Apache2::Const::OK
     PerlAccessHandler       Apache2::Const::OK
     PerlAuthenHandler       Apache2::Const::OK

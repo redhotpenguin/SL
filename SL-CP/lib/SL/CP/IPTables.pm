@@ -63,6 +63,8 @@ slNET -p tcp -m tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
 slNET -m mark --mark 0x200/0x700 -j ACCEPT
 slNET -m mark --mark 0x400/0x700 -j slAUT
 slNET -m mark --mark 0x500/0x700 -j slAUT
+slNET -p tcp -m tcp --dport 53 -j ACCEPT
+slNET -p udp -m udp --dport 53 -j ACCEPT
 slNET -d $Auth_ip -p tcp -m tcp --dport 443 -j ACCEPT
 slNET -j REJECT --reject-with icmp-port-unreachable
 slRTR -m mark --mark 0x100/0x700 -j DROP
