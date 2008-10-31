@@ -28,8 +28,9 @@ print "Initializing firewall...\n";
 SL::CP::IPTables->init_firewall;
 
 # register cleanup
-Apache2::ServerUtil::server_shutdown_cleanup_register(
-    \SL::CP::IPTables->clear_firewall );
+print "Registering cleanup handler...\n";
+#Apache2::ServerUtil::server_shutdown_cleanup_register(
+#    \&SL::CP::IPTables::clear_firewall );
 
 print "Startup.pl finished...\n";
 

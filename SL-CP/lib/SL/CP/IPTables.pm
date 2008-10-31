@@ -16,7 +16,7 @@ our (
 
 BEGIN {
     $Config         = SL::Config->new;
-    $Iptables       = $Config->sl_iptables || 'oops';
+    $Iptables       = $Config->sl_iptables || die 'oops';
     $Ext_if         = $Config->sl_ext_if || die 'oops';
     $Int_if         = $Config->sl_int_if || die 'oops';
     $Auth_ip        = $Config->sl_auth_server_ip || die 'oops';
@@ -46,7 +46,7 @@ sub init_firewall {
     foreach my $table ( sort keys %tables_chains ) {
         foreach my $chain ( @{ $tables_chains{$table} } ) {
 
-            do_iptables("-t $table -N $chain");
+            iptables("-t $table -N $chain");
         }
     }
 
@@ -113,10 +113,10 @@ NATS
 sub add_rules {
     my ( $table, $rules ) = @_;
 
-    foreach my $rule (<$rules>) {
+    foreach my $rule (split(/\n/, $rules)) {
         chomp($rule);
         warn("$$ Adding rule $rule to table $table") if DEBUG;
-        do_iptables("-t $table -A $rule");
+        iptables("-t $table -A $rule");
     }
 }
 
@@ -127,7 +127,7 @@ sub clear_firewall {
     iptables("-t $_ -F") for keys %tables_chains;
 
     # clear all chains
-    iptables("-X");
+    iptables("-t $_ -X") for keys %tables_chains;
 
     # reset the postrouting rule
     iptables("-t nat -A POSTROUTING -o $Ext_if -j MASQUERADE");
@@ -136,8 +136,8 @@ sub clear_firewall {
 sub iptables {
     my $cmd = shift;
 
-    system("$Iptables $cmd") == 0
-      or die "could not iptables '$cmd', err: $!, ret: $?\n";
+    system("sudo $Iptables $cmd") == 0
+      or require Carp && Carp::confess "could not iptables '$cmd', err: $!, ret: $?\n";
 
     return 1;
 }
@@ -151,20 +151,20 @@ sub add_to_paid_chain {
     die "error validating mac $mac with token $token:  " . $res->status_line
       unless $res->is_success;
 
-    do_iptables(
+    iptables(
 "-t mangle -A slNET -s $ip -m mac --mac-source $mac -j MARK $Mark_op 0x500"
     );
-    do_iptables("-t mangle -A slINC -d $ip -j ACCEPT");
+    iptables("-t mangle -A slINC -d $ip -j ACCEPT");
 
 }
 
 sub add_to_ads_chain {
     my ( $class, $mac, $ip ) = @_;
 
-    do_iptables(
+    iptables(
 "-t mangle -D slNET -s $ip -m mac --mac-source $mac -j MARK $Mark_op 0x500"
     );
-    do_iptables("-t mangle -D slINC -d $ip -j ACCEPT");
+    iptables("-t mangle -D slINC -d $ip -j ACCEPT");
 
 }
 

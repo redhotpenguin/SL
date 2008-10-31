@@ -2,7 +2,7 @@ ServerRoot           [% cfg.sl_httpd_root %]
 ServerAdmin          [% cfg.sl_admin %]
 ServerSignature      Off
 ServerTokens         Prod
-PidFile              [% cfg.sl_root %]/tmp/sl_proxy.pid
+PidFile              [% cfg.sl_root %]/tmp/sl_cp.pid
 DocumentRoot         [% cfg.sl_root %]/htdocs
 TypesConfig          [% cfg.sl_root %]/conf/mime.types
 User                 [% cfg.sl_apache_user %]
@@ -13,10 +13,10 @@ KeepAliveTimeout     300
 MinSpareServers      4
 MaxSpareServers      8
 StartServers         16
-LogLevel             info
+LogLevel             [% cfg.sl_apache_loglevel %]
 MaxClients           64
-ErrorLog             [% cfg.sl_root %]/logs/httpd_proxy_error_log
-TransferLog          [% cfg.sl_root %]/logs/httpd_proxy_access_log
+ErrorLog             [% cfg.sl_root %]/logs/httpd_cp_error_log
+TransferLog          [% cfg.sl_root %]/logs/httpd_cp_access_log
 MaxRequestsPerChild  100
 LogFormat "%h %t (%{User-agent}i) %{Host}i \"%r\" %>s %b %{SL_URL}e %{SL_TIMER}e %D"
 UseCanonicalName     Off
@@ -24,7 +24,7 @@ HostNameLookups      Off
 Timeout              300
 AllowEncodedSlashes On
 
-Listen [% cfg.sl_apache_listen %]
+Listen [% cfg.sl_gateway_ip %]:[% cfg.sl_apache_listen %]
 
 ServerName [% cfg.sl_servername %]
 
@@ -35,8 +35,8 @@ LoadModule perl_module modules/mod_perl.so
 PerlPostConfigRequire "[% cfg.sl_root %]/conf/startup.pl"
 
 PerlPostReadRequestHandler Apache2::Const::OK
-PerlMapToStorageHandler Apache2::Const::OK
-PerlTransHandler Apache2::Const::OK
+#PerlMapToStorageHandler Apache2::Const::OK # this breaks error docs
+#PerlTransHandler Apache2::Const::OK
 
 <Location />
     SetHandler mod_perl
