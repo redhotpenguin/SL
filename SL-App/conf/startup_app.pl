@@ -52,7 +52,7 @@ use Apache2::Upload         ();
 use APR::Table              ();
 
 use SL::App::Template           ();
-use SL::Apache::App::Click      ();
+use SL::Apache::App::CP         ();
 use SL::Apache::App             ();
 use SL::Apache::App::Home       ();
 use SL::Apache::App::Ad         ();
