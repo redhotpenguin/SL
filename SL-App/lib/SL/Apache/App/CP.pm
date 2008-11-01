@@ -36,7 +36,12 @@ sub auth {
 sub paid {
     my ($class, $r) = @_;
 
-    my %tmpl_data;
+    my $req = Apache2::Request->new($r);
+
+
+    my %tmpl_data = ( plan => $req->param('plan'), );
+
+
 
     my $output;
     my $ok = $Tmpl->process('auth/paid.tmpl', \%tmpl_data, \$output, $r);

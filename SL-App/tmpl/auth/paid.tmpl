@@ -48,9 +48,9 @@
 						<dd>
 							<span class="half">
 							<select id="plan">
-								<option value="1_hour">1 hour ($1.99)</option>
-								<option value="february">24 hours ($3.99)</option>
-								<option value="march">1 month ($19.99)</option>
+								<option value="hour" [% IF plan == 'hour' %]SELECTED[% END %]>1 hour ($1.99)</option>
+								<option value="day" [% IF plan == 'day' %]SELECTED[% END %]>24 hours ($3.99)</option>
+								<option value="month" [% IF plan == 'month' %]SELECTED[% END %]>1 month ($19.99)</option>
 							</select>
 							</span>
 							<div class="clear"></div>
