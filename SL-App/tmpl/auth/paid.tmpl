@@ -51,39 +51,39 @@
 
 			<!-- CHOOSE WIFI COPY ************************ --> 
 			<div class="two_thirds left">
-				<form id="sl_payment" action="" method="post">
+				<form id="sl_payment" action="[% base_uri %]/auth/paid" method="post">
 					<dl>
 						<dt><label for="plan">Choose a plan</label></dt>
 						<dd>
 							<span class="half">
-							<select id="plan">
-								<option value="hour" [% IF plan == 'hour' %]SELECTED[% END %]>1 hour ($1.99)</option>
-								<option value="day" [% IF plan == 'day' %]SELECTED[% END %]>24 hours ($3.99)</option>
-								<option value="month" [% IF plan == 'month' %]SELECTED[% END %]>1 month ($19.99)</option>
+							<select id="plan" name="plan">
+								<option value="hour" [% IF req.param('plan') == 'hour' %]SELECTED[% END %]>1 hour ($1.99)</option>
+								<option value="day" [% IF req.param('plan') == 'day' %]SELECTED[% END %]>24 hours ($3.99)</option>
+								<option value="month" [% IF req.param('plan') == 'month' %]SELECTED[% END %]>1 month ($19.99)</option>
 							</select>
 							</span>
 							<div class="clear"></div>
 						</dd>
-						<dt><label for="first_name">[% IF errors.missing.first_name or errors.missing.last_name %]<font color="red">[% END %]Name[% IF errors.missing.first_name or errors.missing.last_name %]</font>[% END %]</label></dt>
+						<dt><label for="name">[% IF errors.missing.first_name or errors.missing.last_name %]<font color="red">[% END %]Name[% IF errors.missing.first_name or errors.missing.last_name %]</font>[% END %]</label></dt>
 						<dd>
-							<span class="quarter"><input type="text" id="first_name" /><label for="first_name">[% IF errors.missing.first_name %]<font color="red">[% END %]First[% IF errors.missing.first_name %]</font>[% END %]</label></span>
-							<span class="half"><input type="text" id="last_name" /><label for="last_name">[% IF errors.missing.last_name %]<font color="red">[% END %]Last[% IF errors.missing.last_name %]</font>[% END %]</label></span>
+							<span class="quarter"><input type="text" id="first_name" name="first_name" value="[% req.param('first_name') %]" /><label for="first_name">[% IF errors.missing.first_name %]<font color="red">[% END %]First[% IF errors.missing.first_name %]</font>[% END %]</label></span>
+							<span class="half"><input type="text" id="last_name" name="last_name" value="[% req.param('last_name') %]" /><label for="last_name">[% IF errors.missing.last_name %]<font color="red">[% END %]Last[% IF errors.missing.last_name %]</font>[% END %]</label></span>
 							<div class="clear"></div>
 						</dd>
 						
 						<dt><label for="email">[% IF errors.missing.email %]<font color="red">[% END %]E-mail[% IF errors.missing.email %]</font>[% END %]</label></dt>
 						<dd class="large_margin">
-							<span class="three_quarters"><input type="text" id="email" /><label for="email">ex. [% IF errors.missing.email %]<font color="red">[% END %]john@doe.com[% IF errors.missing.email %]</font>[% END %] <em>(for receipt only)</em></label></span>
+							<span class="three_quarters"><input type="text" id="email" name="email" value="[% req.param('email') %]" /><label for="email">ex. [% IF errors.missing.email %]<font color="red">[% END %]john@doe.com[% IF errors.missing.email %]</font>[% END %] <em>(for receipt only)</em></label></span>
 						<div class="clear"></div>
 						</dd>
 						<dt><label for="card_type">[% IF errors.missing.card_type or errors.invalid.card_type %]<font color="red">[% END %]Card Type[% IF errors.missing.card_type or errors.invalid.card_type %]</font>[% END %]</label></dt>
 						<dd>
 							<span class="three_quarters">
-							<select class="left" id="card_type">
+							<select class="left" id="card_type" name="card_type">
 								<option value="" selected="selected">Select a card type</option>
-								<option value="visa">Visa</option>
-								<option value="mastercard">MasterCard</option>
-								<option value="amex">American Express</option>
+								<option value="visa" [% IF req.param('card_type') == 'visa' %]SELECTED[% END %]>Visa</option>
+								<option value="mastercard" [% IF req.param('card_type') == 'mastercard' %]SELECTED[% END %]>MasterCard</option>
+								<option value="amex" [% IF req.param('card_type') == 'amex' %]SELECTED[% END %]>American Express</option>
 							</select>
 							<img class="left" src="[% base_uri %]/resources/images/icons/credit_card_2_32.gif" alt="credit card" width="32" height="32"/>
 							</span>
@@ -91,50 +91,50 @@
 						</dd>
 						<dt><label for="card_number">[% IF errors.missing.card_number or errors.invalid.card_number %]<font color="red">[% END %]Card Number[% IF errors.missing.card_number or errors.invalid.card_number %]</font>[% END %]</label></dt>
 						<dd>
-							<span class="half"><input type="text" id="card_number" /><label for="card_number">[% IF errors.missing.card_number or errors.invalid.card_number %]<font color="red">[% END %]####-####-####-####[% IF errors.missing.card_number or errors.invalid.card_number %]</font>[% END %]</label></span>
-							<span class="quarter"><input type="text" id="cvc" /><label for="cvc">[% IF errors.missing.card_number or errors.invalid.card_number %]<font color="red">[% END %]###&nbsp;&nbsp;CVC[% IF errors.missing.card_number or errors.invalid.card_number %]</font>[% END %]</label></span>
+							<span class="half"><input type="text" id="card_number" name="card_number" value="[% req.param('card_number') %]" /><label for="card_number">[% IF errors.missing.card_number or errors.invalid.card_number %]<font color="red">[% END %]####-####-####-####[% IF errors.missing.card_number or errors.invalid.card_number %]</font>[% END %]</label></span>
+							<span class="quarter"><input type="text" id="cvc" name="cvc" value="[% req.param('cvc') %]" /><label for="cvc">[% IF errors.missing.card_number or errors.invalid.card_number %]<font color="red">[% END %]###&nbsp;&nbsp;CVC[% IF errors.missing.card_number or errors.invalid.card_number %]</font>[% END %]</label></span>
 						<div class="clear"></div>
 						</dd>
 						<dt><label for="month">Expiration Date</label></dt>
 						<dd class="large_margin">
 							<span class="quarter">
-							<select id="month">
-								<option value="01">01</option>
-								<option value="02">02</option>
-								<option value="03">03</option>
-								<option value="04">04</option>
-								<option value="05">05</option>
-								<option value="06">06</option>
-								<option value="07">07</option>
-								<option value="08">08</option>
-								<option value="09">09</option>
-								<option value="10">10</option>
-								<option value="11">11</option>
-								<option value="12">12</option>
+							<select id="month" name="month">
+								<option value="01" [% IF req.param('month') == '01' %]SELECTED[% END %]>01</option>
+								<option value="02" [% IF req.param('month') == '02' %]SELECTED[% END %]>02</option>
+								<option value="03" [% IF req.param('month') == '03' %]SELECTED[% END %]>03</option>
+								<option value="04" [% IF req.param('month') == '04' %]SELECTED[% END %]>04</option>
+								<option value="05" [% IF req.param('month') == '05' %]SELECTED[% END %]>05</option>
+								<option value="06" [% IF req.param('month') == '06' %]SELECTED[% END %]>06</option>
+								<option value="07" [% IF req.param('month') == '07' %]SELECTED[% END %]>07</option>
+								<option value="08" [% IF req.param('month') == '08' %]SELECTED[% END %]>08</option>
+								<option value="09" [% IF req.param('month') == '09' %]SELECTED[% END %]>09</option>
+								<option value="10" [% IF req.param('month') == '10' %]SELECTED[% END %]>10</option>
+								<option value="11" [% IF req.param('month') == '11' %]SELECTED[% END %]>11</option>
+								<option value="12" [% IF req.param('month') == '12' %]SELECTED[% END %]>12</option>
 							</select>
 							<label for="month">Month</label>
 							</span>
 							<span class="quarter">
-							<select id="year">
-								<option value="08">2008</option>
-								<option value="09">2009</option>
-								<option value="10">2010</option>
-								<option value="11">2011</option>
-								<option value="12">2012</option>
-								<option value="13">2013</option>
-								<option value="14">2014</option>
-								<option value="15">2015</option>
-								<option value="16">2016</option>
-								<option value="17">2017</option>
-								<option value="18">2018</option>
-								<option value="19">2019</option>
-								<option value="20">2020</option>
-								<option value="21">2021</option>
-								<option value="22">2022</option>
-								<option value="23">2023</option>
-								<option value="24">2024</option>
-								<option value="25">2025</option>
-								<option value="26">2026</option>
+							<select id="year" name="year">
+								<option value="08" [% IF req.param('year') == '08' %]SELECTED[% END %]>2008</option>
+								<option value="09" [% IF req.param('year') == '09' %]SELECTED[% END %]>2009</option>
+								<option value="10" [% IF req.param('year') == '10' %]SELECTED[% END %]>2010</option>
+								<option value="11" [% IF req.param('year') == '11' %]SELECTED[% END %]>2011</option>
+								<option value="12" [% IF req.param('year') == '12' %]SELECTED[% END %]>2012</option>
+								<option value="13" [% IF req.param('year') == '13' %]SELECTED[% END %]>2013</option>
+								<option value="14" [% IF req.param('year') == '14' %]SELECTED[% END %]>2014</option>
+								<option value="15" [% IF req.param('year') == '15' %]SELECTED[% END %]>2015</option>
+								<option value="16" [% IF req.param('year') == '16' %]SELECTED[% END %]>2016</option>
+								<option value="17" [% IF req.param('year') == '17' %]SELECTED[% END %]>2017</option>
+								<option value="18" [% IF req.param('year') == '18' %]SELECTED[% END %]>2018</option>
+								<option value="19" [% IF req.param('month') == '19' %]SELECTED[% END %]>2019</option>
+								<option value="20" [% IF req.param('month') == '20' %]SELECTED[% END %]>2020</option>
+								<option value="21" [% IF req.param('month') == '21' %]SELECTED[% END %]>2021</option>
+								<option value="22" [% IF req.param('month') == '22' %]SELECTED[% END %]>2022</option>
+								<option value="23" [% IF req.param('month') == '23' %]SELECTED[% END %]>2023</option>
+								<option value="24" [% IF req.param('month') == '24' %]SELECTED[% END %]>2024</option>
+								<option value="25" [% IF req.param('month') == '25' %]SELECTED[% END %]>2025</option>
+								<option value="26" [% IF req.param('month') == '26' %]SELECTED[% END %]>2026</option>
 							</select>
 							<label for="year">year</label>
 							</span>					
@@ -142,69 +142,70 @@
 						</dd>
 						<dt><label for="street">[% IF errors.missing.street or errors.missing.city or errors.missing.zip %]<font color="red">[% END %]Billing Address[% IF errors.missing.street or errors.missing.city or errors.missing.zip %]</font>[% END %]</label></dt>
 						<dd>
-							<span class="full"><input type="text" id="street"/><label for="street">[% IF errors.missing.street %]<font color="red">[% END %]Street Address[% IF errors.missing.street %]</font>[% END %]</label></span>
+							<span class="full"><input type="text" id="street" name="street" value="[% req.param('street') %]" /><label for="street">[% IF errors.missing.street %]<font color="red">[% END %]Street Address[% IF errors.missing.street %]</font>[% END %]</label></span>
 						<div class="clear"></div>
 						</dd>
 						<dd>
-							<span class="half"><input type="text" id="city" /><label for="city">[% IF errors.missing.city %]<font color="red">[% END %]City[% IF errors.missing.city %]</font>[% END %]</label></span>
-							<span class="quarter"><input type="text" id="zip" /><label for="zip">[% IF errors.missing.zip or errors.invalid.zip %]<font color="red">[% END %]Zip Code[% IF errors.missing.zip or errors.invalid.zip %]</font>[% END %]</label></span>
+							<span class="half"><input type="text" id="city" name="city" value="[% req.param('city') %]" /><label for="city">[% IF errors.missing.city %]<font color="red">[% END %]City[% IF errors.missing.city %]</font>[% END %]</label></span>
+
+							<span class="quarter"><input type="text" id="zip" name="zip" value="[% req.param('zip') %]" /><label for="zip">[% IF errors.missing.zip or errors.invalid.zip %]<font color="red">[% END %]Zip Code[% IF errors.missing.zip or errors.invalid.zip %]</font>[% END %]</label></span>
 						<div class="clear"></div>
 						</dd>
 						<dd class="large_margin">
 							<span class="half">
-							<select id="state">
+							<select id="state" name="state">
 								<option value="">State</option>
-                                <option value="AL">Alabama</option>
-                                <option value="AK">Alaska</option>
-                                <option value="AZ">Arizona</option>
-                                <option value="AR">Arkansas</option>
-                                <option value="CA">California</option>
-                                <option value="CO">Colorado</option>
-                                <option value="CT">Connecticut</option>
-                                <option value="DE">Delaware</option>
-                                <option value="DC">Dist. of Columbia</option>
-                                <option value="FL">Florida</option>
-                                <option value="GA">Georgia</option>
-                                <option value="HI">Hawaii</option>
-                                <option value="ID">Idaho</option>
-                                <option value="IL">Illinois</option>
-                                <option value="IN">Indiana</option>
-                                <option value="IA">Iowa</option>
-                                <option value="KS">Kansas</option>
-                                <option value="KY">Kentucky</option>
-                                <option value="LA">Louisiana</option>
-                                <option value="ME">Maine</option>
-                                <option value="MD">Maryland</option>
-                                <option value="MA">Massachusetts</option>
-                                <option value="MI">Michigan</option>
-                                <option value="MN">Minnesota</option>
-                                <option value="MS">Mississippi</option>
-                                <option value="MO">Missouri</option>
-                                <option value="MT">Montana</option>
-                                <option value="NE">Nebraska</option>
-                                <option value="NV">Nevada</option>
-                                <option value="NH">New Hampshire</option>
-                                <option value="NJ">New Jersey</option>
-                                <option value="NM">New Mexico</option>
-                                <option value="NY">New York</option>
-                                <option value="NC">North Carolina</option>
-                                <option value="ND">North Dakota</option>
-                                <option value="OH">Ohio</option>
-                                <option value="OK">Oklahoma</option>
-                                <option value="OR">Oregon</option>
-                                <option value="PA">Pennsylvania</option>
-                                <option value="RI">Rhode Island</option>
-                                <option value="SC">South Carolina</option>
-                                <option value="SD">South Dakota</option>
-                                <option value="TN">Tennessee</option>
-                                <option value="TX">Texas</option>
-                                <option value="UT">Utah</option>
-                                <option value="VT">Vermont</option>
-                                <option value="VA">Virginia</option>
-                                <option value="WA">Washington</option>
-                                <option value="WV">West Virginia</option>
-                                <option value="WI">Wisconsin</option>
-                                <option value="WY">Wyoming</option>
+                                <option value="AL" [% IF req.param('state') == 'AL' %]SELECTED[% END %]>Alabama</option>
+                                <option value="AK" [% IF req.param('state') == 'AK' %]SELECTED[% END %]>Alaska</option>
+                                <option value="AZ" [% IF req.param('state') == 'AZ' %]SELECTED[% END %]>Arizona</option>
+                                <option value="AR" [% IF req.param('state') == 'AR' %]SELECTED[% END %]>Arkansas</option>
+                                <option value="CA" [% IF req.param('state') == 'CA' %]SELECTED[% END %]>California</option>
+                                <option value="CO" [% IF req.param('state') == 'CO' %]SELECTED[% END %]>Colorado</option>
+                                <option value="CT" [% IF req.param('state') == 'CT' %]SELECTED[% END %]>Connecticut</option>
+                                <option value="DE" [% IF req.param('state') == 'DE' %]SELECTED[% END %]>Delaware</option>
+                                <option value="DC" [% IF req.param('state') == 'DC' %]SELECTED[% END %]>Dist. of Columbia</option>
+                                <option value="FL" [% IF req.param('state') == 'FL' %]SELECTED[% END %]>Florida</option>
+                                <option value="GA" [% IF req.param('state') == 'GA' %]SELECTED[% END %]>Georgia</option>
+                                <option value="HI" [% IF req.param('state') == 'HI' %]SELECTED[% END %]>Hawaii</option>
+                                <option value="ID" [% IF req.param('state') == 'ID' %]SELECTED[% END %]>Idaho</option>
+                                <option value="IL" [% IF req.param('state') == 'IL' %]SELECTED[% END %]>Illinois</option>
+                                <option value="IN" [% IF req.param('state') == 'IN' %]SELECTED[% END %]>Indiana</option>
+                                <option value="IA" [% IF req.param('state') == 'IA' %]SELECTED[% END %]>Iowa</option>
+                                <option value="KS" [% IF req.param('state') == 'KS' %]SELECTED[% END %]>Kansas</option>
+                                <option value="KY" [% IF req.param('state') == 'KY' %]SELECTED[% END %]>Kentucky</option>
+                                <option value="LA" [% IF req.param('state') == 'LA' %]SELECTED[% END %]>Louisiana</option>
+                                <option value="ME" [% IF req.param('state') == 'ME' %]SELECTED[% END %]>Maine</option>
+                                <option value="MD" [% IF req.param('state') == 'MD' %]SELECTED[% END %]>Maryland</option>
+                                <option value="MA" [% IF req.param('state') == 'MA' %]SELECTED[% END %]>Massachusetts</option>
+                                <option value="MI" [% IF req.param('state') == 'MI' %]SELECTED[% END %]>Michigan</option>
+                                <option value="MN" [% IF req.param('state') == 'MN' %]SELECTED[% END %]>Minnesota</option>
+                                <option value="MS" [% IF req.param('state') == 'MS' %]SELECTED[% END %]>Mississippi</option>
+                                <option value="MO" [% IF req.param('state') == 'MO' %]SELECTED[% END %]>Missouri</option>
+                                <option value="MT" [% IF req.param('state') == 'MT' %]SELECTED[% END %]>Montana</option>
+                                <option value="NE" [% IF req.param('state') == 'NE' %]SELECTED[% END %]>Nebraska</option>
+                                <option value="NV" [% IF req.param('state') == 'NV' %]SELECTED[% END %]>Nevada</option>
+                                <option value="NH" [% IF req.param('state') == 'NH' %]SELECTED[% END %]>New Hampshire</option>
+                                <option value="NJ" [% IF req.param('state') == 'NJ' %]SELECTED[% END %]>New Jersey</option>
+                                <option value="NM" [% IF req.param('state') == 'NM' %]SELECTED[% END %]>New Mexico</option>
+                                <option value="NY" [% IF req.param('state') == 'NY' %]SELECTED[% END %]>New York</option>
+                                <option value="NC" [% IF req.param('state') == 'NC' %]SELECTED[% END %]>North Carolina</option>
+                                <option value="ND" [% IF req.param('state') == 'ND' %]SELECTED[% END %]>North Dakota</option>
+                                <option value="OH" [% IF req.param('state') == 'OH' %]SELECTED[% END %]>Ohio</option>
+                                <option value="OK" [% IF req.param('state') == 'OK' %]SELECTED[% END %]>Oklahoma</option>
+                                <option value="OR" [% IF req.param('state') == 'OR' %]SELECTED[% END %]>Oregon</option>
+                                <option value="PA" [% IF req.param('state') == 'PA' %]SELECTED[% END %]>Pennsylvania</option>
+                                <option value="RI" [% IF req.param('state') == 'RI' %]SELECTED[% END %]>Rhode Island</option>
+                                <option value="SC" [% IF req.param('state') == 'SC' %]SELECTED[% END %]>South Carolina</option>
+                                <option value="SD" [% IF req.param('state') == 'SD' %]SELECTED[% END %]>South Dakota</option>
+                                <option value="TN" [% IF req.param('state') == 'TN' %]SELECTED[% END %]>Tennessee</option>
+                                <option value="TX" [% IF req.param('state') == 'TX' %]SELECTED[% END %]>Texas</option>
+                                <option value="UT" [% IF req.param('state') == 'UT' %]SELECTED[% END %]>Utah</option>
+                                <option value="VT" [% IF req.param('state') == 'VT' %]SELECTED[% END %]>Vermont</option>
+                                <option value="VA" [% IF req.param('state') == 'VA' %]SELECTED[% END %]>Virginia</option>
+                                <option value="WA" [% IF req.param('state') == 'WA' %]SELECTED[% END %]>Washington</option>
+                                <option value="WV" [% IF req.param('state') == 'WV' %]SELECTED[% END %]>West Virginia</option>
+                                <option value="WI" [% IF req.param('state') == 'WI' %]SELECTED[% END %]>Wisconsin</option>
+                                <option value="WY" [% IF req.param('state') == 'WY' %]SELECTED[% END %]>Wyoming</option>
 								</select>
 								<label for="state">[% IF errors.missing.state or errors.invalid.state %]<font color="red">[% END %]State[% IF errors.missing.state or errors.invalid.state %]</font>[% END %]</label>
 							</span>

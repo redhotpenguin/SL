@@ -49,9 +49,12 @@ sub paid {
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
 
+    my $plan = $req->param('plan');
+    $r->log->error( "plan is $plan, first is " . $req->param('first_name') );
+
     # plan passed on GET
     my %tmpl_data = (
-        plan   => $req->param('plan'),
+        plan   => $plan,
         errors => $args_ref->{errors},
         req    => $req,
     );
@@ -85,7 +88,11 @@ sub paid {
                 plan        => valid_plan(),
             }
         );
+
         my $results = Data::FormValidator->check( $req, \%payment_profile );
+
+        #        use Data::Dumper;
+        #        $r->log->error("results: " . Dumper($results));
 
         # handle form errors
         if ( $results->has_missing or $results->has_invalid ) {
@@ -99,6 +106,9 @@ sub paid {
             );
         }
     }
+
+
+    # process the payment
 
     #  my $output;
     #  my $ok = $Tmpl->process('auth/paid.tmpl', \%tmpl_data, \$output, $r);
