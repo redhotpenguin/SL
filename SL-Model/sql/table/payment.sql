@@ -21,7 +21,6 @@ SET default_with_oids = false;
 CREATE TABLE payment (
     payment_id integer NOT NULL,
     account_id integer NOT NULL,
-    usr_id integer NOT NULL,
     amount money NOT NULL,
     start timestamp without time zone DEFAULT now() NOT NULL,
     stop timestamp without time zone NOT NULL,
@@ -30,7 +29,9 @@ CREATE TABLE payment (
     cts timestamp without time zone DEFAULT now() NOT NULL,
     approved boolean,
     last_four integer NOT NULL,
-    card_type text NOT NULL
+    card_type text NOT NULL,
+    mac macaddr NOT NULL,
+    email text NOT NULL
 );
 
 
@@ -75,7 +76,7 @@ ALTER TABLE payment ALTER COLUMN payment_id SET DEFAULT nextval('payment_payment
 -- Data for Name: payment; Type: TABLE DATA; Schema: public; Owner: phred
 --
 
-COPY payment (payment_id, account_id, usr_id, amount, start, stop, authorization_code, error_message, cts, approved, last_four, card_type) FROM stdin;
+COPY payment (payment_id, account_id, amount, start, stop, authorization_code, error_message, cts, approved, last_four, card_type, mac, email) FROM stdin;
 \.
 
 
@@ -93,14 +94,6 @@ ALTER TABLE ONLY payment
 
 ALTER TABLE ONLY payment
     ADD CONSTRAINT payment_account_id_fkey FOREIGN KEY (account_id) REFERENCES account(account_id);
-
-
---
--- Name: payment_usr_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
---
-
-ALTER TABLE ONLY payment
-    ADD CONSTRAINT payment_usr_id_fkey FOREIGN KEY (usr_id) REFERENCES usr(usr_id);
 
 
 --
