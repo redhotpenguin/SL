@@ -7,6 +7,8 @@ use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 use Apache2::Log ();
 use Apache2::Const -compile => qw( REDIRECT );
+use APR::Table ();
+use Apache2::RequestUtil ();
 
 use URI::Escape ();
 
