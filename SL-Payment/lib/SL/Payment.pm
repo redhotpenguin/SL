@@ -34,9 +34,10 @@ sub make_payment {
     my $payment = SL::Model::App->resultset('Payment')->create(
         {
             account_id => $args->{account_id},
-            usr_id     => $args->{usr_id},
+            mac        => $args->{mac},
             amount     => $args->{amount},
             stop       => $stop,
+            email      => $args->{email}
             last_four  => $last_four,
             type       => $args->{card_type},
         }
