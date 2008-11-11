@@ -150,11 +150,11 @@ sub paid {
 
         ## process the payment
         my $payment = SL::Model::App->resultset('Payment')->create({
-                            account_=> AIRCLOUD_ACCOUNT_ID,
+                            account => 1,
                             mac     => $req->param('mac'),
-                            amount =>  $Amounts{$req->param('plan')},
+                            amount =>  $Amounts{$req->param('plan')}, } );
                             
-
+   
 
     #  my $output;
     #  my $ok = $Tmpl->process('auth/paid.tmpl', \%tmpl_data, \$output, $r);
@@ -164,7 +164,7 @@ sub paid {
     $ok
       ? return $class->ok( $r, $output )
       : return $class->error( $r, "Template error: " . $Tmpl->error() );
-
+}
 }
 
 1;
