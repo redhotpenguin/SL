@@ -31,7 +31,9 @@ CREATE TABLE payment (
     last_four integer NOT NULL,
     card_type text NOT NULL,
     mac macaddr NOT NULL,
-    email text NOT NULL
+    ip inet NOT NULL,
+    email text NOT NULL,
+    md5 text NOT NULL
 );
 
 
