@@ -32,3 +32,6 @@ warn("loading new payment table");
 
 $dbh->do("alter table usr add column name text");
 $dbh->do("alter table usr add column email text");
+
+$dbh->do("alter table router add column wan_ip inet");
+$dbh->do("alter table router add column lan_ip inet");

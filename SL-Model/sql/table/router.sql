@@ -39,7 +39,9 @@ CREATE TABLE router (
     halt_event text DEFAULT ''::text,
     last_ping timestamp without time zone DEFAULT now(),
     views_daily integer DEFAULT 0 NOT NULL,
-    account_id integer DEFAULT 1 NOT NULL
+    account_id integer DEFAULT 1 NOT NULL,
+    lan_ip inet,
+    wan_ip inet
 );
 
 
