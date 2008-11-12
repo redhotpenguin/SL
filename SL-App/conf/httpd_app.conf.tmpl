@@ -135,6 +135,11 @@ PerlLoadModule Apache2::Dispatch
     PerlResponseHandler SL::Apache::App::CP->paid
 </Location>
 
+<Location /auth/token>
+    SetHandler modperl
+    PerlResponseHandler SL::Apache::App::CP->token
+</Location>
+
 
 <Location /auth/post/paid>
     SetHandler modperl
