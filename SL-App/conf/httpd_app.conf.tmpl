@@ -51,7 +51,7 @@ PerlSetVar ReloadModules "SL::*"
 	PerlModule Apache::DProf
 [% END %]
 
-PerlPostReadRequestHandler Apache2::Const::OK
+PerlPostReadRequestHandler SL::Apache::App::PostReadRequestHandler
 
 PerlLoadModule Apache2::Dispatch
 
@@ -127,6 +127,12 @@ PerlLoadModule Apache2::Dispatch
 <Location /auth>
     SetHandler modperl
     PerlResponseHandler SL::Apache::App::CP->auth
+</Location>
+
+
+<Location /auth/free>
+    SetHandler modperl
+    PerlResponseHandler SL::Apache::App::CP->free
 </Location>
 
 

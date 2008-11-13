@@ -61,6 +61,7 @@ use SL::Apache::App::Blacklist  ();
 use SL::Apache::App::Settings   ();
 use SL::Apache::App::Logon      ();
 use SL::Apache::App::CookieAuth ();
+use SL::Apache::App::PostReadRequestHandler ();
 use SL::Model                   ();
 use SL::Model::App              ();
 use SL::Model::Report           ();

@@ -121,14 +121,27 @@ sub valid_year {
 sub token {
     my ( $class, $r ) = @_;
 
+
+    my ($location) = SL::Model::App->resultset('Location')->search({ ip => $r->connection->remote_ip });
+    unless ($location) {
+
+	$r->log->error( "$$ unknown location ip " . $r->connection->remote_ip );
+        return Apache2::Const::NOT_FOUND;
+    }
+
+    my ($router__location) = SL::Model::App->resultset('RouterLocation')->search({  location_id => $location->location_id }, { order_by => 'mts DESC' }, );
+
     my ($router) =
-      SL::Model::App->resultset('Router')
-      ->search( { wan_ip => $r->connection->remote_ip } );
+	      SL::Model::App->resultset('Router')
+	      ->search( { router_id => $router__location->router_id->router_id } );
 
     unless ($router) {
         $r->log->error( "$$ unknown router ip " . $r->connection->remote_ip );
-        return Apache2::Const::SERVER_ERROR;
+        return Apache2::Const::NOT_FOUND;
     }
+
+
+
 
     my $req = Apache2::Request->new($r);
 
@@ -193,14 +206,24 @@ sub token {
 sub paid {
     my ( $class, $r, $args_ref ) = @_;
 
+    my ($location) = SL::Model::App->resultset('Location')->search({ ip => $r->connection->remote_ip });
+    unless ($location) {
+
+	$r->log->error( "$$ unknown location ip " . $r->connection->remote_ip );
+        return Apache2::Const::NOT_FOUND;
+    }
+
+    my ($router__location) = SL::Model::App->resultset('RouterLocation')->search({ location_id => $location->location_id },  { order_by => 'mts DESC', });
+
     my ($router) =
-      SL::Model::App->resultset('Router')
-      ->search( { wan_ip => $r->connection->remote_ip } );
+	      SL::Model::App->resultset('Router')
+	      ->search( { router_id => $router__location->router_id->router_id } );
 
     unless ($router) {
         $r->log->error( "$$ unknown router ip " . $r->connection->remote_ip );
-        return Apache2::Const::SERVER_ERROR;
+        return Apache2::Const::NOT_FOUND;
     }
+
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
 
@@ -318,12 +341,26 @@ sub paid {
 sub free {
     my ( $class, $r, $args_ref ) = @_;
 
+    my ($location) = SL::Model::App->resultset('Location')->search({ ip => $r->connection->remote_ip });
+    unless ($location) {
+
+	$r->log->error( "$$ unknown location ip " . $r->connection->remote_ip );
+        return Apache2::Const::NOT_FOUND;
+    }
+
+    my ($router__location) = SL::Model::App->resultset('RouterLocation')->search({ location_id => $location->location_id,  } , { order_by => 'mts DESC' }, );
+
     my ($router) =
-      SL::Model::App->resultset('Router')
-      ->search( { wan_ip => $r->connection->remote_ip } );
+	      SL::Model::App->resultset('Router')
+	      ->search( { router_id => $router__location->router_id->router_id } );
 
     unless ($router) {
         $r->log->error( "$$ unknown router ip " . $r->connection->remote_ip );
+        return Apache2::Const::NOT_FOUND;
+    }
+
+    unless ($router->lan_ip) {
+        $r->log->error( "$$  router id " . $router->router_id . " not setup for AAA");
         return Apache2::Const::SERVER_ERROR;
     }
 

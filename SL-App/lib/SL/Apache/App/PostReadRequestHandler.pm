@@ -3,7 +3,7 @@ package SL::Apache::App::PostReadRequestHandler;
 use strict;
 use warnings;
 
-use Apache2::Const->compile => qw( OK );
+use Apache2::Const -compile => qw(OK);
 use Apache2::RequestRec ();
 use Apache2::Connection ();
 
@@ -16,4 +16,6 @@ sub handler {
     }
 
     return Apache2::Const::OK;
-  }
+}
+
+1;
