@@ -7,8 +7,9 @@ use Apache2::RequestRec ();
 use Apache2::Connection ();
 use Apache2::Const -compile => qw( NOT_FOUND OK REDIRECT SERVER_ERROR );
 use Apache2::Log ();
-use APR::Table ();
 use Apache2::RequestUtil ();
+use Apache2::Request ();
+use APR::Table ();
 
 use SL::Config       ();
 use SL::CP::IPTables ();
@@ -40,7 +41,7 @@ sub handler {
     # at this point the mac obviously has not been put into a rule chain
     # so redirect to the auth server/
 
-    my $location = join('/', $Auth_url, $mac );
+    my $location = join('?', $Auth_url, "mac=$mac" );
     $r->headers_out->set( Location => $location );
     $r->no_cache(1);
     return Apache2::Const::REDIRECT;
@@ -52,7 +53,7 @@ sub ads {
     my ($mac, $ip) = _mac_from_ip($r);
     return Apache2::Const::NOT_FOUND unless $mac;
 
-    eval { SL::CP::IPTables->add_to_ads_chain($mac); };
+    eval { SL::CP::IPTables->add_to_ads_chain($mac, $ip); };
 
     if ($@) {
 
@@ -72,6 +73,8 @@ sub paid {
 
     my ($mac, $ip) = _mac_from_ip($r);
     return Apache2::Const::NOT_FOUND unless $mac;
+
+    my $req = Apache2::Request->new($r);
 
     my $token = $r->args();
 
@@ -113,7 +116,7 @@ sub _mac_from_ip {
         return;
     }
 
-    $r->log->info("$$ found mac address $mac for ip $ip");
+	$r->log->info("$$ found mac address $mac for ip $ip");
 
     return ($mac, $ip);
 }

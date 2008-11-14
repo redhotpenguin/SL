@@ -56,8 +56,17 @@ sub init_firewall {
 INPUT -i $Int_if -j slRTR
 FORWARD -i $Int_if -j slNET
 slAUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+slAUT -p tcp -m tcp --dport 53 -j ACCEPT 
+slAUT -p udp -m udp --dport 53 -j ACCEPT 
+slAUT -p tcp -m tcp --dport 80 -j ACCEPT 
+slAUT -p tcp -m tcp --dport 443 -j ACCEPT 
+slAUT -p tcp -m tcp --dport 22 -j ACCEPT 
+slAUT -p tcp -m tcp --dport 143 -j ACCEPT 
+slAUT -p tcp -m tcp --dport 993 -j ACCEPT 
+slAUT -p tcp -m tcp --dport 587 -j ACCEPT 
+slAUT -p tcp -m tcp --dport 25 -j ACCEPT 
 slAUT -j REJECT --reject-with icmp-port-unreachable
-slAUT -m mark --mark 0x100/0x700 -j DROP
+slNET -m mark --mark 0x100/0x700 -j DROP
 slNET -m state --state INVALID -j DROP
 slNET -p tcp -m tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
 slNET -m mark --mark 0x200/0x700 -j ACCEPT
@@ -148,26 +157,20 @@ sub add_to_paid_chain {
     my ( $class, $mac, $ip, $token ) = @_;
 
     # fetch the token and validate
-    my $res = $UA->get( $Auth_token_url . '/' . $mac . '|' . $token );
+    my $res = $UA->get( $Auth_token_url . '?mac=' . $mac . '&token=' . $token );
 
     die "error validating mac $mac with token $token:  " . $res->status_line
       unless $res->is_success;
 
-    iptables(
-"-t mangle -A slNET -s $ip -m mac --mac-source $mac -j MARK $Mark_op 0x500"
-    );
+    iptables("-t mangle -A slOUT -s $ip -m mac --mac-source $mac -j MARK $Mark_op 0x400");
     iptables("-t mangle -A slINC -d $ip -j ACCEPT");
-
 }
 
 sub add_to_ads_chain {
     my ( $class, $mac, $ip ) = @_;
-
-    iptables(
-"-t mangle -D slNET -s $ip -m mac --mac-source $mac -j MARK $Mark_op 0x500"
-    );
-    iptables("-t mangle -D slINC -d $ip -j ACCEPT");
-
+#iptables -t mangle -A ndsOUT -s 10.0.0.146 -m mac --mac-source 00:15:58:83:0C:FF -j MARK --or-mark 0x500
+    iptables("-t mangle -A slOUT -s $ip -m mac --mac-source $mac -j MARK $Mark_op 0x500");
+    iptables("-t mangle -A slINC -d $ip -j ACCEPT");
 }
 
 1;

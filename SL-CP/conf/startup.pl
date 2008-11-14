@@ -20,6 +20,7 @@ use Apache2::RequestUtil ();
 use Apache2::Log        ();
 use Apache2::Connection ();
 use Apache2::ServerUtil ();
+use Apache2::Request    ();
 
 use LWP::UserAgent      ();
 
