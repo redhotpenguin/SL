@@ -23,7 +23,9 @@
 
 				Please fill out the form below to purchase Ad Free high speed WiFi service.  				
 				 </p>
-[% IF errors.invalid %]
+[% IF errors.payment %]
+<p><font color="red">[% errors.payment %]</font></p>
+[% ELSIF errors.invalid %]
 <p><font color="red">Some fields were invalid, please correct them</font></p>
 [% ELSIF errors.missing %]
 <p><font color="red">Please complete the missing fields</font></p>
@@ -51,7 +53,6 @@
 			<!-- CHOOSE WIFI COPY ************************ --> 
 			<div class="two_thirds left">
 				<form id="sl_payment" action="[% base_uri %]/auth/paid" method="post">
-                <input type="hidden" name="mac" value="[% req.param('mac') %]" />
 					<dl>
 						<dt><label for="plan">Choose a plan:</label></dt>
 						<dd>
@@ -92,7 +93,7 @@
 						<dt><label for="card_number">[% IF errors.missing.card_number or errors.invalid.card_number %]<font color="red">[% END %]Card Number[% IF errors.missing.card_number or errors.invalid.card_number %]</font>[% END %]</label></dt>
 						<dd>
 							<span class="half"><input type="text" id="card_number" name="card_number" value="[% req.param('card_number') %]" /><label for="card_number">[% IF errors.missing.card_number or errors.invalid.card_number %]<font color="red">[% END %]################[% IF errors.missing.card_number or errors.invalid.card_number %]</font>[% END %]</label></span>
-							<span class="quarter"><input type="text" id="cvv2" name="cvv2" value="[% req.param('cvv2') %]" /><label for="cvv2">[% IF errors.missing.cvv2 %]<font color="red">[% END %]###&nbsp;&nbsp;CVC[% IF errors.missing.cvv2 %]</font>[% END %]</label></span>
+							<span class="quarter"><input type="text" id="cvv2" name="cvv2" value="[% req.param('cvv2') %]" maxlength="4"/><label for="cvv2">[% IF errors.missing.cvv2 %]<font color="red">[% END %]###&nbsp;&nbsp;<a href="http://en.wikipedia.org/wiki/Cvv2">CVV2</a>[% IF errors.missing.cvv2 %]</font>[% END %]</label></span>
 						<div class="clear"></div>
 						</dd>
 						<dt><label for="month">Expiration Date</label></dt>
@@ -116,7 +117,6 @@
 							</span>
 							<span class="quarter">
 							<select id="year" name="year">
-								<option value="08" [% IF req.param('year') == '08' %]SELECTED[% END %]>2008</option>
 								<option value="09" [% IF req.param('year') == '09' %]SELECTED[% END %]>2009</option>
 								<option value="10" [% IF req.param('year') == '10' %]SELECTED[% END %]>2010</option>
 								<option value="11" [% IF req.param('year') == '11' %]SELECTED[% END %]>2011</option>
@@ -140,11 +140,16 @@
 							</span>					
 						<div class="clear"></div>
 						</dd>
-						<dt><label for="street">[% IF errors.missing.street or errors.missing.city or errors.missing.zip %]<font color="red">[% END %]Billing Address[% IF errors.missing.street or errors.missing.city or errors.missing.zip %]</font>[% END %]</label></dt>
+
+
+                <input type="hidden" name="mac" value="[% req.param('mac') %]" />
+
+						<dt><label for="street">[% IF errors.missing.street or errors.missing.city or errors.missing.zip or errors.missing.state %]<font color="red">[% END %]Billing Address[% IF errors.missing.street or errors.missing.city or errors.missing.zip or errors.missing.state %]</font>[% END %]</label></dt>
 						<dd>
 							<span class="full"><input type="text" id="street" name="street" value="[% req.param('street') %]" /><label for="street">[% IF errors.missing.street %]<font color="red">[% END %]Street Address[% IF errors.missing.street %]</font>[% END %]</label></span>
 						<div class="clear"></div>
 						</dd>
+
 						<dd>
 							<span class="half"><input type="text" id="city" name="city" value="[% req.param('city') %]" /><label for="city">[% IF errors.missing.city %]<font color="red">[% END %]City[% IF errors.missing.city %]</font>[% END %]</label></span>
 

@@ -15,9 +15,12 @@ use base 'SL::Apache::App';
 use Data::FormValidator ();
 use Data::FormValidator::Constraints qw(:closures);
 use Regexp::Common qw( net );
+use Mail::Mailer ();
 
 use SL::App::Template ();
 our $Tmpl = SL::App::Template->template();
+
+use SL::Payment ();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 1;
 
@@ -26,6 +29,8 @@ our %Amounts = (
     day   => '$3.99',
     month => '$19.99',
 );
+
+our $From = "SLN Support <support\@silverliningnetworks.com>";
 
 # this specific template logic
 use Data::Dumper;
@@ -68,6 +73,19 @@ sub valid_plan {
 
         return $val if ( $val =~ m/(?:day|month|hour)/ );
         return;
+      }
+}
+
+## NOT IMPLEMENTED YET
+
+sub card_expired {
+    return sub {
+        my $dfv   = shift;
+        my $val   = $dfv->get_current_constraint_value;
+        my $data  = $dfv->get_filtered_data;
+        my $month = $data->{month};
+        my $year  = $data->{year};
+        return $val;
       }
 }
 
@@ -180,6 +198,27 @@ sub paid {
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
 
+    my $mac = $req->param('mac');
+    unless ($mac) {
+        $r->log->error( "$$ auth page called without mac from ip "
+              . $r->connection->remote_ip
+              . " url: "
+              . $r->construct_url( $r->unparsed_uri ) );
+        return Apache2::Const::NOT_FOUND;
+    }
+
+    unless ( $mac =~ m/$RE{net}{MAC}/ ) {
+        $r->log->error( "$$ auth page called with invalid mac from ip "
+              . $r->connection->remote_ip );
+        return Apache2::Const::SERVER_ERROR;
+    }
+
+    my $router = $r->pnotes('router');
+    unless ($router) {
+        $r->log->error('router not set');
+        return Apache2::Const::SERVER_ERROR;
+    }
+
     # apache request bug
     my $plan = $req->param('plan');
 
@@ -210,10 +249,12 @@ sub paid {
                   month year street city zip state email plan mac )
             ],
             constraint_methods => {
-                email       => email(),
-                zip         => zip(),
-                month       => valid_month(),
-                year        => valid_year(),
+                email => email(),
+                zip   => zip(),
+                month => valid_month(),
+                year  => valid_year(),
+
+#                 month       => card_expired( { fields => ['month','year'] } ),
                 card_type   => cc_type(),
                 card_number => cc_number( { fields => ['card_type'] } ),
                 plan        => valid_plan(),
@@ -243,51 +284,91 @@ sub paid {
 
         $r->log->info("$$ about to process payment");
         ## process the payment
-        my $payment = eval {
-            SL::Payment->process(
-                {
-                    account_id  => $r->pnotes('router')->account_id->account_id,
-                    mac         => $req->param('mac'),
-                    amount      => $Amounts{ $req->param('plan') },
-                    email       => $req->param('email'),
-                    card_type   => $req->param('card_type'),
-                    card_number => $req->param('card_number'),
-                    card_exp =>
-                      join( '/', $req->param('month'), $req->param('year') ),
-                    cvv2       => $req->param('cvv2'),
-                    email      => $req->param('email'),
-                    zip        => $req->param('zip'),
-                    first_name => $req->param('first_name'),
-                    last_name  => $req->param('last_name'),
-                    ip         => $r->connection->remote_ip,
-                    street     => $req->param('street'),
-                    city       => $req->param('city'),
-                    state      => $req->param('state'),
-                    referer    => $r->headers_in->{'referer'},
-                    plan       => $req->param('plan'),
-                }
-            );
-        };
+        my $account = $r->pnotes('router')->account_id;
+        my $payment = SL::Payment->process(
+            {
+                account_id  => $account->account_id,
+                mac         => $req->param('mac'),
+                amount      => $Amounts{ $req->param('plan') },
+                email       => $req->param('email'),
+                card_type   => $req->param('card_type'),
+                card_number => $req->param('card_number'),
+                card_exp =>
+                  join( '/', $req->param('month'), $req->param('year') ),
+                cvv2       => $req->param('cvv2'),
+                email      => $req->param('email'),
+                zip        => $req->param('zip'),
+                first_name => $req->param('first_name'),
+                last_name  => $req->param('last_name'),
+                ip         => $r->connection->remote_ip,
+                street     => $req->param('street'),
+                city       => $req->param('city'),
+                state      => $req->param('state'),
+                referer    => $r->headers_in->{'referer'},
+                plan       => $req->param('plan'),
+            }
+        );
 
-        if ($@) {
+        if ( $payment->error_message ) {
 
             # process errors
-            $r->log->info("$$ got some payment errors: $@");
+            $r->log->info(
+                "$$ got payment errors: " . $payment->error_message );
 
             return $class->paid(
                 $r,
                 {
-                    errors => $@,
-                    req    => $req
+                    errors => { payment => $payment->error_message, },
+                    req    => $req,
                 }
             );
         }
 
+        $r->log->info("$$ payment auth code " . $payment->authorization_code . " processed OK");
+
+        # payment success, send receipt
+        ($payment) = SL::Model::App->resultset('Payment')->search({ payment_id => $payment->payment_id });
+        my $authorization_code = $payment->authorization_code;
+        my $email = $req->param('email');
+        my $mailer = Mail::Mailer->new('qmail');
+        $mailer->open(
+            {
+                'To'      => $email,
+                'From'    => $From,
+                'CC'      => $From,
+                'Subject' => $account->name . " network access payment receipt $authorization_code",
+            }
+        );
+
+        my $mail = <<MAIL;
+Hi $email,
+
+Thank you for purchasing wifi access with Silver Lining Networks for the period of
+one $plan.  Your confirmation number is $authorization_code.
+
+Please contact us at support\@silverliningnetworks.com if have any questions.
+
+Sincerely,
+
+Silver Lining Networks Support
+
+MAIL
+
+        print $mailer $mail;
+
+        $mailer->close;
+
+        $r->log->info("$$ receipt for payment $authorization_code: $mail");
+
         ## payment successful, redirect to auth
-        $r->headers_out->set( Location => "http://"
-              . $r->pnotes('router')->lan_ip . '/'
-              . '?token='
-              . $payment->md5 );
+        my $redirect_url = "http://"
+          . $r->pnotes('router')->lan_ip . '/'
+          . '?token='
+          . $payment->md5;
+
+        $r->log->info("redirecting to $redirect_url");
+
+        $r->headers_out->set( Location => $redirect_url );
         $r->no_cache(1);
         return Apache2::Const::REDIRECT;
     }
@@ -301,6 +382,12 @@ sub free {
     # apache request bug
     my $plan = $req->param('plan');
     my $mac  = $req->param('mac');
+
+    my $router = $r->pnotes('router');
+    unless ($router) {
+        $r->log->error('router not set');
+        return Apache2::Const::SERVER_ERROR;
+    }
 
     ## payment successful, redirect to auth
     $r->headers_out->set(

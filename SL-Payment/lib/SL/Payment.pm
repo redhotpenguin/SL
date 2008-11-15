@@ -6,16 +6,17 @@ use warnings;
 use SL::Model::App                        ();
 use SL::Config                            ();
 use Business::OnlinePayment::AuthorizeNet ();
-use Mail::Mailer                          ();
 
 our $VERSION = 0.01;
 
-our ($Config, $Authorize_login, $Authorize_key);
+our ( $Config, $Authorize_login, $Authorize_key );
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 BEGIN {
-    $Config = SL::Config->new;
+    $Config          = SL::Config->new;
+    $Authorize_login = $Config->sl_authorize_login || die 'payment setup error';
+    $Authorize_key   = $Config->sl_authorize_key || die 'payment setup error';
 }
 
 sub process {
@@ -38,8 +39,7 @@ sub process {
         && defined $args->{city}
         && defined $args->{state}
         && defined $args->{referer}
-        && defined $args->{plan}
- );
+        && defined $args->{plan} );
 
     my ($last_four) = $args->{card_number} =~ m/(\d{4})$/;
 
@@ -59,7 +59,7 @@ sub process {
             stop       => $stop,
             email      => $args->{email},
             last_four  => $last_four,
-            type       => $args->{card_type},
+            card_type  => $args->{card_type},
             ip         => $args->{ip},
         }
     );
@@ -71,7 +71,7 @@ sub process {
     $args->{description}    = "$plan transaction payment for $email";
     $args->{invoice_number} = $payment->payment_id;
     $args->{customer_id}    = sprintf(
-        "macaddress %u account %u",
+        "macaddress %s account %u",
         delete $args->{mac},
         delete $args->{account_id}
     );
@@ -106,45 +106,15 @@ sub process {
         $payment->authorization_code( $tx->authorization );
         $payment->approved('t');
         $payment->update;
+        return $payment;
     }
     else {
         warn "Card was rejected: " . $tx->error_message if DEBUG;
         $payment->error_message( $tx->error_message );
         $payment->approved('f');
         $payment->update;
-        die $tx->error_message;
+        return $payment;
     }
-
-    # send the email receipt
-    my $from   = "SLN Support <support\@silverliningnetworks.com>";
-    my $mailer = Mail::Mailer->new('qmail');
-    $mailer->open(
-        {
-            'To'      => $email,
-            'From'    => $from,
-            'CC'      => $from,
-            'Subject' => 'Payment receipt'
-        }
-    );
-
-    my $authorization_code = $tx->authorization;
-    print $mailer <<MAIL;
-Hi $email,
-
-Thank you for purchasing wifi access with Silver Lining Networks for the period of
-one $plan.  Your confirmation number is $authorization_code.
-
-Please contact us at support\@silverliningnetworks.com if have any questions.
-
-Sincerely,
-
-Silver Lining Networks Support
-
-MAIL
-
-    $mailer->close;
-
-      return 1;
 
 }
 

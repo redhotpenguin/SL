@@ -35,6 +35,10 @@ sl_paypal_sandbox_username fred_s_1199482080_biz_api1.redhotpenguin.com
 sl_paypal_sandbox_password 1199482097
 sl_paypal_sandbox_signature AOYQzn1Msof3mkz-n7Z8-H.oD8YvAlpivvadPTh1EhrTZwOxrQ0w8Ocs
 
+# authorize.net settings
+sl_authorize_login 3VvsA369
+sl_authorize_key 76b9S26WuUFP6qQq
+
 # payment thresholds
 sl_default_cpm 1
 sl_default_views 5000

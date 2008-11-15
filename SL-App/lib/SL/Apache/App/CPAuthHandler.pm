@@ -3,7 +3,7 @@ package SL::Apache::App::CPAuthHandler;
 use strict;
 use warnings;
 
-use Apache2::Const -compile => qw( AUTH_REQUIRED DONE NOT_FOUND OK );
+use Apache2::Const -compile => qw(  NOT_FOUND OK );
 use Apache2::RequestRec  ();
 use Apache2::RequestUtil ();
 use Apache2::Connection  ();
@@ -20,7 +20,7 @@ sub handler {
 
     unless ($ip) {
         $r->log->info("$$ no registered location for ip $ip");
-        return Apache2::Const::AUTH_REQUIRED;
+        return Apache2::Const::NOT_FOUND;
     }
 
     my ($router__location) =
@@ -30,19 +30,19 @@ sub handler {
 
     unless ($router__location) {
         $r->log->info("$$ no registered routers at ip $ip");
-        return Apache2::Const::AUTH_REQUIRED;
-    }
-
-    unless ( $router__location->router_id->lan_ip ) {
-        $r->log->info( "$$ no lan_ip for router id "
-              . $router__location->router_id->router_id );
         return Apache2::Const::NOT_FOUND;
     }
 
-    $r->user( $router__location->router_id);
-    $r->pnotes( router => $router__location->router_id );
+    my $router = $router__location->router_id;
+    unless ( $router->lan_ip ) {
+        $r->log->info( "$$ no lan_ip for router id "
+              . $router->router_id );
+        return Apache2::Const::NOT_FOUND;
+    }
 
-    return Apache2::Const::DECLINED;
+    $r->pnotes( 'router' => $router );
+
+    return Apache2::Const::OK;
 }
 
 1;
