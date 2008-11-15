@@ -127,10 +127,9 @@ PerlLoadModule Apache2::Dispatch
 
 <Location /auth>
     SetHandler modperl
-    AuthType SL::CP
-    PerlResponseHandler SL::Apache::App::CP->auth
 	PerlAuthenHandler SL::Apache::App::CPAuthHandler
-	require valid-user
+	PerlAuthzHandler Apache2::Const::OK
+    PerlResponseHandler SL::Apache::App::CP->auth
 </Location>
 
 
