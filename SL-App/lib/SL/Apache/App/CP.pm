@@ -35,11 +35,7 @@ use SL::Model::App;    # works for now
 sub auth {
     my ( $class, $r ) = @_;
 
-    my $router = eval { $class->router_from_ip( $r->connection->remote_ip ); };
-    if ($@) {
-        $r->log->error("$$ no router for ip: $@");
-        return Apache2::Const::NOT_FOUND;
-    }
+    $r->log->info('auth handler');
 
     my $req = Apache2::Request->new($r);
     my $mac = $req->param('mac');
@@ -112,12 +108,6 @@ sub valid_year {
 sub token {
     my ( $class, $r ) = shift;
 
-    my $router = eval { $class->router_from_ip( $r->connection->remote_ip ); };
-    if ($@) {
-        $r->log->error("$$ no router for ip: $@");
-        return Apache2::Const::NOT_FOUND;
-    }
-
     my $req = Apache2::Request->new($r);
 
     my $token = $req->param('token');
@@ -134,7 +124,7 @@ sub token {
             mac        => $mac,
             md5        => $token,
             ip         => $r->connection->remote_ip,
-            account_id => $router->account_id->account_id,
+            account_id => $r->pnotes('router')->account_id->account_id,
             approved   => 't',
         }
     );
@@ -181,24 +171,12 @@ sub token {
 sub post_ad {
     my ( $class, $r ) = @_;
 
-    my $router = eval { $class->router_from_ip( $r->connection->remote_ip ); };
-    if ($@) {
-        $r->log->error("$$ no router for ip: $@");
-        return Apache2::Const::NOT_FOUND;
-    }
-
     return Apache2::Const::OK;
 
 }
 
 sub paid {
     my ( $class, $r, $args_ref ) = @_;
-
-    my $router = eval { $class->router_from_ip( $r->connection->remote_ip ); };
-    if ($@) {
-        $r->log->error("$$ no router for ip: $@");
-        return Apache2::Const::NOT_FOUND;
-    }
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
 
