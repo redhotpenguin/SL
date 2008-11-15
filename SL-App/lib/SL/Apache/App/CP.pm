@@ -10,16 +10,16 @@ use Apache2::Connection ();
 use Apache2::Request    ();
 use Apache2::SubRequest ();
 
+use base 'SL::Apache::App';
+
 use Data::FormValidator ();
 use Data::FormValidator::Constraints qw(:closures);
 use Regexp::Common qw( net );
 
-use base 'SL::Apache::App';
-
 use SL::App::Template ();
 our $Tmpl = SL::App::Template->template();
 
-use constant DEBUG => $ENV{SL_DEBUG} || 0;
+use constant DEBUG => $ENV{SL_DEBUG} || 1;
 
 our %Amounts = (
     hour  => '$1.99',
@@ -52,10 +52,8 @@ sub auth {
         return Apache2::Const::SERVER_ERROR;
     }
 
-    my %tmpl_data = ( mac => $mac );
-
     my $output;
-    my $ok = $Tmpl->process( 'auth/index.tmpl', \%tmpl_data, \$output, $r );
+    my $ok = $Tmpl->process( 'auth/index.tmpl', { mac => $mac  }, \$output, $r );
     $ok
       ? return $class->ok( $r, $output )
       : return $class->error( $r, "Template error: " . $Tmpl->error() );
@@ -203,6 +201,14 @@ sub token {
     return Apache2::Const::OK;
 }
 
+sub post_ad {
+
+    my ( $class, $r ) = @_;
+
+    return Apache2::Const::OK;
+
+}
+
 sub paid {
     my ( $class, $r, $args_ref ) = @_;
 
@@ -254,7 +260,7 @@ sub paid {
         my %payment_profile = (
             required => [
                 qw( first_name last_name card_type card_number cvv2
-                  month year street city zip state email plan )
+                  month year street city zip state email plan mac )
             ],
             constraint_methods => {
                 mac         => valid_macaddr(),
@@ -265,19 +271,23 @@ sub paid {
                 card_type   => cc_type(),
                 card_number => cc_number( { fields => ['card_type'] } ),
                 plan        => valid_plan(),
+		mac         => qr/$RE{net}{MAC}/,
             }
         );
 
+	$r->log->info("$$ about to validate form");
         my $results = Data::FormValidator->check( $req, \%payment_profile );
-
-        if (DEBUG) {
-            require Data::Dumper;
-            $r->log->error( "results: " . Data::Dumper::Dumper($results) );
-        }
 
         # handle form errors
         if ( $results->has_missing or $results->has_invalid ) {
-            my $errors = $class->SUPER::_results_to_errors($results);
+	        if (DEBUG) {
+        	    require Data::Dumper;
+           	 $r->log->error( "results: " . Data::Dumper::Dumper($results) );
+        	}
+
+
+
+		my $errors = $class->SUPER::_results_to_errors($results);
             return $class->paid(
                 $r,
                 {
@@ -287,6 +297,7 @@ sub paid {
             );
         }
 
+	$r->log->info("$$ about to process payment");
         ## process the payment
         my $payment = eval {
             SL::Payment->process(
