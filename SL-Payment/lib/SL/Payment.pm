@@ -10,7 +10,7 @@ use Mail::Mailer                          ();
 
 our $VERSION = 0.01;
 
-our $Config;
+our ($Config, $Authorize_login, $Authorize_key);
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
@@ -41,14 +41,14 @@ sub process {
         && defined $args->{plan}
  );
 
-    my ($last_four) = $arg->{card_number} =~ m/(\d{4})$/;
+    my ($last_four) = $args->{card_number} =~ m/(\d{4})$/;
 
-    my $plan = delete $args->{plan} . 's';
-    die "bad plan: $plan" unless $duration =~ m/(?:month|day|hour)/;
+    my $plan = delete $args->{plan};
+    die "bad plan: $plan" unless $plan =~ m/(?:month|day|hour)/;
 
     my $stop =
       DateTime::Format::Pg->format_datetime(
-        DateTime->now->add( $duration => 1 ) );
+        DateTime->now->add( $plan . 's' => 1 ) );
 
     # database
     my $payment = SL::Model::App->resultset('Payment')->create(
@@ -80,8 +80,8 @@ sub process {
     my $tx = Business::OnlinePayment->new('AuthorizeNet');
 
     $tx->content(
-        login          => $Config->login,
-        password       => $Config->key,
+        login          => $Authorize_login,
+        password       => $Authorize_key,
         action         => 'Normal Authorization',
         description    => $args->{description},
         amount         => $args->{amount},
@@ -129,10 +129,10 @@ sub process {
 
     my $authorization_code = $tx->authorization;
     print $mailer <<MAIL;
-Hi $to,
+Hi $email,
 
 Thank you for purchasing wifi access with Silver Lining Networks for the period of
-one $plan.  Your confirmation number is $authorization.
+one $plan.  Your confirmation number is $authorization_code.
 
 Please contact us at support\@silverliningnetworks.com if have any questions.
 
@@ -142,7 +142,7 @@ Silver Lining Networks Support
 
 MAIL
 
-    $mailer->close
+    $mailer->close;
 
       return 1;
 
