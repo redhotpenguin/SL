@@ -294,6 +294,8 @@ padding: 25px;
 background-color:#fff ;
 border: 2px solid #9fd4e4;
 margin-top: -85px;
+position: relative;
+height: 1%;
 }
 dt {
 margin-bottom: 5px;
@@ -384,10 +386,13 @@ margin-top: 5px;
 === === === === === === === === === === */
 #section_two  {
 background:#5db0ca url(../images/backgrounds/section_2_bg.png) repeat-x right top;
+overflow: visible;
 }
 #section_two #section_two_inner {
 padding: 40px 0px;
 background:url(../images/backgrounds/rainbow_blue.png) no-repeat right top;
+overflow: visible;
+position: relative;
 }
 #section_two h2.monthly_plan {
 width: 301px;
@@ -457,4 +462,19 @@ border: 2px solid #CC0000;
 }
 
 
+/*ERROR PAGES
+=== === === === === === === === === === */
+.errorcode {
+margin: 35px 0px;
+color: #9cc623;
+font-size: 85%;
+}
+#section_one h2.error_title {
+width: 420px;
+height: 160px;
+background:url(../images/backgrounds/oops.png) no-repeat right bottom;
+overflow: hidden;
+text-indent: -3000px;
+margin-left: -2px;
+}
 
