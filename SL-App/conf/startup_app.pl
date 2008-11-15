@@ -51,26 +51,27 @@ use Apache2::SubRequest     ();
 use Apache2::Upload         ();
 use APR::Table              ();
 
-use SL::App::Template           ();
-use SL::Apache::App::CP         ();
-use SL::Apache::App             ();
-use SL::Apache::App::Home       ();
-use SL::Apache::App::Ad         ();
-use SL::Apache::App::Report     ();
-use SL::Apache::App::Blacklist  ();
-use SL::Apache::App::Settings   ();
-use SL::Apache::App::Logon      ();
-use SL::Apache::App::CookieAuth ();
+use SL::App::Template                       ();
+use SL::Apache::App::CP                     ();
+use SL::Apache::App::CPAuthHandler          ();
+use SL::Apache::App                         ();
+use SL::Apache::App::Home                   ();
+use SL::Apache::App::Ad                     ();
+use SL::Apache::App::Report                 ();
+use SL::Apache::App::Blacklist              ();
+use SL::Apache::App::Settings               ();
+use SL::Apache::App::Logon                  ();
+use SL::Apache::App::CookieAuth             ();
 use SL::Apache::App::PostReadRequestHandler ();
-use SL::Model                   ();
-use SL::Model::App              ();
-use SL::Model::Report           ();
+use SL::Model                               ();
+use SL::Model::App                          ();
+use SL::Model::Report                       ();
 
-use DBI                         ();
-use DBD::Pg                     ();
+use DBI     ();
+use DBD::Pg ();
 DBI->install_driver('Pg');
 
-use Apache::Session::DB_File    ();
+use Apache::Session::DB_File ();
 use Data::Dumper qw(Dumper);
 use Data::FormValidator         ();
 use DBIx::Class                 ();
@@ -78,7 +79,8 @@ use DBIx::Class::Schema::Loader ();
 use Crypt::CBC                  ();
 use Crypt::DES                  ();
 use XML::RAI                    ();
-use Regexp::Common          qw( net );
+use Regexp::Common qw( net );
+
 #use JavaScript::Minifier::XS    ();
 
 print STDOUT "Modules loaded, initializing database connections\n";

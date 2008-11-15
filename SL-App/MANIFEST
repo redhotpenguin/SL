@@ -5,6 +5,8 @@ conf/httpd_app.conf.tmpl
 conf/mime.types
 conf/startup_app.pl
 htdocs/500.html
+htdocs/404.html
+htdocs/401.html
 Makefile.PL
 MANIFEST
 htdocs/css/app.css
@@ -61,4 +63,6 @@ lib/SL/Apache/App/Report.pm
 lib/SL/Apache/App/Router.pm
 lib/SL/Apache/App/Settings.pm
 lib/SL/Apache/App.pm
+lib/SL/Apache/App/CP.pm
+lib/SL/Apache/App/CPAuthHandler.pm
 lib/SL/App/Template.pm

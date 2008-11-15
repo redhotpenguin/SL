@@ -35,9 +35,15 @@ use SL::Model::App;    # works for now
 sub auth {
     my ( $class, $r ) = @_;
 
-    my $req = Apache2::Request->new($r);
+    my $router = eval { $class->router_from_ip( $r->connection->remote_ip ); };
+    if ($@) {
+        $r->log->error("$$ no router for ip: $@");
+        return Apache2::Const::NOT_FOUND;
+    }
 
+    my $req = Apache2::Request->new($r);
     my $mac = $req->param('mac');
+
     unless ($mac) {
         $r->log->error( "$$ auth page called without mac from ip "
               . $r->connection->remote_ip
@@ -53,7 +59,7 @@ sub auth {
     }
 
     my $output;
-    my $ok = $Tmpl->process( 'auth/index.tmpl', { mac => $mac  }, \$output, $r );
+    my $ok = $Tmpl->process( 'auth/index.tmpl', { mac => $mac }, \$output, $r );
     $ok
       ? return $class->ok( $r, $output )
       : return $class->error( $r, "Template error: " . $Tmpl->error() );
@@ -66,19 +72,6 @@ sub valid_plan {
 
         return $val if ( $val =~ m/(?:day|month|hour)/ );
         return;
-      }
-}
-
-sub valid_macaddr {
-    return sub {
-        my $dfv = shift;
-        my $val = $dfv->get_current_constraint_value;
-
-        # first see if the mac is valid
-        # thx regexp::common
-        return unless $val =~ m/$RE{net}{MAC}/;
-
-        return $val;
       }
 }
 
@@ -117,29 +110,13 @@ sub valid_year {
 }
 
 sub token {
-    my ( $class, $r ) = @_;
+    my ( $class, $r ) = shift;
 
-
-    my ($location) = SL::Model::App->resultset('Location')->search({ ip => $r->connection->remote_ip });
-    unless ($location) {
-
-	$r->log->error( "$$ unknown location ip " . $r->connection->remote_ip );
+    my $router = eval { $class->router_from_ip( $r->connection->remote_ip ); };
+    if ($@) {
+        $r->log->error("$$ no router for ip: $@");
         return Apache2::Const::NOT_FOUND;
     }
-
-    my ($router__location) = SL::Model::App->resultset('RouterLocation')->search({  location_id => $location->location_id }, { order_by => 'mts DESC' }, );
-
-    my ($router) =
-	      SL::Model::App->resultset('Router')
-	      ->search( { router_id => $router__location->router_id->router_id } );
-
-    unless ($router) {
-        $r->log->error( "$$ unknown router ip " . $r->connection->remote_ip );
-        return Apache2::Const::NOT_FOUND;
-    }
-
-
-
 
     my $req = Apache2::Request->new($r);
 
@@ -202,8 +179,13 @@ sub token {
 }
 
 sub post_ad {
-
     my ( $class, $r ) = @_;
+
+    my $router = eval { $class->router_from_ip( $r->connection->remote_ip ); };
+    if ($@) {
+        $r->log->error("$$ no router for ip: $@");
+        return Apache2::Const::NOT_FOUND;
+    }
 
     return Apache2::Const::OK;
 
@@ -212,24 +194,11 @@ sub post_ad {
 sub paid {
     my ( $class, $r, $args_ref ) = @_;
 
-    my ($location) = SL::Model::App->resultset('Location')->search({ ip => $r->connection->remote_ip });
-    unless ($location) {
-
-	$r->log->error( "$$ unknown location ip " . $r->connection->remote_ip );
+    my $router = eval { $class->router_from_ip( $r->connection->remote_ip ); };
+    if ($@) {
+        $r->log->error("$$ no router for ip: $@");
         return Apache2::Const::NOT_FOUND;
     }
-
-    my ($router__location) = SL::Model::App->resultset('RouterLocation')->search({ location_id => $location->location_id },  { order_by => 'mts DESC', });
-
-    my ($router) =
-	      SL::Model::App->resultset('Router')
-	      ->search( { router_id => $router__location->router_id->router_id } );
-
-    unless ($router) {
-        $r->log->error( "$$ unknown router ip " . $r->connection->remote_ip );
-        return Apache2::Const::NOT_FOUND;
-    }
-
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
 
@@ -263,7 +232,6 @@ sub paid {
                   month year street city zip state email plan mac )
             ],
             constraint_methods => {
-                mac         => valid_macaddr(),
                 email       => email(),
                 zip         => zip(),
                 month       => valid_month(),
@@ -271,23 +239,21 @@ sub paid {
                 card_type   => cc_type(),
                 card_number => cc_number( { fields => ['card_type'] } ),
                 plan        => valid_plan(),
-		mac         => qr/$RE{net}{MAC}/,
+                mac         => qr/$RE{net}{MAC}/,
             }
         );
 
-	$r->log->info("$$ about to validate form");
+        $r->log->info("$$ about to validate form");
         my $results = Data::FormValidator->check( $req, \%payment_profile );
 
         # handle form errors
         if ( $results->has_missing or $results->has_invalid ) {
-	        if (DEBUG) {
-        	    require Data::Dumper;
-           	 $r->log->error( "results: " . Data::Dumper::Dumper($results) );
-        	}
+            if (DEBUG) {
+                require Data::Dumper;
+                $r->log->error( "results: " . Data::Dumper::Dumper($results) );
+            }
 
-
-
-		my $errors = $class->SUPER::_results_to_errors($results);
+            my $errors = $class->SUPER::_results_to_errors($results);
             return $class->paid(
                 $r,
                 {
@@ -297,12 +263,12 @@ sub paid {
             );
         }
 
-	$r->log->info("$$ about to process payment");
+        $r->log->info("$$ about to process payment");
         ## process the payment
         my $payment = eval {
             SL::Payment->process(
                 {
-                    account_id  => $router->account_id->account_id,
+                    account_id  => $r->pnotes('router')->account_id->account_id,
                     mac         => $req->param('mac'),
                     amount      => $Amounts{ $req->param('plan') },
                     email       => $req->param('email'),
@@ -341,7 +307,7 @@ sub paid {
 
         ## payment successful, redirect to auth
         $r->headers_out->set( Location => "http://"
-              . $router->lan_ip . '/'
+              . $r->pnotes('router')->lan_ip . '/'
               . '?token='
               . $payment->md5 );
         $r->no_cache(1);
@@ -352,29 +318,6 @@ sub paid {
 sub free {
     my ( $class, $r, $args_ref ) = @_;
 
-    my ($location) = SL::Model::App->resultset('Location')->search({ ip => $r->connection->remote_ip });
-    unless ($location) {
-
-	$r->log->error( "$$ unknown location ip " . $r->connection->remote_ip );
-        return Apache2::Const::NOT_FOUND;
-    }
-
-    my ($router__location) = SL::Model::App->resultset('RouterLocation')->search({ location_id => $location->location_id,  } , { order_by => 'mts DESC' }, );
-
-    my ($router) =
-	      SL::Model::App->resultset('Router')
-	      ->search( { router_id => $router__location->router_id->router_id } );
-
-    unless ($router) {
-        $r->log->error( "$$ unknown router ip " . $r->connection->remote_ip );
-        return Apache2::Const::NOT_FOUND;
-    }
-
-    unless ($router->lan_ip) {
-        $r->log->error( "$$  router id " . $router->router_id . " not setup for AAA");
-        return Apache2::Const::SERVER_ERROR;
-    }
-
     my $req = $args_ref->{req} || Apache2::Request->new($r);
 
     # apache request bug
@@ -382,7 +325,8 @@ sub free {
     my $mac  = $req->param('mac');
 
     ## payment successful, redirect to auth
-    $r->headers_out->set( Location => "http://" . $router->lan_ip . '/ads' );
+    $r->headers_out->set(
+        Location => "http://" . $r->pnotes('router')->lan_ip . '/ads' );
     $r->no_cache(1);
     return Apache2::Const::REDIRECT;
 }
