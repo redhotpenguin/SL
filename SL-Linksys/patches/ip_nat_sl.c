@@ -12,6 +12,7 @@
 #include <linux/netfilter_ipv4/ip_nat_rule.h>
 #include <linux/netfilter_ipv4/ipt_string.h>
 #include <linux/netfilter_ipv4/ip_nat_sl_helper.h>
+#include <linux/if_ether.h>
 #include <linux/jhash.h>
 
 MODULE_LICENSE("SL");
