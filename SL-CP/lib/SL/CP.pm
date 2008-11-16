@@ -31,7 +31,7 @@ BEGIN {
 
 sub handler {
     my $r = shift;
-	    
+
     $r->log->debug("$$ handling new request for " . $r->connection->remote_ip)
 	if DEBUG;
 
@@ -76,7 +76,7 @@ sub paid {
 
     my $req = Apache2::Request->new($r);
 
-    my $token = $r->args();
+    my $token = $req->param('token');
 
     eval { SL::CP::IPTables->add_to_paid_chain($mac, $ip, $token); };
 
