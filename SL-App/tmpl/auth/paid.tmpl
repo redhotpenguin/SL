@@ -92,8 +92,8 @@
 						</dd>
 						<dt><label for="card_number">[% IF errors.missing.card_number or errors.invalid.card_number %]<font color="red">[% END %]Card Number[% IF errors.missing.card_number or errors.invalid.card_number %]</font>[% END %]</label></dt>
 						<dd>
-							<span class="half"><input type="text" id="card_number" name="card_number" value="[% req.param('card_number') %]" /><label for="card_number">[% IF errors.missing.card_number or errors.invalid.card_number %]<font color="red">[% END %]################[% IF errors.missing.card_number or errors.invalid.card_number %]</font>[% END %]</label></span>
-							<span class="quarter"><input type="text" id="cvv2" name="cvv2" value="[% req.param('cvv2') %]" maxlength="4"/><label for="cvv2">[% IF errors.missing.cvv2 %]<font color="red">[% END %]###&nbsp;&nbsp;<a href="http://en.wikipedia.org/wiki/Cvv2">CVV2</a>[% IF errors.missing.cvv2 %]</font>[% END %]</label></span>
+							<span class="half"><input type="text" id="card_number" name="card_number" maxlength="16" value="[% req.param('card_number') %]" /><label for="card_number">[% IF errors.missing.card_number or errors.invalid.card_number %]<font color="red">[% END %]################[% IF errors.missing.card_number or errors.invalid.card_number %]</font>[% END %]</label></span>
+							<span class="quarter"><input type="text" id="cvv2" name="cvv2" value="[% req.param('cvv2') %]" maxlength="4"/><label for="cvv2">[% IF errors.missing.cvv2 %]<font color="red">[% END %]###&nbsp;&nbsp;CVC[% IF errors.missing.cvv2 %]</font>[% END %]</label></span>
 						<div class="clear"></div>
 						</dd>
 						<dt><label for="month">Expiration Date</label></dt>

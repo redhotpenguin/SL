@@ -22,7 +22,7 @@ our $Tmpl = SL::App::Template->template();
 
 use SL::Payment ();
 
-use constant DEBUG => $ENV{SL_DEBUG} || 1;
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 our %Amounts = (
     hour  => '$1.99',
@@ -33,7 +33,10 @@ our %Amounts = (
 our $From = "SLN Support <support\@silverliningnetworks.com>";
 
 # this specific template logic
-use Data::Dumper;
+if (DEBUG) {
+  require Data::Dumper;
+}
+
 use SL::Model;
 use SL::Model::App;    # works for now
 
@@ -268,7 +271,6 @@ sub paid {
         # handle form errors
         if ( $results->has_missing or $results->has_invalid ) {
             if (DEBUG) {
-                require Data::Dumper;
                 $r->log->error( "results: " . Data::Dumper::Dumper($results) );
             }
 
@@ -328,7 +330,7 @@ sub paid {
 
         # payment success, send receipt
         ($payment) = SL::Model::App->resultset('Payment')->search({ payment_id => $payment->payment_id });
-        my $authorization_code = $payment->authorization_code;
+        my $authorization_code = sprintf("%s", $payment->authorization_code );
         my $email = $req->param('email');
         my $mailer = Mail::Mailer->new('qmail');
         $mailer->open(
@@ -340,10 +342,11 @@ sub paid {
             }
         );
 
-        my $mail = <<MAIL;
+        my $network_name = $account->name;
+        my $mail = <<"MAIL";
 Hi $email,
 
-Thank you for purchasing wifi access with Silver Lining Networks for the period of
+Thank you for purchasing wifi access with $network_name for the period of
 one $plan.  Your confirmation number is $authorization_code.
 
 Please contact us at support\@silverliningnetworks.com if have any questions.
