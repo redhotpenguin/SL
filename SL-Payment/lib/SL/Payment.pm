@@ -68,10 +68,10 @@ sub process {
 
     # munge transaction args
     my $email = delete $args->{email};
-    $args->{description}    = "$plan transaction payment for $email";
+    $args->{description}    = "Plan $plan transaction payment for $email";
     $args->{invoice_number} = $payment->payment_id;
     $args->{customer_id}    = sprintf(
-        "macaddress %s account %u",
+        "%s %u",
         delete $args->{mac},
         delete $args->{account_id}
     );
@@ -89,7 +89,7 @@ sub process {
         customer_id    => $args->{customer_id},
         first_name     => $args->{first_name},
         last_name      => $args->{last_name},
-        address        => $args->{address},
+        address        => $args->{street},
         city           => $args->{city},
         state          => $args->{state},
         zip            => $args->{zip},
@@ -98,6 +98,7 @@ sub process {
         type           => $args->{card_type},
         cvv2           => $args->{cvv2},
         referer        => $args->{referer},
+        email          => $args->{email},
     );
     $tx->submit;
 
