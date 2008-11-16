@@ -365,7 +365,7 @@ MAIL
 
         ## payment successful, redirect to auth
         my $redirect_url = "http://"
-          . $r->pnotes('router')->lan_ip . '/'
+          . $r->pnotes('router')->lan_ip . '/paid'
           . '?token='
           . $payment->md5;
 
