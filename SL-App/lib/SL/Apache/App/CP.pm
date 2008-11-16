@@ -287,11 +287,12 @@ sub paid {
         $r->log->info("$$ about to process payment");
         ## process the payment
         my $account = $r->pnotes('router')->account_id;
+	my $amount = $Amounts{ $req->param('plan') };
         my $payment = SL::Payment->process(
             {
                 account_id  => $account->account_id,
                 mac         => $req->param('mac'),
-                amount      => $Amounts{ $req->param('plan') },
+                amount      => $amount,
                 email       => $req->param('email'),
                 card_type   => $req->param('card_type'),
                 card_number => $req->param('card_number'),
@@ -347,7 +348,7 @@ sub paid {
 Hi $email,
 
 Thank you for purchasing wifi access with $network_name for the period of
-one $plan.  Your confirmation number is $authorization_code.
+one $plan at a cost of $amount.  Your confirmation number is $authorization_code.
 
 Please contact us at support\@silverliningnetworks.com if have any questions.
 
