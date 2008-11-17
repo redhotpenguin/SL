@@ -40,6 +40,20 @@ if (DEBUG) {
 use SL::Model;
 use SL::Model::App;    # works for now
 
+sub post_paid {
+    my ( $class, $r ) = @_;
+
+    my $router = $r->pnotes('router') || die 'router missing';
+
+}
+
+sub post_ad {
+    my ( $class, $r ) = @_;
+    
+    my $router = $r->pnotes('router') || die 'router missing';
+
+}
+
 sub auth {
     my ( $class, $r ) = @_;
 
@@ -127,12 +141,14 @@ sub valid_year {
 }
 
 sub token {
-    my ( $class, $r ) = shift;
+    my ( $class, $r ) = @_;
 
     my $req = Apache2::Request->new($r);
 
     my $token = $req->param('token');
     my $mac   = $req->param('mac');
+
+    $r->log->info("token $token, mac $mac");
 
     unless ( $token && $mac ) {
         $r->log->error("$$ sub token called without token $token and mac $mac");
@@ -186,15 +202,11 @@ sub token {
     $payment->token_processed(1);
     $payment->update;
 
+    $r->log->info("token $token, mac $mac VERIFIED");
+
     return Apache2::Const::OK;
 }
 
-sub post_ad {
-    my ( $class, $r ) = @_;
-
-    return Apache2::Const::OK;
-
-}
 
 sub paid {
     my ( $class, $r, $args_ref ) = @_;
