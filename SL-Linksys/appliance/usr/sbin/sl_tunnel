@@ -9,7 +9,7 @@ use IPC::Run3;
 
 my $debug = 0;
 my $user  = 'phred';
-my $host  = 'www.redhotpenguin.com';
+my $host  = '69.36.240.29';
 my $url   = "https://$host/cgi-bin/tunnel.cgi?host=aircloud";
 my $ua    = LWP::UserAgent->new;
 
