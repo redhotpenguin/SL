@@ -3,7 +3,8 @@ package SL::Apache::App::CP;
 use strict;
 use warnings;
 
-use Apache2::Const -compile => qw(OK SERVER_ERROR NOT_FOUND M_GET M_POST);
+use Apache2::Const -compile =>
+  qw(OK SERVER_ERROR NOT_FOUND M_GET M_POST REDIRECT );
 use Apache2::Log        ();
 use Apache2::SubRequest ();
 use Apache2::Connection ();
@@ -34,24 +35,49 @@ our $From = "SLN Support <support\@silverliningnetworks.com>";
 
 # this specific template logic
 if (DEBUG) {
-  require Data::Dumper;
+    require Data::Dumper;
 }
 
 use SL::Model;
 use SL::Model::App;    # works for now
 
-sub post_paid {
+sub post {
     my ( $class, $r ) = @_;
 
-    my $router = $r->pnotes('router') || die 'router missing';
+    my $req      = Apache2::Request->new($r);
+    my $dest_url = $req->param('url');
+    my $mac = $req->param('mac');
 
+    my $router      = $r->pnotes('router') || die 'router missing';
+    my $splash_href = $router->splash_href || die 'router not configured for CP';
+
+    my $location = $class->make_post_url( $splash_href, $dest_url );
+
+    $r->log->info("splash page redirecting to $location for mac $mac");
+
+    $r->headers_out->set( Location => $location );
+    $r->server->add_version_component('sl');
+    $r->no_cache(1);
+
+    return Apache2::Const::REDIRECT;
 }
 
-sub post_ad {
-    my ( $class, $r ) = @_;
-    
-    my $router = $r->pnotes('router') || die 'router missing';
+sub make_post_url {
+    my ( $class, $splash_url, $dest_url ) = @_;
 
+    my $separator;
+    if ( $splash_url =~ m/\?/ ) {
+
+        # user has some args
+        $separator = '&';
+    }
+    else {
+        $separator = '?';
+    }
+
+    my $location = $splash_url . $separator . "url=$dest_url";
+
+    return $location;
 }
 
 sub auth {
@@ -61,6 +87,7 @@ sub auth {
 
     my $req = Apache2::Request->new($r);
     my $mac = $req->param('mac');
+    my $url = $req->param('url');
 
     unless ($mac) {
         $r->log->error( "$$ auth page called without mac from ip "
@@ -77,7 +104,15 @@ sub auth {
     }
 
     my $output;
-    my $ok = $Tmpl->process( 'auth/index.tmpl', { mac => $mac }, \$output, $r );
+    my $ok = $Tmpl->process(
+        'auth/index.tmpl',
+        {
+            mac => $mac,
+            url => $url
+        },
+        \$output,
+        $r
+    );
     $ok
       ? return $class->ok( $r, $output )
       : return $class->error( $r, "Template error: " . $Tmpl->error() );
@@ -207,7 +242,6 @@ sub token {
     return Apache2::Const::OK;
 }
 
-
 sub paid {
     my ( $class, $r, $args_ref ) = @_;
 
@@ -299,7 +333,7 @@ sub paid {
         $r->log->info("$$ about to process payment");
         ## process the payment
         my $account = $r->pnotes('router')->account_id;
-	my $amount = $Amounts{ $req->param('plan') };
+        my $amount  = $Amounts{ $req->param('plan') };
         my $payment = SL::Payment->process(
             {
                 account_id  => $account->account_id,
@@ -339,24 +373,29 @@ sub paid {
             );
         }
 
-        $r->log->info("$$ payment auth code " . $payment->authorization_code . " processed OK");
+        $r->log->info( "$$ payment auth code "
+              . $payment->authorization_code
+              . " processed OK" );
 
         # payment success, send receipt
-        ($payment) = SL::Model::App->resultset('Payment')->search({ payment_id => $payment->payment_id });
-        my $authorization_code = sprintf("%s", $payment->authorization_code );
-        my $email = $req->param('email');
-        my $mailer = Mail::Mailer->new('qmail');
+        ($payment) =
+          SL::Model::App->resultset('Payment')
+          ->search( { payment_id => $payment->payment_id } );
+        my $authorization_code = sprintf( "%s", $payment->authorization_code );
+        my $email              = $req->param('email');
+        my $mailer             = Mail::Mailer->new('qmail');
         $mailer->open(
             {
                 'To'      => $email,
                 'From'    => $From,
                 'CC'      => $From,
-                'Subject' => $account->name . " network access payment receipt $authorization_code",
+                'Subject' => $account->name
+                  . " network access payment receipt $authorization_code",
             }
         );
 
         my $network_name = $account->name;
-        my $mail = <<"MAIL";
+        my $mail         = <<"MAIL";
 Hi $email,
 
 Thank you for purchasing wifi access with $network_name for the period of
@@ -396,8 +435,9 @@ sub free {
     my $req = $args_ref->{req} || Apache2::Request->new($r);
 
     # apache request bug
-    my $plan = $req->param('plan');
-    my $mac  = $req->param('mac');
+    my $plan     = $req->param('plan');
+    my $mac      = $req->param('mac');
+    my $dest_url = $req->param('url');
 
     my $router = $r->pnotes('router');
     unless ($router) {
@@ -405,9 +445,15 @@ sub free {
         return Apache2::Const::SERVER_ERROR;
     }
 
+    my $splash_href = $router->splash_href
+      || die 'router not configured for CP';
+
+    my $location = $class->make_post_url( $splash_href, $dest_url );
+
     ## payment successful, redirect to auth
-    $r->headers_out->set(
-        Location => "http://" . $r->pnotes('router')->lan_ip . '/ads' );
+    $r->headers_out->set( Location => "http://"
+          . $r->pnotes('router')->lan_ip
+          . "/ads?mac=$mac&url=$location" );
     $r->no_cache(1);
     return Apache2::Const::REDIRECT;
 }
