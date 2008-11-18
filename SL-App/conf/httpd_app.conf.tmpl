@@ -153,6 +153,10 @@ PerlLoadModule Apache2::Dispatch
     PerlResponseHandler SL::Apache::App::CP->post
 </Location>
 
+<Location /auth/check>
+    SetHandler modperl
+    PerlResponseHandler SL::Apache::App::CP->check
+</Location>
 
 ## optimizations, mod_perl for speed freaks
 

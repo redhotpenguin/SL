@@ -17,6 +17,7 @@ use Data::FormValidator ();
 use Data::FormValidator::Constraints qw(:closures);
 use Regexp::Common qw( net );
 use Mail::Mailer ();
+use DateTime ();
 
 use SL::App::Template ();
 our $Tmpl = SL::App::Template->template();
@@ -40,6 +41,34 @@ if (DEBUG) {
 
 use SL::Model;
 use SL::Model::App;    # works for now
+
+sub check {
+    my ( $class, $r ) = @_;
+
+    my $req      = Apache2::Request->new($r);
+    my $mac = $req->param('mac');
+
+    my ($payment) = SL::Model::App->resultset('Payment')->search(
+        {
+            mac             => $mac,
+            ip              => $r->connection->remote_ip,
+            account_id      => $r->pnotes('router')->account_id->account_id,
+            approved        => 't',
+	    token_processed => 't',
+        }
+    );
+    
+    return Apache2::Const::NOT_FOUND unless $payment;
+
+    my $now = DateTime->now;
+    if ($now > DateTime::Format::Pg->parse_datetime( $payment->stop ) ) {
+
+    	$r->log->info("auth for mac $mac expired");
+	return Apache2::Const::NOT_FOUND;
+    }
+
+    return Apache2::Const::OK;
+}
 
 sub post {
     my ( $class, $r ) = @_;
