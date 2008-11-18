@@ -143,6 +143,7 @@
 
 
                 <input type="hidden" name="mac" value="[% req.param('mac') %]" />
+                <input type="hidden" name="url" value="[% req.param('url') %]" />
 
 						<dt><label for="street">[% IF errors.missing.street or errors.missing.city or errors.missing.zip or errors.missing.state %]<font color="red">[% END %]Billing Address[% IF errors.missing.street or errors.missing.city or errors.missing.zip or errors.missing.state %]</font>[% END %]</label></dt>
 						<dd>

@@ -23,7 +23,7 @@ our $Tmpl = SL::App::Template->template();
 
 use SL::Payment ();
 
-use constant DEBUG => $ENV{SL_DEBUG} || 0;
+use constant DEBUG => $ENV{SL_DEBUG} || 1;
 
 our %Amounts = (
     hour  => '$1.99',
@@ -47,7 +47,7 @@ sub post {
     my $req      = Apache2::Request->new($r);
     my $dest_url = $req->param('url');
     my $mac = $req->param('mac');
-
+   
     my $router      = $r->pnotes('router') || die 'router missing';
     my $splash_href = $router->splash_href || die 'router not configured for CP';
 
@@ -56,7 +56,6 @@ sub post {
     $r->log->info("splash page redirecting to $location for mac $mac");
 
     $r->headers_out->set( Location => $location );
-    $r->server->add_version_component('sl');
     $r->no_cache(1);
 
     return Apache2::Const::REDIRECT;
@@ -65,6 +64,7 @@ sub post {
 sub make_post_url {
     my ( $class, $splash_url, $dest_url ) = @_;
 
+    $dest_url = URI::Escape::uri_escape($dest_url);
     my $separator;
     if ( $splash_url =~ m/\?/ ) {
 
@@ -82,8 +82,6 @@ sub make_post_url {
 
 sub auth {
     my ( $class, $r ) = @_;
-
-    $r->log->info('auth handler');
 
     my $req = Apache2::Request->new($r);
     my $mac = $req->param('mac');
@@ -104,6 +102,8 @@ sub auth {
     }
 
     my $output;
+    $mac = URI::Escape::uri_escape($mac);
+    $url = URI::Escape::uri_escape($url);
     my $ok = $Tmpl->process(
         'auth/index.tmpl',
         {
@@ -248,6 +248,7 @@ sub paid {
     my $req = $args_ref->{req} || Apache2::Request->new($r);
 
     my $mac = $req->param('mac');
+    my $dest = $req->param('url');
     unless ($mac) {
         $r->log->error( "$$ auth page called without mac from ip "
               . $r->connection->remote_ip
@@ -415,15 +416,14 @@ MAIL
 
         $r->log->info("$$ receipt for payment $authorization_code: $mail");
 
+	my $lan_ip = $router->lan_ip
+      		|| die 'router not configured for CP';
+
         ## payment successful, redirect to auth
-        my $redirect_url = "http://"
-          . $r->pnotes('router')->lan_ip . '/paid'
-          . '?token='
-          . $payment->md5;
-
-        $r->log->info("redirecting to $redirect_url");
-
-        $r->headers_out->set( Location => $redirect_url );
+	$mac = URI::Escape::uri_escape($mac);
+	$dest = URI::Escape::uri_escape($dest);
+    	$r->headers_out->set( Location =>
+		"http://$lan_ip/paid?mac=$mac&url=$dest&token=" . $payment->md5);
         $r->no_cache(1);
         return Apache2::Const::REDIRECT;
     }
@@ -445,15 +445,13 @@ sub free {
         return Apache2::Const::SERVER_ERROR;
     }
 
-    my $splash_href = $router->splash_href
+    my $lan_ip = $router->lan_ip
       || die 'router not configured for CP';
 
-    my $location = $class->make_post_url( $splash_href, $dest_url );
-
     ## payment successful, redirect to auth
-    $r->headers_out->set( Location => "http://"
-          . $r->pnotes('router')->lan_ip
-          . "/ads?mac=$mac&url=$location" );
+    $mac = URI::Escape::uri_escape($mac);
+    $dest_url = URI::Escape::uri_escape($dest_url);
+    $r->headers_out->set( Location => "http://$lan_ip/ads?mac=$mac&url=$dest_url");
     $r->no_cache(1);
     return Apache2::Const::REDIRECT;
 }
