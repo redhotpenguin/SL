@@ -1,0 +1,34 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+my $cp_user = 'phred';
+
+my $cp = "/usr/bin/perl /home/$cp_user/sl/SL-CP/bin/sl_cp";
+my $cp_check = "/home/$cp_user/sl/SL-CP/bin/httpd -f /home/$cp_user/sl/SL-CP/bin/../conf/httpd.conf -k start";
+
+unless ( _is_cp_running()) {
+    # uh oh, houston we have a problem
+    warn("$$ Uh oh, cp is not running.  Trying to start it...");
+
+    my $start = `$cp`; 
+    
+    if ( my $running = _is_cp_running()) {
+        warn("cp was started ok: $running");
+        exit(0);
+    } else {
+        warn("Cp could not be started, giving up.  ALERT ALERT!");
+    }
+
+}
+
+sub _is_cp_running {
+
+        my $is_cp_running = `ps aux  | grep '$cp_check' | grep -v 'grep'`;
+        chomp($is_cp_running);
+
+        return if ($is_cp_running eq '');
+
+        return $is_cp_running;
+}
