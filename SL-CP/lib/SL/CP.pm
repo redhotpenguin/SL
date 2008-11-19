@@ -48,6 +48,8 @@ sub handler {
     my $dest_url = $r->construct_url( $r->unparsed_uri );
 
     if ($is_valid_mac) {
+
+	$r->log->info("$$ valid mac $mac found, redirecting");
 	$r->headers_out->set( Location => $dest_url );
 	$r->no_cache(1);
 	return Apache2::Const::REDIRECT;
@@ -55,7 +57,7 @@ sub handler {
 
     # at this point the mac obviously has not been put into a rule chain
     # so redirect to the auth server
-
+    $r->log->info("$$ unknown $mac found, redirecting");
     $dest_url = URI::Escape::uri_escape($dest_url);
 
     my $location = $Auth_url . "?mac=" .

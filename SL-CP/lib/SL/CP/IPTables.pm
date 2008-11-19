@@ -166,7 +166,7 @@ sub check_for_paid_mac {
     my $res = $UA->get( $url );
 
     if ($res->code == 404) {
-
+        warn("mac $mac not paid");
 	# no mac authenticated
 	return;
 
@@ -183,24 +183,25 @@ sub check_for_paid_mac {
     my $uc_mac = uc($mac);
     my $iptables_rule = `sudo $Iptables -t mangle -L -v`;
 
+    # see if the mac address is in a rule
     my ($iptables_ip) = $iptables_rule =~
 	m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*?MAC\s+$uc_mac/;
 
-    warn("dhcp ip $ip, iptables_ip $iptables_ip");
+    if (!$iptables_ip) {
 
-    return unless $iptables_ip;
+        warn("no iptables rules, creating one");
+	# probably a server restart, re-add the rules
+        $class->_paid_chain( 'A', $mac, $ip );
 
-    warn("dhcp ip $ip, iptables_ip $iptables_ip");
+    } elsif ($ip ne $iptables_ip) {
+        warn("iptables rules don't match, updating");
+        # dhcp lease probably expired, delete old rule, create new rule
+        $class->delete_from_paid_chain( $mac, $iptables_ip );
+        $class->_paid_chain( 'A', $mac, $ip );
 
-    return 1 if ($ip eq $iptables_ip);
+    }
 
-
-    # ip is old, assign the mac to the new ip
-    warn("deleting from paid chain $mac, $iptables_ip");
-    $class->delete_from_paid_chain( $mac, $iptables_ip );
-
-    warn("addint to paid chain $mac, $iptables_ip");
-    $class->add_to_paid_chain( $mac, $ip );
+    return 1;
 }
 
 sub _paid_chain {
@@ -213,8 +214,8 @@ sub _paid_chain {
 sub add_to_paid_chain {
     my ( $class, $mac, $ip, $token ) = @_;
 
-    $mac = URI::Escape::uri_escape($mac);
-    my $url = "$Auth_url/token?mac=$mac&token=$token";
+    my $esc_mac = URI::Escape::uri_escape($mac);
+    my $url = "$Auth_url/token?mac=$esc_mac&token=$token";
     warn("token url is $url") if DEBUG;
 
     # fetch the token and validate

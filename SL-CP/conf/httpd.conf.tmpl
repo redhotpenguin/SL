@@ -28,16 +28,19 @@ Listen [% cfg.sl_gateway_ip %]:[% cfg.sl_apache_listen %]
 
 ServerName [% cfg.sl_servername %]
 
-ErrorDocument        404  /404.html
-ErrorDocument        500  /500.html
+ErrorDocument        404  /errors/404.html
+ErrorDocument        500  /errors/500.html
 
 LoadModule perl_module   modules/mod_perl.so
 LoadModule apreq_module  modules/mod_apreq2.so
 PerlPostConfigRequire "[% cfg.sl_root %]/conf/startup.pl"
 
 PerlPostReadRequestHandler Apache2::Const::OK
-PerlMapToStorageHandler Apache2::Const::OK # this breaks error docs
-PerlTransHandler Apache2::Const::OK
+#PerlTransHandler Apache2::Const::OK
+
+<Location /errors>
+	Sethandler default-handler
+</Location>
 
 <Location />
     SetHandler modperl
