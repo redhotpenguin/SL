@@ -20,7 +20,7 @@ if ($ENV{SL_DEBUG}) {
 # Fill out the httpd.conf
 my $conf_tmpl   = sprintf("%s/httpd.conf.tmpl", $config->conf_dir);
 my $tmpl_out    = sprintf("%s/httpd.conf", $config->conf_dir);
-my %tmpl_config = (RELATIVE => 1, INCLUDE_PATH => $config->conf_dir . '/');
+my %tmpl_config = (ABSOLUTE => 1, RELATIVE => 1, INCLUDE_PATH => $config->conf_dir . '/');
 my $template    = Template->new(\%tmpl_config) || die $Template::ERROR, "\n";
 $template->process($conf_tmpl, { cfg => $config }, $tmpl_out)
   || die $template->error, "\n";

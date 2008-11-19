@@ -21,8 +21,11 @@ use Apache2::Log        ();
 use Apache2::Connection ();
 use Apache2::ServerUtil ();
 use Apache2::Request    ();
+use Apache2::URI        ();
 
 use LWP::UserAgent      ();
+use Crypt::SSLeay       ();
+use URI::Escape         ();
 
 use SL::CP           ();
 use SL::CP::IPTables ();

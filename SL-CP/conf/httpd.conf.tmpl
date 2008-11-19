@@ -7,9 +7,9 @@ DocumentRoot         [% cfg.sl_root %]/htdocs
 TypesConfig          [% cfg.sl_root %]/conf/mime.types
 User                 [% cfg.sl_apache_user %]
 Group                [% cfg.sl_apache_group %]
-KeepAlive            On
-MaxKeepAliveRequests 0
-KeepAliveTimeout     300
+KeepAlive            Off
+# MaxKeepAliveRequests 0
+# KeepAliveTimeout     300
 MinSpareServers      4
 MaxSpareServers      8
 StartServers         16
@@ -31,7 +31,8 @@ ServerName [% cfg.sl_servername %]
 ErrorDocument        404  /404.html
 ErrorDocument        500  /500.html
 
-LoadModule perl_module modules/mod_perl.so
+LoadModule perl_module   modules/mod_perl.so
+LoadModule apreq_module  modules/mod_apreq2.so
 PerlPostConfigRequire "[% cfg.sl_root %]/conf/startup.pl"
 
 PerlPostReadRequestHandler Apache2::Const::OK

@@ -13,6 +13,7 @@ WriteMakefile(
         'SL::Config'     => 0.16,
         'Template'       => 2.18,
         'LWP::UserAgent' => 2.33,
+	'Crypt::SSLeay'  => 0.57,
     },
     ABSTRACT      => 'Silver Lining Captive Portal',
     AUTHOR        => 'Fred Moyer <fred@silverliningnetworks.com>',

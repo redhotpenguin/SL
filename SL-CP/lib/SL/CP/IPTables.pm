@@ -5,13 +5,15 @@ use warnings;
 
 use SL::Config     ();
 use LWP::UserAgent ();
+use Crypt::SSLeay  ();
+use URI::Escape    ();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 our (
     $Config,   $Iptables, $Ext_if,         %tables_chains,
     $Int_if,   $Auth_ip,  $Cp_server_port, $Gateway_ip,
-    $Ad_proxy, $Mark_op,  $Auth_token_url,
+    $Ad_proxy, $Mark_op,  $Auth_url,       $Lease_file,
 );
 
 BEGIN {
@@ -20,11 +22,12 @@ BEGIN {
     $Ext_if         = $Config->sl_ext_if || die 'oops';
     $Int_if         = $Config->sl_int_if || die 'oops';
     $Auth_ip        = $Config->sl_auth_server_ip || die 'oops';
-    $Auth_token_url = $Config->sl_cp_auth_token_url || die 'oops';
+    $Auth_url       = $Config->sl_cp_auth_url || die 'oops';
     $Cp_server_port = $Config->sl_apache_listen || die 'oops';
     $Gateway_ip     = $Config->sl_gateway_ip || die 'oops';
     $Ad_proxy       = $Config->sl_proxy || die 'oops';
     $Mark_op        = $Config->sl_mark_op || die 'oops';
+    $Lease_file     = $Config->sl_dhcp_lease_file || die 'oops';
 
     %tables_chains = (
         filter => [qw( slAUT slNET slRTR )],
@@ -147,30 +150,105 @@ sub clear_firewall {
 sub iptables {
     my $cmd = shift;
 
-    system("sudo $Iptables $cmd") == 0
-      or require Carp && Carp::confess "could not iptables '$cmd', err: $!, ret: $?\n";
+    system("sudo $Iptables $cmd") == 0 or
+	require Carp && Carp::confess "could not iptables '$cmd', err: $!, ret: $?\n";
 
     return 1;
 }
 
+sub check_for_paid_mac {
+    my ( $class, $mac, $ip ) = @_;
+
+    warn("check for paid mac $mac, $ip ");
+    my $esc_mac = URI::Escape::uri_escape($mac);
+    my $url = "$Auth_url/check?mac=$esc_mac";
+
+    my $res = $UA->get( $url );
+
+    if ($res->code == 404) {
+
+	# no mac authenticated
+	return;
+
+    } elsif (!$res->is_success) {
+
+	# huh something broke
+	require Data::Dumper;
+	die "$$ Error checking paid mac $mac, response: " . Data::Dumper::Dumper($res);
+    }
+
+    warn("mac check response code " . $res->code);
+
+    # successful request, make sure the rules are ok
+    my $uc_mac = uc($mac);
+    my $iptables_rule = `sudo $Iptables -t mangle -L -v`;
+
+    my ($iptables_ip) = $iptables_rule =~
+	m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*?MAC\s+$uc_mac/;
+
+    warn("dhcp ip $ip, iptables_ip $iptables_ip");
+
+    return unless $iptables_ip;
+
+    warn("dhcp ip $ip, iptables_ip $iptables_ip");
+
+    return 1 if ($ip eq $iptables_ip);
+
+
+    # ip is old, assign the mac to the new ip
+    warn("deleting from paid chain $mac, $iptables_ip");
+    $class->delete_from_paid_chain( $mac, $iptables_ip );
+
+    warn("addint to paid chain $mac, $iptables_ip");
+    $class->add_to_paid_chain( $mac, $ip );
+}
+
+sub _paid_chain {
+    my ( $class, $op, $mac, $ip ) = @_;
+    iptables("-t mangle -$op slOUT -s $ip -m mac --mac-source $mac -j MARK $Mark_op 0x400");
+    iptables("-t mangle -$op slINC -d $ip -j ACCEPT");
+}
+
+
 sub add_to_paid_chain {
     my ( $class, $mac, $ip, $token ) = @_;
 
+    $mac = URI::Escape::uri_escape($mac);
+    my $url = "$Auth_url/token?mac=$mac&token=$token";
+    warn("token url is $url") if DEBUG;
+
     # fetch the token and validate
-    my $res = $UA->get( $Auth_token_url . '?mac=' . $mac . '&token=' . $token );
+    my $res = $UA->get( $url );
 
     die "error validating mac $mac with token $token:  " . $res->status_line
       unless $res->is_success;
 
-    iptables("-t mangle -A slOUT -s $ip -m mac --mac-source $mac -j MARK $Mark_op 0x400");
-    iptables("-t mangle -A slINC -d $ip -j ACCEPT");
+    $class->_paid_chain( 'A', $mac, $ip );
+}
+
+sub delete_from_paid_chain {
+    my ( $class, $mac, $ip ) = @_;
+
+    $class->_paid_chain( 'D', $mac, $ip );
 }
 
 sub add_to_ads_chain {
     my ( $class, $mac, $ip ) = @_;
-#iptables -t mangle -A ndsOUT -s 10.0.0.146 -m mac --mac-source 00:15:58:83:0C:FF -j MARK --or-mark 0x500
-    iptables("-t mangle -A slOUT -s $ip -m mac --mac-source $mac -j MARK $Mark_op 0x500");
-    iptables("-t mangle -A slINC -d $ip -j ACCEPT");
+
+    $class->_ads_chain( 'A', $mac, $ip );
+}
+
+
+sub delete_from_ads_chain {
+    my ( $class, $mac, $ip ) = @_;
+    $class->_ads_chain( 'D', $mac, $ip );
+}
+
+sub _ads_chain {
+    my ( $class, $op, $mac, $ip ) = @_;
+
+    iptables("-t mangle -$op slOUT -s $ip -m mac --mac-source $mac -j MARK $Mark_op 0x500");
+    iptables("-t mangle -$op slINC -d $ip -j ACCEPT");
 }
 
 1;
