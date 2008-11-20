@@ -57,15 +57,18 @@ sub check {
 	    token_processed => 't',
         }
     );
-    
+  
+    use Data::Dumper;
+    $r->log->error("payment is " . Dumper($payment));
     return Apache2::Const::NOT_FOUND unless $payment;
 
     my $now = DateTime->now;
     if ($now > DateTime::Format::Pg->parse_datetime( $payment->stop ) ) {
 
-    	$r->log->info("auth for mac $mac expired");
+    	$r->log->error("auth for mac $mac expired");
 	return Apache2::Const::NOT_FOUND;
     }
+    	$r->log->error("auth for mac $mac still valid");
 
     return Apache2::Const::OK;
 }
@@ -115,6 +118,7 @@ sub auth {
     my $req = Apache2::Request->new($r);
     my $mac = $req->param('mac');
     my $url = $req->param('url');
+    my $expired = $req->param('expired');
 
     unless ($mac) {
         $r->log->error( "$$ auth page called without mac from ip "
@@ -137,7 +141,8 @@ sub auth {
         'auth/index.tmpl',
         {
             mac => $mac,
-            url => $url
+            url => $url,
+	    expired => $expired,
         },
         \$output,
         $r
@@ -248,7 +253,8 @@ sub token {
     # check to make sure the payment hasn't expired
     my $stop = DateTime::Format::Pg->parse_datetime( $payment->stop );
 
-    if ( DateTime->now->epoch > $stop->epoch ) {
+    my $now = DateTime->now( time_zone => 'local' );
+    if ( $now->epoch > $stop->epoch ) {
 
         # oops someone is trying to hack us
         $r->log->error(
@@ -257,6 +263,7 @@ sub token {
               . ", stop time "
               . $stop->mdy . " "
               . $stop->hms
+	      . ", now time " . $now->mdy . " " . $now->hms
               . " payment id "
               . $payment->payment_id );
         return Apache2::Const::NOT_FOUND;
