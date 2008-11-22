@@ -229,6 +229,9 @@ font-family: Verdana, Arial, san-serif;
 font-size: 92%;
 text-align: justify;
 }
+ul li {
+margin-bottom: 10px;
+}
 .free_service {
 margin: 40px 0px;
 width: 204px;
