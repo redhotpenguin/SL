@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Apache2::Const -compile =>
-  qw(OK SERVER_ERROR NOT_FOUND M_GET M_POST REDIRECT );
+  qw(OK SERVER_ERROR NOT_FOUND M_GET M_POST REDIRECT AUTH_REQUIRED );
 use Apache2::Log        ();
 use Apache2::SubRequest ();
 use Apache2::Connection ();
@@ -137,14 +137,19 @@ sub auth {
     my $output;
     $mac = URI::Escape::uri_escape($mac);
     $url = URI::Escape::uri_escape($url);
-    my $ok = $Tmpl->process(
-        'auth/index.tmpl',
-        {
+    my %args = (
             mac => $mac,
             url => $url,
-	    expired => $expired,
-        },
-        \$output,
+    );
+    if (defined $req->param('expired')) {
+    	$args{'expired'} = 1;
+    }
+ 
+
+	my $ok = $Tmpl->process(
+        'auth/index.tmpl',
+	\%args,
+	\$output,
         $r
     );
     $ok
@@ -254,19 +259,19 @@ sub token {
     my $stop = DateTime::Format::Pg->parse_datetime( $payment->stop );
 
     my $now = DateTime->now( time_zone => 'local' );
-    if ( $now->epoch > $stop->epoch ) {
+    if ( $now > $stop ) {
 
-        # oops someone is trying to hack us
+        # payment expired
         $r->log->error(
             "$$ token attempt for expired payment, token $token, mac $mac, ip "
               . $r->connection->remote_ip
               . ", stop time "
               . $stop->mdy . " "
-              . $stop->hms
-	      . ", now time " . $now->mdy . " " . $now->hms
+              . $stop->hms . " epoch " . $stop->epoch 
+	      . ", now time " . $now->mdy . " " . $now->hms . " epoch " . $now->epoch
               . " payment id "
               . $payment->payment_id );
-        return Apache2::Const::NOT_FOUND;
+        return Apache2::Const::AUTH_REQUIRED;
     }
 
     # ok the payment looks valid, return ok

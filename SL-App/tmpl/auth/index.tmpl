@@ -14,7 +14,7 @@
 			<!-- CHOOSE WIFI COPY ************************ --> 
 			<div class="two_thirds left padding_top">
 				<h2 class="choose_wifi">Choose a WiFi option</h2>
-				<p><strong><font color="red">Your existing plan has expired</font></strong></p>
+				[% IF expired %]<p><strong><font color="red">Your existing plan has expired</font></strong></p>[% END %]
 				<p>
 				<strong>You're connected to a wireless network.</strong>  
 				To get started choose a WiFi option that works best 
@@ -26,7 +26,7 @@
 			
 			<!-- LOGO ************************ --> 
 			<div class="one_third left">
-				<h1 id="logo"><a href="http://wwww.silverliningnetworks.com/"><span></span>Silver Lining Networks</a></h1>
+				<h1 id="logo"><a href="http://www.silverliningnetworks.com/"><span></span>Silver Lining Networks</a></h1>
 			</div>
 			<div class="clear"></div>
 			
@@ -59,7 +59,7 @@
 				<p>
 				<strong>Are you a frequent user?</strong> Sign up for our monthly service and you can get Ad Free, Unlimited service for the whole month for just $19.99. 
 				
-				<a href="wifi_menu_payment.html">Sign up now for our monthly service plan.</a>
+				<a href="[% base_uri %]/auth/paid?plan=month&mac=[% mac %]&url=[% url %]">Sign up now for our monthly service plan.</a>
 				 </p>
 			
 			</div>			
