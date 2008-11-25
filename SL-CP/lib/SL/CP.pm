@@ -57,11 +57,11 @@ sub handler {
 
     # at this point the mac obviously has not been put into a rule chain
     # so redirect to the auth server
-    $r->log->info("$$ unknown $mac found, redirecting");
     $dest_url = URI::Escape::uri_escape($dest_url);
-
-    my $location = $Auth_url . "?mac=" .
-	URI::Escape::uri_escape($mac) . "&url=$dest_url";
+    my $esc_mac = URI::Escape::uri_escape($mac);
+    my $location = "$Auth_url?mac=$esc_mac&url=$dest_url";
+    
+    $r->log->info("$$ unknown $mac found, redirecting to $location");
     $r->headers_out->set( Location => $location );
     $r->no_cache(1);
     return Apache2::Const::REDIRECT;
@@ -119,12 +119,25 @@ sub paid {
 	return Apache2::Const::SERVER_ERROR;
     }
 
-    eval { SL::CP::IPTables->add_to_paid_chain($mac, $ip, $token); };
+    my $added = eval { SL::CP::IPTables->add_to_paid_chain($mac, $ip, $token); };
 
     if ($@) {
 
         $r->log->error("$$ error adding mac $mac to paid chain: $@");
         return Apache2::Const::SERVER_ERROR;
+    }
+
+    if (($added == 401) or ($added == 404)) {
+	# must be a 404
+	my $dest_url = URI::Escape::uri_escape($url);
+	my $esc_mac = URI::Escape::uri_escape($mac);
+        my $location = "$Auth_url?mac=$esc_mac&url=$dest_url";
+	$location .= "&expired=1" if ($added == 401);
+    
+        $r->log->info("$$ expired mac address $mac found, code " . $added->code . ", redirecting to $location");
+        $r->headers_out->set( Location => $location );
+        $r->no_cache(1);
+        return Apache2::Const::REDIRECT;
     }
 
     $r->log->info("$$ added mac $mac to paid chain");

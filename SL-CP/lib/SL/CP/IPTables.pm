@@ -84,6 +84,7 @@ slRTR -m state --state INVALID -j DROP
 slRTR -m state --state RELATED,ESTABLISHED -j ACCEPT
 slRTR -p tcp -m tcp ! --tcp-option 2 --tcp-flags SYN SYN -j DROP
 slRTR -m mark --mark 0x200/0x700 -j ACCEPT
+slRTR -p tcp -m tcp --dport 22 -j ACCEPT
 slRTR -p tcp -m tcp --dport $Cp_server_port -j ACCEPT
 slRTR -p udp -m udp --dport 67 -j ACCEPT
 slRTR -j REJECT --reject-with icmp-port-unreachable
@@ -221,10 +222,16 @@ sub add_to_paid_chain {
     # fetch the token and validate
     my $res = $UA->get( $url );
 
+    if (($res->code == 404 ) or ($res->code == 401)) {
+	return $res->code;
+    }
+
     die "error validating mac $mac with token $token:  " . $res->status_line
       unless $res->is_success;
 
     $class->_paid_chain( 'A', $mac, $ip );
+
+    return 1;
 }
 
 sub delete_from_paid_chain {
