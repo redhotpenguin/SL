@@ -45,7 +45,7 @@ use SL::Model::App;    # works for now
 sub check {
     my ( $class, $r ) = @_;
 
-    my $req      = Apache2::Request->new($r);
+    my $req = Apache2::Request->new($r);
     my $mac = $req->param('mac');
 
     my ($payment) = SL::Model::App->resultset('Payment')->search(
@@ -58,17 +58,18 @@ sub check {
         }
     );
   
-    use Data::Dumper;
-    $r->log->error("payment is " . Dumper($payment));
-    return Apache2::Const::NOT_FOUND unless $payment;
+    if (DEBUG) {
+	$r->log->debug("payment is " . Data::Dumper::Dumper($payment));
+	return Apache2::Const::NOT_FOUND unless $payment;
+    }
 
-    my $now = DateTime->now;
+    my $now = DateTime->now( time_zone => 'local' );
     if ($now > DateTime::Format::Pg->parse_datetime( $payment->stop ) ) {
 
-    	$r->log->error("auth for mac $mac expired");
-	return Apache2::Const::NOT_FOUND;
+    	$r->log->info("auth for mac $mac expired");
+        return Apache2::Const::AUTH_REQUIRED;
     }
-    	$r->log->error("auth for mac $mac still valid");
+    $r->log->info("auth for mac $mac still valid");
 
     return Apache2::Const::OK;
 }
@@ -262,7 +263,7 @@ sub token {
     if ( $now > $stop ) {
 
         # payment expired
-        $r->log->error(
+        $r->log->info(
             "$$ token attempt for expired payment, token $token, mac $mac, ip "
               . $r->connection->remote_ip
               . ", stop time "
@@ -376,6 +377,14 @@ sub paid {
         ## process the payment
         my $account = $r->pnotes('router')->account_id;
         my $amount  = $Amounts{ $req->param('plan') };
+	my $fname   = $req->param('first_name');
+	my $lname   = $req->param('last_name');
+	my $street  = $req->param('street');
+	my $city    = $req->param('city');
+	my $state   = $req->param('state');
+	my $zip     = $req->param('zip');
+        my $email   = $req->param('email');
+
         my $payment = SL::Payment->process(
             {
                 account_id  => $account->account_id,
@@ -387,14 +396,14 @@ sub paid {
                 card_exp =>
                   join( '/', $req->param('month'), $req->param('year') ),
                 cvv2       => $req->param('cvv2'),
-                email      => $req->param('email'),
-                zip        => $req->param('zip'),
-                first_name => $req->param('first_name'),
-                last_name  => $req->param('last_name'),
+                email      => $email,
+                zip        => $state,
+                first_name => $fname,
+                last_name  => $lname,
                 ip         => $r->connection->remote_ip,
-                street     => $req->param('street'),
-                city       => $req->param('city'),
-                state      => $req->param('state'),
+                street     => $street,
+                city       => $city,
+                state      => $state,
                 referer    => $r->headers_in->{'referer'},
                 plan       => $req->param('plan'),
             }
@@ -424,30 +433,44 @@ sub paid {
           SL::Model::App->resultset('Payment')
           ->search( { payment_id => $payment->payment_id } );
         my $authorization_code = sprintf( "%s", $payment->authorization_code );
-        my $email              = $req->param('email');
+
         my $mailer             = Mail::Mailer->new('qmail');
         $mailer->open(
             {
                 'To'      => $email,
                 'From'    => $From,
                 'CC'      => $From,
-                'Subject' => $account->name
-                  . " network access payment receipt $authorization_code",
+                'Subject' => "WiFi Receipt $authorization_code",
             }
         );
 
+	$plan = $plan;
+	my $date = DateTime->now->mdy('/');
         my $network_name = $account->name;
         my $mail         = <<"MAIL";
-Hi $email,
+Dear $email,
 
-Thank you for purchasing wifi access with $network_name for the period of
-one $plan at a cost of $amount.  Your confirmation number is $authorization_code.
+Thank you for purchasing WiFi Internet access with Silver Lining Networks.
 
-Please contact us at support\@silverliningnetworks.com if have any questions.
+Billed To:
+$fname $lname
+$street
+$city, $state $zip
 
-Sincerely,
+----------------------Purchase Receipt ---------------------
+Description: $plan WiFi Internet Access
+Date: $date
+Order Number: $authorization_code
+Provider: $network_name
+-------------------------------------------------------------------------
 
-Silver Lining Networks Support
+Total Cost: $amount
+
+PLEASE RETAIN THIS FOR YOUR RECORDS
+
+Silver Lining Networks Inc.
+- If you have questions please contact us at support\@silverliningnetworks.com
+- For information regarding use of WiFi, please read our terms of service
 
 MAIL
 
