@@ -24,25 +24,33 @@
 			
 			</div>
 			
-			<!-- LOGO ************************ --> 
-			<div class="one_third left">
-				<h1 id="logo"><a href="http://www.silverliningnetworks.com/"><span></span>Silver Lining Networks</a></h1>
-			</div>
+                       <!-- LOGO ************************ -->
+                        <div class="one_third left">
+                                <div id="custom_logo">
+                                        <a id="logo_image" href="http://aircloud.com" style="background: url([% base_uri %]/resources/images/logos/aircloud.png) no-repeat center center ">
+                                        <div id="gloss"> </div>
+                                        </a>
+                                </div>
+                        </div>
 			<div class="clear"></div>
 			
 			
 			<!-- WIFI OPTION BUTTONS ************************ --> 
 			<div class="one_third left">
-				<p><a class="paid_service_399" href="[% base_uri %]/auth/paid?plan=day&mac=[% mac %]&url=[% url %]">$3.99 WiFi (No Ads, 24 Hour Use)</a></p>
+				<p><a class="one_hour_service" href="[% base_uri %]/auth/paid?plan=one&mac=[% mac %]&url=[% url %]">$1 WiFi (No Ads, 1 Hour Use)</a></p>
 			</div>
+
 			<div class="one_third left">
-				<p><a class="paid_service_199" href="[% base_uri %]/auth/paid?plan=hour&mac=[% mac %]&url=[% url %]">$1.99 WiFi (No Ads, 1 Hour Use)</a></p>
+				<p><a class="three_hour_service" href="[% base_uri %]/auth/paid?plan=three&mac=[% mac %]&url=[% url %]">$2 WiFi (No Ads, 3 Hours Use)</a></p>
 			</div>
-			<div class="one_third left">
-				<p><a class="free_service" href="[% base_uri %]/auth/free?plan=ads&mac=[% mac %]&url=[% url %]">FREE WiFi (Advertisements will be displayed)</a></p>
-			</div>
+
+                        <div class="one_third left">
+                                <p><a class="one_day_service" href="[% base_uri %]/auth/paid?plan=day&mac=[% mac %]&url=[% url %]">$3 WiFi (No Ads, 24 Hours of Use)</a></p>
+                        </div>
+
 			<div class="clear"></div>
-		</div>
+				<p class="free_service">You can also use our <a href="[% base_uri %]/auth/free?plan=ads&mac=[% mac %]&url=[% url %]">Free</a> WiFi service.  Advertisements will be displayed in the Free service.</a></p>
+			</div>
 	</div>
 	
 	
@@ -51,13 +59,13 @@
 		<div class="center">
 			<!-- MONTLY PLAN ************************ --> 
 			<div class="one_third left">
-				<p><a class="paid_service_1999" href="[% base_uri %]/auth/paid?plan=month&mac=[% mac %]&url=[% url %]">$19.99 WiFi (No Ads, 1 Month Use)</a></p>
+				<p><a class="one_month_service" href="[% base_uri %]/auth/paid?plan=month&mac=[% mac %]&url=[% url %]">$10 WiFi (No Ads, 1 Month Use)</a></p>
 			</div>
 			<!-- CHOOSE WIFI COPY ************************ --> 
 			<div class="two_thirds left">
 				<h2 class="monthly_plan">Montly Service Plan</h2>
 				<p>
-				<strong>Are you a frequent user?</strong> Sign up for our monthly service and you can get Ad Free, Unlimited service for the whole month for just $19.99. 
+				<strong>Are you a frequent user?</strong> Sign up for our monthly service and you can get ad free, unlimited service for the whole month for just $10. 
 				
 				<a href="[% base_uri %]/auth/paid?plan=month&mac=[% mac %]&url=[% url %]">Sign up now for our monthly service plan.</a>
 				 </p>
