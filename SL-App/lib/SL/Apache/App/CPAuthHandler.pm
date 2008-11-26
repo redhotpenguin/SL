@@ -18,7 +18,7 @@ sub handler {
     my ($location) =
       SL::Model::App->resultset('Location')->search( { ip => $ip } );
 
-    unless ($ip) {
+    unless ($location) {
         $r->log->info("$$ no registered location for ip $ip");
         return Apache2::Const::NOT_FOUND;
     }
