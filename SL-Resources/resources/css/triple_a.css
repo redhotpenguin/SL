@@ -163,12 +163,22 @@ margin: 0;
 margin-bottom: 20px;
 }
 
+
+#payment_info .AuthorizeNetSeal a img {
+border: 2px solid #9FD4E4;
+}
+
 /*PAGE STYLES 
 === === === === === === === === === === */
 .bg_color_2 {
 background-color: #5db0ca;
 }
-
+.attention {
+margin-top: 10px;
+padding: 5px 0px;
+border-bottom: 1px dashed #CCC;
+border-top: 1px dashed #CCC;
+}
 h1#logo {
 height: 176px;
 width: 244px;
@@ -215,6 +225,23 @@ position: absolute;
 top: 0;
 left: 0px;
 }
+#custom_logo {
+background-color: #FFF;
+padding: 9px;
+border: 1px solid #CCC;
+}
+#custom_logo #logo_image {
+width: 220px;
+height: 135px;
+overflow: hidden;
+display: block;
+}
+#custom_logo #logo_image #gloss {
+background:url(../images/logos/gloss.png) no-repeat top center;
+width: 220px;
+height: 135px;
+overflow: hidden;
+}
 h2 {
 font-family: 'Helvetica Neue', Helvetica, Verdana, Arial, san-serif;
 font-size: 207%;
@@ -231,15 +258,49 @@ text-align: justify;
 }
 ul li {
 margin-bottom: 10px;
+color: #333;
+line-height: 22px;
 }
-.free_service {
+.one_hour_service {
 margin: 40px 0px;
 width: 204px;
 height: 204px;
-background:url(../images/buttons/free_service.png) no-repeat top left;
+background:url(../images/buttons/1_hour_service.png) no-repeat top left;
 display: block;
 overflow: hidden;
 text-indent: -3000px;
+}
+.three_hour_service {
+margin: 40px 0px;
+width: 204px;
+height: 204px;
+background:url(../images/buttons/3_hour_service.png) no-repeat top left;
+display: block;
+overflow: hidden;
+text-indent: -3000px;
+}
+.one_day_service {
+margin: 40px 0px;
+width: 204px;
+height: 204px;
+background:url(../images/buttons/24_hour_service.png) no-repeat top left;
+display: block;
+overflow: hidden;
+text-indent: -3000px;
+}
+.one_month_service {
+width: 204px;
+height: 204px;
+background:url(../images/buttons/1_month_service.png) no-repeat top left;
+display: block;
+overflow: hidden;
+text-indent: -3000px;
+}
+.free_service {
+margin-left: 20px;
+padding: 10px 0px;
+border-bottom: 1px dashed #CCC;
+border-top: 1px dashed #CCC;
 }
 .paid_service_199 {
 margin: 40px 0px;
@@ -277,6 +338,9 @@ padding-top: 20px;
 #section_one  {
 padding: 20px 0px;
 background: #FFF url(../images/backgrounds/rainbow_white.png) no-repeat right bottom;
+}
+#section_one a {
+color:#1c708a;
 }
 #section_one h2 {
 color: #a7d325;
@@ -384,7 +448,28 @@ border: 1px solid #CCC;
 margin-right: none;
 margin-top: 5px;
 }
-
+#payment_info {
+font-size: 85%;
+margin-left: 0;
+}
+#payment_info li {
+text-align: justify;
+margin-bottom: 25px;
+color: #666;
+}
+#payment_info li ul {
+margin-left: 25px;
+list-style-type: square;
+}
+#payment_info li ul li {
+margin-bottom: 5px;
+text-align: left;
+}
+.lock {
+padding-left: 30px;
+background: url(../images/icons/secure.gif) no-repeat left center;
+padding: 5px 0px 5px 18px;
+}
 /*SECTION TWO
 === === === === === === === === === === */
 #section_two  {

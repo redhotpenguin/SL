@@ -15,10 +15,23 @@ h1#logo_240 span {
 background:none;
 filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images/logos/sl_logo_240.png',sizingMethod='scale');
 }
-.free_service {
+.one_hour_service {
 background:none;
-filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images/buttons/free_service.png',sizingMethod='scale');
+filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images/buttons/1_hour_service.png',sizingMethod='scale');
 }
+.three_hour_service {
+background:none;
+filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images/buttons/3_hour_service.png',sizingMethod='scale');
+}
+.one_day_service {
+background:none;
+filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images/buttons/24_hour_service.png',sizingMethod='scale');
+}
+.one_month_service {
+background:none;
+filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images/buttons/1_month_service.png',sizingMethod='scale');
+}
+
 .paid_service_199 {
 background:none;
 filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images/buttons/199_service.png',sizingMethod='scale');
@@ -34,6 +47,9 @@ filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images
 #section_two h2.monthly_plan {
 background:none;
 filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images/backgrounds/title_monthly.png',sizingMethod='scale');
+}
+#custom_logo #logo_image #gloss {
+background: none;
 }
 
 /* DOUBLE MARGIN
