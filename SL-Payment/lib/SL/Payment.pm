@@ -19,6 +19,19 @@ BEGIN {
     $Authorize_key   = $Config->sl_authorize_key || die 'payment setup error';
 }
 
+
+our %Amounts = (
+	'one' => { 'hours' => 1 },
+	'three' => { 'hours' => 3 },
+	'day'  => { 'days' => 1 },
+	'month' => { 'months' => 1 }, );
+
+sub amount {
+    my $plan = shift;
+    return $Amounts{$plan};
+}
+
+
 sub process {
     my ( $class, $args ) = @_;
 
@@ -44,11 +57,11 @@ sub process {
     my ($last_four) = $args->{card_number} =~ m/(\d{4})$/;
 
     my $plan = delete $args->{plan};
-    die "bad plan: $plan" unless $plan =~ m/(?:month|day|hour)/;
+    die "bad plan: $plan" unless $plan =~ m/(?:one|three|day|month)/;
 
     my $stop =
       DateTime::Format::Pg->format_datetime(
-        DateTime->now->add( $plan . 's' => 1 ) );
+        DateTime->now( time_zone => 'local' )->add( amount($plan) ) );
 
     # database
     my $payment = SL::Model::App->resultset('Payment')->create(
@@ -61,6 +74,7 @@ sub process {
             last_four  => $last_four,
             card_type  => $args->{card_type},
             ip         => $args->{ip},
+	    expires    => $args->{card_exp},
         }
     );
 
