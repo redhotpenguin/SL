@@ -27,9 +27,10 @@ use SL::Payment ();
 use constant DEBUG => $ENV{SL_DEBUG} || 1;
 
 our %Amounts = (
-    hour  => '$1.99',
-    day   => '$3.99',
-    month => '$19.99',
+    one   => '$1.00',
+    three => '$2.00',
+    day   => '$3.00',
+    month => '$10.00',
 );
 
 our $From = "SLN Support <support\@silverliningnetworks.com>";
@@ -163,7 +164,7 @@ sub valid_plan {
         my $dfv = shift;
         my $val = $dfv->get_current_constraint_value;
 
-        return $val if ( $val =~ m/(?:day|month|hour)/ );
+        return $val if ( $val =~ m/(?:one|three|day|month)/ );
         return;
       }
 }
@@ -440,39 +441,32 @@ sub paid {
                 'To'      => $email,
                 'From'    => $From,
                 'CC'      => $From,
-                'Subject' => "WiFi Receipt $authorization_code",
+                'Subject' => "WiFi Internet Access Receipt $authorization_code",
             }
         );
 
-	$plan = $plan;
+	my $plan_hash = SL::Payment::amount($plan);
+	$plan = (values %{$plan_hash})[0] . ' ' . (keys %{$plan_hash})[0];
 	my $date = DateTime->now->mdy('/');
         my $network_name = $account->name;
-        my $mail         = <<"MAIL";
-Dear $email,
 
-Thank you for purchasing WiFi Internet access with Silver Lining Networks.
+        my $mail;
+	my %tmpl_data = (
+	    email => $email,
+	    fname => $fname,
+	    lname => $lname,
+	    city  => $city,
+	    state => $state,
+	    street => $street,
+	    zip   => $zip,
+	    plan  => $plan,
+	    network_name => $network_name,
+	    authorization_code => $authorization_code,
+	    date => $date,
+	    amount => $amount );
 
-Billed To:
-$fname $lname
-$street
-$city, $state $zip
-
-----------------------Purchase Receipt ---------------------
-Description: $plan WiFi Internet Access
-Date: $date
-Order Number: $authorization_code
-Provider: $network_name
--------------------------------------------------------------------------
-
-Total Cost: $amount
-
-PLEASE RETAIN THIS FOR YOUR RECORDS
-
-Silver Lining Networks Inc.
-- If you have questions please contact us at support\@silverliningnetworks.com
-- For information regarding use of WiFi, please read our terms of service
-
-MAIL
+        my $ok = $Tmpl->process( 'auth/paid.tmpl', \%tmpl_data, \$mail, $r );
+	return $class->error( $r, $mail ) if !$ok;
 
         print $mailer $mail;
 
