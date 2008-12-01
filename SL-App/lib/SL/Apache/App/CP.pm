@@ -398,7 +398,7 @@ sub paid {
                   join( '/', $req->param('month'), $req->param('year') ),
                 cvv2       => $req->param('cvv2'),
                 email      => $email,
-                zip        => $state,
+                zip        => $zip,
                 first_name => $fname,
                 last_name  => $lname,
                 ip         => $r->connection->remote_ip,
