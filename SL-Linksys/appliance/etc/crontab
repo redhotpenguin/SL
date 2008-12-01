@@ -1,8 +1,11 @@
-# ping the proxy server to see if it's alive
-* * * * * /usr/bin/perl /usr/sbin/sl_fw_ha
+SHELL=/bin/bash
+MAILTO=phred
 
 # grab the latest configuration data once a day, five minutes after restart
 5 0 * * * /usr/bin/perl /usr/sbin/sl_config_update
 
 # check to make sure the tunnel is up
 */5 * * * * /usr/bin/perl /usr/sbin/sl_tunnel
+
+# make sure the captive portal is running
+* * * * *  /usr/bin/perl  /home/phred/sl/SL-CP/bin/sl_cp_watch
