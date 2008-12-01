@@ -436,14 +436,19 @@ sub paid {
         my $authorization_code = sprintf( "%s", $payment->authorization_code );
 
         my $mailer             = Mail::Mailer->new('qmail');
-        $mailer->open(
-            {
+	my %mail_args = 
+	(
                 'To'      => $email,
                 'From'    => $From,
                 'CC'      => $From,
                 'Subject' => "WiFi Internet Receipt",
-            }
-        );
+            );
+
+	if ($account->aaa_email_cc) {
+		$mail_args{'CC'} = $account->aaa_email_cc;
+	}
+
+	$mailer->open(\%mail_args);
 
 	my $plan_hash = SL::Payment::amount($plan);
 	$plan = (values %{$plan_hash})[0] . ' ' . (keys %{$plan_hash})[0];
