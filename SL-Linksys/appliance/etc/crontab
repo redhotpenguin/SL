@@ -9,3 +9,6 @@ MAILTO=phred
 
 # make sure the captive portal is running
 * * * * *  /usr/bin/perl  /home/phred/sl/SL-CP/bin/sl_cp_watch
+
+# bounce expired users every 5 minutes
+*/5 * * * *  /usr/bin/perl  /home/phred/sl/SL-CP/bin/sl_cp_bouncer
