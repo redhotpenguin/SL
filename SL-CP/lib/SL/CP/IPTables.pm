@@ -163,7 +163,7 @@ sub check_for_ads_mac {
 
     warn("check for ads mac $mac, ip $ip ");
     my $esc_mac = URI::Escape::uri_escape($mac);
-    my $url = "$Auth_url/check?mac=$esc_mac";
+    my $url = "$Auth_url/check?mac=$esc_mac&plan=ads";
 
     my $res = $UA->get( $url );
 
@@ -193,7 +193,7 @@ sub check_for_ads_mac {
 
         warn("no iptables rules, creating one");
 	# probably a server restart, re-add the rules
-        $class->_paid_chain( 'A', $mac, $ip );
+        $class->_ads_chain( 'A', $mac, $ip );
 
     } elsif ($ip ne $iptables_ip) {
         warn("iptables rules don't match, updating");
@@ -212,7 +212,6 @@ sub check_for_ads_mac {
 sub check_for_paid_mac {
     my ( $class, $mac, $ip ) = @_;
 
-    warn("check for paid mac $mac, $ip ");
     my $esc_mac = URI::Escape::uri_escape($mac);
     my $url = "$Auth_url/check?mac=$esc_mac";
 
@@ -227,7 +226,7 @@ sub check_for_paid_mac {
 
 	# huh something broke
 	require Data::Dumper;
-	die "$$ Error checking paid mac $mac, response: " . Data::Dumper::Dumper($res);
+	die "$$ Error checking mac $mac, response: " . Data::Dumper::Dumper($res);
     }
 
     warn("mac check response code " . $res->code);

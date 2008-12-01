@@ -38,17 +38,17 @@ sub handler {
     my ($mac, $ip) = _mac_from_ip($r);
     return Apache2::Const::NOT_FOUND unless $mac;
 
+    my $dest_url = $r->construct_url( $r->unparsed_uri );
+
+
     # check to see if this mac has been paid for
-    my $code = eval { SL::CP::IPTables->check_for_paid_mac($mac, $ip); };
+    my $paid_code = eval { SL::CP::IPTables->check_for_paid_mac($mac, $ip); };
     if ($@) {
 	$r->log->error("$$ Error checking paid mac $mac, $@");
 	return Apache2::Const::SERVER_ERROR;
     }
 
-
-    my $dest_url = $r->construct_url( $r->unparsed_uri );
-
-    if ($code == 1) {
+    if ($paid_code == 1) {
 
 	$r->log->info("$$ valid mac $mac found, redirecting to $dest_url");
 	$r->headers_out->set( Location => $dest_url );
@@ -56,12 +56,32 @@ sub handler {
 	return Apache2::Const::REDIRECT;
     }
 
+
+    # existing ads plan for this mac?
+    my $ads_code = eval { SL::CP::IPTables->check_for_ads_mac($mac, $ip); };
+
+    if ($@) {
+	$r->log->error("$$ Error checking ads mac $mac, $@");
+	return Apache2::Const::SERVER_ERROR;
+    }
+
+
+    if ($ads_code == 1) {
+
+	$r->log->info("$$ valid mac $mac found, redirecting to $dest_url");
+	$r->headers_out->set( Location => $dest_url );
+	$r->no_cache(1);
+	return Apache2::Const::REDIRECT;
+    }
+
+
+
     # at this point the mac obviously has not been put into a rule chain
     # so redirect to the auth server
     $dest_url = URI::Escape::uri_escape($dest_url);
     my $esc_mac = URI::Escape::uri_escape($mac);
     my $location = "$Auth_url?mac=$esc_mac&url=$dest_url";
-    $location .= "&expired=1" if ($code == 401);
+    $location .= "&expired=1" if ($paid_code == 401);
     
     $r->log->info("$$ unknown $mac found, redirecting to $location");
     $r->headers_out->set( Location => $location );
