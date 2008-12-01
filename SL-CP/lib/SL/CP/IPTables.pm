@@ -166,10 +166,10 @@ sub check_for_paid_mac {
 
     my $res = $UA->get( $url );
 
-    if ($res->code == 404) {
+    if (($res->code == 404 ) or ($res->code == 401)) {
         warn("mac $mac not paid");
 	# no mac authenticated
-	return;
+	return $res->code;
 
     } elsif (!$res->is_success) {
 

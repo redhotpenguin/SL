@@ -39,17 +39,18 @@ sub handler {
     return Apache2::Const::NOT_FOUND unless $mac;
 
     # check to see if this mac has been paid for
-    my $is_valid_mac = eval { SL::CP::IPTables->check_for_paid_mac($mac, $ip); };
+    my $code = eval { SL::CP::IPTables->check_for_paid_mac($mac, $ip); };
     if ($@) {
 	$r->log->error("$$ Error checking paid mac $mac, $@");
 	return Apache2::Const::SERVER_ERROR;
     }
 
+
     my $dest_url = $r->construct_url( $r->unparsed_uri );
 
-    if ($is_valid_mac) {
+    if ($code == 1) {
 
-	$r->log->info("$$ valid mac $mac found, redirecting");
+	$r->log->info("$$ valid mac $mac found, redirecting to $dest_url");
 	$r->headers_out->set( Location => $dest_url );
 	$r->no_cache(1);
 	return Apache2::Const::REDIRECT;
@@ -60,6 +61,7 @@ sub handler {
     $dest_url = URI::Escape::uri_escape($dest_url);
     my $esc_mac = URI::Escape::uri_escape($mac);
     my $location = "$Auth_url?mac=$esc_mac&url=$dest_url";
+    $location .= "&expired=1" if ($code == 401);
     
     $r->log->info("$$ unknown $mac found, redirecting to $location");
     $r->headers_out->set( Location => $location );
