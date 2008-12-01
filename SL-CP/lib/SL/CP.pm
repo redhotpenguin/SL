@@ -79,6 +79,7 @@ sub ads {
     my $req = Apache2::Request->new($r);
     my $url = $req->param('url');
     my $req_mac = $req->param('mac');
+    my $token = $req->param('token');
 
     # urls had better match up
     unless ($req_mac eq $mac) {
@@ -86,12 +87,26 @@ sub ads {
 	return Apache2::Const::SERVER_ERROR;
     }
 
-    eval { SL::CP::IPTables->add_to_ads_chain($mac, $ip); };
+    my $added = eval { SL::CP::IPTables->add_to_ads_chain($mac, $ip, $token); };
 
     if ($@) {
 
         $r->log->error("$$ error adding mac $mac to ads chain: $@");
         return Apache2::Const::SERVER_ERROR;
+    }
+
+
+    if (($added == 401) or ($added == 404)) {
+	# must be a 404
+	my $dest_url = URI::Escape::uri_escape($url);
+	my $esc_mac = URI::Escape::uri_escape($mac);
+        my $location = "$Auth_url?mac=$esc_mac&url=$dest_url";
+	$location .= "&expired=1" if ($added == 401);
+    
+        $r->log->info("$$ expired mac address $mac found, code $added, redirecting to $location");
+        $r->headers_out->set( Location => $location );
+        $r->no_cache(1);
+        return Apache2::Const::REDIRECT;
     }
 
     $r->log->info("$$ added mac $mac to ad supported chain, redir to url $url");
@@ -123,7 +138,7 @@ sub paid {
 
     my $added = eval { SL::CP::IPTables->add_to_paid_chain($mac, $ip, $token); };
 
-    if ($@) {
+   if ($@) {
 
         $r->log->error("$$ error adding mac $mac to paid chain: $@");
         return Apache2::Const::SERVER_ERROR;

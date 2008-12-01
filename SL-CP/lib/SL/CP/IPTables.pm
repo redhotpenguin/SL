@@ -315,7 +315,21 @@ sub delete_from_paid_chain {
 }
 
 sub add_to_ads_chain {
-    my ( $class, $mac, $ip ) = @_;
+    my ( $class, $mac, $ip, $token ) = @_;
+
+    my $esc_mac = URI::Escape::uri_escape($mac);
+    my $url = "$Auth_url/token?mac=$esc_mac&token=$token";
+    warn("token url is $url") if DEBUG;
+
+    # fetch the token and validate
+    my $res = $UA->get( $url );
+
+    if (($res->code == 404 ) or ($res->code == 401)) {
+	return $res->code;
+    }
+
+    die "error validating mac $mac with token $token:  " . $res->status_line
+      unless $res->is_success;
 
     $class->_ads_chain( 'A', $mac, $ip );
 }
