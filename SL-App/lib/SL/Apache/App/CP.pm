@@ -48,15 +48,26 @@ sub check {
 
     my $req = Apache2::Request->new($r);
     my $mac = $req->param('mac');
+    my $plan = $req->param('plan');
 
-    my ($payment) = SL::Model::App->resultset('Payment')->search(
-        {
+    my %payment_args = ( 
             mac             => $mac,
             ip              => $r->connection->remote_ip,
             account_id      => $r->pnotes('router')->account_id->account_id,
             approved        => 't',
 	    token_processed => 't',
-        },
+       );
+    
+    if ($plan && ($plan eq 'ads')) {
+	    $payment_args{'amount'} = '$0.00';
+    } else {
+
+    	# look for paid plans
+	$payment_args{'amount'} = { '>', '$0.00' };
+    }
+
+    my ($payment) = SL::Model::App->resultset('Payment')->search(
+	\%payment_args,
 	{
 	 order_by => 'cts DESC',
 	},
