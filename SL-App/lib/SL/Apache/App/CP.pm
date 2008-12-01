@@ -56,7 +56,10 @@ sub check {
             account_id      => $r->pnotes('router')->account_id->account_id,
             approved        => 't',
 	    token_processed => 't',
-        }
+        },
+	{
+	 order_by => 'cts DESC',
+	},
     );
   
     if (DEBUG) {
@@ -65,12 +68,22 @@ sub check {
     }
 
     my $now = DateTime->now( time_zone => 'local' );
-    if ($now > DateTime::Format::Pg->parse_datetime( $payment->stop ) ) {
+    my $stop = DateTime::Format::Pg->parse_datetime( $payment->stop ); 
+    $stop->set_time_zone('local');
 
-    	$r->log->info("auth for mac $mac expired");
+    if ($now > $stop ) {
+
+    	$r->log->info(
+		sprintf("auth mac %s expired, now %s, expired %s, payment id %s",
+		$mac, $now->mdy . ' '  . $now->hms, $stop->mdy . ' ' . $stop->hms,
+		$payment->payment_id));
         return Apache2::Const::AUTH_REQUIRED;
     }
-    $r->log->info("auth for mac $mac still valid");
+
+    $r->log->info(sprintf("auth mac %s valid, now %s, expires %s, payment id %s",
+		$mac, $now->mdy . ' '  . $now->hms, $stop->mdy . ' ' . $stop->hms,
+		$payment->payment_id));
+
 
     return Apache2::Const::OK;
 }
