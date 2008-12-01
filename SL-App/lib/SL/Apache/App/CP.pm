@@ -524,10 +524,42 @@ sub free {
     my $lan_ip = $router->lan_ip
       || die 'router not configured for CP';
 
+    my $timeout = $router->splash_timeout || die 'router not configured for CP';
+
+    my $account = $router->account_id;
+
+   my $stop =
+      DateTime::Format::Pg->format_datetime(
+        DateTime->now( time_zone => 'local' )->add( 'minutes' => $timeout ) );
+
+    # make a free payment entry
+    my $payment = SL::Model::App->resultset('Payment')->create(
+        {
+            account_id => $account->account_id,
+            mac        => $mac,
+            amount     => '$0.00',
+            stop       => $stop,
+            email      => 'guest',
+            last_four  => 0,
+            card_type  => 'ads',
+            ip         => $r->connection->remote_ip,
+	    expires    => $timeout,
+	    approved   => 't',
+        }
+    );
+
+    $payment->update;
+
+    # grab it for the md5
+     ($payment) =
+          SL::Model::App->resultset('Payment')
+          ->search( { payment_id => $payment->payment_id } );
+
+
     ## payment successful, redirect to auth
     $mac = URI::Escape::uri_escape($mac);
     $dest_url = URI::Escape::uri_escape($dest_url);
-    $r->headers_out->set( Location => "http://$lan_ip/ads?mac=$mac&url=$dest_url");
+    $r->headers_out->set( Location => "http://$lan_ip/ads?mac=$mac&url=$dest_url&token=" . $payment->md5);
     $r->no_cache(1);
     return Apache2::Const::REDIRECT;
 }
