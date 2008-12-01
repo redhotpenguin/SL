@@ -26,7 +26,7 @@ sub handler {
     my ($router__location) =
       SL::Model::App->resultset('RouterLocation')
       ->search( { location_id => $location->location_id },
-        { order_by => 'mts DESC', } );
+        { order_by => 'router.last_ping DESC', }, join => [ 'router' ], );
 
     unless ($router__location) {
         $r->log->info("$$ no registered routers at ip $ip");

@@ -80,7 +80,7 @@ sub post {
 
     my $req      = Apache2::Request->new($r);
     my $dest_url = $req->param('url');
-    my $mac = $req->param('mac');
+    my $mac      = $req->param('mac');
    
     my $router      = $r->pnotes('router') || die 'router missing';
     my $splash_href = $router->splash_href || die 'router not configured for CP';
@@ -441,7 +441,7 @@ sub paid {
                 'To'      => $email,
                 'From'    => $From,
                 'CC'      => $From,
-                'Subject' => "WiFi Internet Access Receipt $authorization_code",
+                'Subject' => "WiFi Internet Receipt",
             }
         );
 
@@ -465,7 +465,7 @@ sub paid {
 	    date => $date,
 	    amount => $amount );
 
-        my $ok = $Tmpl->process( 'auth/paid.tmpl', \%tmpl_data, \$mail, $r );
+        my $ok = $Tmpl->process( 'auth/receipt.tmpl', \%tmpl_data, \$mail, $r );
 	return $class->error( $r, $mail ) if !$ok;
 
         print $mailer $mail;
