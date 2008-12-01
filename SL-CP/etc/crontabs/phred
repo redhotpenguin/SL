@@ -1,4 +1,0 @@
-SHELL=/bin/bash
-MAILTO=phred
-
-* * * * *  /usr/bin/perl  /home/phred/sl/SL-CP/bin/sl_cp_watch
