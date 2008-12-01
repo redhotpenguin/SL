@@ -62,7 +62,7 @@
 							<select id="plan" name="plan">
 								<option value="one" [% IF req.param('plan') == 'one' %]SELECTED[% END %]>1 hour ($1)</option>
 								<option value="three" [% IF req.param('plan') == 'three' %]SELECTED[% END %]>3 hours ($2)</option>
-								<option value="three" [% IF req.param('plan') == 'day' %]SELECTED[% END %]>24 hours ($3)</option>
+								<option value="day" [% IF req.param('plan') == 'day' %]SELECTED[% END %]>24 hours ($3)</option>
 								<option value="month" [% IF req.param('plan') == 'month' %]SELECTED[% END %]>1 month ($10)</option>
 							</select>
 							</span>
