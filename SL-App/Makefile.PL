@@ -25,6 +25,7 @@ ModPerl::MM::WriteMakefile(
         'Digest::MD5'         => 2.33,
         'MIME::Lite'          => 3.01,
         'Template'            => 2.14,
+        'Template::Plugin::DateTime' => 0.06001,
         'XML::RAI'            => 1.3022,
         'SL::Config'          => 0.14,
         'SL::Model'           => 0.16,

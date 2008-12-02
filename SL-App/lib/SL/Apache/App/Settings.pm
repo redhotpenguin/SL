@@ -184,30 +184,27 @@ sub dispatch_users {
 
 }
 
-sub dispatch_paymentfoo {
+sub dispatch_payment {
     my ( $self, $r, $args_ref ) = @_;
 
     my $reg = $r->pnotes( $r->user );
     my $req = $args_ref->{req} || Apache2::Request->new($r);
 
-    my $email = $req->param('first_name');    # weird libapreq bug
+    my @payments =
+      SL::Model::App->resultset('Payment')
+      ->search( { account_id => $reg->account_id->account_id,
+            amount => { '>' => '$0.00'}, },
+                  {
+                   order_by => 'me.start DESC',
+                 } );
 
-    # look for existing cc info
-    my ($cc) =
-      SL::Model::App->resultset('Cc')
-      ->search( { account_id => $reg->account_id->account_id } );
-
-    my %cc;
-    if ($cc) {
-        _decode_cc( $cc, \%cc );
-    }
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
         my %tmpl_data = (
             req    => $req,
+            payments => \@payments,
             errors => $args_ref->{errors},
-            cc     => \%cc,
             ip     => $r->connection->remote_ip,
         );
 
@@ -218,51 +215,8 @@ sub dispatch_paymentfoo {
         return $self->ok( $r, $output ) if $ok;
         return $self->error( $r, "Template error: " . $TMPL->error() );
     }
-    elsif ( $r->method_number == Apache2::Const::M_POST ) {
-
-        $r->method_number(Apache2::Const::M_GET);
-        my @fields = qw( first_name last_name country
-          brand number expires_month expires_year cvv
-          address_one city state zipcode email ip check);
-
-        my %profile = (
-            required           => \@fields,
-            constraint_methods => {
-                brand   => cc_type(),
-                zipcode => zip(),
-                state   => state(),
-                number  => cc_number { fields => ['brand'] },
-                check   => valid_card( { fields => \@fields }, ),
-            },
-        );
-
-        my $results = Data::FormValidator->check( $req, \%profile );
-
-        if ( $results->has_missing or $results->has_invalid ) {
-
-            my $errors = $self->SUPER::_results_to_errors($results);
-
-            $r->log->debug(
-                "posting - ERRORS " . Data::Dumper::Dumper($results) )
-              if DEBUG;
-
-            return $self->dispatch_payment(
-                $r,
-                {
-                    errors => $errors,
-                    req    => $req
-                }
-            );
-        }
-
-        $r->log->debug( "posting - results " . Data::Dumper::Dumper($results) )
-          if DEBUG;
-
-        $r->pnotes('session')->{msg} = "Payment settings have been updated";
-
-        $r->headers_out->set(
-            Location => $r->construct_url('/app/settings/index') );
-        return Apache2::Const::REDIRECT;
+    else {
+      return Apache2::Const::SERVER_ERROR;
     }
 }
 

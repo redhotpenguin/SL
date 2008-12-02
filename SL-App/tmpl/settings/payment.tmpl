@@ -4,261 +4,53 @@
 <div id="list_center">
 	<div class="content">
 
-<h2>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage Account</a> > Billing and Payment</h2>
+<h2>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage Account</a> > AAA Payments</h2>
 
 <p><hr class="sl_line"></p>
 
-<h3>Update your payment preferences</h3>
+<h3>AAA Payments</h3>
 <p><hr class="sl_line"></p>
 
-<div id="edit_form">
+<table class="list">
+<tr class="list_header">
+<td class="header">Email</td>
+<td class="header">Mac Address</td>
+<td class="header">Amount</td>
+<td class="header">Start Time</td>
+<td class="header">End Time</td>
+<td class="header">Approved</td>
+<td class="header">Card Type</td>
+<td class="header">Last Four</td>
+</tr>
 
-[% IF errors %]
-<p><font color="red">Your submission contained errors, see below</font></p>
-<p><hr class="sl_line"></p>
+[% FOREACH payment = payments %]
+<tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
+
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% payment.email %]</td>
+
+
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% payment.mac %]</td>
+
+
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% payment.amount %]</td>
+
+[% USE start = DateTime(from_string => payment.start) %]
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% start.mdy %] [% start.hms %]</td>
+
+[% USE stop = DateTime(from_string => payment.stop) %]
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% stop.mdy %] [% stop.hms %]</td>
+
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% IF payment.approved == 1 %]<font color="green">Yes</font>[% ELSE %]<font color="red">No</font>[% END %]</td>
+
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[%  payment.card_type %]</td>
+
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[%  payment.last_four %]</td>
+
+</tr>
+
 [% END %]
-
-<div id="edit_form">
-<form method="POST" action="[% base_uri %]/app/settings/payment" name="submitform">
-
-<p>A valid credit card is required to place your own ad zones using Silver Lining.  Your card will be charged once a month based on your current CPM (cost per thousand ad insertions) and the number of ad insertions.  Questions?  <a href="mailto:support@silverliningnetworks.com">Email us</a> or <a href="http://forums.silverliningnetworks.com">visit the forums</a></p>
-
-<p>Your current CPM: <b>[% reg.account_id.cpm %]</b></p>
-
-
-<p><hr class="sl_line"></p>
-
-<h2>Credit Card Details (this information is secure)</h2>
-<p><hr class="sl_line"></p>
-
-[% IF errors.invalid.check %]
-<p><font color="red">Card failed verification, please check data</font></p>
-<p><hr class="sl_line"></p>
-[% END %]
-
-<table class="edit">
-
-<tr>
-<td class="label">Card type?</td>
-<td><select id="brand" name="brand"><option value="Mastercard">Mastercard</option>
-
-<option value="Visa" selected="selected">Visa</option>
-<option value="American Express">American Express</option></select></td>
-</tr>
-<tr>
-<td class="label">
-[% IF errors.invalid.number or errors.missing.number %]<font color="red">[% END %]
-Card number:</td>
-[% IF errors.invalid.number or errors.missing.number %]</font>[% END %]
-<td><input id="number" maxlength="16" name="number" size="16" type="text" value="[% req.param('number') or cc.number %]"/></td>
-</tr>
-<tr>
-
-<td class="label">Card expires on:</td>
-<td>
-<select id="expires_month" name="expires_month">
-<option value="1">1 - January</option>
-<option value="2">2 - February</option>
-<option value="3">3 - March</option>
-<option value="4">4 - April</option>
-<option value="5" selected="selected">5 - May</option>
-<option value="6">6 - June</option>
-
-<option value="7">7 - July</option>
-<option value="8">8 - August</option>
-<option value="9">9 - September</option>
-<option value="10">10 - October</option>
-<option value="11">11 - November</option>
-<option value="12">12 - December</option>
-</select>
-
-<select id="expires_year" name="expires_year">
-<option value="2008" selected="selected">2008</option>
-<option value="2009">2009</option>
-<option value="2010">2010</option>
-<option value="2011">2011</option>
-<option value="2012">2012</option>
-<option value="2013">2013</option>
-<option value="2014">2014</option>
-<option value="2015">2015</option>
-<option value="2016">2016</option>
-<option value="2017">2017</option>
-<option value="2018">2018</option>
-
-<option value="2019">2019</option>
-<option value="2020">2020</option>
-<option value="2021">2021</option>
-<option value="2022">2022</option>
-<option value="2023">2023</option>
-</select>
-</td>
-</tr>
-
-<tr><td class="label">
-[% IF errors.invalid.cvv or errors.missing.cvv %]<font color="red">[% END %]
-Cart Verification Value Code
-[% IF errors.invalid.cvv or errors.missing.cvv %]</font>[% END %]
- <a href="http://www.sti.nasa.gov/cvv.html">(CVV)</a></td>
-<td><input type="text" name="cvv" size="3" maxlength="3" value="[% req.param('cvv') or cc.cvv %]"></td></tr>
-
 </table>
 
-<p><hr class="sl_line"></p>
-
-<table class="edit">
-
-<input type="hidden" name="email" value="[% reg.email %]">
-<input type="hidden" name="ip" value="[% ip %]">
-<input type="hidden" name="country" value="US">
-<input type="hidden" name="check" value="1">
-
-<!-- first_name -->
-<tr><td>
-[% IF errors.invalid.first_name or errors.missing.first_name %]<font color="red">[% END %]
-First Name:
-[% IF errors.invalid.first_name or errors.missing.first_name %]
-</font>[% END %]
-</td>
-<td><input type="text" name="first_name" size="25" maxlength="50" value="[% req.param('first_name') or cc.first_name %]">
-</td></tr>
-
-<!-- last_name -->
-<tr><td>[% IF errors.invalid.first_name or errors.missing.first_name %]
-<font color="red">[% END %]
-Last Name:
-[% IF errors.invalid.last_name or errors.missing.last_name %]</font>[% END %]
-</td>
-<td><input type="text" name="last_name" size="25" maxlength="50" value="[% req.param('last_name') or cc.last_name %]">
-</td></tr>
-
-<!-- address_one -->
-<tr><td>[% IF errors.invalid.address_one or errors.missing.address_one %]
-<font color="red">[% END %]
-Address Line One:
-[% IF errors.invalid.address_one or errors.missing.address_one %]</font>[% END %]
-</td>
-<td><input type="text" name="address_one" size="25" maxlength="50" value="[% req.param('address_one') or cc.address_one %]">
-</td></tr>
-
-<!-- address_two -->
-<tr><td>[% IF errors.invalid.address_two or errors.missing.address_two %]
-<font color="red">[% END %]
-Address Line Two: 
-[% IF errors.invalid.address_two or errors.missing.address_two %]</font>[% END %]
-</td>
-<td><input type="text" name="address_two" size="25" maxlength="50" value="[% req.param('address_two') or cc.address_two %]">
-</td></tr>
-
-<!-- city -->
-<tr><td>[% IF errors.invalid.city or errors.missing.city %]
-<font color="red">[% END %]
-City:
-[% IF errors.invalid.city or errors.missing.city %]</font>[% END %]
-</td>
-<td><input type="text" name="city" size="25" maxlength="50" value="[% req.param('city') or cc.city %]">
-</td></tr>
-
-
-<!-- state -->
-
-<tr><td>
-[% IF errors.invalid.state or errors.missing.state %]<font color="red">[% END %]
-State:</td>
-[% IF errors.invalid.state or errors.missing.state %]</font>[% END %]
-
-<td><select id="state" name="state"><option value=""></option>
-<option value="AK">AK</option>
-<option value="AL">AL</option>
-<option value="AR">AR</option>
-<option value="AZ">AZ</option>
-
-<option value="CA">CA</option>
-<option value="CO">CO</option>
-<option value="CT">CT</option>
-<option value="DC">DC</option>
-<option value="DE">DE</option>
-<option value="FL">FL</option>
-<option value="GA">GA</option>
-<option value="HI">HI</option>
-<option value="IA">IA</option>
-
-<option value="ID">ID</option>
-<option value="IL">IL</option>
-<option value="IN">IN</option>
-<option value="KS">KS</option>
-<option value="KY">KY</option>
-<option value="LA">LA</option>
-<option value="MA">MA</option>
-<option value="MD">MD</option>
-<option value="ME">ME</option>
-
-<option value="MI">MI</option>
-<option value="MN">MN</option>
-<option value="MO">MO</option>
-<option value="MS">MS</option>
-<option value="MT">MT</option>
-<option value="NC">NC</option>
-<option value="ND">ND</option>
-<option value="NE">NE</option>
-<option value="NH">NH</option>
-
-<option value="NJ">NJ</option>
-<option value="NM">NM</option>
-<option value="NV">NV</option>
-<option value="NY">NY</option>
-<option value="OH">OH</option>
-<option value="OK">OK</option>
-<option value="OR">OR</option>
-<option value="PA">PA</option>
-<option value="RI">RI</option>
-
-<option value="SC">SC</option>
-<option value="SD">SD</option>
-<option value="TN">TN</option>
-<option value="TX">TX</option>
-<option value="UT">UT</option>
-<option value="VA">VA</option>
-<option value="VT">VT</option>
-<option value="WA">WA</option>
-<option value="WI">WI</option>
-
-<option value="WV">WV</option>
-<option value="WY">WY</option>
-<option value="AA">AA</option>
-<option value="AE">AE</option>
-<option value="AP">AP</option>
-<option value="AS">AS</option>
-<option value="FM">FM</option>
-<option value="GU">GU</option>
-<option value="MH">MH</option>
-
-<option value="MP">MP</option>
-<option value="PR">PR</option>
-<option value="PW">PW</option>
-<option value="VI">VI</option></select></td>
-</tr>
-
-
-<tr><td>
-[% IF errors.invalid.zipcode or errors.missing.zipcode %]<font color="red">[% END %]
-ZIP code:
-[% IF errors.invalid.zipcode or errors.missing.zipcode %]</font>[% END %]
-</td>
-<td><input id="zipcode" maxlength="10" name="zipcode" size="10" type="text" value="[% req.param('zipcode') or cc.zipcode %]"/></td>
-</tr>
-
-</table>
-
-
-<p><hr class="sl_line"></p>
-
-<p><input type="submit" value="Save" name="submitbutton" onclick="document.submitform.submitbutton.value='One Moment Please...'; document.submitform.submitbutton.disabled=true; document.submitform.submit();"></p>
-
-
-</form>
-</span>
-
-</div>
 </div>
 </div>
 
