@@ -1,0 +1,5 @@
+1) update /etc/rc.d/modules
+2) update user crontab (uncomment lines)
+3) let apache start
+4) see if surfing is possible
+
