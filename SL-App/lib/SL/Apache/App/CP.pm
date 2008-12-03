@@ -27,8 +27,8 @@ use SL::Payment ();
 use constant DEBUG => $ENV{SL_DEBUG} || 1;
 
 our %Amounts = (
-    one   => '$1.00',
-    three => '$2.00',
+    one   => '$2.00',
+    four  => '$3.00',
     day   => '$3.00',
     month => '$10.00',
 );
@@ -188,7 +188,7 @@ sub valid_plan {
         my $dfv = shift;
         my $val = $dfv->get_current_constraint_value;
 
-        return $val if ( $val =~ m/(?:one|three|day|month)/ );
+        return $val if ( $val =~ m/(?:one|four|day|month)/ );
         return;
       }
 }
