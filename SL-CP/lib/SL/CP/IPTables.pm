@@ -67,6 +67,10 @@ slAUT -p tcp -m tcp --dport 22 -j ACCEPT
 slAUT -p tcp -m tcp --dport 143 -j ACCEPT 
 slAUT -p tcp -m tcp --dport 993 -j ACCEPT 
 slAUT -p tcp -m tcp --dport 587 -j ACCEPT 
+slAUT -p tcp -m tcp --dport 5050 -j ACCEPT 
+slAUT -p tcp -m tcp --dport 5190 -j ACCEPT 
+slAUT -p tcp -m tcp --dport 5222 -j ACCEPT 
+slAUT -p tcp -m tcp --dport 5223 -j ACCEPT 
 slAUT -p tcp -m tcp --dport 25 -j ACCEPT 
 slAUT -j REJECT --reject-with icmp-port-unreachable
 slNET -m mark --mark 0x100/0x700 -j DROP
