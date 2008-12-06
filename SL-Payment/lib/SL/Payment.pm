@@ -57,7 +57,7 @@ sub process {
     my ($last_four) = $args->{card_number} =~ m/(\d{4})$/;
 
     my $plan = delete $args->{plan};
-    die "bad plan: $plan" unless $plan =~ m/(?:one|three|day|month)/;
+    die "bad plan: $plan" unless $plan =~ m/(?:one|four|day|month)/;
 
     my $stop =
       DateTime::Format::Pg->format_datetime(
