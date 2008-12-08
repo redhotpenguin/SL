@@ -11,22 +11,26 @@ use URI::Escape    ();
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 our (
-    $Config,   $Iptables, $Ext_if,         %tables_chains,
-    $Int_if,   $Auth_ip,  $Cp_server_port, $Gateway_ip,
-    $Ad_proxy, $Mark_op,  $Auth_url,       $Lease_file,
+    $Config,         $Iptables,   $Ext_if,
+    %tables_chains,  $Int_if,     $Auth_ip,
+    $Cp_server_port, $Gateway_ip, $Ad_proxy,
+    $Mark_op,        $Auth_url,   $Lease_file,
+    $Verify_authorize_net_ip
 );
 
 BEGIN {
-    $Config         = SL::Config->new;
-    $Iptables       = $Config->sl_iptables || die 'oops';
-    $Ext_if         = $Config->sl_ext_if || die 'oops';
-    $Int_if         = $Config->sl_int_if || die 'oops';
-    $Auth_ip        = $Config->sl_auth_server_ip || die 'oops';
-    $Auth_url       = $Config->sl_cp_auth_url || die 'oops';
-    $Cp_server_port = $Config->sl_apache_listen || die 'oops';
-    $Gateway_ip     = $Config->sl_gateway_ip || die 'oops';
-    $Ad_proxy       = $Config->sl_proxy || die 'oops';
-    $Mark_op        = $Config->sl_mark_op || die 'oops';
+    $Config                  = SL::Config->new;
+    $Iptables                = $Config->sl_iptables || die 'oops';
+    $Ext_if                  = $Config->sl_ext_if || die 'oops';
+    $Int_if                  = $Config->sl_int_if || die 'oops';
+    $Auth_ip                 = $Config->sl_auth_server_ip || die 'oops';
+    $Verify_authorize_net_ip = $Config->sl_verify_authorize_net_ip
+      || die 'oops';
+    $Auth_url       = $Config->sl_cp_auth_url     || die 'oops';
+    $Cp_server_port = $Config->sl_apache_listen   || die 'oops';
+    $Gateway_ip     = $Config->sl_gateway_ip      || die 'oops';
+    $Ad_proxy       = $Config->sl_proxy           || die 'oops';
+    $Mark_op        = $Config->sl_mark_op         || die 'oops';
     $Lease_file     = $Config->sl_dhcp_lease_file || die 'oops';
 
     %tables_chains = (
@@ -82,6 +86,7 @@ slNET -m mark --mark 0x500/0x700 -j slAUT
 slNET -p tcp -m tcp --dport 53 -j ACCEPT
 slNET -p udp -m udp --dport 53 -j ACCEPT
 slNET -d $Auth_ip -p tcp -m tcp --dport 443 -j ACCEPT
+slNET -d $Verify_authorize_net_ip -p tcp -m tcp --dport 443 -j ACCEPT
 slNET -j REJECT --reject-with icmp-port-unreachable
 slRTR -m mark --mark 0x100/0x700 -j DROP
 slRTR -m state --state INVALID -j DROP
