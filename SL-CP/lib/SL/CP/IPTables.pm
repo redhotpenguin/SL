@@ -133,7 +133,7 @@ NATS
 sub add_rules {
     my ( $table, $rules ) = @_;
 
-    foreach my $rule (split(/\n/, $rules)) {
+    foreach my $rule ( split( /\n/, $rules ) ) {
         chomp($rule);
         warn("$$ Adding rule $rule to table $table") if DEBUG;
         iptables("-t $table -A $rule");
@@ -156,52 +156,57 @@ sub clear_firewall {
 sub iptables {
     my $cmd = shift;
 
-    system("sudo $Iptables $cmd") == 0 or
-	require Carp && Carp::confess "could not iptables '$cmd', err: $!, ret: $?\n";
+    system("sudo $Iptables $cmd") == 0
+      or require Carp
+      && Carp::confess "could not iptables '$cmd', err: $!, ret: $?\n";
 
     return 1;
 }
-
 
 sub check_for_ads_mac {
     my ( $class, $mac, $ip ) = @_;
 
     warn("check for ads mac $mac, ip $ip ");
     my $esc_mac = URI::Escape::uri_escape($mac);
-    my $url = "$Auth_url/check?mac=$esc_mac&plan=ads";
+    my $url     = "$Auth_url/check?mac=$esc_mac&plan=ads";
 
-    my $res = $UA->get( $url );
+    my $res = $UA->get($url);
 
-    if (($res->code == 404 ) or ($res->code == 401)) {
-	
-	# no mac authenticated
-	return $res->code;
+    if ( ( $res->code == 404 ) or ( $res->code == 401 ) ) {
 
-    } elsif (!$res->is_success) {
+        # no mac authenticated
+        return $res->code;
 
-	# huh something broke
-	require Data::Dumper;
-	die "$$ Error checking paid mac $mac, response: " . Data::Dumper::Dumper($res);
+    }
+    elsif ( !$res->is_success ) {
+
+        # huh something broke
+        require Data::Dumper;
+        die "$$ Error checking paid mac $mac, response: "
+          . Data::Dumper::Dumper($res);
     }
 
-    warn("mac check response code " . $res->code);
+    warn( "mac check response code " . $res->code );
 
     # successful request, make sure the rules are ok
-    my $uc_mac = uc($mac);
+    my $uc_mac        = uc($mac);
     my $iptables_rule = `sudo $Iptables -t mangle -L -v`;
 
     # see if the mac address is in a rule
-    my ($iptables_ip) = $iptables_rule =~
-	m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*?MAC\s+$uc_mac/;
+    my ($iptables_ip) =
+      $iptables_rule =~ m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*?MAC\s+$uc_mac/;
 
-    if (!$iptables_ip) {
+    if ( !$iptables_ip ) {
 
         warn("no iptables rules, creating one");
-	# probably a server restart, re-add the rules
+
+        # probably a server restart, re-add the rules
         $class->_ads_chain( 'A', $mac, $ip );
 
-    } elsif ($ip ne $iptables_ip) {
+    }
+    elsif ( $ip ne $iptables_ip ) {
         warn("iptables rules don't match, updating");
+
         # dhcp lease probably expired, delete old rule, create new rule
         $class->delete_from_ads_chain( $mac, $iptables_ip );
         $class->_ads_chain( 'A', $mac, $ip );
@@ -211,47 +216,49 @@ sub check_for_ads_mac {
     return 1;
 }
 
-
-
-
 sub check_for_paid_mac {
     my ( $class, $mac, $ip ) = @_;
 
     my $esc_mac = URI::Escape::uri_escape($mac);
-    my $url = "$Auth_url/check?mac=$esc_mac";
+    my $url     = "$Auth_url/check?mac=$esc_mac";
 
-    my $res = $UA->get( $url );
+    my $res = $UA->get($url);
 
-    if (($res->code == 404 ) or ($res->code == 401)) {
-	
-	# no mac authenticated
-	return $res->code;
+    if ( ( $res->code == 404 ) or ( $res->code == 401 ) ) {
 
-    } elsif (!$res->is_success) {
+        # no mac authenticated
+        return $res->code;
 
-	# huh something broke
-	require Data::Dumper;
-	die "$$ Error checking mac $mac, response: " . Data::Dumper::Dumper($res);
+    }
+    elsif ( !$res->is_success ) {
+
+        # huh something broke
+        require Data::Dumper;
+        die "$$ Error checking mac $mac, response: "
+          . Data::Dumper::Dumper($res);
     }
 
-    warn("mac check response code " . $res->code);
+    warn( "mac check response code " . $res->code );
 
     # successful request, make sure the rules are ok
-    my $uc_mac = uc($mac);
+    my $uc_mac        = uc($mac);
     my $iptables_rule = `sudo $Iptables -t mangle -L -v`;
 
     # see if the mac address is in a rule
-    my ($iptables_ip) = $iptables_rule =~
-	m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*?MAC\s+$uc_mac/;
+    my ($iptables_ip) =
+      $iptables_rule =~ m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*?MAC\s+$uc_mac/;
 
-    if (!$iptables_ip) {
+    if ( !$iptables_ip ) {
 
         warn("no iptables rules, creating one");
-	# probably a server restart, re-add the rules
+
+        # probably a server restart, re-add the rules
         $class->_paid_chain( 'A', $mac, $ip );
 
-    } elsif ($ip ne $iptables_ip) {
+    }
+    elsif ( $ip ne $iptables_ip ) {
         warn("iptables rules don't match, updating");
+
         # dhcp lease probably expired, delete old rule, create new rule
         $class->delete_from_paid_chain( $mac, $iptables_ip );
         $class->_paid_chain( 'A', $mac, $ip );
@@ -262,46 +269,48 @@ sub check_for_paid_mac {
 }
 
 sub paid_users {
-	my ($class) = @_;
+    my ($class) = @_;
 
-	return $class->users('0x400');
+    return $class->users('0x400');
 }
 
 sub ads_users {
-	my ($class) = @_;
+    my ($class) = @_;
 
-	return $class->users('0x500');
+    return $class->users('0x500');
 }
 
 sub users {
-    my ($class, $mark) = @_;
+    my ( $class, $mark ) = @_;
 
-    my @users = map { [ $_ =~ m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*?MAC\s(\S+)\s/ ] } 
-    	grep { $_ =~ m/(?:$mark)/ } 
-	split('\n', `sudo $Iptables -t mangle --list` ); 
+    my @users =
+      map { [ $_ =~ m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*?MAC\s(\S+)\s/ ] }
+      grep { $_ =~ m/(?:$mark)/ }
+      split( '\n', `sudo $Iptables -t mangle --list` );
 
     return @users;
 }
 
 sub _paid_chain {
     my ( $class, $op, $mac, $ip ) = @_;
-    iptables("-t mangle -$op slOUT -s $ip -m mac --mac-source $mac -j MARK $Mark_op 0x400");
+    iptables(
+"-t mangle -$op slOUT -s $ip -m mac --mac-source $mac -j MARK $Mark_op 0x400"
+    );
     iptables("-t mangle -$op slINC -d $ip -j ACCEPT");
 }
-
 
 sub add_to_paid_chain {
     my ( $class, $mac, $ip, $token ) = @_;
 
     my $esc_mac = URI::Escape::uri_escape($mac);
-    my $url = "$Auth_url/token?mac=$esc_mac&token=$token";
+    my $url     = "$Auth_url/token?mac=$esc_mac&token=$token";
     warn("token url is $url") if DEBUG;
 
     # fetch the token and validate
-    my $res = $UA->get( $url );
+    my $res = $UA->get($url);
 
-    if (($res->code == 404 ) or ($res->code == 401)) {
-	return $res->code;
+    if ( ( $res->code == 404 ) or ( $res->code == 401 ) ) {
+        return $res->code;
     }
 
     die "error validating mac $mac with token $token:  " . $res->status_line
@@ -322,14 +331,14 @@ sub add_to_ads_chain {
     my ( $class, $mac, $ip, $token ) = @_;
 
     my $esc_mac = URI::Escape::uri_escape($mac);
-    my $url = "$Auth_url/token?mac=$esc_mac&token=$token";
+    my $url     = "$Auth_url/token?mac=$esc_mac&token=$token";
     warn("token url is $url") if DEBUG;
 
     # fetch the token and validate
-    my $res = $UA->get( $url );
+    my $res = $UA->get($url);
 
-    if (($res->code == 404 ) or ($res->code == 401)) {
-	return $res->code;
+    if ( ( $res->code == 404 ) or ( $res->code == 401 ) ) {
+        return $res->code;
     }
 
     die "error validating mac $mac with token $token:  " . $res->status_line
@@ -337,7 +346,6 @@ sub add_to_ads_chain {
 
     $class->_ads_chain( 'A', $mac, $ip );
 }
-
 
 sub delete_from_ads_chain {
     my ( $class, $mac, $ip ) = @_;
@@ -347,7 +355,9 @@ sub delete_from_ads_chain {
 sub _ads_chain {
     my ( $class, $op, $mac, $ip ) = @_;
 
-    iptables("-t mangle -$op slOUT -s $ip -m mac --mac-source $mac -j MARK $Mark_op 0x500");
+    iptables(
+"-t mangle -$op slOUT -s $ip -m mac --mac-source $mac -j MARK $Mark_op 0x500"
+    );
     iptables("-t mangle -$op slINC -d $ip -j ACCEPT");
 }
 

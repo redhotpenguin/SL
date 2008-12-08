@@ -7,7 +7,7 @@ use SL::Model::App                        ();
 use SL::Config                            ();
 use Business::OnlinePayment::AuthorizeNet ();
 
-our $VERSION = 0.01;
+our $VERSION = 0.02;
 
 our ( $Config, $Authorize_login, $Authorize_key );
 
@@ -19,18 +19,17 @@ BEGIN {
     $Authorize_key   = $Config->sl_authorize_key || die 'payment setup error';
 }
 
-
 our %Amounts = (
-	'one' => { 'hours' => 1 },
-	'four' => { 'hours' => 3 },
-	'day'  => { 'days' => 1 },
-	'month' => { 'months' => 1 }, );
+    'one'   => { 'hours'  => 1 },
+    'four'  => { 'hours'  => 3 },
+    'day'   => { 'days'   => 1 },
+    'month' => { 'months' => 1 },
+);
 
 sub amount {
     my $plan = shift;
     return $Amounts{$plan};
 }
-
 
 sub process {
     my ( $class, $args ) = @_;
@@ -74,7 +73,7 @@ sub process {
             last_four  => $last_four,
             card_type  => $args->{card_type},
             ip         => $args->{ip},
-	    expires    => $args->{card_exp},
+            expires    => $args->{card_exp},
         }
     );
 
@@ -84,11 +83,8 @@ sub process {
     my $email = delete $args->{email};
     $args->{description}    = "Plan $plan transaction payment for $email";
     $args->{invoice_number} = $payment->payment_id;
-    $args->{customer_id}    = sprintf(
-        "%s %u",
-        delete $args->{mac},
-        delete $args->{account_id}
-    );
+    $args->{customer_id} =
+      sprintf( "%s %u", delete $args->{mac}, delete $args->{account_id} );
 
     # authorize
     my $tx = Business::OnlinePayment->new('AuthorizeNet');
