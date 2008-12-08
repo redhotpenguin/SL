@@ -24,7 +24,7 @@ WriteMakefile(
     EXE_FILES => [
         qw( bin/sl_mail_user_reports.pl
           bin/sl_report.pl bin/sl_report_graph.pl
-          bin/sl_close_expire.pl )
+          bin/sl_pay.pl )
     ],
     ABSTRACT => 'The database abstraction layer for SL',
     AUTHOR   => 'Fred Moyer <fred@redhotpenguin.com>',
