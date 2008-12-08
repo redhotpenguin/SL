@@ -6,7 +6,7 @@ use warnings;
 use DBI        ();
 use SL::Config ();
 
-our $VERSION = 0.18;
+our $VERSION = 0.19;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
