@@ -261,7 +261,7 @@ sub valid_macaddr {
         my $dfv = shift;
         my $val = $dfv->get_current_constraint_value;
 
-        return $val if ( $val =~ m/^([0-9a-f]{2}([:-]|$)){6}$/i );
+        return $val if ( $val =~ m/^([0-9a-fA-F]{2}([:-]|$)){6}$/i );
         return;
       }
 }
