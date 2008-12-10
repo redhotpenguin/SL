@@ -1,0 +1,43 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use SL::CP::IPTables ();
+
+run_check($_, 'ads') for SL::CP::IPTables->ads_users;
+run_check($_, 'paid') for SL::CP::IPTables->paid_users;
+	
+sub run_check {
+	my ($user, $type) = @_;
+
+	my $method = sprintf('check_for_%s_mac', $type);
+
+	my $code = eval { SL::CP::IPTables->$method($user->[1], $user->[0]); };
+
+    	if ($@) {
+		warn(sprintf("$$ failed to contact auth server, mac %s ip %s", $user->[1], $user->[0])); 
+		next;
+ 	 }
+
+	$method = sprintf('delete_from_%s_chain', $type);
+ 	 if ($code == 1) {
+
+		warn(sprintf("$$ mac %s from ip %s still valid", $user->[1], $user->[0]));
+
+	} elsif ($code == 404) {
+
+		# something went really wrong
+		warn(sprintf("$$ mac %s, ip %si not registered, removing", $user->[1], $user->[0]));
+		SL::CP::IPTables->$method($user->[1], $user->[0]);
+
+	} elsif ($code == 401) {
+
+		warn(sprintf("$$ mac %s, ip %s expired, removing", $user->[1], $user->[0]));
+		SL::CP::IPTables->$method($user->[1], $user->[0]);
+	}
+
+}
+
+
+
