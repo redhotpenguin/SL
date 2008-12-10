@@ -24,7 +24,7 @@ CREATE TABLE payment (
     amount money NOT NULL,
     start timestamp without time zone DEFAULT now() NOT NULL,
     stop timestamp without time zone NOT NULL,
-    authorization_code integer,
+    authorization_code text,
     error_message text,
     cts timestamp without time zone DEFAULT now() NOT NULL,
     approved boolean,
@@ -34,7 +34,8 @@ CREATE TABLE payment (
     ip inet NOT NULL,
     email text NOT NULL,
     md5 text NOT NULL,
-    token_processed boolean DEFAULT false NOT NULL
+    token_processed boolean DEFAULT false NOT NULL,
+    expires text
 );
 
 
@@ -45,7 +46,6 @@ ALTER TABLE public.payment OWNER TO phred;
 --
 
 CREATE SEQUENCE payment_payment_id_seq
-    START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
     NO MINVALUE
@@ -62,18 +62,10 @@ ALTER SEQUENCE payment_payment_id_seq OWNED BY payment.payment_id;
 
 
 --
--- Name: payment_payment_id_seq; Type: SEQUENCE SET; Schema: public; Owner: phred
---
-
-SELECT pg_catalog.setval('payment_payment_id_seq', 1, false);
-
-
---
 -- Name: payment_id; Type: DEFAULT; Schema: public; Owner: phred
 --
 
 ALTER TABLE payment ALTER COLUMN payment_id SET DEFAULT nextval('payment_payment_id_seq'::regclass);
-
 
 
 --
@@ -85,8 +77,15 @@ ALTER TABLE ONLY payment
 
 
 --
--- Name: md5; Type: TRIGGER; Schema: public; Owner: phred
+-- Name: payment_d5; Type: TRIGGER; Schema: public; Owner: phred
 --
+
+CREATE TRIGGER payment_d5
+    BEFORE INSERT OR UPDATE ON payment
+    FOR EACH ROW
+    EXECUTE PROCEDURE payment_md5();
+
+
 --
 -- Name: payment_account_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
 --
