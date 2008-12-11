@@ -14,7 +14,7 @@ MinSpareServers      4
 MaxSpareServers      8
 StartServers         16
 LogLevel             [% cfg.sl_apache_loglevel %]
-MaxClients           64
+MaxClients           128
 ErrorLog             [% cfg.sl_root %]/logs/httpd_cp_error_log
 TransferLog          [% cfg.sl_root %]/logs/httpd_cp_access_log
 MaxRequestsPerChild  100

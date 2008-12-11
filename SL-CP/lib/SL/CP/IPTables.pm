@@ -15,7 +15,7 @@ our (
     %tables_chains,  $Int_if,     $Auth_ip,
     $Cp_server_port, $Gateway_ip, $Ad_proxy,
     $Mark_op,        $Auth_url,   $Lease_file,
-    $Verify_authorize_net_ip
+    $Verify_authorize_net_ip, $Aircloud_ip,
 );
 
 BEGIN {
@@ -26,6 +26,7 @@ BEGIN {
     $Auth_ip                 = $Config->sl_auth_server_ip || die 'oops';
     $Verify_authorize_net_ip = $Config->sl_verify_authorize_net_ip
       || die 'oops';
+    $Aircloud_ip = $Config->sl_aircloud_ip || die 'oops';
     $Auth_url       = $Config->sl_cp_auth_url     || die 'oops';
     $Cp_server_port = $Config->sl_apache_listen   || die 'oops';
     $Gateway_ip     = $Config->sl_gateway_ip      || die 'oops';
@@ -69,7 +70,12 @@ slAUT -p tcp -m tcp --dport 80 -j ACCEPT
 slAUT -p tcp -m tcp --dport 443 -j ACCEPT 
 slAUT -p tcp -m tcp --dport 22 -j ACCEPT 
 slAUT -p tcp -m tcp --dport 143 -j ACCEPT 
+slAUT -p tcp -m tcp --dport 1723 -j ACCEPT 
+slAUT -p udp -m udp --dport 1701 -j ACCEPT 
+slAUT -p udp -m udp --dport 500 -j ACCEPT 
+slAUT -p tcp -m tcp --dport 3389 -j ACCEPT 
 slAUT -p tcp -m tcp --dport 993 -j ACCEPT 
+slAUT -p tcp -m tcp --dport 995 -j ACCEPT 
 slAUT -p tcp -m tcp --dport 587 -j ACCEPT 
 slAUT -p tcp -m tcp --dport 5050 -j ACCEPT 
 slAUT -p tcp -m tcp --dport 5190 -j ACCEPT 
@@ -87,6 +93,7 @@ slNET -p tcp -m tcp --dport 53 -j ACCEPT
 slNET -p udp -m udp --dport 53 -j ACCEPT
 slNET -d $Auth_ip -p tcp -m tcp --dport 443 -j ACCEPT
 slNET -d $Verify_authorize_net_ip -p tcp -m tcp --dport 443 -j ACCEPT
+slNET -d $Aircloud_ip -p tcp -m tcp --dport 443 -j ACCEPT
 slNET -j REJECT --reject-with icmp-port-unreachable
 slRTR -m mark --mark 0x100/0x700 -j DROP
 slRTR -m state --state INVALID -j DROP
@@ -171,7 +178,7 @@ sub iptables {
 sub check_for_ads_mac {
     my ( $class, $mac, $ip ) = @_;
 
-    warn("check for ads mac $mac, ip $ip ");
+    warn("check for ads mac $mac, ip $ip ") if DEBUG;
     my $esc_mac = URI::Escape::uri_escape($mac);
     my $url     = "$Auth_url/check?mac=$esc_mac&plan=ads";
 
@@ -191,7 +198,7 @@ sub check_for_ads_mac {
           . Data::Dumper::Dumper($res);
     }
 
-    warn( "mac check response code " . $res->code );
+    warn( "mac check response code " . $res->code ) if DEBUG;
 
     # successful request, make sure the rules are ok
     my $uc_mac        = uc($mac);
@@ -203,14 +210,14 @@ sub check_for_ads_mac {
 
     if ( !$iptables_ip ) {
 
-        warn("no iptables rules, creating one");
+        warn("no iptables rules, creating one") if DEBUG;
 
         # probably a server restart, re-add the rules
         $class->_ads_chain( 'A', $mac, $ip );
 
     }
     elsif ( $ip ne $iptables_ip ) {
-        warn("iptables rules don't match, updating");
+        warn("iptables rules don't match, updating") if DEBUG;
 
         # dhcp lease probably expired, delete old rule, create new rule
         $class->delete_from_ads_chain( $mac, $iptables_ip );
@@ -243,7 +250,7 @@ sub check_for_paid_mac {
           . Data::Dumper::Dumper($res);
     }
 
-    warn( "mac check response code " . $res->code );
+    warn( "mac check response code " . $res->code ) if DEBUG;
 
     # successful request, make sure the rules are ok
     my $uc_mac        = uc($mac);
@@ -255,14 +262,14 @@ sub check_for_paid_mac {
 
     if ( !$iptables_ip ) {
 
-        warn("no iptables rules, creating one");
+        warn("no iptables rules, creating one") if DEBUG;
 
         # probably a server restart, re-add the rules
         $class->_paid_chain( 'A', $mac, $ip );
 
     }
     elsif ( $ip ne $iptables_ip ) {
-        warn("iptables rules don't match, updating");
+        warn("iptables rules don't match, updating") if DEBUG;
 
         # dhcp lease probably expired, delete old rule, create new rule
         $class->delete_from_paid_chain( $mac, $iptables_ip );
