@@ -17,7 +17,7 @@ use Data::FormValidator ();
 use Data::FormValidator::Constraints qw(:closures);
 use Regexp::Common qw( net );
 use Mail::Mailer ();
-use DateTime ();
+use DateTime     ();
 
 use SL::App::Template ();
 our $Tmpl = SL::App::Template->template();
@@ -46,55 +46,58 @@ use SL::Model::App;    # works for now
 sub check {
     my ( $class, $r ) = @_;
 
-    my $req = Apache2::Request->new($r);
-    my $mac = $req->param('mac');
+    my $req  = Apache2::Request->new($r);
+    my $mac  = $req->param('mac');
     my $plan = $req->param('plan');
 
-    my %payment_args = ( 
-            mac             => $mac,
-            ip              => $r->connection->remote_ip,
-            account_id      => $r->pnotes('router')->account_id->account_id,
-            approved        => 't',
-	    token_processed => 't',
-       );
-    
-    if ($plan && ($plan eq 'ads')) {
-	    $payment_args{'amount'} = '$0.00';
-    } else {
+    my %payment_args = (
+        mac             => $mac,
+        account_id      => $r->pnotes('router')->account_id->account_id,
+        approved        => 't',
+        token_processed => 't',
+    );
 
-    	# look for paid plans
-	$payment_args{'amount'} = { '>', '$0.00' };
+    if ( $plan && ( $plan eq 'ads' ) ) {
+        $payment_args{'amount'} = '$0.00';
+    }
+    else {
+
+        # look for paid plans
+        $payment_args{'amount'} = { '>', '$0.00' };
     }
 
-    my ($payment) = SL::Model::App->resultset('Payment')->search(
-	\%payment_args,
-	{
-	 order_by => 'cts DESC',
-	},
-    );
-  
+    my ($payment) =
+      SL::Model::App->resultset('Payment')
+      ->search( \%payment_args, { order_by => 'cts DESC', }, );
+
     if (DEBUG) {
-	$r->log->debug("payment is " . Data::Dumper::Dumper($payment));
-	return Apache2::Const::NOT_FOUND unless $payment;
+        $r->log->debug( "payment is " . Data::Dumper::Dumper($payment) );
+        return Apache2::Const::NOT_FOUND unless $payment;
     }
 
     my $now = DateTime->now( time_zone => 'local' );
-    my $stop = DateTime::Format::Pg->parse_datetime( $payment->stop ); 
+    my $stop = DateTime::Format::Pg->parse_datetime( $payment->stop );
     $stop->set_time_zone('local');
 
-    if ($now > $stop ) {
+    if ( $now > $stop ) {
 
-    	$r->log->info(
-		sprintf("auth mac %s expired, now %s, expired %s, payment id %s",
-		$mac, $now->mdy . ' '  . $now->hms, $stop->mdy . ' ' . $stop->hms,
-		$payment->payment_id));
+        $r->log->info(
+            sprintf(
+                "auth mac %s expired, now %s, expired %s, payment id %s",
+                $mac,                          $now->mdy . ' ' . $now->hms,
+                $stop->mdy . ' ' . $stop->hms, $payment->payment_id
+            )
+        );
         return Apache2::Const::AUTH_REQUIRED;
     }
 
-    $r->log->info(sprintf("auth mac %s valid, now %s, expires %s, payment id %s",
-		$mac, $now->mdy . ' '  . $now->hms, $stop->mdy . ' ' . $stop->hms,
-		$payment->payment_id));
-
+    $r->log->info(
+        sprintf(
+            "auth mac %s valid, now %s, expires %s, payment id %s",
+            $mac,                          $now->mdy . ' ' . $now->hms,
+            $stop->mdy . ' ' . $stop->hms, $payment->payment_id
+        )
+    );
 
     return Apache2::Const::OK;
 }
@@ -105,9 +108,10 @@ sub post {
     my $req      = Apache2::Request->new($r);
     my $dest_url = $req->param('url');
     my $mac      = $req->param('mac');
-   
-    my $router      = $r->pnotes('router') || die 'router missing';
-    my $splash_href = $router->splash_href || die 'router not configured for CP';
+
+    my $router = $r->pnotes('router') || die 'router missing';
+    my $splash_href = $router->splash_href
+      || die 'router not configured for CP';
 
     my $location = $class->make_post_url( $splash_href, $dest_url );
 
@@ -141,9 +145,9 @@ sub make_post_url {
 sub auth {
     my ( $class, $r ) = @_;
 
-    my $req = Apache2::Request->new($r);
-    my $mac = $req->param('mac');
-    my $url = $req->param('url');
+    my $req     = Apache2::Request->new($r);
+    my $mac     = $req->param('mac');
+    my $url     = $req->param('url');
     my $expired = $req->param('expired');
 
     unless ($mac) {
@@ -164,20 +168,14 @@ sub auth {
     $mac = URI::Escape::uri_escape($mac);
     $url = URI::Escape::uri_escape($url);
     my %args = (
-            mac => $mac,
-            url => $url,
+        mac => $mac,
+        url => $url,
     );
-    if (defined $req->param('expired')) {
-    	$args{'expired'} = 1;
+    if ( defined $req->param('expired') ) {
+        $args{'expired'} = 1;
     }
- 
 
-	my $ok = $Tmpl->process(
-        'auth/index.tmpl',
-	\%args,
-	\$output,
-        $r
-    );
+    my $ok = $Tmpl->process( 'auth/index.tmpl', \%args, \$output, $r );
     $ok
       ? return $class->ok( $r, $output )
       : return $class->error( $r, "Template error: " . $Tmpl->error() );
@@ -293,8 +291,14 @@ sub token {
               . $r->connection->remote_ip
               . ", stop time "
               . $stop->mdy . " "
-              . $stop->hms . " epoch " . $stop->epoch 
-	      . ", now time " . $now->mdy . " " . $now->hms . " epoch " . $now->epoch
+              . $stop->hms
+              . " epoch "
+              . $stop->epoch
+              . ", now time "
+              . $now->mdy . " "
+              . $now->hms
+              . " epoch "
+              . $now->epoch
               . " payment id "
               . $payment->payment_id );
         return Apache2::Const::AUTH_REQUIRED;
@@ -314,7 +318,7 @@ sub paid {
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
 
-    my $mac = $req->param('mac');
+    my $mac  = $req->param('mac');
     my $dest = $req->param('url');
     unless ($mac) {
         $r->log->error( "$$ auth page called without mac from ip "
@@ -402,12 +406,12 @@ sub paid {
         ## process the payment
         my $account = $r->pnotes('router')->account_id;
         my $amount  = $Amounts{ $req->param('plan') };
-	my $fname   = $req->param('first_name');
-	my $lname   = $req->param('last_name');
-	my $street  = $req->param('street');
-	my $city    = $req->param('city');
-	my $state   = $req->param('state');
-	my $zip     = $req->param('zip');
+        my $fname   = $req->param('first_name');
+        my $lname   = $req->param('last_name');
+        my $street  = $req->param('street');
+        my $city    = $req->param('city');
+        my $state   = $req->param('state');
+        my $zip     = $req->param('zip');
         my $email   = $req->param('email');
 
         my $payment = SL::Payment->process(
@@ -459,43 +463,43 @@ sub paid {
           ->search( { payment_id => $payment->payment_id } );
         my $authorization_code = sprintf( "%s", $payment->authorization_code );
 
-        my $mailer             = Mail::Mailer->new('qmail');
-	my %mail_args = 
-	(
-                'To'      => $email,
-                'From'    => $From,
-                'CC'      => $From,
-                'Subject' => "WiFi Internet Receipt",
-            );
+        my $mailer    = Mail::Mailer->new('qmail');
+        my %mail_args = (
+            'To'      => $email,
+            'From'    => $From,
+            'CC'      => $From,
+            'Subject' => "WiFi Internet Receipt",
+        );
 
-	if ($account->aaa_email_cc) {
-		$mail_args{'CC'} = $account->aaa_email_cc;
-	}
+        if ( $account->aaa_email_cc ) {
+            $mail_args{'CC'} = $account->aaa_email_cc;
+        }
 
-	$mailer->open(\%mail_args);
+        $mailer->open( \%mail_args );
 
-	my $plan_hash = SL::Payment::amount($plan);
-	$plan = (values %{$plan_hash})[0] . ' ' . (keys %{$plan_hash})[0];
-	my $date = DateTime->now->mdy('/');
+        my $plan_hash = SL::Payment::amount($plan);
+        $plan = ( values %{$plan_hash} )[0] . ' ' . ( keys %{$plan_hash} )[0];
+        my $date         = DateTime->now->mdy('/');
         my $network_name = $account->name;
 
         my $mail;
-	my %tmpl_data = (
-	    email => $email,
-	    fname => $fname,
-	    lname => $lname,
-	    city  => $city,
-	    state => $state,
-	    street => $street,
-	    zip   => $zip,
-	    plan  => $plan,
-	    network_name => $network_name,
-	    authorization_code => $authorization_code,
-	    date => $date,
-	    amount => $amount );
+        my %tmpl_data = (
+            email              => $email,
+            fname              => $fname,
+            lname              => $lname,
+            city               => $city,
+            state              => $state,
+            street             => $street,
+            zip                => $zip,
+            plan               => $plan,
+            network_name       => $network_name,
+            authorization_code => $authorization_code,
+            date               => $date,
+            amount             => $amount
+        );
 
         my $ok = $Tmpl->process( 'auth/receipt.tmpl', \%tmpl_data, \$mail, $r );
-	return $class->error( $r, $mail ) if !$ok;
+        return $class->error( $r, $mail ) if !$ok;
 
         print $mailer $mail;
 
@@ -503,14 +507,15 @@ sub paid {
 
         $r->log->info("$$ receipt for payment $authorization_code: $mail");
 
-	my $lan_ip = $router->lan_ip
-      		|| die 'router not configured for CP';
+        my $lan_ip = $router->lan_ip
+          || die 'router not configured for CP';
 
         ## payment successful, redirect to auth
-	$mac = URI::Escape::uri_escape($mac);
-	$dest = URI::Escape::uri_escape($dest);
-    	$r->headers_out->set( Location =>
-		"http://$lan_ip/paid?mac=$mac&url=$dest&token=" . $payment->md5);
+        $mac  = URI::Escape::uri_escape($mac);
+        $dest = URI::Escape::uri_escape($dest);
+        $r->headers_out->set(
+            Location => "http://$lan_ip/paid?mac=$mac&url=$dest&token="
+              . $payment->md5 );
         $r->no_cache(1);
         return Apache2::Const::REDIRECT;
     }
@@ -539,7 +544,7 @@ sub free {
 
     my $account = $router->account_id;
 
-   my $stop =
+    my $stop =
       DateTime::Format::Pg->format_datetime(
         DateTime->now( time_zone => 'local' )->add( 'minutes' => $timeout ) );
 
@@ -554,23 +559,24 @@ sub free {
             last_four  => 0,
             card_type  => 'ads',
             ip         => $r->connection->remote_ip,
-	    expires    => $timeout,
-	    approved   => 't',
+            expires    => $timeout,
+            approved   => 't',
         }
     );
 
     $payment->update;
 
     # grab it for the md5
-     ($payment) =
-          SL::Model::App->resultset('Payment')
-          ->search( { payment_id => $payment->payment_id } );
-
+    ($payment) =
+      SL::Model::App->resultset('Payment')
+      ->search( { payment_id => $payment->payment_id } );
 
     ## payment successful, redirect to auth
-    $mac = URI::Escape::uri_escape($mac);
+    $mac      = URI::Escape::uri_escape($mac);
     $dest_url = URI::Escape::uri_escape($dest_url);
-    $r->headers_out->set( Location => "http://$lan_ip/ads?mac=$mac&url=$dest_url&token=" . $payment->md5);
+    $r->headers_out->set(
+        Location => "http://$lan_ip/ads?mac=$mac&url=$dest_url&token="
+          . $payment->md5 );
     $r->no_cache(1);
     return Apache2::Const::REDIRECT;
 }
