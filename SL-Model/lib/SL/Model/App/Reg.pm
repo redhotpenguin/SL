@@ -22,7 +22,14 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 64,
   },
-  "mts",
+    "paypal_id",
+  {
+    data_type => "character varying",
+    default_value => "''::character varying",
+    is_nullable => 1,
+    size => 64,
+  },
+"mts",
   {
     data_type => "timestamp without time zone",
     default_value => "now()",
