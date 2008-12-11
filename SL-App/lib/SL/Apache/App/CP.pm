@@ -158,8 +158,9 @@ sub auth {
         return Apache2::Const::NOT_FOUND;
     }
 
+    $mac = URI::Escape::uri_unescape($mac);
     unless ( $mac =~ m/$RE{net}{MAC}/ ) {
-        $r->log->error( "$$ auth page called with invalid mac from ip "
+        $r->log->error( "$$ auth page called with invalid mac $mac from ip "
               . $r->connection->remote_ip );
         return Apache2::Const::SERVER_ERROR;
     }
@@ -388,9 +389,7 @@ sub paid {
 
         # handle form errors
         if ( $results->has_missing or $results->has_invalid ) {
-            if (DEBUG) {
                 $r->log->error( "results: " . Data::Dumper::Dumper($results) );
-            }
 
             my $errors = $class->SUPER::_results_to_errors($results);
             return $class->paid(
