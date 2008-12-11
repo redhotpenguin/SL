@@ -29,8 +29,8 @@ use constant DEBUG => $ENV{SL_DEBUG} || 1;
 our %Amounts = (
     one   => '$2.00',
     four  => '$3.00',
-    day   => '$3.00',
-    month => '$10.00',
+    day   => '$5.00',
+    month => '$25.00',
 );
 
 our $From = "SLN Support <support\@silverliningnetworks.com>";
