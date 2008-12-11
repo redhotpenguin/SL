@@ -11,10 +11,10 @@ use URI::Escape    ();
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 our (
-    $Config,         $Iptables,   $Ext_if,
-    %tables_chains,  $Int_if,     $Auth_ip,
-    $Cp_server_port, $Gateway_ip, $Ad_proxy,
-    $Mark_op,        $Auth_url,   $Lease_file,
+    $Config,                  $Iptables,   $Ext_if,
+    %tables_chains,           $Int_if,     $Auth_ip,
+    $Cp_server_port,          $Gateway_ip, $Ad_proxy,
+    $Mark_op,                 $Auth_url,   $Lease_file,
     $Verify_authorize_net_ip, $Aircloud_ip,
 );
 
@@ -26,7 +26,7 @@ BEGIN {
     $Auth_ip                 = $Config->sl_auth_server_ip || die 'oops';
     $Verify_authorize_net_ip = $Config->sl_verify_authorize_net_ip
       || die 'oops';
-    $Aircloud_ip = $Config->sl_aircloud_ip || die 'oops';
+    $Aircloud_ip    = $Config->sl_aircloud_ip     || die 'oops';
     $Auth_url       = $Config->sl_cp_auth_url     || die 'oops';
     $Cp_server_port = $Config->sl_apache_listen   || die 'oops';
     $Gateway_ip     = $Config->sl_gateway_ip      || die 'oops';
@@ -223,6 +223,33 @@ sub check_for_ads_mac {
         $class->delete_from_ads_chain( $mac, $iptables_ip );
         $class->_ads_chain( 'A', $mac, $ip );
 
+    }
+
+    return 1;
+}
+
+sub _mac_check {
+    my ( $class, $mac ) = @_;
+
+    die "no mac passed to _mac_check" unless $mac;
+
+    my $esc_mac = URI::Escape::uri_escape($mac);
+    my $url     = "$Auth_url/check?mac=$esc_mac";
+
+    my $res = $UA->get($url);
+
+    if ( ( $res->code == 404 ) or ( $res->code == 401 ) ) {
+
+        # no mac authenticated
+        return $res->code;
+
+    }
+    elsif ( !$res->is_success ) {
+
+        # huh something broke
+        require Data::Dumper;
+        die "$$ Error checking mac $mac, response: "
+          . Data::Dumper::Dumper($res);
     }
 
     return 1;
