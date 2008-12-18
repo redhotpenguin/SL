@@ -15,8 +15,7 @@ our $ROUTERS = 1;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
-my $ADMIN = 'sl_reports@redhotpenguin.com';
-my $FROM  = "SL Reporting Daemon <support\@silverliningnetworks.com>";
+my $ADMIN = 'SLN Reporting Daemon <sl_reports@redhotpenguin.com>';
 my @DAYS  = qw( 1 3 7 14 30 );
 
 unless (DEBUG) {
@@ -92,7 +91,7 @@ unless (DEBUG) {
     $mailer->open(
         {
             'To'      => $ADMIN,
-            'From'    => $FROM,
+            'From'    => $ADMIN,
             'Subject' => 'SL Global Daily Stats'
         }
     );
