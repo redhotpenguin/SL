@@ -8,7 +8,7 @@
 
 <p><hr class="sl_line"></p>
 
-<h3>AAA Payments</h3>
+<h3>Payment History</h3>
 <p><hr class="sl_line"></p>
 
 <table class="list">
@@ -16,9 +16,12 @@
 <td class="header">Email</td>
 <td class="header">Mac Address</td>
 <td class="header">Amount</td>
+<td class="header">Auth Code</td>
+<td class="header">Payment Time</td>
 <td class="header">Start Time</td>
 <td class="header">End Time</td>
 <td class="header">Approved</td>
+<td class="header">Token Processed</td>
 <td class="header">Card Type</td>
 <td class="header">Last Four</td>
 </tr>
@@ -33,6 +36,13 @@
 
 
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% payment.amount %]</td>
+  
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% payment.authorization_code %]</td>
+  
+[% USE paid = DateTime(from_string => payment.cts) %]
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% paid.mdy %] [% paid.hms %]</td>
+
+
 
 [% USE start = DateTime(from_string => payment.start) %]
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% start.mdy %] [% start.hms %]</td>
@@ -41,6 +51,8 @@
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% stop.mdy %] [% stop.hms %]</td>
 
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% IF payment.approved == 1 %]<font color="green">Yes</font>[% ELSE %]<font color="red">No</font>[% END %]</td>
+  
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% IF payment.token_processed == 1 %]<font color="green">Yes</font>[% ELSE %]<font color="red">No</font>[% END %]</td>
 
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[%  payment.card_type %]</td>
 
