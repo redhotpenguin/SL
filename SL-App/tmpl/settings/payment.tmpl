@@ -20,10 +20,11 @@
 <td class="header">Payment Time</td>
 <td class="header">Start Time</td>
 <td class="header">End Time</td>
-<td class="header">Approved</td>
-<td class="header">Token Processed</td>
 <td class="header">Card Type</td>
 <td class="header">Last Four</td>
+<td class="header">Approved</td>
+<td class="header">Token Processed</td>
+<td class="header">Voided</td>
 </tr>
 
 [% FOREACH payment = payments %]
@@ -50,14 +51,16 @@
 [% USE stop = DateTime(from_string => payment.stop) %]
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% stop.mdy %] [% stop.hms %]</td>
 
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% IF payment.approved == 1 %]<font color="green">Yes</font>[% ELSE %]<font color="red">No</font>[% END %]</td>
-  
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% IF payment.token_processed == 1 %]<font color="green">Yes</font>[% ELSE %]<font color="red">No</font>[% END %]</td>
-
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[%  payment.card_type %]</td>
 
   <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[%  payment.last_four %]</td>
 
+
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% IF payment.approved == 1 %]<font color="green">Yes</font>[% ELSE %]<font color="red">No</font>[% END %]</td>
+  
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% IF payment.token_processed == 1 %]<font color="green">Yes</font>[% ELSE %]<font color="red">No</font>[% END %]</td>
+
+  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% IF payment.voided == 1 %]<font color="red">Yes</font>[% ELSE %]<font color="green">No</font>[% END %]</td>
 </tr>
 
 [% END %]
