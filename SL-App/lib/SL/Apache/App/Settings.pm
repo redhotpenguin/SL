@@ -198,11 +198,20 @@ sub dispatch_payment {
                    order_by => 'me.start DESC',
                  } );
 
+    # total up the payments
+    my @amounts = map { $_->amount } 
+    	grep { ($_->approved == 1) && ($_->token_processed == 1)  && !$_->voided } @payments;
+    my $total = 0;
+    foreach my $amount (@amounts) {
+	$amount =~ s/^\$(\d+)\.\d+$/$1/;
+	$total += $amount;
+    }
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
         my %tmpl_data = (
             req    => $req,
+	    total    => $total,
             payments => \@payments,
             errors => $args_ref->{errors},
             ip     => $r->connection->remote_ip,
