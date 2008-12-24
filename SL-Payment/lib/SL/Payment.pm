@@ -21,7 +21,7 @@ BEGIN {
 
 our %Amounts = (
     'one'   => { 'hours'  => 1 },
-    'four'  => { 'hours'  => 3 },
+    'four'  => { 'hours'  => 4 },
     'day'   => { 'days'   => 1 },
     'month' => { 'months' => 1 },
 );
