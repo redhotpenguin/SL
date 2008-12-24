@@ -199,11 +199,15 @@ sub dispatch_payment {
                  } );
 
     # total up the payments
-    my @amounts = map { $_->amount } 
-    	grep { ($_->approved == 1) && ($_->token_processed == 1)  && !$_->voided } @payments;
     my $total = 0;
-    foreach my $amount (@amounts) {
+    foreach my $payment (@payments) {
+	next unless defined $payment->approved && defined $payment->token_processed;
+	next unless ($payment->approved == 1 ) && ($payment->token_processed == 1);
+	next if defined $payment->voided && $payment->voided == 1;
+
+	my $amount = $payment->amount;
 	$amount =~ s/^\$(\d+)\.\d+$/$1/;
+	next unless $amount > 0.01;
 	$total += $amount;
     }
 
