@@ -5,6 +5,11 @@ use warnings;
 
 # get to work
 
+my $start = shift;
+
+die "you better know what you are doing to run this program\n"
+     unless $start eq 'xyzzy';
+
 use SL::Model::App;
 
 my @accounts = SL::Model::App->resultset('Account')->all;
