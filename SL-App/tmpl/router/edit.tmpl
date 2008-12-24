@@ -106,9 +106,7 @@ Splash page timeout:&nbsp;&nbsp;
 [% IF ad_zones %]
 [% FOREACH ad_zone = ad_zones %]
 [% IF loop.index % 2 == 0 %] <tr>[% END %]
-    <td><input type="checkbox" name="ad_zone" value="[% ad_zone.ad_zone_id %]"
-[% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]CHECKED[% END %]>
-[% ad_zone.name %]&nbsp;&nbsp;</td>
+    <td><input type="checkbox" name="ad_zone" value="[% ad_zone.ad_zone_id %]"[% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]CHECKED[% END %]>[% ad_zone.name %]&nbsp;&nbsp;</td>
 [% IF loop.index % 2 != 0 %] </tr>[% END %]
 [% END %]
 </table>
@@ -130,10 +128,10 @@ Splash page timeout:&nbsp;&nbsp;
 <p>This router has been registered at the following locations and times:</p>
 
 [% FOREACH location = locations %]
-<p><ul>
+<ul>
       <li>[% IF location.name %][% location.name %] - [% ELSE %][% END %]
           [% location.ip %] - [% location.mts %]</li>
-  </ul></p>
+  </ul>
 [% END %]
 
 [% END %]
