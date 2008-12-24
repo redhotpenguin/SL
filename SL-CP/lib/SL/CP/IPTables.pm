@@ -93,7 +93,9 @@ slNET -p tcp -m tcp --dport 53 -j ACCEPT
 slNET -p udp -m udp --dport 53 -j ACCEPT
 slNET -d $Auth_ip -p tcp -m tcp --dport 443 -j ACCEPT
 slNET -d $Verify_authorize_net_ip -p tcp -m tcp --dport 443 -j ACCEPT
-slNET -d $Aircloud_ip -p tcp -m tcp --dport 443 -j ACCEPT
+slNET -d 69.42.24.27 -p tcp -m tcp --dport 80 -j ACCEPT
+slNET -d 69.42.25.1 -p tcp -m tcp --dport 80 -j ACCEPT
+slNET -d 69.42.24.3 -p tcp -m tcp --dport 80 -j ACCEPT
 slNET -j REJECT --reject-with icmp-port-unreachable
 slRTR -m mark --mark 0x100/0x700 -j DROP
 slRTR -m state --state INVALID -j DROP
