@@ -3,32 +3,79 @@ package SL::Payment;
 use strict;
 use warnings;
 
-use SL::Model::App                        ();
-use SL::Config                            ();
+use SL::Model::App ();
+use SL::Config     ();
+
+use CGI ();
+CGI->compile(':all');
+
+use Business::PayPal                      ();
 use Business::OnlinePayment::AuthorizeNet ();
+
+# some globals
 
 our $VERSION = 0.02;
 
-our ( $Config, $Authorize_login, $Authorize_key );
-
-use constant DEBUG => $ENV{SL_DEBUG} || 0;
+our ( $Config, $Authorize_login, $Authorize_key, $Business, $Notify_url,
+    $Return );
 
 BEGIN {
     $Config          = SL::Config->new;
     $Authorize_login = $Config->sl_authorize_login || die 'payment setup error';
     $Authorize_key   = $Config->sl_authorize_key || die 'payment setup error';
+    $Business        = 'support@silverliningnetworks.com';
+    $Notify_url = 'https://app.silverliningnetworks.com/sl/auth/paypal_notify';
+    $Return     = 'https://app.silverliningnetworks/sl/auth/paypal_return';
 }
 
-our %Amounts = (
-    'one'   => { 'hours'  => 1 },
-    'four'  => { 'hours'  => 4 },
-    'day'   => { 'days'   => 1 },
-    'month' => { 'months' => 1 },
+our %Plans = (
+    'one'   => { duration => { 'hours'  => 1 }, cost => '$2.00', },
+    'four'  => { duration => { 'hours'  => 4 }, cost => '$3.00', },
+    'day'   => { duration => { 'days'   => 1 }, cost => '$5.00', },
+    'month' => { duration => { 'months' => 1 }, cost => '$25.00', },
 );
 
-sub amount {
-    my $plan = shift;
-    return $Amounts{$plan};
+our $Paypal;
+
+BEGIN { $Paypal = Business::PayPal->new; }
+
+# some constants
+
+use constant DEBUG     => $ENV{SL_DEBUG}     || 0;
+use constant TEST_MODE => $ENV{SL_TEST_MODE} || 0;
+
+sub plan {
+    my ( $class, $plan ) = @_;
+    return $Plans{$plan};
+}
+
+sub paypal_button {
+    my ( $class, $plan, $cancel_return, $item_name, $quantity ) = @_;
+
+    die
+"Missing plan $plan, quantity $quantity, cancel_return $cancel_return, item_name $item_name\n"
+      unless ( $plan
+        && $cancel_return
+        && $item_name
+        && $quantity );
+
+    my $button = $Paypal->button(
+        business      => $Business,
+        item_name     => $item_name,
+        return        => $Return,
+        cancel_return => $cancel_return,
+        amount        => SL::Payment->plan($plan)->{cost},
+        quantity      => $quantity,
+        notify_url    => $Notify_url,
+        button_image  => CGI::image_button(
+            -name => 'submit',
+            -alt  => 'PayPal',
+            -src =>
+'https://www.paypalobjects.com/WEBSCR-550-20081223-1/en_US/i/logo/PayPal_mark_60x38.gif',
+        ),
+    );
+
+    return $button;
 }
 
 sub process {
@@ -89,7 +136,7 @@ sub process {
     # authorize
     my $tx = Business::OnlinePayment->new('AuthorizeNet');
 
-    $tx->content(
+    my %tx_content = (
         login          => $Authorize_login,
         password       => $Authorize_key,
         action         => 'Normal Authorization',
@@ -110,11 +157,23 @@ sub process {
         referer        => $args->{referer},
         email          => $args->{email},
     );
-    $tx->submit;
 
-    if ( $tx->is_success ) {
-        warn "Card processed successfully: " . $tx->authorization if DEBUG;
-        $payment->authorization_code( $tx->authorization );
+    $tx->content(%tx_content);
+
+    if (TEST_MODE) {
+        require Data::Dumper;
+        warn(
+            "TEST_MODE enabled, would have posted " . Dumper( \%tx_content ) );
+    }
+    else {
+        $tx->submit;
+    }
+
+    if ( $tx->is_success or TEST_MODE ) {
+        unless (TEST_MODE) {
+            warn "Card processed successfully: " . $tx->authorization if DEBUG;
+            $payment->authorization_code( $tx->authorization );
+        }
         $payment->approved('t');
         $payment->update;
         return $payment;
