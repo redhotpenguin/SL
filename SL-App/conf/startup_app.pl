@@ -80,6 +80,8 @@ use Crypt::CBC                  ();
 use Crypt::DES                  ();
 use XML::RAI                    ();
 use Regexp::Common qw( net );
+use CGI ();
+CGI->compile(':all');
 
 #use JavaScript::Minifier::XS    ();
 

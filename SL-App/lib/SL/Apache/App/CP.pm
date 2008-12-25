@@ -16,22 +16,17 @@ use base 'SL::Apache::App';
 use Data::FormValidator ();
 use Data::FormValidator::Constraints qw(:closures);
 use Regexp::Common qw( net );
-use Mail::Mailer ();
-use DateTime     ();
+use Mail::Mailer     ();
+use DateTime         ();
+use Business::PayPal ();
 
 use SL::App::Template ();
 our $Tmpl = SL::App::Template->template();
 
 use SL::Payment ();
 
-use constant DEBUG => $ENV{SL_DEBUG} || 1;
-
-our %Amounts = (
-    one   => '$2.00',
-    four  => '$3.00',
-    day   => '$5.00',
-    month => '$25.00',
-);
+use constant DEBUG     => $ENV{SL_DEBUG}     || 0;
+use constant TEST_MODE => $ENV{SL_TEST_MODE} || 0;
 
 our $From = "SLN Support <support\@silverliningnetworks.com>";
 
@@ -352,6 +347,14 @@ sub paid {
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
+        my $url         = $r->construct_url( $r->unparsed_uri );
+        my $account     = $r->pnotes('router')->account_id->name;
+        my @button_args = ( $plan, $url, $account . ' WiFi Purchase', 1 );
+
+        # add the paypal button
+        $tmpl_data{paypal_button} = SL::Payment->paypal_button(@button_args);
+
+        $r->log->info( "paypal button is " . $tmpl_data{paypal_button} );
         my $output;
         my $ok = $Tmpl->process( 'auth/paid.tmpl', \%tmpl_data, \$output, $r );
 
@@ -389,7 +392,7 @@ sub paid {
 
         # handle form errors
         if ( $results->has_missing or $results->has_invalid ) {
-                $r->log->error( "results: " . Data::Dumper::Dumper($results) );
+            $r->log->error( "results: " . Data::Dumper::Dumper($results) );
 
             my $errors = $class->SUPER::_results_to_errors($results);
             return $class->paid(
@@ -404,7 +407,7 @@ sub paid {
         $r->log->info("$$ about to process payment");
         ## process the payment
         my $account = $r->pnotes('router')->account_id;
-        my $amount  = $Amounts{ $req->param('plan') };
+        my $plan    = SL::Payment::amount( $req->param('plan') );
         my $fname   = $req->param('first_name');
         my $lname   = $req->param('last_name');
         my $street  = $req->param('street');
@@ -417,7 +420,7 @@ sub paid {
             {
                 account_id  => $account->account_id,
                 mac         => $req->param('mac'),
-                amount      => $amount,
+                amount      => $plan->{cost},
                 email       => $req->param('email'),
                 card_type   => $req->param('card_type'),
                 card_number => $req->param('card_number'),
@@ -476,8 +479,11 @@ sub paid {
 
         $mailer->open( \%mail_args );
 
-        my $plan_hash = SL::Payment::amount($plan);
-        $plan = ( values %{$plan_hash} )[0] . ' ' . ( keys %{$plan_hash} )[0];
+        # plan is '4 hours'
+        my $duration =
+            ( values %{ $plan->{duration} } )[0]
+          . ( keys %{ $plan->{duration} } )[0];
+
         my $date         = DateTime->now->mdy('/');
         my $network_name = $account->name;
 
@@ -490,11 +496,11 @@ sub paid {
             state              => $state,
             street             => $street,
             zip                => $zip,
-            plan               => $plan,
+            plan               => $duration,
             network_name       => $network_name,
             authorization_code => $authorization_code,
             date               => $date,
-            amount             => $amount
+            amount             => $plan->{cost},
         );
 
         my $ok = $Tmpl->process( 'auth/receipt.tmpl', \%tmpl_data, \$mail, $r );
@@ -502,7 +508,7 @@ sub paid {
 
         print $mailer $mail;
 
-        $mailer->close;
+        $mailer->close unless TEST_MODE;
 
         $r->log->info("$$ receipt for payment $authorization_code: $mail");
 

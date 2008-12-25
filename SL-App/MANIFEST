@@ -28,7 +28,6 @@ tmpl/ad/groups/nav.tmpl
 tmpl/ad/groups/routers.tmpl
 tmpl/ad/index.tmpl
 tmpl/ad/nav.tmpl
-tmpl/blacklist/edit.tmpl
 tmpl/blacklist.tmpl
 tmpl/dashboard.tmpl
 tmpl/footer.tmpl
@@ -55,7 +54,6 @@ lib/SL/Apache/App/Ad/Groups/Ads.pm
 lib/SL/Apache/App/Ad/Groups.pm
 lib/SL/Apache/App/Ad.pm
 lib/SL/Apache/App/Blacklist.pm
-lib/SL/Apache/App/Click.pm
 lib/SL/Apache/App/CookieAuth.pm
 lib/SL/Apache/App/Home.pm
 lib/SL/Apache/App/Logon.pm
