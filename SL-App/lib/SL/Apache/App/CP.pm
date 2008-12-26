@@ -137,6 +137,43 @@ sub make_post_url {
     return $location;
 }
 
+
+sub paypal_notify {
+   my ( $class, $r ) = @_;
+
+
+   my $req     = Apache2::Request->new($r);
+   my %query = %{$req->param}
+
+   my $id = $query{custom};
+   $r->log->info("ID is $id");
+
+   my $paypal = Business::PayPal->new($id);
+   my ($txnstatus, $reason) = $paypal->ipnvalidate(\%query);
+   if (!$txnstatus) {
+     $r->log->error("PayPal failed: $reason");
+     return Apache2::Const::SERVER_ERROR;
+   }
+
+   # transaction is ok
+   my $session;
+   eval { SL::Payment->paypal_save( \%query, $session) }
+     if ($@) {
+       require Data::Dumper;
+       $r->log->error("could not save Paypal IPN to database: " . Dumper(\%query));
+       return Apache2::Const::SERVER_ERROR;
+     }
+
+   return Apache2::Const::OK;
+}
+
+sub paypal_return {
+   my ( $class, $r ) = @_;
+
+
+}
+
+
 sub auth {
     my ( $class, $r ) = @_;
 
@@ -312,6 +349,29 @@ sub token {
 sub paid {
     my ( $class, $r, $args_ref ) = @_;
 
+    my %session;
+
+
+        eval {
+            tie %session, 'Apache::Session::DB_File', $session_id, \%SESS_OPTS;
+            $r->log->debug( "tied session id " . $session{_session_id} )
+              if DEBUG;
+        };
+
+        if ($@) {
+            $r->log->error(
+                "$$ session missing for user " . $reg->email . " $@" );
+
+            # try to make a new session
+            eval {
+                tie %session, 'Apache::Session::DB_File', undef, \%SESS_OPTS;
+            };
+
+            $r->log->error("WOW SOMETHING REALLY BAD HAPPENED: $@") if $@;
+        }
+
+
+
     my $req = $args_ref->{req} || Apache2::Request->new($r);
 
     my $mac  = $req->param('mac');
@@ -407,7 +467,6 @@ sub paid {
         $r->log->info("$$ about to process payment");
         ## process the payment
         my $account = $r->pnotes('router')->account_id;
-        my $plan    = SL::Payment::amount( $req->param('plan') );
         my $fname   = $req->param('first_name');
         my $lname   = $req->param('last_name');
         my $street  = $req->param('street');
@@ -420,7 +479,6 @@ sub paid {
             {
                 account_id  => $account->account_id,
                 mac         => $req->param('mac'),
-                amount      => $plan->{cost},
                 email       => $req->param('email'),
                 card_type   => $req->param('card_type'),
                 card_number => $req->param('card_number'),
