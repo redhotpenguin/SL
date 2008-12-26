@@ -62,7 +62,7 @@ sub paypal_button {
     my $button = $Paypal->button(
         business      => $Business,
         item_name     => $item_name,
-        return        => $Return,
+        return        => $Return . '?custom=' . $paypal_id,
         cancel_return => $cancel_return,
         amount        => SL::Payment->plan($plan)->{cost},
         quantity      => $quantity,
@@ -78,6 +78,34 @@ sub paypal_button {
     return $button;
 }
 
+sub paypal_save {
+  my ($class, $args, $session) = @_;
+
+  die "transaction not completed for " . $args{custom} . "\n" unless $args->{paystatus} eq 'Completed';
+
+  my $cost = $class->plan( $session->{plan} )->{cost};
+  die "cost of plan $cost and amount paid " . $args->{payment_gross} . " error\n"
+    unless ($cost eq $args->{payment_gross});
+
+  # ok save the payment
+    my $payment = SL::Model::App->resultset('Payment')->create(
+        {
+            account_id => $plan->{account_id},
+            mac        => $plan->{mac},
+            amount     => $args->{payment_gross},
+            stop       => $stop,
+            email      => $args->{email},
+            last_four  => '0',
+            card_type  => 'paypal',
+            ip         => $args->{ip},
+            expires    => 'N/A',
+        }
+    );
+
+
+}
+
+
 sub process {
     my ( $class, $args ) = @_;
 
@@ -91,7 +119,6 @@ sub process {
         && defined $args->{zip}
         && defined $args->{first_name}
         && defined $args->{last_name}
-        && defined $args->{amount}
         && defined $args->{cvv2}
         && defined $args->{ip}
         && defined $args->{street}
@@ -103,18 +130,19 @@ sub process {
     my ($last_four) = $args->{card_number} =~ m/(\d{4})$/;
 
     my $plan = delete $args->{plan};
-    die "bad plan: $plan" unless $plan =~ m/(?:one|four|day|month)/;
+    my $plans = join('|', keys %Plans);
+    die "bad plan: $plan" unless $plan =~ m/(?:$plans)/;
 
     my $stop =
       DateTime::Format::Pg->format_datetime(
-        DateTime->now( time_zone => 'local' )->add( amount($plan) ) );
+        DateTime->now( time_zone => 'local' )->add( plan($plan) ) );
 
     # database
     my $payment = SL::Model::App->resultset('Payment')->create(
         {
             account_id => $args->{account_id},
             mac        => $args->{mac},
-            amount     => $args->{amount},
+            amount     => SL::Payment->plan( $plan )->{cost},
             stop       => $stop,
             email      => $args->{email},
             last_four  => $last_four,
