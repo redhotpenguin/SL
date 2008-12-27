@@ -43,7 +43,7 @@ PerlRequire "[% cfg.sl_app_root %]/conf/db.pl"
 PerlSetVar data_root "[% cfg.sl_app_root %]/data"
 
 [% IF cfg.sl_devel %]
-Apache::Reload for quick fixes
+# Apache::Reload for quick fixes
 PerlModule           Apache2::Reload
 PerlInitHandler      Apache2::Reload
 PerlSetVar           ReloadAll On

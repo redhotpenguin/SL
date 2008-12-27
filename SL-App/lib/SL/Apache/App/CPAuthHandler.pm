@@ -19,7 +19,7 @@ sub handler {
       SL::Model::App->resultset('Location')->search( { ip => $ip } );
 
     unless ($location) {
-        $r->log->info("$$ no registered location for ip $ip");
+        $r->log->error("$$ no registered location for ip $ip");
         return Apache2::Const::NOT_FOUND;
     }
 
@@ -29,13 +29,13 @@ sub handler {
         { order_by => 'router.last_ping DESC', }, join => [ 'router' ], );
 
     unless ($router__location) {
-        $r->log->info("$$ no registered routers at ip $ip");
+        $r->log->error("$$ no registered routers at ip $ip");
         return Apache2::Const::NOT_FOUND;
     }
 
     my $router = $router__location->router_id;
     unless ( $router->lan_ip ) {
-        $r->log->info( "$$ no lan_ip for router id "
+        $r->log->error( "$$ no lan_ip for router id "
               . $router->router_id );
         return Apache2::Const::NOT_FOUND;
     }

@@ -52,6 +52,7 @@ sub check {
         token_processed => 't',
     );
 
+    # hack to separate paid vs ad supported, very bad
     if ( $plan && ( $plan eq 'ads' ) ) {
         $payment_args{'amount'} = '$0.00';
     }
@@ -61,6 +62,7 @@ sub check {
         $payment_args{'amount'} = { '>', '$0.00' };
     }
 
+    # get the most recent payment for payment args
     my ($payment) =
       SL::Model::App->resultset('Payment')
       ->search( \%payment_args, { order_by => 'cts DESC', }, );
@@ -74,6 +76,7 @@ sub check {
     my $stop = DateTime::Format::Pg->parse_datetime( $payment->stop );
     $stop->set_time_zone('local');
 
+    # see jif the payment is expired
     if ( $now > $stop ) {
 
         $r->log->info(
@@ -137,42 +140,39 @@ sub make_post_url {
     return $location;
 }
 
-
 sub paypal_notify {
-   my ( $class, $r ) = @_;
+    my ( $class, $r ) = @_;
 
+    my $req   = Apache2::Request->new($r);
+    my %query = %{ $req->param };
 
-   my $req     = Apache2::Request->new($r);
-   my %query = %{$req->param}
+    my $id = $query{custom};
+    $r->log->info("ID is $id");
 
-   my $id = $query{custom};
-   $r->log->info("ID is $id");
+    my $paypal = Business::PayPal->new($id);
+    my ( $txnstatus, $reason ) = $paypal->ipnvalidate( \%query );
+    if ( !$txnstatus ) {
+        $r->log->error("PayPal failed: $reason");
+        return Apache2::Const::SERVER_ERROR;
+    }
 
-   my $paypal = Business::PayPal->new($id);
-   my ($txnstatus, $reason) = $paypal->ipnvalidate(\%query);
-   if (!$txnstatus) {
-     $r->log->error("PayPal failed: $reason");
-     return Apache2::Const::SERVER_ERROR;
-   }
+    # transaction is ok
+    my $session;
+    eval { SL::Payment->paypal_save( \%query, $session ) };
+    if ($@) {
+        require Data::Dumper;
+        $r->log->error(
+            "could not save Paypal IPN to database: " . Dumper( \%query ) );
+        return Apache2::Const::SERVER_ERROR;
+    }
 
-   # transaction is ok
-   my $session;
-   eval { SL::Payment->paypal_save( \%query, $session) }
-     if ($@) {
-       require Data::Dumper;
-       $r->log->error("could not save Paypal IPN to database: " . Dumper(\%query));
-       return Apache2::Const::SERVER_ERROR;
-     }
-
-   return Apache2::Const::OK;
+    return Apache2::Const::OK;
 }
 
 sub paypal_return {
-   my ( $class, $r ) = @_;
-
+    my ( $class, $r ) = @_;
 
 }
-
 
 sub auth {
     my ( $class, $r ) = @_;
@@ -348,29 +348,6 @@ sub token {
 
 sub paid {
     my ( $class, $r, $args_ref ) = @_;
-
-    my %session;
-
-
-        eval {
-            tie %session, 'Apache::Session::DB_File', $session_id, \%SESS_OPTS;
-            $r->log->debug( "tied session id " . $session{_session_id} )
-              if DEBUG;
-        };
-
-        if ($@) {
-            $r->log->error(
-                "$$ session missing for user " . $reg->email . " $@" );
-
-            # try to make a new session
-            eval {
-                tie %session, 'Apache::Session::DB_File', undef, \%SESS_OPTS;
-            };
-
-            $r->log->error("WOW SOMETHING REALLY BAD HAPPENED: $@") if $@;
-        }
-
-
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
 
