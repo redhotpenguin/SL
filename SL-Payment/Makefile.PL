@@ -11,6 +11,7 @@ WriteMakefile(
     VERSION_FROM => 'lib/SL/Payment.pm',
     PREREQ_PM    => {
         'Business::OnlinePayment::AuthorizeNet' => 3.20,
+        'Business::PayPal'                      => 0.02,
         'SL::Model'                             => 0.18,
     },
     ABSTRACT => 'Silver Lining Payment abstraction',

@@ -62,7 +62,7 @@ sub paypal_button {
     my $button = $Paypal->button(
         business      => $Business,
         item_name     => $item_name,
-        return        => $Return . '?custom=' . $paypal_id,
+        return        => $Return,
         cancel_return => $cancel_return,
         amount        => SL::Payment->plan($plan)->{cost},
         quantity      => $quantity,
@@ -81,23 +81,28 @@ sub paypal_button {
 sub paypal_save {
   my ($class, $args, $session) = @_;
 
-  die "transaction not completed for " . $args{custom} . "\n" unless $args->{paystatus} eq 'Completed';
+  die "transaction not completed for " . $args->{custom} . "\n" unless $args->{paystatus} eq 'Completed';
 
   my $cost = $class->plan( $session->{plan} )->{cost};
   die "cost of plan $cost and amount paid " . $args->{payment_gross} . " error\n"
     unless ($cost eq $args->{payment_gross});
 
+    my $stop =
+      DateTime::Format::Pg->format_datetime(
+        DateTime->now( time_zone => 'local' )->add( %{ $class->plan( $session->{plan}->{duration} ) } ) );
+
+
   # ok save the payment
     my $payment = SL::Model::App->resultset('Payment')->create(
         {
-            account_id => $plan->{account_id},
-            mac        => $plan->{mac},
+            account_id => $session->{account_id},
+            mac        => $session->{mac},
             amount     => $args->{payment_gross},
             stop       => $stop,
-            email      => $args->{email},
+            email      => $session->{email},
             last_four  => '0',
             card_type  => 'paypal',
-            ip         => $args->{ip},
+            ip         => $session->{ip},
             expires    => 'N/A',
         }
     );
