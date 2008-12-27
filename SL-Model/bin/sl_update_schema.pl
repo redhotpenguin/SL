@@ -24,14 +24,5 @@ my $dbh = DBI->connect( $dsn, 'phred', '', $db_options );
 # get to work
 
 ##############################
-warn("dropping old payment table");
-$dbh->do("drop table payment");
 
-warn("loading new payment table");
-`psql -d $db -f $sql_root/payment.sql`;
-
-$dbh->do("alter table usr add column name text");
-$dbh->do("alter table usr add column email text");
-
-$dbh->do("alter table router add column wan_ip inet");
-$dbh->do("alter table router add column lan_ip inet");
+$dbh->do("alter table router add column show_aaa_link boolean default false not null");
