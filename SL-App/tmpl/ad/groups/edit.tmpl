@@ -160,7 +160,7 @@ Double Ad Zone Code (provided by your ad server):&nbsp;&nbsp;
 <p><font color="#CCCCCC">For optimum ad serving speed, use secure (https) links to your ad server resources</font></p>
 
 <p>
-<textarea name="code_double" rows="10" cols="80">[% req.param('code_double') or ad_zone.code_double %]</textarea>
+<textarea name="code_double" rows="10" cols="100">[% req.param('code_double') or ad_zone.code_double %]</textarea>
 
 [% IF req.param('code_double') or ad_zone.code_double %][% req.param('code_double') or ad_zone.code_double %][% END %]
 

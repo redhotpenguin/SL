@@ -435,11 +435,12 @@ sub signup {
         $router->update;
 
         my $support = "SLN Support <support\@silverliningnetworks.com>";
+	my $signup = 'signup@silverliningnetworks.com';
         my $mailer  = Mail::Mailer->new('qmail');
         $mailer->open(
             {
-                'To'      => $support,
-                'From'    => $support,
+                'To'      => $signup,
+                'From'    => $signup,
                 'Subject' => "New signup for " . $reg->email,
             }
         );
@@ -454,14 +455,16 @@ sub signup {
                 'To'      => $to_email,
                 'From'    => $support,
                 'CC'      => $support,
-                'Subject' => "Welcome to Silver Lining Networks ",
+                'Subject' => "Welcome to Silver Lining Networks",
             }
         );
 
 print $mailer <<MAIL;
 Hi $to_email,
 
-Thank you for registering with Silver Lining Networks. Please feel free to write us with any questions about the service at support\@silverliningnetworks.com.
+Thank you for registering with Silver Lining Networks.  Most users are able to get up and running within a few minutes of installing the router firmware and registering for an account.
+
+Please feel free to write us with any questions about the service at support\@silverliningnetworks.com.
 
 Sincerely,
 Jacob
