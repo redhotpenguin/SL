@@ -7,14 +7,11 @@ Author: SILVER LINING NETWORKS INC.
 
 /* PNG IMAGE
 ================================================= */
-h1#logo span {
+h1.logo span {
 background:none;
-filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images/logos/sl_logo.png',sizingMethod='scale');
+filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images/logos/plain_logo.png',sizingMethod='scale');
 }
-h1#logo_240 span {
-background:none;
-filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images/logos/sl_logo_240.png',sizingMethod='scale');
-}
+
 .one_hour_service {
 background:none;
 filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images/buttons/1_hour_service.png',sizingMethod='scale');
@@ -51,6 +48,67 @@ filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images
 #custom_logo #logo_image #gloss {
 background: none;
 }
+
+
+/* PAPER BOX
+================================================= */
+.paper_box,  {
+height: 1%;
+margin-top: -100px;
+position: relative;
+overflow: visible;
+background: none;
+}
+.paper_box .header {
+height: 1%;
+}
+.paper_box .paper_box_content {
+border: 1px solid #CCC;
+}
+.paper_box .paper_box_inner {
+padding-right: 5px;
+background: none;
+}
+.paperbox_footer {
+display: none;
+}
+#section_one  {
+}
+
+/* BUTTONS
+================================================= */
+.standard_button_large,
+.special_button {
+border:none;
+}
+#sln .standard_button_large span, 
+#sln .standard_button_large input, 
+#sln .standard_button_large a {
+border: 1px solid #033a64;
+margin: 0px;
+}
+#sln .special_button span, 
+#sln .special_button input, 
+#sln .special_button input:focus,
+#sln .special_button input:active,
+#sln .special_button a {
+border: 1px solid #6ea60a;
+margin: 0px;
+}
+#sln #disabled {
+border: none;
+}
+#sln #disabled input,
+#sln #disabled input:focus, 
+#sln #disabled input:active  {
+border: 1px solid #CCC;
+background: none;
+background-color: #EEE;
+}
+
+
+
+
 
 /* DOUBLE MARGIN
 ================================================= */

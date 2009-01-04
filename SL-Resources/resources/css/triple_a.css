@@ -80,15 +80,10 @@ font-weight: bold;
 em {
 font-style: italic;
 }
-/*LINKS
-=== === === === === === === === === === */
-a {
-color:#1064d3;
+#sln #sl_payment .subtle {
+color: #999;
+font-size: 85%;
 }
-.red_link {
-	color: #FF0000;
-}
-
 
 /*FONTS 
 === === === === === === === === === === */
@@ -99,6 +94,25 @@ select, input, textarea {font:99% arial,helvetica,clean,sans-serif;}
 pre, code {font:115% monospace;}
 body * {line-height:1.22em;}
 
+
+/*MARGINS & WHITESPACE 
+=== === === === === === === === === === */
+.margin_right {
+margin-left:0px;
+margin-right:20px;
+}
+.margin_r_10 {
+margin-right: 10px;
+}
+.margin_t_5 {
+margin-top: 5px;
+}
+.padding_t_40 {
+padding-top: 40px;
+}
+.padding_b_40 {
+padding-bottom: 40px;
+}
 
 
 /*LAYOT 
@@ -131,10 +145,6 @@ margin-left:20px;
 width:760px;
 margin-left:20px;
 }
-.margin_right {
-margin-left:0px;
-margin-right:20px;
-}
 .large_ads {
 width: 300px;
 margin-left: 20px;
@@ -164,9 +174,123 @@ margin-bottom: 20px;
 }
 
 
+/*TYPOGRAPHY
+=== === === === === === === === === === */
+a {
+color:#1064d3;
+}
+.red_link {
+	color: #FF0000;
+}
+.dull {
+color: #999;
+}
+.dark {
+color: #333;
+}
+.invalid {
+color: #F00;
+font-weight: bold;
+line-height: 92%;
+font-size: 85%;
+}
+.valid {
+color: green;
+line-height: 92%;
+font-size: 85%;
+}
+.size_normal {
+font-size: 100%;
+}
+
+/*ICONS
+=== === === === === === === === === === */
+.icon_present {
+background: url(../images/buttons/present.png) no-repeat left center;
+height: 32px;
+padding-left: 40px;
+margin-bottom: 10px;
+}
+
+/*AUTHORIZE.NET 
+=== === === === === === === === === === */
 #payment_info .AuthorizeNetSeal a img {
 border: 2px solid #9FD4E4;
 }
+
+
+/*BUTTONS 
+=== === === === === === === === === === */
+.standard_button_large {
+border-top: 1px solid #033a64;
+border-bottom: 1px solid #033a64;
+display: block;
+}
+#sln .standard_button_large span, 
+#sln .standard_button_large input, 
+#sln .standard_button_large a {
+border: none;
+border-left: 1px solid #033a64;
+border-right: 1px solid #033a64;
+padding: 5px 8px 5px 8px;
+background: #175a81 url(/resources/images/buttons/blue_sqaure_bg.png) repeat-x top left;
+display: block;
+margin: 0px -1px;
+color: #FFF;
+font-size: 100%;
+line-height: normal;
+width: auto;
+text-decoration: none;
+cursor: pointer;
+}
+
+.special_button {
+border-top: 1px solid #6ea60a;
+border-bottom: 1px solid #6ea60a;
+display: block;
+float: left;
+}
+#sln .special_button span, 
+#sln .special_button input, 
+#sln .special_button a {
+border: none;
+border-left: 1px solid #6ea60a;
+border-right: 1px solid #6ea60a;
+padding: 6px 10px 5px 10px;
+background: #7bb90f url(/resources/images/buttons/green_sqaure_bg.png) repeat-x top left;
+display: block;
+margin: 0px -1px;
+width: 160px;
+color: #FFF;
+font-size: 144%;
+line-height: normal;
+text-decoration: none;
+cursor: pointer;
+}
+
+#sln .special_button input:focus,
+#sln .special_button input:active {
+
+background: #175a81 url(/resources/images/buttons/blue_sqaure_bg.png) repeat-x top left;
+color: #FFF;
+}
+
+#sln #disabled {
+border-top: 1px solid #CCC;
+border-bottom: 1px solid #CCC;
+}
+#sln #disabled input,
+#sln #disabled input:focus, 
+#sln #disabled input:active  {
+border-left: 1px solid #CCC;
+border-right: 1px solid #CCC;
+background: none;
+background-color: #EEE;
+display: block;
+color: #CCC;
+}
+
+
 
 /*PAGE STYLES 
 === === === === === === === === === === */
@@ -179,25 +303,25 @@ padding: 5px 0px;
 border-bottom: 1px dashed #CCC;
 border-top: 1px dashed #CCC;
 }
-h1#logo {
-height: 176px;
-width: 244px;
+h1.logo {
+height: 150px;
+width: 200px;
 overflow: hidden;
 position: relative;
 font-size: 162%;
 text-align: center;
 font-family: 'Helvetica Neue', Helvetica, Verdana, Arial, san-serif;
 }
-h1#logo a {
-color:#666;
+h1.logo a {
+color:#333;
 text-decoration: none;
 line-height: 200px;
 }
-h1#logo span {
-height: 175px;
-width: 244px;
+h1.logo span {
+height: 150px;
+width: 200px;
 overflow: hidden;
-background:url(../images/logos/sl_logo.png) no-repeat top left;
+background:url(../images/logos/plain_logo.png) no-repeat top left;
 position: absolute;
 top: 0;
 left: 0px;
@@ -212,7 +336,7 @@ text-align: center;
 font-family: 'Helvetica Neue', Helvetica, Verdana, Arial, san-serif;
 }
 h1#logo_240 a {
-color:#666;
+color:#333;
 text-decoration: none;
 line-height: 200px;
 }
@@ -247,10 +371,17 @@ font-family: 'Helvetica Neue', Helvetica, Verdana, Arial, san-serif;
 font-size: 207%;
 font-weight: bold;
 margin-bottom: 10px;
-color: #666;
+color: #333;
+}
+h3 {
+font-family: 'Helvetica Neue', Helvetica, Verdana, Arial, san-serif;
+font-size: 122%;
+font-weight: bold;
+margin-bottom: 5px;
+color: #333;
 }
 p {
-color: #666;
+color: #333;
 line-height: 24px;
 font-family: Verdana, Arial, san-serif;
 font-size: 92%;
@@ -336,14 +467,15 @@ padding-top: 20px;
 /*SECTION ONE
 === === === === === === === === === === */
 #section_one  {
-padding: 20px 0px;
+padding: 20px 0px 40px 0px;
 background: #FFF url(../images/backgrounds/rainbow_white.png) no-repeat right bottom;
 }
 #section_one a {
 color:#1c708a;
 }
 #section_one h2 {
-color: #a7d325;
+color: #2A729C;
+font-size: 177%;
 }
 #section_one h2.choose_wifi {
 width: 310px;
@@ -354,15 +486,17 @@ text-indent: -3000px;
 margin-left: -2px;
 }
 
+
+
 /*FORMS
 === === === === === === === === === === */
 dl {
 padding: 25px;
 background-color:#fff ;
-border: 2px solid #9fd4e4;
-margin-top: -85px;
 position: relative;
 height: 1%;
+border-left: 1px solid #CCC;
+border-right: 1px solid #CCC;
 }
 dt {
 margin-bottom: 5px;
@@ -397,22 +531,20 @@ width: 95%;
 color: #44879a;
 }
 dd span input{
-border: 1px solid #CCC;
-border-top: 1px solid #999;
-border-bottom: 1px solid #EEE;
+border: 1px solid #666;
+border-top: 1px solid #333;
+border-bottom: 1px solid #b3b3b3;
 }
 dd span label {
 display: block;
-color: #999;
+color: #666;
 font-size: 85%;
 margin-left: 3px;
 }
-input:focus, input:active {
+#sln input:focus, #sln input:active {
 background-color: #ffffdf;
+color: #44879A;
 border: 1px solid #8fcd1b;
-}
-#submit {
-font-size: 162%;
 }
 dd .full {
 width: 90%;
@@ -425,9 +557,6 @@ width: 40%;
 }
 dd .quarter {
 width: 20%;
-}
-#card_type {
-width: 60%;
 }
 dd img {
 margin-top: -2px;
@@ -442,11 +571,13 @@ color: #333;
 margin-top: 3px;
 }
 #terms_of_service {
-height: 100px;
+height: 80px;
 overflow: auto;
 border: 1px solid #CCC;
 margin-right: none;
 margin-top: 5px;
+font-size: 85%;
+padding: 10px;
 }
 #payment_info {
 font-size: 85%;
@@ -455,7 +586,7 @@ margin-left: 0;
 #payment_info li {
 text-align: justify;
 margin-bottom: 25px;
-color: #666;
+color: #333;
 }
 #payment_info li ul {
 margin-left: 25px;
@@ -470,9 +601,11 @@ padding-left: 30px;
 background: url(../images/icons/secure.gif) no-repeat left center;
 padding: 5px 0px 5px 18px;
 }
+
 /*SECTION TWO
 === === === === === === === === === === */
-#section_two  {
+#section_two,
+#section_four  {
 background:#5db0ca url(../images/backgrounds/section_2_bg.png) repeat-x right top;
 overflow: visible;
 }
@@ -566,3 +699,90 @@ text-indent: -3000px;
 margin-left: -2px;
 }
 
+
+/*PAPER BOX 
+================================================= */
+.paper_box {
+margin-top: -100px;
+padding-left: 5px;
+background: url(/resources/images/backgrounds/form/shadow_left.png) repeat-y top left;
+}
+.paper_box .paper_box_inner {
+padding-right: 5px;
+background: url(/resources/images/backgrounds/form/shadow_right.png) repeat-y top right;
+}
+.paper_box .paper_box_content {
+background-color: #FFF;
+padding: 20px;
+}
+.paper_box .header {
+background-color: #2a729c;
+margin: 0;
+padding: 10px;
+color: #FFF;
+font-size: 114%;
+text-transform: uppercase;
+border-top: 1px solid #66b3e0;
+border-bottom: 1px solid #21597a;
+}
+.paper_box .header_subtle {
+background-color: #7dbe0a;
+margin: 0;
+padding: 10px;
+color: #FFF;
+font-size: 114%;
+text-transform: uppercase;
+border-top: 1px solid #dbf7a9;
+border-bottom: 1px solid #659908;
+}
+
+.paperbox_footer {
+height: 10px; 
+position: relative;
+}
+.paperbox_footer .pb_center {
+margin: 0px 10px;
+height: 10px;
+background: url(/resources/images/backgrounds/form/shadow_bottom.png) repeat-x bottom left;
+}
+.paperbox_footer .pb_left {
+height: 10px;
+width: 10px;
+position: absolute;
+left: 0;
+top: 0;
+background: url(/resources/images/backgrounds/form/shadow_bottom_left.png) no-repeat bottom left;
+}
+.paperbox_footer .pb_right {
+height: 10px;
+width: 10px;
+position: absolute;
+right: 0;
+top: 0;
+background: url(/resources/images/backgrounds/form/shadow_bottom_right.png) no-repeat bottom right;
+}
+
+
+/*COUPON CODE
+================================================= */
+#coupon_code {
+padding: 10px 0px;
+}
+#coupon_code label {
+font-family: 'Helvetica Neue', Helvetica, Verdana, Arial, san-serif;
+font-size: 122%;
+line-height: 25px;
+font-weight: bold;
+margin-bottom: 5px;
+color: #333;
+}
+#coupon {
+padding: 4px;
+margin: 0px 10px;
+border: 1px solid #666;
+border-top: 1px solid #333;
+border-bottom: 1px solid #b3b3b3;
+font-weight: bold;
+font-size: 122%;
+color: #44879A;
+}

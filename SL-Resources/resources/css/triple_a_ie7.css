@@ -1,0 +1,52 @@
+/*---------------------------------------------
+SILVER LINING NETWORK INTERNET EXPLORER 6 STYLES
+Version: 2.0
+Author: SILVER LINING NETWORKS INC.
+---------------------------------------------*/
+
+
+
+/* PAPER BOX
+================================================= */
+.paper_box,  {
+margin-top: -100px;
+position: relative;
+overflow: visible;
+height: 1%;
+}
+
+
+
+
+/* BUTTONS
+================================================= */
+.standard_button_large,
+.special_button {
+border:none;
+}
+#sln .standard_button_large span, 
+#sln .standard_button_large input, 
+#sln .standard_button_large a {
+border: 1px solid #033a64;
+margin: 0px;
+}
+#sln .special_button span, 
+#sln .special_button input, 
+#sln .special_button input:focus,
+#sln .special_button input:active,
+#sln .special_button a {
+border: 1px solid #6ea60a;
+margin: 0px;
+}
+#sln #disabled {
+border: none;
+}
+#sln #disabled input,
+#sln #disabled input:focus, 
+#sln #disabled input:active  {
+border: 1px solid #CCC;
+background: none;
+background-color: #EEE;
+}
+
+
