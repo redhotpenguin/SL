@@ -143,17 +143,19 @@ sub process {
     my $plans = join('|', keys %Plans);
     die "bad plan: $plan" unless $plan =~ m/(?:$plans)/;
 
+    my $duration = $class->plan($plan)->{duration};
+
     my $stop =
       DateTime::Format::Pg->format_datetime(
-        DateTime->now( time_zone => 'local' )->add(
-            $class->plan($plan)->{duration} ) );
+	  DateTime->now( time_zone => 'local' )->add( $duration ) );
 
     # database
+    my $amount = $class->plan( $plan )->{cost};
     my $payment = SL::Model::App->resultset('Payment')->create(
         {
             account_id => $args->{account_id},
             mac        => $args->{mac},
-            amount     => SL::Payment->plan( $plan )->{cost},
+            amount     => $amount,
             stop       => $stop,
             email      => $args->{email},
             last_four  => $last_four,
@@ -180,7 +182,7 @@ sub process {
         password       => $Authorize_key,
         action         => 'Normal Authorization',
         description    => $args->{description},
-        amount         => $args->{amount},
+        amount         => $amount,
         invoice_number => $args->{invoice_number},
         customer_id    => $args->{customer_id},
         first_name     => $args->{first_name},
