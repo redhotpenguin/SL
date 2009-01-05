@@ -50,7 +50,7 @@ function submitOnce(whichform) {
 	//Create Loading Image
 	var loader = document.createElement("img"); 
 	loader.setAttribute("alt", "processing");
-	loader.setAttribute("src", "resources/images/icons/spinner.gif")
+	loader.setAttribute("src", "/sl/resources/images/icons/spinner.gif")
 	
 	// GRAB LIST 
 	if(!document.getElementById("form_list")) return false;
