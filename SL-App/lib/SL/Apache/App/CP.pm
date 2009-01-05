@@ -237,6 +237,69 @@ sub card_expired {
       }
 }
 
+
+sub valid_first {
+
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+
+        return if $val eq 'First';
+
+        return $val;
+      }
+}
+
+
+sub valid_last {
+
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+
+        return if $val eq 'Last';
+
+        return $val;
+      }
+}
+
+
+sub valid_cvv {
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+
+        return if $val !~ /^(\d+)$/;
+
+        return $val;
+      }
+}
+
+
+sub valid_city {
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+
+        return if $val =~ /^ex\./;
+
+        return $val;
+      }
+}
+
+
+sub valid_street {
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+
+        return if $val =~ /^ex\./;
+
+        return $val;
+      }
+}
+
+
 sub valid_month {
     return sub {
         my $dfv = shift;
@@ -411,12 +474,15 @@ sub paid {
                   month year street city zip state email plan mac )
             ],
             constraint_methods => {
-                email => email(),
-                zip   => zip(),
-                month => valid_month(),
-                year  => valid_year(),
-
-#                 month       => card_expired( { fields => ['month','year'] } ),
+                email       => email(),
+                zip         => zip(),
+                first_name  => valid_first(),
+                last_name   => valid_last(),
+                month       => valid_month(),
+                year        => valid_year(),
+                cvv2        => valid_cvv(),
+                city        => valid_city(),
+                street      => valid_street(),
                 card_type   => cc_type(),
                 card_number => cc_number( { fields => ['card_type'] } ),
                 plan        => valid_plan(),

@@ -1,0 +1,79 @@
+<!-- CARD TYPE -->
+<dt><label for="card_type">[% IF errors.missing.card_type or errors.invalid.card_type %]<font color="red">[% END %]Card Type[% IF errors.missing.card_type or errors.invalid.card_type %]</font>[% END %]</label></dt>
+<dd>
+    <span class="half">
+        <select class="left" id="card_type" name="card_type">
+		    <option value="" selected="selected">Select a card type</option>
+			<option value="visa" [% IF req.param('card_type') == 'visa' %]SELECTED[% END %]>Visa</option>
+			<option value="mastercard" [% IF req.param('card_type') == 'mastercard' %]SELECTED[% END %]>MasterCard</option>
+			<option value="american express" [% IF req.param('card_type') == 'american express' %]SELECTED[% END %]>American Express</option> 
+		</select>
+    </span>
+    <img class="left" src="[% base_uri %]/resources/images/icons/creditcards.png" alt="creditcards"/>
+
+	<div class="clear"></div>
+</dd>
+
+<!-- CARD NUMBER -->
+<dt><label for="card_number">[% IF errors.missing.card_number or errors.invalid.card_number %]<font color="red">[% END %]Card Number[% IF errors.missing.card_number or errors.invalid.card_number %]</font>[% END %]</label></dt>
+<dd>
+    <span class="half">
+        <input type="text" id="card_number" name="card_number" maxlength="16" value="[% IF req.param('card_number') %][% req.param('card_number') %][% ELSE %]################[% END %]" />
+        <label for="card_number">[% IF errors.missing.card_number or errors.invalid.card_number %]<font color="red">[% END %]numbers only, no spaces[% IF errors.missing.card_number or errors.invalid.card_number %]</font>[% END %]</label>
+    </span>
+
+    <span class="quarter">
+        <input type="text" id="cvc" name="cvv2" value="[% IF req.param('cvv2') %][% req.param('cvv2') %][% ELSE %]###[% END %]" maxlength="4"/>
+        <label for="cvc">[% IF errors.missing.cvv2 or errors.invalid.cvv2 %]<font color="red">[% END %]CVC[% IF errors.missing.cvv2 or errors.invalid.cvv2  %]</font>[% END %]</label>
+    </span>
+    <div class="clear"></div>
+</dd>
+
+<!-- EXPIRATION DATE -->
+<dt><label for="month">Expiration Date</label></dt>
+<dd class="large_margin">
+    <!-- MONTH -->
+    <span class="quarter">
+        <select id="month" name="month">
+            <option value="01" [% IF req.param('month') == '01' %]SELECTED[% END %]>01</option>
+			<option value="02" [% IF req.param('month') == '02' %]SELECTED[% END %]>02</option>
+			<option value="03" [% IF req.param('month') == '03' %]SELECTED[% END %]>03</option>
+			<option value="04" [% IF req.param('month') == '04' %]SELECTED[% END %]>04</option>
+			<option value="05" [% IF req.param('month') == '05' %]SELECTED[% END %]>05</option>
+			<option value="06" [% IF req.param('month') == '06' %]SELECTED[% END %]>06</option>
+			<option value="07" [% IF req.param('month') == '07' %]SELECTED[% END %]>07</option>
+			<option value="08" [% IF req.param('month') == '08' %]SELECTED[% END %]>08</option>
+			<option value="09" [% IF req.param('month') == '09' %]SELECTED[% END %]>09</option>
+			<option value="10" [% IF req.param('month') == '10' %]SELECTED[% END %]>10</option>
+			<option value="11" [% IF req.param('month') == '11' %]SELECTED[% END %]>11</option>
+			<option value="12" [% IF req.param('month') == '12' %]SELECTED[% END %]>12</option>
+		</select>
+		<label for="month">Month</label>
+	</span>
+	
+    <!-- YEAR -->
+	<span class="quarter">
+			<select id="year" name="year">
+			    <option value="09" [% IF req.param('year') == '09' %]SELECTED[% END %]>2009</option>
+				<option value="10" [% IF req.param('year') == '10' %]SELECTED[% END %]>2010</option>
+				<option value="11" [% IF req.param('year') == '11' %]SELECTED[% END %]>2011</option>
+				<option value="12" [% IF req.param('year') == '12' %]SELECTED[% END %]>2012</option>
+				<option value="13" [% IF req.param('year') == '13' %]SELECTED[% END %]>2013</option>
+				<option value="14" [% IF req.param('year') == '14' %]SELECTED[% END %]>2014</option>
+				<option value="15" [% IF req.param('year') == '15' %]SELECTED[% END %]>2015</option>
+				<option value="16" [% IF req.param('year') == '16' %]SELECTED[% END %]>2016</option>
+				<option value="17" [% IF req.param('year') == '17' %]SELECTED[% END %]>2017</option>
+				<option value="18" [% IF req.param('year') == '18' %]SELECTED[% END %]>2018</option>
+				<option value="19" [% IF req.param('month') == '19' %]SELECTED[% END %]>2019</option>
+				<option value="20" [% IF req.param('month') == '20' %]SELECTED[% END %]>2020</option>
+				<option value="21" [% IF req.param('month') == '21' %]SELECTED[% END %]>2021</option>
+				<option value="22" [% IF req.param('month') == '22' %]SELECTED[% END %]>2022</option>
+				<option value="23" [% IF req.param('month') == '23' %]SELECTED[% END %]>2023</option>
+				<option value="24" [% IF req.param('month') == '24' %]SELECTED[% END %]>2024</option>
+				<option value="25" [% IF req.param('month') == '25' %]SELECTED[% END %]>2025</option>
+				<option value="26" [% IF req.param('month') == '26' %]SELECTED[% END %]>2026</option>
+			</select>
+			<label for="year">year</label>
+	</span>					
+	<div class="clear"></div>
+</dd>

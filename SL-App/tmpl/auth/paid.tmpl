@@ -4,15 +4,14 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/triple_a.css" />
   <!--[if IE 6]><link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/triple_a_ie6.css" /><![endif]--> 
+  <!--[if IE 7]><link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/triple_a_ie7.css" /><![endif]-->
   <link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/thickbox.css" />
-  <script src="[% base_uri %]/resources/js/live_validation.js" type="text/javascript"></script>
-  <script src="[% base_uri %]/resources/js/jquery.js" type="text/javascript"></script>
-<!--  <script src="[% base_uri %]/resources/js/thickbox.js" type="text/javascript"></script> -->
+  <script src="[% base_uri %]/resources/js/simple_validation.js" type="text/javascript"></script>
   <title>Checkout: Payment Page - Silver Lining Networks</title>
 </head>
-<body class="bg_color_2">
+<body id="sln">
 
-
+<!-- TOP SECTION START #################### -->
 	<div id="section_one">
 		<div class="center">
 			<!-- CHOOSE WIFI COPY ************************ --> 
@@ -20,8 +19,9 @@
 				<h2>Purchase WiFi Internet Access</h2>
 				<p>
 				<strong>You're almost there.</strong>
-				Please fill out the form below to purchase Ad Free high speed WiFi service.  				
+				Please fill out the form below to purchase ad free high speed WiFi service.  				
 				 </p>
+
 [% IF errors.payment %]
 <p><font color="red">[% errors.payment %]</font></p>
 [% ELSIF errors.invalid %]
@@ -29,301 +29,60 @@
 [% ELSIF errors.missing %]
 <p><font color="red">Please complete the missing fields</font></p>
 [% END %]
-
 			
 			</div>
 
 			<!-- LOGO ************************ --> 
-			<div class="one_third left">
-                               <div id="custom_logo">
-                                        <a id="logo_image" href="http://www.aircloud.com/" style="background: url([% base_uri %]/resources/images/logos/aircloud.png) no-repeat center center ">
-                                        <div id="gloss"> </div>
-                                        </a>
-                                </div>
-			</div>
+			<div class="one_third right">
+                [% PROCESS auth/form/aircloud_logo.tmpl %]
+            </div>
+
 			<div class="clear"></div>
 		</div>
 	</div>
 
 	
-	<div id="section_two">
-		<div id="section_two_inner">
-		<div class="center">
+    <!-- BODY SECTION START ######################################### -->
+    [% PROCESS auth/form/bodywrapper_top.tmpl %]
 
-			<!-- MONTHLY PLAN ************************ --> 
+        <!-- MAIN COLUMN ######## -->
+        [% PROCESS auth/form/paperbox_top.tmpl %]
 
-			<!-- CHOOSE WIFI COPY ************************ --> 
-			<div class="two_thirds left">
-				<form id="sl_payment" action="[% base_uri %]/auth/paid" method="post">
-					<dl>
-						<dt><label for="plan">Choose a plan:</label></dt>
-						<dt>[% paypal_button %]</dt>
-						<dd>
-							<span class="half">
-							<select id="plan" name="plan">
-								<option value="one" [% IF req.param('plan') == 'one' %]SELECTED[% END %]>1 hour ($2)</option>
-								<option value="four" [% IF req.param('plan') == 'four' %]SELECTED[% END %]>4 hours ($3)</option>
-								<option value="day" [% IF req.param('plan') == 'day' %]SELECTED[% END %]>24 hours ($5)</option>
-								<option value="month" [% IF req.param('plan') == 'month' %]SELECTED[% END %]>1 month ($25)</option>
-							</select>
-							</span>
-							<div class="clear"></div>
-						</dd>
-						<dt><label for="name">[% IF errors.missing.first_name or errors.missing.last_name %]<font color="red">[% END %]Name[% IF errors.missing.first_name or errors.missing.last_name %]</font>[% END %]</label></dt>
-						<dd>
-							<span class="quarter"><input type="text" id="first_name" name="first_name" value="[% req.param('first_name') %]" /><label for="first_name">[% IF errors.missing.first_name %]<font color="red">[% END %]First[% IF errors.missing.first_name %]</font>[% END %]</label></span>
-							<span class="half"><input type="text" id="last_name" name="last_name" value="[% req.param('last_name') %]" /><label for="last_name">[% IF errors.missing.last_name %]<font color="red">[% END %]Last[% IF errors.missing.last_name %]</font>[% END %]</label></span>
-							<div class="clear"></div>
-						</dd>
-						
-						<dt><label for="email">[% IF errors.missing.email %]<font color="red">[% END %]E-mail[% IF errors.missing.email %]</font>[% END %]</label></dt>
-						<dd class="large_margin">
-							<span class="three_quarters"><input type="text" id="email" name="email" value="[% req.param('email') %]" /><label for="email">ex. [% IF errors.missing.email %]<font color="red">[% END %]john@doe.com[% IF errors.missing.email %]</font>[% END %] <em>(for receipt only)</em></label></span>
-						<div class="clear"></div>
-						</dd>
-						<dt><label for="card_type">[% IF errors.missing.card_type or errors.invalid.card_type %]<font color="red">[% END %]Card Type[% IF errors.missing.card_type or errors.invalid.card_type %]</font>[% END %]</label></dt>
-						<dd>
-							<span class="three_quarters">
-							<select class="left" id="card_type" name="card_type">
-								<option value="" selected="selected">Select a card type</option>
-								<option value="visa" [% IF req.param('card_type') == 'visa' %]SELECTED[% END %]>Visa</option>
-								<option value="mastercard" [% IF req.param('card_type') == 'mastercard' %]SELECTED[% END %]>MasterCard</option>
-								<option value="american express" [% IF req.param('card_type') == 'american express' %]SELECTED[% END %]>American Express</option> 
-							</select>
-							<img class="left" src="[% base_uri %]/resources/images/icons/credit_card_2_32.gif" alt="credit card" width="32" height="32"/>
-							</span>
-						<div class="clear"></div>
-						</dd>
-						<dt><label for="card_number">[% IF errors.missing.card_number or errors.invalid.card_number %]<font color="red">[% END %]Card Number[% IF errors.missing.card_number or errors.invalid.card_number %]</font>[% END %]</label></dt>
-						<dd>
-							<span class="half"><input type="text" id="card_number" name="card_number" maxlength="16" value="[% req.param('card_number') %]" /><label for="card_number">[% IF errors.missing.card_number or errors.invalid.card_number %]<font color="red">[% END %]################[% IF errors.missing.card_number or errors.invalid.card_number %]</font>[% END %]</label></span>
-							<span class="quarter"><input type="text" id="cvc" name="cvv2" value="[% req.param('cvv2') %]" maxlength="4"/><label for="cvc">[% IF errors.missing.cvv2 %]<font color="red">[% END %]###&nbsp;&nbsp;CVC[% IF errors.missing.cvv2 %]</font>[% END %]</label></span>
-						<div class="clear"></div>
-						</dd>
-						<dt><label for="month">Expiration Date</label></dt>
-						<dd class="large_margin">
-							<span class="quarter">
-							<select id="month" name="month">
-								<option value="01" [% IF req.param('month') == '01' %]SELECTED[% END %]>01</option>
-								<option value="02" [% IF req.param('month') == '02' %]SELECTED[% END %]>02</option>
-								<option value="03" [% IF req.param('month') == '03' %]SELECTED[% END %]>03</option>
-								<option value="04" [% IF req.param('month') == '04' %]SELECTED[% END %]>04</option>
-								<option value="05" [% IF req.param('month') == '05' %]SELECTED[% END %]>05</option>
-								<option value="06" [% IF req.param('month') == '06' %]SELECTED[% END %]>06</option>
-								<option value="07" [% IF req.param('month') == '07' %]SELECTED[% END %]>07</option>
-								<option value="08" [% IF req.param('month') == '08' %]SELECTED[% END %]>08</option>
-								<option value="09" [% IF req.param('month') == '09' %]SELECTED[% END %]>09</option>
-								<option value="10" [% IF req.param('month') == '10' %]SELECTED[% END %]>10</option>
-								<option value="11" [% IF req.param('month') == '11' %]SELECTED[% END %]>11</option>
-								<option value="12" [% IF req.param('month') == '12' %]SELECTED[% END %]>12</option>
-							</select>
-							<label for="month">Month</label>
-							</span>
-							<span class="quarter">
-							<select id="year" name="year">
-								<option value="09" [% IF req.param('year') == '09' %]SELECTED[% END %]>2009</option>
-								<option value="10" [% IF req.param('year') == '10' %]SELECTED[% END %]>2010</option>
-								<option value="11" [% IF req.param('year') == '11' %]SELECTED[% END %]>2011</option>
-								<option value="12" [% IF req.param('year') == '12' %]SELECTED[% END %]>2012</option>
-								<option value="13" [% IF req.param('year') == '13' %]SELECTED[% END %]>2013</option>
-								<option value="14" [% IF req.param('year') == '14' %]SELECTED[% END %]>2014</option>
-								<option value="15" [% IF req.param('year') == '15' %]SELECTED[% END %]>2015</option>
-								<option value="16" [% IF req.param('year') == '16' %]SELECTED[% END %]>2016</option>
-								<option value="17" [% IF req.param('year') == '17' %]SELECTED[% END %]>2017</option>
-								<option value="18" [% IF req.param('year') == '18' %]SELECTED[% END %]>2018</option>
-								<option value="19" [% IF req.param('month') == '19' %]SELECTED[% END %]>2019</option>
-								<option value="20" [% IF req.param('month') == '20' %]SELECTED[% END %]>2020</option>
-								<option value="21" [% IF req.param('month') == '21' %]SELECTED[% END %]>2021</option>
-								<option value="22" [% IF req.param('month') == '22' %]SELECTED[% END %]>2022</option>
-								<option value="23" [% IF req.param('month') == '23' %]SELECTED[% END %]>2023</option>
-								<option value="24" [% IF req.param('month') == '24' %]SELECTED[% END %]>2024</option>
-								<option value="25" [% IF req.param('month') == '25' %]SELECTED[% END %]>2025</option>
-								<option value="26" [% IF req.param('month') == '26' %]SELECTED[% END %]>2026</option>
-							</select>
-							<label for="year">year</label>
-							</span>					
-						<div class="clear"></div>
-						</dd>
+                <h2 class="header">Takes less than a minute</h2>
 
+                <!-- PAYMENT FORM -->
+                <form id="sl_payment" action="[% base_uri %]/auth/paid" method="post">
+                        <dl id="form_list">
+                                <dd class="subtle"><em>All fields required</em></dd>
+                                [% PROCESS auth/form/plan.tmpl %]
+                                [% PROCESS auth/form/user_info.tmpl %]
+                                [% PROCESS auth/form/creditcard.tmpl %]
+                                [% PROCESS auth/form/address.tmpl %]
+                                [% PROCESS auth/form/submit_button.tmpl %]
 
-                <input type="hidden" name="mac" value="[% req.param('mac') %]" />
-                <input type="hidden" name="url" value="[% req.param('url') %]" />
+                                <input type="hidden" name="mac" value="[% req.param('mac') %]" />
+                                <input type="hidden" name="url" value="[% req.param('url') %]" />
+                       </dl>
+                </form>
 
-						<dt><label for="street">[% IF errors.missing.street or errors.missing.city or errors.missing.zip or errors.missing.state %]<font color="red">[% END %]Billing Address[% IF errors.missing.street or errors.missing.city or errors.missing.zip or errors.missing.state %]</font>[% END %]</label></dt>
-						<dd>
-							<span class="full"><input type="text" id="street" name="street" value="[% req.param('street') %]" /><label for="street">[% IF errors.missing.street %]<font color="red">[% END %]Street Address[% IF errors.missing.street %]</font>[% END %]</label></span>
-						<div class="clear"></div>
-						</dd>
+        [% PROCESS auth/form/paperbox_bottom.tmpl %]
+        <!-- END MAIN COLUMN -->
 
-						<dd>
-							<span class="half"><input type="text" id="city" name="city" value="[% req.param('city') %]" /><label for="city">[% IF errors.missing.city %]<font color="red">[% END %]City[% IF errors.missing.city %]</font>[% END %]</label></span>
+        <!-- SIDE COLUMN ##### -->
+        <div class="one_third left">
+            [% PROCESS auth/form/sidebar.tmpl %]
+        </div>
+        <!-- END SIDE COLUMN ##### -->
 
-							<span class="quarter"><input type="text" id="zip" name="zip" value="[% req.param('zip') %]" /><label for="zip">[% IF errors.missing.zip or errors.invalid.zip %]<font color="red">[% END %]Zip Code[% IF errors.missing.zip or errors.invalid.zip %]</font>[% END %]</label></span>
-						<div class="clear"></div>
-						</dd>
-						<dd class="large_margin">
-							<span class="half">
-							<select id="state" name="state">
-								<option value="">State</option>
-                                <option value="AL" [% IF req.param('state') == 'AL' %]SELECTED[% END %]>Alabama</option>
-                                <option value="AK" [% IF req.param('state') == 'AK' %]SELECTED[% END %]>Alaska</option>
-                                <option value="AZ" [% IF req.param('state') == 'AZ' %]SELECTED[% END %]>Arizona</option>
-                                <option value="AR" [% IF req.param('state') == 'AR' %]SELECTED[% END %]>Arkansas</option>
-                                <option value="CA" [% IF req.param('state') == 'CA' %]SELECTED[% END %]>California</option>
-                                <option value="CO" [% IF req.param('state') == 'CO' %]SELECTED[% END %]>Colorado</option>
-                                <option value="CT" [% IF req.param('state') == 'CT' %]SELECTED[% END %]>Connecticut</option>
-                                <option value="DE" [% IF req.param('state') == 'DE' %]SELECTED[% END %]>Delaware</option>
-                                <option value="DC" [% IF req.param('state') == 'DC' %]SELECTED[% END %]>Dist. of Columbia</option>
-                                <option value="FL" [% IF req.param('state') == 'FL' %]SELECTED[% END %]>Florida</option>
-                                <option value="GA" [% IF req.param('state') == 'GA' %]SELECTED[% END %]>Georgia</option>
-                                <option value="HI" [% IF req.param('state') == 'HI' %]SELECTED[% END %]>Hawaii</option>
-                                <option value="ID" [% IF req.param('state') == 'ID' %]SELECTED[% END %]>Idaho</option>
-                                <option value="IL" [% IF req.param('state') == 'IL' %]SELECTED[% END %]>Illinois</option>
-                                <option value="IN" [% IF req.param('state') == 'IN' %]SELECTED[% END %]>Indiana</option>
-                                <option value="IA" [% IF req.param('state') == 'IA' %]SELECTED[% END %]>Iowa</option>
-                                <option value="KS" [% IF req.param('state') == 'KS' %]SELECTED[% END %]>Kansas</option>
-                                <option value="KY" [% IF req.param('state') == 'KY' %]SELECTED[% END %]>Kentucky</option>
-                                <option value="LA" [% IF req.param('state') == 'LA' %]SELECTED[% END %]>Louisiana</option>
-                                <option value="ME" [% IF req.param('state') == 'ME' %]SELECTED[% END %]>Maine</option>
-                                <option value="MD" [% IF req.param('state') == 'MD' %]SELECTED[% END %]>Maryland</option>
-                                <option value="MA" [% IF req.param('state') == 'MA' %]SELECTED[% END %]>Massachusetts</option>
-                                <option value="MI" [% IF req.param('state') == 'MI' %]SELECTED[% END %]>Michigan</option>
-                                <option value="MN" [% IF req.param('state') == 'MN' %]SELECTED[% END %]>Minnesota</option>
-                                <option value="MS" [% IF req.param('state') == 'MS' %]SELECTED[% END %]>Mississippi</option>
-                                <option value="MO" [% IF req.param('state') == 'MO' %]SELECTED[% END %]>Missouri</option>
-                                <option value="MT" [% IF req.param('state') == 'MT' %]SELECTED[% END %]>Montana</option>
-                                <option value="NE" [% IF req.param('state') == 'NE' %]SELECTED[% END %]>Nebraska</option>
-                                <option value="NV" [% IF req.param('state') == 'NV' %]SELECTED[% END %]>Nevada</option>
-                                <option value="NH" [% IF req.param('state') == 'NH' %]SELECTED[% END %]>New Hampshire</option>
-                                <option value="NJ" [% IF req.param('state') == 'NJ' %]SELECTED[% END %]>New Jersey</option>
-                                <option value="NM" [% IF req.param('state') == 'NM' %]SELECTED[% END %]>New Mexico</option>
-                                <option value="NY" [% IF req.param('state') == 'NY' %]SELECTED[% END %]>New York</option>
-                                <option value="NC" [% IF req.param('state') == 'NC' %]SELECTED[% END %]>North Carolina</option>
-                                <option value="ND" [% IF req.param('state') == 'ND' %]SELECTED[% END %]>North Dakota</option>
-                                <option value="OH" [% IF req.param('state') == 'OH' %]SELECTED[% END %]>Ohio</option>
-                                <option value="OK" [% IF req.param('state') == 'OK' %]SELECTED[% END %]>Oklahoma</option>
-                                <option value="OR" [% IF req.param('state') == 'OR' %]SELECTED[% END %]>Oregon</option>
-                                <option value="PA" [% IF req.param('state') == 'PA' %]SELECTED[% END %]>Pennsylvania</option>
-                                <option value="RI" [% IF req.param('state') == 'RI' %]SELECTED[% END %]>Rhode Island</option>
-                                <option value="SC" [% IF req.param('state') == 'SC' %]SELECTED[% END %]>South Carolina</option>
-                                <option value="SD" [% IF req.param('state') == 'SD' %]SELECTED[% END %]>South Dakota</option>
-                                <option value="TN" [% IF req.param('state') == 'TN' %]SELECTED[% END %]>Tennessee</option>
-                                <option value="TX" [% IF req.param('state') == 'TX' %]SELECTED[% END %]>Texas</option>
-                                <option value="UT" [% IF req.param('state') == 'UT' %]SELECTED[% END %]>Utah</option>
-                                <option value="VT" [% IF req.param('state') == 'VT' %]SELECTED[% END %]>Vermont</option>
-                                <option value="VA" [% IF req.param('state') == 'VA' %]SELECTED[% END %]>Virginia</option>
-                                <option value="WA" [% IF req.param('state') == 'WA' %]SELECTED[% END %]>Washington</option>
-                                <option value="WV" [% IF req.param('state') == 'WV' %]SELECTED[% END %]>West Virginia</option>
-                                <option value="WI" [% IF req.param('state') == 'WI' %]SELECTED[% END %]>Wisconsin</option>
-                                <option value="WY" [% IF req.param('state') == 'WY' %]SELECTED[% END %]>Wyoming</option>
-								</select>
-								<label for="state">[% IF errors.missing.state or errors.invalid.state %]<font color="red">[% END %]State[% IF errors.missing.state or errors.invalid.state %]</font>[% END %]</label>
-							</span>
-						<div class="clear"></div>
-						</dd>
-<!--
-						<dd class="standard_margin">
-							<input type="checkbox" id="terms"/>
-							<label class="terms" for="terms">I agree to the 
-							<a id="terms_link" href="terms_of_service.html" title="Terms of service" class="thickbox">terms of service</a>.
-							</label>
-							<div class="clear"></div>
-							  
-							<div id="terms_of_service">  
-								<p>
-									Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-									incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis 
-									nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-									Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore 
-									eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, 
-									sunt in culpa qui officia deserunt mollit anim id est laborum.
-								</p>
-								<p>
-									Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-									incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis 
-									nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-									Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore 
-									eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, 
-									sunt in culpa qui officia deserunt mollit anim id est laborum.
-								</p>
-								<p>
-									Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-									incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis 
-									nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-									Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore 
-									eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, 
-									sunt in culpa qui officia deserunt mollit anim id est laborum.
-								</p>
-								<p>
-									Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-									incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis 
-									nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-									Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore 
-									eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, 
-									sunt in culpa qui officia deserunt mollit anim id est laborum.
-								</p>
-							</div>
-						</dd>
--->
-						<dd><input  onclick="this.disabled=disabled"  type="submit" id="submit" value="Finish Purchase" /></dd>
-					</dl>
-				</form>
-			
-			</div>			
+        [% PROCESS auth/form/bodywrapper_bottom.tmpl %]
 
+        <!-- END BODY SECTION ######################################### -->
 
-                        <div class="one_third left">
-                                <ul id="payment_info">
-                                        <li>
-                                                <strong>Thank you for your business.</strong> You are purchasing access to this high-speed WiFi network for the period of time you choose.
-                                        </li>
+        <!-- PLEDGE -->
 
-                                        <li>
-                                                Your <strong class="lock">secure payment</strong> transaction is through Authorize.Net, the <strong>world's most trusted </strong>provider of Internet
-                                                payment processing. If you have questions, or need assistance:
-                                                <ul>
-                                                        <li>Phone: <strong>888.430.7511</strong></li>
-                                                        <li><a href="mailto:support@silverliningnetworks.com">support@silverliningnetworks.com</a></li>
-                                                </ul>
-                                        </li>
-                                        <li>
-                                        <!-- (c) 2005, 2008. Authorize.Net is a registered trademark of CyberSource Corporation --> <div class="AuthorizeNetSeal"> <script type="text/javascript" language="javascript">var ANS_customer_id="30450988-3d08-48c1-9d27-75071cb90664";</script> <script type="text/javascript" language="javascript" src="//verify.authorize.net/anetseal/seal.js" ></script>  </div>
+        [% PROCESS auth/form/our_pledge.tmpl %]
 
+        [% # PROCESS auth/form/coupon.tmpl %]
 
-                                        </li>
-                                </ul>
-                        </div>
-
-
-			<div class="clear"></div>
-		</div>
-		</div>	
-	</div>
-
-	<div id="section_three">
-		<div id="section_three_inner">
-		<div class="center">
-			<!-- CHOOSE WIFI COPY ************************ --> 
-			<div class="two_thirds left">
-				<h2>Our Pledge</h2>
-				<h3>We promise to never share your information with anyone</h3>
-				<p>
-				Your privacy is important to us. We promise to respect and protect your privacy and never
-			 give your e-mail address or other information away to anyone. Trust is an important part of 
-			 good business and we pledge to give you the best service and always protect your privacy. 
-				We hope you appreciate our commitment to you and thank you for your business. 
-				<a href="http://www.silverliningnetworks.com">Learn more about Silver Lining Networks</a>
-				</p>
-			</div>	
-			<!-- LOGO ************************ --> 
-			<div class="one_third left">
-				<h1 id="logo_240"><a href="http://www.silverliningnetworks.com"><span></span>Silver Lining Networks</a></h1>
-			</div>					
-			<div class="clear"></div>
-		</div>
-		</div>	
-	</div>
-
-<script type="text/javascript" src="[% base_uri %]/resources/js/validate_payment_form.js"></script>
 </body>
 </html>

@@ -1,0 +1,86 @@
+<!-- STREET -->
+
+<dt><label for="street">[% IF errors.missing.street or errors.missing.city or errors.missing.zip or errors.missing.state %]<font color="red">[% END %]Billing Address[% IF errors.missing.street or errors.missing.city or errors.missing.zip or errors.missing.state %]</font>[% END %]</label></dt>
+<dd>
+	<span class="full">
+        <input type="text" id="street" name="street" value="[% IF req.param('street') %][% req.param('street') %][% ELSE %]ex. 123 Huckleberry Drive[% END %]" />
+        <label for="street">[% IF errors.missing.street or errors.invalid.street %]<font color="red">[% END %]Street Address[% IF errors.missing.street or errors.invalid.street %]</font>[% END %]</label>
+    </span>
+    <div class="clear"></div>
+</dd>
+
+<!-- CITY AND ZIP -->
+<dd>
+	<span class="half">
+        <input type="text" id="city" name="city" value="[% IF req.param('city') %][% req.param('city') %][% ELSE %]ex. New York[% END %]" />
+        <label for="city">[% IF errors.missing.city or errors.invalid.city %]<font color="red">[% END %]City[% IF errors.missing.city or errors.invalid.city %]</font>[% END %]</label>
+    </span>
+
+	<span class="quarter">
+        <input type="text" id="zip" name="zip" value="[% IF req.param('zip') %][% req.param('zip') %][% ELSE %]#####[% END %]" />
+        <label for="zip">[% IF errors.missing.zip or errors.invalid.zip %]<font color="red">[% END %]Zip Code[% IF errors.missing.zip or errors.invalid.zip %]</font>[% END %]</label>
+    </span>
+	<div class="clear"></div>
+</dd>
+
+<!-- COUNTRY -->
+<dd class="large_margin">
+	<span class="half">
+							<select id="state" name="state">
+								<option value="">State</option>
+                                <option value="AL" [% IF req.param('state') == 'AL' %]SELECTED[% END %]>Alabama</option>
+                                <option value="AK" [% IF req.param('state') == 'AK' %]SELECTED[% END %]>Alaska</option>
+                                <option value="AZ" [% IF req.param('state') == 'AZ' %]SELECTED[% END %]>Arizona</option>
+                                <option value="AR" [% IF req.param('state') == 'AR' %]SELECTED[% END %]>Arkansas</option>
+                                <option value="CA" [% IF req.param('state') == 'CA' %]SELECTED[% END %]>California</option>
+                                <option value="CO" [% IF req.param('state') == 'CO' %]SELECTED[% END %]>Colorado</option>
+                                <option value="CT" [% IF req.param('state') == 'CT' %]SELECTED[% END %]>Connecticut</option>
+                                <option value="DE" [% IF req.param('state') == 'DE' %]SELECTED[% END %]>Delaware</option>
+                                <option value="DC" [% IF req.param('state') == 'DC' %]SELECTED[% END %]>Dist. of Columbia</option>
+                                <option value="FL" [% IF req.param('state') == 'FL' %]SELECTED[% END %]>Florida</option>
+                                <option value="GA" [% IF req.param('state') == 'GA' %]SELECTED[% END %]>Georgia</option>
+                                <option value="HI" [% IF req.param('state') == 'HI' %]SELECTED[% END %]>Hawaii</option>
+                                <option value="ID" [% IF req.param('state') == 'ID' %]SELECTED[% END %]>Idaho</option>
+                                <option value="IL" [% IF req.param('state') == 'IL' %]SELECTED[% END %]>Illinois</option>
+                                <option value="IN" [% IF req.param('state') == 'IN' %]SELECTED[% END %]>Indiana</option>
+                                <option value="IA" [% IF req.param('state') == 'IA' %]SELECTED[% END %]>Iowa</option>
+                                <option value="KS" [% IF req.param('state') == 'KS' %]SELECTED[% END %]>Kansas</option>
+                                <option value="KY" [% IF req.param('state') == 'KY' %]SELECTED[% END %]>Kentucky</option>
+                                <option value="LA" [% IF req.param('state') == 'LA' %]SELECTED[% END %]>Louisiana</option>
+                                <option value="ME" [% IF req.param('state') == 'ME' %]SELECTED[% END %]>Maine</option>
+                                <option value="MD" [% IF req.param('state') == 'MD' %]SELECTED[% END %]>Maryland</option>
+                                <option value="MA" [% IF req.param('state') == 'MA' %]SELECTED[% END %]>Massachusetts</option>
+                                <option value="MI" [% IF req.param('state') == 'MI' %]SELECTED[% END %]>Michigan</option>
+                                <option value="MN" [% IF req.param('state') == 'MN' %]SELECTED[% END %]>Minnesota</option>
+                                <option value="MS" [% IF req.param('state') == 'MS' %]SELECTED[% END %]>Mississippi</option>
+                                <option value="MO" [% IF req.param('state') == 'MO' %]SELECTED[% END %]>Missouri</option>
+                                <option value="MT" [% IF req.param('state') == 'MT' %]SELECTED[% END %]>Montana</option>
+                                <option value="NE" [% IF req.param('state') == 'NE' %]SELECTED[% END %]>Nebraska</option>
+                                <option value="NV" [% IF req.param('state') == 'NV' %]SELECTED[% END %]>Nevada</option>
+                                <option value="NH" [% IF req.param('state') == 'NH' %]SELECTED[% END %]>New Hampshire</option>
+                                <option value="NJ" [% IF req.param('state') == 'NJ' %]SELECTED[% END %]>New Jersey</option>
+                                <option value="NM" [% IF req.param('state') == 'NM' %]SELECTED[% END %]>New Mexico</option>
+                                <option value="NY" [% IF req.param('state') == 'NY' %]SELECTED[% END %]>New York</option>
+                                <option value="NC" [% IF req.param('state') == 'NC' %]SELECTED[% END %]>North Carolina</option>
+                                <option value="ND" [% IF req.param('state') == 'ND' %]SELECTED[% END %]>North Dakota</option>
+                                <option value="OH" [% IF req.param('state') == 'OH' %]SELECTED[% END %]>Ohio</option>
+                                <option value="OK" [% IF req.param('state') == 'OK' %]SELECTED[% END %]>Oklahoma</option>
+                                <option value="OR" [% IF req.param('state') == 'OR' %]SELECTED[% END %]>Oregon</option>
+                                <option value="PA" [% IF req.param('state') == 'PA' %]SELECTED[% END %]>Pennsylvania</option>
+                                <option value="RI" [% IF req.param('state') == 'RI' %]SELECTED[% END %]>Rhode Island</option>
+                                <option value="SC" [% IF req.param('state') == 'SC' %]SELECTED[% END %]>South Carolina</option>
+                                <option value="SD" [% IF req.param('state') == 'SD' %]SELECTED[% END %]>South Dakota</option>
+                                <option value="TN" [% IF req.param('state') == 'TN' %]SELECTED[% END %]>Tennessee</option>
+                                <option value="TX" [% IF req.param('state') == 'TX' %]SELECTED[% END %]>Texas</option>
+                                <option value="UT" [% IF req.param('state') == 'UT' %]SELECTED[% END %]>Utah</option>
+                                <option value="VT" [% IF req.param('state') == 'VT' %]SELECTED[% END %]>Vermont</option>
+                                <option value="VA" [% IF req.param('state') == 'VA' %]SELECTED[% END %]>Virginia</option>
+                                <option value="WA" [% IF req.param('state') == 'WA' %]SELECTED[% END %]>Washington</option>
+                                <option value="WV" [% IF req.param('state') == 'WV' %]SELECTED[% END %]>West Virginia</option>
+                                <option value="WI" [% IF req.param('state') == 'WI' %]SELECTED[% END %]>Wisconsin</option>
+                                <option value="WY" [% IF req.param('state') == 'WY' %]SELECTED[% END %]>Wyoming</option>
+								</select>
+								<label for="state">[% IF errors.missing.state or errors.invalid.state %]<font color="red">[% END %]State[% IF errors.missing.state or errors.invalid.state %]</font>[% END %]</label>
+							</span>
+						<div class="clear"></div>
+						</dd>
