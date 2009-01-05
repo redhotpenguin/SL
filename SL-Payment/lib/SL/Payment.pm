@@ -46,6 +46,11 @@ use constant TEST_MODE => $ENV{SL_TEST_MODE} || 0;
 
 sub plan {
     my ( $class, $plan ) = @_;
+
+    unless ($plan) {
+        require Carp && Carp::confess("SL::Payment::plan called without plan");
+    }
+
     return $Plans{$plan};
 }
 
