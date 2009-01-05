@@ -145,7 +145,8 @@ sub process {
 
     my $stop =
       DateTime::Format::Pg->format_datetime(
-        DateTime->now( time_zone => 'local' )->add( $class->plan($plan) ) );
+        DateTime->now( time_zone => 'local' )->add(
+            $class->plan($plan)->{duration} ) );
 
     # database
     my $payment = SL::Model::App->resultset('Payment')->create(
