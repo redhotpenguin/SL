@@ -583,9 +583,9 @@ sub paid {
 
         # plan is '4 hours'
 	my $plan_hash = SL::Payment->plan($plan);
-        my $duration =
+        my $duration = join(' ',
             ( values %{ $plan_hash->{duration} } )[0]
-          . ( keys %{ $plan_hash->{duration} } )[0];
+          , ( keys %{ $plan_hash->{duration} } )[0]);
 
         my $date         = DateTime->now->mdy('/');
         my $network_name = $account->name;
