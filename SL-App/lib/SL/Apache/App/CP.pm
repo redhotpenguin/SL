@@ -67,10 +67,11 @@ sub check {
       SL::Model::App->resultset('Payment')
       ->search( \%payment_args, { order_by => 'cts DESC', }, );
 
-    if (DEBUG) {
+    if (DEBUG && $payment) {
         $r->log->debug( "payment is " . Data::Dumper::Dumper($payment) );
-        return Apache2::Const::NOT_FOUND unless $payment;
     }
+
+    return Apache2::Const::NOT_FOUND unless $payment;
 
     my $now = DateTime->now( time_zone => 'local' );
     my $stop = DateTime::Format::Pg->parse_datetime( $payment->stop );
@@ -581,9 +582,10 @@ sub paid {
         $mailer->open( \%mail_args );
 
         # plan is '4 hours'
+	my $plan_hash = SL::Payment->plan($plan);
         my $duration =
-            ( values %{ $plan->{duration} } )[0]
-          . ( keys %{ $plan->{duration} } )[0];
+            ( values %{ $plan_hash->{duration} } )[0]
+          . ( keys %{ $plan_hash->{duration} } )[0];
 
         my $date         = DateTime->now->mdy('/');
         my $network_name = $account->name;
@@ -601,7 +603,7 @@ sub paid {
             network_name       => $network_name,
             authorization_code => $authorization_code,
             date               => $date,
-            amount             => $plan->{cost},
+            amount             => $plan_hash->{cost},
         );
 
         my $ok = $Tmpl->process( 'auth/receipt.tmpl', \%tmpl_data, \$mail, $r );
