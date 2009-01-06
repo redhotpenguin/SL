@@ -1,0 +1,110 @@
+/*---------------------------------------------
+SILVER LINING STYLE SHEET
+Version: 2.0
+Author: SILVER LINING NETWORKS INC.
+---------------------------------------------*/
+
+/*= GENERAL
+=== === === === === === === === === === === === === */
+body {
+margin: 0;
+padding: 0px 0px 116px 0px !important;
+}
+.silver_lining_clear {
+clear: both;
+}
+#silver_lining_floating_horizontal {
+position: fixed;
+bottom: 0;
+left: 0;
+right: 0;
+text-align: center;
+padding: 16px 0px 10px 0px;
+background: #FFF url(../images/backgrounds/border.png) repeat-x top left; 
+z-index: 3000;
+}
+
+
+/*= FULL BANNER
+=== === === === === === === === === === === === === */
+#silver_lining_full_banner {
+text-align: left;
+margin-left:auto;
+margin-right: auto;
+max-width: 1100px;
+min-width: 1100px;
+height: 90px;
+position: relative;
+}
+#silver_lining_full_banner #silver_lining_bug {
+float: left; 
+height: 90px;
+width: 60px;
+background-position: top left !important;
+background-repeat: no-repeat !important;
+overflow: hidden;
+}
+#silver_lining_full_banner #silver_lining_client_ad_wide {
+float: left;
+height: 60px;
+overflow: hidden;
+margin-top: 15px;
+margin-left: 10px;
+width: 940px;
+}
+#silver_lining_client_zone_1 {
+float: left;
+height: 60px;
+width: 468px;
+overflow: hidden;
+}
+#silver_lining_client_zone_2 {
+float: right;
+height: 60px;
+width: 468px;
+overflow: hidden;
+}
+
+#silver_lining_full_banner #silver_lining_homepage {
+position: absolute;
+background: url(../images/logos/sl_logo_small.png) no-repeat top left;
+width: 89px;
+height: 64px;
+overflow: hidden;
+font-family: Verdana, Arial, serif;
+font-size: 10px;
+text-indent: -3000px;
+top: -52px;
+right: 5px;
+border: none;
+z-index: 5000;
+}
+#silver_lining_full_banner #silver_lining_close {
+position: absolute;
+bottom: 0px;
+right: 0px;
+border: none;
+z-index: 5000;
+}
+#silver_lining_full_banner #silver_lining_close img,
+#silver_lining_full_banner #silver_lining_homepage img{
+border: none;
+}
+
+/*= IE 6 HACKS
+=== === === === === === === === === === === === === */
+* html #silver_lining_floating_horizontal {
+position: absolute;
+z-index: 3000;
+bottom:0px
+width: expression(document.body.clientWidth);
+}
+* html body {
+height: 100%; overflow: auto;
+}
+* html #silver_lining_full_banner {
+width:auto;
+}
+* html #silver_lining_full_banner #silver_lining_homepage {
+background: url(../images/logos/sl_logo_small_low.png) no-repeat top left;
+}

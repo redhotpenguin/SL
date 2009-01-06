@@ -1,0 +1,128 @@
+/*---------------------------------------------
+SILVER LINING STYLE SHEET
+Version: 2.0
+Author: SILVER LINING NETWORKS INC.
+---------------------------------------------*/
+
+/*= GENERAL
+=== === === === === === === === === === === === === */
+body {
+margin: 0;
+padding: 86px 0px 0px 0px;
+}
+.silver_lining_clear {
+clear: both;
+}
+#silver_lining_floating_horizontal {
+position: fixed;
+top: 0;
+left: 0;
+right: 0;
+text-align: center;
+padding: 10px 0px 16px 0px;
+background: #FFF url(../images/backgrounds/border.png) repeat-x bottom left; 
+z-index: 3000;
+}
+
+/*= BUTTON
+=== === === === === === === === === === === === === */
+
+.big_button {
+border: 1px solid #033a64;
+padding: 5px 10px;
+background: #175a81 url(/resources/images/buttons/blue_sqaure_bg.png) repeat-x top left;
+display: block;
+margin: 0px;
+overflow: visible;
+color: #FFF;
+font-size: 107%;
+font-family: Verdana, Arial, san-serif;
+line-height: normal;
+width: auto;
+text-decoration: none;
+cursor: pointer;
+}
+.big_button .block {
+display: block;
+font-size: 110%;
+}
+.big_button:hover {
+border: 1px solid #6ea60a;
+background: #7bb90f url(/resources/images/buttons/green_sqaure_bg.png) repeat-x top left;
+}
+.big_button:active {
+border: 1px solid #6ea60a;
+background: none;
+background-color: #7bb90f ;
+}
+
+/*= FULL BANNER
+=== === === === === === === === === === === === === */
+#silver_lining_full_banner {
+text-align: left;
+margin-left:auto;
+margin-right: auto;
+max-width: 800px;
+min-width: 800px;
+height: 60px;
+position: relative;
+}
+#silver_lining_full_banner #silver_lining_bug {
+float: left; 
+height: 60px;
+width: 200px;
+background-position: top left !important;
+background-repeat: no-repeat !important;
+overflow: hidden;
+text-align: center;
+}
+#silver_lining_full_banner #silver_lining_client_ad {
+float: left;
+height: 60px;
+width: 468px;
+overflow: hidden;
+margin-left: 10px;
+}
+#silver_lining_full_banner #silver_lining_homepage {
+position: absolute;
+background: url(../images/logos/sl_logo_small.png) no-repeat top left;
+width: 89px;
+height: 64px;
+overflow: hidden;
+font-family: Verdana, Arial, serif;
+font-size: 10px;
+text-indent: -3000px;
+bottom: -37px;
+right: 5px;
+border: none;
+z-index: 5000;
+}
+#silver_lining_full_banner #silver_lining_close {
+position: absolute;
+top: 0px;
+right: 10px;
+border: none;
+z-index: 5000;
+}
+#silver_lining_full_banner #silver_lining_close img,
+#silver_lining_full_banner #silver_lining_homepage img{
+border: none;
+}
+
+/*= IE 6 HACKS
+=== === === === === === === === === === === === === */
+* html #silver_lining_floating_horizontal {
+position: absolute;
+z-index: 3000;
+top:0px
+width: expression(document.body.clientWidth);
+}
+* html body {
+height: 100%; overflow: auto;
+}
+* html #silver_lining_full_banner {
+width:960px;
+}
+* html #silver_lining_full_banner #silver_lining_homepage {
+background: url(../images/logos/sl_logo_small_low.png) no-repeat top left;
+}

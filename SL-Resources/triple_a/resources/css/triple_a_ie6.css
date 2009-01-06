@@ -1,0 +1,129 @@
+/*---------------------------------------------
+SILVER LINING NETWORK INTERNET EXPLORER 6 STYLES
+Version: 2.0
+Author: SILVER LINING NETWORKS INC.
+---------------------------------------------*/
+
+
+/* PNG IMAGE
+================================================= */
+h1.logo span {
+background:none;
+filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images/logos/plain_logo.png',sizingMethod='scale');
+}
+
+.one_hour_service {
+background:none;
+filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images/buttons/1_hour_service.png',sizingMethod='scale');
+}
+.three_hour_service {
+background:none;
+filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images/buttons/3_hour_service.png',sizingMethod='scale');
+}
+.one_day_service {
+background:none;
+filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images/buttons/24_hour_service.png',sizingMethod='scale');
+}
+.one_month_service {
+background:none;
+filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images/buttons/1_month_service.png',sizingMethod='scale');
+}
+
+.paid_service_199 {
+background:none;
+filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images/buttons/199_service.png',sizingMethod='scale');
+}
+.paid_service_399 {
+background:none;
+filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images/buttons/399_service.png',sizingMethod='scale');
+}
+.paid_service_1999 {
+background:none;
+filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images/buttons/1999_service.png',sizingMethod='scale');
+}
+#section_two h2.monthly_plan {
+background:none;
+filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='resources/images/backgrounds/title_monthly.png',sizingMethod='scale');
+}
+#custom_logo #logo_image #gloss {
+background: none;
+}
+
+
+/* PAPER BOX
+================================================= */
+.paper_box,  {
+height: 1%;
+margin-top: -100px;
+position: relative;
+overflow: visible;
+background: none;
+}
+.paper_box .header {
+height: 1%;
+}
+.paper_box .paper_box_content {
+border: 1px solid #CCC;
+}
+.paper_box .paper_box_inner {
+padding-right: 5px;
+background: none;
+}
+.paperbox_footer {
+display: none;
+}
+#section_one  {
+}
+
+/* BUTTONS
+================================================= */
+.standard_button_large,
+.special_button {
+border:none;
+}
+#sln .standard_button_large span, 
+#sln .standard_button_large input, 
+#sln .standard_button_large a {
+border: 1px solid #033a64;
+margin: 0px;
+}
+#sln .special_button span, 
+#sln .special_button input, 
+#sln .special_button input:focus,
+#sln .special_button input:active,
+#sln .special_button a {
+border: 1px solid #6ea60a;
+margin: 0px;
+}
+#sln #disabled {
+border: none;
+}
+#sln #disabled input,
+#sln #disabled input:focus, 
+#sln #disabled input:active  {
+border: 1px solid #CCC;
+background: none;
+background-color: #EEE;
+}
+
+
+
+
+
+/* DOUBLE MARGIN
+================================================= */
+.half_page,
+.one_sixth,
+.one_third,
+.two_thirds,
+.five_sixths {
+display:inline;
+}
+
+
+/* TEXT SIZING
+================================================= */
+#section_three h3 {
+font-family: Arial, san-serif;
+font-size: 92%;
+}

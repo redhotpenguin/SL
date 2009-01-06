@@ -1,0 +1,116 @@
+/*
+Website: Labs
+Authoer: Alex Wolfe
+*/
+
+/* MASTHEAD
+========================================= */
+#masthead {
+background-color: #EEE;
+border-top: 1px solid #FFF;
+border-bottom:1px solid #CCC;
+padding:30px;
+}
+#masthead #wolfe {
+float: left;
+width: 95px;
+height: 52px;
+text-align: center;
+visibility: hidden;
+}
+#masthead #labs {
+float: left;
+width: 75px;
+height: 52px;
+text-align: center;
+visibility: hidden;
+}
+#masthead h2 {
+margin-left: 20px;
+float: left;
+color: #5f666b;
+margin-top: 18px;
+}
+
+
+
+
+/* NAVIGATION
+========================================= */
+#navigation {
+background-color: #35393d;
+border-top: 1px solid #5f666b;
+border-bottom: 1px solid #000;
+}
+#navigation ul {
+float: left;
+margin-top: 20px;
+margin-left: 20px;
+margin-bottom: -1px;
+}
+#navigation ul li {
+float: left;
+margin-right: 10px;
+}
+#navigation ul li.selected {
+background-color: #FFF;
+}
+#navigation ul li a {
+text-decoration: none;
+color: #FFF;
+padding: 8px 12px;
+float: left;
+}
+#sln_home #navigation .home a, 
+#sln_aaa #navigation .aaa a,
+#sln_adzones #navigation .adzones a
+ {
+color: #35393d;
+background-color: #FFF;
+}
+
+
+/* CONTENT
+========================================= */
+#content {
+padding: 30px;
+width: 700px;
+float: left
+}
+#content h2 {
+font-size:177%;
+font-weight:  lighter;
+font-family: Helvetica, Verdana, san-serif;
+color: #5f666b;
+}
+#content ul {
+padding: 20px; 
+background-color: #EEE;
+}
+#content li {
+margin-bottom: 15px;
+font-family: Georgia;
+font-size: 16px;
+}
+
+/* SIDEBAR
+========================================= */
+#sidebar {
+padding: 20px;
+width: 200px;
+float: left;
+background-color: #EEE;
+margin-top: 20px;
+}
+#sidebar h2 {
+color: #272b2b;
+font-size: 107%;
+font-weight: bold;
+margin-bottom: 10px;
+}
+#sidebar li {
+margin-bottom: 10px;
+}
+#sidebar li a {
+color: #f09900;
+}

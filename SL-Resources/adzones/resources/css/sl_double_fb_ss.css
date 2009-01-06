@@ -1,0 +1,135 @@
+/*---------------------------------------------
+SILVER LINING STYLE SHEET
+Version: 2.0
+Author: SILVER LINING NETWORKS INC.
+---------------------------------------------*/
+
+/*= GENERAL
+=== === === === === === === === === === === === === */
+body {
+margin: 0;
+padding: 0;
+}
+.silver_lining_clear {
+clear: both;
+}
+#silver_lining_ad_horizontal {
+text-align: center;
+padding: 10px 0px 16px 0px;
+background: #FFF url(../images/backgrounds/border.png) repeat-x bottom left; 
+position: relative;
+}
+#silver_lining_double_ad_fb {
+position: absolute;
+left: 0;
+top: 86px;
+bottom: 0;
+padding:10px 16px 10px 10px;
+background: #FFF url(../images/backgrounds/border_vertical.png) repeat-y top right; 
+}
+#silver_lining_close_vert {
+position: absolute;
+top: -7px;
+right: -7px;
+border: none;
+}
+#silver_lining_webpage {
+position: relative;
+}
+
+/*= FULL BANNER
+=== === === === === === === === === === === === === */
+#silver_lining_full_banner {
+text-align: left;
+margin-left:auto;
+margin-right: auto;
+max-width: 800px;
+min-width: 800px;
+height: 60px;
+position: relative;
+}
+* html #silver_lining_full_banner {
+width:960px;
+}
+#silver_lining_full_banner #silver_lining_bug {
+float: left; 
+height: 60px;
+width: 200px;
+background-position: top left !important;
+background-repeat: no-repeat !important;
+overflow: hidden;
+}
+#silver_lining_full_banner #silver_lining_client_ad {
+float: left;
+height: 60px;
+width: 468px;
+overflow: hidden;
+margin-left: 10px;
+}
+#silver_lining_full_banner #silver_lining_homepage {
+position: absolute;
+background: url(../images/logos/sl_logo_small.png) no-repeat top left;
+width: 89px;
+height: 64px;
+overflow: hidden;
+font-family: Verdana, Arial, serif;
+font-size: 10px;
+text-indent: -3000px;
+bottom: -37px;
+right: 5px;
+border: none;
+z-index: 5000;
+}
+* html #silver_lining_full_banner #silver_lining_homepage {
+background: url(../images/logos/sl_logo_small_low.png) no-repeat top left;
+}
+#silver_lining_full_banner #silver_lining_close {
+position: absolute;
+top: 0px;
+right: 10px;
+border: none;
+}
+#silver_lining_full_banner #silver_lining_close img,
+#silver_lining_full_banner #silver_lining_homepage img{
+border: none;
+}
+
+/*= SKYSCRAPER
+=== === === === === === === === === === === === === */
+#silver_lining_skyscraper_webpage {
+margin-left: 146px;
+position: relative;
+}
+#silver_lining_skyscraper {
+width: 120px;
+position: relative;
+padding: 20px 0px;
+}
+#silver_lining_skyscraper #silver_lining_bug {
+height: 90px;
+width: 120px;
+background-position: top center !important;
+background-repeat: no-repeat !important;
+overflow: hidden;
+}
+#silver_lining_skyscraper #silver_lining_client_ad {
+width: 120px;
+overflow: hidden;
+font-family: Verdana, Arial, serif;
+font-size: 12px;
+line-height: 22px;
+color: #087877;
+text-align: center;
+}
+#silver_lining_skyscraper #silver_lining_client_ad p,
+#silver_lining_skyscraper #silver_lining_client_ad a  {
+color: #087877;
+text-decoration: none;
+}
+#silver_lining_skyscraper #silver_lining_client_ad a:hover  {
+text-decoration: underline;
+}
+#silver_lining_skyscraper #silver_lining_close_vert img {
+border: none;
+}
+

@@ -1,0 +1,88 @@
+/*---------------------------------------------
+SILVER LINING STYLE SHEET
+Version: 2.0
+Author: SILVER LINING NETWORKS INC.
+---------------------------------------------*/
+
+/*= GENERAL
+=== === === === === === === === === === === === === */
+body {
+margin: 0;
+padding: 0;
+}
+.silver_lining_clear {
+clear: both;
+}
+#silver_lining_ad_vertical {
+position: absolute;
+left: 0;
+top: 0;
+bottom: 0;
+padding:10px 16px 10px 10px;
+background: #FFF url(../images/backgrounds/border_vertical.png) repeat-y top right; 
+}
+#silver_lining_webpage {
+position: relative;
+}
+
+/*= HALF PAGE
+=== === === === === === === === === === === === === */
+#silver_lining_halfpage_webpage {
+margin-left: 326px;
+}
+#silver_lining_half_page {
+width: 300px;
+position: relative;
+padding: 20px 0px;
+}
+#silver_lining_half_page #silver_lining_bug {
+height: 90px;
+width: 300px;
+background-position: top center !important;
+background-repeat: no-repeat !important;
+overflow: hidden;
+}
+#silver_lining_half_page #silver_lining_client_ad {
+width: 300px;
+overflow: hidden;
+font-family: Verdana, Arial, serif;
+font-size: 12px;
+line-height: 22px;
+color: #087877;
+text-align: center;
+}
+#silver_lining_half_page #silver_lining_client_ad p,
+#silver_lining_half_page #silver_lining_client_ad a  {
+color: #087877;
+text-decoration: none;
+}
+#silver_lining_half_page #silver_lining_client_ad a:hover  {
+text-decoration: underline;
+}
+#silver_lining_half_page #silver_lining_homepage {
+position: absolute;
+background: url(../images/logos/sl_logo_small.png) no-repeat top left;
+width: 89px;
+height: 64px;
+overflow: hidden;
+font-family: Verdana, Arial, serif;
+font-size: 10px;
+text-indent: -3000px;
+bottom: -40px;
+right: -45px;
+border: none;
+z-index: 1000;
+}
+* html #silver_lining_half_page #silver_lining_homepage {
+background: url(../images/logos/sl_logo_small_low.png) no-repeat top left;
+}
+#silver_lining_half_page #silver_lining_close {
+position: absolute;
+top: -5px;
+right: -5px;
+border: none;
+}
+#silver_lining_half_page #silver_lining_close img,
+#silver_lining_half_page #silver_lining_homepage img{
+border: none;
+}
