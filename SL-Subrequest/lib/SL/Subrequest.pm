@@ -3,7 +3,7 @@ package SL::Subrequest;
 use strict;
 use warnings;
 
-our $VERSION = 0.02;
+our $VERSION = 0.03;
 
 use String::Strip    ();
 use HTML::TokeParser ();
@@ -228,7 +228,7 @@ sub _normalize_url {
 
     # canonicalize the URL
     my $canonical_url;
-    if ( $url =~ m!^http?://! ) {    # we skip https on purpose thanks
+    if ( $url =~ m!^http://! ) {    # we skip https on purpose thanks
 
         # full url
         $canonical_url = URI->new($url)->canonical->as_string;

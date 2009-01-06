@@ -1,5 +1,8 @@
 Revision history for Perl extension SL::Subrequest.
 
+0.03  Tue Jan 05 11:36:00 2009
+    - only replace http:// subrequests
+
 0.02  Wed Jul 02 22:22:00 2008
     - fix tests and stuff
 

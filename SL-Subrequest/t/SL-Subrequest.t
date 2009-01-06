@@ -119,6 +119,7 @@ __DATA__
 <iframe src="subreq.cgi"></iframe>
 <p>
 <a href="not_subreq.cgi">bar</a>
+<img src="https://imagefarm.com/pig.jpg">
 <img src="http://imagefarm.com/pig.jpg">
 <img src=images/news.gif alt="" border=0 width=205 height=85>
   <!-- file:// link to trip up our tests -->
