@@ -14,7 +14,7 @@ use Business::OnlinePayment::AuthorizeNet ();
 
 # some globals
 
-our $VERSION = 0.02;
+our $VERSION = 0.03;
 
 our ( $Config, $Authorize_login, $Authorize_key, $Business, $Notify_url,
     $Return );
@@ -23,12 +23,13 @@ BEGIN {
     $Config          = SL::Config->new;
     $Authorize_login = $Config->sl_authorize_login || die 'payment setup error';
     $Authorize_key   = $Config->sl_authorize_key || die 'payment setup error';
-    $Business        = 'support@silverliningnetworks.com';
-    $Notify_url = 'https://app.silverliningnetworks.com/sl/auth/paypal_notify';
-    $Return     = 'https://app.silverliningnetworks/sl/auth/paypal_return';
+    $Business        = 'paypal@silverliningnetworks.com';
+    $Notify_url = 'https://app.silverliningnetworks.com/sl/paypal/notify';
+    $Return     = 'https://app.silverliningnetworks/sl/paypal/return';
 }
 
 our %Plans = (
+    'test'  => { duration => { 'hours'  => 1 }, cost => '$0.01', },
     'one'   => { duration => { 'hours'  => 1 }, cost => '$2.00', },
     'four'  => { duration => { 'hours'  => 4 }, cost => '$3.00', },
     'day'   => { duration => { 'days'   => 1 }, cost => '$5.00', },
@@ -43,6 +44,16 @@ BEGIN { $Paypal = Business::PayPal->new; }
 
 use constant DEBUG     => $ENV{SL_DEBUG}     || 0;
 use constant TEST_MODE => $ENV{SL_TEST_MODE} || 0;
+
+sub _plan_from_cost {
+    my ($class, $cost) = @_;
+
+    foreach my $plan (keys %Plans) {
+	return $Plans{$plan} if $Plans{$plan}->{cost} eq '$' . $cost;
+    }
+
+    die "No plan found for cost $cost";
+}
 
 sub plan {
     my ( $class, $plan ) = @_;
@@ -67,6 +78,7 @@ sub paypal_button {
     my $button = $Paypal->button(
         business      => $Business,
         item_name     => $item_name,
+	item_number   => 420,
         return        => $Return,
         cancel_return => $cancel_return,
         amount        => SL::Payment->plan($plan)->{cost},
@@ -84,35 +96,41 @@ sub paypal_button {
 }
 
 sub paypal_save {
-  my ($class, $args, $session) = @_;
+    my ($class, $args) = @_;
 
-  die "transaction not completed for " . $args->{custom} . "\n" unless $args->{paystatus} eq 'Completed';
+    die "transaction not completed for " . $args->{custom} . "\n"
+        unless $args->{payment_status} eq 'Completed';
 
-  my $cost = $class->plan( $session->{plan} )->{cost};
-  die "cost of plan $cost and amount paid " . $args->{payment_gross} . " error\n"
-    unless ($cost eq $args->{payment_gross});
+    my $plan = eval { $class->_plan_from_cost($args->{payment_gross}); };
+    die $@ if $@;
 
     my $stop =
       DateTime::Format::Pg->format_datetime(
-        DateTime->now( time_zone => 'local' )->add( %{ $class->plan( $session->{plan}->{duration} ) } ) );
+        DateTime->now( time_zone => 'local' )->add( %{$plan->{duration}} ) );
 
 
-  # ok save the payment
-    my $payment = SL::Model::App->resultset('Payment')->create(
+    # ok save the payment
+    my $payment = eval { SL::Model::App->resultset('Payment')->create(
         {
-            account_id => $session->{account_id},
-            mac        => $session->{mac},
+            account_id => $args->{account_id},
+            mac        => $args->{mac},
             amount     => $args->{payment_gross},
             stop       => $stop,
-            email      => $session->{email},
+            email      => $args->{email},
             last_four  => '0',
             card_type  => 'paypal',
-            ip         => $session->{ip},
+            ip         => $args->{ip},
             expires    => 'N/A',
         }
-    );
+			    
+    ); };
 
+    if ($@) {
+	require Data::Dumper;
+	die "Error in paypal_save: " . Data::Dumper::Dumper($args);
+    }
 
+    return $payment;
 }
 
 

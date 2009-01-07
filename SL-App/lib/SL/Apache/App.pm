@@ -100,7 +100,18 @@ sub valid_link {
         my $dfv = shift;
         my $val = $dfv->get_current_constraint_value;
 
-        my $response = $UA->get( URI->new($val) );
+	my $uri = eval { URI->new($val) };
+	if ($@) {
+	    warn("$$ problem creating URI object from url $val: $@");
+	    return;
+	}
+
+        my $response = eval { $UA->get( $uri ) };
+	if ($@) {
+	    warn("$$ problem grabbing uri " . $uri->as_string . ": $@");
+	    return;
+	}
+
         return $val if $response->is_success;
         return;    # oops didn't validate
       }

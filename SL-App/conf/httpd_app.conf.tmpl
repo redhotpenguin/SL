@@ -158,12 +158,12 @@ PerlLoadModule Apache2::Dispatch
     PerlResponseHandler SL::Apache::App::CP->check
 </Location>
 
-<Location /auth/paypal_notify>
+<Location /paypal/notify>
     SetHandler modperl
     PerlResponseHandler SL::Apache::App::CP->paypal_notify
 </Location>
 
-<Location /auth/paypal_return>
+<Location /paypal/return>
     SetHandler modperl
     PerlResponseHandler SL::Apache::App::CP->paypal_return
 </Location>

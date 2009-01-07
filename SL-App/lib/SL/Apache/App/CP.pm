@@ -11,8 +11,11 @@ use Apache2::Connection ();
 use Apache2::Request    ();
 use Apache2::SubRequest ();
 
+use Apache::Session::DB_File ();
+
 use base 'SL::Apache::App';
 
+use Data::Dumper;
 use Data::FormValidator ();
 use Data::FormValidator::Constraints qw(:closures);
 use Regexp::Common qw( net );
@@ -30,13 +33,30 @@ use constant TEST_MODE => $ENV{SL_TEST_MODE} || 0;
 
 our $From = "SLN Support <support\@silverliningnetworks.com>";
 
-# this specific template logic
-if (DEBUG) {
-    require Data::Dumper;
-}
-
 use SL::Model;
 use SL::Model::App;    # works for now
+
+
+our ( $Config, %Sess_opts );
+
+BEGIN {
+    require SL::Config;
+    $Config = SL::Config->new();
+
+    # session
+    unless ( -d $Config->sl_app_session_dir ) {
+        system( 'mkdir -p ' . $Config->sl_app_session_dir ) == 0 or die $!;
+    }
+
+    %Sess_opts = (
+        FileName => join( '/',
+            $Config->sl_app_session_dir, $Config->sl_app_session_lock_file ),
+        LockDirectory => $Config->sl_app_session_dir,
+        Transaction   => 1,
+    );
+}
+
+
 
 sub check {
     my ( $class, $r ) = @_;
@@ -68,7 +88,7 @@ sub check {
       ->search( \%payment_args, { order_by => 'cts DESC', }, );
 
     if (DEBUG && $payment) {
-        $r->log->debug( "payment is " . Data::Dumper::Dumper($payment) );
+        $r->log->debug( "payment is " . Dumper($payment) );
     }
 
     return Apache2::Const::NOT_FOUND unless $payment;
@@ -147,8 +167,10 @@ sub paypal_notify {
     my $req   = Apache2::Request->new($r);
     my %query = %{ $req->param };
 
+    $r->log->error("Notify Query params is " . Dumper(\%query));
+
     my $id = $query{custom};
-    $r->log->info("ID is $id");
+    $r->log->error("ID is $id");
 
     my $paypal = Business::PayPal->new($id);
     my ( $txnstatus, $reason ) = $paypal->ipnvalidate( \%query );
@@ -158,12 +180,11 @@ sub paypal_notify {
     }
 
     # transaction is ok
-    my $session;
-    eval { SL::Payment->paypal_save( \%query, $session ) };
+    my $payment;
+    eval { $payment = SL::Payment->paypal_save( \%query ) };
     if ($@) {
-        require Data::Dumper;
         $r->log->error(
-            "could not save Paypal IPN to database: " . Dumper( \%query ) );
+            "could not save Paypal IPN to database: $@\n" . Dumper( \%query ) );
         return Apache2::Const::SERVER_ERROR;
     }
 
@@ -173,6 +194,45 @@ sub paypal_notify {
 sub paypal_return {
     my ( $class, $r ) = @_;
 
+    my $req   = Apache2::Request->new($r);
+    my %query = %{ $req->param };
+
+    # get the session id
+    my $session_id = $query{custom} || die "No custom field: " . Dumper(\%query);
+
+    # load the session
+    my %session;
+    eval {
+        tie %session, 'Apache::Session::DB_File', $session_id, \%Sess_opts;
+        $r->log->error("tied session $session_id: " . Dumper(\%session)) if DEBUG;
+    };
+
+    if ($@) {
+	$r->log->error("session missing id $session_id, args " . Dumper(\%query));
+	return Apache2::Const::SERVER_ERROR;
+    }
+
+    # get the router
+    my $router = SL::Model::App->resultset('Router')->search({
+	router_id => $session{router_id} });
+
+    unless($router) {
+        $r->log->error("router id not found for session " . Dumper(\%session));
+	return Apache2::Const::SERVER_ERROR;
+    }
+
+    my $splash_href = $router->splash_href;
+    unless ($splash_href) {
+        $r->log->error("router not configured for CP: " . Dumper($router));
+
+	# send to a safe landing
+	$r->headers_out->set( Location => 'http://www.silverliningnetworks.com/');
+	return Apache2::Const::REDIRECT;
+    } else {
+	$r->headers_out->set( Location => $splash_href );
+    }
+
+    return Apache2::Const::REDIRECT;
 }
 
 sub auth {
@@ -450,7 +510,7 @@ sub paid {
 
         my $url         = $r->construct_url( $r->unparsed_uri );
         my $account     = $r->pnotes('router')->account_id->name;
-        my @button_args = ( $plan, $url, $account . ' WiFi Purchase', 1 );
+        my @button_args = ( 'test', $url, $account . ' WiFi Purchase', 1 );
 
         # add the paypal button
         $tmpl_data{paypal_button} = SL::Payment->paypal_button(@button_args);
@@ -496,7 +556,7 @@ sub paid {
 
         # handle form errors
         if ( $results->has_missing or $results->has_invalid ) {
-            $r->log->error( "results: " . Data::Dumper::Dumper($results) );
+            $r->log->error( "results: " . Dumper($results) );
 
             my $errors = $class->SUPER::_results_to_errors($results);
             return $class->paid(

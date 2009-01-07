@@ -15,11 +15,13 @@ sub handler {
 
     my $ip = $r->connection->remote_ip;
 
+    my $url = $r->construct_url( $r->unparsed_uri );
+
     my ($location) =
       SL::Model::App->resultset('Location')->search( { ip => $ip } );
 
     unless ($location) {
-        $r->log->error("$$ no registered location for ip $ip");
+        $r->log->error("$$ no registered location for ip $ip and url $url");
         return Apache2::Const::NOT_FOUND;
     }
 
@@ -29,13 +31,13 @@ sub handler {
         { order_by => 'router.last_ping DESC', }, join => [ 'router' ], );
 
     unless ($router__location) {
-        $r->log->error("$$ no registered routers at ip $ip");
+        $r->log->error("$$ no registered routers at ip $ip and url $url");
         return Apache2::Const::NOT_FOUND;
     }
 
     my $router = $router__location->router_id;
     unless ( $router->lan_ip ) {
-        $r->log->error( "$$ no lan_ip for router id "
+        $r->log->error( "$$ url $url no lan_ip for router id "
               . $router->router_id );
         return Apache2::Const::NOT_FOUND;
     }
