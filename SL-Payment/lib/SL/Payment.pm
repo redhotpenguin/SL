@@ -25,7 +25,7 @@ BEGIN {
     $Authorize_key   = $Config->sl_authorize_key || die 'payment setup error';
     $Business        = 'paypal@silverliningnetworks.com';
     $Notify_url = 'https://app.silverliningnetworks.com/sl/paypal/notify';
-    $Return     = 'https://app.silverliningnetworks/sl/paypal/return';
+    $Return     = 'https://app.silverliningnetworks.com/sl/paypal/return';
 }
 
 our %Plans = (
@@ -35,10 +35,6 @@ our %Plans = (
     'day'   => { duration => { 'days'   => 1 }, cost => '$5.00', },
     'month' => { duration => { 'months' => 1 }, cost => '$25.00', },
 );
-
-our $Paypal;
-
-BEGIN { $Paypal = Business::PayPal->new; }
 
 # some constants
 
@@ -75,10 +71,11 @@ sub paypal_button {
         && $item_name
         && $quantity );
 
-    my $button = $Paypal->button(
+    my $paypal = Business::PayPal->new;
+    my $button = $paypal->button(
         business      => $Business,
         item_name     => $item_name,
-	item_number   => 420,
+	item_number   => 429,
         return        => $Return,
         cancel_return => $cancel_return,
         amount        => SL::Payment->plan($plan)->{cost},
@@ -92,7 +89,7 @@ sub paypal_button {
         ),
     );
 
-    return $button;
+    return ( $button, $paypal->id );
 }
 
 sub paypal_save {
@@ -127,7 +124,7 @@ sub paypal_save {
 
     if ($@) {
 	require Data::Dumper;
-	die "Error in paypal_save: " . Data::Dumper::Dumper($args);
+	die "Error in paypal_save: " . Data::Dumper::Dumper($args) . ", $@";
     }
 
     return $payment;
