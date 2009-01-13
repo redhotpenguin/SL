@@ -35,7 +35,7 @@ BEGIN {
     $Lease_file     = $Config->sl_dhcp_lease_file || die 'oops';
 
     %tables_chains = (
-        filter => [qw( slAUT slNET slRTR )],
+        filter => [qw( slAUT slAUTads slNET slRTR )],
         mangle => [qw( slBLK slINC slOUT slTRU )],
         nat    => [qw( slOUT slADS )],
     );
@@ -63,32 +63,32 @@ sub init_firewall {
     my $filters = <<"FILTERS";
 INPUT -i $Int_if -j slRTR
 FORWARD -i $Int_if -j slNET
-slAUT -m state --state RELATED,ESTABLISHED -j ACCEPT
-slAUT -p tcp -m tcp --dport 53 -j ACCEPT 
-slAUT -p udp -m udp --dport 53 -j ACCEPT 
-slAUT -p tcp -m tcp --dport 80 -j ACCEPT 
-slAUT -p tcp -m tcp --dport 443 -j ACCEPT 
-slAUT -p tcp -m tcp --dport 22 -j ACCEPT 
-slAUT -p tcp -m tcp --dport 143 -j ACCEPT 
-slAUT -p tcp -m tcp --dport 1723 -j ACCEPT 
-slAUT -p udp -m udp --dport 1701 -j ACCEPT 
-slAUT -p udp -m udp --dport 500 -j ACCEPT 
-slAUT -p tcp -m tcp --dport 3389 -j ACCEPT 
-slAUT -p tcp -m tcp --dport 993 -j ACCEPT 
-slAUT -p tcp -m tcp --dport 995 -j ACCEPT 
-slAUT -p tcp -m tcp --dport 587 -j ACCEPT 
-slAUT -p tcp -m tcp --dport 5050 -j ACCEPT 
-slAUT -p tcp -m tcp --dport 5190 -j ACCEPT 
-slAUT -p tcp -m tcp --dport 5222 -j ACCEPT 
-slAUT -p tcp -m tcp --dport 5223 -j ACCEPT 
-slAUT -p tcp -m tcp --dport 25 -j ACCEPT 
-slAUT -j REJECT --reject-with icmp-port-unreachable
+slAUT --protocol tcp --source-port ! 25 -j ACCEPT
+slAUTads -m state --state RELATED,ESTABLISHED -j ACCEPT
+slAUTads -p tcp -m tcp --dport 53 -j ACCEPT 
+slAUTads -p udp -m udp --dport 53 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 80 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 443 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 22 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 110 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 143 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 1723 -j ACCEPT 
+slAUTads -p udp -m udp --dport 1701 -j ACCEPT 
+slAUTads -p udp -m udp --dport 500 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 3389 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 993 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 995 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 5050 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 5190 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 5222 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 5223 -j ACCEPT 
+slAUTads  -j REJECT --reject-with icmp-port-unreachable
 slNET -m mark --mark 0x100/0x700 -j DROP
 slNET -m state --state INVALID -j DROP
 slNET -p tcp -m tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
 slNET -m mark --mark 0x200/0x700 -j ACCEPT
 slNET -m mark --mark 0x400/0x700 -j slAUT
-slNET -m mark --mark 0x500/0x700 -j slAUT
+slNET -m mark --mark 0x500/0x700 -j slAUTads
 slNET -p tcp -m tcp --dport 53 -j ACCEPT
 slNET -p udp -m udp --dport 53 -j ACCEPT
 slNET -d $Auth_ip -p tcp -m tcp --dport 443 -j ACCEPT
