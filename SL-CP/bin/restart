@@ -1,0 +1,4 @@
+SL_CP_PID_FILE=$HOME/dev/sl/trunk/SL-App/tmp/sl_cp.pid
+PID=`cat $SL_CP_PID_FILE`
+echo "killing pid $PID and restarting"
+kill "$PID" && sleep 1 && perl bin/sl_cp
