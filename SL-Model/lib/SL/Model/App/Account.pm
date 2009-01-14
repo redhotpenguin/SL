@@ -32,7 +32,7 @@ __PACKAGE__->add_columns(
   "premium",
   {
     data_type => "boolean",
-    default_value => "false",
+    default_value => "true",
     is_nullable => 0,
     size => 1,
   },
