@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# uncomment to svn update
+#SVN_UPDATE=1
+
 # check for dependencies
 for prog in flex gawk bison patch autoconf make gcc g++ svn
 do
@@ -22,27 +25,73 @@ else
 fi
 
 KREV=11949
-echo "checking out kamikaze revision $KREV"
-svn co -r 11949 https://svn.openwrt.org/openwrt/trunk "kamikaze_$KREV"
+KDIR="kamikaze_$KREV"
+if [ -d $KDIR ]
+then
+    if [ $SVN_UPDATE ]
+    then
+        echo "svn updating $KDIR"
+	svn update $KDIR
+    else
+	echo "$KDIR exists, skipping checkout"
+    fi
+else
+    echo "no directory $KDIR, checking out from svn"
+    svn co -r $KREV https://svn.openwrt.org/openwrt/trunk $KDIR
+fi
 
-svn co https://svn.openwrt.org/openwrt/packages packages
+# package directory
+if [ -d packages ]
+then
+    if [ $SVN_UPDATE ]
+    then
+        echo "svn updating packages"
+	svn update packages
+    else
+	echo "packages exists, skipping checkout"
+    fi
+else
+    echo "no directory packages, checking out from svn"
+    svn co https://svn.openwrt.org/openwrt/packages packages
+fi    
 
-svn co https://svn2.hosted-projects.com/ansanto/robin/openwrt/kamikaze_8 ROBIN
+# check out robin build
+if [ -d ROBIN ]
+then
+    if [ $SVN_UPDATE ]
+    then
+        echo "svn updating ROBIN"
+	svn update ROBIN
+    else
+	echo "ROBIN exists, skipping checkout"
+    fi
+else
+    echo "no directory ROBIN, checking out from svn"
+    svn co https://svn2.hosted-projects.com/ansanto/robin/openwrt/kamikaze_8 ROBIN
+fi    
 
-sudo cp -rf ROBIN/package/* kamikaze_11949/package
+echo "chmod'ng files"
+chmod -R 755 *
 
-sudo cp -rf ROBIN/packages/* packages/net
+echo "copy the robin package files"
 
-cd kamikaze_11949/package
+cp -rf ROBIN/package/* $KDIR/package
 
-sudo ln -sf ../../packages/*/* .
+cp -rf ROBIN/packages/* packages/net
+
+echo "entering kamikaze build package dir"
+cd $KDIR/package
+
+echo "symlinking packages"
+ln -sf ../../packages/*/* . 2>/dev/null
 
 cd ../..
 
-sudo cp -f ROBIN/.config kamikaze_11949
+echo "copying config file"
+cp -f ROBIN/.config $KDIR
 
-cd kamikaze_11949
+cd $KDIR
 
-sudo make menuconfig
+make menuconfig
 
-sudo make
+make
