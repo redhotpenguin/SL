@@ -1,26 +1,20 @@
-#!/bin/sh
+#!/bin/bash
 
-sudo apt-get install flex
+# check for dependencies
+for prog in flex gawk bison patch autoconf libncurses5-dev make gcc g++ subversion
+do
+    if [ ! -x '/usr/bin/flex' ];
+    then
+	echo "$prog not installed, please run 'sudo apt-get install $prog'"
+	exit 1
+    else
+	echo "$prog installed ok"
+    fi
+done
 
-sudo apt-get install gawk
-
-sudo apt-get install bison
-
-sudo apt-get install patch
-
-sudo apt-get install autoconf
-
-sudo apt-get install libncurses5-dev
-
-sudo apt-get install make
-
-sudo apt-get install gcc
-
-sudo apt-get install g++
-
-sudo apt-get install subversion
-
-svn co -r 11949 https://svn.openwrt.org/openwrt/trunk kamikaze_11949
+KREV=11949
+echo "checking out kamikaze revision $KREV"
+svn co -r 11949 https://svn.openwrt.org/openwrt/trunk "kamikaze_$KREV"
 
 svn co https://svn.openwrt.org/openwrt/packages packages
 
