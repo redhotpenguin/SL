@@ -4,9 +4,23 @@ use strict;
 use warnings;
 
 # specify what versions of components we want to use
-our $Robin_ver         = 1518;
-our $Kamikaze_ver      = 11949;
-our $Kamikaze_pkgs_ver = 11949;
+our %Sources = (
+
+ 'robin' => { 
+    revision => 1518,
+    url => 'https://svn2.hosted-projects.com/ansanto/robin/openwrt/kamikaze_8',
+  },
+
+ 'kamikaze' => {
+   revision => 11949,
+   url => 'https://svn.openwrt.org/openwrt/trunk',
+  },
+	
+ 'packages' => {
+   revision => 11949,
+   url => 'https://svn.openwrt.org/openwrt/packages',	  
+  },
+);
 
 # check for dependencies
 foreach my $prog qw( flex gawk bison patch autoconf make gcc g++ svn ) {
@@ -26,29 +40,38 @@ if ( ! -x '/usr/lib/libncurses.so' ) {
     print "libncurses-dev installed ok\n";
 }
 
-my $kamikaze = "kamikaze_$Kamikaze_ver";
-my $kamikaze_unpack="unpack/$kamikaze";
+# see if the sources are setup ok
+foreach my $source ( keys %Sources ) {
 
-if ( -d $kamikaze_unpack ) {
-    my $status =`svn status $kamikaze_unpack`;
+    my $dir = join('_', $source, $Sources{$source}->{revision});
 
-#    print "status $status";
-    if ($status =~ m/^M/) {
-	print "modified source for $kamikaze_unpack, exiting\n";
-	exit(1);
+    if (-d "unpack/$dir") {
+
+	my $status =`svn status unpack/$dir`;
+
+        #    print "status $status";
+	if ($status =~ m/^M/) {
+	    print "modified source for unpack/$dir, exiting\n";
+	    exit(1);
+	} else {
+	    print "\n$dir ready to build\n";
+	}
     } else {
-	print "$kamikaze ready to build\n";
-    }
-
-} else {
-    print "no directory $kamikaze_unpack, checking src dir\n";
-    if ( ! -f "src/$kamikaze.tar.bz2" ) {
-	print "source file for $kamikaze exists, unpacking\n";
-	`cd unpack`;
-	`tar jxvpf ../src/$kamikaze.tar.bz2`;
-	print "source unpacked";
+	print "no directory unpack/$dir, checking src dir\n";
+	if ( -f "src/$dir.tar.bz2" ) {
+	    print "source file for $dir exists, unpacking\n";
+	    `cd unpack`;
+	    `tar jxvpf ../src/$dir.tar.bz2`;
+	    print "source unpacked";
+	} else {
+	    print "source file src/$dir.tar.bz2 missing, please add it\n";
+	    exit(1);
+	}
     }
 }
+
+
+
 
 __END__
 
@@ -80,7 +103,7 @@ then
     fi
 else
     echo "no directory ROBIN, checking out from svn"
-    svn co https://svn2.hosted-projects.com/ansanto/robin/openwrt/kamikaze_8 ROBIN
+
 fi    
 
 exit 0
