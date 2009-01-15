@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # check for dependencies
-for prog in flex gawk bison patch autoconf libncurses5-dev make gcc g++ subversion
+for prog in flex gawk bison patch autoconf make gcc g++ svn
 do
-    if [ ! -x '/usr/bin/flex' ];
+    if [ ! -x "/usr/bin/$prog" ];
     then
 	echo "$prog not installed, please run 'sudo apt-get install $prog'"
 	exit 1
@@ -11,6 +11,15 @@ do
 	echo "$prog installed ok"
     fi
 done
+
+# check for libncurses
+if [ ! -x '/usr/lib/libncurses.so' ];
+then
+    echo "libncurses5-dev missing, run 'sudo apt-get install libncurses5-dev"
+    exit 1
+else
+    echo "libncurses-dev installed ok"
+fi
 
 KREV=11949
 echo "checking out kamikaze revision $KREV"
