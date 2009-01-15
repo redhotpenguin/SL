@@ -16,7 +16,7 @@ do
 done
 
 # check for libncurses
-if [ ! -x '/usr/lib/libncurses.so' ];
+if [ ! -x '/usr/lib/libncurses.so OR /usr/include/ncurses.h' ];
 then
     echo "libncurses5-dev missing, run 'sudo apt-get install libncurses5-dev"
     exit 1
