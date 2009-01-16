@@ -14,11 +14,10 @@
 	<!-- NAVIGATION -->
 	<div id="navigation">  
 	<ul>
-	    <li><a href="#">Home</a></li>
-	    <li><a href="#">Portfolio</a></li>
-	    <li><a href="#">Blog</a></li>
-	    <li><a href="#">About</a></li>
-	    <li><a href="#">Contact</a></li>
+	    <li><a href="#">Settings</a></li>
+	    <li><a href="#">Statistics</a></li>
+	    <li><a href="#">My Network</a></li>
+	    <li class="selected"><a href="#">Dashboard</a></li>
 	  </ul>
 	<div class="clear"></div>
 	</div>

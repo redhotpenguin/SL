@@ -76,8 +76,15 @@ margin-right: 20px;
 #navigation li {
 float: right;
 padding: 5px 10px;
-background-color: #D6D5D3;
 margin-left: 10px;
+}
+#navigation li.selected {
+background-color: #D6D5D3;
+}
+#navigation li.selected a {
+text-decoration: none;
+font-weight: bold;
+color: #333;
 }
 
 /* FOOTER
@@ -85,6 +92,7 @@ margin-left: 10px;
 #footer {
 background-color: #EEE;
 padding: 10px;
+text-align: center
 }
 #footer li {
 margin: 10px;
