@@ -1,0 +1,105 @@
+
+/* LAYOUT
+============================================= */
+body {
+background-color: #FFF;
+color: #333;
+}
+#wrap {
+margin: 0 auto;
+min-width: 770px;
+max-width:1200px;
+}
+#content {
+background-color: #EBEAE8;
+border-top: 1px solid #D6D5D3;
+padding: 7px 8px 9px;
+}
+#content-layout {
+background-color: #FFF;
+}
+#content-primary-wrap {
+float: left;
+width: 100%;
+margin-right: -200px;
+}
+#content-primary {
+padding: 0px 12px 0px 13px;
+margin-right: 200px;
+}
+#content-secondary {
+float: right;
+width: 190px;
+background-color: #EEE;
+}
+
+/* SKINNY NAV
+============================================= */
+#skinny_nav {
+background-color: #333;
+padding: 5px;
+}
+#skinny_nav li {
+float: right;
+margin-left: 15px;
+}
+#skinny_nav li a {
+color: #FFF;
+}
+#skinny_nav li.help a {
+background-color: #ffc207;
+color: #333;
+text-decoration: none;
+padding: 2px;
+}
+
+/* MASTHEAD
+============================================= */
+#masthead {
+position: relative;
+padding-top: 130px;
+
+}
+#masthead h1 {
+position: absolute;
+left: 20px; 
+top: 0px;
+height: 150px;
+width: 200px;
+background:url(../images/logos/plain_logo.png) no-repeat top left;
+text-indent: -3000px;
+}
+#navigation ul {
+float: right;
+margin-right: 20px;
+}
+#navigation li {
+float: right;
+padding: 5px 10px;
+background-color: #D6D5D3;
+margin-left: 10px;
+}
+
+/* FOOTER
+============================================= */
+#footer {
+background-color: #EEE;
+padding: 10px;
+}
+#footer li {
+margin: 10px;
+display: inline;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

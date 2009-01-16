@@ -1,0 +1,6 @@
+#wrap {
+width:expression(document.body.clientWidth > 1200 ? "1200px" : (document.body.clientWidth < 772 ? "770px": "auto"));
+}
+#content-layout {
+height: 1%;
+}
