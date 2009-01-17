@@ -26,7 +26,10 @@ use Business::PayPal ();
 use SL::App::Template ();
 our $Tmpl = SL::App::Template->template();
 
+our $Cookie_name = 'SLN CP';
+
 use SL::Payment ();
+use SL::Apache::App::CookieAuth ();
 
 use constant DEBUG     => $ENV{SL_DEBUG}     || 0;
 use constant TEST_MODE => $ENV{SL_TEST_MODE} || 0;
@@ -97,7 +100,7 @@ sub check {
     my $stop = DateTime::Format::Pg->parse_datetime( $payment->stop );
     $stop->set_time_zone('local');
 
-    # see jif the payment is expired
+    # see if the payment is expired
     if ( $now > $stop ) {
 
         $r->log->info(
@@ -196,9 +199,23 @@ sub paypal_return {
 
     my $req   = Apache2::Request->new($r);
     my %query = %{ $req->param };
+    my $custom = $query{custom} || die "No custom field: " . Dumper(\%query);
 
-    # get the session id
-    my $session_id = $query{custom} || die "No custom field: " . Dumper(\%query);
+    # grab the cookies
+    my $jar    = Apache2::Cookie::Jar->new($r);
+    my $cookie = $jar->cookies( $Cookie_name );
+
+    unless ($cookie) {
+
+	# no cookie is definitely a problem, means the cookie disappeared betwee
+	# paypal and us
+	$r->log->error("$$ cookie missing for return query " . Dumper(\%query));
+	return Apache2::Const::NOT_FOUND;
+    }
+
+    # decode the cookie
+    my %state = $class->decode( $cookie->value );
+    my $session_id = $state{session_id};
 
     # load the session
     my %session;
@@ -470,6 +487,38 @@ sub token {
     return Apache2::Const::OK;
 }
 
+
+sub send_cookie {
+    my ( $class, $r, $session_id ) = @_;
+
+    require Carp  && Carp::confess('bad cookie attempt!')
+      unless $session_id;
+
+    # Give the user a new cookie
+    my %state = (
+        last_seen  => time(),
+        session_id => $session_id,
+    );
+
+    my $cookie = Apache2::Cookie->new(
+        $r,
+        -name    => $Cookie_name,
+        -value   => SL::Apache::App::CookieAuth->encode( \%state ),
+        -expires => '15m',
+        -path    => $Config->sl_app_base_uri,
+    );
+
+    $cookie->bake($r);
+
+    # they're ok
+    $r->log->debug( "send_cookie for state " . Data::Dumper::Dumper( \%state ) )
+      if DEBUG;
+
+    return 1;
+}
+
+
+
 sub paid {
     my ( $class, $r, $args_ref ) = @_;
 
@@ -513,9 +562,32 @@ sub paid {
         my @button_args = ( 'test', $url, $account . ' WiFi Purchase', 1 );
 
         # add the paypal button
-        $tmpl_data{paypal_button} = SL::Payment->paypal_button(@button_args);
+        my ($button, $id) = SL::Payment->paypal_button(@button_args);
+	$tmpl_data{paypal_button} = $button;
 
-        $r->log->info( "paypal button is " . $tmpl_data{paypal_button} );
+
+=cut
+	# tie a session
+	my %session;
+        eval {
+                tie %session, 'Apache::Session::DB_File', undef, \%Sess_opts;
+        };
+
+	if ($@) {
+	    $r->log->error("Could not tie session");
+	    return Apache2::Const::SERVER_ERROR;
+	}
+
+	my $session_id = $session{_session_id};
+	$session{account_id} = $account->account_id->account_id;
+	$session{mac} = $mac;
+	$session{ip}  = $r->connection->remote_ip;
+	$session{custom} = $id;
+
+	# cookie the user with the id
+        $class->send_cookie( $r, $session_id );
+=cut
+
         my $output;
         my $ok = $Tmpl->process( 'auth/paid.tmpl', \%tmpl_data, \$output, $r );
 
