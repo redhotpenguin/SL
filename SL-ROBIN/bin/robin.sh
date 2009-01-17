@@ -1,7 +1,9 @@
 #!/bin/bash
 
-# uncomment to svn update
-#SVN_UPDATE=1
+# specify what versions of components we want to use
+ROBIN_VER=1518
+KAMIKAZE_VER=11949
+KAMIKAZE_PKGS_VER=11949
 
 # check for dependencies
 for prog in flex gawk bison patch autoconf make gcc g++ svn
@@ -24,22 +26,34 @@ else
     echo "libncurses-dev installed ok"
 fi
 
-KREV=11949
-KDIR="kamikaze_$KREV"
-if [ -d $KDIR ]
+KAMIKAZE="kamikaze_$KAMIKAZE_VER"
+KAMIKAZE_UNPACK="unpack/$KAMIKAZE"
+
+if [ -d $KAMIKAZE_UNPACK ]
 then
-    if [ $SVN_UPDATE ]
+    STATUS=`svn status $KAMIKAZE_UNPACK`
+
+    echo "status _$STATUS _"
+    if [ "$STATUS" ne 1 ]
     then
-        echo "svn updating $KDIR"
-	svn update $KDIR
+	echo "modified source";
+	exit 1
     else
-	echo "$KDIR exists, skipping checkout"
+	echo "$KAMIKAZE ready to build"
     fi
+
 else
-    echo "no directory $KDIR, checking out from svn"
-    svn co -r $KREV https://svn.openwrt.org/openwrt/trunk $KDIR
+    echo "no directory $KAMIKAZE_UNPACK, checking src dir"
+    if [ ! -f "src/$KAMIKAZE.tar.bz2" ]
+    then
+	echo "source file for $KAMIKAZE exists, unpacking"
+	cd unpack
+	tar jxvpf "../src/$KAMIKAZE.tar.bz2"
+	echo "source unpacked"
+    fi
 fi
 
+exit 1
 # package directory
 if [ -d packages ]
 then
@@ -70,6 +84,8 @@ else
     svn co https://svn2.hosted-projects.com/ansanto/robin/openwrt/kamikaze_8 ROBIN
 fi    
 
+exit 0
+
 echo "chmod'ng files"
 chmod -R 755 *
 
@@ -92,6 +108,6 @@ cp -f ROBIN/.config $KDIR
 
 cd $KDIR
 
-make menuconfig
+echo "making config and building"
 
-make
+make menuconfig && make

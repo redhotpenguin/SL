@@ -22,6 +22,11 @@ our %Sources = (
   },
 );
 
+# create directory names for usage later
+our ($Kam_dir, $Pkg_dir, $Robin_dir) = map { 
+	join('_', $_, $Sources{$_}->{revision} )
+  } sort keys %Sources;
+
 # check for dependencies
 foreach my $prog qw( flex gawk bison patch autoconf make gcc g++ svn ) {
     if ( ! -x "/usr/bin/$prog") {
@@ -33,7 +38,7 @@ foreach my $prog qw( flex gawk bison patch autoconf make gcc g++ svn ) {
 }
 
 # check for libncurses
-if ( ! -x '/usr/lib/libncurses.so' ) {
+if ( ! ( -x '/usr/lib/libncurses.so' or -x '/usr/include/ncurses.h' ) ) {
     print "libncurses5-dev missing, run 'sudo apt-get install libncurses5-dev\n";
     exit(1);
 } else {
@@ -47,6 +52,7 @@ foreach my $source ( keys %Sources ) {
 
     if (-d "unpack/$dir") {
 
+	print "checking status on dir unpack/$dir\n";
 	my $status =`svn status unpack/$dir`;
 
         #    print "status $status";
@@ -71,65 +77,39 @@ foreach my $source ( keys %Sources ) {
 }
 
 
+# go to the unpack directory and run a permissions check
+print "fixing up .svn files\n";
+chdir('./unpack') or die $!;
+`find . -name '.svn' | xargs chmod -R 0755`;
 
+print "copy the robin package files\n";
+`cp -rf $Robin_dir/package/* $Kam_dir/package`;
+`cp -rf $Robin_dir/packages/* $Pkg_dir/net`;
+
+print "entering kamikaze build package dir\n";
+chdir("$Kam_dir/package") or die $!;
+
+print "symlinking packages\n";
+`ln -sf ../../packages/*/* . 2>/dev/null`;
+
+chdir('../../') or die $!;
+
+print "copying config file\n";
+`cp -f $Robin_dir/.config $Kam_dir`;
+chdir($Kam_dir) or die $!;
+
+print "making config and building\n";
+
+print "run \n'cd unpack/$Kam_dir && make menuconfig && make'\n";
 
 __END__
 
-exit 1
-# package directory
-if [ -d packages ]
-then
-    if [ $SVN_UPDATE ]
-    then
-        echo "svn updating packages"
-	svn update packages
-    else
-	echo "packages exists, skipping checkout"
-    fi
-else
-    echo "no directory packages, checking out from svn"
-    svn co https://svn.openwrt.org/openwrt/packages packages
-fi    
 
-# check out robin build
-if [ -d ROBIN ]
-then
-    if [ $SVN_UPDATE ]
-    then
-        echo "svn updating ROBIN"
-	svn update ROBIN
-    else
-	echo "ROBIN exists, skipping checkout"
-    fi
-else
-    echo "no directory ROBIN, checking out from svn"
 
-fi    
-
-exit 0
-
-echo "chmod'ng files"
-chmod -R 755 *
-
-echo "copy the robin package files"
-
-cp -rf ROBIN/package/* $KDIR/package
-
-cp -rf ROBIN/packages/* packages/net
-
-echo "entering kamikaze build package dir"
-cd $KDIR/package
-
-echo "symlinking packages"
-ln -sf ../../packages/*/* . 2>/dev/null
 
 cd ../..
 
-echo "copying config file"
-cp -f ROBIN/.config $KDIR
 
 cd $KDIR
 
-echo "making config and building"
 
-make menuconfig && make
