@@ -38,12 +38,12 @@ foreach my $prog qw( flex gawk bison patch autoconf make gcc g++ svn ) {
 }
 
 # check for libncurses
-if ( ! ( -x '/usr/lib/libncurses.so' or -x '/usr/include/ncurses.h' ) ) {
-    print "libncurses5-dev missing, run 'sudo apt-get install libncurses5-dev\n";
-    exit(1);
-} else {
-    print "libncurses-dev installed ok\n";
-}
+#if ( ! ( -x '/usr/lib/libncurses.so' or -x '/usr/include/ncurses.h' ) ) {
+   # print "libncurses5-dev missing, run 'sudo apt-get install libncurses5-dev\n";
+   # exit(1);
+#} else {
+#    print "libncurses-dev installed ok\n";
+#}
 
 # see if the sources are setup ok
 foreach my $source ( keys %Sources ) {
@@ -66,8 +66,9 @@ foreach my $source ( keys %Sources ) {
 	print "no directory unpack/$dir, checking src dir\n";
 	if ( -f "src/$dir.tar.bz2" ) {
 	    print "source file for $dir exists, unpacking\n";
-	    `cd unpack`;
+	    chdir ('unpack');
 	    `tar jxvpf ../src/$dir.tar.bz2`;
+            chdir ('..');
 	    print "source unpacked";
 	} else {
 	    print "source file src/$dir.tar.bz2 missing, please add it\n";
