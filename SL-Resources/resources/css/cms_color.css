@@ -1,0 +1,91 @@
+/* ---------------
+Name: CMS Color Stylesheet
+Author: Silver Lining Networks
+Version: 1.0
+Date: 1/19/09
+------------------ */
+
+
+
+/* Body
+============================================= */
+body {
+background-color: #FFF;
+color: #333;
+}
+
+
+/* TOP NAV
+============================================= */
+.topnav li a {
+color: #444;
+}
+.topnav li.help a {
+background-color: #f7df93;
+border: 1px solid #ddb637;
+}
+
+
+
+/* LOGO
+============================================= */
+#masthead h1 {
+background-color:#EEE;
+}
+
+
+/* MASTHEAD
+============================================= */
+#masthead {
+background-color: #26b9e9;
+
+}
+
+
+/* NAVIGATION
+============================================= */
+#navigation {
+background-color: #6abdd7
+}
+#navigation li {
+background-color: #88cadf;
+}
+#navigation li a {
+color: #444;
+}
+#navigation li.selected {
+background-color: #FFF;
+}
+#navigation li.selected a {
+color: #333;
+}
+
+/* BREADCRUMB
+============================================= */
+#breadcrumb {
+background-color: #FFF;
+border-bottom: 1px solid #CCC;
+}
+#breadcrumb li.selected {
+background-color: #bcd1db;
+}
+#breadcrumb li a {
+color: #69a7c7;
+}
+#breadcrumb li.selected a {
+color: #FFF;
+}
+
+
+
+/* MAIN CONTENT
+============================================= */
+#content {
+background-color: #FFF;
+}
+#content-layout {
+background-color: #FFF;
+}
+#content-secondary {
+background-color: #EEE;
+}

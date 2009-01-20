@@ -1,91 +1,133 @@
+/* ---------------
+Name: CMS Layout Stylesheet
+Author: Silver Lining Networks
+Version: 1.0
+Date: 1/19/09
+------------------ */
 
-/* LAYOUT
+
+/* TYPOGRAPHY
 ============================================= */
-body {
-background-color: #FFF;
-color: #333;
+p {
+font-size: 85%;
+line-height: 22px;
+color: #444;
 }
+
+
+/* GRID
+============================================= */
+.one-sixth {
+width: 140px;
+margin-left: 20px;
+}
+
+
+/* TOP NAV
+============================================= */
+.topnav li {
+float: right;
+margin-left: 10px;
+font-size: 85%;
+}
+.topnav li a {
+float: right;
+padding: 3px 10px;
+text-decoration: none;
+}
+
+
+/* MASTHEAD
+============================================= */
+#masthead {
+height: 85px;
+padding: 20px;
+}
+#masthead h1 {
+height: 85px;
+width: 140px;
+overflow: hidden;
+float: left;
+text-align: center;
+font-size: 152%;
+line-height: 200%;
+}
+
+
+/* NAVIGATION
+============================================= */
+#navigation {
+padding-top: 15px;
+}
+#navigation ul {
+float: left;
+margin-left: 20px;
+}
+#navigation li {
+float: right;
+padding: 7px 20px;
+margin-right: 5px;
+}
+#navigation li a {
+text-decoration: none;
+}
+#navigation li.selected a {
+font-weight: bold;
+}
+
+/* BREADCRUMB
+============================================= */
+#breadcrumb {
+height: 35px;
+}
+#breadcrumb ul {
+float: left;
+margin-left: 20px;
+padding: 6px 0px;
+}
+#breadcrumb li {
+float: left;
+margin-left: 10px;
+font-size: 85%;
+}
+#breadcrumb li a {
+text-decoration: none;
+padding: 5px;
+float: left;
+display: block;
+}
+#breadcrumb li.selected a {
+font-weight: bold;
+}
+
+
+/* CONTENT
+============================================= */
 #wrap {
 margin: 0 auto;
 min-width: 770px;
 max-width:1200px;
 }
 #content {
-background-color: #EBEAE8;
-border-top: 1px solid #D6D5D3;
-padding: 7px 8px 9px;
+padding: 20px;
 }
 #content-layout {
-background-color: #FFF;
 }
 #content-primary-wrap {
 float: left;
 width: 100%;
-margin-right: -200px;
+margin-right: -310px;
 }
 #content-primary {
-padding: 0px 12px 0px 13px;
-margin-right: 200px;
+margin-right: 310px;
 }
 #content-secondary {
 float: right;
-width: 190px;
-background-color: #EEE;
+width: 250px;
+padding: 25px;
 }
 
-/* SKINNY NAV
-============================================= */
-#skinny_nav {
-background-color: #333;
-padding: 5px;
-}
-#skinny_nav li {
-float: right;
-margin-left: 15px;
-}
-#skinny_nav li a {
-color: #FFF;
-}
-#skinny_nav li.help a {
-background-color: #ffc207;
-color: #333;
-text-decoration: none;
-padding: 2px;
-}
 
-/* MASTHEAD
-============================================= */
-#masthead {
-position: relative;
-padding-top: 130px;
-
-}
-#masthead h1 {
-position: absolute;
-left: 20px; 
-top: 0px;
-height: 150px;
-width: 200px;
-background:url(../images/logos/plain_logo.png) no-repeat top left;
-text-indent: -3000px;
-}
-#navigation ul {
-float: right;
-margin-right: 20px;
-}
-#navigation li {
-float: right;
-padding: 5px 10px;
-margin-left: 10px;
-}
-#navigation li.selected {
-background-color: #D6D5D3;
-}
-#navigation li.selected a {
-text-decoration: none;
-font-weight: bold;
-color: #333;
-}
 
 /* FOOTER
 ============================================= */
