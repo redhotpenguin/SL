@@ -38,12 +38,12 @@ foreach my $prog qw( flex gawk bison patch autoconf make gcc g++ svn ) {
 }
 
 # check for libncurses
-#if ( ! ( -x '/usr/lib/libncurses.so' or -x '/usr/include/ncurses.h' ) ) {
-   # print "libncurses5-dev missing, run 'sudo apt-get install libncurses5-dev\n";
-   # exit(1);
-#} else {
-#    print "libncurses-dev installed ok\n";
-#}
+if ( ! -e ('/usr/lib/libncurses.so' or '/usr/include/ncurses.h') ) {
+    print "libncurses5-dev missing, run 'sudo apt-get install libncurses5-dev\n";
+    exit(1);
+} else {
+    print "libncurses-dev installed ok\n";
+}
 
 # see if the sources are setup ok
 foreach my $source ( keys %Sources ) {
