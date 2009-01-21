@@ -19,7 +19,7 @@ use SL::CP::IPTables ();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
-our $VERSION = 0.01;
+our $VERSION = 0.02;
 
 our ( $Config, $Lease_file, $Auth_url );
 
@@ -117,8 +117,8 @@ sub ads {
         my $dest_url = URI::Escape::uri_escape($url);
         my $esc_mac  = URI::Escape::uri_escape($mac);
         my $location = "$Auth_url?mac=$esc_mac&url=$dest_url";
+        
         $location .= "&expired=1" if ( $added == 401 );
-
         $r->log->info(
 "$$ expired mac address $mac found, code $added, redirecting to $location"
         );

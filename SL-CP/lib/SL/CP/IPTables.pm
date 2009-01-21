@@ -45,6 +45,10 @@ BEGIN {
 our $UA = LWP::UserAgent->new;
 $UA->timeout(60);
 
+our $Paid_mark = '0x400';
+our $Ads_mark  = '0x500';
+
+
 sub init_firewall {
     my $class = shift;
 
@@ -128,8 +132,8 @@ MANGLES
 PREROUTING -i $Int_if -j slOUT
 POSTROUTING -o $Ext_if -j MASQUERADE
 slOUT -m mark --mark 0x200/0x700 -j ACCEPT
-slOUT -m mark --mark 0x400/0x700 -j ACCEPT
-slOUT -m mark --mark 0x500/0x700 -j slADS
+slOUT -m mark --mark $Paid_mark/0x700 -j ACCEPT
+slOUT -m mark --mark $Ads_mark/0x700 -j slADS
 slOUT -p tcp -m tcp --dport 53 -j ACCEPT
 slOUT -p udp -m udp --dport 53 -j ACCEPT
 slOUT -d $Auth_ip -p tcp -m tcp --dport 443 -j ACCEPT
@@ -357,6 +361,14 @@ sub add_to_paid_chain {
     die "error validating mac $mac with token $token:  " . $res->status_line
       unless $res->is_success;
 
+    # see if this mac is already in the ads chain
+    my $ads_ip = $class->check_ads_chain_for_mac( $mac );
+    if ($ads_ip) {
+      warn("deleting mac $mac, ip $ip from ads chain, paid upgrade");
+      $class->delete_from_ads_chain( $mac, $ads_ip );
+    }
+
+    # add the mac to the paid chain
     $class->_paid_chain( 'A', $mac, $ip );
 
     return 1;
@@ -366,6 +378,48 @@ sub delete_from_paid_chain {
     my ( $class, $mac, $ip ) = @_;
 
     $class->_paid_chain( 'D', $mac, $ip );
+}
+
+sub check_paid_chain_for_mac {
+    my ($class, $mac ) = @_;
+
+    my $ip = $class->_check_chain_for_mac( $Paid_mark, $mac );
+
+    return unless $ip;
+
+    return $ip
+}
+
+sub _check_chain_for_mac {
+    my ($mark, $mac) = @_;
+
+    $mac = uc($mac);
+
+    my $iptables_rule = `$IPTABLES -t mangle --list | grep 'MAC $mac' | grep $mark`;
+
+    return unless $iptables_rule;
+
+    my ($ip) = $iptables_rule =~ m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*?MAC\s+$mac/;
+
+   unless ($ip) {
+      warn("no ip could be found in rule $iptables_rule");
+      return;
+    }
+
+    return unless $ip;
+
+    return $ip;
+}
+
+
+sub check_ads_chain_for_mac {
+    my ( $class, $mac ) = @_;
+
+    my $ip = $class->_check_chain_for_mac( $Ads_mark, $mac );
+
+    return unless $ip;
+
+    return $ip;
 }
 
 sub add_to_ads_chain {
