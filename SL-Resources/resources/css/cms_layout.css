@@ -11,6 +11,7 @@ Date: 1/19/09
 p {
 font-size: 85%;
 line-height: 22px;
+margin-bottom: 20px;
 color: #444;
 }
 
@@ -105,7 +106,7 @@ font-weight: bold;
 ============================================= */
 #wrap {
 margin: 0 auto;
-min-width: 770px;
+min-width: 960px;
 max-width:1200px;
 }
 #content {
@@ -116,15 +117,91 @@ padding: 20px;
 #content-primary-wrap {
 float: left;
 width: 100%;
-margin-right: -310px;
+margin-right: -320px;
 }
 #content-primary {
-margin-right: 310px;
+margin-right: 320px;
 }
 #content-secondary {
 float: right;
 width: 250px;
 padding: 25px;
+}
+
+
+/* NOTIFICAITON
+============================================= */
+.notification {
+margin-bottom: 20px;
+}
+.notification p {
+padding: 10px;
+margin-bottom: 0;
+}
+.notification_header {
+padding: 3px;
+}
+.notification_header h2 {
+float: left;
+margin-right: 5px;
+text-transform: uppercase;
+font-size: 107%;
+line-height: 22px;
+font-weight: bold;
+}
+.notification_header p {/*date*/
+float: left;
+font-style: italic;
+margin: 0;
+padding: 0;
+}
+.notification_header a {/*close*/
+float: right;
+display: block;
+padding: 3px;
+cursor: pointer;
+}
+
+
+/* FORMs
+============================================= */
+.form {
+margin-bottom: 20px;
+}
+.form .one_third {
+width: 290px;
+}
+.form ul {
+padding: 10px;
+}
+.form li {
+margin-bottom: 20px;
+}
+.form_header {
+padding: 10px;
+font-size: 122%;
+}
+.form label{
+display: block;
+font-size: 92%;
+font-weight: bold;
+}
+.form .hint {
+font-size: 77%;
+}
+.form ul input {
+width:95%;
+padding: 3px;
+margin-bottom: 2px;
+font-size: 122%;
+}
+.form .tip {
+font-size: 85%;
+font-style: italic;
+font-weight: normal;
+}
+.submit_form  {
+padding: 10px;
 }
 
 

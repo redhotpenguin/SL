@@ -89,3 +89,49 @@ background-color: #FFF;
 #content-secondary {
 background-color: #EEE;
 }
+
+
+
+
+/* NOTIFICAITON
+============================================= */
+.notification {
+border: 1px solid #f7d666;
+background-color: #ffffe4;
+}
+.notification_header {
+background-color: #f7d666;
+}
+.notification_header h2 {
+color: #333;
+}
+.notification_header p {/*date*/
+color: #666;
+}
+.notification_header a {/*close*/
+color: #666;
+background-color: #feeaa7;
+}
+
+
+/* FORMs
+============================================= */
+.form {
+border: 1px solid #CCC;
+}
+.form_header {
+background-color: #999;
+color: #FFF;
+}
+.form label{
+color: #444;
+}
+.form label strong{
+color: #F00;
+}
+.form .tip {
+color: #666;
+}
+.submit_form  {
+background-color: #EEE;
+}

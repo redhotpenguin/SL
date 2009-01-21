@@ -7,6 +7,8 @@
 			<div id="content-primary-wrap">
 			<div id="content-primary">
 			
+			<?php include('includes/notification.inc.php'); ?>
+			<?php include('includes/form.inc.php'); ?>
 				<p>
 					Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
 					incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis 
