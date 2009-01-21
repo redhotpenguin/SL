@@ -6,7 +6,6 @@ Date: 1/19/09
 ------------------ */
 
 
-
 /* Body
 ============================================= */
 body {
@@ -26,7 +25,6 @@ border: 1px solid #ddb637;
 }
 
 
-
 /* LOGO
 ============================================= */
 #masthead h1 {
@@ -38,7 +36,6 @@ background-color:#EEE;
 ============================================= */
 #masthead {
 background-color: #26b9e9;
-
 }
 
 
@@ -60,6 +57,7 @@ background-color: #FFF;
 color: #333;
 }
 
+
 /* BREADCRUMB
 ============================================= */
 #breadcrumb {
@@ -77,7 +75,6 @@ color: #FFF;
 }
 
 
-
 /* MAIN CONTENT
 ============================================= */
 #content {
@@ -89,8 +86,6 @@ background-color: #FFF;
 #content-secondary {
 background-color: #EEE;
 }
-
-
 
 
 /* NOTIFICAITON
