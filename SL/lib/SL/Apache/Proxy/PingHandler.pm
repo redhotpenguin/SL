@@ -49,11 +49,11 @@ sub handler {
             $r->log->error(
                 sprintf( "exception thrown in ping check: %s", $@ ) );
         }
-        my $post_count = `ps ax | grep -c post`;
+        my $count = `ps ax | grep -c httpd`;
         $r->log->error(
             sprintf(
-                "ping db failure: sysload %s, pg_count %s",
-                $minute_avg, $post_count
+                "ping db failure: sysload %s, httpd_count %s",
+                $minute_avg, $count
             )
         );
 	return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
