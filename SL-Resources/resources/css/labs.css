@@ -125,12 +125,14 @@ margin: 10px;
 margin-left: 50px;
 list-style-type: decimal;
 text-align: left;
+margin-bottom: 35px;
 }
 #sl ol li {
 margin-bottom: 10px;
 }
 #sl ol li a {
 text-decoration: none;
+color: #4b8897;
 }
 #sl ol li a:hover {
 text-decoration: underline;

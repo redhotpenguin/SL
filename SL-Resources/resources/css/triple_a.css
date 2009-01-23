@@ -233,7 +233,7 @@ border: none;
 border-left: 1px solid #033a64;
 border-right: 1px solid #033a64;
 padding: 5px 8px 5px 8px;
-background: #175a81 url(/resources/images/buttons/blue_sqaure_bg.png) repeat-x top left;
+background: #175a81 url(/sl/resources/images/buttons/blue_square_bg.png) repeat-x top left;
 display: block;
 margin: 0px -1px;
 color: #FFF;
@@ -257,7 +257,7 @@ border: none;
 border-left: 1px solid #6ea60a;
 border-right: 1px solid #6ea60a;
 padding: 6px 10px 5px 10px;
-background: #7bb90f url(/resources/images/buttons/green_sqaure_bg.png) repeat-x top left;
+background: #7bb90f url(/sl/resources/images/buttons/green_square_bg.png) repeat-x top left;
 display: block;
 margin: 0px -1px;
 width: 160px;
@@ -271,7 +271,7 @@ cursor: pointer;
 #sln .special_button input:focus,
 #sln .special_button input:active {
 
-background: #175a81 url(/resources/images/buttons/blue_sqaure_bg.png) repeat-x top left;
+background: #175a81 url(/sl/resources/images/buttons/blue_square_bg.png) repeat-x top left;
 color: #FFF;
 }
 
@@ -705,11 +705,11 @@ margin-left: -2px;
 .paper_box {
 margin-top: -100px;
 padding-left: 5px;
-background: url(/resources/images/backgrounds/form/shadow_left.png) repeat-y top left;
+background: url(/sl/resources/images/backgrounds/form/shadow_left.png) repeat-y top left;
 }
 .paper_box .paper_box_inner {
 padding-right: 5px;
-background: url(/resources/images/backgrounds/form/shadow_right.png) repeat-y top right;
+background: url(/sl/resources/images/backgrounds/form/shadow_right.png) repeat-y top right;
 }
 .paper_box .paper_box_content {
 background-color: #FFF;
@@ -743,7 +743,7 @@ position: relative;
 .paperbox_footer .pb_center {
 margin: 0px 10px;
 height: 10px;
-background: url(/resources/images/backgrounds/form/shadow_bottom.png) repeat-x bottom left;
+background: url(/sl/resources/images/backgrounds/form/shadow_bottom.png) repeat-x bottom left;
 }
 .paperbox_footer .pb_left {
 height: 10px;
@@ -751,7 +751,7 @@ width: 10px;
 position: absolute;
 left: 0;
 top: 0;
-background: url(/resources/images/backgrounds/form/shadow_bottom_left.png) no-repeat bottom left;
+background: url(/sl/resources/images/backgrounds/form/shadow_bottom_left.png) no-repeat bottom left;
 }
 .paperbox_footer .pb_right {
 height: 10px;
@@ -759,7 +759,7 @@ width: 10px;
 position: absolute;
 right: 0;
 top: 0;
-background: url(/resources/images/backgrounds/form/shadow_bottom_right.png) no-repeat bottom right;
+background: url(/sl/resources/images/backgrounds/form/shadow_bottom_right.png) no-repeat bottom right;
 }
 
 
