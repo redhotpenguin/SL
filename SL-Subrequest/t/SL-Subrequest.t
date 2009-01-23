@@ -5,7 +5,7 @@
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 42;
+use Test::More tests => 46;
 
 BEGIN { use_ok('SL::Subrequest') or die }
 
@@ -15,6 +15,7 @@ my @urls     = (
     "$base_url/bar.js",
     "http://scripthaus.com/zimzam.js",
     "http://www.redhotpenguin.com/css/local.css",
+    "http://testrequest.com:8135/foo.png",
     "$base_url/subreq.cgi",
     "$base_url/not_subreq.cgi",
     "http://imagefarm.com/pig.jpg",
@@ -46,17 +47,18 @@ ok( $subreq->is_subrequest( url  => $urls[0] ) );
 ok( $subreq->is_subrequest( url  => $urls[1] ) );
 ok( $subreq->is_subrequest( url  => $urls[2] ) );
 ok( $subreq->is_subrequest( url  => $urls[3] ) );
-ok( !$subreq->is_subrequest( url => $urls[4] ) );
-ok( $subreq->is_subrequest( url  => $urls[5] ) );
+ok( $subreq->is_subrequest( url => $urls[4] ) );
+ok( !$subreq->is_subrequest( url => $urls[5] ) );
 ok( $subreq->is_subrequest( url  => $urls[6] ) );
 ok( $subreq->is_subrequest( url  => $urls[7] ) );
-ok( !$subreq->is_subrequest( url => $urls[8] ) );
+ok( $subreq->is_subrequest( url => $urls[8] ) );
 ok( !$subreq->is_subrequest( url => $urls[9] ) );
 ok( !$subreq->is_subrequest( url => $urls[10] ));
+ok( !$subreq->is_subrequest( url => $urls[11] ));
 
 # examine the results of the subrequest collection
 diag('examine results of subrequest collection');
-is( scalar( @{$subreq_ref} ), 7 );
+is( scalar( @{$subreq_ref} ), 8 );
 cmp_ok( $subreq_ref->[0]->[0], 'eq', '/bar.js' );
 cmp_ok( $subreq_ref->[0]->[1], 'eq', $urls[0] );
 cmp_ok( $subreq_ref->[1]->[0], 'eq', $urls[1] );
@@ -65,12 +67,14 @@ cmp_ok( $subreq_ref->[2]->[0], 'eq', $urls[2] );
 cmp_ok( $subreq_ref->[2]->[1], 'eq', $urls[2] );
 
 cmp_ok( $subreq_ref->[3]->[0], 'eq', 'subreq.cgi' );
-cmp_ok( $subreq_ref->[3]->[1], 'eq', $urls[3] );
-cmp_ok( $subreq_ref->[4]->[0], 'eq', $urls[5] );
-cmp_ok( $subreq_ref->[4]->[1], 'eq', $urls[5] );
-cmp_ok( $subreq_ref->[5]->[0], 'eq', 'images/news.gif' );
-cmp_ok( $subreq_ref->[6]->[0], 'eq', '/img/cow.gif' );
+cmp_ok( $subreq_ref->[3]->[1], 'eq', $urls[4] );
+cmp_ok( $subreq_ref->[4]->[0], 'eq', $urls[3] );
+cmp_ok( $subreq_ref->[4]->[1], 'eq', $urls[3] );
+
+cmp_ok( $subreq_ref->[5]->[0], 'eq', $urls[6] );
 cmp_ok( $subreq_ref->[6]->[1], 'eq', $urls[7] );
+cmp_ok( $subreq_ref->[7]->[0], 'eq', '/img/cow.gif' );
+cmp_ok( $subreq_ref->[7]->[1], 'eq', $urls[8] );
 
 diag('replace the links now');
 my $port = '8135';
@@ -82,7 +86,7 @@ my $ok = $subreq->replace_subrequests(
     }
 );
 ok( $ok, 'subrequests replaced od' );
-
+$DB::single = 1;
 my $subrequests_ref = $subreq->collect_subrequests(
     content_ref => \$content,
     base_url    => $base_url
@@ -119,6 +123,7 @@ __DATA__
 <iframe src="subreq.cgi"></iframe>
 <p>
 <a href="not_subreq.cgi">bar</a>
+<img src="http://testrequest.com:8135/foo.png">
 <img src="https://imagefarm.com/pig.jpg">
 <img src="http://imagefarm.com/pig.jpg">
 <img src=images/news.gif alt="" border=0 width=205 height=85>
