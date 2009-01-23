@@ -1,0 +1,93 @@
+/*---------------------------------------------
+SILVER LINING STYLE SHEET
+Version: 2.0
+Author: SILVER LINING NETWORKS INC.
+---------------------------------------------*/
+
+/*= IE 6 HACKS
+=== === === === === === === === === === === === === */
+* html #silver_lining_ad_floating_footer {
+position: absolute;
+z-index: 100;
+bottom: 0px;
+right: 20px;
+}
+* html #silver_lining_cloud {
+background: none !important;
+filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='/resources/images/backgrounds/floating_cloud_large.png',sizingMethod='scale');
+width: 295px;
+height: 215px;
+z-index: 1000;
+}
+* html, body {
+height: 100%; overflow: auto;
+}
+
+
+/*= GENERAL
+=== === === === === === === === === === === === === */
+body {
+margin: 0;
+padding: 0;
+}
+.silver_lining_clear {
+clear: both;
+}
+
+/*= FLOATING CLOUD
+=== === === === === === === === === === === === === */
+#silver_lining_ad_floating_footer {
+position: fixed;
+bottom: 0px;
+right: 0px;
+width: 295px;
+height: 215px;
+z-index: 3000;
+overflow: visible;
+}
+#silver_lining_cloud_wrapper {
+position: relative;
+}
+#silver_lining_cloud {
+width: 295px;
+height: 215px;
+overflow: visible ;
+background: url(../images/backgrounds/floating_cloud_large.png) no-repeat top left;
+}
+#silver_lining_cloud_wrapper #silver_lining_close {
+position: absolute;
+top: 115px;
+right: 20px;
+border: none;
+cursor: pointer;
+z-index: 5000;
+}
+#silver_lining_cloud_wrapper #silver_lining_homepage {
+text-decoration: none;
+font-family: Helvetica, Verdana, Arial, serif;
+font-size: 11px;
+color: #41a05f;
+position: absolute;
+bottom: 30px;
+left: 90px;
+z-index: 5000;
+}
+#silver_lining_cloud_wrapper #silver_lining_client_ad {
+position: absolute;
+top: 90px;
+left: 70px;
+height: 80px;
+width:160px;
+font-family: Verdana, Arial, serif;
+font-size: 10px;
+line-height: 18px;
+color: #087877;
+overflow: hidden;
+}
+#silver_lining_cloud_wrapper #silver_lining_client_ad a {
+text-decoration: none;
+color: #087877;
+}
+#silver_lining_cloud_wrapper #silver_lining_close img {
+border: none;
+}
