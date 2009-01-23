@@ -120,19 +120,24 @@ sub collect_subrequests {
         my $normalized_url = _normalize_url( $url, $base_url );
         next unless $normalized_url;
 
+        # skip all ports that aren't 80
+        next unless $normalized_url->port == 80;
+
+        my $as_string = $normalized_url->canonical->as_string;
+
         # skip ones that we have found already
-        next if exists $found{$normalized_url};
-        $found{$normalized_url} = 1;
+        next if exists $found{$as_string};
+        $found{$as_string} = 1;
 
         # log for return
-        push @subrequests, [ $url, $normalized_url, $token->[0], ];
+        push @subrequests, [ $url, $as_string, $token->[0], ];
 
         # skip if url already in the db
-        next if $self->is_subrequest( url => $normalized_url );
+        next if $self->is_subrequest( url => $as_string );
 
         # put it in the cache
         $self->{cache}
-          ->set( join( '|', 'subreq', $normalized_url ) => $token->[0] );
+          ->set( join( '|', 'subreq', $as_string ) => $token->[0] );
     }
 
     # ok now also grab any full urls embedded in <script> tags
@@ -140,12 +145,23 @@ sub collect_subrequests {
       $$content_ref =~
       m{<script[^>]+>.*?(http\:/\/\w+[^\/\'\"]+).*?<\/script>}sg;
 
+
     # get the unique urls
     my %unique;
     my @jses = map { [ $_ . '/', $_ . '/', '_script' ] }
       grep ( !$unique{$_}++, @script_urls );
+    $DB::single = 1;
+    my @return_jses;
+    foreach my $js (@jses) {
 
-    return [ @subrequests, @jses ];
+      my $normalized_url = _normalize_url( $js->[0], $base_url );
+      next if $@;
+      next unless $normalized_url->port == 80;
+      push @return_jses, $js;
+    }
+
+
+    return [ @subrequests, @return_jses ];
 }
 
 sub replace_subrequests {
@@ -172,8 +188,7 @@ sub replace_subrequests {
         $replacement_url = $replacement_url->canonical->as_string;
 
         print STDERR "=> orig url is $orig_url\n" if DEBUG;
-        print STDERR "==> replacement url is $replacement_url\n\n"
-          if DEBUG;
+        print STDERR "==> replacement url is $replacement_url\n\n" if DEBUG;
 
         # run the substitution, match surrounding quotes to handle
         # mixed and absolute urls
@@ -231,7 +246,7 @@ sub _normalize_url {
     if ( $url =~ m!^http://! ) {    # we skip https on purpose thanks
 
         # full url
-        $canonical_url = URI->new($url)->canonical->as_string;
+        $canonical_url = URI->new($url);
     }
     elsif ( $url =~ m!^(\w+):! ) {
 
@@ -250,7 +265,8 @@ sub _normalize_url {
 
         # base the new URL on the base
         $canonical_url =
-          URI->new_abs( $url, URI->new($base_url) )->canonical->as_string;
+          URI->new_abs( $url, URI->new($base_url) );
+
     }
     else {
         warn "Unable to normalize $url!";

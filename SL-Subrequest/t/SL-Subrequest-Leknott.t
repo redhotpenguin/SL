@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 
-use Test::More tests => 44;
+use Test::More tests => 19;
 
 BEGIN { use_ok('SL::Subrequest') or die }
 
@@ -57,12 +57,7 @@ my $subrequests_ref = $subreq->collect_subrequests(
     base_url    => $base_url,
 );
 
-# sanity check the replaced subrequest urls
-my $i = 0;
-foreach my $subrequest_ref ( @{$subrequests_ref} ) {
-    like( $subrequest_ref->[0], qr/$port/ );
-    cmp_ok( $subreq_ref->[ $i++ ]->[2], 'eq', $subrequest_ref->[2] );
-}
+ok (!$subrequests_ref->[0], 'no subrequests from replaced content');
 
 sub test_urls {
     return [
