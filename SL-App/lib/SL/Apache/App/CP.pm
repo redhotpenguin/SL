@@ -5,12 +5,11 @@ use warnings;
 
 use Apache2::Const -compile =>
   qw(OK SERVER_ERROR NOT_FOUND M_GET M_POST REDIRECT AUTH_REQUIRED );
-use Apache2::Log        ();
-use Apache2::SubRequest ();
-use Apache2::Connection ();
-use Apache2::Request    ();
-use Apache2::SubRequest ();
-
+use Apache2::Log             ();
+use Apache2::SubRequest      ();
+use Apache2::Connection      ();
+use Apache2::Request         ();
+use Apache2::SubRequest      ();
 use Apache::Session::DB_File ();
 
 use base 'SL::Apache::App';
@@ -28,17 +27,16 @@ our $Tmpl = SL::App::Template->template();
 
 our $Cookie_name = 'SLN CP';
 
-use SL::Payment ();
+use SL::Payment                 ();
 use SL::Apache::App::CookieAuth ();
 
 use constant DEBUG     => $ENV{SL_DEBUG}     || 0;
 use constant TEST_MODE => $ENV{SL_TEST_MODE} || 0;
 
-our $From = "SLN Support <support\@silverliningnetworks.com>";
+our $From = 'SLN Support <support@silverliningnetworks.com>';
 
 use SL::Model;
 use SL::Model::App;    # works for now
-
 
 our ( $Config, %Sess_opts );
 
@@ -58,8 +56,6 @@ BEGIN {
         Transaction   => 1,
     );
 }
-
-
 
 sub check {
     my ( $class, $r ) = @_;
@@ -90,7 +86,7 @@ sub check {
       SL::Model::App->resultset('Payment')
       ->search( \%payment_args, { order_by => 'cts DESC', }, );
 
-    if (DEBUG && $payment) {
+    if ( DEBUG && $payment ) {
         $r->log->debug( "payment is " . Dumper($payment) );
     }
 
@@ -170,7 +166,7 @@ sub paypal_notify {
     my $req   = Apache2::Request->new($r);
     my %query = %{ $req->param };
 
-    $r->log->error("Notify Query params is " . Dumper(\%query));
+    $r->log->error( "Notify Query params is " . Dumper( \%query ) );
 
     my $id = $query{custom};
     $r->log->error("ID is $id");
@@ -197,56 +193,63 @@ sub paypal_notify {
 sub paypal_return {
     my ( $class, $r ) = @_;
 
-    my $req   = Apache2::Request->new($r);
-    my %query = %{ $req->param };
-    my $custom = $query{custom} || die "No custom field: " . Dumper(\%query);
+    my $req    = Apache2::Request->new($r);
+    my %query  = %{ $req->param };
+    my $custom = $query{custom} || die "No custom field: " . Dumper( \%query );
 
     # grab the cookies
     my $jar    = Apache2::Cookie::Jar->new($r);
-    my $cookie = $jar->cookies( $Cookie_name );
+    my $cookie = $jar->cookies($Cookie_name);
 
     unless ($cookie) {
 
-	# no cookie is definitely a problem, means the cookie disappeared betwee
-	# paypal and us
-	$r->log->error("$$ cookie missing for return query " . Dumper(\%query));
-	return Apache2::Const::NOT_FOUND;
+        # no cookie is definitely a problem, means the cookie disappeared betwee
+        # paypal and us
+        $r->log->error(
+            "$$ cookie missing for return query " . Dumper( \%query ) );
+        return Apache2::Const::NOT_FOUND;
     }
 
     # decode the cookie
-    my %state = $class->decode( $cookie->value );
+    my %state      = $class->decode( $cookie->value );
     my $session_id = $state{session_id};
 
     # load the session
     my %session;
     eval {
         tie %session, 'Apache::Session::DB_File', $session_id, \%Sess_opts;
-        $r->log->error("tied session $session_id: " . Dumper(\%session)) if DEBUG;
+        $r->log->error( "tied session $session_id: " . Dumper( \%session ) )
+          if DEBUG;
     };
 
     if ($@) {
-	$r->log->error("session missing id $session_id, args " . Dumper(\%query));
-	return Apache2::Const::SERVER_ERROR;
+        $r->log->error(
+            "session missing id $session_id, args " . Dumper( \%query ) );
+        return Apache2::Const::SERVER_ERROR;
     }
 
     # get the router
-    my $router = SL::Model::App->resultset('Router')->search({
-	router_id => $session{router_id} });
+    my $router =
+      SL::Model::App->resultset('Router')
+      ->search( { router_id => $session{router_id} } );
 
-    unless($router) {
-        $r->log->error("router id not found for session " . Dumper(\%session));
-	return Apache2::Const::SERVER_ERROR;
+    unless ($router) {
+        $r->log->error(
+            "router id not found for session " . Dumper( \%session ) );
+        return Apache2::Const::SERVER_ERROR;
     }
 
     my $splash_href = $router->splash_href;
     unless ($splash_href) {
-        $r->log->error("router not configured for CP: " . Dumper($router));
+        $r->log->error( "router not configured for CP: " . Dumper($router) );
 
-	# send to a safe landing
-	$r->headers_out->set( Location => 'http://www.silverliningnetworks.com/');
-	return Apache2::Const::REDIRECT;
-    } else {
-	$r->headers_out->set( Location => $splash_href );
+        # send to a safe landing
+        $r->headers_out->set(
+            Location => 'http://www.silverliningnetworks.com/' );
+        return Apache2::Const::REDIRECT;
+    }
+    else {
+        $r->headers_out->set( Location => $splash_href );
     }
 
     return Apache2::Const::REDIRECT;
@@ -302,20 +305,6 @@ sub valid_plan {
       }
 }
 
-## NOT IMPLEMENTED YET
-
-sub card_expired {
-    return sub {
-        my $dfv   = shift;
-        my $val   = $dfv->get_current_constraint_value;
-        my $data  = $dfv->get_filtered_data;
-        my $month = $data->{month};
-        my $year  = $data->{year};
-        return $val;
-      }
-}
-
-
 sub valid_first {
 
     return sub {
@@ -327,7 +316,6 @@ sub valid_first {
         return $val;
       }
 }
-
 
 sub valid_last {
 
@@ -341,7 +329,6 @@ sub valid_last {
       }
 }
 
-
 sub valid_cvv {
     return sub {
         my $dfv = shift;
@@ -352,7 +339,6 @@ sub valid_cvv {
         return $val;
       }
 }
-
 
 sub valid_city {
     return sub {
@@ -365,7 +351,6 @@ sub valid_city {
       }
 }
 
-
 sub valid_street {
     return sub {
         my $dfv = shift;
@@ -376,7 +361,6 @@ sub valid_street {
         return $val;
       }
 }
-
 
 sub valid_month {
     return sub {
@@ -487,11 +471,10 @@ sub token {
     return Apache2::Const::OK;
 }
 
-
 sub send_cookie {
     my ( $class, $r, $session_id ) = @_;
 
-    require Carp  && Carp::confess('bad cookie attempt!')
+    require Carp && Carp::confess('bad cookie attempt!')
       unless $session_id;
 
     # Give the user a new cookie
@@ -516,8 +499,6 @@ sub send_cookie {
 
     return 1;
 }
-
-
 
 sub paid {
     my ( $class, $r, $args_ref ) = @_;
@@ -557,36 +538,31 @@ sub paid {
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
+        my $account = $r->pnotes('router')->account_id;
         my $url         = $r->construct_url( $r->unparsed_uri );
-        my $account     = $r->pnotes('router')->account_id->name;
-        my @button_args = ( 'test', $url, $account . ' WiFi Purchase', 1 );
+        my @button_args = ( 'test', $url, $account->name . ' WiFi Purchase', 1 );
 
         # add the paypal button
-        my ($button, $id) = SL::Payment->paypal_button(@button_args);
-	$tmpl_data{paypal_button} = $button;
+        my ( $button, $id ) = SL::Payment->paypal_button(@button_args);
+        $tmpl_data{paypal_button} = $button;
 
+        # tie a session
+        my %session;
+        eval { tie %session, 'Apache::Session::DB_File', undef, \%Sess_opts; };
 
-=cut
-	# tie a session
-	my %session;
-        eval {
-                tie %session, 'Apache::Session::DB_File', undef, \%Sess_opts;
-        };
+        if ($@) {
+            $r->log->error("Could not tie session");
+            return Apache2::Const::SERVER_ERROR;
+        }
 
-	if ($@) {
-	    $r->log->error("Could not tie session");
-	    return Apache2::Const::SERVER_ERROR;
-	}
+        my $session_id = $session{_session_id};
+        $session{account_id} = $account->account_id;
+        $session{mac}        = $mac;
+        $session{ip}         = $r->connection->remote_ip;
+        $session{custom}     = $id;
 
-	my $session_id = $session{_session_id};
-	$session{account_id} = $account->account_id->account_id;
-	$session{mac} = $mac;
-	$session{ip}  = $r->connection->remote_ip;
-	$session{custom} = $id;
-
-	# cookie the user with the id
+        # cookie the user with the id
         $class->send_cookie( $r, $session_id );
-=cut
 
         my $output;
         my $ok = $Tmpl->process( 'auth/paid.tmpl', \%tmpl_data, \$output, $r );
@@ -714,10 +690,10 @@ sub paid {
         $mailer->open( \%mail_args );
 
         # plan is '4 hours'
-	my $plan_hash = SL::Payment->plan($plan);
-        my $duration = join(' ',
-            ( values %{ $plan_hash->{duration} } )[0]
-          , ( keys %{ $plan_hash->{duration} } )[0]);
+        my $plan_hash = SL::Payment->plan($plan);
+        my $duration  = join( ' ',
+            ( values %{ $plan_hash->{duration} } )[0],
+            ( keys %{ $plan_hash->{duration} } )[0] );
 
         my $date         = DateTime->now->mdy('/');
         my $network_name = $account->name;
