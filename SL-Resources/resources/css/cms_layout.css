@@ -26,6 +26,9 @@ margin-left: 20px;
 
 /* TOP NAV
 ============================================= */
+.topnav {
+padding: 5px;
+}
 .topnav li {
 float: right;
 margin-left: 10px;
@@ -33,23 +36,28 @@ font-size: 85%;
 }
 .topnav li a {
 float: right;
-padding: 3px 10px;
+padding: 3px 0px;
 text-decoration: none;
+}
+.topnav li.help a {
+padding: 3px 10px;
 }
 
 
 /* MASTHEAD
 ============================================= */
 #masthead {
-height: 85px;
-padding: 20px;
+height: 125px;
+padding: 0px 20px;
 }
 #masthead h1 {
-height: 85px;
+height: 105px;
 width: 140px;
+margin-top: 10px;
 overflow: hidden;
 float: left;
-text-align: center;
+text-align: left;
+text-indent: -3000px;
 font-size: 152%;
 line-height: 200%;
 }
@@ -66,11 +74,15 @@ margin-left: 20px;
 }
 #navigation li {
 float: right;
-padding: 7px 20px;
+text-align: center;
 margin-right: 5px;
 }
 #navigation li a {
 text-decoration: none;
+width: 121px;
+float: left;
+padding: 7px 0px;
+display: block;
 }
 #navigation li.selected a {
 font-weight: bold;
@@ -89,6 +101,8 @@ padding: 6px 0px;
 #breadcrumb li {
 float: left;
 margin-left: 10px;
+padding-right: 25px;
+background: url(../images/icons/breadcrumb_arrow.png) no-repeat right center;
 font-size: 85%;
 }
 #breadcrumb li a {
@@ -168,14 +182,15 @@ cursor: pointer;
 .form {
 margin-bottom: 20px;
 }
-.form .one_third {
-width: 290px;
+.form li.one_third {
+width: 280px;
 }
 .form ul {
-padding: 10px;
+padding:10px 20px;
 }
 .form li {
-margin-bottom: 20px;
+margin-bottom: 10px;
+padding: 5px;
 }
 .form_header {
 padding: 10px;
@@ -195,6 +210,13 @@ padding: 3px;
 margin-bottom: 2px;
 font-size: 122%;
 }
+.form ul select {
+width:100%;
+color: #444;
+padding: 2px;
+margin-bottom: 2px;
+font-size: 122%;
+}
 .form .tip {
 font-size: 85%;
 font-style: italic;
@@ -203,7 +225,21 @@ font-weight: normal;
 .submit_form  {
 padding: 10px;
 }
-
+.submit_form  input {
+padding:5px 10px;
+font-size: 122%;
+border: 1px solid #d1a949;
+background-color: #fdc317;
+color: #444;
+cursor: pointer;
+}
+.submit_form span {
+margin: 0px 10px;
+color: #999;
+}
+.submit_form  a {
+color: #900;
+}
 
 
 /* FOOTER

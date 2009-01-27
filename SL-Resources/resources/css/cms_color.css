@@ -16,11 +16,15 @@ color: #333;
 
 /* TOP NAV
 ============================================= */
+.topnav {
+background:  url(../images/backgrounds/navbar_bg.png) repeat-x top left;
+}
 .topnav li a {
-color: #444;
+color: #FFF;
 }
 .topnav li.help a {
 background-color: #f7df93;
+color: #444;
 border: 1px solid #ddb637;
 }
 
@@ -28,33 +32,33 @@ border: 1px solid #ddb637;
 /* LOGO
 ============================================= */
 #masthead h1 {
-background-color:#EEE;
+background: url(../images/logos/cms_logo.png) no-repeat top left;
 }
 
+/* HEADER
+============================================= */
+#header {
+background:url(../images/backgrounds/masthead_bg.jpg) repeat-x top left;
+}
 
 /* MASTHEAD
 ============================================= */
-#masthead {
-background-color: #26b9e9;
-}
+
 
 
 /* NAVIGATION
 ============================================= */
 #navigation {
-background-color: #6abdd7
+background:  url(../images/backgrounds/navbar_bg.png) repeat-x top left;
 }
-#navigation li {
-background-color: #88cadf;
-}
+
 #navigation li a {
+background: url(../images/buttons/nav_unselected.png) no-repeat top center;
 color: #444;
-}
-#navigation li.selected {
-background-color: #FFF;
 }
 #navigation li.selected a {
 color: #333;
+background: url(../images/buttons/nav_selected.png) no-repeat top center;
 }
 
 
@@ -65,12 +69,13 @@ background-color: #FFF;
 border-bottom: 1px solid #CCC;
 }
 #breadcrumb li.selected {
-background-color: #bcd1db;
+background: none;
 }
 #breadcrumb li a {
 color: #69a7c7;
 }
 #breadcrumb li.selected a {
+background-color: #bcd1db;
 color: #FFF;
 }
 
@@ -127,6 +132,12 @@ color: #F00;
 .form .tip {
 color: #666;
 }
+.form .highlight, 
+.form li:focus, 
+.form li:active {
+background-color: #ffe99b;
+}
 .submit_form  {
 background-color: #EEE;
 }
+
