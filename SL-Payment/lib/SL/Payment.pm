@@ -84,8 +84,7 @@ sub paypal_button {
         button_image  => CGI::image_button(
             -name => 'submit',
             -alt  => 'PayPal',
-            -src =>
-'https://www.paypalobjects.com/WEBSCR-550-20081223-1/en_US/i/logo/PayPal_mark_60x38.gif',
+            -src =>  'https://www.paypal.com/en_US/i/logo/PayPal_mark_60x38.gif',
         ),
     );
 
