@@ -21,7 +21,7 @@ sub handler {
       SL::Model::App->resultset('Location')->search( { ip => $ip } );
 
     unless ($location) {
-        $r->log->error("$$ no registered location for ip $ip and url $url");
+        $r->log->info("$$ no registered location for ip $ip and url $url");
         return Apache2::Const::NOT_FOUND;
     }
 
