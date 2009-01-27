@@ -92,6 +92,7 @@ font-weight: bold;
 ============================================= */
 #breadcrumb {
 height: 35px;
+padding-bottom: 4px;
 }
 #breadcrumb ul {
 float: left;

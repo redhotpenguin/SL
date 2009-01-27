@@ -65,8 +65,7 @@ background: url(../images/buttons/nav_selected.png) no-repeat top center;
 /* BREADCRUMB
 ============================================= */
 #breadcrumb {
-background-color: #FFF;
-border-bottom: 1px solid #CCC;
+background: #FFF url(../images/backgrounds/shadow.png) repeat-x left bottom;
 }
 #breadcrumb li.selected {
 background: none;
