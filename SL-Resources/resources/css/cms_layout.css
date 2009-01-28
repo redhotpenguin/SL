@@ -24,6 +24,20 @@ margin-left: 20px;
 }
 
 
+/* BUTTONS
+============================================= */
+.add_button {
+display: block;
+font-size: 122%;
+text-decoration: none;
+line-height: 50px;
+padding-left: 50px;
+width: 200px;
+height: 54px;
+background: url(../images/buttons/add_button.png) no-repeat top left;
+overflow: hidden;
+}
+
 /* TOP NAV
 ============================================= */
 .topnav {
@@ -177,6 +191,58 @@ padding: 3px;
 cursor: pointer;
 }
 
+
+/* ROUTER TABLE
+============================================= */
+.router_table {
+width: 100%;
+border:1px solid #CCC;
+}
+.router_table td,
+.router_table th {/*all cells*/
+padding: 5px;
+}
+.router_table th {
+background-color: #CCC;
+color: #444;
+font-size: 85%;
+}
+.router_table td {
+border-top: 1px solid #CCC;
+}
+.router_table td.router_name a {
+font-family: Georgia, Times, serif;
+font-size: 114%;
+}
+.router_table td.router_name em {
+font-style: italic;
+font-size: 85%;
+color: #999;
+}
+.router_table td.mac_address {
+font-size: 85%;
+vertical-align:middle;
+color: #666;
+}
+.router_table td.status {
+width: 36px;
+}
+.router_table td.status .active {
+height: 16px;
+width: 16px;
+overflow: hidden;
+text-indent: -3000px;
+display: block;
+background: url(../images/icons/lightbulb.png) no-repeat top left;
+}
+.router_table td.status .inactive {
+height: 16px;
+width: 16px;
+overflow: hidden;
+text-indent: -3000px;
+display: block;
+background:url(../images/icons/notworking.png) no-repeat top left;
+}
 
 /* FORMs
 ============================================= */

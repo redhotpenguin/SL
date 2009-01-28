@@ -15,10 +15,11 @@
 	
 	<div id="navigation">  
 		<ul>
-		    <li><a href="#">Settings</a></li>
-		    <li><a href="#">Statistics</a></li>
-		    <li><a href="#">My Network</a></li>
-		    <li class="selected"><a href="#">Dashboard</a></li>
+		    <li><a href="cms_settings.php">Settings</a></li>
+		    <li><a href="cms_stats.php">Statistics</a></li>
+		    <li><a href="cms_campaigns.php">Campaigns</a></li>
+		    <li><a href="cms_network.php">My Network</a></li>
+		    <li class="selected"><a href="cms_index.php">Dashboard</a></li>
 		</ul>
 		<div class="clear"></div>
 	</div>
