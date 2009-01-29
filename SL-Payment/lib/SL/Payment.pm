@@ -11,6 +11,9 @@ CGI->compile(':all');
 
 use Business::PayPal                      ();
 use Business::OnlinePayment::AuthorizeNet ();
+use DateTime ();
+use DateTime::Format::Pg ();
+use Data::Dumper ();
 
 # some globals
 
@@ -118,15 +121,85 @@ sub paypal_save {
             ip         => $args->{ip},
             expires    => 'N/A',
         }
-			    
+
     ); };
 
     if ($@) {
-	require Data::Dumper;
-	die "Error in paypal_save: " . Data::Dumper::Dumper($args) . ", $@";
+        die "Error in paypal_save: " . Data::Dumper::Dumper($args) . ", $@";
     }
 
     return $payment;
+}
+
+sub recurring {
+    my ( $class, $args ) = @_;
+
+    die "missing args"
+      unless (
+           defined $args->{email}
+        && defined $args->{card_number}
+        && defined $args->{card_type}
+        && defined $args->{card_exp}
+        && defined $args->{zip}
+        && defined $args->{first_name}
+        && defined $args->{last_name}
+        && defined $args->{cvv2}
+        && defined $args->{ip}
+        && defined $args->{street}
+        && defined $args->{city}
+        && defined $args->{state}
+        && defined $args->{referer}
+        && defined $args->{amount} );
+
+    # authorize
+    my $tx = Business::OnlinePayment->new('AuthorizeNet');
+
+    my %tx_content = (
+        login          => $Authorize_login,
+        password       => $Authorize_key,
+        action         => 'Recurring Authorization',
+        interval       => '1 month',
+        start          => DateTime->now->ymd,
+        periods        => 12,
+        trialperiods   => 0,
+        trialamount    => 0,
+        description    => $args->{description},
+        amount         => $args->{amount},
+        invoice_number => 815420,
+        customer_id    => substr( $args->{first_name} . $args->{last_name}, 0, 20),
+        first_name     => $args->{first_name},
+        last_name      => $args->{last_name},
+        address        => $args->{street},
+        city           => $args->{city},
+        state          => $args->{state},
+        zip            => $args->{zip},
+        card_number    => $args->{card_number},
+        expiration     => $args->{card_exp},
+        type           => $args->{card_type},
+        cvv2           => $args->{cvv2},
+        referer        => $args->{referer},
+        email          => $args->{email},
+    );
+
+    $tx->content(%tx_content);
+
+    if (TEST_MODE) {
+        warn( "TEST_MODE enabled, would have posted " .
+             Data::Dumper::Dumper( \%tx_content ) );
+        return { auth_code => 1 };
+    }
+    else {
+        $tx->submit;
+    }
+
+    if ( $tx->is_success  ) {
+        warn "Card processed successfully: " . $tx->authorization if DEBUG;
+        return { auth_code => $tx->authorization };
+    }
+    else {
+        warn "Card was rejected: " . $tx->error_message if DEBUG;
+        return { error => $tx->error_message };
+    }
 }
 
 
@@ -161,7 +234,7 @@ sub process {
 
     my $stop =
       DateTime::Format::Pg->format_datetime(
-	  DateTime->now( time_zone => 'local' )->add( $duration ) );
+      DateTime->now( time_zone => 'local' )->add( $duration ) );
 
     # database
     my $amount = $class->plan( $plan )->{cost};
@@ -216,9 +289,9 @@ sub process {
     $tx->content(%tx_content);
 
     if (TEST_MODE) {
-        require Data::Dumper;
         warn(
-            "TEST_MODE enabled, would have posted " . Dumper( \%tx_content ) );
+            "TEST_MODE enabled, would have posted " .
+             Data::Dumper::Dumper( \%tx_content ) );
     }
     else {
         $tx->submit;
