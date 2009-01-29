@@ -160,7 +160,7 @@ sub recurring {
         action         => 'Recurring Authorization',
         interval       => '1 month',
         start          => DateTime->now->ymd,
-        periods        => 12,
+        periods        => 60,
         trialperiods   => 0,
         trialamount    => 0,
         description    => $args->{description},
