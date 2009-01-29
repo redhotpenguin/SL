@@ -193,8 +193,8 @@ sub recurring {
     }
 
     if ( $tx->is_success  ) {
-        warn "Card processed successfully: " . $tx->authorization if DEBUG;
-        return { auth_code => $tx->authorization };
+        warn "Card processed successfully: " . $tx->order_number if DEBUG;
+        return { auth_code => $tx->order_number };
     }
     else {
         warn "Card was rejected: " . $tx->error_message if DEBUG;
