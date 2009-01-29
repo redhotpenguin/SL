@@ -1,0 +1,80 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/triple_a.css" />
+  <!--[if IE 6]><link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/triple_a_ie6.css" /><![endif]--> 
+  <!--[if IE 7]><link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/triple_a_ie7.css" /><![endif]-->
+  <link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/thickbox.css" />
+  <script src="[% base_uri %]/resources/js/simple_validation.js" type="text/javascript"></script>
+  <title>Publisher Recurring Billing Authorization - Silver Lining Networks</title>
+</head>
+<body id="sln">
+
+<!-- TOP SECTION START #################### -->
+	<div id="section_one">
+		<div class="center">
+			<!-- CHOOSE WIFI COPY ************************ --> 
+			<div class="two_thirds left padding_top">
+				<h2>Publisher Recurring Billing Authorization</h2>
+				<p>Please select a plan for your Silver Lining Networks publisher account, and enter your payment information.</p>
+
+[% IF errors.payment %]
+<p><font color="red">[% errors.payment %]</font></p>
+[% ELSIF errors.invalid %]
+<p><font color="red">Some fields were invalid, please correct them</font></p>
+[% ELSIF errors.missing %]
+<p><font color="red">Please complete the missing fields</font></p>
+[% END %]
+			
+			</div>
+
+			<!-- LOGO ************************ --> 
+			<div class="one_third right">
+                <h1 class="logo"><a href="#"><span></span>Silver Lining Networks</a></h1>
+            </div>
+
+			<div class="clear"></div>
+		</div>
+	</div>
+
+	
+    <!-- BODY SECTION START ######################################### -->
+    [% PROCESS auth/form/bodywrapper_top.tmpl %]
+
+        <!-- MAIN COLUMN ######## -->
+        [% PROCESS auth/form/paperbox_top.tmpl %]
+
+                <h2 class="header">Please fill out all fields</h2>
+
+                <!-- PAYMENT FORM -->
+                <form id="sl_payment" action="[% base_uri %]/billing/publisher" method="post">
+                        <dl id="form_list">
+                                <dd class="subtle"><em>All fields required</em></dd>
+                                [% PROCESS billing/form/plan.tmpl %]
+                                [% PROCESS auth/form/user_info.tmpl %]
+                                [% PROCESS auth/form/creditcard.tmpl %]
+                                [% PROCESS auth/form/address.tmpl %]
+                                [% PROCESS auth/form/submit_button.tmpl %]
+                       </dl>
+                </form>
+
+        [% PROCESS auth/form/paperbox_bottom.tmpl %]
+        <!-- END MAIN COLUMN -->
+
+        <!-- SIDE COLUMN ##### -->
+        <div class="one_third left">
+            [% PROCESS billing/form/sidebar.tmpl %]
+        </div>
+        <!-- END SIDE COLUMN ##### -->
+
+        [% PROCESS auth/form/bodywrapper_bottom.tmpl %]
+
+        <!-- END BODY SECTION ######################################### -->
+
+        <!-- PLEDGE -->
+
+        [% PROCESS auth/form/our_pledge.tmpl %]
+
+</body>
+</html>

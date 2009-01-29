@@ -15,6 +15,10 @@ if ( $ENV{SL_DEBUG} ) {
     print "Starting in DEBUG mode\n";
 }
 
+if ( $ENV{SL_TEST_MODE} ) {
+    print "Starting in TEST_MODE mode\n";
+}
+
 # FIll out the httpd.conf
 my $httpd_conf  = "httpd_$server.conf";
 my $conf_dir    = sprintf( "%s/conf", $config->sl_app_root );
