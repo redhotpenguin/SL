@@ -18,8 +18,7 @@ BEGIN {
   $Template = __PACKAGE__->SUPER::new( \%tmpl_config) || die $Template::ERROR;
 
   %Tmpl_global = ( base_uri => $config->sl_app_base_uri,
-                 home_uri => $config->sl_app_home_uri,
-                 css_uri  => $config->sl_app_css_uri, );
+                 home_uri => $config->sl_app_home_uri, );
 }
 
 sub process {
