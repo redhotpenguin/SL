@@ -130,7 +130,7 @@ background-color: #feeaa7;
 border: 1px solid #CCC;
 }
 .form_header {
-background-color: #999;
+background-color: #3c8db3;
 color: #FFF;
 }
 .form label{
@@ -140,13 +140,9 @@ color: #444;
 color: #F00;
 }
 .form .tip {
-color: #666;
+color: #999;
 }
-.form .highlight, 
-.form li:focus, 
-.form li:active {
-background-color: #ffe99b;
-}
+
 .submit_form  {
 background-color: #EEE;
 }

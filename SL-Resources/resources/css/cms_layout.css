@@ -9,12 +9,15 @@ Date: 1/19/09
 /* TYPOGRAPHY
 ============================================= */
 p {
-font-size: 85%;
+font-size: 92%;
 line-height: 22px;
 margin-bottom: 20px;
 color: #444;
 }
-
+p strong {
+font-weight: bold;
+color: #333;
+}
 
 /* GRID
 ============================================= */
@@ -29,14 +32,92 @@ margin-left: 20px;
 .add_button {
 display: block;
 font-size: 122%;
+font-weight: bold;
 text-decoration: none;
 line-height: 50px;
 padding-left: 50px;
+margin-bottom: 10px;
 width: 200px;
 height: 54px;
 background: url(../images/buttons/add_button.png) no-repeat top left;
 overflow: hidden;
 }
+.standard_button {
+border-top: 1px solid #033a64;
+border-bottom: 1px solid #033a64;
+display: block;
+}
+.standard_button span, 
+.standard_button input, 
+.standard_button a {
+border: none;
+border-left: 1px solid #033a64;
+border-right: 1px solid #033a64;
+padding: 4px 7px 3px 7px;
+background: #175a81 url(../images/buttons/blue_sqaure_bg.png) repeat-x top left;
+display: block;
+margin: 0px -1px;
+color: #FFF;
+font-size: 92%;
+line-height: normal;
+width: auto;
+text-decoration: none;
+cursor: pointer;
+}
+.standard_button_large {
+border-top: 1px solid #033a64;
+border-bottom: 1px solid #033a64;
+display: block;
+margin-right: 10px;
+}
+.standard_button_large span, 
+.standard_button_large input, 
+.standard_button_large a {
+border: none ;
+border-left: 1px solid #033a64;
+border-right: 1px solid #033a64;
+padding: 5px 8px 5px 8px;
+background: #175a81 url(../images/buttons/blue_sqaure_bg.png) repeat-x top left;
+display: block;
+margin: 0px -1px;
+color: #FFF;
+font-size: 114%;
+line-height: normal;
+width: auto;
+text-decoration: none;
+cursor: pointer;
+}
+.special_button {
+border-top: 1px solid #6ea60a;
+border-bottom: 1px solid #6ea60a;
+display: block;
+padding:0;
+float: left;
+}
+.special_button span, 
+.special_button input, 
+.special_button a {
+border: none;
+border-left: 1px solid #6ea60a;
+border-right: 1px solid #6ea60a;
+padding: 5px 10px 4px 10px;
+background: #7bb90f url(../images/buttons/green_sqaure_bg.png) repeat-x top left;
+display: block;
+margin: 0px -1px;
+color: #FFF;
+font-size: 100%;
+line-height: normal;
+width: auto;
+text-decoration: none;
+cursor: pointer;
+font-weight:bold;
+}
+.special_button strong {
+color: #FFF;
+}
+
+
+
 
 /* TOP NAV
 ============================================= */
@@ -203,7 +284,8 @@ border:1px solid #CCC;
 padding: 5px;
 }
 .router_table th {
-background-color: #CCC;
+background-color: #EEE;
+font-weight: bold;
 color: #444;
 font-size: 85%;
 }
@@ -211,8 +293,7 @@ font-size: 85%;
 border-top: 1px solid #CCC;
 }
 .router_table td.router_name a {
-font-family: Georgia, Times, serif;
-font-size: 114%;
+font-size: 100%;
 }
 .router_table td.router_name em {
 font-style: italic;
@@ -224,8 +305,15 @@ font-size: 85%;
 vertical-align:middle;
 color: #666;
 }
-.router_table td.status {
+.router_table td.status,
+.router_table td.delete
+ {
 width: 36px;
+vertical-align: middle;
+text-align: center;
+}
+.router_table td.status strong {
+margin: 0 auto;
 }
 .router_table td.status .active {
 height: 16px;
@@ -233,7 +321,7 @@ width: 16px;
 overflow: hidden;
 text-indent: -3000px;
 display: block;
-background: url(../images/icons/lightbulb.png) no-repeat top left;
+background: url(../images/icons/tick.png) no-repeat top left;
 }
 .router_table td.status .inactive {
 height: 16px;
@@ -241,14 +329,22 @@ width: 16px;
 overflow: hidden;
 text-indent: -3000px;
 display: block;
-background:url(../images/icons/notworking.png) no-repeat top left;
+background:url(../images/icons/small_stop.png) no-repeat top left;
 }
+.router_table td.delete a {
+margin: 0 auto;
+height: 16px;
+width: 16px;
+overflow: hidden;
+text-indent: -3000px;
+display: block;
+background: url(../images/icons/trash.gif) no-repeat top left;
+}
+
+
 
 /* FORMs
 ============================================= */
-.form {
-margin-bottom: 20px;
-}
 .form li.one_third {
 width: 280px;
 }
@@ -256,16 +352,18 @@ width: 280px;
 padding:10px 20px;
 }
 .form li {
-margin-bottom: 10px;
+margin-bottom: 15px;
 padding: 5px;
 }
 .form_header {
 padding: 10px;
 font-size: 122%;
+text-transform: uppercase;
 }
 .form label{
 display: block;
 font-size: 92%;
+margin-bottom: 3px;
 font-weight: bold;
 }
 .form .hint {
@@ -279,7 +377,6 @@ font-size: 122%;
 }
 .form ul select {
 width:100%;
-color: #444;
 padding: 2px;
 margin-bottom: 2px;
 font-size: 122%;
@@ -292,37 +389,98 @@ font-weight: normal;
 .submit_form  {
 padding: 10px;
 }
-.submit_form  input {
-padding:5px 10px;
-font-size: 122%;
-border: 1px solid #d1a949;
-background-color: #fdc317;
-color: #444;
-cursor: pointer;
-}
-.submit_form span {
-margin: 0px 10px;
-color: #999;
+.submit_form em  {
+padding-top: 10px;
+float: left;
+display: block;
 }
 .submit_form  a {
 color: #900;
 }
 
 
+/* PAPER BOX
+============================================= */
+
+.paper_box {
+padding-left: 5px;
+background: url(../images/backgrounds/form/shadow_left.png) repeat-y top left;
+}
+.paper_box .paper_box_inner {
+padding-right: 5px;
+background: url(../images/backgrounds/form/shadow_right.png) repeat-y top right;
+}
+.paper_box .paper_box_content {
+background-color: #FFF;
+padding: 20px;
+}
+.paper_box .header {
+background-color: #2a729c;
+margin: 0;
+padding: 10px;
+color: #FFF;
+font-size: 114%;
+text-transform: uppercase;
+border-top: 1px solid #66b3e0;
+border-bottom: 1px solid #21597a;
+}
+.paper_box .header_subtle {
+background-color: #7dbe0a;
+margin: 0;
+padding: 10px;
+color: #FFF;
+font-size: 114%;
+text-transform: uppercase;
+border-top: 1px solid #dbf7a9;
+border-bottom: 1px solid #659908;
+}
+
+.paperbox_footer {
+height: 10px; 
+position: relative;
+}
+.paperbox_footer .pb_center {
+margin: 0px 10px;
+height: 10px;
+background: url(../images/backgrounds/form/shadow_bottom.png) repeat-x bottom left;
+}
+.paperbox_footer .pb_left {
+height: 10px;
+width: 10px;
+position: absolute;
+left: 0;
+top: 0;
+background: url(../images/backgrounds/form/shadow_bottom_left.png) no-repeat bottom left;
+}
+.paperbox_footer .pb_right {
+height: 10px;
+width: 10px;
+position: absolute;
+right: 0;
+top: 0;
+background: url(../images/backgrounds/form/shadow_bottom_right.png) no-repeat bottom right;
+}
+
+
+
+
 /* FOOTER
 ============================================= */
 #footer {
+margin-top: 30px;
 background-color: #EEE;
-padding: 10px;
-text-align: center
+border-top: 1px solid #CCC;
+padding: 20px; 
+text-align: center;
+font-size: 85%;
 }
 #footer li {
 margin: 10px;
 display: inline;
 }
-
-
-
+#footer li a {
+color: #666;
+}
 
 
 

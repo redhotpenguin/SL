@@ -7,17 +7,14 @@
 			<div id="content-primary-wrap">
 			<div id="content-primary">
 			
-
-				<?php include('cms_includes/campaign_step1.inc.php');?>
-				
-
+			<?php include('cms_includes/form.inc.php'); ?>
 				
 					
 			</div><!-- End primary content -->
 			</div><!-- End primary content wrap -->
 			
 			<div id="content-secondary">
-				<a class="add_button" href="#">Add a router</a>
+				
 				<p>
 					Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
 					incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis 
