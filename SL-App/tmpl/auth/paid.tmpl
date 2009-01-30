@@ -22,13 +22,6 @@
 				Please fill out the form below to purchase ad free high speed WiFi service.  				
 				 </p>
 
-[% IF errors.payment %]
-<p><font color="red">[% errors.payment %]</font></p>
-[% ELSIF errors.invalid %]
-<p><font color="red">Some fields were invalid, please correct them</font></p>
-[% ELSIF errors.missing %]
-<p><font color="red">Please complete the missing fields</font></p>
-[% END %]
 			
 			</div>
 
@@ -53,6 +46,14 @@
                 <!-- PAYMENT FORM -->
                 <form id="sl_payment" action="[% base_uri %]/auth/paid" method="post">
                         <dl id="form_list">
+[% IF errors.payment %]
+<dd><font color="red">[% errors.payment %]</font></dd>
+[% ELSIF errors.invalid %]
+<dd><font color="red">Some fields were invalid, please correct them</font></dd>
+[% ELSIF errors.missing %]
+<dd><font color="red">Please complete the missing fields</font></dd>
+[% END %]
+
                                 <dd class="subtle"><em>All fields required</em></dd>
                                 [% PROCESS auth/form/plan.tmpl %]
                                 [% PROCESS auth/form/user_info.tmpl %]

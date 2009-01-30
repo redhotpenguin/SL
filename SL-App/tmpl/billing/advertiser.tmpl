@@ -19,13 +19,6 @@
 				<h2>Advertiser Recurring Billing Authorization</h2>
 				<p>Please select a plan for your Silver Lining Networks advertiser account, and enter your payment information.  Once your payment has been processed, a Silver Lining Networks representative will contact you to place your advertisements.</p>
 
-[% IF errors.payment %]
-<p><font color="red">[% errors.payment %]</font></p>
-[% ELSIF errors.invalid %]
-<p><font color="red">Some fields were invalid, please correct them</font></p>
-[% ELSIF errors.missing %]
-<p><font color="red">Please complete the missing fields</font></p>
-[% END %]
 			
 			</div>
 
@@ -49,7 +42,16 @@
 
                 <!-- PAYMENT FORM -->
                 <form id="sl_payment" action="[% base_uri %]/billing/advertiser" method="post">
+
                         <dl id="form_list">
+[% IF errors.payment %]
+<dd><font color="red">[% errors.payment %]</font></dd>
+[% ELSIF errors.invalid %]
+<dd><font color="red">Some fields were invalid, please correct them</font></dd>
+[% ELSIF errors.missing %]
+<dd><font color="red">Please complete the missing fields</font></dd>
+[% END %]
+
                                 <dd class="subtle"><em>All fields required</em></dd>
                                 [% PROCESS billing/form/ad_plan.tmpl %]
                                 [% PROCESS auth/form/user_info.tmpl %]

@@ -799,7 +799,7 @@ sub free {
     return Apache2::Const::REDIRECT;
 }
 
-sub advertiser {
+sub publisher {
     my ( $class, $r, $args_ref ) = @_;
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
@@ -817,7 +817,7 @@ sub advertiser {
 
         my $output;
         my $ok =
-          $Tmpl->process( 'billing/advertiser.tmpl', \%tmpl_data, \$output, $r );
+          $Tmpl->process( 'billing/publisher.tmpl', \%tmpl_data, \$output, $r );
 
         return $class->ok( $r, $output ) if $ok;
         return $class->error( $r, "Template error: " . $Tmpl->error() );
@@ -961,6 +961,190 @@ sub advertiser {
 
         my $ok =
           $Tmpl->process( 'billing/pub_receipt.tmpl', \%tmpl_data, \$mail, $r );
+        return $class->error( $r, $mail ) if !$ok;
+
+        print $mailer $mail;
+
+        if (TEST_MODE) {
+            $r->log->error("TEST_MODE ENABLED, email would be '$mail'");
+        }
+        else {
+            $mailer->close;
+        }
+
+        $r->log->info("$$ receipt for payment $auth_code: $mail");
+
+        $r->headers_out->set( Location => $Config->sl_app_base_uri
+              . "/billing/success?auth_code=$auth_code" );
+        $r->no_cache(1);
+        return Apache2::Const::REDIRECT;
+    }
+}
+
+
+
+sub advertiser {
+    my ( $class, $r, $args_ref ) = @_;
+
+    my $req = $args_ref->{req} || Apache2::Request->new($r);
+
+    # apache request bug
+    my $plan = $req->param('plan');
+
+    # plan passed on GET
+    my %tmpl_data = (
+        errors => $args_ref->{errors},
+        req    => $req,
+    );
+
+    if ( $r->method_number == Apache2::Const::M_GET ) {
+
+        my $output;
+        my $ok =
+          $Tmpl->process( 'billing/advertiser.tmpl', \%tmpl_data, \$output, $r );
+
+        return $class->ok( $r, $output ) if $ok;
+        return $class->error( $r, "Template error: " . $Tmpl->error() );
+
+    }
+    elsif ( $r->method_number == Apache2::Const::M_POST ) {
+
+        ## processing a payment, here we go
+
+        # reset method to get for redirect
+        $r->method_number(Apache2::Const::M_GET);
+
+        my %payment_profile = (
+            required => [
+                qw( first_name last_name card_type card_number cvv2
+                  month year street city zip state email plan )
+            ],
+            constraint_methods => {
+                email       => email(),
+                zip         => zip(),
+                first_name  => valid_first(),
+                last_name   => valid_last(),
+                month       => valid_month(),
+                year        => valid_year(),
+                cvv2        => valid_cvv(),
+                city        => valid_city(),
+                street      => valid_street(),
+                card_type   => cc_type(),
+                card_number => cc_number( { fields => ['card_type'] } ),
+            }
+        );
+
+        $r->log->info("$$ about to validate form");
+        my $results = Data::FormValidator->check( $req, \%payment_profile );
+
+        # handle form errors
+        if ( $results->has_missing or $results->has_invalid ) {
+            $r->log->error( "results: " . Dumper($results) );
+
+            my $errors = $class->SUPER::_results_to_errors($results);
+            return $class->advertiser(
+                $r,
+                {
+                    errors => $errors,
+                    req    => $req
+                }
+            );
+        }
+
+        $r->log->info("$$ about to process payment");
+        ## process the payment
+        my $fname  = $req->param('first_name');
+        my $lname  = $req->param('last_name');
+        my $street = $req->param('street');
+        my $city   = $req->param('city');
+        my $state  = $req->param('state');
+        my $zip    = $req->param('zip');
+        my $email  = $req->param('email');
+        my $amount = $req->param('plan');
+
+        my $payment = eval {
+            SL::Payment->recurring(
+                {
+                    description => "Silver Lining Networks Advertiser \$$amount/month",
+                    email       => $req->param('email'),
+                    card_type   => $req->param('card_type'),
+                    card_number => $req->param('card_number'),
+                    card_exp =>
+                      join( '/', $req->param('month'), $req->param('year') ),
+                    cvv2       => $req->param('cvv2'),
+                    email      => $email,
+                    zip        => $zip,
+                    first_name => $fname,
+                    last_name  => $lname,
+                    ip         => $r->connection->remote_ip,
+                    street     => $street,
+                    city       => $city,
+                    state      => $state,
+                    referer    => $r->headers_in->{'referer'},
+                    amount     => $amount,
+                }
+            );
+        };
+
+        if ($@) {
+
+            # error processing payment
+            $r->log->error("payment processing error: $@");
+            return Apache2::Const::SERVER_ERROR;
+        }
+
+        if ( defined $payment->{error} ) {
+
+            # process errors
+            $r->log->info( "$$ got payment error: " . $payment->{error} );
+
+            return $class->advertiser(
+                $r,
+                {
+                    errors => { payment => $payment->{error}, },
+                    req    => $req,
+                }
+            );
+        }
+
+        # no errors, grab the auth code
+        unless ( defined $payment->{auth_code} ) {
+            $r->log->error( "payment success but no auth code: "
+                  . Data::Dumper::Dumper($payment) );
+            return Apache2::Const::SERVER_ERROR;
+        }
+
+        my $auth_code = $payment->{auth_code};
+        $r->log->info("$$ payment auth code $auth_code processed OK");
+
+        my $mailer    = Mail::Mailer->new('qmail');
+        my %mail_args = (
+            'To'      => $email,
+            'From'    => $From,
+            'CC'      => $From,
+            'Subject' => "Advertiser Recurring Billing Receipt",
+        );
+
+        $mailer->open( \%mail_args );
+
+        my $date = DateTime->now->mdy('/');
+
+        my $mail;
+        my %tmpl_data = (
+            email              => $email,
+            fname              => $fname,
+            lname              => $lname,
+            city               => $city,
+            state              => $state,
+            street             => $street,
+            zip                => $zip,
+            authorization_code => $auth_code,
+            date               => $date,
+            amount             => $amount,
+        );
+
+        my $ok =
+          $Tmpl->process( 'billing/ad_receipt.tmpl', \%tmpl_data, \$mail, $r );
         return $class->error( $r, $mail ) if !$ok;
 
         print $mailer $mail;
