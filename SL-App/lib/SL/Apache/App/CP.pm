@@ -799,7 +799,7 @@ sub free {
     return Apache2::Const::REDIRECT;
 }
 
-sub publisher {
+sub advertiser {
     my ( $class, $r, $args_ref ) = @_;
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
@@ -817,7 +817,7 @@ sub publisher {
 
         my $output;
         my $ok =
-          $Tmpl->process( 'billing/publisher.tmpl', \%tmpl_data, \$output, $r );
+          $Tmpl->process( 'billing/advertiser.tmpl', \%tmpl_data, \$output, $r );
 
         return $class->ok( $r, $output ) if $ok;
         return $class->error( $r, "Template error: " . $Tmpl->error() );
@@ -980,6 +980,8 @@ sub publisher {
         return Apache2::Const::REDIRECT;
     }
 }
+
+
 
 sub billing_success {
     my ( $class, $r ) = @_;
