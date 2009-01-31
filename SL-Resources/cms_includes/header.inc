@@ -7,7 +7,8 @@
   <link rel="stylesheet" type="text/css" href="resources/css/cms_color.css" />
   <!--[if lt IE 7]>  <link rel="stylesheet" type="text/css" href="resources/css/ie_cms_layout.css" /><![endif]-->
   
-  <script language="javascript" type="text/javascript" src="js/"></script>
+  <script type="text/javascript" src="resources/js/jquery.js"></script>
+  <script type="text/javascript" src="resources/js/cms.js"></script>
   <title></title>
 </head>
 <body>

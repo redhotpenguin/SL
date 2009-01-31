@@ -8,8 +8,7 @@
 			<div id="content-primary">
 			
 
-				<?php include('cms_includes/campaign_step1.inc.php');?>
-				
+			<h2>All Campaigns</h2>				
 
 				
 					
@@ -17,15 +16,9 @@
 			</div><!-- End primary content wrap -->
 			
 			<div id="content-secondary">
-				<a class="add_button" href="#">Add a router</a>
-				<p>
-					Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-					incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis 
-					nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-					Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore 
-					eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, 
-					sunt in culpa qui officia deserunt mollit anim id est laborum.
-				</p>
+				<a class="add_button" href="cms_campaign_wizard1.php">Create Ad Campaign</a>
+	
+
 				
 				
 			</div><!-- End secondary content -->

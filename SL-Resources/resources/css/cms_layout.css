@@ -232,12 +232,22 @@ margin-right: -320px;
 #content-primary {
 margin-right: 320px;
 }
+
+/* SECONDARY CONTENT
+============================================= */
 #content-secondary {
 float: right;
 width: 250px;
 padding: 25px;
 }
-
+#content-secondary h2 {
+font-weight: bold;
+font-size: 107%;
+color: #444;
+padding-bottom: 5px;
+border-bottom: 2px solid #CCC;
+margin-bottom: 10px;
+}
 
 /* NOTIFICAITON
 ============================================= */
@@ -360,6 +370,12 @@ padding: 10px;
 font-size: 122%;
 text-transform: uppercase;
 }
+.form_header em {
+font-size: 85%;
+text-transform: lowercase;
+font-style: italic;
+margin-left: 10px;
+}
 .form label{
 display: block;
 font-size: 92%;
@@ -370,6 +386,12 @@ font-weight: bold;
 font-size: 77%;
 }
 .form ul input {
+width:95%;
+padding: 3px;
+margin-bottom: 2px;
+font-size: 122%;
+}
+.form ul textarea {
 width:95%;
 padding: 3px;
 margin-bottom: 2px;
@@ -397,6 +419,34 @@ display: block;
 .submit_form  a {
 color: #900;
 }
+
+.form .innerform {
+padding: 10px;
+background-color: #EEE;
+border: 1px solid #CCC;
+}
+.form .innerform .row {
+margin-bottom: 10px;
+}
+.form .innerform input {
+width:95%;
+padding: 3px;
+margin-bottom: 2px;
+font-size: 107%;
+}
+.form .innerform textarea {
+width:95%;
+padding: 3px;
+margin-bottom: 2px;
+font-size: 107%;
+}
+.form .innerform select {
+width:100%;
+padding: 2px;
+margin-bottom: 2px;
+font-size: 107%;
+}
+
 
 
 /* PAPER BOX
