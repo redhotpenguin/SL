@@ -7,19 +7,13 @@
 			<div id="content-primary-wrap">
 			<div id="content-primary">
 			
-
-			<h2>All Campaigns</h2>				
-
-				
+				<h2>Settings</h2>
 					
 			</div><!-- End primary content -->
 			</div><!-- End primary content wrap -->
 			
 			<div id="content-secondary">
-				<a class="add_button" href="campaign_wizard1.php">Create Ad Campaign</a>
-	
-
-				
+			
 				
 			</div><!-- End secondary content -->
 			<div class="clear"></div>

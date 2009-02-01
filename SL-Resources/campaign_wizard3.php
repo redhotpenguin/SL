@@ -8,7 +8,7 @@
 			<div id="content-primary">
 			
 
-			<h2>All Campaigns</h2>				
+				
 
 				
 					
@@ -16,10 +16,8 @@
 			</div><!-- End primary content wrap -->
 			
 			<div id="content-secondary">
-				<a class="add_button" href="campaign_wizard1.php">Create Ad Campaign</a>
-	
+				<h2>Help with this page?</h2>
 
-				
 				
 			</div><!-- End secondary content -->
 			<div class="clear"></div>

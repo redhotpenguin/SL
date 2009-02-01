@@ -16,11 +16,11 @@
 	<?php $currentPage = basename($_SERVER['SCRIPT_NAME']) ?>
 	<div id="navigation">  
 		<ul>
-		    <li <?php if($currentPage == 'cms_settings.php') {echo 'class="selected"';} ?>><a href="cms_settings.php">Settings</a></li>
-		    <li <?php if($currentPage == 'cms_stats.php') {echo 'class="selected"';} ?>><a href="cms_stats.php">Statistics</a></li>
-		    <li <?php if($currentPage == 'cms_campaigns.php' || $currentPage == 'cms_campaign_wizard1.php' || $currentPage == 'cms_campaign_wizard2.php') {echo 'class="selected"';} ?>><a href="cms_campaigns.php">Campaigns</a></li>
-		    <li <?php if($currentPage == 'cms_network.php' || $currentPage == 'cms_add_router.php') {echo 'class="selected"';} ?>><a href="cms_network.php">My Network</a></li>
-		    <li <?php if($currentPage == 'cms_index.php') {echo 'class="selected"';} ?>><a href="cms_index.php">Dashboard</a></li>
+		    <li <?php if($currentPage == 'settings.php') {echo 'class="selected"';} ?>><a href="settings.php">Settings</a></li>
+		    <li <?php if($currentPage == 'statistics.php') {echo 'class="selected"';} ?>><a href="statistics.php">Statistics</a></li>
+		    <li <?php if($currentPage == 'campaigns.php' || $currentPage == 'campaign_wizard1.php' || $currentPage == 'campaign_wizard2.php') {echo 'class="selected"';} ?>><a href="campaigns.php">Campaigns</a></li>
+		    <li <?php if($currentPage == 'network.php' || $currentPage == 'add_router.php') {echo 'class="selected"';} ?>><a href="network.php">My Network</a></li>
+		    <li <?php if($currentPage == 'home.php') {echo 'class="selected"';} ?>><a href="home.php">Dashboard</a></li>
 		</ul>
 		<div class="clear"></div>
 	</div>
@@ -29,8 +29,21 @@
 
 <div id="breadcrumb">  
 <ul>
-<?php if($currentPage == 'cms_network.php') {echo('<li><a href="cms_network.php">All Routers</a></li>');	}?>
-<?php if($currentPage == 'cms_add_router.php') {echo('<li><a href="cms_network.php">All Routers</a></li>	<li class="selected"><a href="#">Add Router</a></li>');	}?>
+<?php if($currentPage == 'network.php') {echo('<li><a href="network.php">All Routers</a></li>');	}?>
+<?php if($currentPage == 'add_router.php') {echo('<li><a href="network.php">All Routers</a></li>	<li class="selected"><a href="#">Add Router</a></li>');	}?>
+<?php 
+# WIZARD BREAD CRUMB TRAIL
+if($currentPage == 'campaign_wizard1.php') {echo('<li><a href="campaigns.php">Campaigns</a></li>	<li class="selected"><a href="#">Campaign Creator (STEP 1)</a></li>');}	
+if($currentPage == 'campaign_wizard2.php') {echo('<li><a href="campaigns.php">Campaigns</a></li>	<li><a href="campaign_wizard1.php">Campaign Creator (STEP 1)</a></li><li class="selected"><a href="#">(STEP 2)</a></li>');}
+if($currentPage == 'campaign_wizard3.php') {echo('
+		<li><a href="campaigns.php">Campaigns</a></li>	
+		<li><a href="campaign_wizard1.php">Campaign Creator (STEP 1)</a></li>
+		<li><a href="campaign_wizard2.php">(STEP 2)</a></li>
+		<li class="selected"><a href="#">(STEP 3)</a></li>
+	');}
+
+?>
+
   </ul>
 <div class="clear"></div>
 </div>

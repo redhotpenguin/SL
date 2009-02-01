@@ -3,7 +3,7 @@
 	<div class="paper_box_inner">
 
 			<h2 class="form_header">Create a Campaign - Name <em>(Step 1 of 4)</em></h2>
-			<form class="form" action="cms_campaign_wizard2.php" method="post">
+			<form class="form" action="campaign_wizard2.php" method="post">
 				<ul>
 					<li class="one_third">
 						<label for="router_name">Create a name <strong>*</strong></label>
@@ -17,7 +17,7 @@
 				</ul>
 				<div class="submit_form">
 					<span class="standard_button_large left"><input type="submit" value="Next Step" name="submit" /></span>
-					<em>or <a href="cms_campaigns.php">Cancel</a></em>
+					<em>or <a href="campaigns.php">Cancel</a></em>
 					<div class="clear"></div>
 				</div>
 			</form>
