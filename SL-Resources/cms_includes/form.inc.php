@@ -3,7 +3,7 @@
 	<div class="paper_box_inner">
 	
 			<h2 class="form_header">Add A Router</h2>
-			<form class="form" action="cms_network.php" method="post">
+			<form class="form" action="network.php" method="post">
 				<ul>
 					<li class="one_third">
 						<label for="router_name">Give your router a name</label>
@@ -26,7 +26,7 @@
 				</ul>
 				<div class="submit_form">
 					<span class="standard_button_large left"><input type="submit" value="Add Router" name="submit" /></span>
-					<em>or <a href="cms_network.php">Cancel</a></em>
+					<em>or <a href="network.php">Cancel</a></em>
 					<div class="clear"></div>
 				</div>
 			</form>
