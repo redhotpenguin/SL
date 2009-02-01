@@ -29,32 +29,32 @@
 					<li class="one_third innerform">
 						<form class="innerform" action="cms_campaign_wizard2.php" method="post">
 							<div class="row">
-								<label for="ad_name">Advertisement Name<strong>*</strong></label>
+								<label for="ad_name">Advertisement Name <strong>*</strong></label>
 								<input type="text" name="ad_name" value="" />
 							</div>
 							<div class="row">
-								<label for="invocation" class="left">Invocation Code</label>
+								<label for="invocation" class="left">Invocation Code <strong>*</strong></label>
 								<a class="hint right" href="#">what's this?</a>
 								<textarea class="clear" id="invocation" name="invocation" rows="3" cols="20"></textarea>
 							</div>
 							<div class="row">
-								<label class="left" for="ad_size">Dimensions</label>
+								<label class="left" for="ad_size">Dimensions <strong>*</strong></label>
 								<a class="right hint" href="#">what's this?</a>
 								<select name="ad_size" class="clear">
 									<option value="fullbanner">468px by 60px (full banner)</option>
 									<option value="leaderboard">728px by 90px (leaderboard)</option>
 								</select>
-								<label class="tip" for="ad_size">(height by width) Your ad must be one of the supported sizes</label>
+								<label class="tip" for="ad_size">(height by width) must match ad size</label>
 							</div>
-							<div class="submit_form">
+							<div>
 								<span class="standard_button left"><input type="submit" value="Add Advertisement" name="add_advertisement" /></span>
-								<em>or <a  class="cancel_ad" href="cms_campaign_wizard1.php">Cancel</a></em>
+								<em>or <a  class="cancel_ad red_link" href="cms_campaign_wizard1.php">Cancel</a></em>
 								<div class="clear"></div>
 							</div>
 						</form>
 					</li>	
 					<li class="one_third">
-						<a class="add_link" href="#">Add Another</a>
+						<a class="add_link" href="#">Add another advertisement</a>
 					</li>		
 				</ul>
 				<div class="submit_form">

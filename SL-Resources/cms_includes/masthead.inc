@@ -18,7 +18,7 @@
 		<ul>
 		    <li <?php if($currentPage == 'cms_settings.php') {echo 'class="selected"';} ?>><a href="cms_settings.php">Settings</a></li>
 		    <li <?php if($currentPage == 'cms_stats.php') {echo 'class="selected"';} ?>><a href="cms_stats.php">Statistics</a></li>
-		    <li <?php if($currentPage == 'cms_campaigns.php') {echo 'class="selected"';} ?>><a href="cms_campaigns.php">Campaigns</a></li>
+		    <li <?php if($currentPage == 'cms_campaigns.php' || $currentPage == 'cms_campaign_wizard1.php' || $currentPage == 'cms_campaign_wizard2.php') {echo 'class="selected"';} ?>><a href="cms_campaigns.php">Campaigns</a></li>
 		    <li <?php if($currentPage == 'cms_network.php' || $currentPage == 'cms_add_router.php') {echo 'class="selected"';} ?>><a href="cms_network.php">My Network</a></li>
 		    <li <?php if($currentPage == 'cms_index.php') {echo 'class="selected"';} ?>><a href="cms_index.php">Dashboard</a></li>
 		</ul>

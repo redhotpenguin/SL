@@ -11,4 +11,4 @@
   <script type="text/javascript" src="resources/js/cms.js"></script>
   <title></title>
 </head>
-<body>
+<body id="sln_cms">

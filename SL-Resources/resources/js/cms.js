@@ -1,11 +1,11 @@
 $(document).ready(function(){
 	$('.innerform').hide();
 	$('.add_link').click(function() {
-		$('.innerform').show('slow');
+		$('.innerform').slideDown("slow");;
 		$(this).hide();
 	});
 	$('.cancel_ad').click(function(){
-		$('.innerform').hide();
+		$('.innerform').slideUp("fast");;
 		$('.add_link').show();
 		return false;
 	});
