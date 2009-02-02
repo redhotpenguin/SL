@@ -990,6 +990,7 @@ sub advertiser {
 
     # apache request bug
     my $plan = $req->param('plan');
+    my $coupon = $req->param('coupon');
 
     # plan passed on GET
     my %tmpl_data = (
