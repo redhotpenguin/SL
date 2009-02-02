@@ -32,7 +32,7 @@ margin-left: 20px;
 .add_link {
 padding: 5px;
 padding-left: 25px;
-background: #EEE url(../images/icons/add_plus.png) no-repeat 5px center;
+background: #ECEFF5 url(../images/icons/add_plus.png) no-repeat 5px center;
 }
 .add_button {
 display: block;
@@ -254,6 +254,21 @@ padding-bottom: 5px;
 border-bottom: 2px solid #CCC;
 margin-bottom: 10px;
 }
+#content-secondary dt {
+margin-bottom: 3px;
+font-weight: bold;
+font-style: italic;
+color: #444;
+}
+#content-secondary dd {
+font-size: 85%;
+line-height: 18px;
+color: #444;
+margin-bottom: 15px;
+padding-bottom: 15px;
+border-bottom: 1px dotted #CCC;
+}
+
 
 /* NOTIFICAITON
 ============================================= */
@@ -293,7 +308,7 @@ cursor: pointer;
 ============================================= */
 .router_table {
 width: 100%;
-border:1px solid #CCC;
+margin-bottom: 15px;
 }
 .router_table td,
 .router_table th {/*all cells*/
@@ -304,9 +319,10 @@ background-color: #EEE;
 font-weight: bold;
 color: #444;
 font-size: 85%;
+border-bottom: 1px solid #CCC;
 }
 .router_table td {
-border-top: 1px solid #CCC;
+border-bottom: 1px solid #CCC;
 }
 .router_table td.router_name a {
 font-size: 100%;
@@ -356,6 +372,95 @@ text-indent: -3000px;
 display: block;
 background: url(../images/icons/trash.gif) no-repeat top left;
 }
+
+
+
+/* ROUTER TABLE
+============================================= */
+.adzone_table {
+width: 100%;
+border:none;
+}
+
+.adzone_table td,
+.adzone_table th {/*all cells*/
+padding: 5px;
+vertical-align: top;
+}
+.adzone_table td{
+padding:15px 5px;
+}
+.adzone_table tr.even td {
+background-color: #f4f6fa;
+}
+.adzone_table th {
+background-color: #EEE;
+font-weight: bold;
+color: #444;
+font-size: 85%;
+}
+.adzone_table th.layout {
+text-align: center;
+}
+.adzone_table td {
+border-top: 1px solid #CCC;
+}
+.adzone_table td.select_zone {
+width: 36px;
+vertical-align: middle;
+text-align: center;
+border-right: 1px dotted #CCC;
+}
+/* IMAGE */
+.adzone_table td.image {
+width: 128px;
+}
+/* LAYOUT NAME */
+.adzone_table td.layout {
+border-right: 1px dotted #CCC;
+text-align: left;
+}
+.adzone_table td.layout h2 {
+font-size: 122%;
+margin-bottom: 5px;
+font-weight: bold;
+}
+.adzone_table td.layout a {
+font-size: 85%;
+}
+.adzone_table td.layout em {
+font-style: italic;
+font-size: 85%;
+color: #999;
+}
+/*ADVERTISEMENT CELL*/
+.adzone_table td.advertisement {
+border-right: 1px dotted #CCC;
+}
+.adzone_table td.advertisement label {
+font-size: 85%;
+margin-left: 3px;
+}
+.adzone_table td.advertisement select {
+width: 85%;
+font-size: 100%;
+padding: 2px;
+margin-bottom: 20px;
+}
+/*POSITION CELL*/
+.adzone_table td.position {
+width: 80px;
+}
+.adzone_table td.position input {
+float: left;
+margin-right: 5px;
+}
+.adzone_table td.position label {
+font-weight: normal;
+float: left;
+padding-top: 5px;
+}
+
 
 
 
@@ -428,8 +533,8 @@ color: #900;
 
 .form .innerform {
 padding: 10px;
-background-color: #EEE;
-border: 1px solid #CCC;
+background-color: #ECEFF5;
+border: 1px solid #BBB;
 }
 .form .innerform .row {
 margin-bottom: 15px;

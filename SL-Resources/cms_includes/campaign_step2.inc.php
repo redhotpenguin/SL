@@ -2,10 +2,8 @@
 	<div class="paper_box_inner">
 
 			<h2 class="form_header">Create a Campaign - Advertisements <em>(step 2 of 4)</em></h2>
-			<form class="form" action="campaign_wizard3.php" method="post">
-				<ul>
-					<li>
-						<table class="router_table">
+			<form class="form" action="campaign_wizard2.php" method="post">
+					<table class="router_table">
 							<thead>
 								<tr>
 									<th class="router_name">advertisement name</th>
@@ -24,10 +22,9 @@
 									<td class="mac_address"><a href="#">Preview ad</a></td>
 									<td class="delete"><a href="#">delete</a></td>
 								</tr>				
-						</table>				
-					</li>
+						</table>			
+				<ul>
 					<li class="one_third innerform">
-						<form class="innerform" action="campaign_wizard2.php" method="post">
 							<div class="row">
 								<label for="ad_name">Advertisement Name <strong>*</strong></label>
 								<input type="text" name="ad_name" value="" />
@@ -51,14 +48,13 @@
 								<em>or <a  class="cancel_ad red_link" href="campaign_wizard1.php">Cancel</a></em>
 								<div class="clear"></div>
 							</div>
-						</form>
 					</li>	
 					<li class="one_third">
 						<a class="add_link" href="#">Add another advertisement</a>
 					</li>		
 				</ul>
 				<div class="submit_form">
-					<span class="standard_button_large left"><input type="submit" value="Next Step" name="submit" /></span>
+					<span class="standard_button_large left"><a href="campaign_wizard3.php">Next Step</a></span>
 					<em>or <a href="campaign_wizard1.php">Go Back</a></em>
 					<div class="clear"></div>
 				</div>

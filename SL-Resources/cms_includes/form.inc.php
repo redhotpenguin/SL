@@ -20,7 +20,7 @@
 						<a class="right hint" href="#">what's this?</a>
 						<select name="ad_campaign" class="clear">
 							<option value="Silver Lining (default)">Silver Lining (default)</option>
-							<option value="Bling Bling">Bling Bling</option>
+							<option value="dating">Dating Sites</option>
 						</select>
 					</li>		
 				</ul>
