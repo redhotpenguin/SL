@@ -80,7 +80,7 @@
 								
 						</table>				
 				<div class="submit_form">
-					<span class="standard_button_large left"><a href="campaign_wizard4.php">Next Step</a></span>
+					<span class="standard_button_large left"><input type="submit" value="Next Step" name="submit" /></span>
 					<em>or <a href="campaign_wizard2.php">Go Back</a></em>
 					<div class="clear"></div>
 				</div>

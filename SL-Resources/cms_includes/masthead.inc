@@ -18,7 +18,7 @@
 		<ul>
 		    <li <?php if($currentPage == 'settings.php') {echo 'class="selected"';} ?>><a href="settings.php">Settings</a></li>
 		    <li <?php if($currentPage == 'statistics.php') {echo 'class="selected"';} ?>><a href="statistics.php">Statistics</a></li>
-		    <li <?php if($currentPage == 'campaigns.php' || $currentPage == 'campaign_wizard1.php' || $currentPage == 'campaign_wizard2.php') {echo 'class="selected"';} ?>><a href="campaigns.php">Campaigns</a></li>
+		    <li <?php if($currentPage == 'campaigns.php' || $currentPage == 'campaign_wizard1.php' || $currentPage == 'campaign_wizard2.php' || $currentPage == 'campaign_wizard3.php') {echo 'class="selected"';} ?>><a href="campaigns.php">Campaigns</a></li>
 		    <li <?php if($currentPage == 'network.php' || $currentPage == 'add_router.php') {echo 'class="selected"';} ?>><a href="network.php">My Network</a></li>
 		    <li <?php if($currentPage == 'home.php') {echo 'class="selected"';} ?>><a href="home.php">Dashboard</a></li>
 		</ul>

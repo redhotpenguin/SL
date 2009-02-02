@@ -27,6 +27,10 @@
 					<dt>Position</dt>
 					<dd>Some layouts have additional options such as "floating". When "floating" is checked the Ad will stay on top of the web page even when the user scrolls down the page.</dd>
 				</dl>
+				<h2>What order will these layouts appear?</h2>
+				<p>
+					If you select more than one Ad Zone Layout we randomly choose a layout each time a user visits a new web page.
+				</p>
 				
 			</div><!-- End secondary content -->
 			<div class="clear"></div>
