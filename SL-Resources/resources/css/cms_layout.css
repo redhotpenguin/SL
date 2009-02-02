@@ -309,6 +309,7 @@ cursor: pointer;
 .router_table {
 width: 100%;
 margin-bottom: 15px;
+border: 1px solid #CCC;
 }
 .router_table td,
 .router_table th {/*all cells*/
@@ -319,9 +320,18 @@ background-color: #EEE;
 font-weight: bold;
 color: #444;
 font-size: 85%;
-border-bottom: 1px solid #CCC;
 }
 .router_table td {
+border-top: 1px solid #CCC;
+}
+.form .router_table {
+border: none;
+}
+.form .router_table th {
+border-bottom: 1px solid #CCC;
+}
+.form .router_table td {
+border-top: none;
 border-bottom: 1px solid #CCC;
 }
 .router_table td.router_name a {
