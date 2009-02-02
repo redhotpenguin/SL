@@ -6,6 +6,10 @@
     <select id="plan" name="plan">
         [% IF req.param('coupon') == 'phcc' %]
 	<option value="100.00" [% IF req.param('plan') == '100.00' %]SELECTED[% END %]>20,000 Ad Views/Month ($100/month)</option>
+	[% ELSIF req.param('coupon') == 'whatbugs' %]
+	<option value="25.00" [% IF req.param('plan') == '25.00' %]SELECTED[% END %]>3,000 Text Ad Views/Month ($25/month)</option>
+	<option value="50.00" [% IF req.param('plan') == '50.00' %]SELECTED[% END %]>3,000 Ad Views/Month ($50/month)</option>
+	<option value="100.00" [% IF req.param('plan') == '100.00' %]SELECTED[% END %]>10,000 Ad Views/Month ($100/month)</option>
 	[% ELSE %]
 	<option value="100.00" [% IF req.param('plan') == '100.00' %]SELECTED[% END %]>5,000 Ad Views/Month ($100/month)</option>
         <option value="150.00" [% IF req.param('plan') == '150.00' %]SELECTED[% END %]>10,000 Ad Views/Month ($150/month)</option>
