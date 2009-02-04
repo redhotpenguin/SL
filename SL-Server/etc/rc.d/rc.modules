@@ -1,4 +1,3 @@
-
 #!/bin/sh
 # rc.modules 3.1  Thu Aug 28 14:01:35 PDT 2003  pjv <volkerdi@slackware.com>
 #
@@ -21,14 +20,6 @@
 # That always works. ;^)
 #
 
-EXTERNAL=eth0
-INTERNAL=eth1
-echo 1 > /proc/sys/net/ipv4/ip_forward
-echo "setting up NAT (Network Address Translation)..."
-
-/sbin/modprobe ip_nat_sl
-/sbin/modprobe ipt_MASQUERADE
-
 ### Update module dependencies ###
 RELEASE=`uname -r`
 # If /usr is mounted and we have 'find', we can try to take a shortcut:
@@ -47,4 +38,216 @@ else # we don't have find, or there is no existing modules.dep, or it is out of 
   /sbin/depmod -A
 fi
 
+### Network device support ###
+# Most of these drivers will probe automatically for the card if you don't
+# specify an I/O address and IRQ.  But, the NE2000 driver needs at least the
+# I/O.  For complete information, see the net-modules.txt file that comes
+# with the Linux 2.2.x source code.  This file can also be found on the
+# Slackware CD-ROM in the /docs/linux-2.2.x/ directory.
+#
+# First, if setup probing found a network card, there may be an 'rc.netdevice'
+# file that we should run to load the network module:
+if [ -x /etc/rc.d/rc.netdevice ]; then
+  . /etc/rc.d/rc.netdevice
+fi
 
+### Ethernet cards based on the 8390 chip.
+# 3com 3c503 support:
+#/sbin/modprobe 3c503 
+# Ansel Communications EISA 3200 support:
+#/sbin/modprobe ac3200
+# Cabletron E21xx support:
+#/sbin/modprobe e2100
+# HP PCLAN+ (27247B and 27252A) support:
+#/sbin/modprobe hp-plus
+# HP PCLAN (27245 and other 27xxx series) support:
+#/sbin/modprobe hp
+# NE2000/NE1000 support (non PCI):
+#/sbin/modprobe ne io=0x300 # NE2000 at 0x300
+#/sbin/modprobe ne io=0x280 # NE2000 at 0x280
+#/sbin/modprobe ne io=0x320 # NE2000 at 0x320
+#/sbin/modprobe ne io=0x340 # NE2000 at 0x340
+#/sbin/modprobe ne io=0x360 # NE2000 at 0x360
+# PCI NE2000 clone support:
+#/sbin/modprobe ne2k-pci
+# SMC Ultra support:
+#/sbin/modprobe smc-ultra
+# SMC Ultra32 EISA support:
+#/sbin/modprobe smc-ultra32
+# Western Digital WD80*3 (and clones) support:
+#/sbin/modprobe wd
+#
+# Other network hardware drivers:
+# 
+# 3com 3c501 (consider buying a new card, since the 3c501 is slow,
+# broken, and obsolete):
+#/sbin/modprobe 3c501
+# 3com 3c503:
+#/sbin/modprobe 3c503
+# 3com 3c505:
+#/sbin/modprobe 3c505
+# 3com 3c507:
+#/sbin/modprobe 3c507
+# 3com 3c509 and 3c579:
+#/sbin/modprobe 3c509
+# 3com 3c515:
+#/sbin/modprobe 3c515
+# This one works for all 3com 3c590/3c592/3c595/3c597 and the
+# EtherLink XL 3c900 and 3c905 cards:
+#/sbin/modprobe 3c59x
+# Apricot Xen-II on board Ethernet:
+#/sbin/modprobe apricot
+# Generic ARCnet support:
+#/sbin/modprobe arcnet
+# AT1700/1720 support:
+#/sbin/modprobe at1700
+# AT-LAN-TEC/RealTek pocket adapter support:
+#/sbin/modprobe atp
+# BPQ Ethernet driver:
+#/sbin/modprobe bpqether
+# Generic DECchip & DIGITAL EtherWORKS PCI/EISA:
+#/sbin/modprobe de4x5
+# D-Link DE600 pocket adapter support:
+#/sbin/modprobe de600
+# D-Link DE620 pocket adapter support:
+#/sbin/modprobe de620
+# DEPCA support:
+#/sbin/modprobe depca
+# Digi International RightSwitch cards:
+#/sbin/modprobe dgrs
+# Intel EtherExpress Pro support:
+#/sbin/modprobe eepro
+# Intel EtherExpress PRO/100 PCI support:
+#/sbin/modprobe eepro100
+# Intel EtherExpress PRO/1000 PCI support:
+#/sbin/modprobe e1000
+# Intel EtherExpress16 support:
+#/sbin/modprobe eexpress
+# SMC EtherPower II 9432 PCI support:
+#/sbin/modprobe epic100
+# ICL EtherTeam 16i/32 support:
+#/sbin/modprobe eth16i
+# DEC EtherWorks 3 support:
+#/sbin/modprobe ewrk3
+# Fujitsu FMV-181/182/183/184 support:
+#/sbin/modprobe fmv18x
+# HP 10/100VG PCLAN (ISA, EISA, PCI) support:
+#/sbin/modprobe hp100
+# IBM Tropic chipset based adapter support:
+#/sbin/modprobe ibmtr
+# AMD LANCE and PCnet (AT1500 and NE2100) support:
+#/sbin/modprobe lance
+# National Semiconductor DP8381x series PCI Ethernet support:
+#/sbin/modprobe natsemi
+# NI5210 support:
+#/sbin/modprobe ni52
+# NI6510 support:
+#/sbin/modprobe ni65
+# AMD PCnet32 (VLB and PCI) support:
+#/sbin/modprobe pcnet32
+# Red Creek Hardware Virtual Private Network (VPN) support:
+#/sbin/modprobe rcpci
+# RealTek 8129/8139 (not 8019/8029!) support:
+#/sbin/modprobe 8139too
+# RealTek 8139C+ enhanced support:
+#/sbin/modprobe 8139cp
+# Sangoma S502A FRAD support:
+#/sbin/modprobe sdla
+# SMC 9194 support:
+#/sbin/modprobe smc9194
+# TI ThunderLAN support:
+#/sbin/modprobe tlan
+# DECchip Tulip (dc21x4x) PCI support:
+#/sbin/modprobe tulip
+# VIA Rhine support:
+#/sbin/modprobe via-rhine
+# AT&T WaveLAN & DEC RoamAbout DS support:
+#/sbin/modprobe wavelan
+# Packet Engines Yellowfin Gigabit-NIC support:
+#/sbin/modprobe yellowfin
+# Davicom DM9xxx (9102/9132/9100/9802...)
+#/sbin/modprobe dmfe
+# SiS 900/7016 PCI Fast Ethernet
+#/sbin/modprobe sis900
+
+### Serial line load balancing support ###
+#/sbin/modprobe eql
+
+### "dummy" IP support ###
+# A dummy IP driver.  Essentially a loopback device.  Can be useful --
+# see the Network Administrator's Guide from sunsite.unc.edu:/pub/Linux/docs/LDP
+#/sbin/modprobe dummy
+
+### Binary format support ###
+#/sbin/modprobe binfmt_aout
+#/sbin/modprobe binfmt_elf
+#/sbin/modprobe binfmt_java
+#/sbin/modprobe binfmt_misc
+
+# IP masquerading modules:
+# These modules are used with IP masquerading, a process which allows you to
+# use a Linux box connected to the Internet (via PPP or SLIP, or some other
+# means) as a gateway for other Linux, Windows, Macintosh boxes on your local
+# network that don't have real IP addresses on the Internet.  The packets
+# going through the Linux machine are "masqueraded", or made to look as if
+# they're all coming from the one real IP address on the Internet.
+#
+# As a quick example (for a much more extensive treatment, see the IP-Masquerade
+# mini-HOWTO) to allow Internet access to a local network 192.168.11.0 with a
+# netmask of 255.255.255.0, you'd use these commands in /etc/rc.d/rc.local:
+#
+#  # EXTERNAL -> external network interface 
+#  # INTERNAL -> internal network interface
+EXTERNAL=eth0
+INTERNAL=eth1
+echo 1 > /proc/sys/net/ipv4/ip_forward
+echo "Setting up NAT (Network Address Translation)..."
+# load modules for traffic shaping
+
+# make sure happy fun packets go to the right place
+/sbin/modprobe ip_nat_sl
+
+# enable MASQUERADING
+/sbin/modprobe ipt_MASQUERADE
+
+# Then you'd have to set the other boxes on your local network to use the
+# Linux machine as their TCP/IP gateway.  You'll probably also need to plug
+# in the IP address for your Internet service provider in each machine's DNS
+# setup.
+#
+# Now, on to the IP masquerading modules.  The example above is good enough
+# for most things that use TCP in a relatively simple fashion.  It'll work
+# for telnet and http, for instance.  But, the system breaks down when you
+# get protocols that use ports in more complicated ways.  Luckily the Linux
+# kernel gurus have thought of this and have prepared some modules that
+# support masquerading of trickier protocols.  The ipchains command is mighty
+# flexible as well, and a lot of things can be made to work just by setting
+# that up correctly.
+#
+# Special modules for iptables. See also "man iptables" for information about
+# that powerfull firewall tool.
+#
+/sbin/modprobe ip_conntrack_amanda
+/sbin/modprobe ipt_conntrack
+/sbin/modprobe ip_conntrack
+/sbin/modprobe ip_conntrack_ftp
+/sbin/modprobe ip_conntrack_tftp
+/sbin/modprobe ip_conntrack_irc
+/sbin/modprobe ip_nat_ftp
+/sbin/modprobe ip_nat_irc
+/sbin/modprobe ip_nat_snmp_basic
+#
+# These modules below are for ipchains (kernel 2.2.x). You can install ipchains
+# from /pasture. To use ipchains with newer kernels, you'll need this: 
+# /sbin/modprobe ipchains
+#
+#/sbin/modprobe ip_masq_autofw
+#/sbin/modprobe ip_masq_cuseeme
+#/sbin/modprobe ip_masq_ftp
+#/sbin/modprobe ip_masq_irc
+#/sbin/modprobe ip_masq_mfw
+#/sbin/modprobe ip_masq_portfw
+#/sbin/modprobe ip_masq_quake
+#/sbin/modprobe ip_masq_raudio
+#/sbin/modprobe ip_masq_user
+#/sbin/modprobe ip_masq_vdolive
