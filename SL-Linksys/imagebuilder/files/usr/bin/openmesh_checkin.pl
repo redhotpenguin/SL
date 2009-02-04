@@ -33,12 +33,6 @@ my $str = "https://$hostname/checkin-batman.php?$data";
 
 my $get = "/usr/bin/curl -k '$str'";
 # log it for troubleshooting
-warn("get is $get");
+# warn("get is $get");
 exec( "/usr/bin/curl",  "-k",  "$str");
 
-exit(0);
-my @args = ( $get );
-system( @args ) == 0 or die $?;
-#my $curled = `$get`;
-
-#warn("curled is $curled");
