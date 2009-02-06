@@ -1,5 +1,5 @@
-<?php include('cms_includes/header.inc'); ?>
-<?php include('cms_includes/masthead.inc'); ?>
+<?php include('cms_includes/header.inc.php'); ?>
+<?php include('cms_includes/masthead.inc.php'); ?>
 
 <div id="wrap">
 	<div id="content">
@@ -29,4 +29,4 @@
 
 
 
-<?php include('cms_includes/footer.inc'); ?>
+<?php include('cms_includes/footer.inc.php'); ?>
