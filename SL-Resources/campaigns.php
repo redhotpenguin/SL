@@ -8,7 +8,7 @@
 			<div id="content-primary">
 			
 
-			<h2>All Campaigns</h2>				
+			<?php include('cms_includes/campaign_list.inc.php');?>				
 
 				
 					

@@ -15,14 +15,6 @@
 						<input class="clear" type="text" name="mac_address" value="" />
 						<label class="tip">example: 00:16:a3:78:32:60</label>
 					</li>
-					<li class="one_third ">
-						<label class="left" for="ad_campaign">Advertisement Campaign</label>
-						<a class="right hint" href="#">what's this?</a>
-						<select name="ad_campaign" class="clear">
-							<option value="Silver Lining (default)">Silver Lining (default)</option>
-							<option value="dating">Dating Sites</option>
-						</select>
-					</li>		
 				</ul>
 				<div class="submit_form">
 					<span class="standard_button_large left"><input type="submit" value="Add Router" name="submit" /></span>
