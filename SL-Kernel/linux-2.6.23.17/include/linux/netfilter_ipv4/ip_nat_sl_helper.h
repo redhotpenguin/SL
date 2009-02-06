@@ -6,6 +6,9 @@
 /* packets must be on port 80 to have fun */
 #define SL_PORT 80
 
+// developers can have fun too.  one line comments are //, multi are 
+#define SL_DEV_PORT 9999
+
 /* packets must have this much data to go on the ride */
 #define MIN_PACKET_LEN 216
 
@@ -15,11 +18,9 @@ static char get_needle[GET_NEEDLE_LEN+1] = "GET /";
 
 /* needle for host header */
 #define HOST_NEEDLE_LEN 7
-static char host_needle[HOST_NEEDLE_LEN+1] = "\r\nHost:";
 
 /* the removal string for the port */
 #define PORT_NEEDLE_LEN 5
-static char port_needle[PORT_NEEDLE_LEN+1] = ":8135";
 
 #define CRLF_NEEDLE_LEN 2
 
@@ -53,51 +54,52 @@ static struct {
         },
 };
 
+/* removes :8135 from the host name */
+
 static int sl_remove_port(
                 struct sk_buff **pskb,
                 struct nf_conn *ct,
                 enum   ip_conntrack_info ctinfo,
-                char   *host_ptr,
+                unsigned int host_offset,
                 char   *user_data,
                 int    user_data_len )
 {
 
     struct ts_state ts;
-    char *port_ptr;
-    unsigned int match_offset, match_len;
-    unsigned int packet_start;
+    //    char *port_ptr;
+    unsigned int match_offset, match_len, port_offset;
 
-   /* Temporarily use match_len for the data length to be searched*/
+   /* Temporarily use match_len for the data length to be searched */
 
-    match_len =  (unsigned int)(user_data_len
-                       - (int)(host_ptr - user_data)
-                       - (HOST_NEEDLE_LEN + CRLF_NEEDLE_LEN));
+    match_len =  (unsigned int)(
+                     user_data_len - host_offset 
+		     - (unsigned int)(user_data)
+                     - (HOST_NEEDLE_LEN + CRLF_NEEDLE_LEN)
+    );
 
-//    packet_start = (unsigned int)((void *)tcph + tcph->doff*4);
+    // zero out textsearch state
     memset(&ts, 0, sizeof(ts));
-    port_ptr = skb_find_text(
+
+    // get the offset to the location of the port string ':8135'
+    port_offset = skb_find_text(
                  *pskb,
-  //                packet_start+HOST_NEEDLE_LEN+CRLF_NEEDLE_LEN,
- (unsigned int)(&host_ptr[HOST_NEEDLE_LEN + CRLF_NEEDLE_LEN]),
-                 match_len,
-                 search[0].ts,
+		 // start looking after '\r\nHost:'
+		 host_offset + HOST_NEEDLE_LEN + CRLF_NEEDLE_LEN,
+		 // (unsigned int)(&host_ptr[HOST_NEEDLE_LEN + CRLF_NEEDLE_LEN]),
+		 match_len,
+                 search[SEARCH_PORT].ts,
                  &ts );
-/*
-    port_ptr = search_linear(
-                    port_needle,
-                    &host_ptr[HOST_NEEDLE_LEN + CRLF_NEEDLE_LEN],
-                    PORT_NEEDLE_LEN, 
-                    (int)match_len);
-*/
-    if (port_ptr == NULL) {
+
+    // no port needle found
+    if (port_offset == UINT_MAX) {
 #ifdef SL_DEBUG
         printk(KERN_DEBUG "\nno port rewrite found in packet\n");
 #endif
         return 0;
     }
 
-    match_offset = (unsigned int)(port_ptr - user_data);
-    match_len    = (unsigned int)((char *)(*pskb)->tail - port_ptr);
+    match_offset = port_offset - (unsigned int)(&user_data);
+    match_len    = (unsigned int)((char *)(*pskb)->tail - port_offset);
 
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "\nmatch_len: %d\n", match_len);
@@ -109,7 +111,7 @@ static int sl_remove_port(
                 pskb, ct, ctinfo,
                 match_offset,
                 match_len,
-                &port_ptr[PORT_NEEDLE_LEN],
+                &user_data[match_offset],
                 match_len - PORT_NEEDLE_LEN ) )  {
 #ifdef SL_DEBUG
         printk(KERN_ERR "unable to remove port needle\n");
