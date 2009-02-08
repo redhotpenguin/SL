@@ -18,6 +18,7 @@
 	    <li><a href="adzones/floating_full_banner.html">Floating Full Banner</a></li>
 	    <li><a href="adzones/floating_leaderboard.html">Floating Leaderboard</a></li>
 	    <li><a href="adzones/floating_footer_leaderboard.html">Floating Footer (Leaderboard)</a></li>
+	   	<li><a href="adzones/floating_footer_leaderboard_text.html">Floating Footer (Text Leaderboard)</a></li>
 	    <li><a href="adzones/floating_footer_full_banner.html">Floating Footer (Full Banner)</a></li>
 	    <li><a href="adzones/floating_footer_fb_db.html">Floating Footer (FB Double)</a></li>
 	    <li><a href="adzones/floating_cloud.html">Floating Cloud</a></li>
