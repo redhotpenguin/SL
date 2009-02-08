@@ -200,7 +200,7 @@ sub check_for_ads_mac {
 
         # huh something broke
         require Data::Dumper;
-        die "$$ Error checking paid mac $mac, response: "
+        die "$$ Error checking ads mac $mac, response: "
           . Data::Dumper::Dumper($res);
     }
 
@@ -395,7 +395,7 @@ sub _check_chain_for_mac {
 
     $mac = uc($mac);
 
-    my $iptables_rule = `$IPTABLES -t mangle --list | grep 'MAC $mac' | grep $mark`;
+    my $iptables_rule = `$Iptables -t mangle --list | grep 'MAC $mac' | grep $mark`;
 
     return unless $iptables_rule;
 

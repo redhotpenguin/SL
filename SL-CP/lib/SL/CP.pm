@@ -117,7 +117,7 @@ sub ads {
         my $dest_url = URI::Escape::uri_escape($url);
         my $esc_mac  = URI::Escape::uri_escape($mac);
         my $location = "$Auth_url?mac=$esc_mac&url=$dest_url";
-        
+
         $location .= "&expired=1" if ( $added == 401 );
         $r->log->info(
 "$$ expired mac address $mac found, code $added, redirecting to $location"
@@ -190,6 +190,51 @@ sub paid {
     $r->no_cache(1);
     return Apache2::Const::REDIRECT;
 }
+
+sub upgrade {
+    my ($class, $r) = @_;
+
+    my ( $mac, $ip ) = _mac_from_ip($r);
+    return Apache2::Const::NOT_FOUND unless $mac;
+
+    # make sure they don't already have a paid account
+    # check to see if this mac has been paid for
+    my $paid_code = eval { SL::CP::IPTables->check_for_paid_mac( $mac, $ip ); };
+    if ($@) {
+        $r->log->error("$$ Error checking paid mac $mac, $@");
+        return Apache2::Const::SERVER_ERROR;
+    }
+
+    if ( $paid_code == 1 ) {
+
+        $r->log->error("$$ mac $mac trying to upgrade, but already has paid plan");
+        $r->headers_out->set( Location => 'http://www.silverliningnetworks.com/aircloud/splash.html' );
+        $r->no_cache(1);
+        return Apache2::Const::REDIRECT;
+    }
+
+    # this person wants to upgrade, they should have an ads plan
+    my $iptables_ip = SL::CP::IPtables->check_ads_chain_for_mac( $mac );
+    if (!$iptables_ip or ( $iptables_ip && ( $iptables_ip ne $ip ) )) {
+      # something bad happened
+
+      $r->log->error("mac $mac, ip $ip invalid or missing iptables rule upgrading");
+      return Apache2::Const::SERVER_ERROR;
+    }
+
+    # yay, they have a valid firewall rule for the ad chain.  so delete it
+    SL::CP::IPtables->delete_from_ads_chain( $mac, $ip );
+
+    # and then redirect them to the auth page
+    my $esc_mac  = URI::Escape::uri_escape($mac);
+    my $location = "$Auth_url?mac=$esc_mac&upgrade=1";
+
+    $r->log->info("$$ mac $mac redirecting upgrade request to $location");
+    $r->headers_out->set( Location => $location );
+    $r->no_cache(1);
+    return Apache2::Const::REDIRECT;
+}
+
 
 sub _mac_from_ip {
     my $r = shift;

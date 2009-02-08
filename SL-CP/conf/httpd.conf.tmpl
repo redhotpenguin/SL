@@ -77,6 +77,20 @@ PerlPostReadRequestHandler Apache2::Const::OK
     PerlResponseHandler SL::CP->paid
 </Location>
 
+<Location /upgrade>
+    SetHandler modperl
+    PerlHeaderParserHandler Apache2::Const::OK
+    PerlAccessHandler       Apache2::Const::OK
+    PerlAuthenHandler       Apache2::Const::OK
+    PerlAuthzHandler        Apache2::Const::OK
+    PerlTypeHandler         Apache2::Const::OK
+    PerlFixupHandler        Apache2::Const::OK
+
+    PerlResponseHandler SL::CP->upgrade
+</Location>
+ 
+
+
 <Directory />
     AllowOverride none
 </Directory>
