@@ -380,6 +380,55 @@ background-color: #bce7f6;
 color: #003d6b;
 }
 
+
+/* CAMPAIGN TABLE
+============================================= */
+
+.campaign_table th {
+border-bottom: 1px solid #CCC;
+}
+.campaign_table td {
+border-top: none;
+border-bottom: 1px solid #CCC;
+}
+.campaign_table td {
+vertical-align: middle;
+}
+.campaign_table td a {
+font-size: 100%;
+}
+
+
+
+.campaign_table td.status .active {
+height: 24px;
+width: 24px;
+overflow: hidden;
+text-indent: -3000px;
+display: block;
+background: url(../images/icons/on.png) no-repeat top left;
+}
+.campaign_table td.status .inactive {
+height: 24px;
+width: 24px;
+overflow: hidden;
+text-indent: -3000px;
+display: block;
+background:url(../images/icons/off.png) no-repeat top left;
+}
+.campaign_table td.delete a {
+margin: 0 auto;
+height: 16px;
+width: 16px;
+overflow: hidden;
+text-indent: -3000px;
+display: block;
+background: url(../images/icons/trash.gif) no-repeat top left;
+}
+
+
+
+
 /* ROUTER TABLE
 ============================================= */
 .form .router_table {
@@ -392,6 +441,9 @@ border-bottom: 1px solid #CCC;
 border-top: none;
 border-bottom: 1px solid #CCC;
 }
+.router_table td {
+vertical-align: middle;
+}
 .router_table td.router_name a {
 font-size: 100%;
 }
@@ -402,34 +454,32 @@ color: #999;
 }
 .router_table td.mac_address {
 font-size: 85%;
-vertical-align:middle;
 color: #666;
 }
 .router_table td.status,
 .router_table td.delete
  {
 width: 36px;
-vertical-align: middle;
 text-align: center;
 }
 .router_table td.status strong {
 margin: 0 auto;
 }
 .router_table td.status .active {
-height: 16px;
-width: 16px;
+height: 24px;
+width: 24px;
 overflow: hidden;
 text-indent: -3000px;
 display: block;
-background: url(../images/icons/tick.png) no-repeat top left;
+background: url(../images/icons/signal_on.png) no-repeat top left;
 }
 .router_table td.status .inactive {
-height: 16px;
-width: 16px;
+height: 24px;
+width: 24px;
 overflow: hidden;
 text-indent: -3000px;
 display: block;
-background:url(../images/icons/small_stop.png) no-repeat top left;
+background:url(../images/icons/signal_off.png) no-repeat top left;
 }
 .router_table td.delete a {
 margin: 0 auto;
