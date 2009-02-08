@@ -27,9 +27,6 @@ MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("Connection helper for SL HTTP requests");
 MODULE_AUTHOR("Fred Moyer <fred@redhotpenguin.com>");
 
-/* big packet munging is currently broken */
-#define BIG_PACKET 0
-
 /* salt for the hashing */
 #define JHASH_SALT 420
 
@@ -40,6 +37,8 @@ MODULE_AUTHOR("Fred Moyer <fred@redhotpenguin.com>");
 #define SL_HEADER_LEN 29
 
 #define MACADDR_SIZE 12
+
+#define SL_DEBUG 1
 
 static unsigned int add_sl_header(
     struct sk_buff **pskb,
