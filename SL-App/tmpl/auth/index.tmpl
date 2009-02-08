@@ -14,7 +14,8 @@
 			<!-- CHOOSE WIFI COPY ************************ --> 
 			<div class="two_thirds left padding_top">
 				<h2 class="choose_wifi">Choose a WiFi option</h2>
-				[% IF expired %]<p><strong><font color="red">Your existing plan has expired, please select a new plan.</font></strong></p>[% END %]
+				[% IF req.param('expired') %]<p><strong><font color="red">Your existing plan has expired, please select a new plan.</font></strong></p>[% END %]
+				[% IF req.param('upgrade') %]<p><strong><font color="red">Thank you for upgrading, please select a new plan.</font></strong></p>[% END %]
 				<p>
 				<strong>You're connected to a wireless network.</strong>  
 				To get started choose a WiFi option that works best 

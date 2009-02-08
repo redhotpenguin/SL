@@ -285,10 +285,8 @@ sub auth {
     my %args = (
         mac => $mac,
         url => $url,
+	req => $req,
     );
-    if ( defined $req->param('expired') ) {
-        $args{'expired'} = 1;
-    }
 
     my $ok = $Tmpl->process( 'auth/index.tmpl', \%args, \$output, $r );
     $ok
