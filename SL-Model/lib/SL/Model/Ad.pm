@@ -31,7 +31,9 @@ use constant BUG_IMAGE_HREF      => 8;
 use constant BUG_LINK_HREF       => 9;
 use constant PREMIUM             => 10;
 use constant CLOSE_BOX           => 11;
-use constant OUTPUT_REF          => 12;
+use constant AAA                 => 12
+use constant LAN_IP              => 13
+use constant OUTPUT_REF          => 14;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
@@ -64,6 +66,9 @@ bug.link_href,
 
 0, -- premium
 1  -- close box
+
+'', -- aaa
+'', -- lan_ip
 
 FROM ad_zone, bug, ad_size
 
@@ -225,6 +230,9 @@ bug.link_href,
 
 account.premium,
 account.close_box
+account.aaa
+
+router.lan_ip
 
 FROM ad_zone, bug, router, router__ad_zone, ad_size, account
 
@@ -274,7 +282,6 @@ sub random {
     my $url  = $args->{url}  || warn("no url passed")  && return;
     my $mac  = $args->{mac}  || warn("no mac passed")  && return;
     my $user = $args->{user} || warn("no user passed") && return;
-    my $premium = $args->{premium};
 
     # get the list of ad zones we can server for this router
     my $ad_data = $class->_random_ad_from_mac($mac) || $Default_Ad_Data;
@@ -308,6 +315,14 @@ sub process_ad_template {
         premium        => $ad_data->[PREMIUM],
         close_box      => $ad_data->[CLOSE_BOX],
     );
+
+    # yucky, refactor pleeze
+    if (defined $ad_data->[LAN_IP] && $ad_data->[LAN_IP] ne '') {
+      $tmpl_vars{lan_ip} = $ad_data->[LAN_IP],
+    }
+    if (defined $ad_data->[AAA] && ( $ad_data->[AAA] ne '') {
+      $tmpl_vars{aaa} = $ad_data->[AAA],
+    }
 
     warn( "tmpl vars: " . Data::Dumper::Dumper( \%tmpl_vars ) ) if DEBUG;
 
