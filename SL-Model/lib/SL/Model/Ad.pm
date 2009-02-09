@@ -65,10 +65,10 @@ bug.image_href,
 bug.link_href,
 
 0, -- premium
-1  -- close box
+1,  -- close box
 
 '', -- aaa
-'', -- lan_ip
+'' -- lan_ip
 
 FROM ad_zone, bug, ad_size
 
@@ -317,10 +317,10 @@ sub process_ad_template {
     );
 
     # yucky, refactor pleeze
-    if (defined $ad_data->[LAN_IP] && $ad_data->[LAN_IP] ne '') {
+    if (defined $ad_data->[LAN_IP] && ( $ad_data->[LAN_IP] ne '' ) ) {
       $tmpl_vars{lan_ip} = $ad_data->[LAN_IP],
     }
-    if (defined $ad_data->[AAA] && ( $ad_data->[AAA] ne '') {
+    if (defined $ad_data->[AAA] && ( $ad_data->[AAA] ne '') ) {
       $tmpl_vars{aaa} = $ad_data->[AAA],
     }
 
