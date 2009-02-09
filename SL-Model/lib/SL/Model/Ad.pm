@@ -229,8 +229,8 @@ bug.image_href,
 bug.link_href,
 
 account.premium,
-account.close_box
-account.aaa
+account.close_box,
+account.aaa,
 
 router.lan_ip
 
