@@ -22,13 +22,6 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => undef,
   },
-  "aaa_email_cc",
-  {
-    data_type => "text",
-    default_value => undef,
-    is_nullable => 0,
-    size => undef,
-  },
   "premium",
   {
     data_type => "boolean",
@@ -47,17 +40,26 @@ __PACKAGE__->add_columns(
   {
     data_type => "boolean",
     default_value => "true",
+    is_nullable => 0,
+    size => 1,
+  },
+  "aaa_email_cc",
+  {
+    data_type => "text",
+    default_value => undef,
+    is_nullable => 1,
+    size => undef,
+  },
+  "aaa",
+  {
+    data_type => "boolean",
+    default_value => "false",
     is_nullable => 1,
     size => 1,
   },
 );
 __PACKAGE__->set_primary_key("account_id");
 __PACKAGE__->add_unique_constraint("account_pkey", ["account_id"]);
-__PACKAGE__->has_many(
-  "account__ad_zones",
-  "SL::Model::App::AccountAdZone",
-  { "foreign.account_id" => "self.account_id" },
-);
 __PACKAGE__->has_many(
   "ad_zones",
   "SL::Model::App::AdZone",
@@ -66,6 +68,11 @@ __PACKAGE__->has_many(
 __PACKAGE__->has_many(
   "bugs",
   "SL::Model::App::Bug",
+  { "foreign.account_id" => "self.account_id" },
+);
+__PACKAGE__->has_many(
+  "networks",
+  "SL::Model::App::Network",
   { "foreign.account_id" => "self.account_id" },
 );
 __PACKAGE__->has_many(
@@ -85,8 +92,10 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2008-07-14 21:34:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GxKKi49s3IE+qdqlEstWJQ
+# Created by DBIx::Class::Schema::Loader v0.04002 @ 2009-02-08 17:39:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/S9iEzgkhsfPSqWQKR9RXw
+
+
 
 use File::Path       ();
 use Digest::MD5      ();
