@@ -4,11 +4,13 @@ Version: 2.0
 Author: SILVER LINING NETWORKS INC.
 ---------------------------------------------*/
 
+
+
 /*= GENERAL
 === === === === === === === === === === === === === */
 body {
 margin: 0;
-padding: 0px 0px 116px 0px !important;
+padding: 0px 0px 120px 0px !important;
 }
 .silver_lining_clear {
 clear: both;
@@ -25,6 +27,38 @@ z-index: 3000;
 }
 
 
+/*= BUTTON
+=== === === === === === === === === === === === === */
+
+.big_button {
+border: 1px solid #033a64;
+padding: 10px;
+background: #175a81 url(../images/buttons/blue_square_bg.png) repeat-x top left;
+display: block;
+margin: 0px;
+overflow: visible;
+color: #FFF;
+font-size: 122%;
+font-family: Verdana, Arial, san-serif;
+line-height: normal;
+width: auto;
+text-decoration: none;
+cursor: pointer;
+}
+.big_button .block {
+display: block;
+font-size: 114%;
+}
+.big_button:hover {
+border: 1px solid #6ea60a;
+background: #7bb90f url(../images/buttons/green_square_bg.png) repeat-x top left;
+}
+.big_button:active {
+border: 1px solid #6ea60a;
+background: none;
+background-color: #7bb90f ;
+}
+
 /*= LEADERBOARD
 === === === === === === === === === === === === === */
 #silver_lining_leaderboard {
@@ -33,7 +67,7 @@ margin-left:auto;
 margin-right: auto;
 max-width: 1100px;
 min-width: 960px;
-height: 90px;
+height: 94px;
 position: relative;
 }
 #silver_lining_leaderboard #silver_lining_bug {
@@ -43,6 +77,7 @@ width: 200px;
 background-position: top left !important;
 background-repeat: no-repeat !important;
 overflow: hidden;
+text-align: center;
 }
 #silver_lining_leaderboard #silver_lining_client_ad {
 float: left;
@@ -75,6 +110,32 @@ z-index: 5000;
 #silver_lining_leaderboard #silver_lining_close img,
 #silver_lining_leaderboard #silver_lining_homepage img{
 border: none;
+}
+#silver_lining_advertise_here_link {
+font-family: Verdana, arial, san-serif;
+font-size: 11px;
+display: block;
+position: absolute;
+right: 100px;
+bottom: -10px;
+text-align: center;
+color: #25709a;
+}
+#silver_lining_textlink {
+background-color: #FFFFE4;
+border: 1px solid #F7D666;
+padding: 10px 100px;
+font-size: 12px;
+font-weight: bold;
+font-family: Verdana, Arial, san-serif;
+line-height: 22px;
+text-decoration: none;
+display: block;
+color: #444;
+}
+#silver_lining_textlink:hover {
+text-decoration: underline;
+color: #25709a;
 }
 
 
