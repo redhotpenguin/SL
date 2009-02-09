@@ -78,6 +78,7 @@ background-position: top left !important;
 background-repeat: no-repeat !important;
 overflow: hidden;
 text-align: center;
+border: 0px;
 }
 #silver_lining_leaderboard #silver_lining_client_ad {
 float: left;
