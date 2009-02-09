@@ -31,8 +31,8 @@ use constant BUG_IMAGE_HREF      => 8;
 use constant BUG_LINK_HREF       => 9;
 use constant PREMIUM             => 10;
 use constant CLOSE_BOX           => 11;
-use constant AAA                 => 12
-use constant LAN_IP              => 13
+use constant AAA                 => 12;
+use constant LAN_IP              => 13;
 use constant OUTPUT_REF          => 14;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
