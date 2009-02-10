@@ -73,6 +73,10 @@ slAUTads -p tcp -m tcp --dport 53 -j ACCEPT
 slAUTads -p udp -m udp --dport 53 -j ACCEPT 
 slAUTads -p tcp -m tcp --dport 80 -j ACCEPT 
 slAUTads -p tcp -m tcp --dport 443 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 465 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 587 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 8136 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 587 -j ACCEPT 
 slAUTads -p tcp -m tcp --dport 22 -j ACCEPT 
 slAUTads -p tcp -m tcp --dport 110 -j ACCEPT 
 slAUTads -p tcp -m tcp --dport 143 -j ACCEPT 
@@ -212,7 +216,7 @@ sub check_for_ads_mac {
 
     # see if the mac address is in a rule
     my ($iptables_ip) =
-      $iptables_rule =~ m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*?MAC\s+$uc_mac/;
+      $iptables_rule =~ m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*?MAC\s+$uc_mac/i;
 
     if ( !$iptables_ip ) {
 
@@ -291,7 +295,7 @@ sub check_for_paid_mac {
 
     # see if the mac address is in a rule
     my ($iptables_ip) =
-      $iptables_rule =~ m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*?MAC\s+$uc_mac/;
+      $iptables_rule =~ m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*?MAC\s+$uc_mac/i;
 
     if ( !$iptables_ip ) {
 
@@ -391,18 +395,23 @@ sub check_paid_chain_for_mac {
 }
 
 sub _check_chain_for_mac {
-    my ($mark, $mac) = @_;
+    my ($class, $mark, $mac) = @_;
 
     $mac = uc($mac);
 
-    my $iptables_rule = `$Iptables -t mangle --list | grep 'MAC $mac' | grep $mark`;
+    my @lines = split( '\n', `sudo $Iptables -t mangle --list` );
+    
+    my $ip;
+    foreach my $line (@lines) {
+	next unless $line =~ m/^MARK/;
+	last if ($ip) =
+		$line =~ m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*?MAC\s+$mac/i;
+    }
 
-    return unless $iptables_rule;
-
-    my ($ip) = $iptables_rule =~ m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*?MAC\s+$mac/;
+    return unless $ip;
 
    unless ($ip) {
-      warn("no ip could be found in rule $iptables_rule");
+      warn("no ip could be found in iptables for mac $mac");
       return;
     }
 

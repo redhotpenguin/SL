@@ -214,7 +214,8 @@ sub upgrade {
     }
 
     # this person wants to upgrade, they should have an ads plan
-    my $iptables_ip = SL::CP::IPtables->check_ads_chain_for_mac( $mac );
+    my $iptables_ip = SL::CP::IPTables->check_ads_chain_for_mac( $mac );
+
     if (!$iptables_ip or ( $iptables_ip && ( $iptables_ip ne $ip ) )) {
       # something bad happened
 
@@ -223,7 +224,7 @@ sub upgrade {
     }
 
     # yay, they have a valid firewall rule for the ad chain.  so delete it
-    SL::CP::IPtables->delete_from_ads_chain( $mac, $ip );
+    SL::CP::IPTables->delete_from_ads_chain( $mac, $ip );
 
     # and then redirect them to the auth page
     my $esc_mac  = URI::Escape::uri_escape($mac);
