@@ -1,11 +1,4 @@
-$(document).ready(function(){   
-	prepareTerms();
-});
 
-function prepareTerms() {
- $('#terms_of_service').css({display:"none"});
- $('#terms_link').addClass("thickbox").attr("href", "terms_of_service.html?height=300&width=300");
-}
 
 /*
  * Thickbox 3.1 - One Box To Rule Them All.

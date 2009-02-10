@@ -113,6 +113,9 @@ padding-top: 40px;
 .padding_b_40 {
 padding-bottom: 40px;
 }
+.padding_b_20 {
+padding-bottom: 20px;
+}
 
 
 /*LAYOT 
@@ -202,6 +205,12 @@ font-size: 85%;
 .size_normal {
 font-size: 100%;
 }
+.monster_title {
+font-size: 240%;
+font-family: Helvetica, Arial, san-serif;
+font-weight: bold;
+}
+
 
 /*ICONS
 === === === === === === === === === === */
@@ -244,7 +253,7 @@ text-decoration: none;
 cursor: pointer;
 }
 
-.special_button {
+.special_button,.special_button_long {
 border-top: 1px solid #6ea60a;
 border-bottom: 1px solid #6ea60a;
 display: block;
@@ -257,7 +266,7 @@ border: none;
 border-left: 1px solid #6ea60a;
 border-right: 1px solid #6ea60a;
 padding: 6px 10px 5px 10px;
-background: #7bb90f url(/resources/images/buttons/green_sqaure_bg.png) repeat-x top left;
+background: #7bb90f url(../images/buttons/green_sqaure_bg.png) repeat-x top left;
 display: block;
 margin: 0px -1px;
 width: 160px;
@@ -265,6 +274,22 @@ color: #FFF;
 font-size: 144%;
 line-height: normal;
 text-decoration: none;
+cursor: pointer;
+}
+#sln .special_button_long a {
+border: none;
+border-left: 1px solid #6ea60a;
+border-right: 1px solid #6ea60a;
+padding: 15px;
+background: #7bb90f url(../images/buttons/green_sqaure_bg.png) repeat-x top left;
+display: block;
+margin: 0px -1px;
+width: 300px;
+color: #FFF;
+font-size: 144%;
+line-height: normal;
+text-decoration: none;
+text-align: center;
 cursor: pointer;
 }
 
@@ -294,6 +319,13 @@ color: #CCC;
 
 /*PAGE STYLES 
 === === === === === === === === === === */
+.main_header {
+text-align: center;
+padding-bottom: 20px;
+}
+.main_header h2 {
+font-weight: normal;
+}
 .bg_color_2 {
 background-color: #5db0ca;
 }

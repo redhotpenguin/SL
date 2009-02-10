@@ -51,10 +51,6 @@ margin-top: expression(0 - parseInt(this.offsetHeight / 2) + (TBWindowMargin = d
 #TB_window img#TB_Image {
   display:block;
   margin: 15px 0 0 15px;
-  border-right: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
-  border-top: 1px solid #666;
-  border-left: 1px solid #666;
 }
 #TB_caption{
   height:25px;
