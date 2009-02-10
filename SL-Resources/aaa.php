@@ -8,6 +8,7 @@
 <div id="content">
   <h2>Trip A Service</h2>
   <ul>
+    <li><a href="triple_a/advertise_here.html">Advertise Here Page</a></li>
     <li><a href="triple_a/wifi_menu.html">Menu Page</a></li>
     <li><a href="triple_a/wifi_menu_aircloud.html">Custom Menu Page</a></li>
     <li><a href="triple_a/payment_form.php">Payment Page</a></li>
