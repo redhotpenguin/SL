@@ -221,6 +221,17 @@ padding-left: 40px;
 margin-bottom: 10px;
 }
 
+/* THICKBOX
+============================================= */
+#sln #TB_secondLine {
+font-weight: bold;
+font-size: 122%;
+}
+.ad_links a {
+font-size: 85%;
+margin: 5px 10px;
+}
+
 /*AUTHORIZE.NET 
 === === === === === === === === === === */
 #payment_info .AuthorizeNetSeal a img {
