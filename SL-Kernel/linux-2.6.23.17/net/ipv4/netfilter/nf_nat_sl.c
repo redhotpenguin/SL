@@ -15,13 +15,14 @@
 #include <linux/netfilter.h>
 #include <net/tcp.h>
 #include <net/netfilter/nf_nat.h>
+#include <net/netfilter/nf_nat.h>
 #include <net/netfilter/nf_nat_helper.h>
 #include <net/netfilter/nf_nat_rule.h>
 #include <net/netfilter/nf_conntrack.h>
 #include <net/netfilter/nf_conntrack_helper.h>
 #include <net/netfilter/nf_conntrack_expect.h>
 #include <linux/jhash.h>
-#include <linux/netfilter_ipv4/ip_nat_sl_helper.h>
+#include <linux/netfilter/nf_conntrack_sl.h>
 
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("Connection helper for SL HTTP requests");
@@ -217,7 +218,7 @@ static int sl_data_fixup(
     return 1;
 }
 
-static int help(
+static unsigned int nf_nat_sl (
              struct sk_buff **pskb,
 	     unsigned int protoff,
 	     struct nf_conntrack_expect *exp,
@@ -311,45 +312,16 @@ struct nf_conntrack_helper sl;
 
 static void nf_nat_sl_fini(void)
 {
-#ifdef SL_DEBUG
-    printk(KERN_DEBUG "ip_nat_sl: unregistering for port %d\n", SL_PORT);
-#endif
-
-    nf_conntrack_helper_unregister(&sl);
+	rcu_assign_pointer(nf_nat_sl_hook, NULL);
+	synchronize_rcu();
 }
 
 static int __init nf_nat_sl_init(void)
 {
 
-    int ret = 0;
-    
-    //    sl.list.next = 0;
-    //    sl.list.prev = 0;
-    sl.me = THIS_MODULE;
-//    sl.flags = (NF_NAT_HELPER_F_STANDALONE|NF_NAT_HELPER_F_ALWAYS);
-    sl.tuple.dst.protonum = IPPROTO_TCP;
-    
-    sl.tuple.dst.u.tcp.port = __constant_htons(SL_PORT);
-    //    sl.mask.dst.u.tcp.port = 0;
-    //    sl.help = sl_help;
- //   sl.expect = NULL;
-
-#ifdef SL_DEBUG
-    printk(KERN_DEBUG "ip_nat_sl: Trying to register for port %d\n", SL_PORT);
-#endif
-
-    ret = nf_conntrack_helper_register(&sl);
-
-    if (ret) {
-
-#ifdef SL_DEBUG
-        printk(KERN_ERR "ip_nat_sl: error registering helper, port %d\n", SL_PORT);
-#endif
-
-        nf_nat_sl_fini();
-        return ret;
-    }
-    return ret;
+	BUG_ON(rcu_dereference(nf_nat_sl_hook));
+	rcu_assign_pointer(nf_nat_sl_hook, nf_nat_sl);
+	return 0;
 }
 
 module_init(nf_nat_sl_init);
