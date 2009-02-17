@@ -126,4 +126,14 @@ static int sl_remove_port(
    return 1; 
 }
 
+struct nf_conntrack_expect;
+
+static int nf_nat_sl (
+             struct sk_buff **pskb,
+	     unsigned int protoff,
+	     struct nf_conntrack_expect *exp,
+             enum   ip_conntrack_info ctinfo
+        );
+
+
 #endif
