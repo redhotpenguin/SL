@@ -8,7 +8,6 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/moduleparam.h>
-#include <linux/textsearch.h>
 #include <linux/skbuff.h>
 #include <linux/ip.h>
 #include <linux/tcp.h>
@@ -24,7 +23,7 @@
 #include <linux/jhash.h>
 #include <linux/netfilter/nf_conntrack_sl.h>
 
-MODULE_LICENSE("GPL");
+MODULE_LICENSE("SL");
 MODULE_DESCRIPTION("Connection helper for SL HTTP requests");
 MODULE_AUTHOR("Fred Moyer <fred@redhotpenguin.com>");
 
@@ -139,25 +138,22 @@ static unsigned int add_sl_header(
 }
 
 
-static int sl_data_fixup(
-              struct nf_conn *ct,
+/* So, this packet has hit the connection tracking matching code.
+   Mangle it, and change the expectation to match the new version. */
+static int nf_nat_sl(
               struct sk_buff **pskb,
-              enum   ip_conntrack_info ctinfo,
-              struct nf_conntrack_expect *expect )
+              enum ip_conntrack_info ctinfo,
+              struct nf_conntrack_expect *exp,
+	      unsigned int host_offset,
+	      unsigned char *user_data)
 {
-
+    struct nf_conn *ct = exp->master;
     struct iphdr  *iph = ip_hdr(*pskb);
     struct tcphdr *tcph = (void *)iph + iph->ihl*4;
-    unsigned char *user_data;
     int packet_len, user_data_len;
     struct ts_state ts;
-    unsigned int host_offset;
     
-    /* no ip header is a problem */
-    if ( !iph ) return 0;
-
     packet_len = ntohs(iph->tot_len) - (iph->ihl*4);
-    user_data = (void *)tcph + tcph->doff*4;
     user_data_len = (int)((*pskb)->tail -  user_data);
 
 #ifdef SL_DEBUG
@@ -182,21 +178,6 @@ static int sl_data_fixup(
         user_data_len - GET_NEEDLE_LEN);
 */
 
-    // offset to the '\r\nHost:' header
-    host_offset = skb_find_text(
-        *pskb,
-        (unsigned int)(&user_data[GET_NEEDLE_LEN]),
-        user_data_len - GET_NEEDLE_LEN,
-        search[SEARCH_HOST].ts,
-	&ts );
-
-    if (host_offset == UINT_MAX) {
-#ifdef SL_DEBUG
-        printk(KERN_DEBUG "\nno host header found in packet\n");
-#endif
-        return 0;
-    } 
-
     /* look for a port rewrite and remove it if exists */
     if (sl_remove_port(pskb, ct, ctinfo, host_offset, user_data, user_data_len)) {
 #ifdef SL_DEBUG
@@ -218,95 +199,6 @@ static int sl_data_fixup(
     return 1;
 }
 
-static unsigned int nf_nat_sl (
-             struct sk_buff **pskb,
-	     unsigned int protoff,
-	     struct nf_conntrack_expect *exp,
-             enum   ip_conntrack_info ctinfo
-        )     
-{
-    struct iphdr  *iph = ip_hdr(*pskb);
-    struct tcphdr *tcph = (void *)iph + iph->ihl*4;
-    struct nf_conn *ct = exp->master;
-    int plen;
-
-    /* HACK - skip dest port not 80, but allow dev port 9999 */
-    if ( ( ntohs(tcph->dest) != SL_PORT ) ||
-         ( ntohs(tcph->dest) != SL_DEV_PORT ) ) {
-        return 1;
-    }
-
-#ifdef SL_DEBUG
-    printk(KERN_DEBUG "\n\nip_nat_sl: tcphdr dst %d, src %d, ack seq %d\n",
-            ntohs(tcph->dest), ntohs(tcph->source), tcph->ack_seq);
-
-    /* let SYN, FIN, RST, PSH, ACK, ECE, CWR, URG packets pass */
-    printk(KERN_DEBUG "ip_nat_sl: FIN: %d\n", tcph->fin);
-    printk(KERN_DEBUG "ip_nat_sl: SYN: %d\n", tcph->syn);
-    printk(KERN_DEBUG "ip_nat_sl: RST: %d\n", tcph->rst);
-    printk(KERN_DEBUG "ip_nat_sl: PSH: %d\n", tcph->psh);
-    printk(KERN_DEBUG "ip_nat_sl: ACK: %d\n", tcph->ack);
-    printk(KERN_DEBUG "ip_nat_sl: URG: %d\n", tcph->urg);
-    printk(KERN_DEBUG "ip_nat_sl: ECE: %d\n", tcph->ece);
-    printk(KERN_DEBUG "ip_nat_sl: CWR: %d\n", tcph->cwr);
-#endif    
-
-	/* only operate on established connections */
-        if (ctinfo != IP_CT_ESTABLISHED
-            && ctinfo != IP_CT_ESTABLISHED+IP_CT_IS_REPLY) {
-#ifdef SL_DEBUG                
-	    printk("sl: Conntrackinfo = %u\n", ctinfo);
-#endif    
-                return NF_ACCEPT;
-        }
-
-	/* only mangle outbound packets */
-	if (ctinfo == IP_CT_IS_REPLY) {
-		return NF_ACCEPT;
-	}
-
-
-    /* only work on push or ack packets */
-    if (!( (tcph->psh == 1) || (tcph->ack == 1)) ) {
-#ifdef SL_DEBUG
-        printk(KERN_INFO "ip_nat_sl: psh or ack\n");
-#endif    
-        return NF_ACCEPT;
-    }
-
-    /* get the packet length */
-    plen=ntohs(iph->tot_len)-(iph->ihl*4);
-#ifdef SL_DEBUG
-        printk(KERN_INFO "ip_nat_sl: packet length %d\n", plen);
-#endif    
-
-    /* minimum length to search the packet */
-    if (plen < MIN_PACKET_LEN) {
-#ifdef SL_DEBUG
-        printk(KERN_DEBUG "ip_nat_sl: packet too small to examine - %d\n", plen);
-#endif    
-        return NF_ACCEPT;
-    }
-
-    /* wtf does this crap do?
-    exp = nf_conntrack_expect_alloc(ctinfo);
-    if (exp == NULL) {
-        return NF_DROP;
-    }
-    */
-
-    /* search the packet */
-    if (!sl_data_fixup(ct, pskb, ctinfo, exp)) {
-#ifdef SL_DEBUG
-        printk(KERN_ERR "ip_nat_sl: error sl_data_fixup\n");
-#endif
-    }
-    
-#ifdef SL_DEBUG
-    printk(KERN_DEBUG "ip_nat_sl: sl_help end, returning nf_accept\n");
-#endif    
-    return NF_ACCEPT;
-}
 
 struct nf_conntrack_helper sl;
 

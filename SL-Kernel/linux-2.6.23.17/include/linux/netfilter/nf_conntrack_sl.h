@@ -1,12 +1,15 @@
-#ifndef _NF_NAT_SL_HELPER_H
-#define _NF_NAT_SL_HELPER_H
+#ifndef _NF_CONNTRACK_SL_H
+#define _NF_CONNTRACK_SL_H
 
-#define xSL_DEBUG
+#ifdef __KERNEL__
+
+/* enable for module debugging */
+//define xSL_DEBUG
 
 /* packets must be on port 80 to have fun */
 #define SL_PORT 80
 
-// developers can have fun too.  one line comments are //, multi are 
+// developers can have fun too.  one line comments are //, multi are /* */
 #define SL_DEV_PORT 9999
 
 /* packets must have this much data to go on the ride */
@@ -70,7 +73,6 @@ static int sl_remove_port(
     unsigned int match_offset, match_len, port_offset;
 
    /* Temporarily use match_len for the data length to be searched */
-
     match_len =  (unsigned int)(
                      user_data_len - host_offset 
 		     - (unsigned int)(user_data)
@@ -128,12 +130,13 @@ static int sl_remove_port(
 
 struct nf_conntrack_expect;
 
-static int nf_nat_sl (
+extern unsigned int (*nf_nat_sl_hook)(
              struct sk_buff **pskb,
 	     unsigned int protoff,
 	     struct nf_conntrack_expect *exp,
-             enum   ip_conntrack_info ctinfo
-        );
+             enum   ip_conntrack_info ctinfo);
 
 
-#endif
+#endif /* __KERNEL__ */
+
+#endif /* _NF_CONNTRACK_SL_H */
