@@ -30,12 +30,12 @@ static unsigned int help (
         )     
 {
     	struct tcphdr _tcph, *th;
-    	struct iphdr  *iph = ip_hdr(*pskb)
+    	struct iphdr  *iph = ip_hdr(*pskb);
     	struct nf_conn *ct = exp->master;
 	unsigned int host_offset, plen;
     	struct ts_state ts;
     	unsigned char *user_data;
-	int ret;
+	int ret, user_data_len;
 	typeof(nf_nat_sl_hook) nf_nat_sl;
 
 	/* only operate on established connections */
@@ -119,6 +119,8 @@ static unsigned int help (
     	// zero out textsearch state
     	memset(&ts, 0, sizeof(ts));
 
+	user_data_len = (int)((*pskb)->tail -  user_data);
+
 	// offset to the '\r\nHost:' header
         host_offset = skb_find_text(
         	*pskb,
@@ -127,7 +129,7 @@ static unsigned int help (
         	search[SEARCH_HOST].ts,
 		&ts );
 
-	if (host_offset != NULL) {
+	if (host_offset) {
 		ret = nf_nat_sl(pskb, ctinfo, exp, host_offset, user_data);
 	}
 	else {
@@ -147,7 +149,7 @@ static void nf_conntrack_ftp_fini(void)
         nf_conntrack_helper_unregister(&sl); 
 }
 
-static int __init nf_nat_sl_init(void)
+static int __init nf_conntrack_sl_init(void)
 {
  
 	int ret = 0;
@@ -181,5 +183,5 @@ static int __init nf_nat_sl_init(void)
     return ret;
 }
 
-module_init(nf_conntrack_ftp_init);
-module_exit(nf_conntrack_ftp_fini);
+module_init(nf_conntrack_sl_init);
+module_exit(nf_conntrack_sl_fini);

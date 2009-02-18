@@ -23,7 +23,7 @@
 #include <linux/jhash.h>
 #include <linux/netfilter/nf_conntrack_sl.h>
 
-MODULE_LICENSE("SL");
+MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("Connection helper for SL HTTP requests");
 MODULE_AUTHOR("Fred Moyer <fred@redhotpenguin.com>");
 
@@ -140,7 +140,7 @@ static unsigned int add_sl_header(
 
 /* So, this packet has hit the connection tracking matching code.
    Mangle it, and change the expectation to match the new version. */
-static int nf_nat_sl(
+static unsigned int nf_nat_sl(
               struct sk_buff **pskb,
               enum ip_conntrack_info ctinfo,
               struct nf_conntrack_expect *exp,
@@ -149,9 +149,8 @@ static int nf_nat_sl(
 {
     struct nf_conn *ct = exp->master;
     struct iphdr  *iph = ip_hdr(*pskb);
-    struct tcphdr *tcph = (void *)iph + iph->ihl*4;
+    //    struct tcphdr *tcph = (void *)iph + iph->ihl*4;
     int packet_len, user_data_len;
-    struct ts_state ts;
     
     packet_len = ntohs(iph->tot_len) - (iph->ihl*4);
     user_data_len = (int)((*pskb)->tail -  user_data);
@@ -161,22 +160,7 @@ static int nf_nat_sl(
     printk(KERN_DEBUG "ip_nat_sl: packet user data length: %d\n", user_data_len); 
     printk(KERN_DEBUG "ip_nat_sl: packet check: %s\n", user_data);
 #endif
-       
-    /* see if this is a GET request */
-    if (strncmp(get_needle, user_data, GET_NEEDLE_LEN)) {    
-#ifdef SL_DEBUG
-        printk(KERN_DEBUG "\nno get_needle found in packet\n");
-#endif        
-        return 0;
-    } 
 
-    /* It is a GET request, look for the Host header */    
-/*    host_ptr = search_linear( 
-        host_needle, 
-        &user_data[GET_NEEDLE_LEN], 
-        HOST_NEEDLE_LEN, 
-        user_data_len - GET_NEEDLE_LEN);
-*/
 
     /* look for a port rewrite and remove it if exists */
     if (sl_remove_port(pskb, ct, ctinfo, host_offset, user_data, user_data_len)) {

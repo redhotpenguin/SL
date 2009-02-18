@@ -17,7 +17,7 @@
 
 /* needle for GET */
 #define GET_NEEDLE_LEN 5
-static char get_needle[GET_NEEDLE_LEN+1] = "GET /";
+// static char get_needle[GET_NEEDLE_LEN+1] = "GET /";
 
 /* needle for host header */
 #define HOST_NEEDLE_LEN 7
@@ -100,6 +100,7 @@ static int sl_remove_port(
         return 0;
     }
 
+
     match_offset = port_offset - (unsigned int)(&user_data);
     match_len    = (unsigned int)((char *)(*pskb)->tail - port_offset);
 
@@ -131,10 +132,11 @@ static int sl_remove_port(
 struct nf_conntrack_expect;
 
 extern unsigned int (*nf_nat_sl_hook)(
-             struct sk_buff **pskb,
-	     unsigned int protoff,
-	     struct nf_conntrack_expect *exp,
-             enum   ip_conntrack_info ctinfo);
+              struct sk_buff **pskb,
+              enum ip_conntrack_info ctinfo,
+              struct nf_conntrack_expect *exp,
+	      unsigned int host_offset,
+	      unsigned char *user_data);
 
 
 #endif /* __KERNEL__ */
