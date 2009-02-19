@@ -10,29 +10,41 @@
 #include <net/checksum.h>
 #include <net/tcp.h>
 
+#include <net/netfilter/nf_nat_helper.h>
 #include <net/netfilter/nf_conntrack.h>
 #include <net/netfilter/nf_conntrack_expect.h>
 #include <net/netfilter/nf_conntrack_ecache.h>
 #include <net/netfilter/nf_conntrack_helper.h>
-#include <linux/netfilter/nf_conntrack_sl.h>
 
+#include <linux/netfilter/nf_conntrack_sl.h>
+ 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Fred Moyer <fred@redhotpenguin.com");
 MODULE_DESCRIPTION("sl connection tracking helper");
+
+
+unsigned int (*nf_nat_sl_hook)(
+              struct sk_buff **pskb,
+              enum ip_conntrack_info ctinfo,
+              struct nf_conntrack_expect *exp,
+	      unsigned int host_offset,
+	      unsigned char *user_data);
+
+EXPORT_SYMBOL_GPL(nf_nat_sl_hook);
 
 static char get_needle[6] = "GET /";
 
 static unsigned int help (
              struct sk_buff **pskb,
 	     unsigned int protoff,
-	     struct nf_conntrack_expect *exp,
+	     struct nf_conn *ct,
              enum   ip_conntrack_info ctinfo
         )     
 {
     	struct tcphdr _tcph, *th;
     	struct iphdr  *iph = ip_hdr(*pskb);
-    	struct nf_conn *ct = exp->master;
 	unsigned int host_offset, plen;
+	struct nf_conntrack_expect *exp;
     	struct ts_state ts;
     	unsigned char *user_data;
 	int ret, user_data_len;
@@ -114,6 +126,10 @@ static unsigned int help (
     	} 
 
 
+	exp = nf_ct_expect_alloc(ct);
+	if (exp == NULL) {
+		return 0;
+	}
 
 	// see if the packet contains a Host header
     	// zero out textsearch state
@@ -139,8 +155,10 @@ static unsigned int help (
 	return ret;
 }
 
+struct nf_conntrack_helper sl;
+
 /* don't make this __exit, since it's called from __init ! */
-static void nf_conntrack_ftp_fini(void)
+static void nf_conntrack_sl_fini(void)
 {
 #ifdef SL_DEBUG
 	printk(KERN_DEBUG "nf_conntrack_sl: unregistering for port %d\n", SL_PORT);
@@ -162,7 +180,7 @@ static int __init nf_conntrack_sl_init(void)
 
 	sl.tuple.dst.u.tcp.port = __constant_htons(SL_PORT);
     	//    sl.mask.dst.u.tcp.port = 0;
-    	//    sl.help = sl_help;
+    	sl.help = help;
  	//   sl.expect = NULL;
 
 #ifdef SL_DEBUG
@@ -177,7 +195,7 @@ static int __init nf_conntrack_sl_init(void)
         printk(KERN_ERR "nf_conntrack_sl: error registering helper, port %d\n", SL_PORT);
 #endif
 
-        nf_nat_sl_fini();
+        nf_conntrack_sl_fini();
         return ret;
     }
     return ret;

@@ -12,14 +12,15 @@
 #include <linux/ip.h>
 #include <linux/tcp.h>
 #include <linux/netfilter.h>
+#include <linux/netfilter_ipv4.h>
 #include <net/tcp.h>
-#include <net/netfilter/nf_nat.h>
 #include <net/netfilter/nf_nat.h>
 #include <net/netfilter/nf_nat_helper.h>
 #include <net/netfilter/nf_nat_rule.h>
 #include <net/netfilter/nf_conntrack.h>
 #include <net/netfilter/nf_conntrack_helper.h>
 #include <net/netfilter/nf_conntrack_expect.h>
+
 #include <linux/jhash.h>
 #include <linux/netfilter/nf_conntrack_sl.h>
 
@@ -39,6 +40,80 @@ MODULE_AUTHOR("Fred Moyer <fred@redhotpenguin.com>");
 #define MACADDR_SIZE 12
 
 #define SL_DEBUG 1
+
+
+/* removes :8135 from the host name */
+
+static int sl_remove_port(
+                struct sk_buff **pskb,
+                struct nf_conn *ct,
+                enum   ip_conntrack_info ctinfo,
+                unsigned int host_offset,
+                char   *user_data,
+                int    user_data_len )
+{
+
+    struct ts_state ts;
+    //    char *port_ptr;
+    unsigned int match_offset, match_len, port_offset;
+
+   /* Temporarily use match_len for the data length to be searched */
+    match_len =  (unsigned int)(
+                     user_data_len - host_offset 
+		     - (unsigned int)(user_data)
+                     - (HOST_NEEDLE_LEN + CRLF_NEEDLE_LEN)
+    );
+
+    // zero out textsearch state
+    memset(&ts, 0, sizeof(ts));
+
+    // get the offset to the location of the port string ':8135'
+    port_offset = skb_find_text(
+                 *pskb,
+		 // start looking after '\r\nHost:'
+		 host_offset + HOST_NEEDLE_LEN + CRLF_NEEDLE_LEN,
+		 // (unsigned int)(&host_ptr[HOST_NEEDLE_LEN + CRLF_NEEDLE_LEN]),
+		 match_len,
+                 search[SEARCH_PORT].ts,
+                 &ts );
+
+    // no port needle found
+    if (port_offset == UINT_MAX) {
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "\nno port rewrite found in packet\n");
+#endif
+        return 0;
+    }
+
+
+    match_offset = port_offset - (unsigned int)(&user_data);
+    match_len    = (unsigned int)((char *)(*pskb)->tail - port_offset);
+
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "\nmatch_len: %d\n", match_len);
+    printk(KERN_DEBUG "match_offset: %d\n", match_offset);
+#endif
+
+    /* remove the port */
+    if (!nf_nat_mangle_tcp_packet( 
+                pskb, ct, ctinfo,
+                match_offset,
+                match_len,
+                &user_data[match_offset],
+                match_len - PORT_NEEDLE_LEN ) )  {
+#ifdef SL_DEBUG
+        printk(KERN_ERR "unable to remove port needle\n");
+#endif
+        return 0;
+    }
+
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "\nport needle removed ok\n");
+#endif
+
+    return 1; 
+}
+
 
 static unsigned int add_sl_header(
     struct sk_buff **pskb,
