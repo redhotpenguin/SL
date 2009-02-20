@@ -259,8 +259,6 @@ static unsigned int nf_nat_sl(
 }
 
 
-struct nf_conntrack_helper sl;
-
 static void nf_nat_sl_fini(void)
 {
 	rcu_assign_pointer(nf_nat_sl_hook, NULL);

@@ -22,24 +22,22 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Fred Moyer <fred@redhotpenguin.com");
 MODULE_DESCRIPTION("sl connection tracking helper");
 
+#define SL_DEBUG 1
 
-unsigned int (*nf_nat_sl_hook)(
-              struct sk_buff **pskb,
-              enum ip_conntrack_info ctinfo,
-              struct nf_conntrack_expect *exp,
-	      unsigned int host_offset,
-	      unsigned char *user_data);
-
+unsigned int (*nf_nat_sl_hook)(struct sk_buff **pskb,
+			       enum ip_conntrack_info ctinfo,
+			       struct nf_conntrack_expect *exp,
+			       unsigned int host_offset,
+			       unsigned char *user_data);
 EXPORT_SYMBOL_GPL(nf_nat_sl_hook);
 
 static char get_needle[6] = "GET /";
 
-static unsigned int help (
+static unsigned int sl_help (
              struct sk_buff **pskb,
 	     unsigned int protoff,
 	     struct nf_conn *ct,
-             enum   ip_conntrack_info ctinfo
-        )     
+             enum   ip_conntrack_info ctinfo)     
 {
     	struct tcphdr _tcph, *th;
     	struct iphdr  *iph = ip_hdr(*pskb);
@@ -53,6 +51,7 @@ static unsigned int help (
 	/* only operate on established connections */
         if (ctinfo != IP_CT_ESTABLISHED
             && ctinfo != IP_CT_ESTABLISHED+IP_CT_IS_REPLY) {
+
 #ifdef SL_DEBUG                
 	    printk("sl: Conntrackinfo = %u\n", ctinfo);
 #endif    
@@ -69,7 +68,7 @@ static unsigned int help (
 	if (th == NULL)
 		return NF_ACCEPT;
 
-    /* only operate on port 80 (prod) and 9999 (dev) */
+        /* only operate on port 80 (prod) and 9999 (dev) */
     	if ( ! ( ntohs(th->dest) == SL_PORT ) ||
            ( ntohs(th->dest) == SL_DEV_PORT ) ) {
 
@@ -155,7 +154,16 @@ static unsigned int help (
 	return ret;
 }
 
-struct nf_conntrack_helper sl;
+// struct nf_conntrack_helper sl;
+static struct nf_conntrack_helper sl __read_mostly = {
+		.name			= "sl",
+		.me			= THIS_MODULE,
+		.help			= sl_help,
+		.tuple.dst.protonum     = IPPROTO_TCP,
+		.tuple.dst.u.tcp.port   = __constant_htons(SL_PORT),
+		.timeout                = 5 * 60,    /* 5 Minutes */
+};
+  
 
 /* don't make this __exit, since it's called from __init ! */
 static void nf_conntrack_sl_fini(void)
@@ -171,17 +179,6 @@ static int __init nf_conntrack_sl_init(void)
 {
  
 	int ret = 0;
-	    
-	//    sl.list.next = 0;
-	//    sl.list.prev = 0;
-    	sl.me = THIS_MODULE;
-	//    sl.flags = (NF_NAT_HELPER_F_STANDALONE|NF_NAT_HELPER_F_ALWAYS);
-	sl.tuple.dst.protonum = IPPROTO_TCP;
-
-	sl.tuple.dst.u.tcp.port = __constant_htons(SL_PORT);
-    	//    sl.mask.dst.u.tcp.port = 0;
-    	sl.help = help;
- 	//   sl.expect = NULL;
 
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "nf_conntrack_sl: Trying to register for port %d\n", SL_PORT);
@@ -194,11 +191,16 @@ static int __init nf_conntrack_sl_init(void)
 #ifdef SL_DEBUG
         printk(KERN_ERR "nf_conntrack_sl: error registering helper, port %d\n", SL_PORT);
 #endif
-
         nf_conntrack_sl_fini();
         return ret;
     }
-    return ret;
+
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "nf_conntrack_sl:  conntrack_helper registered OK\n");
+#endif
+
+
+    return 0;
 }
 
 module_init(nf_conntrack_sl_init);
