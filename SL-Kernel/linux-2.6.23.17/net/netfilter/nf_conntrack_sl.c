@@ -70,8 +70,8 @@ static int sl_help (
 		return NF_ACCEPT;
 
         /* only operate on port 80 (prod) and 9999 (dev) */
-    	if ( ! ( ntohs(th->dest) == SL_PORT ) ||
-           ( ntohs(th->dest) == SL_DEV_PORT ) ) {
+    	if ( ! ( ( ntohs(th->dest) == SL_PORT ) ||
+                 ( ntohs(th->dest) == SL_DEV_PORT ) ) ) {
 
 		return NF_ACCEPT;
     	}
@@ -117,18 +117,20 @@ static int sl_help (
 
         /* see if this is a GET request */
 	user_data = (void *)th + th->doff*4;
+
+	// replace GET_NEEDLE_LEN from ts struct
         if (strncmp(get_needle, user_data, GET_NEEDLE_LEN)) {    
 
 #ifdef SL_DEBUG
         	printk(KERN_DEBUG "\nno get_needle found in packet\n");
 #endif  	      
-        	return 0;
+        	return NF_ACCEPT;
     	} 
 
-
+	/* safety break */
 	exp = nf_ct_expect_alloc(ct);
 	if (exp == NULL) {
-		return 0;
+		return NF_DROP;
 	}
 
 	// see if the packet contains a Host header
