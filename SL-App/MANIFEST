@@ -1,12 +1,11 @@
 bin/sl_app
-bin/sl_apprestart
+bin/restart
 CHANGES
 conf/httpd_app.conf.tmpl
 conf/mime.types
 conf/startup_app.pl
 htdocs/500.html
 htdocs/404.html
-htdocs/401.html
 Makefile.PL
 MANIFEST
 htdocs/css/app.css
