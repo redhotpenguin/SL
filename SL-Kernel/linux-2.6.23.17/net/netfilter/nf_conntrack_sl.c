@@ -1,5 +1,6 @@
 /* SLN extension for connection tracking. */
 
+
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/netfilter.h>
@@ -33,7 +34,7 @@ EXPORT_SYMBOL_GPL(nf_nat_sl_hook);
 
 static char get_needle[6] = "GET /";
 
-static unsigned int sl_help (
+static int sl_help (
              struct sk_buff **pskb,
 	     unsigned int protoff,
 	     struct nf_conn *ct,
@@ -145,6 +146,7 @@ static unsigned int sl_help (
 		&ts );
 
 	if (host_offset) {
+        	nf_nat_sl = rcu_dereference(nf_nat_sl_hook);
 		ret = nf_nat_sl(pskb, ctinfo, exp, host_offset, user_data);
 	}
 	else {
