@@ -51,9 +51,13 @@
 
 <!-- macaddr -->
 [% IF errors.missing.macaddr or errors.invalid.macaddr %]<font color="red">[% END %]
+
 <p>Mac address:&nbsp;&nbsp;
+
 [% IF errors.missing.macaddr or errors.invalid.macaddr %]</font>[% END %]
-<input type="text" name = "macaddr" size="17" maxlength="17" value='[% req.param('macaddr') or router.macaddr%]'></p>
+
+<input type="text" name = "macaddr" size="17" maxlength="17" value='[% req.param('macaddr') or router.macaddr %]'></p>
+
 <p><font color="#CCCCCC"><b>Example:  00:17:f2:43:38:bd</b></font></p>
 
 
@@ -65,7 +69,7 @@
 [% IF errors.missing.serial_number or errors.invalid.serial_number %]<font color="red">[% END %]
 Serial number:&nbsp;&nbsp;
 [% IF errors.missing.serial_number or errors.invalid.serial_number %]</font>[% END %]
-<input type="text" name="serial_number" size="25" maxlength="25" value='[% router.serial_number %]'></p>
+<input type="text" name="serial_number" size="25" maxlength="25" value='[% req.param('serial_number') or router.serial_number %]'></p>
 <p><font color="#CCCCCC"><b>Required, to determine router model compatibility, example CL7A0F318014</b></font></p>
 
 
