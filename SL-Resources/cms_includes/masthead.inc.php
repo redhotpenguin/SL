@@ -1,6 +1,7 @@
 <div id="header">
 	<div id="masthead">
-		<h1><span></span>Silver Lining Networks</h1>
+		<div class="wrapper">
+		<h1><span></span>Silver Lining Dashboard</h1>
 		<!-- NAVIGATION -->
 		
 		<ul class="one_sixth right topnav">
@@ -10,11 +11,13 @@
 	
 	<div class="clear"></div>
 	</div>
+	</div>
 	<!-- END -->
 
 	
 	<?php $currentPage = basename($_SERVER['SCRIPT_NAME']) ?>
-	<div id="navigation">  
+	<div id="navigation"> 
+		<div class="wrapper">
 		<ul>
 		    <li <?php if($currentPage == 'settings.php') {echo 'class="selected"';} ?>><a href="settings.php">Settings</a></li>
 		    <li <?php if($currentPage == 'statistics.php') {echo 'class="selected"';} ?>><a href="statistics.php">Statistics</a></li>
@@ -23,6 +26,7 @@
 		    <li <?php if($currentPage == 'home.php') {echo 'class="selected"';} ?>><a href="home.php">Dashboard</a></li>
 		</ul>
 		<div class="clear"></div>
+		</div>
 	</div>
 </div>
 

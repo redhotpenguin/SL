@@ -9,8 +9,8 @@
 	</thead>
 	<tbody>
 		<tr>
-			<td class="status"><strong class="active">active</strong></td>
-			<td class="router_name"><a href="#">Silver Lining Campaign</a></td>
+			<td class="status"><img src="resources/images/icons/arrow_up.png" alt="arrow_up" width="64" height="64"/></td>
+			<td class="router_name"><h2><a href="#">Silver Lining Campaign</a></h2></td>
 			<td class="campaign_activate"><a href="#">turn off</a></td>
 			<td class="delete"><a href="#">delete</a></td>
 		</tr>

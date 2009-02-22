@@ -5,7 +5,6 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <link rel="stylesheet" type="text/css" href="resources/css/common.css" />
   <link rel="stylesheet" type="text/css" href="resources/css/cms_layout.css" />
-  <link rel="stylesheet" type="text/css" href="resources/css/cms_color.css" />
   <!--[if lt IE 7]>  <link rel="stylesheet" type="text/css" href="resources/css/ie_cms_layout.css" /><![endif]-->
   
   <script type="text/javascript" src="resources/js/jquery.js"></script>
