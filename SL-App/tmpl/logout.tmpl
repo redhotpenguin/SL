@@ -1,13 +1,45 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Logout" no_settings="1" %]
-[% PROCESS left.tmpl %]
+[% PROCESS header_static.tmpl title="Logout Successful - Silver Lining Networks" no_settings="1" %]
+
  
-<div id="center">
-<div class="content">
-<h2><a href="[% base_uri %]/">Home</a> > <a href="[% base_uri%]/login">Login</a> > Logged Out</h2>
-<hr class="sl_line">
+		 <h1 id="sl_logo" class="center margin_25_t"><a href="[% base_uri %]/app/"><span></span>Silver Lining Networks</a></h1>
+			
+		<!-- LOGIN MESSAGES -->
+			<div class="message_box center">
+				<ul class="success"><li>You have been logged out successfully.</li></ul>
+			</div>
+	
+			<div class="login_box">				
+				<form method="POST" action="[% base_uri %]/login">					
+					<ul>
+						<li>
+							<input type="hidden" /> 
+							<label for="email">E-mail</label>
+							<input type="text" name="email" id="username" value="ex. john@doe.com" onfocus="this.value=''" /> 
+						</li>
+						<li>
+							<label for="password" class="block">Password</label>
+							<input type="password" name="password" id="password" /> 
+							<a href="[% base_uri %]/forgot" id="forgot_password">forgot password?</a>
+							<div class="clear"></div>
+						</li>
+						<li>
+							<input type="checkbox" id="remember_me" />
+							<label for="remember_me">Remember me</label>
+						</li>
+						<li>
+						<input type="submit" value="Sign in" id="signin" name="login" /> 
+						</li>
+					</ul>
+					<input type="hidden" name="dest" value="[% dest %]" />
+				</form>
+			</div>
+			
+			<p id="need_an_acount">
+				<a href="[% base_uri %]/signup">Need An Account? Sign up free.</a>
+			</p>
 
-<p>You have been logged out</p>
-</div>
-</div>
 
-[% PROCESS footer.tmpl %]
+
+
+</body>
+</html>

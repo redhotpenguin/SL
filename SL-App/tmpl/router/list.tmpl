@@ -1,58 +1,60 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  View routers"  %]
-[% PROCESS left.tmpl %]
+<div class="twelve_column">
 
-<div id="list_center">
-<div class="content">
 
-<h2>[% PROCESS router/nav.tmpl %] > [% count %] routers</h2>
+	<div class="header_block">
+		<h1 class="left">My Networks <em>[% count %] routers</em></h1>
+		<span class="pill_button right"><a href="[% base_uri %]/app/router/edit">ADD A ROUTER</a></span>
+		<div class="clear"></div>
+	</div>
+	
 
-<hr class="sl_line">
+	[% IF msg %]
+	<p class="error">[% msg %]</p>
+	[% END %]
+	
+	
+	<table class="router_table">
+		<tr>
+			<th class="status">status</th>
+			<th class="router_name">router name</th>
+			<th>Mac address</th>
+			<th class="delete">delete</th>
+		</tr>
+		
+		[% FOREACH router = routers %]
+		<tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
+			
+			<!-- status -->
+			<td class="status">
+				<strong class="active">active</strong>
+			</td>
+			
+			<!-- name -->	
+			<td class="router_name [% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+				<a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">
+				[% router.name or 'unnamed' %]</a> <a href="#" class="more_info">more info</a>
+				<ul class="router_info">
+					<li><strong>SSID:</strong> [% router.ssid or '?'  %]</li>
+					<li><strong>Last seen:</strong>[% router.last_seen or '?'  %]</li>
+					<li><strong>View yesterday:</strong>[% router.views_daily  %]</li>
+				</ul>
+			</td>
+			
+			<!-- mac address -->
+			<td class="mac_address [% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+				[% router.macaddr %]
+			</td>
+			
+			<!-- delete -->
+			<td class="delete">
+				<a href="#">delete</a>
+			</td>
+		</tr>
+	[% END %]
+	</table>
 
-<p style="text-align: left; padding-bottom: 5px; width: 600px;">
-<a href="[% base_uri %]/app/router/edit">New router</a></p>
 
-[% IF msg %]
-<p><font color="red">[% msg %]</font></p>
-[% END %]
-
-<table class="list">
-<tr class="list_header">
-<td class="header">Name</td>
-<td class="header">Mac address</td>
-<td class="header">SSID</td>
-<td class="header">Last seen</td>
-<td class="header">Ad insertions yesterday</td>
-</tr>
-[% FOREACH router = routers %]
-  <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
-
-<!-- name -->	
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-<a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">
-[% router.name or 'unnamed' %]</a></td>
-
-<!-- mac address -->
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% router.macaddr %]</td>
-
-<!-- SSID -->
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% router.ssid or '?'  %]</td>
-
-<!-- last seen -->
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% router.last_seen or '?'  %]</td>
-
-<!-- Views last 24 hours -->
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% router.views_daily  %]</td>
-
-</tr>
-
-[% END %]
-</table>
 
 </div>
-</div>
-
 [% PROCESS footer.tmpl %]

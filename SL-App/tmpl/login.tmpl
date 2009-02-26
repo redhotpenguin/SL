@@ -1,26 +1,48 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Please Login" no_settings="1" %]
-[% PROCESS left.tmpl %]
+[% PROCESS header_static.tmpl title="Sign in - Silver Lining Networks" no_settings="1" %]
 
-<div id="center">
-<div class="content">
 
-<h2><a href="[% base_uri %]/app/">Home</a> > Login</h2>
-<hr class="sl_line">
-[% IF status == 'password_updated' %]
-<p><font color="red">Your password has been updated, please login</font></p>
-[% END %]
-[% IF error == 'invalid' %]<p><font color="red">Invalid email or password, please try again</font></p>[% END %]
-[% IF error == 'incomplete' %]<p><font color="red">Please fill out all fields to login</font></p>[% END %]
-<form method="POST" action="[% base_uri %]/login">
-<p>Email Address:&nbsp;<input type="text" name="email"></p>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Password:&nbsp;<input type="password" name="password"></p>
-<input type="hidden" name="dest" value="[% dest %]">
-<p><input type="submit" name="login" value="Login"></p>
-</form>
-<hr class="sl_line">
-<p><a href="[% base_uri %]/forgot">Forgot Password?</a></p>
-<p><a href="[% base_uri %]/signup">Signup for an account</a></p>
-<br />
-</div>
-</div>
-[% PROCESS footer.tmpl %]
+
+		 <h1 id="sl_logo" class="center margin_25_t"><a href="[% base_uri %]/app/"><span></span>Silver Lining Networks</a></h1>
+			
+		<!-- LOGIN MESSAGES -->
+			<div class="message_box center">
+			[% IF status == 'password_updated' %]<ul class="error_message"><li>Your password has been updated, please login</li></ul>[% END %]
+			[% IF error == 'invalid' %]<ul class="error_message"><li>Invalid email or password, please try again</li></ul>[% END %]
+			[% IF error == 'incomplete' %]<ul class="error_message"><li>Please fill out all fields to login</li></ul>[% END %]
+			</div>
+	
+			<div class="login_box">				
+				<form method="POST" action="[% base_uri %]/login">					
+					<ul>
+						<li>
+							<input type="hidden" /> 
+							<label for="email">E-mail</label>
+							<input type="text" name="email" id="username" value="ex. john@doe.com" onfocus="this.value=''" /> 
+						</li>
+						<li>
+							<label for="password" class="block">Password</label>
+							<input type="password" name="password" id="password" /> 
+							<a href="[% base_uri %]/forgot" id="forgot_password">forgot password?</a>
+							<div class="clear"></div>
+						</li>
+						<li>
+							<input type="checkbox" id="remember_me" />
+							<label for="remember_me">Remember me</label>
+						</li>
+						<li>
+						<input type="submit" value="Sign in" id="signin" name="login" /> 
+						</li>
+					</ul>
+					<input type="hidden" name="dest" value="[% dest %]" />
+				</form>
+			</div>
+			
+			<p id="need_an_acount">
+				<a href="[% base_uri %]/signup">Need An Account? Sign up free.</a>
+			</p>
+
+
+
+
+</body>
+</html>

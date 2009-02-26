@@ -1,105 +1,59 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Announcements" %]
-[% PROCESS left.tmpl %]
  
-<div id="center">
-<div class="content">
+<div class="twelve_column">
+	<div class="header_block">
+		<h1>Welcome to your new account</h1>
+		<div class="clear"></div>
+	</div>
 
 <h3>Announcements&nbsp;&nbsp;<a href="http://forums.silverliningnetworks.com/posts.rss"><img alt="Subscribe to Recent Posts" height="15" src="http://forums.silverliningnetworks.com/images/feed-icon.png?1219278561" width="15" border="0"/></a></h3>
 
 
 [% FOREACH rss = rss_list %]
-
-
-<hr class="sl_line">
-
-<h2><a href="[% rss.link %]">[% rss.title %]</a></h2>
-
+<div class="notification">
+	<div class="notification_header">
+	<h2><a href="[% rss.link %]">[% rss.title %]</a></h2>
+		<a href="#">Close</a>
+		<div class="clear"></div>
+	</div>
 [% rss.description %]
 
-<br />
+</div>
 [% END %]
 
 
+<table class="activity_table">
+	<thead>
+		<tr>
+			<th colspan="4">Latest Account Activity</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td class="status money"><strong>Sale</strong></td>
+			<td class="activity"><a href="#">1 hour WiFi access sale</a></td>
+			<td class="date">Feb. 5th (8:31 am)</td>
+		</tr>
+		<tr>
+			<td class="status warning"><strong>Warning</strong></td>
+			<td class="activity"><a href="#">Router inactive (Little Coffee House)</a></td>
+			<td class="date">Feb. 5th (5:31 am)</td>
+		</tr>
+		<tr>
+			<td class="status added"><strong>New Router</strong></td>
+			<td class="activity"><a href="#">New router added (Airport Terminal 5)</a></td>
+			<td class="date">Feb. 5th (8:31 am)</td>
+		</tr>
+		<tr>
+			<td class="status money"><strong>Payment</strong></td>
+			<td class="activity"><a href="#">Payment for January transfered to paypal</a></td>
+			<td class="date">Feb. 5th (8:31 am)</td>
+		</tr>
+		
+	</tbody>
+</table>
 
 
-<hr class="sl_line">
-
-<h2>September 3rd, 2008 - Labor Day systems upgrade details</h2>
-<p>Over the Labor Day weekend we added additional servers to the cluster powering Silver Lining.  As a result of migrating the reporting engine to a dedicated server, the links to reports were invalid for the previous day.  The links were corrected as of 12:20 pm PST September 2nd.</p>
-<p>No service downtime was experienced as a result of these upgrades.  However on Sunday August 31st we experienced a 15 minute unscheduled load balancer outage at 9:43 am PST.  End users online at the time would have experienced an average period of 30 seconds where no web site connections could be made before the gateways adjusted their routing tables.  During the 15 minute outage, users could surf normally but no ads were being inserted.  To prevent further outages of this nature, we have implemented a monitoring daemon which will restart the load balancer in the event of an unplanned failure.</p>
-
-<br />
-
-
-<hr class="sl_line">
-
-<h2>July 13th, 2008 - Dashboard 2.0 Preview</h2>
-<p>Welcome to the Silver Lining Dashboard 2.0.  This preview will allow you view and use the new application features which allow ad zone targeting by router.  Additionally, account functionality is enabled allowing multiple users to manage the same routers and ad zones.  This application is currently in test mode only, meaning that additions of ad zones and routers will not affect the current production settings.  There will be sporadic updates to this interface this week, but all data entered in by users will be saved throughout those upgrades.</p>
-
-<br />
-
-<hr class="sl_line">
-
-
-
-<h2>July 4th, 2008 - Ad zones</h2>
-<p>Today is ad server Independence Day.  With the new ad zone management feature of the Silver Lining dashboard, you can configure any of your registered gateways to use ad zones on your ad servers.  You can select one of three ad size options* and add a branding image for each ad zone size.</p>
-<p>* Leaderboard (728x90), Full Banner (480x60), Text Ad (600x45)</p>
-
-<br />
-
-<hr class="sl_line">
-
-
-
-<h2>April 8th, 2008 - Recent updates</h2>
-<p>This update feed has been rather quiet as most news has been on the <a href="http://forums.silverliningnetworks.com/">forums</a> and also the <a href="http://www.silverliningnetworks.com/blog/">blog</a>.  We have been releasing subtle new features and performance enhancements every other week in the Saturday night maintenance window.  As always, we are focused on delivering the highest quality and fastest performing service, so if you see any areas where you think a cool feature would be, or notice a problem, please contact us at <a href="mailto:support@silverliningnetworks.com">support@silverliningnetworks.com</a>.</p>
-<br />
-
-<hr class="sl_line">
-
-
-<h2>December 18th, 2007 - Diablo has arrived</h2>
-<p>Firmware version 0.15 'Diablo' is <a href="http://www.redhotpenguin.com/sl/dist/firmware_builds/LATEST/openwrt-wrt54g-squashfs.bin">
-<a href="http://www.redhotpenguin.com/sl/dist/firmware_builds/LATEST/openwrt-wrt54g-squashfs.bin">available for download</a>.  Two months of development work have gone into making this our highest performing and most feature packed release yet.  Major features include automatic firmware updates, remote management of basic router functions, refined reporting, and high performance.</p>
-<br />
-
-
-
-<hr class="sl_line">
-
-
-
-<h2>September 6th, 2007 - Firmware 0.09 'Aardvark'</h2>
-<p>Firmware version 0.09 'Aardvark' has <a href="http://forums.silverliningnetworks.com/forums/5/topics/29">been released</a>.  The network speed is much improved since we are on the SF Bay Area fiber loop.  Please upgrade your firmware to this version.</p>
-<br />
-
-
-<hr class="sl_line">
-
-
-<h2>August 16th, 2007 - Going Big</h2>
-<p>Lots of work behind the curtain, and now the application is rocking.  New features include <a href="[% base_uri %]/app/router/index">router management</a>, <a href="[% base_uri %]/app/ad/groups/index">ad group management</a>, <a href="[% base_uri %]/app/report/index">revised reports</a>, ability to <a href="[% base_uri %]/app/settings/friends">share ad groups with your friends.</a></p>
-<br />
-
-
-
-<hr class="sl_line">
-
-
-
-<h2>February 10th, 2007 - 7th software release deployed</h2>
-<p>Silver Lining is proud to announce the 7th public release of the Silver Lining application.  New features include the ability to change up your router icon, enable advertising feeds from LinkShare, multiple routers per account management, and hourly reporting statistics.</p>
-<br />
-
-
-<hr class="sl_line">
-
-
-<h2>November 18th, 2006 - Private Beta Launch</h2>
-<p>Welcome to your Silver Lining Dashboard!  We are pleased to announce the private beta of our application are excited that you have decided to participate.  You can <a href="[% base_uri %]/app/ad/groups/list">manage your current ads</a> and <a href="[% base_uri %]/app/report/index">view a report of ad views and clicks</a>.  If you need help please visit <a href="http://forums.silverliningnetworks.com/">our forum.</a></p>
 
 </div>
-</div>
-
 [% PROCESS footer.tmpl %]

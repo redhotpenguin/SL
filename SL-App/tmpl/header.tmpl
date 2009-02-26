@@ -1,23 +1,61 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">  
-<html>
-    <head>
-	<link rel="stylesheet" href="[% base_uri %]/css/app.css" type="text/css">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
 <title>[% title %]</title>	
-<LINK REL="SHORTCUT ICON" HREF="[% base_uri %]/resources/images/logos/dashboard_favicon.ico">
-
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/common.css" />
+  <link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/cms_layout.css" />
+  <!--[if lt IE 7]>  <link rel="stylesheet" type="text/css" href="resources/css/ie_cms_layout.css" /><![endif]-->
+<link rel="shorcut icon" href="[% base_uri %]/resources/images/icons/favicon.ico" />
+  <script type="text/javascript" src="[% base_uri %]/resources/js/jquery.js"></script>
+  <script type="text/javascript" src="[% base_uri %]/resources/js/cms.js"></script>
 </head>
-	<body>
-    <div id="wrap">	
-    <div id="top">
-	  <div id="banner">
-		<a href="[% base_uri %]/app/home/index">
-<img border='0' src="[% base_uri %]/resources/images/logos/dashboard_banner.gif"></a>
+	<body id="sln_cms">
 
-	  </div>
-      [% UNLESS no_settings %]
-      <div id="settings">
-        <p style="font-size: 12px; font-family: 'Trebuchet MS', Verdana, sans-serif;">[% IF reg.root %][% reg.account_id.name %] | [% END %][% email %] | <a href="[% base_uri %]/logout">Logout</a> | <a href="[% base_uri %]/app/settings/index">Account</a> | <a href="http://www.silverliningnetworks.com/site/support.html">Help</a> | <a href="http://www.silverliningnetworks.com/blog/">Blog</a></p>
-      </div>
-      [% END %]
-    </div>
-	<div id="container">
+    
+<div id="header">
+	<div id="masthead">
+		<div class="wrapper">
+		<h1><span></span>Silver Lining Dashboard</h1>
+		
+		[% UNLESS no_settings %]
+		<ul class="one_sixth right topnav">
+		    <li class="help"><a href="http://www.silverliningnetworks.com/site/support.html">Help</a></li>
+		    <li><a href="[% base_uri %]/logout">Logout</a></li>
+		    <li><a href="[% base_uri %]/app/settings/index">My Account</a></li>
+		    <li>Welcome [% email %]</li>
+		</ul>
+		[% END %]
+	<div class="clear"></div>
+	</div>
+	</div>
+
+	
+	<div id="navigation"> 
+		<div class="wrapper">
+		<ul>
+		    <li><a href="[% base_uri %]/app/report/index">Statistics</a></li>
+		    <li><a href="[% base_uri %]/app/ad/index">Campaigns</a></li>
+		    <li><a href="[% base_uri %]/app/router/list">My Network</a></li>
+		    <li class="selected"><a href="[% base_uri %]/app/home/index">Dashboard</a></li>
+		</ul>
+		<div class="clear"></div>
+		</div>
+	</div>
+</div>
+
+
+
+
+<div id="breadcrumb">  
+<div class="wrapper">
+<ul>
+	<li>[% PROCESS router/nav.tmpl %]</li>
+	<!--
+	<li><a href="network.php">All Routers</a></li>	<li class="selected"><a href="#">Add Router</a></li>
+	--> 
+</ul>
+</div>
+<div class="clear"></div>
+</div>
+<div id="content" class="wrapper">

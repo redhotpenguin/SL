@@ -1,19 +1,39 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Forgot Password" no_settings="1" %]
-[% PROCESS left.tmpl %]
+[% PROCESS header_static.tmpl title="Silver Lining Dashboard:  Forgot Password" no_settings="1" %]
 
-<div id="center">
-<div class="content">
 
-<h2><a href="[% home_uri %]">Home</a> > <a href="[% base_uri %]/login">Login</a> > Forgot Password?</h2>
-<hr class="sl_line">
-[% IF status == 'blank' %]<p><font color="red">You need to enter an email address ;-)</font></p>[% END %]
-[% IF status == 'notfound' %]<p><font color="red">We couldn't find [% forgot_email %] in our system.  Please try again, or email support@silverliningnetworks.com</font></p>[% END %]
-[% IF status == 'sent' %]<p><font color="red">A link to change your password has been emailed to [% forgot_email %]</font></p>[% END %]
-<form method="POST" action="[% base_uri %]/forgot">
-<p>Please enter your email address and we'll send you a link to reset your password:</p>
-<p><input type="text" size="25" maxlength="96" name="forgot_email" value="[% forgot_email %]"></p>
-<p><input type="submit" name="login" value="Submit"></p>
-</form>
-</div>
-</div>
-[% PROCESS footer.tmpl %]
+	 <h1 id="sl_logo" class="center margin_25_t"><a href="[% base_uri %]/app/"><span></span>Silver Lining Networks</a></h1>
+		<!-- LOGIN MESSAGES -->
+			<div class="message_box center">
+				[% IF status == 'blank' %]<ul class="error_message"><li>You need to enter an email address ;-)</li></ul>[% END %]
+				[% IF status == 'notfound' %]<ul class="error_message"><li>We couldn't find [% forgot_email %] in our system.  Please try again, or email support@silverliningnetworks.com</li></ul>[% END %]
+				[% IF status == 'sent' %]<ul class="error_message"><li>A link to change your password has been emailed to [% forgot_email %]</li></ul>[% END %]
+			</div>
+						
+			<div class="login_box">
+				<form method="POST" action="[% base_uri %]/forgot">
+					<ul>
+						<li>
+							<p>Enter your email address and we'll send you a new temporary password.</p>
+						</li>
+					
+						<li>
+							<input type="hidden" /> 
+							<label for="username">E-mail</label>
+							<input type="text" name="forgot_email" id="username" value="ex. john@doe.com" onfocus="this.value=''" /> 
+						</li>
+						<li>
+						<input type="submit" name="login" value="Sign in" id="signin" /> 
+						</li>
+						<li><a href="[% base_uri %]/app/">Return to Login page</a></li>
+					</ul>
+				</form>
+			</div>
+
+			<p id="need_an_acount">
+				<a href="[% base_uri %]/signup">Need An Account? Sign up free.</a>
+			</p>
+
+
+
+</body>
+</html>
