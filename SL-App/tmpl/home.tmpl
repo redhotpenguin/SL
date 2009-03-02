@@ -1,6 +1,10 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Announcements" %]
  
-<div class="twelve_column">
+ <div class="three_column left">  
+ 	[% PROCESS submenu.tmpl %]
+ </div>
+ 
+<div class="six_column left">
 	<div class="header_block">
 		<h1>Welcome to your new account</h1>
 		<div class="clear"></div>
@@ -56,4 +60,23 @@
 
 
 </div>
+
+
+<div class="three_column right">
+<div class="graybox_wrapper">
+<div class="graybox">
+ <ul class="graybox_inner">
+     <li><a href="#">Home</a></li>
+     <li><a href="#">Portfolio</a></li>
+     <li><a href="#">Blog</a></li>
+     <li><a href="#">About</a></li>
+     <li><a href="#">Contact</a></li>
+ </ul>
+</div>
+</div>
+</div>
+
+<div class="clear"></div>
+
+
 [% PROCESS footer.tmpl %]
