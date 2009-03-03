@@ -54,7 +54,7 @@ static int sl_help (
             && ctinfo != IP_CT_ESTABLISHED+IP_CT_IS_REPLY) {
 
 #ifdef SL_DEBUG                
-	    printk("sl: Conntrackinfo = %u\n", ctinfo);
+	    printk(KERN_DEBUG "sl: Conntrackinfo = %u\n", ctinfo);
 #endif    
                 return NF_ACCEPT;
         }
@@ -204,7 +204,7 @@ static int __init nf_conntrack_sl_init(void)
 #endif
 
 
-    return 0;
+    return ret;
 }
 
 module_init(nf_conntrack_sl_init);
