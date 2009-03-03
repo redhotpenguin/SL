@@ -1,0 +1,41 @@
+#!perl -w
+
+use strict;
+use warnings;
+
+my $msg = "\nperl sl_request_bigpacket 80 10.0.0.2 [verbose]\n\n";
+
+my $port = shift or die $msg;
+my $host = shift or die $msg;
+my $verbose = shift;
+
+use Time::HiRes qw(gettimeofday tv_interval);
+use SL::Client::HTTP;
+
+my $start = [gettimeofday];
+
+$DB::single = 1;
+
+my $url = 'http://www.silverliningnetworks.com/sl_secret_ping_button/00%2010%2032%2054%2076%2098';
+
+my	@headers = (
+'User-Agent', 'Wget/1.8.1',
+'Accept', '*/*',
+);
+
+
+my $response = SL::Client::HTTP->get(
+                                     url      => $url,
+                                     host     => $host,
+                                     port     => $port,
+                                     headers  => \@headers,
+                                    );
+                                    
+my $end = tv_interval($start, [gettimeofday]);
+
+use Data::Dumper;
+
+print Dumper($response) if $verbose;
+
+print sprintf("\nTime: %s\n", $end);
+

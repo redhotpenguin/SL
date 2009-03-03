@@ -1,0 +1,118 @@
+#!perl
+
+=head1 NAME
+
+ sl_ipq
+
+=head1 SYNOPSIS
+
+ modprobe ip_queue
+ iptables -t mangle -A FORWARD -p tcp --dport 80 -j QUEUE
+ perl sl_ipq
+
+=head1 LICENSE
+
+Copyright 2007 Red Hot Penguin Consulting LLC
+
+=cut
+
+use strict;
+use warnings;
+
+use IPTables::IPv4::IPQueue qw(:constants);
+use NetPacket::TCP qw(:ALL);
+use NetPacket::Ethernet qw(:strip);
+use NetPacket::IP qw(:strip);
+
+my $ipq = IPTables::IPv4::IPQueue->new(
+    copy_mode  => IPQ_COPY_PACKET,
+    copy_range => 1500
+  )
+  or die sprintf( "Error: %s\nDid you modprobe ip_queue?\n",
+    IPTables::IPv4::IPQueue->errstr );
+
+our $DEBUG     = 1;
+our $IP_DEBUG  = 0;
+our $TCP_DEBUG = 0;
+require Data::Dumper if ( $TCP_DEBUG or $IP_DEBUG or $DEBUG );
+
+my %seq;
+my $i        = 0;
+my $last_seq = 1;
+
+while (1) {
+    $i++;
+    print "Iteration $i\n" if $DEBUG;
+    my $msg = $ipq->get_message() or die IPTables::IPv4::IPQueue->errstr;
+    next unless $msg;
+
+    my $ip  = NetPacket::IP->decode( $msg->payload );
+    my $tcp = NetPacket::TCP->decode( $ip->{data} );
+    print sprintf( "IP:\n%s\n",  Data::Dumper::Dumper($ip) )  if $IP_DEBUG;
+    print sprintf( "TCP:\n%s\n", Data::Dumper::Dumper($tcp) ) if $TCP_DEBUG;
+
+    if ( $last_seq != $tcp->{seqnum} ) {
+        print sprintf( "New Sequence %s\n", $tcp->{seqnum} ) if $DEBUG;
+
+        # finish the last sequence
+        finish_seq( \%seq, $last_seq ) unless ( $last_seq == 1 );
+
+        # create a new sequence
+        create_new_seq( \$last_seq, \%seq, $tcp, $msg->packet_id );
+
+    }
+    elsif ( $last_seq == $tcp->{seqnum} ) {
+        print sprintf( "Existing Sequence %s\n", $tcp->{seqnum} ) if $DEBUG;
+
+        # update existing sequence
+        update_seq( \%seq, $tcp, $msg->packet_id );
+
+        # FIN
+        finish_seq( \%seq, $tcp->{seqnum} ) if ( $tcp->{flags} == 17 );
+    }
+
+    $ipq->set_verdict( $msg->packet_id(), NF_ACCEPT );
+
+}
+
+sub finish_seq {
+    my ( $seq_hash_ref, $seqnum ) = @_;
+
+    die unless ( exists $seq_hash_ref->{$seqnum} );
+    print sprintf( "Finishing sequence %u\n", $seqnum ) if $DEBUG;
+    print sprintf( "Sequence data:\n%s\n",
+        Data::Dumper::Dumper( $seq_hash_ref->{$seqnum} ) );
+    delete $seq_hash_ref->{$seqnum};
+    return 1;
+}
+
+sub update_seq {
+    my ( $seq_hash_ref, $tcp, $packet_id ) = @_;
+
+    print sprintf( "Updating sequence %u\n", $tcp->{seqnum} );
+    push_packet( $seq_hash_ref, $tcp->{seqnum}, $packet_id );
+    $seq_hash_ref->{ $tcp->{seqnum} }->{data} .= $tcp->{data} if $DEBUG;
+    return 1;
+}
+
+sub create_new_seq {
+    my ( $last_seq_ref, $seq_hash_ref, $tcp, $packet_id ) = @_;
+
+    print sprintf( "Creating new sequence %u\n", $tcp->{seqnum} ) if $DEBUG;
+
+    # create a new sequence
+    $$last_seq_ref = $tcp->{seqnum};
+    push_packet( $seq_hash_ref, $tcp->{seqnum}, $packet_id );
+    if ($DEBUG) {
+        $seq_hash_ref->{$$last_seq_ref}->{data} = $tcp->{data} || '';
+    }
+    return 1;
+}
+
+sub push_packet {
+    my ( $seq_hash_ref, $seqnum, $packet_id ) = @_;
+    push @{ $seq_hash_ref->{$seqnum}->{pkt_ids} }, $packet_id;
+    return 1;
+}
+
+1;
