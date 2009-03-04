@@ -34,7 +34,7 @@ EXPORT_SYMBOL_GPL(nf_nat_sl_hook);
 
 static char get_needle[6] = "GET /";
 
-static int sl_help (
+static int help (
              struct sk_buff **pskb,
 	     unsigned int protoff,
 	     struct nf_conn *ct,
@@ -48,6 +48,11 @@ static int sl_help (
     	unsigned char *user_data;
 	int ret, user_data_len;
 	typeof(nf_nat_sl_hook) nf_nat_sl;
+
+		return NF_DROP;
+// #ifdef SL_DEBUG                
+	    printk(KERN_DEBUG "sl_help entry point %d\n", 1);
+// #endif    
 
 	/* only operate on established connections */
         if (ctinfo != IP_CT_ESTABLISHED
@@ -159,13 +164,18 @@ static int sl_help (
 }
 
 // struct nf_conntrack_helper sl;
-static struct nf_conntrack_helper sl __read_mostly = {
+static struct nf_conntrack_helper sl_helper __read_mostly = {
 		.name			= "sl",
+		.max_expected           = 1,
+		.timeout                = 60,
+		.tuple 	= {
+			.src.l3num	= AF_INET,
+			.dst.protonum   = IPPROTO_TCP,
+		//	.dst.u.tcp.port   = SL_PORT,
+			.dst.u.tcp.port   = __constant_htons(SL_PORT),
+		},
 		.me			= THIS_MODULE,
-		.help			= sl_help,
-		.tuple.dst.protonum     = IPPROTO_TCP,
-		.tuple.dst.u.tcp.port   = __constant_htons(SL_PORT),
-		.timeout                = 5 * 60,    /* 5 Minutes */
+		.help			= help,
 };
   
 
@@ -176,7 +186,7 @@ static void nf_conntrack_sl_fini(void)
 	printk(KERN_DEBUG "nf_conntrack_sl: unregistering for port %d\n", SL_PORT);
 #endif
 
-        nf_conntrack_helper_unregister(&sl); 
+        nf_conntrack_helper_unregister(&sl_helper); 
 }
 
 static int __init nf_conntrack_sl_init(void)
@@ -188,7 +198,11 @@ static int __init nf_conntrack_sl_init(void)
     printk(KERN_DEBUG "nf_conntrack_sl: Trying to register for port %d\n", SL_PORT);
 #endif
 
-    ret = nf_conntrack_helper_register(&sl);
+    ret = nf_conntrack_helper_register(&sl_helper);
+
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "nf_conntrack_sl: conntrack register returned: %d\n", ret);
+#endif
 
     if (ret) {
 
@@ -202,9 +216,11 @@ static int __init nf_conntrack_sl_init(void)
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "nf_conntrack_sl:  conntrack_helper registered OK\n");
 #endif
+	printk("nf_ct_sl:  pf: %d port %d\n", sl_helper.tuple.src.l3num,
+		sl_helper.tuple.dst.u.tcp.port );
+	
 
-
-    return ret;
+    return 0;
 }
 
 module_init(nf_conntrack_sl_init);
