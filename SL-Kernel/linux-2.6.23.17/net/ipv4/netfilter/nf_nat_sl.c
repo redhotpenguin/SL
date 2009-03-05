@@ -11,9 +11,7 @@
 #include <linux/skbuff.h>
 #include <linux/ip.h>
 #include <linux/tcp.h>
-#include <linux/netfilter.h>
 #include <linux/netfilter_ipv4.h>
-#include <net/tcp.h>
 #include <net/netfilter/nf_nat.h>
 #include <net/netfilter/nf_nat_helper.h>
 #include <net/netfilter/nf_nat_rule.h>

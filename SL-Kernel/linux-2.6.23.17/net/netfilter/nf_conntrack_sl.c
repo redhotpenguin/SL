@@ -11,12 +11,10 @@
 #include <net/checksum.h>
 #include <net/tcp.h>
 
-#include <net/netfilter/nf_nat_helper.h>
 #include <net/netfilter/nf_conntrack.h>
 #include <net/netfilter/nf_conntrack_expect.h>
 #include <net/netfilter/nf_conntrack_ecache.h>
 #include <net/netfilter/nf_conntrack_helper.h>
-
 #include <linux/netfilter/nf_conntrack_sl.h>
  
 MODULE_LICENSE("GPL");
@@ -49,23 +47,25 @@ static int help (
 	int ret, user_data_len;
 	typeof(nf_nat_sl_hook) nf_nat_sl;
 
-		return NF_DROP;
-// #ifdef SL_DEBUG                
+#ifdef SL_DEBUG                
 	    printk(KERN_DEBUG "sl_help entry point %d\n", 1);
-// #endif    
+#endif    
 
 	/* only operate on established connections */
         if (ctinfo != IP_CT_ESTABLISHED
             && ctinfo != IP_CT_ESTABLISHED+IP_CT_IS_REPLY) {
 
 #ifdef SL_DEBUG                
-	    printk(KERN_DEBUG "sl: Conntrackinfo = %u\n", ctinfo);
+	    printk(KERN_DEBUG "conntrackinfo = %u\n", ctinfo);
 #endif    
                 return NF_ACCEPT;
         }
 
 	/* only mangle outbound packets */
 	if (ctinfo == IP_CT_IS_REPLY) {
+#ifdef SL_DEBUG                
+	    printk(KERN_DEBUG "inbound packet, ignoring");
+#endif    
 		return NF_ACCEPT;
 	}
 
@@ -162,18 +162,27 @@ static int help (
     
 	return ret;
 }
-
+/*
+static struct nf_conntrack_helper snmp_helper __read_mostly = {
+	.max_expected		= 0,
+	.timeout		= 180,
+	.me			= THIS_MODULE,
+	.help			= help,
+	.name			= "snmp",
+	.tuple.src.l3num	= AF_INET,
+	.tuple.src.u.tcp.port	= __constant_htons(SNMP_PORT),
+	.tuple.dst.protonum	= IPPROTO_TCP,
+};
+*/
 // struct nf_conntrack_helper sl;
 static struct nf_conntrack_helper sl_helper __read_mostly = {
 		.name			= "sl",
-		.max_expected           = 1,
-		.timeout                = 60,
-		.tuple 	= {
-			.src.l3num	= AF_INET,
-			.dst.protonum   = IPPROTO_TCP,
+		.max_expected           = 0,
+		.timeout                = 180,
+		.tuple.src.l3num	= AF_INET,
+		.tuple.dst.protonum   = IPPROTO_TCP,
 		//	.dst.u.tcp.port   = SL_PORT,
-			.dst.u.tcp.port   = __constant_htons(SL_PORT),
-		},
+		.tuple.src.u.tcp.port   = __constant_htons(SL_PORT),
 		.me			= THIS_MODULE,
 		.help			= help,
 };
@@ -193,6 +202,8 @@ static int __init nf_conntrack_sl_init(void)
 {
  
 	int ret = 0;
+
+   pr_debug("HI IA M HAPPY PRDEBUG");
 
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "nf_conntrack_sl: Trying to register for port %d\n", SL_PORT);
