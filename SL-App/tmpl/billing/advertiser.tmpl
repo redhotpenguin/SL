@@ -17,11 +17,9 @@
 <body id="sln">
 
 <div id="silver_lining_ad_horizontal">
-  <div id="silver_lining_leaderboard">
-    <div id="silver_lining_bug"> </div> 
-    <!-- <div id="silver_lining_bug" style="background:url('[% base_uri %]/resources/images/ads/bug.jpg');"> </div> --> 
-    <div id="silver_lining_client_ad">
-    
+  <div id="silver_lining_leaderboard" style="text-align:center;">
+    <div id="silver_lining_client_ad" style="text-align:center;float:none; margin-left:auto;margin-right:auto;">
+    	
         <!-- ACTUAL AD MARKUP START -->  
         [% IF req.param('coupon') == 'phcc' %]
 				<p><a href="http://www.360villagevirtualtours.com/maps/cph/"><img src="http://www.silverliningnetworks.com/phcc/phcc_leaderboard.jpg"></a></p>
@@ -32,8 +30,6 @@
         <!-- ACTUAL AD MARKUP END -->  
         
     </div>
-    <a onclick="silverLiningClose(); return false;" id="silver_lining_close" href="#">
-<img src="[% base_uri %]/resources/images/icons/close_blue.png" title="Hide Advertisement" alt="close" /></a>
 
 
     <div class="silver_lining_clear"></div>
