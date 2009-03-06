@@ -8,17 +8,46 @@
   <link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/thickbox.css" />
   <script src="[% base_uri %]/resources/js/simple_validation.js" type="text/javascript"></script>
   <title>Advertiser Signup Form - Silver Lining Networks</title>
+
+   <link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/sl_leaderboard.css" /> 
+   <script type="text/javascript" src="[% base_uri %]/resources/js/horizontal.js"></script>
+
+
 </head>
 <body id="sln">
 
+<div id="silver_lining_ad_horizontal">
+  <div id="silver_lining_leaderboard">
+    <div id="silver_lining_bug" style="background:url('[% base_uri %]/resources/images/ads/bug.jpg');"> </div> 
+    <div id="silver_lining_client_ad">
+    
+        <!-- ACTUAL AD MARKUP START -->  
+        [% IF req.param('coupon') == 'phcc' %]
+				<p><a href="http://www.360villagevirtualtours.com/maps/cph/"><img src="http://www.silverliningnetworks.com/phcc/phcc_leaderboard.jpg"></a></p>
+	[% ELSE %]
+				 
+        <img src="[% base_uri %]/resources/images/ads/skyscraper.jpg" alt="Advertise Here. Banner Space Available"/>
+	[% END %]
+        <!-- ACTUAL AD MARKUP END -->  
+        
+    </div>
+    <a onclick="silverLiningClose(); return false;" id="silver_lining_close" href="#">
+<img src="[% base_uri %]/resources/images/icons/close_blue.png" title="Hide Advertisement" alt="close" /></a>
+
+
+    <div class="silver_lining_clear"></div>
+  </div>
+</div>
+<div id="silver_lining_webpage">
+
 <!-- TOP SECTION START #################### -->
+
 	<div id="section_one">
 		<div class="center">
 			<!-- CHOOSE WIFI COPY ************************ --> 
 			<div class="two_thirds left padding_top">
 				<h2>Advertiser Signup Form</h2>
 				<p>Please select an advertisement campaign plan.  A Silver Lining Networks representative will contact you and help place your advertisement.</p>
-
 			
 			</div>
 
@@ -77,6 +106,6 @@
         <!-- PLEDGE -->
 
         [% PROCESS auth/form/our_pledge.tmpl %]
-
+</div>
 </body>
 </html>
