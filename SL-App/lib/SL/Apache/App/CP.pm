@@ -737,6 +737,61 @@ sub paid {
     }
 }
 
+sub coupon {
+    my ( $class, $r, $args_ref ) = @_;
+
+    my $req = $args_ref->{req} || Apache2::Request->new($r);
+
+    my $mac  = $req->param('mac');
+    my $dest = $req->param('url');
+    unless ($mac) {
+        $r->log->error( "$$ auth page called without mac from ip "
+              . $r->connection->remote_ip
+              . " url: "
+              . $r->construct_url( $r->unparsed_uri ) );
+        return Apache2::Const::NOT_FOUND;
+    }
+
+    return Apache2::Const::SERVER_ERROR
+	unless ( $r->method_number == Apache2::Const::M_POST );
+
+    $r->method_number(Apache2::Const::M_GET);
+
+    my $coupon = $req->param('coupon');
+
+    unless ($coupon eq '@1rCl0ud') {
+
+        return $class->paid(
+                $r,
+                {
+                    errors => { invalid => 'coupon' },
+                    req    => $req
+                }
+ 
+       );
+    }
+
+    my $router = $r->pnotes('router');
+    unless ($router) {
+        $r->log->error('router not set');
+        return Apache2::Const::SERVER_ERROR;
+    }
+
+
+        my $lan_ip = $router->lan_ip
+          || die 'router not configured for CP';
+
+        ## payment successful, redirect to auth
+        $mac  = URI::Escape::uri_escape($mac);
+        $dest = URI::Escape::uri_escape($dest);
+        $r->headers_out->set(
+            Location => "http://$lan_ip/paid?mac=$mac&url=$dest&token=" );
+#              . $payment->md5 );
+        $r->no_cache(1);
+        return Apache2::Const::REDIRECT;
+}
+
+
 sub free {
     my ( $class, $r, $args_ref ) = @_;
 
