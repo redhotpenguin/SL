@@ -1,0 +1,6 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/SL-Test-Kernel.t
+lib/SL-Test-Kernel.pm
