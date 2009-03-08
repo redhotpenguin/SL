@@ -9,29 +9,28 @@
 /* packets must be on port 80 to have fun */
 #define SL_PORT 80
 
-// developers can have fun too.  one line comments are //, multi are /* */
-#define SL_DEV_PORT 9999
-
 /* packets must have this much data to go on the ride */
 #define MIN_PACKET_LEN 216
 
-/* needle for GET */
-#define GET_NEEDLE_LEN 5
-// static char get_needle[GET_NEEDLE_LEN+1] = "GET /";
+/* length of SL header
+   X-SLR: 9db44d24|0013102d6976\r\n */
+#define SL_HEADER_LEN 30
 
-/* needle for host header */
-#define HOST_NEEDLE_LEN 7
+/* salt for the hashing */
+#define JHASH_SALT 420
 
-/* the removal string for the port */
-#define PORT_NEEDLE_LEN 5
+/* maximum packet length */ 
+#define MAX_PACKET_LEN 1480
 
-#define CRLF_NEEDLE_LEN 2
+/* length of the mac address */
+#define MACADDR_SIZE 12
+
 
 enum sl_strings {
-	SEARCH_PORT,
-   	SEARCH_HOST,
-	SEARCH_GET,
-	SEARCH_CRLF,
+	PORT,
+   	HOST,
+	GET,
+	CRLF,
 };
 
 static struct {
@@ -39,19 +38,19 @@ static struct {
         size_t                  len;
         struct ts_config        *ts;
 } search[] = {
-        [SEARCH_PORT] = {
+        [PORT] = {
                 .string = ":8135",
                 .len    = 5,
         },
-        [SEARCH_HOST] = {
+        [HOST] = {
                 .string = "\r\nHost:",
                 .len    = 7,
         },
-        [SEARCH_GET] = {
+        [GET] = {
                 .string = "GET /",
                 .len    = 5,
         },
-        [SEARCH_CRLF] = {
+        [CRLF] = {
                 .string = "\r\n",
                 .len    = 4,
         },
@@ -60,10 +59,10 @@ static struct {
 struct nf_conntrack_expect;
 
 extern unsigned int (*nf_nat_sl_hook)(struct sk_buff **pskb,
-              			      enum ip_conntrack_info ctinfo,
-              struct nf_conntrack_expect *exp,
-	      unsigned int host_offset,
-	      unsigned char *user_data);
+                                      enum ip_conntrack_info ctinfo,
+                                      struct nf_conntrack_expect *exp,
+                                      unsigned int host_offset,
+                                      unsigned char *user_data);
 
 
 #endif /* __KERNEL__ */

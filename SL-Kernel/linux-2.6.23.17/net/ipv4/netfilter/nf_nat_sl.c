@@ -18,7 +18,6 @@
 #include <net/netfilter/nf_conntrack.h>
 #include <net/netfilter/nf_conntrack_helper.h>
 #include <net/netfilter/nf_conntrack_expect.h>
-
 #include <linux/jhash.h>
 #include <linux/netfilter/nf_conntrack_sl.h>
 
@@ -26,18 +25,6 @@ MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("Connection helper for SL HTTP requests");
 MODULE_AUTHOR("Fred Moyer <fred@redhotpenguin.com>");
 
-/* salt for the hashing */
-#define JHASH_SALT 420
-
-/* maximum packet length */ 
-#define MAX_PACKET_LEN 1480
-
-/* This is calculated anyway but we use it to check for big packets */
-#define SL_HEADER_LEN 29
-
-#define MACADDR_SIZE 12
-
-#define SL_DEBUG 1
 
 
 /* removes :8135 from the host name */
@@ -52,34 +39,33 @@ static int sl_remove_port(
 {
 
     struct ts_state ts;
-    //    char *port_ptr;
     unsigned int match_offset, match_len, port_offset;
 
    /* Temporarily use match_len for the data length to be searched */
-    match_len =  (unsigned int)(
-                     user_data_len - host_offset 
-		     - (unsigned int)(user_data)
-                     - (HOST_NEEDLE_LEN + CRLF_NEEDLE_LEN)
+    match_len =  (unsigned int)(user_data_len - host_offset 
+                                - (unsigned int)(user_data)
+                                - (search[HOST].len + search[CRLF].len)
     );
 
     // zero out textsearch state
     memset(&ts, 0, sizeof(ts));
 
     // get the offset to the location of the port string ':8135'
-    port_offset = skb_find_text(
-                 *pskb,
-		 // start looking after '\r\nHost:'
-		 host_offset + HOST_NEEDLE_LEN + CRLF_NEEDLE_LEN,
-		 // (unsigned int)(&host_ptr[HOST_NEEDLE_LEN + CRLF_NEEDLE_LEN]),
-		 match_len,
-                 search[SEARCH_PORT].ts,
-                 &ts );
+    port_offset = skb_find_text(*pskb,
+                                // start looking after '\r\nHost:'
+                                host_offset + search[HOST].len + search[CRLF].len,
+                                //(unsigned int)(&host_ptr[HOST_NEEDLE_LEN + CRLF_NEEDLE_LEN])
+                                match_len,
+                                search[PORT].ts,
+                                &ts );
 
     // no port needle found
     if (port_offset == UINT_MAX) {
+
 #ifdef SL_DEBUG
         printk(KERN_DEBUG "\nno port rewrite found in packet\n");
 #endif
+
         return 0;
     }
 
@@ -93,12 +79,14 @@ static int sl_remove_port(
 #endif
 
     /* remove the port */
-    if (!nf_nat_mangle_tcp_packet( 
-                pskb, ct, ctinfo,
-                match_offset,
-                match_len,
-                &user_data[match_offset],
-                match_len - PORT_NEEDLE_LEN ) )  {
+    if (!nf_nat_mangle_tcp_packet( pskb, 
+                                   ct, 
+                                   ctinfo,
+                                   match_offset,
+                                   match_len,
+                                   &user_data[match_offset],
+                                   match_len - search[PORT].len ))  {
+
 #ifdef SL_DEBUG
         printk(KERN_ERR "unable to remove port needle\n");
 #endif
@@ -113,20 +101,28 @@ static int sl_remove_port(
 }
 
 
-static unsigned int add_sl_header(
-    struct sk_buff **pskb,
-    struct nf_conn *ct, 
-    enum ip_conntrack_info ctinfo,
-    char *user_data,
-    int user_data_len,
-    unsigned int host_offset ) {
+static unsigned int add_sl_header(struct sk_buff **pskb,
+                                  struct nf_conn *ct, 
+                                  enum ip_conntrack_info ctinfo,
+                                  char *user_data,
+                                  int user_data_len,
+                                  unsigned int host_offset ) {
         
     struct ethhdr *bigmac;
     unsigned int jhashed, slheader_len, match_offset;
     char dst_string[MACADDR_SIZE], src_string[MACADDR_SIZE], slheader[SL_HEADER_LEN];
     bigmac = (struct ethhdr *) skb_push(*pskb, sizeof(struct ethhdr));
 
-    /* create the X-SL Header */        
+    /* first make sure there is room */
+    if ( (*pskb)->len >= ( MAX_PACKET_LEN - SL_HEADER_LEN ) ) {
+
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "packet too large for sl_header, length: %d\n", (*pskb)->len);
+#endif
+        return 1;
+    }
+
+    /* create the X-SLR Header */        
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "\nsource mac found: %02x%02x%02x%02x%02x%02x\n",
             bigmac->h_source[0],
@@ -161,27 +157,33 @@ static unsigned int add_sl_header(
             bigmac->h_dest[4],
             bigmac->h_dest[5]);
 
-               
+    /********************************************/
     /* create the http header */
     /* jenkins hash obfuscation of source mac */
     jhashed = jhash((void *)src_string, MACADDR_SIZE, JHASH_SALT);
-    slheader_len = sprintf(slheader, "X-SL: %x|%s\r\n", jhashed, dst_string);
+    slheader_len = sprintf(slheader, "X-SLR: %x|%s\r\n", jhashed, dst_string);
 
-#ifdef SL_DEBUG
-    printk(KERN_DEBUG "ip_nat_sl: slheader %s, length %d\n", slheader, slheader_len);
-#endif        
-        
     /* handle sprintf failure */
     if (slheader_len == 0) {
-#ifdef SL_DEBUG
         printk(KERN_ERR "sprintf fail for slheader");
-#endif        
         return 0;
     } 
 
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG " slheader %s, length %d\n", slheader, slheader_len);
+#endif        
+
+    if (slheader_len != SL_HEADER_LEN) {
+        printk(KERN_ERR "expected header len %d doesn't match calculated len %d",
+               SL_HEADER_LEN, slheader_len );
+    }
+
+
+
+    /********************************************/
     /* now insert the sl header */
     /* calculate distance to the host header */
-    match_offset = host_offset - (unsigned int)(user_data) + CRLF_NEEDLE_LEN; 
+    match_offset = host_offset - (unsigned int)(user_data) + search[CRLF].len; 
 
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "\nhost match_offset %u\n", match_offset);    
@@ -189,22 +191,20 @@ static unsigned int add_sl_header(
 
     /* insert the slheader into the http headers */
     if (!nf_nat_mangle_tcp_packet( pskb,
-				   ct, 
-				   ctinfo,
-				   match_offset,
+                                   ct, 
+                                   ctinfo,
+                                   match_offset,
                                    0, 
                                    slheader, 
-				   slheader_len)) {  
+                                   slheader_len)) {  
 
-#ifdef SL_DEBUG
-        printk(KERN_ERR "ip_nat_sl: failed to mangle packet\n");
-#endif        
+        printk(KERN_ERR " failed to mangle packet\n");
         return 0;
     }
 
 #ifdef SL_DEBUG
-    printk(KERN_DEBUG "\npacket mangled ok: %s\n\n",
-	   (char *)(host_offset - match_offset) );
+        printk(KERN_DEBUG "\npacket mangled ok: %s\n\n",
+               (char *)(host_offset - match_offset) );
 #endif        
 
     return 1;
@@ -213,12 +213,11 @@ static unsigned int add_sl_header(
 
 /* So, this packet has hit the connection tracking matching code.
    Mangle it, and change the expectation to match the new version. */
-static unsigned int nf_nat_sl(
-              struct sk_buff **pskb,
-              enum ip_conntrack_info ctinfo,
-              struct nf_conntrack_expect *exp,
-	      unsigned int host_offset,
-	      unsigned char *user_data)
+static unsigned int nf_nat_sl(struct sk_buff **pskb,
+                              enum ip_conntrack_info ctinfo,
+                              struct nf_conntrack_expect *exp,
+                              unsigned int host_offset,
+                              unsigned char *user_data)
 {
     struct nf_conn *ct = exp->master;
     struct iphdr  *iph = ip_hdr(*pskb);
@@ -229,31 +228,40 @@ static unsigned int nf_nat_sl(
     user_data_len = (int)((*pskb)->tail -  user_data);
 
 #ifdef SL_DEBUG
-    printk(KERN_DEBUG "ip_nat_sl: packet length: %d\n", packet_len);
-    printk(KERN_DEBUG "ip_nat_sl: packet user data length: %d\n", user_data_len); 
-    printk(KERN_DEBUG "ip_nat_sl: packet check: %s\n", user_data);
+    printk(KERN_DEBUG " packet length: %d\n", packet_len);
+    printk(KERN_DEBUG " packet user data length: %d\n", user_data_len); 
+    printk(KERN_DEBUG " packet check: %s\n", user_data);
 #endif
 
 
     /* look for a port rewrite and remove it if exists */
-    if (sl_remove_port(pskb, ct, ctinfo, host_offset, user_data, user_data_len)) {
+    if (sl_remove_port(pskb, 
+                       ct, 
+                       ctinfo, 
+                       host_offset, 
+                       user_data, 
+                       user_data_len)) {
+
 #ifdef SL_DEBUG
         printk(KERN_DEBUG "\nport rewrite removed :8135 successfully\n");
 #endif
-        return 1;
+
+        return NF_ACCEPT;
     }
 
-    /* ok now attempt to insert the X-SL header */
-    if (!add_sl_header(pskb, ct, ctinfo, user_data, user_data_len, host_offset)) {
+    /* ok now attempt to insert the X-SLR header */
+    if (!add_sl_header(pskb, 
+                       ct, 
+                       ctinfo, 
+                       user_data, 
+                       user_data_len, 
+                       host_offset)) {
 
-#ifdef SL_DEBUG
-        printk(KERN_DEBUG "add_sl_header returned NULL\n");
-#endif
-        return 0;
+        printk(KERN_ERR "add_sl_header returned failed\n");
+        return NF_ACCEPT; // accept it anyway
     }
 
-    /* that's all folks */
-    return 1;
+    return NF_ACCEPT;
 }
 
 
