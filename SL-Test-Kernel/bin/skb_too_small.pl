@@ -1,13 +1,9 @@
-#!perl -w
+#!/usr/bin/perl
 
 use strict;
 use warnings;
 
-my $msg = "\nperl sl_request_bigpacket 80 10.0.0.2 [verbose]\n\n";
-
-my $port = shift or die $msg;
-my $host = shift or die $msg;
-my $verbose = shift;
+my $hostip = shift or die "$0 10.2.0.1\n";
 
 use Time::HiRes qw(gettimeofday tv_interval);
 use SL::Client::HTTP;
@@ -26,16 +22,16 @@ my	@headers = (
 
 my $response = SL::Client::HTTP->get(
                                      url      => $url,
-                                     host     => $host,
-                                     port     => $port,
+                                     host     => $hostip,
+                                     port     => 80,
                                      headers  => \@headers,
                                     );
-                                    
+
 my $end = tv_interval($start, [gettimeofday]);
 
 use Data::Dumper;
 
-print Dumper($response) if $verbose;
+print Dumper($response); #if $verbose;
 
 print sprintf("\nTime: %s\n", $end);
 
