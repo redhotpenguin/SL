@@ -6,11 +6,15 @@
 /* enable for module debugging */
 #define SL_DEBUG 1
 
+// verbose packet debug
+// #define SKB_DEBUG 1
+ 
+
 /* packets must be on port 80 to have fun */
 #define SL_PORT 80
 
 /* packets must have this much data to go on the ride */
-#define MIN_PACKET_LEN 216
+#define MIN_PACKET_LEN 256
 
 /* length of SL header
    X-SLR: 9db44d24|0013102d6976\r\n */
@@ -37,7 +41,7 @@ static struct {
         char                    *string;
         size_t                  len;
         struct ts_config        *ts;
-} search[] = {
+} search[] __read_mostly = {
         [PORT] = {
                 .string = ":8135",
                 .len    = 5,

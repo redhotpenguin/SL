@@ -15,7 +15,7 @@
 #include <net/netfilter/nf_conntrack_ecache.h>
 #include <net/netfilter/nf_conntrack_helper.h>
 #include <linux/netfilter/nf_conntrack_sl.h>
- 
+
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Fred Moyer <fred@redhotpenguin.com");
 MODULE_DESCRIPTION("sl connection tracking helper");
@@ -34,128 +34,129 @@ static int sl_help (struct sk_buff **pskb,
                     enum   ip_conntrack_info ctinfo)     
 {
     struct tcphdr _tcph, *th;
-    unsigned int host_offset, plen, dataoff, datalen;
+    unsigned int host_offset, dataoff, datalen, host_search_from, host_search_to;
     struct nf_conntrack_expect *exp;
     struct ts_state ts;
     unsigned char *user_data;
-    int ret, user_data_len;
+    int ret;
     typeof(nf_nat_sl_hook) nf_nat_sl;
-
-#ifdef SL_DEBUG                
-	printk(KERN_DEBUG "sl_help entry point %d\n", 1);
-#endif    
 
     /* only operate on established connections */
     if (ctinfo != IP_CT_ESTABLISHED
-        && ctinfo != IP_CT_ESTABLISHED+IP_CT_IS_REPLY) {
-
-#ifdef SL_DEBUG                
-        printk(KERN_DEBUG "conntrackinfo = %u\n", ctinfo);
-#endif    
+         && ctinfo != IP_CT_ESTABLISHED+IP_CT_IS_REPLY)
         return NF_ACCEPT;
-    }
 
     /* only mangle outbound packets */
-    if (ctinfo == IP_CT_IS_REPLY)
+    if ( ctinfo == IP_CT_IS_REPLY )
         return NF_ACCEPT;
+
+#ifdef SKB_DEBUG                
+    printk(KERN_DEBUG "conntrackinfo = %u\n", ctinfo);
+#endif    
 
     // get the tcp header
     th = skb_header_pointer(*pskb, protoff, sizeof(_tcph), &_tcph);
     if (th == NULL)
         return NF_ACCEPT;
 
+#ifdef SKB_DEBUG
+    printk(KERN_DEBUG "tcphdr dst %d, src %d, ack seq %u\n",
+           ntohs(th->dest), ntohs(th->source), th->ack_seq);
 
-    /* only operate on SL_PORT - isn't this taken care of by module reg?? */
-	if ( ! ( ntohs(th->dest) == SL_PORT ) )
-        return NF_ACCEPT;
+    /* let SYN, FIN, RST, PSH, ACK, ECE, CWR, URG packets pass */
+    printk(KERN_DEBUG "FIN %d, SYN %d, RST %d, PSH %d, ACK %d, ECE %d\n",
+           th->fin, th->syn, th->rst, th->psh, th->ack, th->ece);
+#endif    
 
+    /* only work on push or ack packets */
+    if (!( (th->psh == 1) || (th->ack == 1)) ) {
+#ifdef SKB_DEBUG
+    	printk(KERN_DEBUG "not psh or ack, return\n\n");
+#endif    
+    	return NF_ACCEPT;
+    }
 
+    /* No data? */
     dataoff = protoff + th->doff * 4;
-	/* No data? */
-	if (dataoff >= (*pskb)->len) {
-		printk(KERN_DEBUG "ftp: dataoff(%u) >= skblen(%u)\n", dataoff,
+    if (dataoff >= (*pskb)->len) {
+
+#ifdef SKB_DEBUG
+	printk(KERN_DEBUG "dataoff(%u) >= skblen(%u), return\n\n", dataoff,
 			 (*pskb)->len);
+#endif
 		return NF_ACCEPT;
 	}
+
 	datalen = (*pskb)->len - dataoff;
 
 #ifdef SL_DEBUG
-        printk(KERN_DEBUG "\ntcphdr dst %d, src %d, ack seq %d\n",
-        ntohs(th->dest), ntohs(th->source), th->ack_seq);
-
-    	/* let SYN, FIN, RST, PSH, ACK, ECE, CWR, URG packets pass */
-    	printk(KERN_DEBUG "FIN: %d\n", th->fin);
-    	printk(KERN_DEBUG " SYN: %d\n", th->syn);
-        printk(KERN_DEBUG " RST: %d\n", th->rst);
-    	printk(KERN_DEBUG " PSH: %d\n", th->psh);
-    	printk(KERN_DEBUG " ACK: %d\n", th->ack);
-    	printk(KERN_DEBUG " URG: %d\n", th->urg);
-    	printk(KERN_DEBUG " ECE: %d\n", th->ece);
-    	printk(KERN_DEBUG " CWR: %d\n", th->cwr);
+    printk(KERN_DEBUG "dataoff %u, packet length %d, data length %d\n",
+	dataoff, (*pskb)->len, datalen);
 #endif    
 
-
-    	/* only work on push or ack packets */
-    	if (!( (th->psh == 1) || (th->ack == 1)) ) {
+    /* if there aren't MIN_PACKET_LEN we aren't interested */
+    if (datalen < MIN_PACKET_LEN) {
 #ifdef SL_DEBUG
-        	printk(KERN_DEBUG " psh or ack\n");
-#endif    
-        	return NF_ACCEPT;
-    	}
-
-    	/* get the packet length */
-        //        plen=ntohs(iph->tot_len)-(iph->ihl*4);
-        plen = (*pskb)->len;
-#ifdef SL_DEBUG
-        printk(KERN_DEBUG " packet length %d\n", plen);
-#endif    
-
-    	/* minimum length to search the packet */
-	if (plen < MIN_PACKET_LEN) {
-#ifdef SL_DEBUG
-    	printk(KERN_DEBUG " packet too small to examine - %d\n", plen);
+    	printk(KERN_DEBUG "skb data too small,  %d bytes, return\n\n", datalen);
 #endif    
     	return NF_ACCEPT;
 	}
 
-        /* see if this is a GET request */
-        user_data = (void *)th + th->doff*4;
+    /* see if this is a GET request */
+    user_data = (void *)th + th->doff*4;
 
-        // replace GET_NEEDLE_LEN from ts struct
-        if (strncmp(search[GET].string, user_data, search[GET].len)) {    
+    // replace GET_NEEDLE_LEN from ts struct
+    if (strncmp(search[GET].string, user_data, search[GET].len)) {    
 
 #ifdef SL_DEBUG
-        	printk(KERN_DEBUG "\nno get_needle found in packet\n");
+        printk(KERN_DEBUG "no get_needle found in packet, return\n\n");
 #endif  	      
-        	return NF_ACCEPT;
-    	} 
+        return NF_ACCEPT;
+    } 
 
-        /* safety break
-        exp = nf_ct_expect_alloc(ct);
-        if (exp == NULL) {
-            return NF_DROP;
-            }
-        */
+    /* safety break */
+    exp = nf_ct_expect_alloc(ct);
+    if (exp == NULL)
+        return NF_DROP;
 
-        // see if the packet contains a Host header
-    	// zero out textsearch state
-    	memset(&ts, 0, sizeof(ts));
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "packet dump:\n%s\n\n", user_data);
+#endif
 
-        user_data_len = (int)((*pskb)->tail -  user_data);
 
-        // offset to the '\r\nHost:' header
-        host_offset = skb_find_text(*pskb,
-                                    (unsigned int)(&user_data[search[GET].len]),
-                                    user_data_len - search[GET].len,
-                                    search[HOST].ts,
-                                    &ts );
+    // see if the packet contains a Host header
+    // zero out textsearch state
+    memset(&ts, 0, sizeof(ts));
 
-        if (host_offset) {
+//host_search_from = (unsigned int)(&user_data[search[GET].len]);
+//host_search_to = (unsigned int)(&user_data[datalen - search[HOST].len]);
+host_search_from = 				dataoff + search[GET].len;
+host_search_to =             datalen - search[HOST].len;
+printk("dataoff %u, user_data %u, host_search_from: %u, host_search_to: %u, tail %u\n",
+	dataoff, (unsigned int)user_data, host_search_from, host_search_to, (unsigned int)(*pskb)->tail);
+   // return NF_ACCEPT;
+
+    // offset to the '\r\nHost:' header
+    host_offset = skb_find_text(*pskb,
+                              //  (unsigned int)(&user_data[search[GET].len]),
+				dataoff + search[GET].len,
+                                datalen - search[HOST].len,
+
+//  (unsigned int)(&user_data[datalen - search[HOST].len]),
+
+                                search[HOST].ts,
+                                &ts );
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "YEAH HOST OFFSET: %u\n", host_offset);
+    return NF_ACCEPT;
+#endif
+
+    if (host_offset) {
 
             nf_nat_sl = rcu_dereference(nf_nat_sl_hook);
             ret = nf_nat_sl(pskb, ctinfo, exp, host_offset, user_data);
 
-        } else {
+       } else {
             ret = NF_ACCEPT;
         }
     

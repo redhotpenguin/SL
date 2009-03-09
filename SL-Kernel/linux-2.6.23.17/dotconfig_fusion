@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.23.17
-# Sun Feb 22 07:18:25 2009
+# Wed Feb 25 11:41:13 2009
 #
 CONFIG_X86_32=y
 CONFIG_GENERIC_TIME=y
@@ -1380,7 +1380,7 @@ CONFIG_NLS_UTF8=y
 # Kernel hacking
 #
 CONFIG_TRACE_IRQFLAGS_SUPPORT=y
-CONFIG_PRINTK_TIME=y
+# CONFIG_PRINTK_TIME is not set
 CONFIG_ENABLE_MUST_CHECK=y
 # CONFIG_MAGIC_SYSRQ is not set
 # CONFIG_UNUSED_SYMBOLS is not set
