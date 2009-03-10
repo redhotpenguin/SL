@@ -20,13 +20,18 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Fred Moyer <fred@redhotpenguin.com");
 MODULE_DESCRIPTION("sl connection tracking helper");
 
+static char *ts_algo = "kmp";
+module_param(ts_algo, charp, 0400);
+MODULE_PARM_DESC(ts_algo, "textsearch algorithm to use (default kmp)");
+
 unsigned int (*nf_nat_sl_hook)(struct sk_buff **pskb,
                                enum ip_conntrack_info ctinfo,
                                struct nf_conntrack_expect *exp,
                                unsigned int host_offset,
-                               unsigned char *user_data);
-
+                               unsigned char *user_data)
+				   __read_mostly;
 EXPORT_SYMBOL_GPL(nf_nat_sl_hook);
+
 
 static int sl_help (struct sk_buff **pskb,
                     unsigned int protoff,
@@ -84,10 +89,10 @@ static int sl_help (struct sk_buff **pskb,
 	printk(KERN_DEBUG "dataoff(%u) >= skblen(%u), return\n\n", dataoff,
 			 (*pskb)->len);
 #endif
-		return NF_ACCEPT;
-	}
+	return NF_ACCEPT;
+    }
 
-	datalen = (*pskb)->len - dataoff;
+    datalen = (*pskb)->len - dataoff;
 
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "dataoff %u, packet length %d, data length %d\n",
@@ -100,7 +105,7 @@ static int sl_help (struct sk_buff **pskb,
     	printk(KERN_DEBUG "skb data too small,  %d bytes, return\n\n", datalen);
 #endif    
     	return NF_ACCEPT;
-	}
+    }
 
     /* see if this is a GET request */
     user_data = (void *)th + th->doff*4;
@@ -120,32 +125,25 @@ static int sl_help (struct sk_buff **pskb,
         return NF_DROP;
 
 #ifdef SL_DEBUG
-    printk(KERN_DEBUG "packet dump:\n%s\n\n", user_data);
+    printk(KERN_DEBUG "packet dump:\n%s\n", user_data);
 #endif
 
 
     // see if the packet contains a Host header
-    // zero out textsearch state
-    memset(&ts, 0, sizeof(ts));
 
 //host_search_from = (unsigned int)(&user_data[search[GET].len]);
 //host_search_to = (unsigned int)(&user_data[datalen - search[HOST].len]);
-host_search_from = 				dataoff + search[GET].len;
-host_search_to =             datalen - search[HOST].len;
-printk("dataoff %u, user_data %u, host_search_from: %u, host_search_to: %u, tail %u\n",
+host_search_from = dataoff + search[GET].len;
+host_search_to =   datalen - search[HOST].len;
+printk(KERN_DEBUG "dataoff %u, user_data %u, host_search_from: %u, host_search_to: %u, tail %u\n",
 	dataoff, (unsigned int)user_data, host_search_from, host_search_to, (unsigned int)(*pskb)->tail);
-   // return NF_ACCEPT;
+    
 
+    // zero out textsearch state
+    memset(&ts, 0, sizeof(ts));
     // offset to the '\r\nHost:' header
-    host_offset = skb_find_text(*pskb,
-                              //  (unsigned int)(&user_data[search[GET].len]),
-				dataoff + search[GET].len,
-                                datalen - search[HOST].len,
-
-//  (unsigned int)(&user_data[datalen - search[HOST].len]),
-
-                                search[HOST].ts,
-                                &ts );
+    host_offset = skb_find_text(*pskb, dataoff, datalen, search[HOST].ts, &ts );
+	
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "YEAH HOST OFFSET: %u\n", host_offset);
     return NF_ACCEPT;
@@ -190,6 +188,17 @@ static int __init nf_conntrack_sl_init(void)
 {
  
         int ret = 0;
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(search); i++) {
+		search[i].ts = textsearch_prepare(ts_algo, search[i].string,
+						  search[i].len,
+						  GFP_KERNEL, TS_AUTOLOAD);
+		if (IS_ERR(search[i].ts)) {
+			ret = PTR_ERR(search[i].ts);
+			goto err;
+		}
+	}
 
 #ifdef SL_DEBUG
         printk(KERN_DEBUG "Registering nf_conntrack_sl, port %d\n", SL_PORT);
@@ -215,7 +224,16 @@ static int __init nf_conntrack_sl_init(void)
 #endif
 	
 
-        return ret;
+	ret = nf_conntrack_helper_register(&sl_helper);
+	if (ret < 0)
+		goto err;
+	return 0;
+
+err:
+	while (--i >= 0)
+		textsearch_destroy(search[i].ts);
+
+	return ret;
 }
 
 module_init(nf_conntrack_sl_init);

@@ -26,7 +26,6 @@ MODULE_DESCRIPTION("Connection helper for SL HTTP requests");
 MODULE_AUTHOR("Fred Moyer <fred@redhotpenguin.com>");
 
 
-
 /* removes :8135 from the host name */
 
 static int sl_remove_port(

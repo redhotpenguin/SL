@@ -56,9 +56,10 @@ static struct {
         },
         [CRLF] = {
                 .string = "\r\n",
-                .len    = 4,
+                .len    = 2,
         },
 };
+
 
 struct nf_conntrack_expect;
 
