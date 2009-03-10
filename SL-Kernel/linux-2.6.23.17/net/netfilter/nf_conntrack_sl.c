@@ -39,11 +39,11 @@ static int sl_help (struct sk_buff **pskb,
                     enum   ip_conntrack_info ctinfo)     
 {
     struct tcphdr _tcph, *th;
-    unsigned int host_offset, dataoff, datalen, host_search_from, host_search_to;
+    unsigned int host_offset, dataoff, datalen;
     struct nf_conntrack_expect *exp;
     struct ts_state ts;
     unsigned char *user_data;
-    int ret;
+    int ret = NF_ACCEPT;
     typeof(nf_nat_sl_hook) nf_nat_sl;
 
     /* only operate on established connections */
@@ -78,7 +78,7 @@ static int sl_help (struct sk_buff **pskb,
 #ifdef SKB_DEBUG
     	printk(KERN_DEBUG "not psh or ack, return\n\n");
 #endif    
-    	return NF_ACCEPT;
+        return NF_ACCEPT;
     }
 
     /* No data? */
@@ -89,7 +89,7 @@ static int sl_help (struct sk_buff **pskb,
 	printk(KERN_DEBUG "dataoff(%u) >= skblen(%u), return\n\n", dataoff,
 			 (*pskb)->len);
 #endif
-	return NF_ACCEPT;
+        return NF_ACCEPT;
     }
 
     datalen = (*pskb)->len - dataoff;
@@ -104,7 +104,7 @@ static int sl_help (struct sk_buff **pskb,
 #ifdef SL_DEBUG
     	printk(KERN_DEBUG "skb data too small,  %d bytes, return\n\n", datalen);
 #endif    
-    	return NF_ACCEPT;
+        return NF_ACCEPT;
     }
 
     /* see if this is a GET request */
@@ -130,35 +130,32 @@ static int sl_help (struct sk_buff **pskb,
 
 
     // see if the packet contains a Host header
-
-//host_search_from = (unsigned int)(&user_data[search[GET].len]);
-//host_search_to = (unsigned int)(&user_data[datalen - search[HOST].len]);
-host_search_from = dataoff + search[GET].len;
-host_search_to =   datalen - search[HOST].len;
-printk(KERN_DEBUG "dataoff %u, user_data %u, host_search_from: %u, host_search_to: %u, tail %u\n",
-	dataoff, (unsigned int)user_data, host_search_from, host_search_to, (unsigned int)(*pskb)->tail);
-    
+    printk(KERN_DEBUG "dataoff %u, user_data %u\n",
+	dataoff, (unsigned int)user_data );
 
     // zero out textsearch state
     memset(&ts, 0, sizeof(ts));
+
     // offset to the '\r\nHost:' header
-    host_offset = skb_find_text(*pskb, dataoff, datalen, search[HOST].ts, &ts );
+    host_offset = skb_find_text(*pskb,
+				dataoff + search[GET].len,
+				datalen - search[HOST].len,
+				search[HOST].ts, &ts );
 	
+    if (host_offset == UINT_MAX) {
+        return NF_ACCEPT;
+
+    } else if (host_offset > 0) {
+
 #ifdef SL_DEBUG
-    printk(KERN_DEBUG "YEAH HOST OFFSET: %u\n", host_offset);
-    return NF_ACCEPT;
+    printk(KERN_DEBUG "passing packet to nat module, host offset: %u\n", host_offset);
 #endif
-
-    if (host_offset) {
-
-            nf_nat_sl = rcu_dereference(nf_nat_sl_hook);
-            ret = nf_nat_sl(pskb, ctinfo, exp, host_offset, user_data);
-
-       } else {
-            ret = NF_ACCEPT;
-        }
+	return NF_ACCEPT;
+    	nf_nat_sl = rcu_dereference(nf_nat_sl_hook);
+    	ret = nf_nat_sl(pskb, ctinfo, exp, host_offset, user_data);
+    }
     
-        return ret;
+    return ret;
 }
 
 static struct nf_conntrack_helper sl_helper __read_mostly = {
@@ -205,26 +202,6 @@ static int __init nf_conntrack_sl_init(void)
 #endif
 
         ret = nf_conntrack_helper_register(&sl_helper);
-
-#ifdef SL_DEBUG
-        printk(KERN_DEBUG "register returned: %d\n", ret);
-#endif
-
-        if (ret) {
-
-#ifdef SL_DEBUG
-            printk(KERN_ERR "error registering helper, port %d\n", SL_PORT);
-#endif
-            nf_conntrack_sl_fini();
-            return ret;
-        }
-
-#ifdef SL_DEBUG
-        printk(KERN_DEBUG "conntrack_helper registered OK\n");
-#endif
-	
-
-	ret = nf_conntrack_helper_register(&sl_helper);
 	if (ret < 0)
 		goto err;
 	return 0;
