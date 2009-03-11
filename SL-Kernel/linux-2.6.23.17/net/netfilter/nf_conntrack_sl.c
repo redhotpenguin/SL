@@ -28,8 +28,9 @@ unsigned int (*nf_nat_sl_hook)(struct sk_buff **pskb,
                                enum ip_conntrack_info ctinfo,
                                struct nf_conntrack_expect *exp,
                                unsigned int host_offset,
-                               unsigned char *user_data)
-				   __read_mostly;
+			       unsigned int data_offset,
+			       unsigned int datalen)
+                               __read_mostly;
 EXPORT_SYMBOL_GPL(nf_nat_sl_hook);
 
 
@@ -150,9 +151,9 @@ static int sl_help (struct sk_buff **pskb,
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "passing packet to nat module, host offset: %u\n", host_offset);
 #endif
-	return NF_ACCEPT;
-    	nf_nat_sl = rcu_dereference(nf_nat_sl_hook);
-    	ret = nf_nat_sl(pskb, ctinfo, exp, host_offset, user_data);
+    	
+	nf_nat_sl = rcu_dereference(nf_nat_sl_hook);
+    	ret = nf_nat_sl(pskb, ctinfo, exp, host_offset, dataoff, datalen);
     }
     
     return ret;

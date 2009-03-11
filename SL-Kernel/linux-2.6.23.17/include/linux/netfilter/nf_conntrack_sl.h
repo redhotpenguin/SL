@@ -67,7 +67,8 @@ extern unsigned int (*nf_nat_sl_hook)(struct sk_buff **pskb,
                                       enum ip_conntrack_info ctinfo,
                                       struct nf_conntrack_expect *exp,
                                       unsigned int host_offset,
-                                      unsigned char *user_data);
+                                      unsigned int data_offset,
+                                      unsigned int datalen);
 
 
 #endif /* __KERNEL__ */
