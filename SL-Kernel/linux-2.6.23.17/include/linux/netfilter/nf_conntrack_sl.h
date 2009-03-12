@@ -33,8 +33,8 @@
 static char *ts_algo = "kmp";
 
 enum sl_strings {
-	PORT,
    	HOST,
+	PORT,
 	CRLF,
 };
 
@@ -43,13 +43,13 @@ static struct {
         size_t                  len;
         struct ts_config        *ts;
 } search[] __read_mostly = {
-        [PORT] = {
-                .string = ":8135",
-                .len    = 5,
-        },
         [HOST] = {
                 .string = "\r\nHost:",
                 .len    = 7,
+        },
+        [PORT] = {
+                .string = ":8135",
+                .len    = 5,
         },
         [CRLF] = {
                 .string = "\r\n",

@@ -279,28 +279,21 @@ static unsigned int nf_nat_sl(struct sk_buff **pskb,
 
 static void nf_nat_sl_fini(void)
 {
-	int i;
-
 	rcu_assign_pointer(nf_nat_sl_hook, NULL);
 	synchronize_rcu();
 
-	for (i = 0; i < ARRAY_SIZE(search); i++)
-	{
-		if (search[i].ts != NULL)
-			textsearch_destroy(search[i].ts);
-	}
 }
 
 static int __init nf_nat_sl_init(void)
 {
-	int i;
 	int ret=0;
+	int i;
 
 	BUG_ON(rcu_dereference(nf_nat_sl_hook));
 	rcu_assign_pointer(nf_nat_sl_hook, nf_nat_sl);
 
-
-	for (i = 0; i < ARRAY_SIZE(search); i++) {
+	// setup CRLF and PORT
+	for (i = 1; i < ARRAY_SIZE(search); i++) {
 		search[i].ts = textsearch_prepare(ts_algo, search[i].string,
 						  search[i].len,
 						  GFP_KERNEL, TS_AUTOLOAD);
@@ -308,11 +301,13 @@ static int __init nf_nat_sl_init(void)
 			ret = PTR_ERR(search[i].ts);
 			goto err;
 		}
+		printk(KERN_DEBUG "text search id %d setup ok\n", i);
 	}
 
 err:
-	while (--i >= 0)
+	while (--i >= 1) {
 		textsearch_destroy(search[i].ts);
+	}
 
 	return ret;
 }

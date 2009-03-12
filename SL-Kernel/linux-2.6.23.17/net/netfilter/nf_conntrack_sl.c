@@ -185,18 +185,17 @@ static struct nf_conntrack_helper sl_helper __read_mostly = {
 /* don't make this __exit, since it's called from __init ! */
 static void nf_conntrack_sl_fini(void)
 {
-
 	int i;
+
 #ifdef SL_DEBUG
 	    printk(KERN_DEBUG " unregistering for port %d\n", SL_PORT);
 #endif
 
         nf_conntrack_helper_unregister(&sl_helper); 
-	
-	for (i = 0; i < ARRAY_SIZE(search); i++)
-	{
-		if (search[i].ts != NULL)
-			textsearch_destroy(search[i].ts);
+
+	for (i = 0; i < ARRAY_SIZE(search); i++) {
+	    if (search[i].ts != NULL)	
+		textsearch_destroy(search[i].ts);
 	}
 }
 
@@ -204,17 +203,6 @@ static int __init nf_conntrack_sl_init(void)
 {
  
         int ret = 0;
-	int i;
-
-	for (i = 0; i < ARRAY_SIZE(search); i++) {
-		search[i].ts = textsearch_prepare(ts_algo, search[i].string,
-						  search[i].len,
-						  GFP_KERNEL, TS_AUTOLOAD);
-		if (IS_ERR(search[i].ts)) {
-			ret = PTR_ERR(search[i].ts);
-			goto err;
-		}
-	}
 
 #ifdef SL_DEBUG
         printk(KERN_DEBUG "Registering nf_conntrack_sl, port %d\n", SL_PORT);
@@ -225,9 +213,17 @@ static int __init nf_conntrack_sl_init(void)
 		goto err;
 	return 0;
 
+	search[HOST].ts = textsearch_prepare(ts_algo, search[HOST].string,
+						  search[HOST].len,
+						  GFP_KERNEL, TS_AUTOLOAD);
+	if (IS_ERR(search[HOST].ts)) {
+		ret = PTR_ERR(search[HOST].ts);
+		goto err;
+	}
+
+
 err:
-	while (--i >= 0)
-		textsearch_destroy(search[i].ts);
+	textsearch_destroy(search[HOST].ts);
 
 	return ret;
 }
