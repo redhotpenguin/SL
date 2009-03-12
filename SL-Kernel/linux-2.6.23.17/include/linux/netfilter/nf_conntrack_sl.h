@@ -30,10 +30,11 @@
 #define MACADDR_SIZE 12
 
 
+static char *ts_algo = "kmp";
+
 enum sl_strings {
 	PORT,
    	HOST,
-	GET,
 	CRLF,
 };
 
@@ -50,10 +51,6 @@ static struct {
                 .string = "\r\nHost:",
                 .len    = 7,
         },
-        [GET] = {
-                .string = "GET /",
-                .len    = 5,
-        },
         [CRLF] = {
                 .string = "\r\n",
                 .len    = 2,
@@ -68,7 +65,8 @@ extern unsigned int (*nf_nat_sl_hook)(struct sk_buff **pskb,
                                       struct nf_conntrack_expect *exp,
                                       unsigned int host_offset,
                                       unsigned int data_offset,
-                                      unsigned int datalen);
+                                      unsigned int datalen,
+				      unsigned char *user_data);
 
 
 #endif /* __KERNEL__ */

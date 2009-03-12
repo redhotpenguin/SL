@@ -25,6 +25,8 @@ MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("Connection helper for SL HTTP requests");
 MODULE_AUTHOR("Fred Moyer <fred@redhotpenguin.com>");
 
+module_param(ts_algo, charp, 0400);
+MODULE_PARM_DESC(ts_algo, "textsearch algorithm to use (default kmp)");
 
 /* removes :8135 from the host name */
 
@@ -33,21 +35,39 @@ static int sl_remove_port(struct sk_buff **pskb,
                 	  enum   ip_conntrack_info ctinfo,
                 	  unsigned int host_offset,
                 	  unsigned int dataoff,
-                	  unsigned int datalen)
+                	  unsigned int datalen,
+			  unsigned char *user_data)
 {
 
     struct ts_state ts;
-    unsigned int port_offset;
+    unsigned int port_offset, start_offset, stop_len;
 
     // zero out textsearch state
     memset(&ts, 0, sizeof(ts));
 
+    start_offset = host_offset + search[HOST].len;
+    stop_len 	 = datalen - ( host_offset + search[HOST].len );
+
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "searching for port start_offset %u, stop_len %u\n",
+		start_offset, stop_len);
+
+	printk(KERN_DEBUG "packet dump:\n%s\n",
+		(unsigned char *)((unsigned int)user_data+host_offset+search[HOST].len));
+
+	if (search[PORT].ts == NULL)  {
+		printk(KERN_DEBUG "search pointer UNINITIZALIED\n");
+	} else {
+		printk(KERN_DEBUG "search pointer ok\n");
+	}
+#endif
     // get the offset to the location of the port string ':8135'
     port_offset = skb_find_text(*pskb,
                                 // start looking after '\r\nHost:'
-				host_offset + search[HOST].len,
+				start_offset,
 				// search the remainder of the packet data
-                                datalen - ( host_offset - dataoff + search[HOST].len ),
+				64, // only support for 64 char long host name
+				//stop_len,
 				search[PORT].ts, &ts );
 	
 
@@ -55,7 +75,7 @@ static int sl_remove_port(struct sk_buff **pskb,
     if (port_offset == UINT_MAX) {
 
 #ifdef SL_DEBUG
-        printk(KERN_DEBUG "\nno port rewrite found in packet\n");
+        printk(KERN_DEBUG "no port rewrite found in packet\n");
 #endif
 
         return 0;
@@ -65,6 +85,7 @@ static int sl_remove_port(struct sk_buff **pskb,
     printk(KERN_DEBUG "remove_port found a port at offset %u\n", port_offset );
 #endif
 
+return  1;
     /* remove the port */
     if (!nf_nat_mangle_tcp_packet(pskb, 
                                   ct, 
@@ -168,8 +189,6 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
                SL_HEADER_LEN, slheader_len );
     }
 
-
-
     /********************************************/
     // now insert the sl header
     // scan to the end of the host header
@@ -220,7 +239,8 @@ static unsigned int nf_nat_sl(struct sk_buff **pskb,
                               struct nf_conntrack_expect *exp,
                               unsigned int host_offset,
                               unsigned int dataoff,
-                              unsigned int datalen)
+                              unsigned int datalen,
+			      unsigned char *user_data)
 {
     struct nf_conn *ct = exp->master;
     
@@ -230,7 +250,8 @@ static unsigned int nf_nat_sl(struct sk_buff **pskb,
                        ctinfo, 
                        host_offset, 
                        dataoff, 
-                       datalen)) {
+                       datalen,
+		       user_data)) {
 
 #ifdef SL_DEBUG
         printk(KERN_DEBUG "\nport rewrite removed :8135 successfully\n");
@@ -258,16 +279,42 @@ static unsigned int nf_nat_sl(struct sk_buff **pskb,
 
 static void nf_nat_sl_fini(void)
 {
+	int i;
+
 	rcu_assign_pointer(nf_nat_sl_hook, NULL);
 	synchronize_rcu();
+
+	for (i = 0; i < ARRAY_SIZE(search); i++)
+	{
+		if (search[i].ts != NULL)
+			textsearch_destroy(search[i].ts);
+	}
 }
 
 static int __init nf_nat_sl_init(void)
 {
+	int i;
+	int ret=0;
 
 	BUG_ON(rcu_dereference(nf_nat_sl_hook));
 	rcu_assign_pointer(nf_nat_sl_hook, nf_nat_sl);
-	return 0;
+
+
+	for (i = 0; i < ARRAY_SIZE(search); i++) {
+		search[i].ts = textsearch_prepare(ts_algo, search[i].string,
+						  search[i].len,
+						  GFP_KERNEL, TS_AUTOLOAD);
+		if (IS_ERR(search[i].ts)) {
+			ret = PTR_ERR(search[i].ts);
+			goto err;
+		}
+	}
+
+err:
+	while (--i >= 0)
+		textsearch_destroy(search[i].ts);
+
+	return ret;
 }
 
 module_init(nf_nat_sl_init);
