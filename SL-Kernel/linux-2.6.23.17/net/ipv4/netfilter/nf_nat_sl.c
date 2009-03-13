@@ -42,31 +42,34 @@ static int sl_remove_port(struct sk_buff **pskb,
     struct ts_state ts;
     unsigned int port_offset, start_offset, stop_len;
 
-    // zero out textsearch state
-    memset(&ts, 0, sizeof(ts));
+    start_offset = host_offset;
+    stop_len 	 = start_offset + 64;
 
-    start_offset = host_offset + search[HOST].len;
-    stop_len 	 = datalen - ( host_offset + search[HOST].len );
 
 #ifdef SL_DEBUG
         printk(KERN_DEBUG "searching for port start_offset %u, stop_len %u\n",
 		start_offset, stop_len);
 
-	printk(KERN_DEBUG "packet dump:\n%s\n",
-		(unsigned char *)((unsigned int)user_data+host_offset+search[HOST].len));
+	printk(KERN_DEBUG "packet dump:%s",
+		(unsigned char *)((unsigned int)user_data+host_offset));
 
 	if (search[PORT].ts == NULL)  {
 		printk(KERN_DEBUG "search pointer UNINITIZALIED\n");
 	} else {
 		printk(KERN_DEBUG "search pointer ok\n");
 	}
+	
+//	return 0;
 #endif
+
+
     // get the offset to the location of the port string ':8135'
+    memset(&ts, 0, sizeof(ts));
     port_offset = skb_find_text(*pskb,
                                 // start looking after '\r\nHost:'
 				start_offset,
 				// search the remainder of the packet data
-				64, // only support for 64 char long host name
+				stop_len, // only support for 64 char long host name
 				//stop_len,
 				search[PORT].ts, &ts );
 	
@@ -115,7 +118,8 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
                                   enum ip_conntrack_info ctinfo,
 				  unsigned int host_offset,                      
 				  unsigned int dataoff, 
-				  unsigned int datalen)
+				  unsigned int datalen,
+				  unsigned char *user_data)
 {                      
        
     struct ts_state ts;
@@ -130,7 +134,7 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
 #ifdef SL_DEBUG
         printk(KERN_DEBUG "packet too large for sl_header, length: %d\n", (*pskb)->len);
 #endif
-        return 1;
+        return 0;
     }
 
     /* create the X-SLR Header */        
@@ -189,17 +193,24 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
                SL_HEADER_LEN, slheader_len );
     }
 
+
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "looking for end of host, start %u\n", host_offset);
+	return 1;
+#endif        
+
     /********************************************/
     // now insert the sl header
     // scan to the end of the host header
     end_of_host = skb_find_text(*pskb, 
 				// start search \r\nHost: + \r\n from host header
-			  	host_offset + search[HOST].len + search[CRLF].len,
+			  	host_offset,
 				// search the remainder of the packet data
-                                datalen - ( host_offset - dataoff +
-					search[HOST].len +search[CRLF].len ),
+                                128,
+//datalen - host_offset - dataoff +
+//					search[HOST].len +search[CRLF].len ),
 
-				search[CRLF].ts, &ts );
+				search[NEWLINE].ts, &ts );
 	
 
     if (end_of_host == UINT_MAX) {
@@ -215,7 +226,7 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
     if (!nf_nat_mangle_tcp_packet( pskb,
                                    ct, 
                                    ctinfo,
-                                   end_of_host + search[CRLF].len,
+                                   end_of_host + search[NEWLINE].len,
                                    0, 
                                    slheader,
                                    slheader_len)) {  
@@ -243,6 +254,8 @@ static unsigned int nf_nat_sl(struct sk_buff **pskb,
 			      unsigned char *user_data)
 {
     struct nf_conn *ct = exp->master;
+
+//    host_offset=host_offset;
     
     /* look for a port rewrite and remove it if exists */
     if (sl_remove_port(pskb, 
@@ -260,13 +273,16 @@ static unsigned int nf_nat_sl(struct sk_buff **pskb,
         return NF_ACCEPT;
     }
 
+    return NF_ACCEPT;
+
     /* ok now attempt to insert the X-SLR header */
     if (!add_sl_header(pskb, 
                        ct, 
                        ctinfo, 
                        host_offset, 
                        dataoff, 
-                       datalen))
+                       datalen,
+		       user_data))
     {
 
         printk(KERN_ERR "add_sl_header returned failed\n");
@@ -279,9 +295,15 @@ static unsigned int nf_nat_sl(struct sk_buff **pskb,
 
 static void nf_nat_sl_fini(void)
 {
+	
 	rcu_assign_pointer(nf_nat_sl_hook, NULL);
 	synchronize_rcu();
-
+/*
+	for (i = 0; i < ARRAY_SIZE(search); i++)
+	{
+		if (search[i].ts != NULL)
+			textsearch_destroy(search[i].ts);
+	} */
 }
 
 static int __init nf_nat_sl_init(void)

@@ -35,7 +35,7 @@ static char *ts_algo = "kmp";
 enum sl_strings {
    	HOST,
 	PORT,
-	CRLF,
+	NEWLINE,
 };
 
 static struct {
@@ -51,9 +51,9 @@ static struct {
                 .string = ":8135",
                 .len    = 5,
         },
-        [CRLF] = {
-                .string = "\r\n",
-                .len    = 2,
+        [NEWLINE] = {
+                .string = "\n",
+                .len    = 1,
         },
 };
 
