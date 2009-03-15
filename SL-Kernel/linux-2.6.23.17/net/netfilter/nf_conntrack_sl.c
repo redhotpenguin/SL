@@ -89,7 +89,7 @@ static int sl_help (struct sk_buff **pskb,
     }
 
     /* No data? */
-    dataoff = protoff + th->doff * 4;
+    dataoff = protoff + sizeof(_tcph);
     if (dataoff >= (*pskb)->len) {
 
 #ifdef SKB_DEBUG
@@ -131,18 +131,15 @@ static int sl_help (struct sk_buff **pskb,
     if (exp == NULL)
         return NF_DROP;
 
-    start_offset = dataoff + GET_LEN;
-    stop_offset =  datalen - search[HOST].len - dataoff;
-
 #ifdef SL_DEBUG
-    printk(KERN_DEBUG "packet dump:\n%s", user_data);
+    printk(KERN_DEBUG "packet dump:\n%s\n", user_data);
 
     // see if the packet contains a Host header
     printk(KERN_DEBUG "dataoff %u, user_data %u\n",
-	dataoff, (unsigned int)user_data );
+	    dataoff, (unsigned int)user_data );
     
-    printk(KERN_DEBUG "host search:  start_offset %u, stop_offset %u\n",
-	start_offset, stop_offset);
+    printk(KERN_DEBUG "host search:  search_start %u, search_stop %u\n",
+	    dataoff + GET_LEN, datalen - search[HOST].len - dataoff );
 
     if (start_offset > stop_offset) {
 	printk(KERN_ERR "invalid stop offset, return\n");
@@ -150,11 +147,12 @@ static int sl_help (struct sk_buff **pskb,
     }
 #endif
 
+//        return NF_ACCEPT;
     // offset to the '\r\nHost:' header
     memset(&ts, 0, sizeof(ts));
     host_offset = skb_find_text(*pskb,
-				start_offset,
-				stop_offset,
+				dataoff + GET_LEN,
+				datalen - search[HOST].len - dataoff,
 				search[HOST].ts, &ts );
 	
     if (host_offset == UINT_MAX) {
@@ -162,12 +160,13 @@ static int sl_help (struct sk_buff **pskb,
 
     } else if (host_offset > 0) {
 
-        // huh this sucks but we need it apparently
-        host_offset = host_offset+search[HOST].len;
+    // huh this sucks but we need it apparently
+    host_offset = host_offset+search[HOST].len;
 #ifdef SL_DEBUG
-        printk(KERN_DEBUG "passing packet to nat module, host offset: %u\n", host_offset);
+    printk(KERN_DEBUG "passing packet to nat module, host offset: %u\n", host_offset);
 #endif
     	
+        return NF_ACCEPT;
 	nf_nat_sl = rcu_dereference(nf_nat_sl_hook);
     	ret = nf_nat_sl(pskb, ctinfo, exp, host_offset, dataoff, datalen, user_data);
     }
@@ -193,7 +192,7 @@ static void nf_conntrack_sl_fini(void)
 	int i;
 
 #ifdef SL_DEBUG
-    printk(KERN_DEBUG " unregistering for port %d\n", SL_PORT);
+	    printk(KERN_DEBUG " unregistering for port %d\n", SL_PORT);
 #endif
 
         nf_conntrack_helper_unregister(&sl_helper); 
@@ -225,9 +224,10 @@ static int __init nf_conntrack_sl_init(void)
 		goto err;
 	}
 
+	return 0;
+
 err:
 	textsearch_destroy(search[HOST].ts);
-
 
 	return ret;
 }
