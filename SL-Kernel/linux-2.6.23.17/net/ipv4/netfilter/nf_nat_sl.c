@@ -181,49 +181,49 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
     slheader_len = sprintf(slheader, "X-SLR: %x|%s\r\n", jhashed, dst_string);
 
     /* handle sprintf failure */
-    if (slheader_len == 0) {
-        printk(KERN_ERR "sprintf fail for slheader\n");
-        return 0;
-    } 
-
-#ifdef SL_DEBUG
-    printk(KERN_DEBUG "slheader %s, length %d\n", slheader, slheader_len);
-#endif        
-
-    if (slheader_len != SL_HEADER_LEN) {
+   if (slheader_len != SL_HEADER_LEN) {
         printk(KERN_ERR "expected header len %d doesn't match calculated len %d\n",
                SL_HEADER_LEN, slheader_len );
+        return 0;
     }
 
 
 #ifdef SL_DEBUG
+    printk(KERN_DEBUG "slheader %s, length %d\n", slheader, slheader_len);
     printk(KERN_DEBUG "looking for end of host, start %u\n", host_offset);
-//	return 1;
 #endif        
 
-    /********************************************/
-    // now insert the sl header
     // scan to the end of the host header
-    end_of_host = skb_find_text(*pskb, host_offset, host_offset+64,
+    end_of_host=host_offset;
+    while ( ++end_of_host < (host_offset+64) ) {
+	if (!strncmp(search[NEWLINE].string, &user_data[end_of_host],
+		search[NEWLINE].len))
+	    break;
+    } 
+/*
+
+    memset(&ts, 0, sizeof(ts));
+    end_of_host = skb_find_text(*pskb, host_offset+search[NEWLINE].len, host_offset+64,
 				search[NEWLINE].ts, &ts );
-	
-    if (end_of_host == UINT_MAX) {
+*/	
+    //if (end_of_host == UINT_MAX) {
+    if (end_of_host == (host_offset+63)) {
         printk(KERN_ERR "host header present but does not terminate\n");
 	return 0;
     }
 
 #ifdef SL_DEBUG
-    printk(KERN_DEBUG "end_of_host %u\n", end_of_host);
-	printk(KERN_DEBUG "packet dump:%s\n",
+    printk(KERN_DEBUG "looking for end of host, end %u\n", end_of_host);
+    printk(KERN_DEBUG "packet dump:%s\n",
 		(unsigned char *)((unsigned int)user_data+host_offset+end_of_host));
 #endif        
     
+    /********************************************/
     /* insert the slheader into the http headers */
     if (!nf_nat_mangle_tcp_packet( pskb,
                                    ct, 
                                    ctinfo,
-                                   host_offset+end_of_host,
- //+ search[NEWLINE].len,
+                                   end_of_host + search[NEWLINE].len,
                                    0, 
                                    slheader,
                                    slheader_len)) {  
