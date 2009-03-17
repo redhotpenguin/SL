@@ -44,7 +44,7 @@ static struct {
         struct ts_config        *ts;
 } search[] __read_mostly = {
         [HOST] = {
-                .string = "\r\nHost:",
+                .string = "\nHost: ",
                 .len    = 7,
         },
         [PORT] = {

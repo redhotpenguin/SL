@@ -40,15 +40,20 @@ static int sl_remove_port(struct sk_buff **pskb,
 {
 
     struct ts_state ts;
-    unsigned int port_offset, start_offset, stop_len;
+    unsigned int port_offset, start_offset, stop_offset;
 
     start_offset = host_offset;
-    stop_len 	 = start_offset + 64;
+    stop_offset  = host_offset+256;
 
 
 #ifdef SL_DEBUG
-        printk(KERN_DEBUG "searching for port start_offset %u, stop_len %u\n",
-		start_offset, stop_len);
+    printk(KERN_DEBUG "searching for port start_offset %u, stop_offset %u\n",
+		start_offset, stop_offset);
+
+	if (start_offset > stop_offset) {
+		printk(KERN_ERR "invalid stop offset, return\n");
+		return 1;
+	}
 
 	printk(KERN_DEBUG "packet dump:%s",
 		(unsigned char *)((unsigned int)user_data+host_offset));
@@ -58,8 +63,7 @@ static int sl_remove_port(struct sk_buff **pskb,
 	} else {
 		printk(KERN_DEBUG "search pointer ok\n");
 	}
-	
-//	return 0;
+	return 1;
 #endif
 
 
@@ -69,8 +73,7 @@ static int sl_remove_port(struct sk_buff **pskb,
                                 // start looking after '\r\nHost:'
 				start_offset,
 				// search the remainder of the packet data
-				stop_len, // only support for 64 char long host name
-				//stop_len,
+				stop_offset, // only support for 64 char long host name
 				search[PORT].ts, &ts );
 	
 

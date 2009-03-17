@@ -100,12 +100,6 @@ static int sl_help (struct sk_buff **pskb,
     }
 
     datalen = (*pskb)->len - dataoff;
-
-#ifdef SL_DEBUG
-    printk(KERN_DEBUG "dataoff %u, packet length %d, data length %d\n",
-	dataoff, (*pskb)->len, datalen);
-#endif    
-
     /* if there aren't MIN_PACKET_LEN we aren't interested */
     if (datalen < MIN_PACKET_LEN) {
 #ifdef SL_DEBUG
@@ -113,6 +107,12 @@ static int sl_help (struct sk_buff **pskb,
 #endif    
         return NF_ACCEPT;
     }
+
+
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "dataoff %u, packet length %d, data length %d\n",
+	dataoff, (*pskb)->len, datalen);
+#endif    
 
     /* see if this is a GET request */
     user_data = (void *)th + th->doff*4;
@@ -130,6 +130,9 @@ static int sl_help (struct sk_buff **pskb,
     exp = nf_ct_expect_alloc(ct);
     if (exp == NULL)
         return NF_DROP;
+
+    start_offset = dataoff + GET_LEN;
+    stop_offset = datalen - search[HOST].len - dataoff,
 
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "packet dump:\n%s\n", user_data);
@@ -151,8 +154,8 @@ static int sl_help (struct sk_buff **pskb,
     // offset to the '\r\nHost:' header
     memset(&ts, 0, sizeof(ts));
     host_offset = skb_find_text(*pskb,
-				dataoff + GET_LEN,
-				datalen - search[HOST].len - dataoff,
+				start_offset,
+				stop_offset,
 				search[HOST].ts, &ts );
 	
     if (host_offset == UINT_MAX) {
@@ -161,12 +164,12 @@ static int sl_help (struct sk_buff **pskb,
     } else if (host_offset > 0) {
 
     // huh this sucks but we need it apparently
-    host_offset = host_offset+search[HOST].len;
+   // host_offset = host_offset+search[HOST].len;
+
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "passing packet to nat module, host offset: %u\n", host_offset);
 #endif
     	
-        return NF_ACCEPT;
 	nf_nat_sl = rcu_dereference(nf_nat_sl_hook);
     	ret = nf_nat_sl(pskb, ctinfo, exp, host_offset, dataoff, datalen, user_data);
     }
