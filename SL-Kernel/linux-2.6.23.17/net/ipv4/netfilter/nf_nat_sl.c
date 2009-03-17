@@ -124,11 +124,10 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
 				  unsigned char *user_data)
 {                      
        
-    struct ts_state ts;
-    struct ethhdr *bigmac;
+//    struct ts_state ts;
     unsigned int jhashed, slheader_len, end_of_host;
     char dst_string[MACADDR_SIZE], src_string[MACADDR_SIZE], slheader[SL_HEADER_LEN];
-    bigmac = eth_hdr(*pskb);
+    struct ethhdr *bigmac = eth_hdr(*pskb);
 
     /* first make sure there is room */
     if ( (*pskb)->len >= ( MAX_PACKET_LEN - SL_HEADER_LEN ) ) {
@@ -215,7 +214,7 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "looking for end of host, end %u\n", end_of_host);
     printk(KERN_DEBUG "packet dump:%s\n",
-		(unsigned char *)((unsigned int)user_data+host_offset+end_of_host));
+		(unsigned char *)((unsigned int)user_data+end_of_host));
 #endif        
     
     /********************************************/
