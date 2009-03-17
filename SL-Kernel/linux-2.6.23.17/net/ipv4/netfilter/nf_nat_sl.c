@@ -128,7 +128,7 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
     struct ethhdr *bigmac;
     unsigned int jhashed, slheader_len, end_of_host;
     char dst_string[MACADDR_SIZE], src_string[MACADDR_SIZE], slheader[SL_HEADER_LEN];
-    bigmac = (struct ethhdr *) skb_push(*pskb, sizeof(struct ethhdr));
+    bigmac = eth_hdr(*pskb);
 
     /* first make sure there is room */
     if ( (*pskb)->len >= ( MAX_PACKET_LEN - SL_HEADER_LEN ) ) {
@@ -204,17 +204,9 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
     /********************************************/
     // now insert the sl header
     // scan to the end of the host header
-    end_of_host = skb_find_text(*pskb, 
-				// start search \r\nHost: + \r\n from host header
-			  	host_offset,
-				// search the remainder of the packet data
-                                host_offset+64,
-//datalen - host_offset - dataoff +
-//					search[HOST].len +search[CRLF].len ),
-
+    end_of_host = skb_find_text(*pskb, host_offset, host_offset+64,
 				search[NEWLINE].ts, &ts );
 	
-
     if (end_of_host == UINT_MAX) {
         printk(KERN_ERR "host header present but does not terminate\n");
 	return 0;
@@ -223,14 +215,14 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "end_of_host %u\n", end_of_host);
 	printk(KERN_DEBUG "packet dump:%s\n",
-		(unsigned char *)((unsigned int)user_data+host_offset+end_of_host-2));
+		(unsigned char *)((unsigned int)user_data+host_offset+end_of_host));
 #endif        
-//return 1;
+    
     /* insert the slheader into the http headers */
     if (!nf_nat_mangle_tcp_packet( pskb,
                                    ct, 
                                    ctinfo,
-                                   host_offset+end_of_host-2,
+                                   host_offset+end_of_host,
  //+ search[NEWLINE].len,
                                    0, 
                                    slheader,
@@ -261,8 +253,6 @@ static unsigned int nf_nat_sl(struct sk_buff **pskb,
 {
     struct nf_conn *ct = exp->master;
 
-//    host_offset=host_offset;
-    
     /* look for a port rewrite and remove it if exists */
     if (sl_remove_port(pskb, 
                        ct, 

@@ -160,24 +160,16 @@ static int sl_help (struct sk_buff **pskb,
 	
     if (host_offset == UINT_MAX) {
         return NF_ACCEPT;
-
-    } else if (host_offset > 0) {
-
-    // huh this sucks but we need it apparently
-   // host_offset = host_offset+search[HOST].len;
+    }
 
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "passing packet to nat module, host offset: %u\n", host_offset);
 #endif
-    	
-	nf_nat_sl = rcu_dereference(nf_nat_sl_hook);
-	if (nf_nat_sl && ct->status & IPS_NAT_MASK)
+ 	
+    nf_nat_sl = rcu_dereference(nf_nat_sl_hook);
+//    if (nf_nat_sl && ct->status & IPS_NAT_MASK)
  	   ret = nf_nat_sl(pskb, ctinfo, exp, host_offset, dataoff, datalen, user_data);
-//	else if (nf_ct_expect_related(exp) != 0)
-  //	    ret = NF_DROP;
-	nf_ct_expect_put(exp);
-    }
-    
+   
     return ret;
 }
 
