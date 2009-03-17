@@ -43,7 +43,8 @@ static int sl_remove_port(struct sk_buff **pskb,
     unsigned int port_offset, start_offset, stop_offset;
 
     start_offset = host_offset;
-    stop_offset  = host_offset+256;
+    //stop_offset  = datalen - host_offset;
+    stop_offset  = host_offset+64;
 
 
 #ifdef SL_DEBUG
@@ -63,7 +64,7 @@ static int sl_remove_port(struct sk_buff **pskb,
 	} else {
 		printk(KERN_DEBUG "search pointer ok\n");
 	}
-	return 1;
+//	return 1;
 #endif
 
 
@@ -72,8 +73,7 @@ static int sl_remove_port(struct sk_buff **pskb,
     port_offset = skb_find_text(*pskb,
                                 // start looking after '\r\nHost:'
 				start_offset,
-				// search the remainder of the packet data
-				stop_offset, // only support for 64 char long host name
+				stop_offset,
 				search[PORT].ts, &ts );
 	
 
@@ -91,7 +91,6 @@ static int sl_remove_port(struct sk_buff **pskb,
     printk(KERN_DEBUG "remove_port found a port at offset %u\n", port_offset );
 #endif
 
-return  1;
     /* remove the port */
     if (!nf_nat_mangle_tcp_packet(pskb, 
                                   ct, 
@@ -328,6 +327,8 @@ static int __init nf_nat_sl_init(void)
 		}
 		printk(KERN_DEBUG "text search id %d setup ok\n", i);
 	}
+
+	return ret;
 
 err:
 	while (--i >= 1) {
