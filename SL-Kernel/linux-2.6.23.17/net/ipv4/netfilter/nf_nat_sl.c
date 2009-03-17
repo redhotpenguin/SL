@@ -56,7 +56,7 @@ static int sl_remove_port(struct sk_buff **pskb,
 		return 1;
 	}
 
-	printk(KERN_DEBUG "packet dump:%s",
+	printk(KERN_DEBUG "packet dump:%s\n",
 		(unsigned char *)((unsigned int)user_data+host_offset));
 
 	if (search[PORT].ts == NULL)  {
@@ -141,7 +141,7 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
 
     /* create the X-SLR Header */        
 #ifdef SL_DEBUG
-    printk(KERN_DEBUG "\nsource mac found: %02x%02x%02x%02x%02x%02x\n",
+    printk(KERN_DEBUG "source mac found: %02x%02x%02x%02x%02x%02x\n",
             bigmac->h_source[0],
             bigmac->h_source[1],
             bigmac->h_source[2],
@@ -149,7 +149,7 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
             bigmac->h_source[4],
             bigmac->h_source[5]);
 
-    printk(KERN_DEBUG "\ndest mac found: %02x%02x%02x%02x%02x%02x\n",
+    printk(KERN_DEBUG "dest mac found: %02x%02x%02x%02x%02x%02x\n",
             bigmac->h_dest[0],
             bigmac->h_dest[1],
             bigmac->h_dest[2],
@@ -198,7 +198,7 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
 
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "looking for end of host, start %u\n", host_offset);
-	return 1;
+//	return 1;
 #endif        
 
     /********************************************/
@@ -208,7 +208,7 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
 				// start search \r\nHost: + \r\n from host header
 			  	host_offset,
 				// search the remainder of the packet data
-                                128,
+                                host_offset+64,
 //datalen - host_offset - dataoff +
 //					search[HOST].len +search[CRLF].len ),
 
@@ -222,23 +222,27 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
 
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "end_of_host %u\n", end_of_host);
+	printk(KERN_DEBUG "packet dump:%s\n",
+		(unsigned char *)((unsigned int)user_data+host_offset+end_of_host-2));
 #endif        
-
+//return 1;
     /* insert the slheader into the http headers */
     if (!nf_nat_mangle_tcp_packet( pskb,
                                    ct, 
                                    ctinfo,
-                                   end_of_host + search[NEWLINE].len,
+                                   host_offset+end_of_host-2,
+ //+ search[NEWLINE].len,
                                    0, 
                                    slheader,
                                    slheader_len)) {  
 
         printk(KERN_ERR " failed to mangle packet\n");
-        return 0;
+	return 0;
     }
 
 #ifdef SL_DEBUG
-        printk(KERN_DEBUG "\npacket mangled ok: %s\n\n", (char *)(dataoff) );
+        printk(KERN_DEBUG "packet mangled ok:%s\n",
+		(unsigned char *)((unsigned int)user_data));
 #endif        
 
     return 1;
@@ -275,8 +279,6 @@ static unsigned int nf_nat_sl(struct sk_buff **pskb,
         return NF_ACCEPT;
     }
 
-    return NF_ACCEPT;
-
     /* ok now attempt to insert the X-SLR header */
     if (!add_sl_header(pskb, 
                        ct, 
@@ -287,8 +289,9 @@ static unsigned int nf_nat_sl(struct sk_buff **pskb,
 		       user_data))
     {
 
-        printk(KERN_ERR "add_sl_header returned failed\n");
-        return NF_ACCEPT; // accept it anyway, what else can we do?
+#ifdef SL_DEBUG
+        printk(KERN_ERR "add_sl_header returned not added\n");
+#endif
     }
 
     return NF_ACCEPT;

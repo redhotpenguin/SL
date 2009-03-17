@@ -171,7 +171,11 @@ static int sl_help (struct sk_buff **pskb,
 #endif
     	
 	nf_nat_sl = rcu_dereference(nf_nat_sl_hook);
-    	ret = nf_nat_sl(pskb, ctinfo, exp, host_offset, dataoff, datalen, user_data);
+	if (nf_nat_sl && ct->status & IPS_NAT_MASK)
+ 	   ret = nf_nat_sl(pskb, ctinfo, exp, host_offset, dataoff, datalen, user_data);
+//	else if (nf_ct_expect_related(exp) != 0)
+  //	    ret = NF_DROP;
+	nf_ct_expect_put(exp);
     }
     
     return ret;
