@@ -77,7 +77,7 @@
                 <!-- PAYMENT FORM -->
                 <form id="sl_payment" action="[% base_uri %]/billing/advertiser" method="post">
 
-[% IF req.param('coupon') == 'myagentmatt' %]
+[% IF req.param('coupon') == 'halfoff' %]
 <input type="hidden" name="special" value="half_first_three">
 [% END %]
 
