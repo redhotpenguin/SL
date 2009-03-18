@@ -36,7 +36,7 @@ our %Plans = (
     'one'   => { duration => { 'hours'  => 1 }, cost => '$2.00', },
     'four'  => { duration => { 'hours'  => 4 }, cost => '$3.00', },
     'day'   => { duration => { 'days'   => 1 }, cost => '$5.00', },
-    'month' => { duration => { 'months' => 1 }, cost => '$25.00', },
+    'month' => { duration => { 'months' => 1 }, cost => '$15.00', },
 );
 
 # some constants
@@ -180,6 +180,13 @@ sub recurring {
         referer        => $args->{referer},
         email          => $args->{email},
     );
+
+    if (defined $args->{special}) {
+      if ($args->{special} eq 'half_first_three') {
+        $tx_content{trialperiods} = 3;
+        $tx_content{trialamount} = ($args->{amount} / 2);
+      }
+    }
 
     $tx->content(%tx_content);
 
