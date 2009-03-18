@@ -1116,10 +1116,8 @@ sub advertiser {
         my $email  = $req->param('email');
         my $amount = $req->param('plan');
 
-        my $payment = eval {
-            SL::Payment->recurring(
-                {
-                    description => "Silver Lining Networks Advertiser \$$amount/month",
+	my %payment_args = (
+		description => "Silver Lining Networks Advertiser \$$amount/month",
                     email       => $req->param('email'),
                     card_type   => $req->param('card_type'),
                     card_number => $req->param('card_number'),
@@ -1136,9 +1134,13 @@ sub advertiser {
                     state      => $state,
                     referer    => $r->headers_in->{'referer'},
                     amount     => $amount,
-                }
-            );
-        };
+	);
+
+	if ($req->param('special')) {
+	   $payment_args{special} = $req->param('special');
+	}
+
+        my $payment = eval { SL::Payment->recurring(\%payment_args); };
 
         if ($@) {
 

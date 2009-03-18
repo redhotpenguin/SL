@@ -1,16 +1,33 @@
-<dt><label for="plan">Choose a plan:</label></dt>
 
+[% IF req.param('coupon') == 'myagentmatt' %]
+<dt><label for="plan"><font color="green">50% off for the first 3 months</font></label></dt>
+[% END %]
+
+<dt><label for="plan">Choose a plan:</label></dt>
 <dd>
     <span class="half" style="width: 300px;">
     <input type='hidden' name='coupon' value='[% req.param('coupon') %]'>
     <select id="plan" name="plan">
         [% IF req.param('coupon') == 'phcc' %]
+	<option value="25.00" [% IF req.param('plan') == '25.00' %]SELECTED[% END %]>5,000 Ad Views/Month ($25/month)</option>
+	<option value="50.00" [% IF req.param('plan') == '50.00' %]SELECTED[% END %]>10,000 Ad Views/Month ($50/month)</option>
+	<option value="75.00" [% IF req.param('plan') == '75.00' %]SELECTED[% END %]>15,000 Ad Views/Month ($75/month)</option>
 	<option value="100.00" [% IF req.param('plan') == '100.00' %]SELECTED[% END %]>20,000 Ad Views/Month ($100/month)</option>
+	<option value="125.00" [% IF req.param('plan') == '125.00' %]SELECTED[% END %]>25,000 Ad Views/Month ($125/month)</option>
+	
 	[% ELSIF req.param('coupon') == 'whatbugs' %]
-	<option value="25.00" [% IF req.param('plan') == '25.00' %]SELECTED[% END %]>3,000 Text Ad Views/Month ($25/month)</option>
-	<option value="50.00" [% IF req.param('plan') == '50.00' %]SELECTED[% END %]>3,000 Ad Views/Month ($50/month)</option>
-	<option value="100.00" [% IF req.param('plan') == '100.00' %]SELECTED[% END %]>10,000 Ad Views/Month ($100/month)</option>
+	
+	<option value="25.00" [% IF req.param('plan') == '25.00' %]SELECTED[% END %]>5,000 Ad Views/Month ($25/month)</option>
+	<option value="50.00" [% IF req.param('plan') == '50.00' %]SELECTED[% END %]>10,000 Ad Views/Month ($50/month)</option>
+	<option value="75.00" [% IF req.param('plan') == '75.00' %]SELECTED[% END %]>15,000 Ad Views/Month ($75/month)</option>
+	<option value="100.00" [% IF req.param('plan') == '100.00' %]SELECTED[% END %]>20,000 Ad Views/Month ($100/month)</option>
+	<option value="125.00" [% IF req.param('plan') == '125.00' %]SELECTED[% END %]>25,000 Ad Views/Month ($125/month)</option>
+	
+	[% ELSIF req.param('coupon') == 'jesalon' %]
+	<option value="25.00" [% IF req.param('plan') == '25.00' %]SELECTED[% END %]>5,000 Ad Views/Month ($25/month)</option>
+	
 	[% ELSE %]
+	
 	<option value="100.00" [% IF req.param('plan') == '100.00' %]SELECTED[% END %]>5,000 Ad Views/Month ($100/month)</option>
         <option value="150.00" [% IF req.param('plan') == '150.00' %]SELECTED[% END %]>10,000 Ad Views/Month ($150/month)</option>
 	    <option value="200.00" [% IF req.param('plan') == '200.00' %]SELECTED[% END %]>20,000 Ad Views/Month ($200/month)</option>

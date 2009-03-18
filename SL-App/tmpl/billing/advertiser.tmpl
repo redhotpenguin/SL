@@ -26,6 +26,10 @@
 	[% ELSIF req.param('coupon') == 'whatbugs' %]
 	
 				<p><a href="http://www.leadingedgepm.com"><img src="http://www.silverliningnetworks.com/whatbugs/whatbugs_leaderboard.gif"></a></p>
+	[% ELSIF req.param('coupon') == 'jesalon' %]
+	
+				<p><a href="http://www.jeproducts.com/"><img src="http://www.silverliningnetworks.com/jesalon/je_salon_leaderboard.gif"></a></p>
+
 
 	[% ELSE %]
 				 
@@ -73,7 +77,11 @@
                 <!-- PAYMENT FORM -->
                 <form id="sl_payment" action="[% base_uri %]/billing/advertiser" method="post">
 
-                        <dl id="form_list">
+[% IF req.param('coupon') == 'myagentmatt' %]
+<input type="hidden" name="special" value="half_first_three">
+[% END %]
+
+<dl id="form_list">
 [% IF errors.payment %]
 <dd><font color="red">[% errors.payment %]</font></dd>
 [% ELSIF errors.invalid %]
