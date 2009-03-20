@@ -29,6 +29,7 @@
 /* length of the mac address */
 #define MACADDR_SIZE 12
 
+#define HOST_SEARCH_LEN 64
 
 static char *ts_algo = "kmp";
 
@@ -48,8 +49,8 @@ static struct {
                 .len    = 7,
         },
         [PORT] = {
-                .string = ":8135",
-                .len    = 5,
+                .string = ":8135\r\n",
+                .len    = 7,
         },
         [NEWLINE] = {
                 .string = "\n",

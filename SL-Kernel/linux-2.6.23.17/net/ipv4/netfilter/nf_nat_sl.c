@@ -39,66 +39,53 @@ static int sl_remove_port(struct sk_buff **pskb,
 			  unsigned char *user_data)
 {
 
-    struct ts_state ts;
-    unsigned int port_offset, start_offset, stop_offset;
+    unsigned int  end_of_host;
 
-    start_offset = host_offset;
-    //stop_offset  = datalen - host_offset;
-    stop_offset  = host_offset+64;
+    // scan to the end of the host header
+    end_of_host=host_offset;
+    while ( ++(end_of_host) < (host_offset+HOST_SEARCH_LEN) ) {
+	if (!strncmp(search[NEWLINE].string, &user_data[end_of_host],
+		search[NEWLINE].len))
+	    break;
+    } 
 
-
-#ifdef SL_DEBUG
-    printk(KERN_DEBUG "searching for port start_offset %u, stop_offset %u\n",
-		start_offset, stop_offset);
-
-	if (start_offset > stop_offset) {
-		printk(KERN_ERR "invalid stop offset, return\n");
-		return 1;
-	}
-
-	printk(KERN_DEBUG "packet dump:%s\n",
-		(unsigned char *)((unsigned int)user_data+host_offset));
-
-	if (search[PORT].ts == NULL)  {
-		printk(KERN_DEBUG "search pointer UNINITIZALIED\n");
-	} else {
-		printk(KERN_DEBUG "search pointer ok\n");
-	}
-//	return 1;
-#endif
-
-
-    // get the offset to the location of the port string ':8135'
-    memset(&ts, 0, sizeof(ts));
-    port_offset = skb_find_text(*pskb,
-                                // start looking after '\r\nHost:'
-				start_offset,
-				stop_offset,
-				search[PORT].ts, &ts );
-	
-
-    // no port needle found
-    if (port_offset == UINT_MAX) {
-
-#ifdef SL_DEBUG
-        printk(KERN_DEBUG "no port rewrite found in packet\n");
-#endif
-
-        return 0;
+    if (end_of_host == (host_offset+HOST_SEARCH_LEN-1)) {
+        printk(KERN_ERR "host header present out of range\n");
+	return 0;
     }
 
 #ifdef SL_DEBUG
-    printk(KERN_DEBUG "remove_port found a port at offset %u\n", port_offset );
+    printk(KERN_DEBUG "looking for end of host, start %u\n", host_offset);
+    printk(KERN_DEBUG "looking for end of host, end %u\n", end_of_host);
+    printk(KERN_DEBUG "packet dump:%s\n",
+		(unsigned char *)((unsigned int)user_data+end_of_host));
+#endif        
+    
+   // ok we have end of host, is the port match here?
+    if (strncmp(search[PORT].string, &user_data[end_of_host-search[PORT].len+search[NEWLINE].len],
+	search[PORT].len)) {
+
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "no port rewrite found in packet strncmp\n");
+	printk(KERN_DEBUG "packet dump:%s\n",
+		(unsigned char *)((unsigned int)user_data+end_of_host-search[PORT].len+search[NEWLINE].len));
+#endif
+	return 0;
+    }
+
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "remove_port found a port at offset %u\n", end_of_host-search[PORT].len+search[NEWLINE].len );
 #endif
 
+return 1;
     /* remove the port */
     if (!nf_nat_mangle_tcp_packet(pskb, 
                                   ct, 
                                   ctinfo,
-                                  port_offset,
+                                  end_of_host-search[PORT].len+search[NEWLINE].len,
                                   search[PORT].len,
-				  (unsigned char *)(port_offset+search[PORT].len),
-				  (datalen-(port_offset-dataoff+search[PORT].len))) )
+				  (unsigned char *)(end_of_host+search[PORT].len+search[NEWLINE].len),
+				  (datalen-(end_of_host+search[PORT].len)+search[NEWLINE].len)) )
     {
 #ifdef SL_DEBUG
         printk(KERN_ERR "unable to remove port needle\n");
@@ -118,14 +105,15 @@ static int sl_remove_port(struct sk_buff **pskb,
 static unsigned int add_sl_header(struct sk_buff **pskb,
                                   struct nf_conn *ct, 
                                   enum ip_conntrack_info ctinfo,
-				  unsigned int host_offset,                      
+				  unsigned int host_offset, 
 				  unsigned int dataoff, 
 				  unsigned int datalen,
-				  unsigned char *user_data)
+				  unsigned char *user_data,
+				  unsigned int end_of_host)
 {                      
        
 //    struct ts_state ts;
-    unsigned int jhashed, slheader_len, end_of_host;
+    unsigned int jhashed, slheader_len;
     char dst_string[MACADDR_SIZE], src_string[MACADDR_SIZE], slheader[SL_HEADER_LEN];
     struct ethhdr *bigmac = eth_hdr(*pskb);
 
@@ -189,34 +177,9 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
 
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "slheader %s, length %d\n", slheader, slheader_len);
-    printk(KERN_DEBUG "looking for end of host, start %u\n", host_offset);
 #endif        
 
-    // scan to the end of the host header
-    end_of_host=host_offset;
-    while ( ++end_of_host < (host_offset+64) ) {
-	if (!strncmp(search[NEWLINE].string, &user_data[end_of_host],
-		search[NEWLINE].len))
-	    break;
-    } 
-/*
 
-    memset(&ts, 0, sizeof(ts));
-    end_of_host = skb_find_text(*pskb, host_offset+search[NEWLINE].len, host_offset+64,
-				search[NEWLINE].ts, &ts );
-*/	
-    //if (end_of_host == UINT_MAX) {
-    if (end_of_host == (host_offset+63)) {
-        printk(KERN_ERR "host header present but does not terminate\n");
-	return 0;
-    }
-
-#ifdef SL_DEBUG
-    printk(KERN_DEBUG "looking for end of host, end %u\n", end_of_host);
-    printk(KERN_DEBUG "packet dump:%s\n",
-		(unsigned char *)((unsigned int)user_data+end_of_host));
-#endif        
-    
     /********************************************/
     /* insert the slheader into the http headers */
     if (!nf_nat_mangle_tcp_packet( pskb,
@@ -251,21 +214,24 @@ static unsigned int nf_nat_sl(struct sk_buff **pskb,
 			      unsigned char *user_data)
 {
     struct nf_conn *ct = exp->master;
+    unsigned int port_status;
 
     /* look for a port rewrite and remove it if exists */
-    if (sl_remove_port(pskb, 
-                       ct, 
-                       ctinfo, 
-                       host_offset, 
-                       dataoff, 
-                       datalen,
-		       user_data)) {
+    port_status = sl_remove_port(pskb, ct, ctinfo, 
+                       host_offset, dataoff, 
+                       datalen, user_data );
 
+    if (!port_status) {
+	// an error occurred which means this packet cannot be changed
+	return NF_ACCEPT;
+    } else if (port_status == 1) {
+	// port was found and removed
 #ifdef SL_DEBUG
         printk(KERN_DEBUG "\nport rewrite removed :8135 successfully\n");
 #endif
-
-        return NF_ACCEPT;
+	return NF_ACCEPT;
+    } else if (port_status > 1) {
+	// port was not found but a host header was found in range
     }
 
     /* ok now attempt to insert the X-SLR header */
@@ -275,7 +241,8 @@ static unsigned int nf_nat_sl(struct sk_buff **pskb,
                        host_offset, 
                        dataoff, 
                        datalen,
-		       user_data))
+		       user_data,
+		       port_status))
     {
 
 #ifdef SL_DEBUG
