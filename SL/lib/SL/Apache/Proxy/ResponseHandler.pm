@@ -781,9 +781,10 @@ sub _generate_response {
     );
     $ad_args{premium} = 1 if $r->pnotes('premium');
     $ad_args{close_box} = 1 unless $r->pnotes('noclose');
+	$ad_args{ua} = $ua;
     my (
         $ad_zone_id, $ad_content_ref, $css_url_ref,
-        $js_url_ref, $head_html_ref,  $ad_size_id, $ua
+        $js_url_ref, $head_html_ref,  $ad_size_id,
     ) = SL::Model::Ad->random( \%ad_args );
 
     # checkpoint random ad
