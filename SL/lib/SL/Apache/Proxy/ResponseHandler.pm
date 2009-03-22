@@ -783,7 +783,7 @@ sub _generate_response {
     $ad_args{close_box} = 1 unless $r->pnotes('noclose');
     my (
         $ad_zone_id, $ad_content_ref, $css_url_ref,
-        $js_url_ref, $head_html_ref,  $ad_size_id
+        $js_url_ref, $head_html_ref,  $ad_size_id, $ua
     ) = SL::Model::Ad->random( \%ad_args );
 
     # checkpoint random ad

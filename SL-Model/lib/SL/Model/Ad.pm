@@ -40,6 +40,8 @@ use constant DEBUG => $ENV{SL_DEBUG} || 0;
 our ( $CONFIG, $TEMPLATE );
 our $Default_Ad_Data;
 
+our %Leaderboard;
+
 BEGIN {
     $CONFIG = SL::Config->new;
 
@@ -86,6 +88,15 @@ AND ad_zone.ad_size_id = ad_size.ad_size_id
     $sth->finish;
     die 'default ad does not exist!'
       unless defined $Default_Ad_Data->[AD_ZONE_ID];
+
+    # grab the leaderboard also for IE6 and iPhone
+    my $sql = <<SQL;
+SELECT ad_size_id, bug_height, bug_width, css_url, template, js_url, head_html
+FROM ad_size where ad_size_id = 1
+SQL
+    $sth = $dbh->prepare($sql);
+    $rv = $sth->execute;
+    %Leaderboard = %{ $sth->fetchrow_hashref };
 
     our $PATH = $CONFIG->sl_root . '/tmpl/';
     die "Template include path $PATH doesn't exist!\n" unless -d $PATH;
@@ -282,9 +293,24 @@ sub random {
     my $url  = $args->{url}  || warn("no url passed")  && return;
     my $mac  = $args->{mac}  || warn("no mac passed")  && return;
     my $user = $args->{user} || warn("no user passed") && return;
+    my $ua   = $args->{ua}   || warn("no ua passed") && return;
 
     # get the list of ad zones we can server for this router
     my $ad_data = $class->_random_ad_from_mac($mac) || $Default_Ad_Data;
+
+    # check to see if this is a floating horizontal ad zone
+    if ( ( (substr($ua, 13, 6) eq 'iPhone') or   # iPhone
+           (substr($ua, 25, 6) eq 'MSIE 6') ) && # IE6
+         ( ($ad_data->[AD_SIZE_ID] == 10)        # Floating Leaderboard
+        or ($ad_data->[AD_SIZE_ID] == 12) ) ) {  # Floating Footer Leaderboard
+
+           # Poof, now you are a static leaderboard
+           $ad_data->[AD_SIZE_ID]        = $Leaderboard{ad_size_id};
+           $ad_data->[AD_SIZE_CSS_URL]   = $Leaderboard{css_url};
+           $ad_data->[AD_SIZE_JS_URL]    = $Leaderboard{js_url};
+           $ad_data->[AD_SIZE_HEAD_HTML] = $Leaderboard{head_html};
+           $ad_data->[AD_SIZE_TEMPLATE]  = $Leaderboard{template};
+    }
 
     # process the template
     my $output_ref = $class->process_ad_template($ad_data);
