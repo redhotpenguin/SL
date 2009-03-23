@@ -99,6 +99,9 @@ $DB::single = 1;
     # reinforce the point (Net::HTTP adds PeerPort to host during
     # new())
     $http->host($url->host);
+    if ($port == 8135) {
+	$http->host($url->host . ":8135");
+    }
     $http->keep_alive(1);
     
     # make the request
@@ -163,6 +166,9 @@ sub get {
     # reinforce the point (Net::HTTP adds PeerPort to host during
     # new())
     $http->host($url->host);
+    if ($port == 8135) {
+	$http->host($url->host . ":8135");
+    }
     $http->keep_alive(1);
     
     # make the request

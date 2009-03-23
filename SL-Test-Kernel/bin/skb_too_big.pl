@@ -3,9 +3,7 @@
 use strict;
 use warnings;
 
-my $hostip = shift or die "$0 10.2.0.1 [8135]\n";
-
-my $port = shift || 80;
+my $hostip = shift or die "$0 10.2.0.1\n";
 
 use Time::HiRes qw(gettimeofday tv_interval);
 use SL::Client::HTTP;
@@ -23,16 +21,19 @@ my	@headers = (
 'Accept-Encoding',  'gzip,deflate',
 'Accept-Charset', 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
 'Referer', 'http://mail.google.com/mail/?ui=2&view=js&name=js&ids=qk1v6dmibzrk',
+'Cookie', 'GX=DQAAAGsAAACotueScoPP4Wt5vJsbGK37KkhV2SdFBbvjSvEVq7rDHmTN_JCCpjIrdS3TBv3tbRpHU-HocBkluACGT3qzL6OUU7TzturonrfNKd3uuMEy_SSzfQSaXkW1GRK_QmnZV8QwNnS9VzsLK95EGZYN9Flu; S=awfe=GcnsPws49mWGAMb8XRLDFg:awfe-efe=GcnsPws49mWGAMb8XRLDFg:gmail=D2Tt1LWmB89K62cJp7D9Dw:gmail_yj=hrLSIzmthZSXlJyxuEyXSg:gmproxy=CSO98Ng0OQs:gmproxy_yj=AG8tk9rf35U:gmproxy_yj_sub=kDviJi4u3lY; GMAIL_AT=xn3j2v9hgz1alnhx0otznbju9f8xs7; gmailchat=fredmoyer@gmail.com/961851; GMAIL_STAT_PENDING=/S:a=i&sv=&ev=tl&s=&t=2006&w=&e=m%3D0%2Cr%3D49%2Cj%3D117%2Cjl%3D824%2Cs%3D824%2Ci%3D825; NID=9=EnCf1ElfwdY7FR6lBSK6vj78UvwE6b4FfdPqb75ov2Lzsli4wyNeYWUXq1vxehWglUynKRU3xL7ytF2UTtZsLQqCcblRVODez8xOXmigBOJjux3vus-FHDO2cnFUwzgS; PREF=ID=da3faa1172b1ef8f:TM=1208565273:LM=1208565273:S=aQTdcy7-eb5PIFFC; S=awfe=GcnsPws49mWGAMb8XRLDFg:awfe-efe=GcnsPws49mWGAMb8XRLDFg; TZ=420; GMAIL_RTT=232;SID=DQAAAGcAAACnnGJ86f2FUnj45Y6sKCPJWg4tQpwoA2zeaQjKE5S22B4C8fFNxfaE7d7yfzJNNIWlo10ZIMMxmPK7JEiD3EBcjLxnER-nn4-HoZ3z2osIkyYmfIPQNCeHm8OZ2-98xFUFFfPhc1Af7G27vWV1rfqZ',
 'Pragma', 'no-cache',
 'Cache-Control', 'no-cache',
 );
 
 
 
+
+
 my $response = SL::Client::HTTP->get(
                                      url      => $url,
                                      host     => $hostip,
-                                     port     => $port,
+                                     port     => 80,
                                      headers  => \@headers,
                                     );
 
