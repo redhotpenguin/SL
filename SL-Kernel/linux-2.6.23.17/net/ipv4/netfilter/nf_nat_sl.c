@@ -79,13 +79,14 @@ static int sl_remove_port(struct sk_buff **pskb,
 
 return 1;
     /* remove the port */
-    if (!nf_nat_mangle_tcp_packet(pskb, 
-                                  ct, 
-                                  ctinfo,
-                                  end_of_host-search[PORT].len+search[NEWLINE].len,
-                                  search[PORT].len,
-				  (unsigned char *)(end_of_host+search[PORT].len+search[NEWLINE].len),
-				  (datalen-(end_of_host+search[PORT].len)+search[NEWLINE].len)) )
+    if (!nf_nat_mangle_tcp_packet(
+	pskb, 
+        ct, 
+        ctinfo,
+        end_of_host-search[PORT].len+search[NEWLINE].len,
+        search[PORT].len,
+	(unsigned char *)((unsigned int)user_data+end_of_host),
+	datalen-end_of_host))
     {
 #ifdef SL_DEBUG
         printk(KERN_ERR "unable to remove port needle\n");
@@ -96,6 +97,8 @@ return 1;
 
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "port needle removed ok\n");
+    printk(KERN_DEBUG "packet dump:%s\n", (unsigned char *)user_data);
+
 #endif
 
     return 1; 
