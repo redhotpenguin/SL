@@ -3,7 +3,9 @@
 use strict;
 use warnings;
 
-my $hostip = shift or die "$0 10.2.0.1\n";
+my $hostip = shift or die "$0 10.2.0.1 [8135]\n";
+
+my $port = shift || 80;
 
 use Time::HiRes qw(gettimeofday tv_interval);
 use SL::Client::HTTP;
@@ -33,7 +35,7 @@ my	@headers = (
 my $response = SL::Client::HTTP->get(
                                      url      => $url,
                                      host     => $hostip,
-                                     port     => 80,
+                                     port     => $port,
                                      headers  => \@headers,
                                     );
 
