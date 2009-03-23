@@ -4,11 +4,10 @@
 #ifdef __KERNEL__
 
 /* enable for module debugging */
-#define SL_DEBUG 1
+//#define SL_DEBUG 1
 
 // verbose packet debug
 // #define SKB_DEBUG 1
- 
 
 /* packets must be on port 80 to have fun */
 #define SL_PORT 80
@@ -29,7 +28,8 @@
 /* length of the mac address */
 #define MACADDR_SIZE 12
 
-#define HOST_SEARCH_LEN 64
+/* max length for host header search */
+#define HOST_SEARCH_LEN 128
 
 static char *ts_algo = "kmp";
 

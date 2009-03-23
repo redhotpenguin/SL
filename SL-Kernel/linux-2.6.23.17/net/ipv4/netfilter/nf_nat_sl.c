@@ -50,19 +50,21 @@ static int sl_remove_port(struct sk_buff **pskb,
     } 
 
     if (end_of_host == (host_offset+HOST_SEARCH_LEN-1)) {
-        printk(KERN_ERR "host header present out of range\n");
+	// host header is split between two packets?
+        printk(KERN_ERR "host header not found in search\n");
 	return 0;
     }
 
 #ifdef SL_DEBUG
-    printk(KERN_DEBUG "looking for end of host, start %u\n", host_offset);
-    printk(KERN_DEBUG "looking for end of host, end %u\n", end_of_host);
+    printk(KERN_DEBUG "found end_of_host %u\n", end_of_host);
     printk(KERN_DEBUG "packet dump:%s\n",
 		(unsigned char *)((unsigned int)user_data+end_of_host));
 #endif        
+
     
-   // ok we have end of host, is the port match here?
-    if (strncmp(search[PORT].string, &user_data[end_of_host-search[PORT].len+search[NEWLINE].len],
+   // ok we have end of host, look for the port string
+    if (strncmp(search[PORT].string, 
+	&user_data[end_of_host-search[PORT].len+search[NEWLINE].len],
 	search[PORT].len)) {
 
 #ifdef SL_DEBUG
@@ -70,34 +72,30 @@ static int sl_remove_port(struct sk_buff **pskb,
 	printk(KERN_DEBUG "packet dump:%s\n",
 		(unsigned char *)((unsigned int)user_data+end_of_host-search[PORT].len+search[NEWLINE].len));
 #endif
-	return 0;
+	return end_of_host;
     }
 
+
 #ifdef SL_DEBUG
-    printk(KERN_DEBUG "remove_port found a port at offset %u\n", end_of_host-search[PORT].len+search[NEWLINE].len );
+    printk(KERN_DEBUG "remove_port found a port at offset %u\n",
+	end_of_host-search[PORT].len+search[NEWLINE].len );
 #endif
 
-return 1;
     /* remove the port */
-    if (!nf_nat_mangle_tcp_packet(
-	pskb, 
-        ct, 
-        ctinfo,
+    if (!nf_nat_mangle_tcp_packet(pskb, ct, ctinfo,
         end_of_host-search[PORT].len+search[NEWLINE].len,
-        search[PORT].len,
-	(unsigned char *)((unsigned int)user_data+end_of_host),
-	datalen-end_of_host))
+        search[PORT].len-(search[NEWLINE].len*2), // subtract \r\n
+	NULL,
+	0))
     {
-#ifdef SL_DEBUG
         printk(KERN_ERR "unable to remove port needle\n");
-#endif
-	// we've already found the port, so we return 1 whether it is removed or not
-        return 1;
+	// we've already found the port, so we return 1 regardless
+        return 0;
     }
 
 #ifdef SL_DEBUG
-    printk(KERN_DEBUG "port needle removed ok\n");
-    printk(KERN_DEBUG "packet dump:%s\n", (unsigned char *)user_data);
+    printk(KERN_DEBUG "port removed ok, new packet\n%s\n",
+	(unsigned char *)user_data);
 
 #endif
 
@@ -230,11 +228,14 @@ static unsigned int nf_nat_sl(struct sk_buff **pskb,
     } else if (port_status == 1) {
 	// port was found and removed
 #ifdef SL_DEBUG
-        printk(KERN_DEBUG "\nport rewrite removed :8135 successfully\n");
+        printk(KERN_DEBUG "port rewrite removed :8135 successfully\n\n");
 #endif
 	return NF_ACCEPT;
     } else if (port_status > 1) {
 	// port was not found but a host header was found in range
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "no :8135, but host header %u found\n", port_status);
+#endif
     }
 
     /* ok now attempt to insert the X-SLR header */
@@ -262,40 +263,29 @@ static void nf_nat_sl_fini(void)
 	
 	rcu_assign_pointer(nf_nat_sl_hook, NULL);
 	synchronize_rcu();
-/*
-	for (i = 0; i < ARRAY_SIZE(search); i++)
-	{
-		if (search[i].ts != NULL)
-			textsearch_destroy(search[i].ts);
-	} */
 }
 
 static int __init nf_nat_sl_init(void)
 {
 	int ret=0;
-	int i;
 
 	BUG_ON(rcu_dereference(nf_nat_sl_hook));
 	rcu_assign_pointer(nf_nat_sl_hook, nf_nat_sl);
 
-	// setup CRLF and PORT
-	for (i = 1; i < ARRAY_SIZE(search); i++) {
-		search[i].ts = textsearch_prepare(ts_algo, search[i].string,
-						  search[i].len,
-						  GFP_KERNEL, TS_AUTOLOAD);
-		if (IS_ERR(search[i].ts)) {
-			ret = PTR_ERR(search[i].ts);
+	// setup text search
+	search[PORT].ts = textsearch_prepare(ts_algo, search[PORT].string,
+					     search[PORT].len,
+				             GFP_KERNEL, TS_AUTOLOAD);
+
+		if (IS_ERR(search[PORT].ts)) {
+			ret = PTR_ERR(search[PORT].ts);
 			goto err;
-		}
-		printk(KERN_DEBUG "text search id %d setup ok\n", i);
 	}
 
 	return ret;
 
 err:
-	while (--i >= 1) {
-		textsearch_destroy(search[i].ts);
-	}
+	textsearch_destroy(search[PORT].ts);
 
 	return ret;
 }

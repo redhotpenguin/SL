@@ -150,7 +150,6 @@ static int sl_help (struct sk_buff **pskb,
     }
 #endif
 
-//        return NF_ACCEPT;
     // offset to the '\r\nHost:' header
     memset(&ts, 0, sizeof(ts));
     host_offset = skb_find_text(*pskb,
@@ -167,8 +166,8 @@ static int sl_help (struct sk_buff **pskb,
 #endif
  	
     nf_nat_sl = rcu_dereference(nf_nat_sl_hook);
-//    if (nf_nat_sl && ct->status & IPS_NAT_MASK)
- 	   ret = nf_nat_sl(pskb, ctinfo, exp, host_offset, dataoff, datalen, user_data);
+    ret = nf_nat_sl(pskb, ctinfo, exp,
+	host_offset, dataoff, datalen, user_data);
    
     return ret;
 }
@@ -196,7 +195,7 @@ static void nf_conntrack_sl_fini(void)
 
         nf_conntrack_helper_unregister(&sl_helper); 
 
-	for (i = 0; i < ARRAY_SIZE(search); i++) {
+	for (i = 0; i < ARRAY_SIZE(search)-1; i++) {
 	    if (search[i].ts != NULL)	
 		textsearch_destroy(search[i].ts);
 	}
@@ -216,8 +215,8 @@ static int __init nf_conntrack_sl_init(void)
 		goto err;
 
 	search[HOST].ts = textsearch_prepare(ts_algo, search[HOST].string,
-						  search[HOST].len,
-						  GFP_KERNEL, TS_AUTOLOAD);
+				             search[HOST].len,
+				             GFP_KERNEL, TS_AUTOLOAD);
 	if (IS_ERR(search[HOST].ts)) {
 		ret = PTR_ERR(search[HOST].ts);
 		goto err;
