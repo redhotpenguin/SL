@@ -21,7 +21,7 @@ right: 0;
 text-align: center;
 padding: 10px 0px 16px 0px;
 background: #FFF url(../images/backgrounds/border.png) repeat-x bottom left; 
-z-index: 3000;
+z-index: 10000;
 }
 
 /*= BUTTON
