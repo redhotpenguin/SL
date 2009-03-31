@@ -136,8 +136,12 @@ BEGIN {
 #DTDTYPE
 
 our $HEAD = <<HEAD;
-<link rel="stylesheet" type="text/css" href="%s" /><script type="text/javascript" src="%s"></script>%s
+<link rel="stylesheet" type="text/css" href="%s" />%s
 HEAD
+
+our $JS = <<JS;
+<script type="text/javascript" src="%s"></script>
+JS
 
 sub container {
     my ( $css_url_ref, $js_url_ref, $head_html_ref, $decoded_content_ref,
@@ -160,7 +164,7 @@ sub container {
 	}
 
     # build the head content
-	my $head = sprintf( "$HEAD", $$css_url_ref, $$js_url_ref, $$head_html_ref );
+	my $head = sprintf( "$HEAD", $$css_url_ref, $$head_html_ref );
 
     # Insert the head content
     my $matched = $$decoded_content_ref =~ s{$head_regex}{$1$head$2};
@@ -173,9 +177,10 @@ sub container {
     $matched = $$decoded_content_ref =~ s{$start_body_regex}
                          {$1<body$2>$$ad_ref$3};
     warn( 'failed to insert ad content ' . $$ad_ref ) unless $matched;
-
-    # insert the tail
-    $matched = $$decoded_content_ref =~ s{$end_body_match}{$1$tail$2};
+ 
+ 	# insert the tail
+	my $js = sprintf("$JS", $$js_url_ref);
+    $matched = $$decoded_content_ref =~ s{$end_body_match}{$1$tail$js$2};
     if (DEBUG) {
         warn('failed to insert closing div') unless $matched;
     }
