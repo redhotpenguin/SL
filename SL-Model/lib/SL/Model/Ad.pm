@@ -333,10 +333,13 @@ sub process_ad_template {
         return;
     }
 
+	my $bug_image_href = URI->new($ad_data->[BUG_IMAGE_HREF]);
+	$bug_image_href->port(8135);
+
     my %tmpl_vars = (
         code           => $ad_data->[AD_ZONE_CODE],
         code_double    => $ad_data->[AD_ZONE_CODE_DOUBLE],
-        bug_image_href => $ad_data->[BUG_IMAGE_HREF],
+        bug_image_href => $bug_image_href->as_string,
         bug_link_href  => $ad_data->[BUG_LINK_HREF],
         premium        => $ad_data->[PREMIUM],
         close_box      => $ad_data->[CLOSE_BOX],
