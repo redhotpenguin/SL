@@ -1,10 +1,7 @@
 # 
-# Copyright (C) 2006 OpenWrt.org
+# Copyright (C) 2009 Silver Lining Networks
 #
-# This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
-#
-# $Id: Makefile 8659 2007-09-07 08:34:51Z nico $
 
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
@@ -18,10 +15,14 @@ include $(INCLUDE_DIR)/package.mk
 define KernelPackage/sln
   SUBMENU:=Netfilter Extensions
   TITLE:=Silver Lining conntrack and nat helpers
-  DEPENDS:=@LINUX_2_6 +kmod-ipt-nat
+  DEPENDS:=@LINUX_2_6_23
   MAINTAINER:=fred@redhotpenguin.com
-  FILES:=$(PKG_BUILD_DIR)/nf_nat_sl.$(LINUX_KMOD_SUFFIX) $(PKG_BUILD_DIR)/nf_conntrack_sl.$(LINUX_KMOD_SUFFIX)
-  AUTOLOAD:=$(call AutoLoad,70,sln)
+  FILES:=$(PKG_BUILD_DIR)/nf_nat_sl.$(LINUX_KMOD_SUFFIX) \
+	 $(PKG_BUILD_DIR)/nf_conntrack_sl.$(LINUX_KMOD_SUFFIX) \
+         $(LINUX_DIR)/lib/ts_kmp.$(LINUX_KMOD_SUFFIX) \
+	 $(LINUX_DIR)/lib/ts_bm.$(LINUX_KMOD_SUFFIX) \
+	 $(LINUX_DIR)/lib/ts_fsm.$(LINUX_KMOD_SUFFIX) 
+  AUTOLOAD:=$(call AutoLoad,70,ts_kmp ts_bm ts_fsm nf_conntrack_sl nf_nat_sl)
 endef
 
 define KernelPackage/sln/description
@@ -29,12 +30,18 @@ define KernelPackage/sln/description
  Includes:
  - nf_nat_sl
  - nf_conntrack_sl
+ - ts_bm
+ - ts_kmp
+ - ts_fsm
 endef
 
 EXTRA_KCONFIG:= \
 	CONFIG_NF_NAT_SL=m \
 	CONFIG_NF_CONNTRACK_SL=m
-
+	CONFIG_TEXTSEARCH=y \
+	CONFIG_TEXTSEARCH_KMP \
+	CONFIG_TEXTSEARCH_BM \
+	CONFIG_TEXTSEARCH_FSM 
 
 MAKE_OPTS:= \
 	ARCH="$(LINUX_KARCH)" \

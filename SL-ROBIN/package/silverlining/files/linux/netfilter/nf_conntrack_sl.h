@@ -4,7 +4,7 @@
 #ifdef __KERNEL__
 
 /* enable for module debugging */
-//#define SL_DEBUG 1
+// #define SL_DEBUG 1
 
 // verbose packet debug
 // #define SKB_DEBUG 1

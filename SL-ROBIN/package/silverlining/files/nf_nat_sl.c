@@ -267,27 +267,9 @@ static void nf_nat_sl_fini(void)
 
 static int __init nf_nat_sl_init(void)
 {
-	int ret=0;
-
 	BUG_ON(rcu_dereference(nf_nat_sl_hook));
 	rcu_assign_pointer(nf_nat_sl_hook, nf_nat_sl);
-
-	// setup text search
-	search[PORT].ts = textsearch_prepare(ts_algo, search[PORT].string,
-					     search[PORT].len,
-				             GFP_KERNEL, TS_AUTOLOAD);
-
-		if (IS_ERR(search[PORT].ts)) {
-			ret = PTR_ERR(search[PORT].ts);
-			goto err;
-	}
-
-	return ret;
-
-err:
-	textsearch_destroy(search[PORT].ts);
-
-	return ret;
+	return 0;
 }
 
 module_init(nf_nat_sl_init);

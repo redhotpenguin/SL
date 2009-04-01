@@ -27,8 +27,6 @@ MODULE_PARM_DESC(ts_algo, "textsearch algorithm to use (default kmp)");
 #define GET_LEN 5
 static char get[GET_LEN+1] = "GET /";
 
-
-
 unsigned int (*nf_nat_sl_hook)(struct sk_buff **pskb,
                                enum ip_conntrack_info ctinfo,
                                struct nf_conntrack_expect *exp,
@@ -206,21 +204,39 @@ static int __init nf_conntrack_sl_init(void)
  
         int ret = 0;
 
+
 #ifdef SL_DEBUG
         printk(KERN_DEBUG "Registering nf_conntrack_sl, port %d\n", SL_PORT);
 #endif
 
         ret = nf_conntrack_helper_register(&sl_helper);
-	if (ret < 0)
+	if (ret < 0) {
+
+	  printk(KERN_ERR "error registering module: %d\n\n", ret);
 		goto err;
+	}
+
+
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "Registering ok, setting up textsearch for string %s, length %d\n", search[HOST].string, search[HOST].len);
+#endif
 
 	search[HOST].ts = textsearch_prepare(ts_algo, search[HOST].string,
 				             search[HOST].len,
 				             GFP_KERNEL, TS_AUTOLOAD);
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "checking textsearch error\n");
+#endif
+
+
 	if (IS_ERR(search[HOST].ts)) {
+   	        printk(KERN_ERR "error encountered registering textsearch");
 		ret = PTR_ERR(search[HOST].ts);
 		goto err;
 	}
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "setup textsearch ok\n");
+#endif
 
 	return 0;
 
