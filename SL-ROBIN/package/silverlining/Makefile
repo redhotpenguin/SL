@@ -4,13 +4,29 @@
 # See /LICENSE for more information.
 
 include $(TOPDIR)/rules.mk
-include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=sln
 PKG_VERSION:=0.20
 PKG_RELEASE:=1
 
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/kernel.mk
+
+
+define Package/sln
+  SECTION:=net
+  CATEGORY:=Network
+  URL:=http://www.silverliningnetworks.com/
+  DEPENDS:=+kmod-sln
+  TITLE:=SLN Plugin
+  MENU:=1
+endef
+
+define Package/sln/description
+ This package contains the SLN helpers
+endef
+
+
 
 define KernelPackage/sln
   SUBMENU:=Netfilter Extensions
@@ -19,10 +35,8 @@ define KernelPackage/sln
   MAINTAINER:=fred@redhotpenguin.com
   FILES:=$(PKG_BUILD_DIR)/nf_nat_sl.$(LINUX_KMOD_SUFFIX) \
 	 $(PKG_BUILD_DIR)/nf_conntrack_sl.$(LINUX_KMOD_SUFFIX) \
-         $(LINUX_DIR)/lib/ts_kmp.$(LINUX_KMOD_SUFFIX) \
-	 $(LINUX_DIR)/lib/ts_bm.$(LINUX_KMOD_SUFFIX) \
-	 $(LINUX_DIR)/lib/ts_fsm.$(LINUX_KMOD_SUFFIX) 
-  AUTOLOAD:=$(call AutoLoad,70,ts_kmp ts_bm ts_fsm nf_conntrack_sl nf_nat_sl)
+         $(LINUX_DIR)/lib/ts_kmp.$(LINUX_KMOD_SUFFIX)
+  AUTOLOAD:=$(call AutoLoad,70,ts_kmp nf_conntrack_sl nf_nat_sl)
 endef
 
 define KernelPackage/sln/description
@@ -30,9 +44,7 @@ define KernelPackage/sln/description
  Includes:
  - nf_nat_sl
  - nf_conntrack_sl
- - ts_bm
  - ts_kmp
- - ts_fsm
 endef
 
 EXTRA_KCONFIG:= \
@@ -61,9 +73,18 @@ define Build/Configure
 endef
 
 define Build/Compile
+	rm -rf $(PKG_INSTALL_DIR)
+	mkdir -p $(PKG_INSTALL_DIR)/usr
 	$(MAKE) -C "$(LINUX_DIR)" \
 		$(MAKE_OPTS) \
 		modules
 endef
 
+define Package/sln/install
+	$(INSTALL_DIR) $(1)/usr/bin
+	$(INSTALL_BIN) ./files/usr/bin/* $(1)/usr/bin/
+endef
+
+
 $(eval $(call KernelPackage,sln))
+$(eval $(call BuildPackage,sln))
