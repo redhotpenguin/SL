@@ -63,5 +63,5 @@ if [ "$CODE_MD5" = "$CODE_MD5_EXPECTED" ] ; then
 fi
 
 
-
+ipkg install http://www.silverliningnetworks.com/firmware/kmod-sln
 
