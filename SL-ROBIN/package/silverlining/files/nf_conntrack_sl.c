@@ -130,7 +130,7 @@ static int sl_help (struct sk_buff **pskb,
         return NF_DROP;
 
     start_offset = dataoff + GET_LEN;
-    stop_offset = datalen - search[HOST].len - dataoff,
+    stop_offset = datalen - search[HOST].len;
 
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "packet dump:\n%s\n", user_data);
@@ -140,7 +140,7 @@ static int sl_help (struct sk_buff **pskb,
 	    dataoff, (unsigned int)user_data );
     
     printk(KERN_DEBUG "host search:  search_start %u, search_stop %u\n",
-	    dataoff + GET_LEN, datalen - search[HOST].len - dataoff );
+	    dataoff + GET_LEN, datalen - search[HOST].len );
 
     if (start_offset > stop_offset) {
 	printk(KERN_ERR "invalid stop offset, return\n");
