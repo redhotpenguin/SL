@@ -130,7 +130,11 @@ static int sl_help (struct sk_buff **pskb,
         return NF_DROP;
 
     start_offset = dataoff + GET_LEN;
-    stop_offset = datalen - search[HOST].len;
+    stop_offset = start_offset + datalen - search[HOST].len - GET_LEN;
+
+    //printk(KERN_DEBUG "host search:  search_start %u, search_stop %u\n",
+    //    dataoff + GET_LEN, stop_offset );
+
 
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "packet dump:\n%s\n", user_data);
@@ -140,7 +144,7 @@ static int sl_help (struct sk_buff **pskb,
 	    dataoff, (unsigned int)user_data );
     
     printk(KERN_DEBUG "host search:  search_start %u, search_stop %u\n",
-	    dataoff + GET_LEN, datalen - search[HOST].len );
+        dataoff + GET_LEN, stop_offset );
 
     if (start_offset > stop_offset) {
 	printk(KERN_ERR "invalid stop offset, return\n");
@@ -185,7 +189,6 @@ static struct nf_conntrack_helper sl_helper __read_mostly = {
 /* don't make this __exit, since it's called from __init ! */
 static void nf_conntrack_sl_fini(void)
 {
-	int i;
 
 #ifdef SL_DEBUG
 	    printk(KERN_DEBUG " unregistering for port %d\n", SL_PORT);
@@ -193,10 +196,7 @@ static void nf_conntrack_sl_fini(void)
 
         nf_conntrack_helper_unregister(&sl_helper); 
 
-	for (i = 0; i < ARRAY_SIZE(search)-1; i++) {
-	    if (search[i].ts != NULL)	
-		textsearch_destroy(search[i].ts);
-	}
+	textsearch_destroy(search[HOST].ts);
 }
 
 static int __init nf_conntrack_sl_init(void)

@@ -51,10 +51,11 @@ static int sl_remove_port(struct sk_buff **pskb,
 
     if (end_of_host == (host_offset+HOST_SEARCH_LEN-1)) {
 	// host header is split between two packets?
-        printk(KERN_ERR "host header not found in search\n");
+        printk(KERN_ERR "end of host not found in search\n");
 	return 0;
     }
 
+    //    printk(KERN_DEBUG "found end_of_host %u\n", end_of_host);
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "found end_of_host %u\n", end_of_host);
     printk(KERN_DEBUG "packet dump:%s\n",
