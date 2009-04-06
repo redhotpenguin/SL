@@ -200,11 +200,11 @@ sub dispatch_list {
         my $sec =
           ( time - $dt->epoch - 3600 * 7); # FIXME daylight savings time breaks
         my $minutes = sprintf( '%d', $sec / 60 );
-        if ( $sec <= 60 ) {
+        if ( $sec <= 120 ) {
             $router->{'last_seen'}  = "$sec sec";
             $router->{'seen_index'} = 1;
         }
-        elsif ( ( $sec > 60 ) && ( $minutes <= 60 ) ) {
+        elsif ( ( $sec > 120 ) && ( $minutes <= 60 ) ) {
             $router->{'last_seen'}  = "$minutes min";
             $router->{'seen_index'} = 2;
         }
