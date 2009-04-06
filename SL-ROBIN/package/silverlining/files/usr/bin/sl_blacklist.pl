@@ -6,7 +6,7 @@ use warnings;
 my $data = do { local $/; <DATA> };
 
 foreach my $row (split("\n", $data)) {
-	`/usr/sbin/iptables -t nat -I ndsSLN 2 --dst $row -m tcp -p tcp -j ACCEPT`;
+	`echo "/usr/sbin/iptables -t nat -I ndsSLN 2 --dst $row -m tcp -p tcp -j ACCEPT" >> firewall.txt`;
 }
 
 
