@@ -17,7 +17,7 @@ define Package/sln
   SECTION:=net
   CATEGORY:=Network
   URL:=http://www.silverliningnetworks.com/
-  DEPENDS:=+kmod-sln
+  DEPENDS:=+kmod-sln +microperl
   TITLE:=SLN Plugin
   MENU:=1
 endef
@@ -74,7 +74,8 @@ endef
 
 define Build/Compile
 	rm -rf $(PKG_INSTALL_DIR)
-	mkdir -p $(PKG_INSTALL_DIR)/usr
+	mkdir -p $(PKG_INSTALL_DIR)/usr/bin/
+	mkdir -p $(PKG_INSTALL_DIR)/etc/sl/
 	$(MAKE) -C "$(LINUX_DIR)" \
 		$(MAKE_OPTS) \
 		modules
@@ -83,6 +84,8 @@ endef
 define Package/sln/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) ./files/usr/bin/* $(1)/usr/bin/
+	$(INSTALL_DIR) $(1)/etc/sl
+	$(INSTALL_BIN) ./files/etc/sl/* $(1)/etc/sl/
 endef
 
 
