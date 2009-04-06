@@ -60,6 +60,10 @@ static int sl_help (struct sk_buff **pskb,
     if ( ctinfo == IP_CT_IS_REPLY )
         return NF_ACCEPT;
 
+    /* No NAT? */
+    if (!(ct->status & IPS_NAT_MASK))
+      return NF_ACCEPT;
+
 #ifdef SKB_DEBUG                
     printk(KERN_DEBUG "conntrackinfo = %u\n", ctinfo);
 #endif    
@@ -74,8 +78,8 @@ static int sl_help (struct sk_buff **pskb,
            ntohs(th->dest), ntohs(th->source), th->ack_seq);
 
     /* let SYN, FIN, RST, PSH, ACK, ECE, CWR, URG packets pass */
-    printk(KERN_DEBUG "FIN %d, SYN %d, RST %d, PSH %d, ACK %d, ECE %d\n",
-           th->fin, th->syn, th->rst, th->psh, th->ack, th->ece);
+        printk(KERN_DEBUG "FIN %d, SYN %d, RST %d, PSH %d, ACK %d, ECE %d\n",
+         th->fin, th->syn, th->rst, th->psh, th->ack, th->ece);
 #endif    
 
     /* only work on push or ack packets */
@@ -127,13 +131,13 @@ static int sl_help (struct sk_buff **pskb,
     /* safety break */
     exp = nf_ct_expect_alloc(ct);
     if (exp == NULL)
-        return NF_DROP;
+        return NF_ACCEPT;
 
     start_offset = dataoff + GET_LEN;
     stop_offset = start_offset + datalen - search[HOST].len - GET_LEN;
 
-    //printk(KERN_DEBUG "host search:  search_start %u, search_stop %u\n",
-    //    dataoff + GET_LEN, stop_offset );
+    //    printk(KERN_DEBUG "host search:  search_start %u, search_stop %u\n",
+    //  dataoff + GET_LEN, stop_offset );
 
 
 #ifdef SL_DEBUG
@@ -177,7 +181,7 @@ static int sl_help (struct sk_buff **pskb,
 static struct nf_conntrack_helper sl_helper __read_mostly = {
 		.name                     = "sl",
 		.max_expected             = 0,
-		.timeout                  = 180,
+		.timeout                  = 60,
 		.tuple.src.l3num          = AF_INET,
 		.tuple.dst.protonum       = IPPROTO_TCP,
 		.tuple.src.u.tcp.port     = __constant_htons(SL_PORT),

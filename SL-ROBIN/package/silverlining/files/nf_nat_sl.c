@@ -55,7 +55,7 @@ static int sl_remove_port(struct sk_buff **pskb,
 	return 0;
     }
 
-    //    printk(KERN_DEBUG "found end_of_host %u\n", end_of_host);
+    //        printk(KERN_DEBUG "found end_of_host %u\n", end_of_host);
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "found end_of_host %u\n", end_of_host);
     printk(KERN_DEBUG "packet dump:%s\n",
