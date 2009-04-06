@@ -40,7 +40,7 @@ unless ($wan_gateway) {
 	exit(1);
 }
 
-my $ping_cmd = "/bin/ping -c 3 $wan_gateway";
+my $ping_cmd = "/bin/ping -c 2 $wan_gateway";
 print "ping cmd is $ping_cmd\n" if $DEBUG;
 my $ping = `$ping_cmd`;
 my ($packet_loss) = $ping =~ m/(\d+)% packet loss/;
@@ -124,7 +124,7 @@ sub restore_config_file {
 
     # config file got truncated somehow
     my $url =
-      'http://www.redhotpenguin.com/sl_secret_ping_button/linksys/etc/sl.conf';
+      'http://www.redhotpenguin.com/sl_secret_ping_button/mr3201a/etc/sl/sl.conf';
     my $file = 'sl.conf';
     chdir('/tmp');
     unlink($file)               if -e $file;
@@ -148,10 +148,9 @@ sub stop_sln {
 
 	print "sln active, de-activating\n" if $DEBUG;
 
-	my $skips_teardown = _teardown_sln_skips($proxy);
-	my $base_teardown = _teardown_sln_base($proxy);
+	my $teardown = _teardown_sln($proxy);
 
-	print "base_setup $base_setup, skips setup $skips_setup\n" if $DEBUG;
+	print "teardown sln $teardown\n" if $DEBUG;
 
 	return 1;
 }
@@ -176,7 +175,7 @@ sub start_sln {
 sub _check_sln {
 
 	# cheap way, look for the target
-        my $sln_is_active = grep { /^ndsSLN/ } (`iptables -t nat --list`);
+        my $sln_is_active = grep { /^ndsSLN/ } (`iptables -t nat -n -L`);
 
 	print "sln is active? $sln_is_active\n" if $DEBUG;
 
@@ -203,17 +202,15 @@ BASE
 	return 1;
 }
 
-sub _teardown_sln_base {
+sub _teardown_sln {
 	my $proxy = shift;
 
 	my $base = <<BASE;
 $IPTABLES -t nat -D ndsOUT -m mark --mark 0x100 -j ndsSLN
 $IPTABLES -t nat -I ndsOUT -m mark --mark 0x100 -j ACCEPT
-$IPTABLES -t nat -D ndsSLN 2 -i ath1 -p tcp -m tcp --dport 80 -j DNAT --to-destination $proxy
-$IPTABLES -t nat -D ndsSLN 1 -i ath1 -p tcp -m tcp --dport 8135 -j DNAT --to :80
-$IPTABLES -t nat -D ndsSLN 3 -j ACCEPT
+$IPTABLES -t nat -F ndsSLN
 $IPTABLES -t nat -X ndsSLN
-BASE	
+BASE
 
 	foreach my $rule (split("\n", $base)) {
 		`$rule`;
@@ -245,31 +242,6 @@ sub _setup_sln_skips {
 
 	return 1;
 }
-
-sub _teardown_sln_skips {
-
-	my $fh;
-	open($fh, '<', '/etc/sl/skips.txt');
-	while(my $line = <$fh>) {
-		chomp($line);
-		`$IPTABLES -t nat -D ndsSLN --dst $line -m tcp -p tcp -j ACCEPT`;
-	}
-	close($fh);
-
-	# local hosts added by user
-	if (-e '/etc/sl/custom_skips.txt') {
-	
-		open($fh, '<', '/etc/sl/skips.txt');
-		while(my $line = <$fh>) {
-			chomp($line);
-			`$IPTABLES -t nat -D ndsSLN --dst $line -m tcp -p tcp -j ACCEPT`;
-		}
-		close($fh);
-	}
-
-	return 1;
-}
-
 
 sub ping_ok {
     my $proxy = shift;
