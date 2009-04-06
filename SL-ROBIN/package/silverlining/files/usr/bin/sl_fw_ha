@@ -1,46 +1,24 @@
 #!/usr/bin/microperl
 
-# this program copyright 2008 Silver Lining Networks Inc., and is governed
+# this program copyright 2009 Silver Lining Networks Inc., and is governed
 # by the Silver Lining software license, see http://www.silverliningnetworks.com/
 # if you have not received a copy of the license with this software, please
 # email support@silverliningnetworks.com for a copy
 
-our $DEBUG       = 0;
-our $FIREWALL    = '/etc/init.d/S35firewall';
-our $CONFIG_FILE = '/etc/sl.conf';
+our $DEBUG       = 1;
+our $CONFIG_FILE = '/etc/sl/sl.conf';
 our $ATTEMPTS    = 0;
-our $NVRAM       = '/usr/sbin/nvram';
-our $OFFLINE     = 'Offline';
+our $UCI         = '/bin/uci';
 our $MD5         = '/usr/bin/md5sum';
 our $RMMOD       = '/sbin/rmmod';
 our $INSMOD      = '/sbin/insmod';
-our $VERSION     = '019';
+our $LSMOD       = '/sbin/lsmod';
+our $IPTABLES    = '/usr/sbin/iptables';
+our $VERSION     = '020';
 
-# try to ping the wan first, if we cannot do that all bets are off
-my ($wan_gateway) = `/sbin/route` =~ m/default\s+(\S+)/;
-unless ($wan_gateway) {
-	print STDERR "no wan gateway, take us offline\n";
-	_ssid_offline();
-	exit(1);
-}
 
-my $ping_cmd = "/bin/ping -c 3 $wan_gateway";
-print "\nping cmd is $ping_cmd\n" if $DEBUG;
-my $ping = `$ping_cmd`;
-my ($packet_loss) = $ping =~ m/(\d+)% packet loss/;
-
-print "\nping was $ping\n\n" if $DEBUG;
-
-if ($packet_loss == 100) {
-	print STDERR "ping cmd $ping_cmd failed to ping $wan_gateway\n";
-	_ssid_offline();
-} else {
-	if (($packet_loss != 0) && ($packet_loss < 100)) {
-		print STDERR "packet loss was $packet_loss %\n";
-	}
-	_ssid_online();
-}
-
+####################################################
+# no config is a non starter
 my $config_proxy = get_config_proxy($CONFIG_FILE);
 unless ($config_proxy) {
     print STDERR "no config_proxy returned, exiting\n";
@@ -49,82 +27,54 @@ unless ($config_proxy) {
 
 print "Using proxy $config_proxy\n" if $DEBUG;
 
+
+##################################################################
+# try to ping the wan first, if we cannot do that all bets are off
+my ($wan_gateway) = `/sbin/route` =~ m/default\s+(\S+)/;
+
+print "wan gateway is $wan_gateway\n" if $DEBUG;
+
+unless ($wan_gateway) {
+	print STDERR "no wan gateway, take us offline\n";
+	_stop_sln($config_proxy);
+	exit(1);
+}
+
+my $ping_cmd = "/bin/ping -c 3 $wan_gateway";
+print "ping cmd is $ping_cmd\n" if $DEBUG;
+my $ping = `$ping_cmd`;
+my ($packet_loss) = $ping =~ m/(\d+)% packet loss/;
+
+print "\nping was $ping\n" if $DEBUG;
+
+if ($packet_loss == 100) {
+
+	print STDERR "ping cmd $ping_cmd failed to ping $wan_gateway\n";
+	_stop_sln($config_proxy);
+	
+} elsif (($packet_loss != 0) && ($packet_loss < 100)) {
+
+	print STDERR "ping packet loss was $packet_loss %\n";
+}
+
 # ping the proxy
 if ( ping_ok($config_proxy) ) {
-    print "ping was ok, updating proxy\n" if $DEBUG;
 
-    set_firewall('sl');
-
-    # swap the traffic modules out
-    my $unload = `$RMMOD ip_nat_slport`;
-    print "unload was $unload" if $DEBUG;
-
-    my $load = `$INSMOD ip_nat_sl`;
-    print "load was $load" if $DEBUG;
-
+    print "ping was ok, sln state on\n" if $DEBUG;
+    start_sln($config_proxy);
+    exit(0);
+    
 } else {
 
-    # set the routing table to default
-    print STDERR "No available proxies, setting default route\n";
-    set_firewall('default');
-
-    # swap the traffic modules out
-    my $unload = `$RMMOD ip_nat_sl`;
-    print "unload was $unload" if $DEBUG;
-
-    my $load = `$INSMOD ip_nat_slport`;
-    print "load was $load" if $DEBUG;
+    print STDERR "No available proxies, disabling silver lining\n";
+    stop_sln($config_proxy);
+    exit(1);
 
 }
 
 exit(0);
 
 ###########################
-
-sub _get_ssid {
-	my $ssid = `$NVRAM get wl0_ssid`;
-	unless ($ssid) {
-		print STDERR "could not get ssid\n";
-		exit(1);
-	}
-
-	chomp($ssid);
-	return $ssid;
-}
-
-sub _ssid_offline {
-	my  $ssid = _get_ssid();
-	if ($ssid =~ m/offline/i) {
-		print STDERR "ssid already offline\n";
-		return;
-	}
-	$ssid = "$OFFLINE ($ssid)";
-	_change_ssid($ssid); # this execs and finishes
-	exit(0);
-}	
-
-sub _ssid_online {
-	my $ssid = _get_ssid();
-	if (substr($ssid, 0, length($OFFLINE)) eq $OFFLINE) {
-		print "offline ssid [$ssid]\n" if $DEBUG;
-		
-		# change the ssid back to online status
-		$ssid = substr($ssid, length($OFFLINE)+2, length($ssid));
-		$ssid = substr($ssid, 0, length($ssid)-1); # remove )
-		_change_ssid($ssid);
-		exit(0);
-	}
-	
-    print "ssid already online\n" if $DEBUG;
-	return 1;
-}
-
-sub _change_ssid {
-	my $ssid = shift;
-	print "changing ssid to $ssid\n" if $DEBUG;
-	my $changed = exec('/bin/sh', '/usr/bin/change_ssid.sh', $ssid);
-	exit(0);
-}
 
 sub get_config_proxy {
     my $config_file = shift;
@@ -191,57 +141,142 @@ sub restore_config_file {
     return 1;
 }
 
-sub set_firewall {
-    my $route = shift;
+sub stop_sln {
+	my $proxy = shift;
 
-    # first see if the correct firewall is set
-    my $default_md5 =
-      ( split( /\s+/, `/usr/bin/md5sum /etc/firewall.user` ) )[0];
-    my $route_md5 =
-      ( split( /\s+/, `/usr/bin/md5sum /etc/firewall.user.$route` ) )[0];
+	return unless _check_sln();
 
-    if ( $default_md5 eq $route_md5 ) {
+	print "sln active, de-activating\n" if $DEBUG;
 
-        # files are identical
-        print "set_firewall on existing firewall $route\n" if $DEBUG;
-        return 1;
-    }
+	my $skips_teardown = _teardown_sln_skips($proxy);
+	my $base_teardown = _teardown_sln_base($proxy);
 
-    # race condition after firmware update, the default routing table is
-    # used so we make sure to check for the existence of a DNAT target
-    if ( $route eq 'sl' ) {
+	print "base_setup $base_setup, skips setup $skips_setup\n" if $DEBUG;
 
-        # better have a DNAT target
-        my $has_dnat = grep { /^DNAT/ } (`iptables -t nat --list`);
-        return 1 if ( $has_dnat > 0 );
-    }
-
-    # files are different go ahead with the update
-    # stop the firewall
-    my @args = ( '/bin/sh', $FIREWALL, 'stop' );
-    system(@args) == 0 or die "system @args failed: $?";
-
-    # remove the existing file
-    chdir('/etc');
-    unlink('firewall.user') or die $!;
-
-    # relink the files
-    my $link = `ln -s firewall.user.$route firewall.user`;
-
-    # start the firewall
-    @args = ( '/bin/sh', $FIREWALL, 'start' );
-    system(@args) == 0 or die "system @args failed: $?";
-
-    print "Firewall restarted: $link\n" if $DEBUG;
-    return 1;
+	return 1;
 }
+
+sub start_sln {
+	my $proxy = shift;
+
+	# see if sln is active
+	return 1 if _check_sln();
+
+	print "sln inactive, activating\n" if $DEBUG;
+
+	my $base_setup = _setup_sln_base($proxy);
+	my $skips_setup = _setup_sln_skips($proxy);
+
+	print "base_setup $base_setup, skips setup $skips_setup\n" if $DEBUG;
+
+	return 1;
+}
+
+# checks to see if sln firewall enabled
+sub _check_sln {
+
+	# cheap way, look for the target
+        my $sln_is_active = grep { /^ndsSLN/ } (`iptables -t nat --list`);
+
+	print "sln is active? $sln_is_active\n" if $DEBUG;
+
+	return $sln_is_active;
+}
+
+# sets up the base firewall rules
+sub _setup_sln_base {
+	my $proxy = shift;
+
+	my $base = <<BASE;
+$IPTABLES -t nat -N ndsSLN
+$IPTABLES -t nat -I ndsSLN 1 -i ath1 -p tcp -m tcp --dport 8135 -j DNAT --to :80
+$IPTABLES -t nat -I ndsSLN 2 -i ath1 -p tcp -m tcp --dport 80 -j DNAT --to-destination $proxy
+$IPTABLES -t nat -I ndsSLN 3 -j ACCEPT
+$IPTABLES -t nat -D ndsOUT -m mark --mark 0x100 -j ACCEPT
+$IPTABLES -t nat -I ndsOUT -m mark --mark 0x100 -j ndsSLN
+BASE
+
+	foreach my $rule (split("\n", $base)) {
+		`$rule`;
+	}
+
+	return 1;
+}
+
+sub _teardown_sln_base {
+	my $proxy = shift;
+
+	my $base = <<BASE;
+$IPTABLES -t nat -D ndsOUT -m mark --mark 0x100 -j ndsSLN
+$IPTABLES -t nat -I ndsOUT -m mark --mark 0x100 -j ACCEPT
+$IPTABLES -t nat -D ndsSLN 2 -i ath1 -p tcp -m tcp --dport 80 -j DNAT --to-destination $proxy
+$IPTABLES -t nat -D ndsSLN 1 -i ath1 -p tcp -m tcp --dport 8135 -j DNAT --to :80
+$IPTABLES -t nat -D ndsSLN 3 -j ACCEPT
+$IPTABLES -t nat -X ndsSLN
+BASE	
+
+	foreach my $rule (split("\n", $base)) {
+		`$rule`;
+	}
+
+	return 1;
+}
+
+sub _setup_sln_skips {
+
+	my $fh;
+	open($fh, '<', '/etc/sl/skips.txt');
+	while(my $line = <$fh>) {
+		chomp($line);
+		`$IPTABLES -t nat -I ndsSLN 2 --dst $line -m tcp -p tcp -j ACCEPT`;
+	}
+	close($fh);
+
+	# local hosts added by user
+	if (-e '/etc/sl/custom_skips.txt') {
+	
+		open($fh, '<', '/etc/sl/skips.txt');
+		while(my $line = <$fh>) {
+			chomp($line);
+			`$IPTABLES -t nat -I ndsSLN 2 --dst $line -m tcp -p tcp -j ACCEPT`;
+		}
+		close($fh);
+	}
+
+	return 1;
+}
+
+sub _teardown_sln_skips {
+
+	my $fh;
+	open($fh, '<', '/etc/sl/skips.txt');
+	while(my $line = <$fh>) {
+		chomp($line);
+		`$IPTABLES -t nat -D ndsSLN --dst $line -m tcp -p tcp -j ACCEPT`;
+	}
+	close($fh);
+
+	# local hosts added by user
+	if (-e '/etc/sl/custom_skips.txt') {
+	
+		open($fh, '<', '/etc/sl/skips.txt');
+		while(my $line = <$fh>) {
+			chomp($line);
+			`$IPTABLES -t nat -D ndsSLN --dst $line -m tcp -p tcp -j ACCEPT`;
+		}
+		close($fh);
+	}
+
+	return 1;
+}
+
 
 sub ping_ok {
     my $proxy = shift;
 
     # grab the mac address
     my $ifconfig = `ifconfig`;
-    my ($macaddr) = $ifconfig =~ m/(\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2})/;
+    my ($macaddr) = $ifconfig =~ m/eth0.*?(\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2})/g;
     print "Macaddr is $macaddr\n" if $DEBUG;
 
     # escape the macaddress
@@ -264,170 +299,16 @@ sub ping_ok {
         or ( $ping =~ m/unable to connect/i )
         or ($ping =~ m/no response from server/i ) )
     {
+
         print STDERR "Proxy $proxy returned ping error:\n  $ping\n";
         return;
+
     } elsif (-e $slug) {
+
     	print "ping ok, file $macaddr exists\n" if $DEBUG;
-	my $events = _process_commands($slug);
     	unlink($slug) or print STDERR "could not remove ping file $slug\n";
-	
-	if ($events) {
-		print "Ping returned ok: $ping\n" if $DEBUG;
-		print "commands processed and we have events\n" if $DEBUG;
-		_process_events($slug, $events);
-	}
+	print "Ping returned ok: $ping\n" if $DEBUG;
+        return 1;
     }
-    print "Ping returned ok: $ping\n" if $DEBUG;
-    return 1;
-}
-
-sub _process_commands {
-	my ($mac) = @_;
-	my $fh;
-	open($fh, '<', $mac) or die $!;
-	my $processed = 0;
-	my $lines = 0;
-	my $encrypted_event;
-	while(my $line = <$fh>) {
-		$lines++;
-		$encrypted_event .= $line;
-	}		
-	close($fh) or die $!;
-	
-	# no lines, no events
-	return if ($lines == 0);
-
-	print "We have some events, $lines lines for mac $mac\n" if $DEBUG;
-	# we have some events
-	return $encrypted_event;
-}
-
-sub _process_events {
-	my ($mac,$encrypted_event) = @_;
-	
-	my $mac_salt = join('', reverse( split(':',$mac)));
-	print "mac salt is $mac_salt\n" if $DEBUG;
-	push @INC, '/usr/bin/';
-
-	require Blowfish;
-	my $blowfish = Blowfish->new($mac_salt);
-	my @groups = ( $encrypted_event =~ /.{1,8}/gs );
-
-	my $decrypted = '';
-	foreach my $member (@groups) {
-		print "Decrypting chunk...\n" if $DEBUG;
-		$decrypted .= $blowfish->decrypt($member);
-	}
-
-	print "decrypted is $decrypted\n" if $DEBUG;
-	foreach my $event ( (split("\n", $decrypted) )) {
-		chomp($event);
-		my ($sub, @args) = split(/:/, $event);
-		my $arg = join(':', @args);
-		print "Event $sub, executing\n" if $DEBUG;
-		unless ($arg) {
-			warn("arg not present, bug or junk?"); # encryption junk
-			next;
-		}
-		
-		# exec the command, subroutine exits for us
-		my $ok = $sub->($arg);
-		unless ($ok) {
-			print STDERR "sub $sub failed ot execute arg $arg\n";
-			exit(1);
-		}
-	}
-	return 1;
-}; # wtf things break without the semicolon
-
-sub passwd {
-	my $pass = shift;
-	unless ($pass) {
-		print STDERR "_passwd called without pass\n";
-		return;
-	}
-	print "changing pass to $pass\n" if $DEBUG;
-	my $changed = exec('/usr/bin/chpasswd', '-p', $pass);
-	exit(0);
-}
-
-# ssid
-sub ssid {
-	my $ssid = shift;
-	unless ($ssid) {
-		print STDERR "ssid called without ssid\n";
-		return;
-	}
-	print "Changing ssid to '$ssid'\n" if $DEBUG;
-	_change_ssid($ssid);
-	exit(0);
-}
-
-# firmware update
-sub firmware {
-	my $firmware_url = shift;
-	unless ($firmware_url) {
-		print STDERR "firmware update called without firmware\n";
-		return;
-	}
-    chdir('/tmp');
-
-    # first grab the md5sum
-    my $md5_file = 'md5sum.txt';
-    print "grabbing md5sum file\n" if $DEBUG;
-    my ($firmware_dir) = $firmware_url =~ m/^(.*?)[^\/]+$/;
-    my $md5_url = $firmware_dir . $md5_file;
-    my $md5_get = `wget $md5_url`;
-    unless (-e $md5_file) {
-        print STDERR "failed to grab $md5_url, firmware update bailing\n";
-        exit(1);
-    }
-
-    # grab the firmware update
-	print "grabbing the firmware $firmware_url\n" if $DEBUG;
-	my $wget = `wget $firmware_url`;
-	my ($firmware_file) = $firmware_url =~ m/\/([^\/]+)$/;
-	print "firmware file is $firmware_file\n" if $DEBUG;
-
-	unless ( -e $firmware_file ) {                                               
-		print STDERR "firmware file $firmware_file not found, update failed\n";
-		exit(1);
-	}
-
-    # check the md5sum of the file
-    my @md5 = split(/\s+/, `grep $firmware_file $md5_file`);
-    my ($md5sum) = `$MD5 $firmware_file` =~ m/([a-f0-9]{32})/i;
-    unless ($md5[0] eq $md5sum) {
-        print STDERR "$firmware_file failed md5check, md5sum is $md5sum, md5 calc is _" . $md5[0] . "_\n";
-        exit(1);
-    }
-
-    # do the update!
-	print "executing firmware update...\n\n" if $DEBUG;
-	my $update = exec('/sbin/mtd', '-r', 'write', $firmware_file, 'linux');
-	exit(0);
-}
-
-# reboot
-sub reboot {
-	my $reboot = shift;
-	unless ($reboot) {
-		print STDERR "reboot called without args\n";
-		return;
-	}
-	
-	my $rebooted = exec('/sbin/reboot');
-	exit(0);
-}
-
-# halt
-sub halt {
-	my $halt = shift;
-	unless ($halt) {
-		print STDERR "halt called without args\n";
-		return;
-	}
-	my $halted = exec('/sbin/halt');
-	exit(0);
 }
 
