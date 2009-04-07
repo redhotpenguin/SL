@@ -160,3 +160,5 @@ open.ad.yieldmanager.net
 map.sxipper.com
 goku.brightcove.com
 68.180.221.218
+delb.opt.fimserve.com
+c3metrics.medifast1.com
