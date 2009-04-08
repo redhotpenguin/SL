@@ -78,6 +78,7 @@ ads.adbrite.com
 ads.revsci.net
 tribalfusion.com
 adsonar.com
+ads.adsonar.com
 mt0.google.com
 mt1.google.com
 mt2.google.com
@@ -162,3 +163,7 @@ goku.brightcove.com
 68.180.221.218
 delb.opt.fimserve.com
 c3metrics.medifast1.com
+configuration.apple.com
+us.mg2.mail.yahoo.com
+ads.ak.facebook.com
+ads.facebook.com

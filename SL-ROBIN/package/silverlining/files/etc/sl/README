@@ -1,1 +1,7 @@
 Add your own custom blacklisted ips by adding file named custom_skips.txt
+
+You _must_ use an ip address.  A list of current hosts in the skips.txt
+file is in skips_hosts.txt.  You can use /usr/bin/host hostname.com on you
+local unix box to resolve host names of remote hosts that you wish to
+blacklist.
+
