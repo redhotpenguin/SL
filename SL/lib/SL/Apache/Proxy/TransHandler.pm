@@ -175,6 +175,49 @@ sub handler {
 
     }
 
+	my ( $om_hash_mac, $om_router_mac );
+    if ( my $slr_header = $r->headers_in->{'x-slr'} ) {
+        $r->pnotes( 'slr_header' => $slr_header );
+        $r->pnotes( 'sl_header'  => $slr_header );
+        $r->log->error("$$ Found slr_header $slr_header");
+        $r->log->debug("$$ Found slr_header $slr_header") if DEBUG;
+
+        ( $om_hash_mac, $om_router_mac ) =
+          split( /\|/, $r->pnotes('slr_header') );
+
+        # the leading zero is omitted on some sl_headers
+        if ( length($om_hash_mac) == 7 ) {
+            $om_hash_mac = '0' . $om_hash_mac;
+        }
+
+        $r->log->error("$$ Found slr_header $slr_header")
+          unless ( ( length($om_hash_mac) == 8 )
+            && ( length($om_router_mac) == 12 ) );
+
+        unless ( $om_router_mac && $om_hash_mac ) {
+            $r->log->error("$$ slr_header present but no hash or router mac");
+            return Apache2::Const::SERVER_ERROR;    # not really anything better
+        }
+
+        # stash these
+        $r->pnotes( 'om_hash_mac'   => $om_hash_mac );
+        $r->pnotes( 'om_router_mac' => $om_router_mac );
+
+        $r->pnotes( 'hash_mac'   => $om_hash_mac );
+        $r->pnotes( 'router_mac' => $om_router_mac );
+
+
+#        $r->log->error("$$ om_router $om_router_mac, om_hash_mac $om_hash_mac");
+        $r->log->debug("$$ om_router $om_router_mac, om_hash_mac $om_hash_mac") if DEBUG;
+
+        # get rid of this header so that is isn't proxied
+        $r->headers_in->unset('x-slr');
+		
+		$router_mac = $om_router_mac;
+		$hash_mac = $om_hash_mac;
+    }
+
+
     # check for chitika ad
     if ( $r->hostname eq 'mm.chitika.net' ) {
         _handle_chitika_ad($r);
