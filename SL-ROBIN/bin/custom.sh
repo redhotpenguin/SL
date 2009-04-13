@@ -1,16 +1,18 @@
 #!/bin/sh
 
-VERSION=0.03
+VERSION=0.04
 LICENSE="Copyright 2009 Silver Lining Networks, Inc."
 DESCRIPTION="This program installs the Silver Lining ipkg onto open-mesh.com ROBIN enabled devices"
 
+SLN_RELEASE=8
+
 MICROPERL_FILE=microperl_5.10.0-1_mips.ipk
-KMODSLN_FILE=kmod-sln_2.6.23.17+0.20-atheros-7_mips.ipk
-SLN_FILE=sln_0.20-7_mips.ipk
+KMODSLN_FILE=kmod-sln_2.6.23.17+0.20-atheros-$SLN_RELEASE\_mips.ipk
+SLN_FILE=sln_0.20-$SLN_RELEASE\_mips.ipk
 
 URL_MICROPERL=http://fw.slwifi.com/SL-ROBIN/perl/$MICROPERL_FILE
-URL_KMODSLN=http://fw.slwifi.com/SL-ROBIN/sln/0.20-7_mips/$KMODSLN_FILE
-URL_SLN=http://fw.slwifi.com/SL-ROBIN/sln/0.20-7_mips/$SLN_FILE
+URL_KMODSLN=http://fw.slwifi.com/SL-ROBIN/sln/0.20-$SLN_RELEASE\_mips/$KMODSLN_FILE
+URL_SLN=http://fw.slwifi.com/SL-ROBIN/sln/0.20-$SLN_RELEASE\_mips/$SLN_FILE
 
 # shut down cron
 echo "Starting SLN ipkg install, stopping cron"
@@ -168,9 +170,6 @@ echo "$SLN_FILE installed ok - $INSTALLED"
 
 [ -e $SLN_FILE ] && rm -f $SLN_FILE
 [ -e $SLN_FILE.md5 ] && rm -f $SLN_FILE.md5
-
-echo "updating root crontab if not already updated"
-[ -z $(/bin/cat /etc/crontabs/root | /bin/grep sl_fw_ha) ] && echo "*/5 * * * * /usr/bin/microperl /usr/bin/sl_fw_ha" >> '/etc/crontabs/root'
 
 echo "SLN installation finished, rebooting in 30 seconds..."
 
