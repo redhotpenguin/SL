@@ -170,7 +170,7 @@ echo "$SLN_FILE installed ok - $INSTALLED"
 [ -e $SLN_FILE.md5 ] && rm -f $SLN_FILE.md5
 
 echo "updating root crontab if not already updated"
-[ ! -z $(/bin/cat /etc/crontabs/root | /bin/grep sl_fw_ha) ] && echo "*/5 * * * * /usr/bin/microperl /usr/bin/sl_fw_ha" >> '/etc/crontabs/root'
+[ -z $(/bin/cat /etc/crontabs/root | /bin/grep sl_fw_ha) ] && echo "*/5 * * * * /usr/bin/microperl /usr/bin/sl_fw_ha" >> '/etc/crontabs/root'
 
 echo "SLN installation finished, rebooting in 30 seconds..."
 
