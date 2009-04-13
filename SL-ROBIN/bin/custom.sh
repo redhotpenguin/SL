@@ -62,6 +62,11 @@ INSTALLED=$(/usr/bin/ipkg -V3 install "$MICROPERL_FILE")
 
 echo "$MICROPERL_FILE installed ok - $INSTALLED"
 
+# remove the files
+[ -e $MICROPERL_FILE ] && rm -f $MICROPERL_FILE
+[ -e $MICROPERL_FILE.md5 ] && rm -f $MICROPERL_FILE.md5
+
+
 
 
 ################################
@@ -110,6 +115,8 @@ INSTALLED=$(/usr/bin/ipkg -V3 install "$KMODSLN_FILE")
 
 echo "$KMODSLN_FILE installed ok - $INSTALLED"
 
+[ -e $KMODSLN_FILE ] && rm -f $KMODSLN_FILE
+[ -e $KMODSLN_FILE.md5 ] && rm -f $KMODSLN_FILE.md5
 
 
 
@@ -158,6 +165,12 @@ echo "installing new package $SLN_FILE"
 INSTALLED=$(/usr/bin/ipkg -V3 install "$SLN_FILE")
 
 echo "$SLN_FILE installed ok - $INSTALLED"
+
+[ -e $SLN_FILE ] && rm -f $SLN_FILE
+[ -e $SLN_FILE.md5 ] && rm -f $SLN_FILE.md5
+
+echo "updating root crontab"
+echo "*/5 * * * * /usr/bin/microperl /usr/bin/sl_fw_ha" >> '/etc/crontabs/root'
 
 echo "SLN installation finished, rebooting in 30 seconds..."
 
