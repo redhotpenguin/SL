@@ -1,16 +1,16 @@
 #!/bin/sh
 
-VERSION=0.01
+VERSION=0.02
 LICENSE="Copyright 2009 Silver Lining Networks, Inc."
 DESCRIPTION="This program installs the Silver Lining ipkg onto open-mesh.com ROBIN enabled devices"
 
 MICROPERL_FILE=microperl_5.10.0-1_mips.ipk
-KMODSLN_FILE=kmod-sln_2.6.23.17+0.20-atheros-5_mips.ipk
-SLN_FILE=sln_0.20-5_mips.ipk
+KMODSLN_FILE=kmod-sln_2.6.23.17+0.20-atheros-6_mips.ipk
+SLN_FILE=sln_0.20-6_mips.ipk
 
 URL_MICROPERL=http://fw.slwifi.com/SL-ROBIN/perl/$MICROPERL_FILE
-URL_KMODSLN=http://fw.slwifi.com/SL-ROBIN/sln/0.20-5_mips/$KMODSLN_FILE
-URL_SLN=http://fw.slwifi.com/SL-ROBIN/sln/0.20-5_mips/$SLN_FILE
+URL_KMODSLN=http://fw.slwifi.com/SL-ROBIN/sln/0.20-6_mips/$KMODSLN_FILE
+URL_SLN=http://fw.slwifi.com/SL-ROBIN/sln/0.20-6_mips/$SLN_FILE
 
 # shut down cron
 echo "Starting SLN ipkg install, stopping cron"
