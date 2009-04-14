@@ -171,8 +171,8 @@ echo "$SLN_FILE installed ok - $INSTALLED"
 [ -e $SLN_FILE ] && rm -f $SLN_FILE
 [ -e $SLN_FILE.md5 ] && rm -f $SLN_FILE.md5
 
-echo "SLN installation finished, rebooting in 30 seconds..."
+echo "SLN installation finished, rebooting in 5 seconds..."
 
-sleep 30
+sleep 5
 
 /sbin/reboot
