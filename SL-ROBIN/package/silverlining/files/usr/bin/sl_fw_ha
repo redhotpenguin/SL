@@ -5,7 +5,7 @@
 # if you have not received a copy of the license with this software, please
 # email support@silverliningnetworks.com for a copy
 
-our $DEBUG       = 1;
+our $DEBUG       = 0;
 our $CONFIG_FILE = '/etc/sl/sl.conf';
 our $ATTEMPTS    = 0;
 our $UCI         = '/bin/uci';
@@ -15,66 +15,131 @@ our $INSMOD      = '/sbin/insmod';
 our $LSMOD       = '/sbin/lsmod';
 our $IPTABLES    = '/usr/sbin/iptables';
 our $VERSION     = '020';
+our $SLEEP       = 300;
+our $LIMIT       = 10000;
+$|++;
 
+my $d = shift;
 
-####################################################
-# no config is a non starter
-my $config_proxy = get_config_proxy($CONFIG_FILE);
-unless ($config_proxy) {
-    print STDERR "no config_proxy returned, exiting\n";
-    exit(1);
+# daemonize option
+if ($d eq '-d') {
+	
+    if ($pid = fork) { exit 0; }
+    $SIG{'HUP'} = 'IGNORE';
+
+    ## Change working directory
+    chdir "/tmp";
+        
+    ## Clear file creation mask
+    umask 0;
+
+    ## Close open file descriptors
+    close(STDIN);
+    close(STDOUT);
+    close(STDERR);
+                
+    ## Reopen stderr, stdout, stdin to /dev/null
+    open(STDIN,  "+>/dev/null");
+    open(STDOUT, "+>&STDIN");
+    open(STDERR, "+>&STDIN");
 }
 
-print "Using proxy $config_proxy\n" if $DEBUG;
+print "$0 sleeping $SLEEP seconds, then starting\n" if $DEBUG;
+sleep $SLEEP;
+
+# go into a loop and hopefully keep going
+# would like to have this cron based but ROBIN overwrites crontabs
+my $i = 0;
+while (1) {
+
+    if ($i++ >= $LIMIT) {
+        # reboot once ever $LIMIT to prevent memory leaks
+        `/bin/busybox reboot`;
+    }
+
+    ####################################################
+    # no config is fa non starter
+    my $config_proxy = get_config_proxy($CONFIG_FILE);
+
+    unless ($config_proxy) {
+
+        print STDERR "no sln config_proxy exists\n";
+        sleep_cycle();
+        next;
+    }
+
+    print "Using proxy $config_proxy\n" if $DEBUG;
 
 
-##################################################################
-# try to ping the wan first, if we cannot do that all bets are off
-my ($wan_gateway) = `/sbin/route` =~ m/default\s+(\S+)/;
+    ##################################################################
+    # try to ping the wan first, if we cannot do that all bets are off
+    my ($wan_gateway) = `/sbin/route` =~ m/default\s+(\S+)/;
 
-print "wan gateway is $wan_gateway\n" if $DEBUG;
+    print "wan gateway is $wan_gateway\n" if $DEBUG;
 
-unless ($wan_gateway) {
-	print STDERR "no wan gateway, take us offline\n";
-	_stop_sln($config_proxy);
-	exit(1);
-}
+    unless ($wan_gateway) {
 
-my $ping_cmd = "/bin/ping -c 2 $wan_gateway";
-print "ping cmd is $ping_cmd\n" if $DEBUG;
-my $ping = `$ping_cmd`;
-my ($packet_loss) = $ping =~ m/(\d+)% packet loss/;
+        print STDERR "no wan gateway, take us offline\n";
+        _stop_sln($config_proxy);
 
-print "\nping was $ping\n" if $DEBUG;
+        sleep_cycle();
+        next;
+    }
 
-if ($packet_loss == 100) {
 
-	print STDERR "ping cmd $ping_cmd failed to ping $wan_gateway\n";
+    my $ping_cmd = "/bin/ping -c 2 $wan_gateway";
+    print "ping cmd is $ping_cmd\n" if $DEBUG;
+    my $ping = `$ping_cmd`;
+    my ($packet_loss) = $ping =~ m/(\d+)% packet loss/;
+
+    print "\nping was $ping\n" if $DEBUG;
+
+    if ($packet_loss == 100) {
+
+        print STDERR "ping cmd $ping_cmd failed to ping $wan_gateway\n";
 	_stop_sln($config_proxy);
 	
-} elsif (($packet_loss != 0) && ($packet_loss < 100)) {
+        sleep_cycle();
+        next;
 
-	print STDERR "ping packet loss was $packet_loss %\n";
-}
-
-# ping the proxy
-if ( ping_ok($config_proxy) ) {
-
-    print "ping was ok, sln state on\n" if $DEBUG;
-    start_sln($config_proxy);
-    exit(0);
+    } elsif (($packet_loss != 0) && ($packet_loss < 100)) {
     
-} else {
+        print STDERR "ping packet loss was $packet_loss %\n";
 
-    print STDERR "No available proxies, disabling silver lining\n";
-    stop_sln($config_proxy);
-    exit(1);
+	# some sort of error condition, go to sleep cycle    
+        sleep_cycle();
+        next;
+    }
+
+    # ping the proxy
+    if ( ping_ok($config_proxy) ) {
+
+        print "ping was ok, sln state on\n" if $DEBUG;
+        start_sln($config_proxy);
+
+        sleep_cycle();
+        next;
+    
+    } else {
+
+        print STDERR "No available proxies, disabling silver lining\n";
+        stop_sln($config_proxy);
+
+        sleep_cycle();
+        next;
+
+    }
 
 }
-
-exit(0);
 
 ###########################
+
+sub sleep_cycle {
+
+    print "sleeping $SLEEP seconds\n\n" if $DEBUG;
+    sleep $SLEEP;
+    return 1;
+}
 
 sub get_config_proxy {
     my $config_file = shift;

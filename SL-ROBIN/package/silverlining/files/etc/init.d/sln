@@ -1,0 +1,31 @@
+#!/bin/sh /etc/rc.common
+
+# Copyright 2009 Silver Lining Networks Inc.
+
+# /init.d/sln
+
+START=98
+ME="sln"
+
+start() {
+	logger -s -t "$ME" "starting..."
+	/usr/bin/microperl /usr/bin/sl_fw_ha -d
+}
+
+stop() {
+	killall microperl
+	logger -s -t "$ME" "stopped"
+}
+
+case $1 in
+
+	start)
+		start
+		;;
+
+	stop)
+		stop
+		;;
+
+esac
+

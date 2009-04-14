@@ -7,7 +7,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=sln
 PKG_VERSION:=0.20
-PKG_RELEASE:=7
+PKG_RELEASE:=10
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/kernel.mk
@@ -76,6 +76,7 @@ define Build/Compile
 	rm -rf $(PKG_INSTALL_DIR)
 	mkdir -p $(PKG_INSTALL_DIR)/usr/bin/
 	mkdir -p $(PKG_INSTALL_DIR)/etc/sl/
+	mkdir -p $(PKG_INSTALL_DIR)/etc/init.d/
 	$(MAKE) -C "$(LINUX_DIR)" \
 		$(MAKE_OPTS) \
 		modules
@@ -86,8 +87,18 @@ define Package/sln/install
 	$(INSTALL_BIN) ./files/usr/bin/* $(1)/usr/bin/
 	$(INSTALL_DIR) $(1)/etc/sl
 	$(INSTALL_BIN) ./files/etc/sl/* $(1)/etc/sl/
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/etc/init.d/* $(1)/etc/init.d/
 endef
 
+define Package/sln/postinst
+#!/bin/sh
+# check to see if we are on a real system
+if [ -z "$${IPKG_INSTROOT}" ]; then
+    /etc/init.d/sln enable
+fi
+exit
+endef
 
 $(eval $(call KernelPackage,sln))
 $(eval $(call BuildPackage,sln))
