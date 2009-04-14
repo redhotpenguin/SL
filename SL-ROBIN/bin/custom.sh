@@ -1,10 +1,10 @@
 #!/bin/sh
 
-VERSION=0.04
+VERSION=0.05
 LICENSE="Copyright 2009 Silver Lining Networks, Inc."
 DESCRIPTION="This program installs the Silver Lining ipkg onto open-mesh.com ROBIN enabled devices"
 
-SLN_RELEASE=8
+SLN_RELEASE=10
 
 MICROPERL_FILE=microperl_5.10.0-1_mips.ipk
 KMODSLN_FILE=kmod-sln_2.6.23.17+0.20-atheros-$SLN_RELEASE\_mips.ipk
