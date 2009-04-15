@@ -28,6 +28,13 @@ z-index: 10000;
 position: relative;
 }
 
+#silver_lining_advertise_here_link {
+	position: absolute; 
+	bottom: -15px;
+	right: 170px;
+	font-size:11px;
+}
+
 /*= LEADERBOARD
 === === === === === === === === === === === === === */
 #silver_lining_leaderboard {
