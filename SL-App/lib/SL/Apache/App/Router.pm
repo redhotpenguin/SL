@@ -97,19 +97,17 @@ sub dispatch_edit {
 
         # reset method to get for redirect
         $r->method_number(Apache2::Const::M_GET);
-        my @required;
-        if ($router && ( $router->serial_number eq '')) { # hack for backwards compatilibity
-            @required = qw( name macaddr ssid );
-        } elsif (! $router or $router && $router->serial_number ne '') {
-            @required = qw( name macaddr ssid serial_number );
-        }
+        
+	my @required = qw( name macaddr device );
 
         my %router_profile = (
             required => \@required,
-            optional => [qw( splash_href splash_timeout )],
+            optional => [qw( splash_href splash_timeout
+	    		     ssid openmesh_macaddr serial_number )],
             constraint_methods => {
-                macaddr     => valid_macaddr(),
-                splash_href => splash_href(),
+                macaddr           => valid_macaddr(),
+                openmesh_macaddr  => valid_macaddr(),
+                splash_href       => splash_href(),
             }
         );
         my $results = Data::FormValidator->check( $req, \%router_profile );
@@ -144,7 +142,7 @@ sub dispatch_edit {
 	$router->active(1);
 	$router->account_id( $reg->account_id->account_id );
         $router->update;
-    } elsif ($router) {
+     } elsif ($router) {
 
     # create an ssid event if the ssid changed
     if ( defined $router->ssid && ( $router->ssid ne $req->param('ssid')  ) ) {
@@ -152,13 +150,19 @@ sub dispatch_edit {
     }
 
     # update each attribute
-    foreach my $param qw( name macaddr splash_href
-      serial_number ssid splash_timeout ) {
+    foreach my $param qw( name macaddr splash_href device
+      			serial_number ssid splash_timeout ) {
         $router->$param( $req->param($param) );
       }
 
-      $router->update;
+      if ($req->param('openmesh_macaddr') ne '') {
+      	$router->openmesh_macaddr($req->param('openmesh_macaddr'));
+      } else {
+      	$router->openmesh_macaddr(undef);
 	}
+
+      $router->update;
+    }
 
     # and update the associated ad zones for this router
     # first get rid of the old associations
@@ -200,21 +204,21 @@ sub dispatch_list {
         my $sec =
           ( time - $dt->epoch - 3600 * 7); # FIXME daylight savings time breaks
         my $minutes = sprintf( '%d', $sec / 60 );
-        if ( $sec <= 120 ) {
-            $router->{'last_seen'}  = "$sec sec";
+        if ( $sec <= 360 ) {
+            $router->{'last_seen'}  = qq{<font color="green"><b>$sec sec</b></font>};
             $router->{'seen_index'} = 1;
         }
-        elsif ( ( $sec > 120 ) && ( $minutes <= 60 ) ) {
-            $router->{'last_seen'}  = "$minutes min";
+        elsif ( ( $sec > 360 ) && ( $minutes <= 60 ) ) {
+            $router->{'last_seen'}  = qq{<font color="red"><b>$minutes min</b></font>};
             $router->{'seen_index'} = 2;
         }
         elsif ( ( $minutes > 60 ) && ( $minutes < 1440 ) ) {
             my $hours = sprintf( '%d', $minutes / 60 );
-            $router->{'last_seen'}  = "$hours hours";
+            $router->{'last_seen'}  = qq{<font color="orange"><b>$hours hours</b></font>};
             $router->{'seen_index'} = 3;
         }
         else {
-            $router->{'last_seen'} = sprintf( '%d', $minutes / 1440 ) . ' days';
+            $router->{'last_seen'} = '<font color="black">' . sprintf( '%d', $minutes / 1440 ) . ' days' . '</font>';
             $router->{'seen_index'} = 4;
         }
     }
