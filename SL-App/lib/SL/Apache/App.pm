@@ -123,9 +123,7 @@ sub check_password {
         my $val    = $dfv->get_current_constraint_value;
         my $data   = $dfv->get_filtered_data;
         my $pass   = $data->{password};
-        my $retype = $data->{retype};
 
-        return unless ( $pass eq $retype );
         return unless length($pass) > 4;
         return $val;
       }

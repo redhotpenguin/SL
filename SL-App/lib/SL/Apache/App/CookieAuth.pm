@@ -376,15 +376,11 @@ sub signup {
         $r->method_number(Apache2::Const::M_GET);
 
         my %profile = (
-            required => [qw( email password retype router_mac serial_number )],
-            optional => [qw( paypal_id )],
+            required => [qw( email password )],
             constraint_methods => {
-                paypal_id  => email(),
                 email      => email(),
-                router_mac => valid_macaddr(),
-                serial_number => valid_serial(),
                 password   => SL::Apache::App::check_password(
-                    { fields => [ 'retype', 'password' ] }
+                    { fields => [ 'password' ] }
                 ),
             }
         );
@@ -419,21 +415,17 @@ sub signup {
             password_md5 => Digest::MD5::md5_hex( $req->param('password') ),
             account_id   => $account->account_id,
         );
-        if ( $req->param('paypal_id') ) {
-            $reg_args{'paypal_id'} = $req->param('paypal_id');
-        }
 
-        my $reg =
-          SL::Model::App->resultset('Reg')->find_or_create( \%reg_args );
+        my ($reg) =
+          SL::Model::App->resultset('Reg')->search( \%reg_args );
+	
+	if ($reg) {
+		$r->log->error("Duplicate registration for " . $req->param('email'));
+	} else {
+		$reg = SL::Model::App->resultset('Reg')->create( \%reg_args );
+		$r->log->error("new reg for " . $req->param('email') . " could not be created") if !$reg;
+	}
         $reg->update;
-
-        # link the reg to the router
-        my ($router) =
-          SL::Model::App->resultset('Router')
-          ->find_or_create( { macaddr => $req->param('router_mac') } );
-        $router->account_id( $account->account_id );
-        $router->serial_number( $req->param('serial_number') );
-        $router->update;
 
         my $support = "SLN Support <support\@silverliningnetworks.com>";
 	my $signup = 'signup@silverliningnetworks.com';
@@ -445,9 +437,7 @@ sub signup {
                 'Subject' => "New signup for " . $reg->email,
             }
         );
-        print $mailer $reg->email
-          . " has signed up with router mac "
-          . $router->macaddr . "\n";
+        print $mailer sprintf("A new user %s has signed up!\n", $reg->email);
         $mailer->close;
 
 	my $to_email = $reg->email;
@@ -468,9 +458,12 @@ Thank you for registering with Silver Lining Networks.  Most users are able to g
 Please feel free to write us with any questions about the service at support\@silverliningnetworks.com.
 
 Sincerely,
-Jacob
+
 Silver Lining Networks Support
 
+web:  http://support.silverliningnetworks.com/
+email: support\@silverliningnetworks.com 
+voicemail: 1.888.334.6602
 MAIL
 
         $mailer->close;
@@ -570,10 +563,9 @@ sub forgot {
             $r->headers_out->set( Location =>
                   $r->construct_url("/forgot/?status=sent&forgot_email=$email")
             );
-            return Apache2::Const::REDIRECT;
+	return Apache2::Const::REDIRECT;
 
-        }
-    }
+   }
 }
 
 sub forgot_reset {
@@ -612,17 +604,14 @@ sub forgot_reset {
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
         $r->method_number(Apache2::Const::M_GET);
 
-        unless ( ( $req->param('password') && $req->param('retype') )
-            && ( $req->param('password') eq $req->param('retype') ) )
-        {
-
+	if (length($req->param('password')) < 5) {
             $r->headers_out->set(
-                Location => $r->construct_url(
-                    '/forgot/reset/?error=mismatch&key=' . $req->param('key')
-                )
-            );
-            return Apache2::Const::REDIRECT;
-        }
+	Location => $r->construct_url(
+		'/forgot/reset/?error=tooshort&key=' . $req->param('key')
+		)
+	);
+	return Apache2::Const::REDIRECT;
+	}
 
         # update the password
         my $reg = $forgot->reg_id;
@@ -633,10 +622,20 @@ sub forgot_reset {
         $forgot->expired(1);
         $forgot->update;
 
-        # send to the login page
-        $r->headers_out->set(
-            Location => $r->construct_url('/login/?status=password_updated') );
-        return Apache2::Const::REDIRECT;
+
+
+        # create a session
+        my %session;
+        tie %session, 'Apache::Session::DB_File', undef, \%SESS_OPTS;
+        my $session_id = $session{_session_id};
+        $r->pnotes( 'session' => \%session );
+
+        # auth the user and log them in
+        $class->send_cookie( $r, $reg, $session_id );
+
+        $r->internal_redirect("/app/home/index");
+        return $class->auth_ok( $r, $reg );
+   }
     }
 }
 
