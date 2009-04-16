@@ -24,8 +24,6 @@ __PACKAGE__->add_columns(
   },
   "macaddr",
   { data_type => "macaddr", default_value => undef, is_nullable => 1, size => 6 },
-  "openmesh_macaddr",
-  { data_type => "macaddr", default_value => undef, is_nullable => 1, size => 6 },
   "cts",
   {
     data_type => "timestamp without time zone",
@@ -251,6 +249,39 @@ sub ad_views {
     }
 
     return ( $count, \@views );
+}
+
+sub mac__to__om_mac {
+	my $mac = shift or die 'no mac passed';
+
+	my $last_two = substr($ mac, length($mac) - 2, length($mac));
+	$last_two = sprintf('%02x', sprintf('%d', hex($last_two))-1);
+	substr($mac, length($mac) - 2, length($mac), $last_two);
+	substr($mac, 0, 2, '00');
+	return $mac;
+}
+
+sub om_mac__to__mac {
+	my $mac = shift or die 'no mac passed';
+
+	my $last_two = substr($mac, length($mac) - 2, length($mac));
+	$last_two = sprintf('%02x', sprintf('%d', hex($last_two))+1);
+	substr($mac, length($mac) - 2, length($mac), $last_two);
+	substr($mac, 0, 2, '06');
+	return $mac;
+}
+
+
+
+sub displaymac {
+	my $self = shift;
+	
+	my $mac = $self->macaddr;
+	if (substr(uc($mac), 0, 9) eq '06:12:CF:') {
+		# translate
+		$mac = mac__to__om_mac($mac);
+	}
+	return $mac;
 }
 
 sub views_count {
