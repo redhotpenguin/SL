@@ -305,7 +305,8 @@ sub random {
 
     # check to see if this is a floating horizontal ad zone
     if ( ( (substr($ua, 13, 6) eq 'iPhone') or   # iPhone
-           (substr($ua, 25, 6) eq 'MSIE 6') ) && # IE6
+           (substr($ua, 25, 6) eq 'MSIE 6') or   # IE6
+           (substr($ua, 25, 6) eq 'MSIE 7') ) && # IE7
          ( ($ad_data->[AD_SIZE_ID] == 10)        # Floating Leaderboard
         or ($ad_data->[AD_SIZE_ID] == 12) ) ) {  # Floating Footer Leaderboard
 
