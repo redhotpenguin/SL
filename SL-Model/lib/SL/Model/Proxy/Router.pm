@@ -68,9 +68,9 @@ VALUES
 
 use constant INSERT_OPENMESH_ROUTER_SQL => q{
 INSERT INTO ROUTER
-(macaddr, openmesh_macaddr)
+(macaddr, openmesh_macaddr, device)
 VALUES
-(?,?)
+(?,?,?)
 };
 
 
@@ -91,21 +91,25 @@ sub add_router_from_mac {
     my $sth;
 
     # see if it is an open-mesh router;
-    if (substr(uc($macaddr), 0, 9) eq '00:12:CF:') {
+    if (substr(uc($macaddr), 0, 9) eq '06:12:CF:') {
 
         # this is an open-mesh router, calculate the om mac
         $sth = $dbh->prepare_cached(INSERT_OPENMESH_ROUTER_SQL);
         $sth->bind_param( 1, $macaddr );
 
         # grab the last two characters
-        my $last_two = substr($macaddr, length($macaddr) - 2, length($macaddr));
-        my $om_mac = sprintf('%02x', sprintf('%d', hex($last_two))+1);
+	    my $om_mac = $macaddr;
+        my $last_two = substr($om_mac, length($om_mac) - 2, length($om_mac));
+        $last_two = sprintf('%02x', sprintf('%d', hex($last_two))-1);
+ 		substr($om_mac, length($om_mac) - 2, length($om_mac), $last_two);
+		substr($om_mac, 0, 2, '00');
 
         $sth->bind_param( 2, $om_mac );
+		$sth->bind_param( 3, 'mr3201a');
 
       } else {
         # regular registration
-        my $sth = $dbh->prepare_cached(INSERT_ROUTER_SQL);
+        $sth = $dbh->prepare_cached(INSERT_ROUTER_SQL);
 
         $sth->bind_param( 1, $macaddr );
     }

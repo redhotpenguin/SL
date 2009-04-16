@@ -345,6 +345,7 @@ sub process_ad_template {
 	$bug_image_href->port(8135);
 
     my %tmpl_vars = (
+		zone           => $ad_data->[AD_ZONE_ID],
         code           => $ad_data->[AD_ZONE_CODE],
         code_double    => $ad_data->[AD_ZONE_CODE_DOUBLE],
         bug_image_href => $bug_image_href->as_string,
