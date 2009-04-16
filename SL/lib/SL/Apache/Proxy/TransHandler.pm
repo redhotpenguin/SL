@@ -179,7 +179,6 @@ sub handler {
     if ( my $slr_header = $r->headers_in->{'x-slr'} ) {
         $r->pnotes( 'slr_header' => $slr_header );
         $r->pnotes( 'sl_header'  => $slr_header );
-        $r->log->error("$$ Found slr_header $slr_header");
         $r->log->debug("$$ Found slr_header $slr_header") if DEBUG;
 
         ( $om_hash_mac, $om_router_mac ) =

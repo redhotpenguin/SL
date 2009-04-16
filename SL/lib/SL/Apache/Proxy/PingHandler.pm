@@ -112,19 +112,6 @@ sub handler {
         }
     }
 
-    if (defined $router_ref->[PASSTHRU] && ($router_ref->[PASSTHRU] == 1)) {
-        $r->log->error("$$ router mac $macaddr passthrough");
-#	$r->assbackwards(1);
-#	$r->status_line("503 SL Passthrough");
-#	$r->connection->keepalive(1);
-#	$r->connection->keepalives($r->connection->keepalives+1);
-#    	$r->set_handlers( PerlResponseHandler => undef );
-#    	$r->set_handlers( PerlLogHandler      => undef );
-	$r->custom_response(Apache2::Const::SERVER_ERROR, 'SL Passthrough');
-	
-	return Apache2::Const::SERVER_ERROR;
-    }
-
     $r->log->debug("$$ ping ok for mac $macaddr") if DEBUG;
 
     # see if there are any events for this router to process
