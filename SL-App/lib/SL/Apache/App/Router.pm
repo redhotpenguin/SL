@@ -98,15 +98,14 @@ sub dispatch_edit {
         # reset method to get for redirect
         $r->method_number(Apache2::Const::M_GET);
         
-	my @required = qw( name macaddr device );
+	my @required = qw( name  device macaddr );
 
         my %router_profile = (
             required => \@required,
             optional => [qw( splash_href splash_timeout
-	    		     ssid openmesh_macaddr serial_number )],
+	    		     ssid serial_number )],
             constraint_methods => {
                 macaddr           => valid_macaddr(),
-                openmesh_macaddr  => valid_macaddr(),
                 splash_href       => splash_href(),
             }
         );
@@ -125,44 +124,55 @@ sub dispatch_edit {
         }
     }
 
-    unless ($router) {
+        my $macaddr = $req->param('macaddr');
+	if (substr(uc($macaddr), 0, 9) eq '00:12:CF:') {
+	    # this is an open-mesh router
+	    # translate the macaddress to ath1 format
+	    $macaddr = om_mac__to__mac($macaddr);
+        }
 
+
+    unless ($router) {
         # adding a new router
-        $router = SL::Model::App->resultset('Router')->find_or_create(
+        ($router) = SL::Model::App->resultset('Router')->search(
             {
-                macaddr => $req->param('macaddr'),,
+                macaddr => $macaddr,
             }
         );
-	# steal the router from someone if they have it
+
+	if ($router) {
+	    # we are stealing it from somewhere
+	    $r->log->error(
+		sprintf('user %s stealing router %s from account %s',
+		$reg->email, $macaddr, $router->account_id->name));
+	} else {	
+	    # creating a new router
+	    $router = SL::Model::App->resultset('Router')->create(
+	    	{macaddr => $macaddr });
+	}
 
       	foreach my $param qw( name splash_href
-  	    serial_number ssid splash_timeout ) {
+	  	serial_number ssid splash_timeout ) {
         	$router->$param( $req->param($param) );
      	}
 	$router->active(1);
 	$router->account_id( $reg->account_id->account_id );
         $router->update;
-     } elsif ($router) {
+    }
 
     # create an ssid event if the ssid changed
     if ( defined $router->ssid && ( $router->ssid ne $req->param('ssid')  ) ) {
         $router->ssid_event( $req->param('ssid') );
     }
 
+    $router->macaddr($macaddr);
     # update each attribute
-    foreach my $param qw( name macaddr splash_href device
+    foreach my $param qw( name splash_href device
       			serial_number ssid splash_timeout ) {
         $router->$param( $req->param($param) );
       }
 
-      if ($req->param('openmesh_macaddr') ne '') {
-      	$router->openmesh_macaddr($req->param('openmesh_macaddr'));
-      } else {
-      	$router->openmesh_macaddr(undef);
-	}
-
-      $router->update;
-    }
+    $router->update;
 
     # and update the associated ad zones for this router
     # first get rid of the old associations
@@ -188,6 +198,29 @@ sub dispatch_edit {
         Location => $r->construct_url('/app/router/list') );
     return Apache2::Const::REDIRECT;
 }
+
+sub mac__to__om_mac {
+	my $mac = shift or die 'no mac passed';
+
+	my $last_two = substr($ mac, length($mac) - 2, length($mac));
+	$last_two = sprintf('%02x', sprintf('%d', hex($last_two))-1);
+	substr($mac, length($mac) - 2, length($mac), $last_two);
+	substr($mac, 0, 2, '00');
+	return $mac;
+}
+
+sub om_mac__to__mac {
+	my $mac = shift or die 'no mac passed';
+
+	my $last_two = substr($mac, length($mac) - 2, length($mac));
+	$last_two = sprintf('%02x', sprintf('%d', hex($last_two))+1);
+	substr($mac, length($mac) - 2, length($mac), $last_two);
+	substr($mac, 0, 2, '06');
+	return $mac;
+}
+
+
+
 
 sub dispatch_list {
     my ( $self, $r, $args_ref ) = @_;
