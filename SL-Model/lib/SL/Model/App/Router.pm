@@ -24,6 +24,8 @@ __PACKAGE__->add_columns(
   },
   "macaddr",
   { data_type => "macaddr", default_value => undef, is_nullable => 1, size => 6 },
+  "openmesh_macaddr",
+  { data_type => "macaddr", default_value => undef, is_nullable => 1, size => 6 },
   "cts",
   {
     data_type => "timestamp without time zone",
@@ -142,13 +144,7 @@ __PACKAGE__->add_columns(
   { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
   "account_id",
   { data_type => "integer", default_value => 1, is_nullable => 0, size => 4 },
-  "passthru",
-  {
-    data_type => "boolean",
-    default_value => "false",
-    is_nullable => 1,
-    size => 1,
-  },
+
   "wan_ip",
   {
     data_type => "inet",
