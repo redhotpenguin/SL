@@ -14,7 +14,6 @@ router.passwd_event,
 router.firmware_event,
 router.reboot_event,
 router.halt_event,
-router.passthru
 FROM
 router__location
 INNER JOIN router USING(router_id)
