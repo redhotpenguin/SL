@@ -445,7 +445,7 @@ sub signup {
             {
                 'To'      => $to_email,
                 'From'    => $support,
-                'CC'      => $support,
+                'CC'      => 'signup@silverliningnetworks.com',
                 'Subject' => "Welcome to Silver Lining Networks",
             }
         );
