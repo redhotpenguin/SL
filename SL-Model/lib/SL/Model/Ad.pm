@@ -32,8 +32,9 @@ use constant BUG_LINK_HREF       => 9;
 use constant PREMIUM             => 10;
 use constant CLOSE_BOX           => 11;
 use constant AAA                 => 12;
-use constant LAN_IP              => 13;
-use constant OUTPUT_REF          => 14;
+use constant ADVERTISE_HERE      => 13;
+use constant LAN_IP              => 14;
+use constant OUTPUT_REF          => 15;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
@@ -247,6 +248,7 @@ bug.link_href,
 account.premium,
 account.close_box,
 account.aaa,
+account.advertise_here,
 
 router.lan_ip
 
@@ -358,7 +360,11 @@ sub process_ad_template {
     if (defined $ad_data->[AAA] && ( $ad_data->[AAA] ne '') ) {
       $tmpl_vars{aaa} = $ad_data->[AAA],
     }
-
+    if (defined $ad_data->[ADVERTISE_HERE] && 
+    	( $ad_data->[ADVERTISE_HERE] ne '') ) {
+      $tmpl_vars{advertise_here} = $ad_data->[ADVERTISE_HERE],
+    }
+    
     warn( "tmpl vars: " . Data::Dumper::Dumper( \%tmpl_vars ) ) if DEBUG;
 
     # generate the ad
