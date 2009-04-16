@@ -141,12 +141,14 @@ sub update_example_ad_zones {
     my %base_example_ad_zones = map { $_->name => $_ }
         SL::Model::App->resultset('AdZone')->search({
            account_id => 1,
-           name => { like => 'SLN Example%', }, });
+           name => { like => 'SLN Example%', },
+	   active => 't'});
 
     my %account_example_ad_zones = map { $_->name => $_ }
         SL::Model::App->resultset('AdZone')->search({
            account_id => $self->account_id,
-           name => { like => 'SLN Example%', }, });
+           name => { like => 'SLN Example%', },
+	   active => 't'});
 
     foreach my $base_example ( keys %base_example_ad_zones ) {
 
