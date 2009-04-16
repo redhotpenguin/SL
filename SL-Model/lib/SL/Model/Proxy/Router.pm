@@ -66,6 +66,14 @@ VALUES
 (?)
 };
 
+use constant INSERT_OPENMESH_ROUTER_SQL => q{
+INSERT INTO ROUTER
+(macaddr, openmesh_macaddr)
+VALUES
+(?,?)
+};
+
+
 sub add_router_from_mac {
     my ( $class, $macaddr ) = @_;
 
@@ -80,8 +88,27 @@ sub add_router_from_mac {
         return;
     }
 
-    my $sth = $dbh->prepare_cached(INSERT_ROUTER_SQL);
-    $sth->bind_param( 1, $macaddr );
+    my $sth;
+
+    # see if it is an open-mesh router;
+    if (substr(uc($macaddr), 0, 9) eq '00:12:CF:') {
+
+        # this is an open-mesh router, calculate the om mac
+        $sth = $dbh->prepare_cached(INSERT_OPENMESH_ROUTER_SQL);
+        $sth->bind_param( 1, $macaddr );
+
+        # grab the last two characters
+        my $last_two = substr($macaddr, length($macaddr) - 2, length($macaddr));
+        my $om_mac = sprintf('%02x', sprintf('%d', hex($last_two))+1);
+
+        $sth->bind_param( 2, $om_mac );
+
+      } else {
+        # regular registration
+        my $sth = $dbh->prepare_cached(INSERT_ROUTER_SQL);
+
+        $sth->bind_param( 1, $macaddr );
+    }
     my $rv = $sth->execute;
     unless ($rv) {
         require Carp && Carp::cluck("could not insert router sql mac $macaddr");
