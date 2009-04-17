@@ -430,22 +430,12 @@ sub signup {
         my $support = "SLN Support <support\@silverliningnetworks.com>";
 	my $signup = 'signup@silverliningnetworks.com';
         my $mailer  = Mail::Mailer->new('qmail');
-        $mailer->open(
-            {
-                'To'      => $signup,
-                'From'    => $signup,
-                'Subject' => "New signup for " . $reg->email,
-            }
-        );
-        print $mailer sprintf("A new user %s has signed up!\n", $reg->email);
-        $mailer->close;
-
 	my $to_email = $reg->email;
         $mailer->open(
             {
                 'To'      => $to_email,
                 'From'    => $support,
-                'CC'      => 'signup@silverliningnetworks.com',
+                'CC'      => $signup,
                 'Subject' => "Welcome to Silver Lining Networks",
             }
         );
