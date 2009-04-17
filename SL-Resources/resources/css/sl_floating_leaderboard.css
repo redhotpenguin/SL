@@ -22,10 +22,18 @@ right: 0;
 text-align: center;
 padding: 10px 0px 16px 0px;
 background: #FFF url(../images/backgrounds/border.png) repeat-x bottom left; 
-z-index: 3000;
+z-index: 10000;
 }
 #silver_lining_webpage {
 position: relative;
+}
+
+#silver_lining_advertise_here_link {
+	position: absolute; 
+	bottom: -15px;
+	right: 170px;
+	font-size:11px;
+    color:#369;
 }
 
 /*= LEADERBOARD
@@ -93,7 +101,8 @@ width: expression(document.body.clientWidth);
 height: 100%; overflow: auto;
 }
 * html #silver_lining_leaderboard {
-width:960px;
+width: auto;
+/* width:960px; */
 }
 * html #silver_lining_leaderboard #silver_lining_homepage {
 background: url(../images/logos/sl_logo_small_low.png) no-repeat top left;

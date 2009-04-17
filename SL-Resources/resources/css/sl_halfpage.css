@@ -17,9 +17,9 @@ clear: both;
 position: absolute;
 left: 0;
 top: 0;
-bottom: 0;
 padding:10px 16px 10px 10px;
 background: #FFF url(../images/backgrounds/border_vertical.png) repeat-y top right; 
+z-index: 3000;
 }
 #silver_lining_webpage {
 position: relative;
@@ -42,6 +42,19 @@ background-position: top center !important;
 background-repeat: no-repeat !important;
 overflow: hidden;
 }
+
+#silver_lining_wide_skyscraper #silver_lining_bug a {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 300px;
+    height: 90px;
+    padding: 10px 0px;
+    background-position: top center !important;
+    background-repeat: no-repeat !important;
+    overflow: hidden;
+}
+
 #silver_lining_half_page #silver_lining_client_ad {
 width: 300px;
 overflow: hidden;
