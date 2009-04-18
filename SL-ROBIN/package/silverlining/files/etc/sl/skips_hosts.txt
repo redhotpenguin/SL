@@ -1,3 +1,4 @@
+0.channel13.facebook.com
 02268001106.channel09.facebook.com
 112.2o7.net
 208.117.249.0/24
@@ -7,6 +8,7 @@
 247readlmedia.com
 2mdn.net
 2o7.net
+4.channel15.facebook.com
 4.channel23.facebook.com
 68.180.221.218
 69-36-240-24.cust.layer42.net/29
@@ -25,6 +27,7 @@ ad.xplusone.com
 ad.yieldmanager.com
 ad2.turn.com
 adbrite.com
+addthis.cachefly.net
 adgardener.com
 adinterax.com
 adjuggler.com
@@ -41,15 +44,18 @@ ads.pointroll.com
 ads.pubmatic.com
 ads.revsci.net
 ads.sixapart.com
+ads.specificmedia.com
 ads.tw.adsonar.com
 ads.yahoo.com
 adserving.cpxinteractive.com
 adsonar.com
 adsyndication.msn.com
 advertising.com
+afe.specificclick.net
 amch.questionmarket.com
 an.tacoda.net
 annymegabetavip1.doubleclick.net
+apps.facebook.com
 ar.atwola.com
 as.casalemedia.com
 at.atwola.com
@@ -71,10 +77,12 @@ cf-in-f118.google.com
 cf-in-f127.google.com
 cf-in-f155.google.com
 cf-in-f166.google.com
+clients.l.google.com
 collectiveads.com
 collectiveads.net
 com.com
 configuration.apple.com
+core.insightexpressai.com
 coremetrics.com
 crl.microsoft.com
 d13.zedo.com
@@ -96,9 +104,9 @@ espads.net
 euroclick.com
 ev1s-67-15-219-31.theplanet.com
 extras.expedia.com
-fahoofs.com
 fastclick.net
 g1.panthercdn.com
+gmail.com
 goku.brightcove.com
 google-analytics.com
 googleads.g.doubleclick.net
@@ -108,6 +116,7 @@ hitbox.com
 i.cnn.net
 i1.ytimg.com
 iad09megaadvip4.doubleclick.net
+images.apple.com
 images.maps.yahoo.com
 intellitxt.com
 ismmedia.com
@@ -119,7 +128,9 @@ linksynergy.com
 liveupdate.symantecliveupdate.com
 m.trb.com
 m1.2mdn.net
+mail.google.com
 mail.open-mesh.com
+mail.yahoo.com
 map.sxipper.com
 maps.google.com
 media.ign.com
@@ -132,6 +143,7 @@ mt1.google.com
 mt2.google.com
 mt3.google.com
 ncw-01.symantec.com
+netweather.accuweather.com
 nielsen-netratings.com
 open.ad.yieldmanager.net
 optimized-by.rubiconproject.com
@@ -155,6 +167,7 @@ s.megaclick.com
 s.ytimg.com
 s2.youtube.com
 safebrowsing.clients.google.com
+sb.google.com
 scripts.lycos.com
 serw.clickadvisor.com
 simg.zedo.com
@@ -178,6 +191,7 @@ tracker.thepiratebay.org
 tracking.searchmarketing.com
 trafficcmp.com
 tribalfusion.com
+update.microsoft.com
 urchin.com
 us.bc.yahoo.com
 us.i1.yimg.com
@@ -191,5 +205,7 @@ vo.llnwd.net
 vortex.accuweather.com
 vp.video.google.com
 webtrandslive.com
+yahoofs.com
+ymail.com
 zedo.com
 zedo.net
