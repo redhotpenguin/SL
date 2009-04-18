@@ -42,10 +42,10 @@ if ($d eq '-d') {
     open(STDIN,  "+>/dev/null");
     open(STDOUT, "+>&STDIN");
     open(STDERR, "+>&STDIN");
-}
 
-print "$0 sleeping $SLEEP seconds, then starting\n" if $DEBUG;
-sleep $SLEEP;
+    print "$0 sleeping $SLEEP seconds, then starting\n" if $DEBUG;
+    sleep $SLEEP;
+}
 
 # go into a loop and hopefully keep going
 # would like to have this cron based but ROBIN overwrites crontabs
