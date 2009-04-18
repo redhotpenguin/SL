@@ -1,3 +1,4 @@
+69.36.240.24/29
 google-analytics.com
 pixel.quantserve.com
 us.i1.yimg.com
@@ -106,7 +107,6 @@ bannerfarm.ace.advertising.com
 tc.v17.cache.googlevideo.com
 v19.lscache1.googlevideo.com
 s2.youtube.com
-69-36-240-24.cust.layer42.net/29
 mm.chitika.net
 mail.open-mesh.com
 video-stats.video.google.com
@@ -117,7 +117,7 @@ m1.2mdn.net
 i1.ytimg.com
 s.ytimg.com
 ad.3ad.doubleclick.net
-ev1s-67-15-219-31.theplanet.com
+67.15.219.31
 cf-in-f127.google.com
 74.125.242.30
 cf-in-f166.google.com
