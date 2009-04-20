@@ -76,7 +76,7 @@ define Build/Compile
 	rm -rf $(PKG_INSTALL_DIR)
 	mkdir -p $(PKG_INSTALL_DIR)/usr/bin/
 	mkdir -p $(PKG_INSTALL_DIR)/etc/sl/
-        mkdir -p $(PKG_INSTALL_DIR)/etc/init.d/
+	mkdir -p $(PKG_INSTALL_DIR)/etc/init.d/
 	$(MAKE) -C "$(LINUX_DIR)" \
 		$(MAKE_OPTS) \
 		modules
@@ -87,8 +87,8 @@ define Package/sln/install
 	$(INSTALL_BIN) ./files/usr/bin/* $(1)/usr/bin/
 	$(INSTALL_DIR) $(1)/etc/sl
 	$(INSTALL_BIN) ./files/etc/sl/* $(1)/etc/sl/
-        $(INSTALL_DIR) $(1)/etc/init.d
-        $(INSTALL_BIN) ./files/etc/init.d/* $(1)/etc/init.d/
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/etc/init.d/* $(1)/etc/init.d/
 endef
 
 define Package/sln/postinst
