@@ -9,12 +9,9 @@ ME="sln"
 
 start() {
 	logger -s -t "$ME" "starting..."
-	/usr/bin/microperl /usr/bin/sl_fw_ha -d
-}
 
-stop() {
-	killall microperl
-	logger -s -t "$ME" "stopped"
+	# set the cron mod to a random time
+	/usr/bin/microperl /usr/bin/sl_cron
 }
 
 case $1 in
