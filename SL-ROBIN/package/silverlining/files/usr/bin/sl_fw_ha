@@ -45,8 +45,12 @@ if ($d eq '-d') {
 
     print "$0 sleeping $SLEEP seconds, then starting\n" if $DEBUG;
     sleep $SLEEP;
-}
+} else {
 
+    # prevent problems
+    undef $d;
+}
+ 
 # go into a loop and hopefully keep going
 # would like to have this cron based but ROBIN overwrites crontabs
 my $i = 0;
@@ -64,8 +68,16 @@ while (1) {
     unless ($config_proxy) {
 
         print STDERR "no sln config_proxy exists\n";
-        sleep_cycle();
-        next;
+
+	# this is a bad piece of cut/paste code but works for now
+	# not a whole lot can be done to abstract it because
+	# of variable error conditions
+	if ($d) {
+            sleep_cycle();
+            next;
+	} else {
+	    exit(1);
+  	}
     }
 
     print "Using proxy $config_proxy\n" if $DEBUG;
@@ -82,11 +94,16 @@ while (1) {
         print STDERR "no wan gateway, take us offline\n";
         _stop_sln($config_proxy);
 
-        sleep_cycle();
-        next;
+	if ($d) {
+            sleep_cycle();
+            next;
+	} else {
+	    exit(1);
+  	}
+
     }
 
-
+    # ping the gateway, make sure the network is up
     my $ping_cmd = "/bin/ping -c 2 $wan_gateway";
     print "ping cmd is $ping_cmd\n" if $DEBUG;
     my $ping = `$ping_cmd`;
@@ -98,17 +115,25 @@ while (1) {
 
         print STDERR "ping cmd $ping_cmd failed to ping $wan_gateway\n";
 	_stop_sln($config_proxy);
-	
-        sleep_cycle();
-        next;
+
+	if ($d) {
+            sleep_cycle();
+            next;
+	} else {
+	    exit(1);
+  	}
 
     } elsif (($packet_loss != 0) && ($packet_loss < 100)) {
     
         print STDERR "ping packet loss was $packet_loss %\n";
 
-	# some sort of error condition, go to sleep cycle    
-        sleep_cycle();
-        next;
+	if ($d) {
+            sleep_cycle();
+            next;
+	} else {
+	    exit(1);
+  	}
+
     }
 
     # ping the proxy
@@ -117,16 +142,24 @@ while (1) {
         print "ping was ok, sln state on\n" if $DEBUG;
         start_sln($config_proxy);
 
-        sleep_cycle();
-        next;
+	if ($d) {
+            sleep_cycle();
+            next;
+	} else {
+	    exit(0);
+  	}
     
     } else {
 
         print STDERR "No available proxies, disabling silver lining\n";
         stop_sln($config_proxy);
 
-        sleep_cycle();
-        next;
+	if ($d) {
+            sleep_cycle();
+            next;
+	} else {
+	    exit(1);
+  	}
 
     }
 
@@ -159,7 +192,7 @@ sub get_config_proxy {
         my $restored = restore_config_file();
         unless ($restored) {
             print STDERR "could not restore config file, exiting\n";
-            exit(1);
+            return;
         }
 
         $config_proxy = get_config_proxy($config_file);
@@ -228,12 +261,20 @@ sub start_sln {
 
 	print "sln inactive, activating\n" if $DEBUG;
 
+	# first make sure the base nodogsplash rules are in effect
+	return unless _nodog_active();
+
 	my $base_setup = _setup_sln_base($proxy);
 	my $skips_setup = _setup_sln_skips($proxy);
 
 	print "base_setup $base_setup, skips setup $skips_setup\n" if $DEBUG;
 
 	return 1;
+}
+
+sub _nodog_active {
+
+       return grep { /^ndsOUT/ } (`iptables -t nat -n -L`);
 }
 
 # checks to see if sln firewall enabled
