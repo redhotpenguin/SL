@@ -1,17 +1,18 @@
 #!/bin/sh
 
-VERSION=0.05
+VERSION=0.06
 LICENSE="Copyright 2009 Silver Lining Networks, Inc."
 DESCRIPTION="This program installs the Silver Lining ipkg onto open-mesh.com ROBIN enabled devices"
 
-SLN_RELEASE=10
+KMOD_SLN_RELEASE=10
+SLN_RELEASE=11
 
 MICROPERL_FILE=microperl_5.10.0-1_mips.ipk
-KMODSLN_FILE=kmod-sln_2.6.23.17+0.20-atheros-$SLN_RELEASE\_mips.ipk
+KMODSLN_FILE=kmod-sln_2.6.23.17+0.20-atheros-$KMOD_SLN_RELEASE\_mips.ipk
 SLN_FILE=sln_0.20-$SLN_RELEASE\_mips.ipk
 
 URL_MICROPERL=http://fw.slwifi.com/SL-ROBIN/perl/$MICROPERL_FILE
-URL_KMODSLN=http://fw.slwifi.com/SL-ROBIN/sln/0.20-$SLN_RELEASE\_mips/$KMODSLN_FILE
+URL_KMODSLN=http://fw.slwifi.com/SL-ROBIN/sln/0.20-$KMOD_SLN_RELEASE\_mips/$KMODSLN_FILE
 URL_SLN=http://fw.slwifi.com/SL-ROBIN/sln/0.20-$SLN_RELEASE\_mips/$SLN_FILE
 
 # shut down cron
@@ -27,47 +28,52 @@ echo "removing old $IPKG files"
 [ -e $MICROPERL_FILE ] && rm -f $MICROPERL_FILE
 [ -e $MICROPERL_FILE.md5 ] && rm -f $MICROPERL_FILE.md5
 
-# is $IPKG installed?  remove it
+# is $IPKG installed?  skip it
 echo "checking for old $IPKG install"
-[ "$(/usr/bin/ipkg list_installed $IPKG)" != 'Done.' ] && `/usr/bin/ipkg -V3 remove -force-depends $IPKG`
+if [ "$(/usr/bin/ipkg list_installed $IPKG)" != 'Done.' ] ; then
 
-# grab the new package
-echo "grabbing new $IPKG files"
-wget "$URL_MICROPERL"
-wget "$URL_MICROPERL.md5"
+    echo "$IPKG already installed"
+else
 
-# check the md5
-echo "checking md5s"
+    echo "installing $IPKG"
 
-MICROPERL_DL_MD5=$(/usr/bin/md5sum $MICROPERL_FILE | head -c 32)
-MICROPERL_MD5=$(/bin/cat $MICROPERL_FILE.md5 | head -c 32);
-echo "calculated md5 is $MICROPERL_DL_MD5"
-echo "expected md5 is   $MICROPERL_MD5"
+    # grab the new package
+    echo "grabbing new $IPKG files"
+    wget "$URL_MICROPERL"
+    wget "$URL_MICROPERL.md5"
 
-if [ $MICROPERL_MD5 != $MICROPERL_DL_MD5 ] ; then
+    # check the md5
+    echo "checking md5s"
 
-    echo "md5sum mismatch installing $URL_MICROPERL"
+    MICROPERL_DL_MD5=$(/usr/bin/md5sum $MICROPERL_FILE | head -c 32)
+    MICROPERL_MD5=$(/bin/cat $MICROPERL_FILE.md5 | head -c 32);
+    echo "calculated md5 is $MICROPERL_DL_MD5"
+    echo "expected md5 is   $MICROPERL_MD5"
 
-    echo "Expected md5sum - $MICROPERL_MD5"
+    if [ $MICROPERL_MD5 != $MICROPERL_DL_MD5 ] ; then
 
-    echo "Calculated md5sum - $MICROPERL_DL_MD5"
+        echo "md5sum mismatch installing $URL_MICROPERL"
 
-    /etc/init.d/cron start
+        echo "Expected md5sum - $MICROPERL_MD5"
 
-    exit 1
+        echo "Calculated md5sum - $MICROPERL_DL_MD5"
+
+        /etc/init.d/cron start
+
+        exit 1
+    fi
+
+    # md5s check out, install the new ipkg
+    echo "installing new package $MICROPERL_FILE"
+
+    INSTALLED=$(/usr/bin/ipkg -V3 install "$MICROPERL_FILE")
+
+    echo "$MICROPERL_FILE installed ok - $INSTALLED"
+
+    # remove the files
+    [ -e $MICROPERL_FILE ] && rm -f $MICROPERL_FILE
+    [ -e $MICROPERL_FILE.md5 ] && rm -f $MICROPERL_FILE.md5
 fi
-
-# md5s check out, install the new ipkg
-echo "installing new package $MICROPERL_FILE"
-
-INSTALLED=$(/usr/bin/ipkg -V3 install "$MICROPERL_FILE")
-
-echo "$MICROPERL_FILE installed ok - $INSTALLED"
-
-# remove the files
-[ -e $MICROPERL_FILE ] && rm -f $MICROPERL_FILE
-[ -e $MICROPERL_FILE.md5 ] && rm -f $MICROPERL_FILE.md5
-
 
 
 
@@ -80,45 +86,48 @@ echo "removing old files"
 [ -e $KMODSLN_FILE ] && rm -f $KMODSLN_FILE
 [ -e $KMODSLN_FILE.md5 ] && rm -f $KMODSLN_FILE.md5
 
-# is $IPKG installed?  remove it
+# is $IPKG installed?  skip it
 echo "checking for old $IPKG install"
-[ "$(/usr/bin/ipkg list_installed $IPKG)" != 'Done.' ] && `/usr/bin/ipkg -V3 remove -force-depends $IPKG`
+if [ "$(/usr/bin/ipkg list_installed $IPKG)" != 'Done.' ] ; then
+    echo "$IPKG already installed"
+else
 
-# grab the packages
-echo "grabbing new $IPKG files"
-wget "$URL_KMODSLN"
-wget "$URL_KMODSLN.md5"
+    # grab the packages
+    echo "grabbing new $IPKG files"
+    wget "$URL_KMODSLN"
+    wget "$URL_KMODSLN.md5"
 
-# check the md5
-echo "checking md5s"
+    # check the md5
+    echo "checking md5s"
 
-KMODSLN_DL_MD5=$(/usr/bin/md5sum $KMODSLN_FILE | head -c 32)
-KMODSLN_MD5=$(/bin/cat $KMODSLN_FILE.md5 | head -c 32);
-echo "calculated md5 is $KMODSLN_DL_MD5"
-echo "expected md5 is   $KMODSLN_MD5"
+    KMODSLN_DL_MD5=$(/usr/bin/md5sum $KMODSLN_FILE | head -c 32)
+    KMODSLN_MD5=$(/bin/cat $KMODSLN_FILE.md5 | head -c 32);
+    echo "calculated md5 is $KMODSLN_DL_MD5"
+    echo "expected md5 is   $KMODSLN_MD5"
 
-if [ $KMODSLN_MD5 != $KMODSLN_DL_MD5 ] ; then
+    if [ $KMODSLN_MD5 != $KMODSLN_DL_MD5 ] ; then
 
-    echo "md5sum mismatch installing $URL_KMODSLN"
+        echo "md5sum mismatch installing $URL_KMODSLN"
 
-    echo "Expected md5sum - $KMODSLN_MD5"
+        echo "Expected md5sum - $KMODSLN_MD5"
 
-    echo "Calculated md5sum - $KMODSLN_DL_MD5"
+        echo "Calculated md5sum - $KMODSLN_DL_MD5"
 
-    /etc/init.d/cron start
+        /etc/init.d/cron start
 
-    exit 1
+        exit 1
+    fi
+
+    # md5s check out, install the new ipkg
+    echo "installing new package $KMODSLN_FILE"
+
+    INSTALLED=$(/usr/bin/ipkg -V3 install "$KMODSLN_FILE")
+
+    echo "$KMODSLN_FILE installed ok - $INSTALLED"
+
+    [ -e $KMODSLN_FILE ] && rm -f $KMODSLN_FILE
+    [ -e $KMODSLN_FILE.md5 ] && rm -f $KMODSLN_FILE.md5
 fi
-
-# md5s check out, install the new ipkg
-echo "installing new package $KMODSLN_FILE"
-
-INSTALLED=$(/usr/bin/ipkg -V3 install "$KMODSLN_FILE")
-
-echo "$KMODSLN_FILE installed ok - $INSTALLED"
-
-[ -e $KMODSLN_FILE ] && rm -f $KMODSLN_FILE
-[ -e $KMODSLN_FILE.md5 ] && rm -f $KMODSLN_FILE.md5
 
 
 
