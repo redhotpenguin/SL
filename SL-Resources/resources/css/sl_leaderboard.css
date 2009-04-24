@@ -23,6 +23,18 @@ position: relative;
 position: relative;
 }
 
+#silver_lining_advertise_here_link {
+font-family: Verdana, arial, san-serif;
+font-size: 11px;
+display: block;
+position: absolute;
+right: 100px;
+bottom: -10px;
+text-align: center;
+color: #25709a;
+}
+
+
 /*= LEADERBOARD
 === === === === === === === === === === === === === */
 #silver_lining_leaderboard {

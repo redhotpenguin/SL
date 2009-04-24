@@ -28,12 +28,16 @@ z-index: 10000;
 position: relative;
 }
 
+
 #silver_lining_advertise_here_link {
-	position: absolute; 
-	bottom: -15px;
-	right: 170px;
-	font-size:11px;
-    color:#369;
+font-family: Verdana, arial, san-serif;
+font-size: 11px;
+display: block;
+position: absolute;
+right: 100px;
+bottom: -10px;
+text-align: center;
+color: #25709a;
 }
 
 /*= LEADERBOARD
