@@ -37,10 +37,16 @@
 				<ul class="router_info">
 					<li><strong>SSID:</strong> [% router.ssid or '?'  %]</li>
 					<li><strong>Last seen:</strong>[% router.last_seen or '?'  %]</li>
-					<li><strong>View yesterday:</strong>[% router.views_daily  %]</li>
+					<li><strong>Ad views yesterday:</strong>[% router.views_daily  %]</li>
 				</ul>
 			</td>
-			
+		
+			<!-- device type -->
+			<td class="mac_address [% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+				[% router.device %]
+			</td>
+
+	
 			<!-- mac address -->
 			<td class="mac_address [% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
 				[% router.macaddr %]
@@ -53,8 +59,6 @@
 		</tr>
 	[% END %]
 	</table>
-
-
 
 </div>
 [% PROCESS footer.tmpl %]

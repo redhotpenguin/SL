@@ -25,28 +25,36 @@
 <input type="hidden" name="router_id" value="[% router.router_id %]">
 
 
+
+<!-- device -->
+[% IF errors.missing.device %]<font color="red">[% END %]
+<p>Device Type:&nbsp;&nbsp;
+[% IF errors.missing.device %]</font>[% END %]
+<select name="device">
+
+<option value="" [% IF ! router.device and req.param('device') == '' %][% END %]>Select a device type</option>
+<option value="mr3201a" [% IF req.param('device') == 'mr3201a' or router.device == 'mr3201a' %]SELECTED[% END %]>Accton MR3201A or compatible</option>
+<option value="wrt54gl" [% IF req.param('device') == 'wrt54gl' or router.device == 'wrt54gl' %]SELECTED[% END %]>Linksys WRT54GL or compatible</option>
+<option value="linuxbox" [% IF req.param('device') == 'linuxbox' or router.device =='linuxbox' %]SELECTED[% END %]>Centos 5.2 Linux server or compatible</option>
+</select></p>
+<p>
+<font color="#CCCCCC"><b>Select an option that best describes your Silver Lining router</b></font></p>
+
+
+<hr class="sl_line">
+
+
+
+
 <!-- name -->
 [% IF errors.missing.name %]<font color="red">[% END %]
 <p>Name:&nbsp;&nbsp;
-[% IF errors.missing.name %]<font color="red">[% END %]
+[% IF errors.missing.name %]</font>[% END %]
 <input type="text" name = "name" size="45" maxlength="50" value='[% req.param('name') or router.name %]'></p>
 <p><font color="#CCCCCC"><b>100 character limit</b></font></p>
 
 
 <hr class="sl_line">
-
-
-
-<!-- SSID -->
-[% IF errors.missing.ssid %]<font color="red">[% END %]
-<p>SSID:&nbsp;&nbsp;
-[% IF errors.missing.ssid %]<font color="red">[% END %]
-<input type="text" name = "ssid" size="25" maxlength="25" value='[% req.param('ssid') or router.ssid %]'></p>
-<p<font color="#CCCCCC"><b>Allow up to a minute to take effect</b></font></p>
-
-
-<hr class="sl_line">
-
 
 
 <!-- macaddr -->
@@ -56,21 +64,33 @@
 
 [% IF errors.missing.macaddr or errors.invalid.macaddr %]</font>[% END %]
 
-<input type="text" name = "macaddr" size="17" maxlength="17" value='[% req.param('macaddr') or router.macaddr %]'></p>
+<input type="text" name = "macaddr" size="17" maxlength="17" value='[% req.param('macaddr') or router.displaymac %]'></p>
 
 <p><font color="#CCCCCC"><b>Example:  00:17:f2:43:38:bd</b></font></p>
+
+<hr class="sl_line">
+
+<!-- SSID -->
+[% IF errors.missing.ssid %]<font color="red">[% END %]
+<p>SSID:&nbsp;&nbsp;
+[% IF errors.missing.ssid %]</font>[% END %]
+<input type="text" name = "ssid" size="25" maxlength="25" value='[% req.param('ssid') or router.ssid %]'></p>
+<p<font color="#CCCCCC"><b>Allow up to a minute to take effect, Linksys WRT54GL only</b></font></p>
 
 
 <hr class="sl_line">
 
 
+
+
+
 <!-- serial number -->
 <p>
 [% IF errors.missing.serial_number or errors.invalid.serial_number %]<font color="red">[% END %]
-Serial number:&nbsp;&nbsp;
+Serial number or service tag:&nbsp;&nbsp;
 [% IF errors.missing.serial_number or errors.invalid.serial_number %]</font>[% END %]
 <input type="text" name="serial_number" size="25" maxlength="25" value='[% req.param('serial_number') or router.serial_number %]'></p>
-<p><font color="#CCCCCC"><b>Required, to determine router model compatibility, example CL7A0F318014</b></font></p>
+<p><font color="#CCCCCC"><b>Optional, to determine router model compatibility, example CL7A0F318014</b></font></p>
 
 
 <hr class="sl_line">
@@ -83,6 +103,7 @@ Splash page url:&nbsp;&nbsp;
 [% IF errors.missing.splash_href or errors.invalid.splash_href %]</font>[% END %]
 <input type="text" name="splash_href" size="45" maxlength="255" value='[% req.param('splash_href') or router.splash_href %]'></p>
 <p><font color="#CCCCCC"><b>Example:  http://www.silverliningnetworks.com/network/</b></font></p>
+<p><font color="#CCCCCC"><b>Linksys WRT54GL and Linux server only<b></font></p>
 
 
 <hr class="sl_line">
@@ -129,7 +150,7 @@ Splash page timeout:&nbsp;&nbsp;
 [% IF locations != '' %]
 
 <hr class="sl_line">
-<p>This router has been registered at the following locations and times:</p>
+<p>This device has been registered at the following locations and times:</p>
 
 [% FOREACH location = locations %]
 <ul>
