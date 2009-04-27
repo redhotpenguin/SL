@@ -8,10 +8,10 @@ use Apache2::Log ();
 
 use base 'SL::Apache::App';
 
+use URI               ();
+use XML::Feed         ();
 use SL::App::Template ();
 our $tmpl = SL::App::Template->template();
-
-use XML::RAI ();
 
 #use constant FORUM_URL => 'http://forums.silverliningnetworks.com/forums/5/posts.rss';
 use constant FORUM_URL => 'http://forums.silverliningnetworks.com/posts.rss';
@@ -29,15 +29,16 @@ This method serves of the master ad control panel for now
 =cut
 
 sub dispatch_index {
-    my ($self, $r) = @_;
+    my ( $self, $r ) = @_;
 
-    my $rai = XML::RAI->parse_uri( FORUM_URL );
+    my $feed = XML::Feed->parse( URI->new(FORUM_URL) ) or die;
 
-    my %tmpl_data = ( rss_list => $rai->items );
+    my %tmpl_data = ( rss_list => $feed->entries );
     my $output;
-    my $ok = $tmpl->process('home.tmpl', \%tmpl_data, \$output, $r);
-    $ok ? return $self->ok($r, $output) 
-        : return $self->error($r, "Template error: " . $tmpl->error());
+    my $ok = $tmpl->process( 'home.tmpl', \%tmpl_data, \$output, $r );
+    $ok
+      ? return $self->ok( $r, $output )
+      : return $self->error( $r, "Template error: " . $tmpl->error() );
 }
 
 1;

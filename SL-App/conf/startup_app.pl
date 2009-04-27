@@ -78,7 +78,7 @@ use DBIx::Class                 ();
 use DBIx::Class::Schema::Loader ();
 use Crypt::CBC                  ();
 use Crypt::DES                  ();
-use XML::RAI                    ();
+use XML::Feed                   ();
 use Regexp::Common qw( net );
 use CGI ();
 CGI->compile(':all');
