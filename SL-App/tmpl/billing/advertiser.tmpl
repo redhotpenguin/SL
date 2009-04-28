@@ -81,20 +81,22 @@
 [% END %]
 
                                 <dd class="subtle"><em>All fields required</em></dd>
-                                [% PROCESS billing/form/ad_plan.tmpl %]
-                                [% PROCESS auth/form/user_info.tmpl %]
+                                [% PROCESS billing/advertiser/plan.tmpl %]
+                                [% PROCESS auth/form/name.tmpl %]
+                                [% PROCESS auth/form/user_info.tmpl nopass=1 %]
                                 [% PROCESS auth/form/creditcard.tmpl %]
                                 [% PROCESS auth/form/address.tmpl %]
                                 [% PROCESS auth/form/submit_button.tmpl %]
                        </dl>
                 </form>
 
+
         [% PROCESS auth/form/paperbox_bottom.tmpl %]
         <!-- END MAIN COLUMN -->
 
         <!-- SIDE COLUMN ##### -->
         <div class="one_third left">
-            [% PROCESS billing/form/ad_sidebar.tmpl %]
+            [% PROCESS billing/advertiser/sidebar.tmpl %]
         </div>
         <!-- END SIDE COLUMN ##### -->
 

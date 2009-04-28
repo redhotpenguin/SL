@@ -171,17 +171,17 @@ PerlLoadModule Apache2::Dispatch
 
 <Location /billing/publisher>
     SetHandler modperl
-    PerlResponseHandler SL::Apache::App::CP->publisher
+    PerlResponseHandler SL::Apache::App::Billing->publisher
 </Location>
 
 <Location /billing/advertiser>
     SetHandler modperl
-    PerlResponseHandler SL::Apache::App::CP->advertiser
+    PerlResponseHandler SL::Apache::App::Billing->advertiser
 </Location>
 
 <Location /billing/success>
     SetHandler modperl
-    PerlResponseHandler SL::Apache::App::CP->billing_success
+    PerlResponseHandler SL::Apache::App::Billing->billing_success
 </Location>
 
 ## optimizations, mod_perl for speed freaks

@@ -13,26 +13,27 @@ use Business::PayPal                      ();
 use Business::OnlinePayment::AuthorizeNet ();
 use DateTime ();
 use DateTime::Format::Pg ();
-use Data::Dumper ();
+use Data::Dumper;
 
 # some globals
 
-our $VERSION = 0.03;
+our $VERSION = 0.04;
 
-our ( $Config, $Authorize_login, $Authorize_key, $Business, $Notify_url,
-    $Return );
+our ( $Config, %Authorize_creds, $Business, $Notify_url, $Return );
 
 BEGIN {
     $Config          = SL::Config->new;
-    $Authorize_login = $Config->sl_authorize_login || die 'payment setup error';
-    $Authorize_key   = $Config->sl_authorize_key || die 'payment setup error';
+    %Authorize_creds = (
+        login          => $Config->sl_authorize_login || die,
+        password       => $Config->sl_authorize_key || die,
+    ),
     $Business        = 'paypal@silverliningnetworks.com';
     $Notify_url = 'https://app.silverliningnetworks.com/sl/paypal/notify';
     $Return     = 'https://app.silverliningnetworks.com/sl/paypal/return';
 }
 
 our %Plans = (
-    'test'  => { duration => { 'hours'  => 1 }, cost => '$0.01', },
+    'test'  => { duration => { 'hours'  => 1 }, cost => '$0.18', },
     'one'   => { duration => { 'hours'  => 1 }, cost => '$2.00', },
     'four'  => { duration => { 'hours'  => 4 }, cost => '$3.00', },
     'day'   => { duration => { 'days'   => 1 }, cost => '$5.00', },
@@ -78,7 +79,7 @@ sub paypal_button {
     my $button = $paypal->button(
         business      => $Business,
         item_name     => $item_name,
-	item_number   => 429,
+  	    item_number   => 429,
         return        => $Return,
         cancel_return => $cancel_return,
         amount        => SL::Payment->plan($plan)->{cost},
@@ -125,10 +126,15 @@ sub paypal_save {
     ); };
 
     if ($@) {
-        die "Error in paypal_save: " . Data::Dumper::Dumper($args) . ", $@";
+        die "Error in paypal_save: " . Dumper($args) . ", $@";
     }
 
     return $payment;
+}
+
+sub last_four {
+  my $card = shift;
+  return substr($card, length($card)-4);
 }
 
 sub recurring {
@@ -151,21 +157,12 @@ sub recurring {
         && defined $args->{referer}
         && defined $args->{amount} );
 
-    # authorize
+    ####################################################
+    # place a small authorization on the account to check the card credentials
+
     my $tx = Business::OnlinePayment->new('AuthorizeNet');
 
-    my %tx_content = (
-        login          => $Authorize_login,
-        password       => $Authorize_key,
-        action         => 'Recurring Authorization',
-        interval       => '1 month',
-        start          => DateTime->now->ymd,
-        periods        => 60,
-        trialperiods   => 0,
-        trialamount    => 0,
-        description    => $args->{description},
-        amount         => $args->{amount},
-        invoice_number => 815420,
+    my %common_args = (
         customer_id    => substr( $args->{first_name} . $args->{last_name}, 0, 20),
         first_name     => $args->{first_name},
         last_name      => $args->{last_name},
@@ -177,36 +174,104 @@ sub recurring {
         expiration     => $args->{card_exp},
         type           => $args->{card_type},
         cvv2           => $args->{cvv2},
-        referer        => $args->{referer},
         email          => $args->{email},
+        referer        => $args->{referer},
+    );
+
+    my %auth_args = (
+        invoice_number => '42069',
+        action         => 'Authorization Only',
+        amount         => $Plans{test}->{cost},
+        description    => sprintf('publisher %s card verification', $args->{email}),
+    );
+
+    $tx->content( %Authorize_creds, %common_args, %auth_args, );
+
+    if (TEST_MODE) {
+        warn( "TEST_MODE enabled, auth args " . Dumper( $tx->content ) );
+
+    }
+    else {
+
+        $tx->submit;
+
+        if ( $tx->is_success  ) {
+            warn(sprintf("Card verified, auth %s, order %s: ",
+                         $tx->authorization, $tx->order_number)) if DEBUG;
+        }
+        else {
+            warn "Card was rejected: " . $tx->error_message if DEBUG;
+            return { error => $tx->error_message };
+        }
+    }
+
+    ########################################
+    # make a new payment first
+    my $payment = SL::Model::App->resultset('Payment')->create(
+        {
+            account_id => 1,
+            mac        => 'FF:FF:FF:FF:FF:FF',
+            amount     => $args->{amount},
+            stop       => DateTime::Format::Pg->format_datetime(
+                             DateTime->now( time_zone => 'local' )->add(months => 60)),
+            email      => $args->{email},
+            last_four  => last_four($args->{card_number}),
+            card_type  => $args->{card_type},
+            ip         => $args->{ip},
+            expires    => 'N/A',
+        }
+    );
+    $payment->update or return { error => 'Payment system is temporarily unavailable' };
+
+    # make the subscription request
+    my %arb_args = (
+        invoice_number => $payment->payment_id,
+        action         => 'Recurring Authorization',
+        interval       => '1 month',
+        start          => DateTime->now->ymd,
+        periods        => 60,
+        trialperiods   => 0,
+        trialamount    => 0,
+        description    => $args->{description},
+        amount         => $args->{amount},
     );
 
     if (defined $args->{special}) {
+
+      # half off first three months
       if ($args->{special} eq 'half_first_three') {
-        $tx_content{trialperiods} = 3;
-        $tx_content{trialamount} = ($args->{amount} / 2);
+        $arb_args{trialperiods} = 3;
+        $arb_args{trialamount} = ($args->{amount} / 2);
       }
     }
 
-    $tx->content(%tx_content);
+    $tx->content(%Authorize_creds, %common_args, %arb_args);
 
     if (TEST_MODE) {
-        warn( "TEST_MODE enabled, would have posted " .
-             Data::Dumper::Dumper( \%tx_content ) );
-        return { auth_code => 1 };
+        warn( "TEST_MODE enabled, would have posted " . Dumper( $tx->content ) );
+        $payment->approved('t');
+        $payment->token_processed('t');
+        $payment->authorization_code( $payment->payment_id );
     }
     else {
         $tx->submit;
+
+        if ( $tx->is_success  ) {
+          warn("Subscription processed successfully: " . $tx->order_number) if DEBUG;
+          $payment->approved('t');
+          $payment->token_processed('t');
+          $payment->authorization_code( $payment->order_number );
+        }
+        else {
+          warn "Card was rejected: " . $tx->error_message if DEBUG;
+          $payment->approved('t');
+          $payment->token_processed('t');
+          $payment->error_message( $tx->error_message );
+        }
     }
 
-    if ( $tx->is_success  ) {
-        warn "Card processed successfully: " . $tx->order_number if DEBUG;
-        return { auth_code => $tx->order_number };
-    }
-    else {
-        warn "Card was rejected: " . $tx->error_message if DEBUG;
-        return { error => $tx->error_message };
-    }
+    $payment->update;
+    return $payment;
 }
 
 
@@ -231,7 +296,6 @@ sub process {
         && defined $args->{referer}
         && defined $args->{plan} );
 
-    my ($last_four) = $args->{card_number} =~ m/(\d{4})$/;
 
     my $plan = delete $args->{plan};
     my $plans = join('|', keys %Plans);
@@ -252,7 +316,7 @@ sub process {
             amount     => $amount,
             stop       => $stop,
             email      => $args->{email},
-            last_four  => $last_four,
+            last_four  => last_four($args->{card_number}),
             card_type  => $args->{card_type},
             ip         => $args->{ip},
             expires    => $args->{card_exp},
@@ -272,8 +336,7 @@ sub process {
     my $tx = Business::OnlinePayment->new('AuthorizeNet');
 
     my %tx_content = (
-        login          => $Authorize_login,
-        password       => $Authorize_key,
+        %Authorize_creds,
         action         => 'Normal Authorization',
         description    => $args->{description},
         amount         => $amount,
@@ -296,31 +359,26 @@ sub process {
     $tx->content(%tx_content);
 
     if (TEST_MODE) {
-        warn(
-            "TEST_MODE enabled, would have posted " .
-             Data::Dumper::Dumper( \%tx_content ) );
+        warn("TEST_MODE enabled, would have posted " . Dumper( $tx->content ) );
+        $payment->authorization_code( $payment->payment_id );
+        $payment->approved('t');
     }
     else {
         $tx->submit;
-    }
 
-    if ( $tx->is_success or TEST_MODE ) {
-        unless (TEST_MODE) {
+        if ( $tx->is_success ) {
             warn "Card processed successfully: " . $tx->authorization if DEBUG;
             $payment->authorization_code( $tx->authorization );
+            $payment->approved('t');
         }
-        $payment->approved('t');
-        $payment->update;
-        return $payment;
-    }
-    else {
-        warn "Card was rejected: " . $tx->error_message if DEBUG;
-        $payment->error_message( $tx->error_message );
-        $payment->approved('f');
-        $payment->update;
-        return $payment;
+        else {
+            warn "Card was rejected: " . $tx->error_message if DEBUG;
+            $payment->error_message( $tx->error_message );
+        }
     }
 
+    $payment->update;
+    return $payment;
 }
 
 1;

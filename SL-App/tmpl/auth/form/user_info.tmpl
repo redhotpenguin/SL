@@ -1,26 +1,26 @@
-<!-- FIRST AND LAST NAME -->
-
-<dt><label for="name">[% IF errors.missing.first_name or errors.missing.last_name or errors.invalid.first_name or errors.invalid.last_name %]<font color="red">[% END %]Name[% IF errors.missing.first_name or errors.missing.last_name or errors.invalid.first_name or errors.invalid.last_name %]</font>[% END %]</label></dt>
-<dd>
-	<span class="quarter">
-        <input type="text" id="first_name" name="first_name" value="[% IF req.param('first_name') %][% req.param('first_name') %][% ELSE %]First[% END %]" />
-        <label for="first_name">[% IF errors.missing.first_name or errors.invalid.first_name %]<font color="red">[% END %]First[% IF errors.missing.first_name or errors.invalid.first_name %]</font>[% END %]</label>
-    </span>
-
-    <span class="half">
-        <input type="text" id="last_name" name="last_name" value="[% IF req.param('last_name') %][% req.param('last_name') %][% ELSE %]Last[% END %]" />
-        <label for="last_name">[% IF errors.missing.last_name or errors.invalid.last_name %]<font color="red">[% END %]Last[% IF errors.missing.last_name or errors.invalid.last_name %]</font>[% END %]</label>
-    </span>
-	<div class="clear"></div>
-</dd>
-
 <!-- EMAIL ADDRESS -->
 <dt><label for="email">[% IF errors.missing.email or errors.invalid.email %]<font color="red">[% END %]E-mail[% IF errors.missing.email or errors.invalid.email %]</font>[% END %]</label></dt>
-<dd class="large_margin">
+<dd>
 	<span class="three_quarters">
         <input type="text" id="email" name="email" value="[% IF req.param('email') %][% req.param('email') %][% ELSE %]ex. john@doe.com[% END %]" />
-        <label for="email">[% IF errors.missing.email or errors.invalid.email %]<font color="red">[% END %](for your receipt)[% IF errors.missing.email or errors.invalid.email %]</font>[% END %]</label>
+        <label for="email">[% IF errors.missing.email or errors.invalid.email %]<font color="red">[% END %]For your receipt and will also be your username[% IF errors.missing.email or errors.invalid.email %]</font>[% END %]</label>
     </span>
-	
     <div class="clear"></div>
 </dd>
+
+[% UNLESS nopass == 1 %]
+
+<dt><label for="password">[% IF errors.missing.password or errors.invalid.password %]<font color="red">[% END %]Password[% IF errors.missing.password or errors.invalid.password %]</font>[% END %]</label></dt>
+<dd>
+<span class="half"><input name="password" type="password" id="password" value="[% req.param('password') %]"/><label for="last_name">[% IF errors.missing.password or errors.invalid.password %]<font color="red">[% END %]Minimum 6 characters[% IF errors.missing.password or errors.invalid.password %]</font>[% END %]</label></span>
+<div class="clear"></div>
+</dd>
+
+<dt><label for="password">[% IF errors.missing.retype or errors.invalid.retype %]<font color="red">[% END %]Retype Password[% IF errors.missing.retype or errors.invalid.retype %]</font>[% END %]</label></dt>
+<dd class="large_margin">
+<span class="half"><input name="retype" type="password" id="retype" value="[% req.param('retype') %]"/><label for="last_name">[% IF errors.missing.retype or errors.invalid.retype %]<font color="red">[% END %]Must match other password[% IF errors.missing.retype or errors.invalid.retype %]</font>[% END %]</label></span>
+<div class="clear"></div>
+
+</dd>
+
+[% END %]

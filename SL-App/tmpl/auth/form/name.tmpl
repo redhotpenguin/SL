@@ -1,0 +1,17 @@
+<!-- FIRST AND LAST NAME -->
+
+<dt><label for="name">[% IF errors.missing.first_name or errors.missing.last_name or errors.invalid.first_name or errors.invalid.last_name %]<font color="red">[% END %]Name[% IF errors.missing.first_name or errors.missing.last_name or errors.invalid.first_name or errors.invalid.last_name %]</font>[% END %]</label></dt>
+<dd>
+	<span class="quarter">
+        <input type="text" id="first_name" name="first_name" value="[% IF req.param('first_name') %][% req.param('first_name') %][% ELSE %]First[% END %]" />
+        <label for="first_name">[% IF errors.missing.first_name or errors.invalid.first_name %]<font color="red">[% END %]First[% IF errors.missing.first_name or errors.invalid.first_name %]</font>[% END %]</label>
+    </span>
+
+    <span class="half">
+        <input type="text" id="last_name" name="last_name" value="[% IF req.param('last_name') %][% req.param('last_name') %][% ELSE %]Last[% END %]" />
+        <label for="last_name">[% IF errors.missing.last_name or errors.invalid.last_name %]<font color="red">[% END %]Last[% IF errors.missing.last_name or errors.invalid.last_name %]</font>[% END %]</label>
+    </span>
+
+	<div class="clear"></div>
+
+</dd>

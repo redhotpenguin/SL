@@ -3,7 +3,7 @@ package SL::Apache::App;
 use strict;
 use warnings;
 
-our $VERSION = 0.16;
+our $VERSION = 0.17;
 
 use Apache2::Const -compile =>
   qw(OK SERVER_ERROR NOT_FOUND M_GET M_POST REDIRECT );
@@ -16,6 +16,9 @@ use Image::Size    ();
 
 use SL::Model::App    ();
 use SL::App::Template ();
+
+# don't add the () here
+use Data::Dumper;
 
 my $UA = LWP::UserAgent->new;
 $UA->timeout(10);    # needs to respond somewhat quickly
@@ -124,10 +127,25 @@ sub check_password {
         my $data   = $dfv->get_filtered_data;
         my $pass   = $data->{password};
 
-        return unless length($pass) > 4;
+        return unless length($pass) > 5;
         return $val;
       }
 }
+
+
+sub check_retype {
+    return sub {
+        my $dfv    = shift;
+        my $val    = $dfv->get_current_constraint_value;
+        my $data   = $dfv->get_filtered_data;
+        my $pass   = $data->{password};
+        my $retype   = $data->{retype};
+
+        return unless $pass eq $retype;
+        return $val;
+      }
+}
+
 
 sub image_zone {
     return sub {
@@ -155,5 +173,96 @@ sub image_zone {
         return $image_href_val;
       }
 }
+sub valid_first {
+
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+
+        return if $val eq 'First';
+
+        return $val;
+      }
+}
+
+sub valid_last {
+
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+
+        return if $val eq 'Last';
+
+        return $val;
+      }
+}
+
+sub valid_cvv {
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+
+        return if $val !~ /^(\d+)$/;
+
+        return $val;
+      }
+}
+
+sub valid_city {
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+
+        return if $val =~ /^ex\./;
+
+        return $val;
+      }
+}
+
+sub valid_street {
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+
+        return if $val =~ /^ex\./;
+
+        return $val;
+      }
+}
+
+sub valid_month {
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+
+        return if $val !~ /^(\d+)$/;
+
+        my $month = $1;
+
+        return if $val < 1 || $val > 12;
+
+        return $month;
+      }
+}
+
+sub valid_year {
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+
+        return if $val !~ /^(\d+)$/;
+
+        my $year = $1;
+
+        $val += ( $val < 70 ) ? 2000 : 1900 if $val < 1900;
+        my @now = localtime();
+        $now[5] += 1900;
+
+        return if ( $val < $now[5] ) || ( $val == $now[5] && $val <= $now[4] );
+
+        return $year;
+      }
+}
+
 
 1;

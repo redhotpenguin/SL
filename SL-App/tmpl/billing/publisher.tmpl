@@ -9,8 +9,12 @@
 		<div class="center">
 			<!-- CHOOSE WIFI COPY ************************ --> 
 			<div class="two_thirds left padding_top">
-				<h2>Signup for an account</h2>
-				<p>Please select a plan for your Silver Lining Networks publisher account, and enter your payment information.</p>
+				<h2>Network Operator Account Creation</h2>
+				[% IF req.param('plan') != 'free' %]
+                <p>Please enter your payment information to create or upgrade your Silver Lining Network Operator Account.</p>
+                [% ELSE %]
+                <p>Please fill out the form to create your free Silver Lining Network Operator Account.</p>
+                [% END %]
 			
 			</div>
 
@@ -30,10 +34,11 @@
         <!-- MAIN COLUMN ######## -->
         [% PROCESS auth/form/paperbox_top.tmpl %]
 
-                <h2 class="header">Please fill out all fields</h2>
+                <h2 class="header">[% PROCESS billing/publisher/prices.tmpl %]</h2>
 
                 <!-- PAYMENT FORM -->
                 <form id="sl_payment" action="[% base_uri %]/billing/publisher" method="post">
+                <input type="hidden" name="plan" value="[% req.param('plan') %]">
                         <dl id="form_list">
 
 [% IF errors.payment %]
@@ -45,10 +50,12 @@
 [% END %]
 
                                 <dd class="subtle"><em>All fields required</em></dd>
-                                [% PROCESS billing/form/plan.tmpl %]
                                 [% PROCESS auth/form/user_info.tmpl %]
-                                [% PROCESS auth/form/creditcard.tmpl %]
-                                [% PROCESS auth/form/address.tmpl %]
+                                [% IF req.param('plan') != 'free' %]
+                                    [% PROCESS auth/form/name.tmpl %]
+                                    [% PROCESS auth/form/creditcard.tmpl %]
+                                    [% PROCESS auth/form/address.tmpl %]
+                                [% END %]
                                 [% PROCESS auth/form/submit_button.tmpl %]
                        </dl>
                 </form>
@@ -58,7 +65,7 @@
 
         <!-- SIDE COLUMN ##### -->
         <div class="one_third left">
-            [% PROCESS billing/form/sidebar_plan.tmpl %]
+            [% PROCESS billing/publisher/sidebar.tmpl %]
             [% PROCESS billing/form/sidebar.tmpl %]
         </div>
         <!-- END SIDE COLUMN ##### -->

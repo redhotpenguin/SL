@@ -15,7 +15,6 @@ use Apache::Session::DB_File ();
 
 use base 'SL::Apache::App';
 
-use Data::Dumper;
 use Data::FormValidator ();
 use Data::FormValidator::Constraints qw(:closures);
 use Regexp::Common qw( net );
@@ -88,7 +87,7 @@ sub check {
       ->search( \%payment_args, { order_by => 'cts DESC', }, );
 
     if ( DEBUG && $payment ) {
-        $r->log->debug( "payment is " . Dumper($payment) );
+        $r->log->debug( "payment is " . $class->Dumperb($payment) );
     }
 
     return Apache2::Const::NOT_FOUND unless $payment;
@@ -167,7 +166,7 @@ sub paypal_notify {
     my $req   = Apache2::Request->new($r);
     my %query = %{ $req->param };
 
-    $r->log->error( "Notify Query params is " . Dumper( \%query ) );
+    $r->log->error( "Notify Query params is " . $class->Dumper( \%query ) );
 
     my $id = $query{custom};
     $r->log->error("ID is $id");
@@ -184,7 +183,7 @@ sub paypal_notify {
     eval { $payment = SL::Payment->paypal_save( \%query ) };
     if ($@) {
         $r->log->error(
-            "could not save Paypal IPN to database: $@\n" . Dumper( \%query ) );
+            "could not save Paypal IPN to database: $@\n" . $class->Dumper( \%query ) );
         return Apache2::Const::SERVER_ERROR;
     }
 
@@ -196,7 +195,7 @@ sub paypal_return {
 
     my $req    = Apache2::Request->new($r);
     my %query  = %{ $req->param };
-    my $custom = $query{custom} || die "No custom field: " . Dumper( \%query );
+    my $custom = $query{custom} || die "No custom field: " . $class->Dumper( \%query );
 
     # grab the cookies
     my $jar    = Apache2::Cookie::Jar->new($r);
@@ -207,7 +206,7 @@ sub paypal_return {
         # no cookie is definitely a problem, means the cookie disappeared betwee
         # paypal and us
         $r->log->error(
-            "$$ cookie missing for return query " . Dumper( \%query ) );
+            "$$ cookie missing for return query " . $class->Dumper( \%query ) );
         return Apache2::Const::NOT_FOUND;
     }
 
@@ -219,13 +218,13 @@ sub paypal_return {
     my %session;
     eval {
         tie %session, 'Apache::Session::DB_File', $session_id, \%Sess_opts;
-        $r->log->error( "tied session $session_id: " . Dumper( \%session ) )
+        $r->log->error( "tied session $session_id: " . $class->Dumper( \%session ) )
           if DEBUG;
     };
 
     if ($@) {
         $r->log->error(
-            "session missing id $session_id, args " . Dumper( \%query ) );
+            "session missing id $session_id, args " . $class->Dumper( \%query ) );
         return Apache2::Const::SERVER_ERROR;
     }
 
@@ -236,13 +235,13 @@ sub paypal_return {
 
     unless ($router) {
         $r->log->error(
-            "router id not found for session " . Dumper( \%session ) );
+            "router id not found for session " . $class->Dumper( \%session ) );
         return Apache2::Const::SERVER_ERROR;
     }
 
     my $splash_href = $router->splash_href;
     unless ($splash_href) {
-        $r->log->error( "router not configured for CP: " . Dumper($router) );
+        $r->log->error( "router not configured for CP: " . $class->Dumper($router) );
 
         # send to a safe landing
         $r->headers_out->set(
@@ -294,7 +293,7 @@ sub auth {
       : return $class->error( $r, "Template error: " . $Tmpl->error() );
 }
 
-sub valid_plan {
+sub valid_aaa_plan {
     return sub {
         my $dfv = shift;
         my $val = $dfv->get_current_constraint_value;
@@ -304,96 +303,6 @@ sub valid_plan {
       }
 }
 
-sub valid_first {
-
-    return sub {
-        my $dfv = shift;
-        my $val = $dfv->get_current_constraint_value;
-
-        return if $val eq 'First';
-
-        return $val;
-      }
-}
-
-sub valid_last {
-
-    return sub {
-        my $dfv = shift;
-        my $val = $dfv->get_current_constraint_value;
-
-        return if $val eq 'Last';
-
-        return $val;
-      }
-}
-
-sub valid_cvv {
-    return sub {
-        my $dfv = shift;
-        my $val = $dfv->get_current_constraint_value;
-
-        return if $val !~ /^(\d+)$/;
-
-        return $val;
-      }
-}
-
-sub valid_city {
-    return sub {
-        my $dfv = shift;
-        my $val = $dfv->get_current_constraint_value;
-
-        return if $val =~ /^ex\./;
-
-        return $val;
-      }
-}
-
-sub valid_street {
-    return sub {
-        my $dfv = shift;
-        my $val = $dfv->get_current_constraint_value;
-
-        return if $val =~ /^ex\./;
-
-        return $val;
-      }
-}
-
-sub valid_month {
-    return sub {
-        my $dfv = shift;
-        my $val = $dfv->get_current_constraint_value;
-
-        return if $val !~ /^(\d+)$/;
-
-        my $month = $1;
-
-        return if $val < 1 || $val > 12;
-
-        return $month;
-      }
-}
-
-sub valid_year {
-    return sub {
-        my $dfv = shift;
-        my $val = $dfv->get_current_constraint_value;
-
-        return if $val !~ /^(\d+)$/;
-
-        my $year = $1;
-
-        $val += ( $val < 70 ) ? 2000 : 1900 if $val < 1900;
-        my @now = localtime();
-        $now[5] += 1900;
-
-        return if ( $val < $now[5] ) || ( $val == $now[5] && $val <= $now[4] );
-
-        return $year;
-      }
-}
 
 sub token {
     my ( $class, $r ) = @_;
@@ -493,7 +402,7 @@ sub send_cookie {
     $cookie->bake($r);
 
     # they're ok
-    $r->log->debug( "send_cookie for state " . Data::Dumper::Dumper( \%state ) )
+    $r->log->debug( "send_cookie for state " . $class->Dumper( \%state ) )
       if DEBUG;
 
     return 1;
@@ -585,16 +494,16 @@ sub paid {
             constraint_methods => {
                 email       => email(),
                 zip         => zip(),
-                first_name  => valid_first(),
-                last_name   => valid_last(),
-                month       => valid_month(),
-                year        => valid_year(),
-                cvv2        => valid_cvv(),
-                city        => valid_city(),
-                street      => valid_street(),
+                first_name  => $class->valid_first,
+                last_name   => $class->valid_last,
+                month       => $class->valid_month,
+                year        => $class->valid_year,
+                cvv2        => $class->valid_cvv,
+                city        => $class->valid_city,
+                street      => $class->valid_street,
                 card_type   => cc_type(),
                 card_number => cc_number( { fields => ['card_type'] } ),
-                plan        => valid_plan(),
+                plan        => valid_aaa_plan(),
                 mac         => qr/$RE{net}{MAC}/,
             }
         );
@@ -604,7 +513,7 @@ sub paid {
 
         # handle form errors
         if ( $results->has_missing or $results->has_invalid ) {
-            $r->log->error( "results: " . Dumper($results) );
+            $r->log->error( "results: " . $class->Dumper($results) );
 
             my $errors = $class->SUPER::_results_to_errors($results);
             return $class->paid(
@@ -852,390 +761,5 @@ sub free {
     return Apache2::Const::REDIRECT;
 }
 
-sub publisher {
-    my ( $class, $r, $args_ref ) = @_;
-
-    my $req = $args_ref->{req} || Apache2::Request->new($r);
-
-    # apache request bug
-    my $plan = $req->param('plan');
-
-    # plan passed on GET
-    my %tmpl_data = (
-        errors => $args_ref->{errors},
-        req    => $req,
-    );
-
-    if ( $r->method_number == Apache2::Const::M_GET ) {
-
-        my $output;
-        my $ok =
-          $Tmpl->process( 'billing/publisher.tmpl', \%tmpl_data, \$output, $r );
-
-        return $class->ok( $r, $output ) if $ok;
-        return $class->error( $r, "Template error: " . $Tmpl->error() );
-
-    }
-    elsif ( $r->method_number == Apache2::Const::M_POST ) {
-
-        ## processing a payment, here we go
-
-        # reset method to get for redirect
-        $r->method_number(Apache2::Const::M_GET);
-
-        my %payment_profile = (
-            required => [
-                qw( first_name last_name card_type card_number cvv2
-                  month year street city zip state email plan )
-            ],
-            constraint_methods => {
-                email       => email(),
-                zip         => zip(),
-                first_name  => valid_first(),
-                last_name   => valid_last(),
-                month       => valid_month(),
-                year        => valid_year(),
-                cvv2        => valid_cvv(),
-                city        => valid_city(),
-                street      => valid_street(),
-                card_type   => cc_type(),
-                card_number => cc_number( { fields => ['card_type'] } ),
-            }
-        );
-
-        $r->log->info("$$ about to validate form");
-        my $results = Data::FormValidator->check( $req, \%payment_profile );
-
-        # handle form errors
-        if ( $results->has_missing or $results->has_invalid ) {
-            $r->log->error( "results: " . Dumper($results) );
-
-            my $errors = $class->SUPER::_results_to_errors($results);
-            return $class->publisher(
-                $r,
-                {
-                    errors => $errors,
-                    req    => $req
-                }
-            );
-        }
-
-        $r->log->info("$$ about to process payment");
-        ## process the payment
-        my $fname  = $req->param('first_name');
-        my $lname  = $req->param('last_name');
-        my $street = $req->param('street');
-        my $city   = $req->param('city');
-        my $state  = $req->param('state');
-        my $zip    = $req->param('zip');
-        my $email  = $req->param('email');
-        my $amount = $req->param('plan');
-
-        my $payment = eval {
-            SL::Payment->recurring(
-                {
-                    description => "Silver Lining Networks Publisher \$$amount/month",
-                    email       => $req->param('email'),
-                    card_type   => $req->param('card_type'),
-                    card_number => $req->param('card_number'),
-                    card_exp =>
-                      join( '/', $req->param('month'), $req->param('year') ),
-                    cvv2       => $req->param('cvv2'),
-                    email      => $email,
-                    zip        => $zip,
-                    first_name => $fname,
-                    last_name  => $lname,
-                    ip         => $r->connection->remote_ip,
-                    street     => $street,
-                    city       => $city,
-                    state      => $state,
-                    referer    => $r->headers_in->{'referer'},
-                    amount     => $amount,
-                }
-            );
-        };
-
-        if ($@) {
-
-            # error processing payment
-            $r->log->error("payment processing error: $@");
-            return Apache2::Const::SERVER_ERROR;
-        }
-
-        if ( defined $payment->{error} ) {
-
-            # process errors
-            $r->log->info( "$$ got payment error: " . $payment->{error} );
-
-            return $class->publisher(
-                $r,
-                {
-                    errors => { payment => $payment->{error}, },
-                    req    => $req,
-                }
-            );
-        }
-
-        # no errors, grab the auth code
-        unless ( defined $payment->{auth_code} ) {
-            $r->log->error( "payment success but no auth code: "
-                  . Data::Dumper::Dumper($payment) );
-            return Apache2::Const::SERVER_ERROR;
-        }
-
-        my $auth_code = $payment->{auth_code};
-        $r->log->info("$$ payment auth code $auth_code processed OK");
-
-        my $mailer    = Mail::Mailer->new('qmail');
-        my %mail_args = (
-            'To'      => $email,
-            'From'    => $From,
-            'CC'      => $From,
-            'Subject' => "Publisher Recurring Billing Receipt",
-        );
-
-        $mailer->open( \%mail_args );
-
-        my $date = DateTime->now->mdy('/');
-
-        my $mail;
-        my %tmpl_data = (
-            email              => $email,
-            fname              => $fname,
-            lname              => $lname,
-            city               => $city,
-            state              => $state,
-            street             => $street,
-            zip                => $zip,
-            authorization_code => $auth_code,
-            date               => $date,
-            amount             => $amount,
-        );
-
-        my $ok =
-          $Tmpl->process( 'billing/pub_receipt.tmpl', \%tmpl_data, \$mail, $r );
-        return $class->error( $r, $mail ) if !$ok;
-
-        print $mailer $mail;
-
-        if (TEST_MODE) {
-            $r->log->error("TEST_MODE ENABLED, email would be '$mail'");
-        }
-        else {
-            $mailer->close;
-        }
-
-        $r->log->info("$$ receipt for payment $auth_code: $mail");
-
-        $r->headers_out->set( Location => $Config->sl_app_base_uri
-              . "/billing/success?auth_code=$auth_code" );
-        $r->no_cache(1);
-        return Apache2::Const::REDIRECT;
-    }
-}
-
-
-
-sub advertiser {
-    my ( $class, $r, $args_ref ) = @_;
-
-    my $req = $args_ref->{req} || Apache2::Request->new($r);
-
-    # apache request bug
-    my $plan = $req->param('plan');
-    my $coupon = $req->param('coupon');
-
-    # plan passed on GET
-    my %tmpl_data = (
-        errors => $args_ref->{errors},
-        req    => $req,
-    );
-
-    if ( $r->method_number == Apache2::Const::M_GET ) {
-
-        my $output;
-        my $ok =
-          $Tmpl->process( 'billing/advertiser.tmpl', \%tmpl_data, \$output, $r );
-
-        return $class->ok( $r, $output ) if $ok;
-        return $class->error( $r, "Template error: " . $Tmpl->error() );
-
-    }
-    elsif ( $r->method_number == Apache2::Const::M_POST ) {
-
-        ## processing a payment, here we go
-
-        # reset method to get for redirect
-        $r->method_number(Apache2::Const::M_GET);
-
-        my %payment_profile = (
-            required => [
-                qw( first_name last_name card_type card_number cvv2
-                  month year street city zip state email plan )
-            ],
-            constraint_methods => {
-                email       => email(),
-                zip         => zip(),
-                first_name  => valid_first(),
-                last_name   => valid_last(),
-                month       => valid_month(),
-                year        => valid_year(),
-                cvv2        => valid_cvv(),
-                city        => valid_city(),
-                street      => valid_street(),
-                card_type   => cc_type(),
-                card_number => cc_number( { fields => ['card_type'] } ),
-            }
-        );
-
-        $r->log->info("$$ about to validate form");
-        my $results = Data::FormValidator->check( $req, \%payment_profile );
-
-        # handle form errors
-        if ( $results->has_missing or $results->has_invalid ) {
-            $r->log->error( "results: " . Dumper($results) );
-
-            my $errors = $class->SUPER::_results_to_errors($results);
-            return $class->advertiser(
-                $r,
-                {
-                    errors => $errors,
-                    req    => $req
-                }
-            );
-        }
-
-        $r->log->info("$$ about to process payment");
-        ## process the payment
-        my $fname  = $req->param('first_name');
-        my $lname  = $req->param('last_name');
-        my $street = $req->param('street');
-        my $city   = $req->param('city');
-        my $state  = $req->param('state');
-        my $zip    = $req->param('zip');
-        my $email  = $req->param('email');
-        my $amount = $req->param('plan');
-
-	my %payment_args = (
-		description => "Silver Lining Networks Advertiser \$$amount/month",
-                    email       => $req->param('email'),
-                    card_type   => $req->param('card_type'),
-                    card_number => $req->param('card_number'),
-                    card_exp =>
-                      join( '/', $req->param('month'), $req->param('year') ),
-                    cvv2       => $req->param('cvv2'),
-                    email      => $email,
-                    zip        => $zip,
-                    first_name => $fname,
-                    last_name  => $lname,
-                    ip         => $r->connection->remote_ip,
-                    street     => $street,
-                    city       => $city,
-                    state      => $state,
-                    referer    => $r->headers_in->{'referer'},
-                    amount     => $amount,
-	);
-
-	if ($req->param('special')) {
-	   $payment_args{special} = $req->param('special');
-	}
-
-        my $payment = eval { SL::Payment->recurring(\%payment_args); };
-
-        if ($@) {
-
-            # error processing payment
-            $r->log->error("payment processing error: $@");
-            return Apache2::Const::SERVER_ERROR;
-        }
-
-        if ( defined $payment->{error} ) {
-
-            # process errors
-            $r->log->info( "$$ got payment error: " . $payment->{error} );
-
-            return $class->advertiser(
-                $r,
-                {
-                    errors => { payment => $payment->{error}, },
-                    req    => $req,
-                }
-            );
-        }
-
-        # no errors, grab the auth code
-        unless ( defined $payment->{auth_code} ) {
-            $r->log->error( "payment success but no auth code: "
-                  . Data::Dumper::Dumper($payment) );
-            return Apache2::Const::SERVER_ERROR;
-        }
-
-        my $auth_code = $payment->{auth_code};
-        $r->log->info("$$ payment auth code $auth_code processed OK");
-
-        my $mailer    = Mail::Mailer->new('qmail');
-        my %mail_args = (
-            'To'      => $email,
-            'From'    => $From,
-            'CC'      => $From,
-            'Subject' => "Advertiser Recurring Billing Receipt",
-        );
-
-        $mailer->open( \%mail_args );
-
-        my $date = DateTime->now->mdy('/');
-
-        my $mail;
-        my %tmpl_data = (
-            email              => $email,
-            fname              => $fname,
-            lname              => $lname,
-            city               => $city,
-            state              => $state,
-            street             => $street,
-            zip                => $zip,
-            authorization_code => $auth_code,
-            date               => $date,
-            amount             => $amount,
-        );
-
-        my $ok =
-          $Tmpl->process( 'billing/ad_receipt.tmpl', \%tmpl_data, \$mail, $r );
-        return $class->error( $r, $mail ) if !$ok;
-
-        print $mailer $mail;
-
-        if (TEST_MODE) {
-            $r->log->error("TEST_MODE ENABLED, email would be '$mail'");
-        }
-        else {
-            $mailer->close;
-        }
-
-        $r->log->info("$$ receipt for payment $auth_code: $mail");
-
-        $r->headers_out->set( Location => $Config->sl_app_base_uri
-              . "/billing/success?auth_code=$auth_code" );
-        $r->no_cache(1);
-        return Apache2::Const::REDIRECT;
-    }
-}
-
-
-
-sub billing_success {
-    my ( $class, $r ) = @_;
-
-    my $req = Apache2::Request->new($r);
-
-    my $output;
-    my $ok =
-      $Tmpl->process( 'billing/success.tmpl',
-        { auth_code => $req->param('auth_code') },
-        \$output, $r );
-
-    return $class->ok( $r, $output ) if $ok;
-    return $class->error( $r, "Template error: " . $Tmpl->error() );
-}
 
 1;
