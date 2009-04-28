@@ -44,7 +44,7 @@ sub publisher {
     my $plan = $req->param('plan');
     unless ($plan) {
         $r->log->error("missing plan");
-        return Apache2::Const::SERVER_ERROR;
+        return Apache2::Const::NOT_FOUND;
     }
 
     my %tmpl_data = (
@@ -119,6 +119,7 @@ sub publisher {
         my $payment = eval {
             SL::Payment->recurring(
                 {
+                    account_id  => 1,
                     description => "Silver Lining Networks Publisher \$$amount/month",
                     email       => $req->param('email'),
                     card_type   => $req->param('card_type'),
@@ -302,6 +303,7 @@ sub advertiser {
         my $amount = $req->param('plan');
 
 	my %payment_args = (
+                    account_id => 1,
 		description => "Silver Lining Networks Advertiser \$$amount/month",
                     email       => $req->param('email'),
                     card_type   => $req->param('card_type'),

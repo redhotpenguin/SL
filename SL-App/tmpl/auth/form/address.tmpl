@@ -1,3 +1,4 @@
+[% IF !ziponly %]
 <!-- STREET -->
 
 <dt><label for="street">[% IF errors.missing.street or errors.missing.city or errors.missing.zip or errors.missing.state %]<font color="red">[% END %]Billing Address[% IF errors.missing.street or errors.missing.city or errors.missing.zip or errors.missing.state %]</font>[% END %]</label></dt>
@@ -16,6 +17,13 @@
         <label for="city">[% IF errors.missing.city or errors.invalid.city %]<font color="red">[% END %]City[% IF errors.missing.city or errors.invalid.city %]</font>[% END %]</label>
     </span>
 
+[% END %]
+
+[% IF ziponly %]
+<dt><label for="zip">[% IF errors.missing.zip or errors.invalid.zip %]<font color="red">[% END %]Zip Code[% IF errors.missing.zip or errors.missing.zip %]</font>[% END %]</label></dt>
+<dd>
+[% END %]
+
 	<span class="quarter">
         <input type="text" id="zip" name="zip" value="[% IF req.param('zip') %][% req.param('zip') %][% ELSE %]#####[% END %]" />
         <label for="zip">[% IF errors.missing.zip or errors.invalid.zip %]<font color="red">[% END %]Zip Code[% IF errors.missing.zip or errors.invalid.zip %]</font>[% END %]</label>
@@ -23,7 +31,9 @@
 	<div class="clear"></div>
 </dd>
 
-<!-- COUNTRY -->
+[% IF !ziponly %]
+
+<!-- STATE -->
 <dd class="large_margin">
 	<span class="half">
 							<select id="state" name="state">
@@ -84,3 +94,4 @@
 							</span>
 						<div class="clear"></div>
 						</dd>
+[% END %]

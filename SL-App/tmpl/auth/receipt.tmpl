@@ -4,8 +4,12 @@ Thank you for purchasing WiFi Internet access with Silver Lining Networks.
 
 Billed To:
 [% fname %] [% lname %]
+[% IF ziponly %]
+Zip Code: [% zip %]
+[% ELSE %]
 [% street %]
 [% city %], [% state %] [% zip %]
+[% END %]
 
 ----------------------Purchase Receipt ---------------------
 Description: [% plan %] WiFi Internet Access
@@ -15,6 +19,11 @@ Provider: [% network_name %]
 -------------------------------------------------------------------------
 
 Total Cost: [% amount %]
+
+[% IF !ziponly %]
+Your credit card will be charged [% amount %] once a month until you
+cancel your subscription.
+[% END %]
 
 PLEASE RETAIN THIS FOR YOUR RECORDS
 

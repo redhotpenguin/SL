@@ -155,6 +155,7 @@ sub recurring {
         && defined $args->{city}
         && defined $args->{state}
         && defined $args->{referer}
+        && defined $args->{account_id}
         && defined $args->{amount} );
 
     ####################################################
@@ -209,7 +210,7 @@ sub recurring {
     # make a new payment first
     my $payment = SL::Model::App->resultset('Payment')->create(
         {
-            account_id => 1,
+            account_id => $args->{account_id},
             mac        => 'FF:FF:FF:FF:FF:FF',
             amount     => $args->{amount},
             stop       => DateTime::Format::Pg->format_datetime(
@@ -290,12 +291,8 @@ sub process {
         && defined $args->{last_name}
         && defined $args->{cvv2}
         && defined $args->{ip}
-        && defined $args->{street}
-        && defined $args->{city}
-        && defined $args->{state}
         && defined $args->{referer}
         && defined $args->{plan} );
-
 
     my $plan = delete $args->{plan};
     my $plans = join('|', keys %Plans);
@@ -327,7 +324,7 @@ sub process {
 
     # munge transaction args
     my $email = delete $args->{email};
-    $args->{description}    = "Plan $plan transaction payment for $email";
+
     $args->{invoice_number} = $payment->payment_id;
     $args->{customer_id} =
       sprintf( "%s %u", delete $args->{mac}, delete $args->{account_id} );
@@ -335,7 +332,8 @@ sub process {
     # authorize
     my $tx = Business::OnlinePayment->new('AuthorizeNet');
 
-    my %tx_content = (
+    # base content
+      my %tx_content = (
         %Authorize_creds,
         action         => 'Normal Authorization',
         description    => $args->{description},
@@ -344,9 +342,6 @@ sub process {
         customer_id    => $args->{customer_id},
         first_name     => $args->{first_name},
         last_name      => $args->{last_name},
-        address        => $args->{street},
-        city           => $args->{city},
-        state          => $args->{state},
         zip            => $args->{zip},
         card_number    => $args->{card_number},
         expiration     => $args->{card_exp},
@@ -359,7 +354,7 @@ sub process {
     $tx->content(%tx_content);
 
     if (TEST_MODE) {
-        warn("TEST_MODE enabled, would have posted " . Dumper( $tx->content ) );
+        warn("TEST_MODE enabled, would have sent " . Dumper( $tx->content ) );
         $payment->authorization_code( $payment->payment_id );
         $payment->approved('t');
     }

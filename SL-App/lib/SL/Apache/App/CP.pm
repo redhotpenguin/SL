@@ -437,11 +437,13 @@ sub paid {
 
     # apache request bug
     my $plan = $req->param('plan');
+    my $ziponly = ($plan eq 'month') ? undef : 1;
 
     # plan passed on GET
     my %tmpl_data = (
-        errors => $args_ref->{errors},
-        req    => $req,
+        ziponly => $ziponly,
+        errors  => $args_ref->{errors},
+        req     => $req,
     );
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
@@ -486,11 +488,15 @@ sub paid {
         # reset method to get for redirect
         $r->method_number(Apache2::Const::M_GET);
 
+        my @ziponly_req = qw( first_name last_name card_type card_number cvv2
+                  month year email plan mac zip );
+
+        my @addr_req = qw( street city state );
+
+        my @req = $ziponly ? ( @ziponly_req ) : ( @ziponly_req, @addr_req );
+
         my %payment_profile = (
-            required => [
-                qw( first_name last_name card_type card_number cvv2
-                  month year street city zip state email plan mac )
-            ],
+            required => \@req,
             constraint_methods => {
                 email       => email(),
                 zip         => zip(),
@@ -508,7 +514,6 @@ sub paid {
             }
         );
 
-        $r->log->info("$$ about to validate form");
         my $results = Data::FormValidator->check( $req, \%payment_profile );
 
         # handle form errors
@@ -525,39 +530,49 @@ sub paid {
             );
         }
 
-        $r->log->info("$$ about to process payment");
         ## process the payment
+        $r->log->debug("$$ about to process payment") if DEBUG;
         my $account = $r->pnotes('router')->account_id;
         my $fname   = $req->param('first_name');
         my $lname   = $req->param('last_name');
-        my $street  = $req->param('street');
-        my $city    = $req->param('city');
-        my $state   = $req->param('state');
         my $zip     = $req->param('zip');
         my $email   = $req->param('email');
 
-        my $payment = SL::Payment->process(
-            {
+        my %payment_args = (
                 account_id  => $account->account_id,
                 mac         => $req->param('mac'),
                 email       => $req->param('email'),
+
                 card_type   => $req->param('card_type'),
                 card_number => $req->param('card_number'),
                 card_exp =>
                   join( '/', $req->param('month'), $req->param('year') ),
                 cvv2       => $req->param('cvv2'),
+
                 email      => $email,
                 zip        => $zip,
+
                 first_name => $fname,
                 last_name  => $lname,
-                ip         => $r->connection->remote_ip,
-                street     => $street,
-                city       => $city,
-                state      => $state,
+
                 referer    => $r->headers_in->{'referer'},
+                ip         => $r->connection->remote_ip,
                 plan       => $req->param('plan'),
-            }
-        );
+                            );
+
+        my $payment;
+        if ($ziponly) {
+          $payment = SL::Payment->process( \%payment_args );
+
+          } else {
+
+            my %addr = (
+                street     => $req->param('street'),
+                city       => $req->param('city'),
+                state      => $req->param('state'), );
+
+            $payment = SL::Payment->recurring({ %payment_args, %addr });
+        }
 
         if ( $payment->error_message ) {
 
@@ -574,15 +589,9 @@ sub paid {
             );
         }
 
-        $r->log->info( "$$ payment auth code "
+        $r->log->debug( "$$ payment auth code "
               . $payment->authorization_code
-              . " processed OK" );
-
-        # payment success, send receipt
-        ($payment) =
-          SL::Model::App->resultset('Payment')
-          ->search( { payment_id => $payment->payment_id } );
-        my $authorization_code = sprintf( "%s", $payment->authorization_code );
+              . " processed OK" ) if DEBUG;
 
         my $mailer    = Mail::Mailer->new('qmail');
         my %mail_args = (
@@ -609,19 +618,25 @@ sub paid {
 
         my $mail;
         my %tmpl_data = (
+            ziponly            => $ziponly,
             email              => $email,
             fname              => $fname,
             lname              => $lname,
-            city               => $city,
-            state              => $state,
-            street             => $street,
-            zip                => $zip,
             plan               => $duration,
             network_name       => $network_name,
-            authorization_code => $authorization_code,
+            authorization_code => $payment->authorization_code,
             date               => $date,
             amount             => $plan_hash->{cost},
         );
+
+        if (!$ziponly) {
+            my %addr = (
+                street     => $req->param('street'),
+                city       => $req->param('city'),
+                state      => $req->param('state'), );
+
+            %tmpl_data = ( %tmpl_data, %addr ) if !$ziponly;
+        }
 
         my $ok = $Tmpl->process( 'auth/receipt.tmpl', \%tmpl_data, \$mail, $r );
         return $class->error( $r, $mail ) if !$ok;
@@ -630,7 +645,8 @@ sub paid {
 
         $mailer->close unless TEST_MODE;
 
-        $r->log->info("$$ receipt for payment $authorization_code: $mail");
+        $r->log->debug(sprintf("receipt for payment %s: %s",
+                               $payment->authorization_code, $mail)) if DEBUG;
 
         my $lan_ip = $router->lan_ip
           || die 'router not configured for CP';

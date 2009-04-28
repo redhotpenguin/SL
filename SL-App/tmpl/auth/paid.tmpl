@@ -58,7 +58,7 @@
                                 [% PROCESS auth/form/name.tmpl %]
                                 [% PROCESS auth/form/user_info.tmpl nopass=1 %]
                                 [% PROCESS auth/form/creditcard.tmpl %]
-                                [% PROCESS auth/form/address.tmpl %]
+                                [% PROCESS auth/form/address.tmpl ziponly=ziponly %]
                                 [% PROCESS auth/form/submit_button.tmpl %]
 
                                 <input type="hidden" name="mac" value="[% req.param('mac') %]" />
