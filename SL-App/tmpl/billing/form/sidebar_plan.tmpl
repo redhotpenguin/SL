@@ -1,0 +1,20 @@
+    <ul id="payment_info">
+
+
+        <li class="clear"><strong>
+[% IF req.param('plan') == 'enterprise' %]Enterprise Plan - $249/month
+[% ELSIF req.param('plan') == 'premium'  %]Premium Plan - $99/month
+[% ELSIF req.param('plan') == 'plus'  %]Premium Plan - $99/month
+[% ELSIF req.param('plan') == 'basic'  %]Premium Plan - $99/month
+[% END %]
+</strong>
+            <ul>
+                <li>Private Label: <strong>Yes</strong></li>
+                <li>Ad Insertions Per Month: <strong>250,000</strong></li>
+                <li>Ad Marketplace Revenue Share: <strong>70%</strong></li>
+                <li>Cost Per Ad Insertion (CPMI): <strong>$1</strong></li>
+            </ul>
+        </li>
+
+
+    </ul>
