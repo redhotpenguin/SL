@@ -74,7 +74,8 @@ sub publisher {
             required => [ ($plan eq 'free') ? @free_req : ( @free_req, @paid_req ) ],
             constraint_methods => {
                 password    => $class->check_password,
-                retype      => $class->check_retype( { fields => ['password', 'retype'] } ),
+                retype      => $class->check_retype(
+                     { fields => ['password', 'retype'] } ),
                 email       => email(),
                 zip         => zip(),
                 first_name  => $class->valid_first,
@@ -93,7 +94,8 @@ sub publisher {
 
         # handle form errors
         if ( $results->has_missing or $results->has_invalid ) {
-            $r->log->error( "incomplete payment form: " . $class->Dumper($results) );
+            $r->log->error( "incomplete payment form: " .
+                            $class->Dumper($results) );
 
             my $errors = $class->SUPER::_results_to_errors($results);
             return $class->publisher(
@@ -103,6 +105,10 @@ sub publisher {
                     req    => $req
                 }
             );
+        }
+
+        if ($req->param('plan') == 'free') {
+          goto ACCOUNT;
         }
 
         # if this is a paid account then process the payment
@@ -143,41 +149,39 @@ sub publisher {
 
         if ($@) {
 
-            # error processing payment
-            $r->log->error("payment processing error: $@");
-            return Apache2::Const::SERVER_ERROR;
-        }
-
-        if ( defined $payment->{error} ) {
-
-            # process errors
-            $r->log->info( "$$ got payment error: " . $payment->{error} );
-
+            # error processing payment, try again
+            $r->log->error(sprintf("payment error: %s", $@));
             return $class->publisher(
                 $r,
                 {
-                    errors => { payment => $payment->{error}, },
+                    errors => { payment => 'Technical error, please repeat transaction', },
                     req    => $req,
                 }
             );
         }
 
-        # no errors, grab the auth code
-        unless ( defined $payment->{auth_code} ) {
-            $r->log->error( "payment success but no auth code: "
-                  . $class->Dumper($payment) );
-            return Apache2::Const::SERVER_ERROR;
+        if ( $payment->error_message ) {
+
+            $r->log->error(sprintf("payment error: %s",
+                                   $payment->error_message) );
+
+            return $class->publisher(
+                $r,
+                {
+                    errors => { payment => $payment->error_message, },
+                    req    => $req,
+                }
+            );
         }
 
-        my $auth_code = $payment->{auth_code};
-        $r->log->info("$$ payment auth code $auth_code processed OK");
+
 
         my $mailer    = Mail::Mailer->new('qmail');
         my %mail_args = (
             'To'      => $email,
             'From'    => $From,
             'CC'      => $From,
-            'Subject' => "Publisher Recurring Billing Receipt",
+            'Subject' => "Welcome to Silver Lining Networks",
         );
 
         $mailer->open( \%mail_args );
@@ -186,6 +190,7 @@ sub publisher {
 
         my $mail;
         my %tmpl_data = (
+            plan               => $plan,
             email              => $email,
             fname              => $fname,
             lname              => $lname,
@@ -193,7 +198,7 @@ sub publisher {
             state              => $state,
             street             => $street,
             zip                => $zip,
-            authorization_code => $auth_code,
+            order_number       => $payment->order_number,
             date               => $date,
             amount             => $amount,
         );
@@ -211,13 +216,48 @@ sub publisher {
             $mailer->close;
         }
 
-        $r->log->info("$$ receipt for payment $auth_code: $mail");
+        $r->log->debug(sprintf("receipt payment %s: \n%s",
+                               $payment->order_number, $mail)) if DEBUG;
+
+
+        # create the account
+        my $reg;
+
+
+        ###############################
+        # create a session
+        my %session;
+        tie %session, 'Apache::Session::DB_File', undef,
+          \%SL::Apache::App::CookieAuth::SESS_OPTS;
+        my $session_id = $session{_session_id};
+        $r->pnotes( 'session' => \%session );
+
+        # auth the user and log them in
+        SL::Apache::App::CookieAuth->send_cookie( $r, $reg, $session_id );
+
 
         $r->headers_out->set( Location => $Config->sl_app_base_uri
-              . "/billing/success?auth_code=$auth_code" );
+              . "/app/home/index?order_number=" . $payment->order_number );
         $r->no_cache(1);
         return Apache2::Const::REDIRECT;
+
+
+
+
+
+
+        $r->internal_redirect("/app/home/index");
+
+        return SL::Apache::App::CookieAuth->auth_ok( $r, $reg );
     }
+
+
+
+#        $r->headers_out->set( Location => $Config->sl_app_base_uri
+#              . "/billing/success?auth_code=$auth_code" );
+#        $r->no_cache(1);
+#        return Apache2::Const::REDIRECT;
+
 }
 
 
@@ -354,7 +394,7 @@ sub advertiser {
                     req    => $req,
                 }
             );
-        }
+     }
 
 
         my $auth_code = $payment->authorization_code;
@@ -386,9 +426,9 @@ sub advertiser {
             amount             => $amount,
         );
 
-        my $ok =
-          $Tmpl->process( 'billing/advertiser/receipt.tmpl', \%tmpl_data, \$mail, $r );
-        return $class->error( $r, $mail ) if !$ok;
+        $Tmpl->process( 'billing/advertiser/receipt.tmpl',
+                        \%tmpl_data, \$mail, $r ) ||
+                          return $class->error($r,$mail);
 
         print $mailer $mail;
 
@@ -405,7 +445,7 @@ sub advertiser {
               . "/billing/success?auth_code=$auth_code" );
         $r->no_cache(1);
         return Apache2::Const::REDIRECT;
-    }
+      }
 }
 
 
@@ -416,13 +456,13 @@ sub billing_success {
     my $req = Apache2::Request->new($r);
 
     my $output;
-    my $ok =
-      $Tmpl->process( 'billing/success.tmpl',
+    $Tmpl->process( 'billing/success.tmpl',
         { auth_code => $req->param('auth_code') },
-        \$output, $r );
+        \$output, $r ) ||
+          return $class->error( $r, $Tmpl->error );
 
-    return $class->ok( $r, $output ) if $ok;
-    return $class->error( $r, "Template error: " . $Tmpl->error() );
-}
+    return $class->ok( $r, $output );
+
+  }
 
 1;

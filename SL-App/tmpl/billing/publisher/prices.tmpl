@@ -1,5 +1,1 @@
-[% req.param('plan') FILTER ucfirst %] Plan  ([% IF req.param('plan') == 'enterprise' %]$249
-[% ELSIF req.param('plan') == 'premium'  %]$99
-[% ELSIF req.param('plan') == 'plus'  %]$49
-[% ELSIF req.param('plan') == 'basic'  %]$24
-[% END %]/month)
+[% req.param('plan') FILTER ucfirst %] Plan  ($[% IF req.param('plan') == 'enterprise' %]249[% ELSIF req.param('plan') == 'premium'  %]99[% ELSIF req.param('plan') == 'plus'  %]49[% ELSIF req.param('plan') == 'basic'  %]24[% ELSIF req.param('plan') == 'free'  %]0[% END %]/month)

@@ -296,6 +296,7 @@ sub auth_ok {
     # setup the request auth blabla
     $r->user( $reg->email );
     $r->pnotes( $r->user => $reg );
+    $r->no_cache(1);
 
     return Apache2::Const::OK;
 }
