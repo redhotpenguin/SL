@@ -1,4 +1,4 @@
-package SL::Apache::App::Ad::Bugs;
+package SL::App::Ad::Bugs;
 
 use strict;
 use warnings;
@@ -11,7 +11,7 @@ use Apache2::SubRequest ();
 
 use Data::FormValidator ();
 
-use base 'SL::Apache::App';
+use base 'SL::App';
 use SL::App::Template ();
 use SL::Model;
 use SL::Model::App;    # works for now
@@ -76,10 +76,10 @@ sub dispatch_edit {
             required           => [qw( ad_size_id link_href image_href )],
             constraint_methods => {
 
-                link_href  => SL::Apache::App::valid_link(),
+                link_href  => SL::App::valid_link(),
                 image_href => [
-                    SL::Apache::App::valid_link(),
-                    SL::Apache::App::image_zone(
+                    SL::App::valid_link(),
+                    SL::App::image_zone(
                         { fields => [ 'image_href', 'ad_size_id' ] }
                     ),
                 ],

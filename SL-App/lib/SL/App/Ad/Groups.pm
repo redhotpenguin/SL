@@ -1,4 +1,4 @@
-package SL::Apache::App::Ad::Groups;
+package SL::App::Ad::Groups;
 
 use strict;
 use warnings;
@@ -12,7 +12,7 @@ use Apache2::Request    ();
 use Apache2::SubRequest ();
 #use JavaScript::Minifier::XS qw(minify);
 
-use base 'SL::Apache::App';
+use base 'SL::App';
 
 use SL::Model ();
 use SL::Model::App ();

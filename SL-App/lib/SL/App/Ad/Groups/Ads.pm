@@ -1,4 +1,4 @@
-package SL::Apache::App::Ad::Groups::Ads;
+package SL::App::Ad::Groups::Ads;
 
 use strict;
 use warnings;
@@ -10,7 +10,7 @@ use Data::FormValidator ();
 use Apache2::Request    ();
 use Apache2::SubRequest ();
 
-use base 'SL::Apache::App';
+use base 'SL::App';
 
 use SL::Config;
 our $CONFIG = SL::Config->new;
