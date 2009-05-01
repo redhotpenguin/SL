@@ -1,4 +1,4 @@
-package SL::Apache::App::Home;
+package SL::App::Home;
 
 use strict;
 use warnings;
@@ -6,7 +6,7 @@ use warnings;
 use Apache2::Const -compile => qw(OK SERVER_ERROR NOT_FOUND M_GET M_POST);
 use Apache2::Log ();
 
-use base 'SL::Apache::App';
+use base 'SL::App';
 
 use URI               ();
 use XML::Feed         ();

@@ -1,4 +1,4 @@
-package SL::Apache::App::Router;
+package SL::App::Router;
 
 use strict;
 use warnings;
@@ -11,7 +11,7 @@ use Apache2::SubRequest ();
 
 use Data::FormValidator ();
 
-use base 'SL::Apache::App';
+use base 'SL::App';
 
 use SL::Model;
 use SL::Model::App;    # works for now

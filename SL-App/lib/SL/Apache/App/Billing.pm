@@ -1,4 +1,4 @@
-package SL::Apache::App::Billing;
+package SL::App::Billing;
 
 use strict;
 use warnings;
@@ -12,13 +12,13 @@ use Apache2::Connection ();
 use Apache2::Request    ();
 use Apache2::SubRequest ();
 
-use base 'SL::Apache::App';
+use base 'SL::App';
 
 use SL::App::Template ();
 our $Tmpl = SL::App::Template->template();
 
 use SL::Payment                 ();
-use SL::Apache::App::CookieAuth ();
+use SL::App::CookieAuth ();
 
 use Data::FormValidator ();
 use Data::FormValidator::Constraints qw(:closures);
@@ -222,12 +222,12 @@ sub publisher {
         # create a session
         my %session;
         tie %session, 'Apache::Session::DB_File', undef,
-          \%SL::Apache::App::CookieAuth::SESS_OPTS;
+          \%SL::App::CookieAuth::SESS_OPTS;
         my $session_id = $session{_session_id};
         $r->pnotes( 'session' => \%session );
 
         # auth the user and log them in
-        SL::Apache::App::CookieAuth->send_cookie( $r, $reg, $session_id );
+        SL::App::CookieAuth->send_cookie( $r, $reg, $session_id );
 
         $r->headers_out->set( Location => $Config->sl_app_base_uri
               . "/app/home/index?order_number="
@@ -237,7 +237,7 @@ sub publisher {
 
         $r->internal_redirect("/app/home/index");
 
-        return SL::Apache::App::CookieAuth->auth_ok( $r, $reg );
+        return SL::App::CookieAuth->auth_ok( $r, $reg );
     }
 
     #        $r->headers_out->set( Location => $Config->sl_app_base_uri

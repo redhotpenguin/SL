@@ -1,4 +1,4 @@
-package SL::Apache::App::Ad;
+package SL::App::Ad;
 
 use strict;
 use warnings;
@@ -10,7 +10,7 @@ use Data::FormValidator ();
 use Apache2::Request    ();
 use Apache2::SubRequest ();
 
-use base 'SL::Apache::App';
+use base 'SL::App';
 
 use SL::App::Template ();
 our $tmpl = SL::App::Template->template();

@@ -1,4 +1,4 @@
-package SL::Apache::App::Settings;
+package SL::App::Settings;
 
 use strict;
 use warnings;
@@ -15,7 +15,7 @@ use Digest::MD5 ();
 use SL::App::Template ();
 use SL::Config        ();
 use SL::Model::App    ();
-use base 'SL::Apache::App';
+use base 'SL::App';
 
 our $CONFIG    = SL::Config->new();
 our $DATA_ROOT = $CONFIG->sl_data_root;
@@ -102,7 +102,7 @@ sub dispatch_account {
                         { fields => [ 'email', 'current_email' ] },
                     )
                 ],
-                password => SL::Apache::App::check_password(
+                password => SL::App::check_password(
                     { fields => [ 'retype', 'password' ] }
                 ),
             },
@@ -147,7 +147,7 @@ sub dispatch_account {
         # re-auth the user
         $r->user( $reg->email );
         $r->pnotes( $r->user => $reg );
-        SL::Apache::App::CookieAuth->send_cookie( $r, $reg,
+        SL::App::CookieAuth->send_cookie( $r, $reg,
             $r->pnotes('session')->{_session_id} );
     }
 

@@ -1,4 +1,4 @@
-package SL::Apache::App::Settings::Payment;
+package SL::App::Settings::Payment;
 
 use strict;
 use warnings;
@@ -15,7 +15,7 @@ use Digest::MD5 ();
 use SL::App::Template ();
 use SL::Config        ();
 use SL::Model::App    ();
-use base 'SL::Apache::App';
+use base 'SL::App';
 
 our $CONFIG    = SL::Config->new();
 our $DATA_ROOT = $CONFIG->sl_data_root;

@@ -1,4 +1,4 @@
-package SL::Apache::App::CookieAuth;
+package SL::App::CookieAuth;
 
 use strict;
 use warnings;
@@ -17,7 +17,7 @@ use MIME::Lite               ();
 use Apache::Session::DB_File ();
 use Regexp::Common          qw( net );
 
-use base 'SL::Apache::App';
+use base 'SL::App';
 use SL::Model::App    ();
 use SL::App::Template ();
 
@@ -380,7 +380,7 @@ sub signup {
             required => [qw( email password )],
             constraint_methods => {
                 email      => email(),
-                password   => SL::Apache::App::check_password(
+                password   => SL::App::check_password(
                     { fields => [ 'password' ] }
                 ),
             }

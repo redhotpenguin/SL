@@ -1,4 +1,4 @@
-package SL::Apache::App::Report;
+package SL::App::Report;
 
 use strict;
 use warnings;
@@ -6,7 +6,7 @@ use warnings;
 use Apache2::Const -compile => qw( OK M_POST M_GET REDIRECT );
 use Apache2::Log ();
 
-use base 'SL::Apache::App';
+use base 'SL::App';
 
 our %Types = ( 'views' => 'Ad Insertions', 'users' => 'Unique Users');
 

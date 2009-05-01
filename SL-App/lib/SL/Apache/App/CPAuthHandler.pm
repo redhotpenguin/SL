@@ -1,4 +1,4 @@
-package SL::Apache::App::CPAuthHandler;
+package SL::App::CPAuthHandler;
 
 use strict;
 use warnings;

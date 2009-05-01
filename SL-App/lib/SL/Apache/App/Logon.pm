@@ -1,4 +1,4 @@
-package SL::Apache::App::Logon;
+package SL::App::Logon;
 
 use strict;
 use warnings;

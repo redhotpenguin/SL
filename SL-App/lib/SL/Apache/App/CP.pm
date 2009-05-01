@@ -1,4 +1,4 @@
-package SL::Apache::App::CP;
+package SL::App::CP;
 
 use strict;
 use warnings;
@@ -14,7 +14,7 @@ use Apache2::Request         ();
 use Apache2::SubRequest      ();
 use Apache::Session::DB_File ();
 
-use base 'SL::Apache::App';
+use base 'SL::App';
 
 use Data::FormValidator ();
 use Data::FormValidator::Constraints qw(:closures);
@@ -29,7 +29,7 @@ our $Tmpl = SL::App::Template->template();
 our $Cookie_name = 'SLN CP';
 
 use SL::Payment                 ();
-use SL::Apache::App::CookieAuth ();
+use SL::App::CookieAuth ();
 
 use constant DEBUG => $ENV{SL_DEBUG} || $ENV{SL_TEST_MODE} || 0;
 use constant TEST_MODE => $ENV{SL_TEST_MODE} || 0;
@@ -375,7 +375,7 @@ sub send_cookie {
     my $cookie = Apache2::Cookie->new(
         $r,
         -name    => $Cookie_name,
-        -value   => SL::Apache::App::CookieAuth->encode( \%state ),
+        -value   => SL::App::CookieAuth->encode( \%state ),
         -expires => '15m',
         -path    => $Config->sl_app_base_uri,
     );

@@ -1,4 +1,4 @@
-package SL::Apache::App::PostReadRequestHandler;
+package SL::App::PostReadRequestHandler;
 
 use strict;
 use warnings;

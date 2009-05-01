@@ -1,4 +1,4 @@
-package SL::Apache::App::Blacklist;
+package SL::App::Blacklist;
 
 use strict;
 use warnings;
@@ -7,7 +7,7 @@ use Apache2::Const -compile => qw(OK FORBIDDEN M_POST M_GET);
 use Apache2::Log  ();
 use Apache2::Request ();
 
-use base 'SL::Apache::App';
+use base 'SL::App';
 
 use SL::App::Template ();
 our $tmpl = SL::App::Template->template();
