@@ -4,7 +4,8 @@ use strict;
 use warnings;
 
 use Apache2::Const -compile =>
-  qw(OK SERVER_ERROR NOT_FOUND M_GET M_POST REDIRECT AUTH_REQUIRED );
+  qw(OK SERVER_ERROR NOT_FOUND M_GET M_POST REDIRECT AUTH_REQUIRED
+  HTTP_METHOD_NOT_ALLOWED);
 
 use Apache2::Log             ();
 use Apache2::SubRequest      ();
@@ -30,9 +31,10 @@ our $Cookie_name = 'SLN CP';
 use SL::Payment                 ();
 use SL::Apache::App::CookieAuth ();
 
-use constant DEBUG     => $ENV{SL_DEBUG}     || 0;
+use constant DEBUG => $ENV{SL_DEBUG} || $ENV{SL_TEST_MODE} || 0;
 use constant TEST_MODE => $ENV{SL_TEST_MODE} || 0;
 
+our $Tech_error = 'Technical error, please repeat transaction';
 our $From = 'SLN Support <support@silverliningnetworks.com>';
 
 use SL::Model;
@@ -99,23 +101,23 @@ sub check {
     # see if the payment is expired
     if ( $now > $stop ) {
 
-        $r->log->info(
+        $r->log->debug(
             sprintf(
                 "auth mac %s expired, now %s, expired %s, payment id %s",
                 $mac,                          $now->mdy . ' ' . $now->hms,
                 $stop->mdy . ' ' . $stop->hms, $payment->payment_id
             )
-        );
+        ) if DEBUG;
         return Apache2::Const::AUTH_REQUIRED;
     }
 
-    $r->log->info(
+    $r->log->debug(
         sprintf(
             "auth mac %s valid, now %s, expires %s, payment id %s",
             $mac,                          $now->mdy . ' ' . $now->hms,
             $stop->mdy . ' ' . $stop->hms, $payment->payment_id
         )
-    );
+    ) if DEBUG;
 
     return Apache2::Const::OK;
 }
@@ -133,11 +135,9 @@ sub post {
 
     my $location = $class->make_post_url( $splash_href, $dest_url );
 
-    $r->log->info("splash page redirecting to $location for mac $mac");
-
+    $r->log->debug("splash page redir to $location for mac $mac") if DEBUG;
     $r->headers_out->set( Location => $location );
     $r->no_cache(1);
-
     return Apache2::Const::REDIRECT;
 }
 
@@ -182,8 +182,7 @@ sub paypal_notify {
     my $payment;
     eval { $payment = SL::Payment->paypal_save( \%query ) };
     if ($@) {
-        $r->log->error(
-            "could not save Paypal IPN to database: $@\n" . $class->Dumper( \%query ) );
+        $r->log->error( "could not save IPN: $@" . $class->Dumper( \%query ) );
         return Apache2::Const::SERVER_ERROR;
     }
 
@@ -195,7 +194,8 @@ sub paypal_return {
 
     my $req    = Apache2::Request->new($r);
     my %query  = %{ $req->param };
-    my $custom = $query{custom} || die "No custom field: " . $class->Dumper( \%query );
+    my $custom = $query{custom}
+      || die "No custom field: " . $class->Dumper( \%query );
 
     # grab the cookies
     my $jar    = Apache2::Cookie::Jar->new($r);
@@ -203,10 +203,9 @@ sub paypal_return {
 
     unless ($cookie) {
 
-        # no cookie is definitely a problem, means the cookie disappeared betwee
+        # no cookie is a problem, means the cookie disappeared betwee
         # paypal and us
-        $r->log->error(
-            "$$ cookie missing for return query " . $class->Dumper( \%query ) );
+        $r->log->error( "cookie missing, query " . $class->Dumper( \%query ) );
         return Apache2::Const::NOT_FOUND;
     }
 
@@ -218,13 +217,13 @@ sub paypal_return {
     my %session;
     eval {
         tie %session, 'Apache::Session::DB_File', $session_id, \%Sess_opts;
-        $r->log->error( "tied session $session_id: " . $class->Dumper( \%session ) )
+        $r->log->error( "sessid $session_id: " . $class->Dumper( \%session ) )
           if DEBUG;
     };
 
     if ($@) {
         $r->log->error(
-            "session missing id $session_id, args " . $class->Dumper( \%query ) );
+            "no sess, id $session_id, " . $class->Dumper( \%query ) );
         return Apache2::Const::SERVER_ERROR;
     }
 
@@ -234,14 +233,13 @@ sub paypal_return {
       ->search( { router_id => $session{router_id} } );
 
     unless ($router) {
-        $r->log->error(
-            "router id not found for session " . $class->Dumper( \%session ) );
+        $r->log->error("router id not found, sess id $session_id");
         return Apache2::Const::SERVER_ERROR;
     }
 
     my $splash_href = $router->splash_href;
     unless ($splash_href) {
-        $r->log->error( "router not configured for CP: " . $class->Dumper($router) );
+        $r->log->error( "router not setup aaa: " . $class->Dumper($router) );
 
         # send to a safe landing
         $r->headers_out->set(
@@ -284,7 +282,7 @@ sub auth {
     my %args = (
         mac => $mac,
         url => $url,
-	req => $req,
+        req => $req,
     );
 
     my $ok = $Tmpl->process( 'auth/index.tmpl', \%args, \$output, $r );
@@ -303,19 +301,16 @@ sub valid_aaa_plan {
       }
 }
 
-
 sub token {
     my ( $class, $r ) = @_;
 
     my $req = Apache2::Request->new($r);
+    my ($mac, $token ) = map { $req->param($_) } qw( mac token );
 
-    my $token = $req->param('token');
-    my $mac   = $req->param('mac');
-
-    $r->log->info("token $token, mac $mac");
+    $r->log->debug("token $token, mac $mac") if DEBUG;
 
     unless ( $token && $mac ) {
-        $r->log->error("$$ sub token called without token $token and mac $mac");
+        $r->log->error("$$ sub token called w/o token $token, mac $mac");
         return Apache2::Const::SERVER_ERROR;
     }
 
@@ -331,15 +326,14 @@ sub token {
     );
 
     unless ($payment) {
-        $r->log->error(
-            "$$ missing payment request for mac $mac, token $token, ip "
+        $r->log->error("missing payment mac $mac, token $token, ip "
               . $r->connection->remote_ip );
         return Apache2::Const::NOT_FOUND;
     }
 
     # check to make sure this payment hasn't already been called
     if ( $payment->token_processed ) {
-        $r->log->error( "$$ duplicate processing attempt for payment id "
+        $r->log->error( "dupe attempt for payment "
               . $payment->payment_id . ", ip "
               . $r->connection->remote_ip );
         return Apache2::Const::NOT_FOUND;
@@ -352,21 +346,8 @@ sub token {
     if ( $now > $stop ) {
 
         # payment expired
-        $r->log->info(
-            "$$ token attempt for expired payment, token $token, mac $mac, ip "
-              . $r->connection->remote_ip
-              . ", stop time "
-              . $stop->mdy . " "
-              . $stop->hms
-              . " epoch "
-              . $stop->epoch
-              . ", now time "
-              . $now->mdy . " "
-              . $now->hms
-              . " epoch "
-              . $now->epoch
-              . " payment id "
-              . $payment->payment_id );
+        $r->log->debug(
+            sprintf("expired payment %s, tkn %s, mac %s, ip %s, stop %s %s, now %s", $payment->payment_id, $token, $mac, $r->connection->remote_ip, $stop->mdy, $stop->hms, $now->mdy,$now->hms)) if DEBUG;
         return Apache2::Const::AUTH_REQUIRED;
     }
 
@@ -374,7 +355,7 @@ sub token {
     $payment->token_processed(1);
     $payment->update;
 
-    $r->log->info("token $token, mac $mac VERIFIED");
+    $r->log->debug("token $token, mac $mac VERIFIED") if DEBUG;
 
     return Apache2::Const::OK;
 }
@@ -402,44 +383,53 @@ sub send_cookie {
     $cookie->bake($r);
 
     # they're ok
-    $r->log->debug( "send_cookie for state " . $class->Dumper( \%state ) )
-      if DEBUG;
+    $r->log->debug( "cookie state " . $class->Dumper( \%state ) ) if DEBUG;
 
     return 1;
+}
+
+sub no_mac {
+    my ( $class, $r ) = @_;
+
+    return Apache2::Const::NOT_FOUND;
+}
+
+sub valid_mac {
+    my ( $class, $r, $mac ) = @_;
+
+    unless ($mac) {
+        $r->log->error(
+            sprintf(
+                'aaa page called w/o mac from ip %s, url %s',
+                $r->connection->remote_ip,
+                $r->construct_url( $r->unparsed_uri ),
+            )
+        );
+        return;
+    }
+
+    return 1 if $mac =~ m/$RE{net}{MAC}/;
+
+    $r->log->error( 'invalid mac %s from ip %s',
+        $mac, $r->connection->remote_ip );
+    return;
 }
 
 sub paid {
     my ( $class, $r, $args_ref ) = @_;
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
-
-    my $mac  = $req->param('mac');
+    #my ( $plan, $mac, $dest ) = map { $req->param($_) } ('plan','mac', 'url' );
+    my $mac = $req->param('mac');
     my $dest = $req->param('url');
-    unless ($mac) {
-        $r->log->error( "$$ auth page called without mac from ip "
-              . $r->connection->remote_ip
-              . " url: "
-              . $r->construct_url( $r->unparsed_uri ) );
-        return Apache2::Const::NOT_FOUND;
-    }
+    my $plan = $req->param('plan');
 
-    unless ( $mac =~ m/$RE{net}{MAC}/ ) {
-        $r->log->error( "$$ auth page called with invalid mac from ip "
-              . $r->connection->remote_ip );
-        return Apache2::Const::SERVER_ERROR;
-    }
+    return Apache2::Const::NOT_FOUND
+      unless $plan && $class->valid_mac( $r, $mac );
 
     my $router = $r->pnotes('router');
-    unless ($router) {
-        $r->log->error('router not set');
-        return Apache2::Const::SERVER_ERROR;
-    }
+    my $ziponly = ( $plan eq 'month' ) ? undef: 1;
 
-    # apache request bug
-    my $plan = $req->param('plan');
-    my $ziponly = ($plan eq 'month') ? undef : 1;
-
-    # plan passed on GET
     my %tmpl_data = (
         ziponly => $ziponly,
         errors  => $args_ref->{errors},
@@ -448,10 +438,9 @@ sub paid {
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
-        my $account = $r->pnotes('router')->account_id;
-        my $url     = $r->construct_url( $r->unparsed_uri );
+        my $url = $r->construct_url( $r->unparsed_uri );
         my @button_args =
-          ( 'test', $url, $account->name . ' WiFi Purchase', 1 );
+          ( 'test', $url, $router->account_id->name . ' WiFi Purchase', 1 );
 
         # add the paypal button
         my ( $button, $id ) = SL::Payment->paypal_button(@button_args);
@@ -467,7 +456,7 @@ sub paid {
         }
 
         my $session_id = $session{_session_id};
-        $session{account_id} = $account->account_id;
+        $session{account_id} = $router->account_id->account_id;
         $session{mac}        = $mac;
         $session{ip}         = $r->connection->remote_ip;
         $session{custom}     = $id;
@@ -476,27 +465,22 @@ sub paid {
         $class->send_cookie( $r, $session_id );
 
         my $output;
-        my $ok = $Tmpl->process( 'auth/paid.tmpl', \%tmpl_data, \$output, $r );
+        $Tmpl->process( 'auth/paid.tmpl', \%tmpl_data, \$output, $r )
+          || return $class->error( $r, $Tmpl->error );
+        return $class->ok( $r, $output );
 
-        return $class->ok( $r, $output ) if $ok;
-        return $class->error( $r, "Template error: " . $Tmpl->error() );
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
 
-        ## processing a payment, here we go
-
-        # reset method to get for redirect
         $r->method_number(Apache2::Const::M_GET);
 
         my @ziponly_req = qw( first_name last_name card_type card_number cvv2
-                  month year email plan mac zip );
-
+          month year email plan mac zip );
         my @addr_req = qw( street city state );
-
-        my @req = $ziponly ? ( @ziponly_req ) : ( @ziponly_req, @addr_req );
+        my @req = $ziponly ? (@ziponly_req) : ( @ziponly_req, @addr_req );
 
         my %payment_profile = (
-            required => \@req,
+            required           => \@req,
             constraint_methods => {
                 email       => email(),
                 zip         => zip(),
@@ -516,10 +500,9 @@ sub paid {
 
         my $results = Data::FormValidator->check( $req, \%payment_profile );
 
-        # handle form errors
         if ( $results->has_missing or $results->has_invalid ) {
-            $r->log->error( "results: " . $class->Dumper($results) );
 
+            $r->log->debug( $class->Dumper($results) ) if DEBUG;
             my $errors = $class->SUPER::_results_to_errors($results);
             return $class->paid(
                 $r,
@@ -531,55 +514,55 @@ sub paid {
         }
 
         ## process the payment
-        $r->log->debug("$$ about to process payment") if DEBUG;
-        my $account = $r->pnotes('router')->account_id;
-        my $fname   = $req->param('first_name');
-        my $lname   = $req->param('last_name');
-        my $zip     = $req->param('zip');
-        my $email   = $req->param('email');
+        $r->log->debug("about to process payment") if DEBUG;
 
         my %payment_args = (
-                account_id  => $account->account_id,
-                mac         => $req->param('mac'),
-                email       => $req->param('email'),
-
-                card_type   => $req->param('card_type'),
-                card_number => $req->param('card_number'),
-                card_exp =>
-                  join( '/', $req->param('month'), $req->param('year') ),
-                cvv2       => $req->param('cvv2'),
-
-                email      => $email,
-                zip        => $zip,
-
-                first_name => $fname,
-                last_name  => $lname,
-
-                referer    => $r->headers_in->{'referer'},
-                ip         => $r->connection->remote_ip,
-                plan       => $req->param('plan'),
-                            );
+            account_id  => $router->account_id->account_id,
+            mac         => $mac,
+            email       => $req->param('email'),
+            card_type   => $req->param('card_type'),
+            card_number => $req->param('card_number'),
+            card_exp => join( '/', $req->param('month'), $req->param('year') ),
+            cvv2     => $req->param('cvv2'),
+            zip      => $req->param('zip'),
+            first_name => $req->param('first_name'),
+            last_name  => $req->param('last_name'),
+            referer    => $r->headers_in->{'referer'},
+            ip         => $r->connection->remote_ip,
+            plan       => $plan,
+        );
 
         my $payment;
+        my %addr;
         if ($ziponly) {
-          $payment = SL::Payment->process( \%payment_args );
+            $payment = SL::Payment->process( \%payment_args );
 
-          } else {
+        }
+        else {
 
-            my %addr = (
-                street     => $req->param('street'),
-                city       => $req->param('city'),
-                state      => $req->param('state'), );
+            %addr = (
+                street => $req->param('street'),
+                city   => $req->param('city'),
+                state  => $req->param('state'),
+            );
 
-            $payment = SL::Payment->recurring({ %payment_args, %addr });
+            $payment =
+              eval { SL::Payment->recurring( { %payment_args, %addr } ) };
         }
 
+        if ($@) {
+
+            return $class->paid(
+                $r,
+                {
+                    errors => { payment => $Tech_error, },
+                    req    => $req,
+                }
+            );
+        }
         if ( $payment->error_message ) {
 
-            # process errors
-            $r->log->info(
-                "$$ got payment errors: " . $payment->error_message );
-
+            $r->log->debug( 'err: ' . $payment->error_message ) if DEBUG;
             return $class->paid(
                 $r,
                 {
@@ -589,193 +572,143 @@ sub paid {
             );
         }
 
-        $r->log->debug( "$$ payment auth code "
-              . $payment->authorization_code
-              . " processed OK" ) if DEBUG;
+        my $code =
+          ( defined $ziponly )
+          ? $payment->authorization_code
+          : $payment->order_number;
 
         my $mailer    = Mail::Mailer->new('qmail');
         my %mail_args = (
-            'To'      => $email,
-            'From'    => $From,
-            'CC'      => $From,
-            'Subject' => "WiFi Internet Receipt",
+              'To'      => $req->param('email'),
+              'From'    => $From,
+              'CC'      => $router->account->aaa_email_cc,
+              'Subject' => "WiFi Internet Receipt",
         );
-
-        if ( $account->aaa_email_cc ) {
-            $mail_args{'CC'} = $account->aaa_email_cc;
-        }
 
         $mailer->open( \%mail_args );
 
         # plan is '4 hours'
         my $plan_hash = SL::Payment->plan($plan);
         my $duration  = join( ' ',
-            ( values %{ $plan_hash->{duration} } )[0],
-            ( keys %{ $plan_hash->{duration} } )[0] );
+              ( values %{ $plan_hash->{duration} } )[0],
+              ( keys %{ $plan_hash->{duration} } )[0] );
 
-        my $date         = DateTime->now->mdy('/');
-        my $network_name = $account->name;
-
-        my $mail;
         my %tmpl_data = (
-            ziponly            => $ziponly,
-            email              => $email,
-            fname              => $fname,
-            lname              => $lname,
-            plan               => $duration,
-            network_name       => $network_name,
-            authorization_code => $payment->authorization_code,
-            date               => $date,
-            amount             => $plan_hash->{cost},
+              ziponly      => $ziponly,
+              req          => $req,
+              plan         => $duration,
+              network_name => $router->account->name,
+              code         => $code,
+              date         => DateTime->now->mdy('/'),
+              amount       => $plan_hash->{cost},
         );
 
-        if (!$ziponly) {
-            my %addr = (
-                street     => $req->param('street'),
-                city       => $req->param('city'),
-                state      => $req->param('state'), );
+        %tmpl_data = ( %tmpl_data, %addr ) if !$ziponly;
 
-            %tmpl_data = ( %tmpl_data, %addr ) if !$ziponly;
-        }
-
-        my $ok = $Tmpl->process( 'auth/receipt.tmpl', \%tmpl_data, \$mail, $r );
-        return $class->error( $r, $mail ) if !$ok;
+        my $mail;
+        $Tmpl->process( 'auth/receipt.tmpl', \%tmpl_data, \$mail, $r )
+          || return $class->error( $r, $mail );
 
         print $mailer $mail;
 
-        $mailer->close unless TEST_MODE;
+        if (TEST_MODE) {
+              $r->log->error("TEST_MODE ENABLED, email would be \n$mail");
+        }
+        else {
+              $mailer->close;
+        }
 
-        $r->log->debug(sprintf("receipt for payment %s: %s",
-                               $payment->authorization_code, $mail)) if DEBUG;
-
-        my $lan_ip = $router->lan_ip
-          || die 'router not configured for CP';
-
-        ## payment successful, redirect to auth
-        $mac  = URI::Escape::uri_escape($mac);
-        $dest = URI::Escape::uri_escape($dest);
-        $r->headers_out->set(
-            Location => "http://$lan_ip/paid?mac=$mac&url=$dest&token="
-              . $payment->md5 );
-        $r->no_cache(1);
-        return Apache2::Const::REDIRECT;
+        $r->log->debug("payment plan $plan ok, redirecting") if DEBUG;
+        return $class->auth_dest( $r, $router, 'paid', $mac, $dest, $payment );
     }
 }
 
 sub coupon {
-    my ( $class, $r, $args_ref ) = @_;
+      my ( $class, $r, $args_ref ) = @_;
 
-    my $req = $args_ref->{req} || Apache2::Request->new($r);
+      return Apache2::Const::HTTP_METHOD_NOT_ALLOWED
+        unless ( $r->method_number == Apache2::Const::M_POST );
+      $r->method_number(Apache2::Const::M_GET);
 
-    my $mac  = $req->param('mac');
-    my $dest = $req->param('url');
-    unless ($mac) {
-        $r->log->error( "$$ auth page called without mac from ip "
-              . $r->connection->remote_ip
-              . " url: "
-              . $r->construct_url( $r->unparsed_uri ) );
-        return Apache2::Const::NOT_FOUND;
-    }
+      my $req = $args_ref->{req} || Apache2::Request->new($r);
+      my ( $mac, $dest ) = map { $req->param($_) } qw( mac url );
 
-    return Apache2::Const::SERVER_ERROR
-	unless ( $r->method_number == Apache2::Const::M_POST );
+      return Apache2::Const::NOT_FOUND unless $class->valid_mac( $r, $mac );
 
-    $r->method_number(Apache2::Const::M_GET);
+      my $router = $r->pnotes('router');
+      my $coupon = $req->param('coupon');
 
-    my $coupon = $req->param('coupon');
+      unless ( $coupon eq '@1rCl0ud' ) {
 
-    unless ($coupon eq '@1rCl0ud') {
+          return $class->paid(
+              $r,
+              {
+                  errors => { invalid => 'coupon' },
+                  req    => $req
+              }
 
-        return $class->paid(
-                $r,
-                {
-                    errors => { invalid => 'coupon' },
-                    req    => $req
-                }
- 
-       );
-    }
+          );
+      }
 
-    my $router = $r->pnotes('router');
-    unless ($router) {
-        $r->log->error('router not set');
-        return Apache2::Const::SERVER_ERROR;
-    }
-
-
-        my $lan_ip = $router->lan_ip
-          || die 'router not configured for CP';
-
-        ## payment successful, redirect to auth
-        $mac  = URI::Escape::uri_escape($mac);
-        $dest = URI::Escape::uri_escape($dest);
-        $r->headers_out->set(
-            Location => "http://$lan_ip/paid?mac=$mac&url=$dest&token=" );
-#              . $payment->md5 );
-        $r->no_cache(1);
-        return Apache2::Const::REDIRECT;
+      $r->log->debug("coupon payment ok, redirecting") if DEBUG;
+      return $class->auth_dest( $r, $router, 'paid', $mac, $dest );
 }
-
 
 sub free {
-    my ( $class, $r, $args_ref ) = @_;
+      my ( $class, $r, $args_ref ) = @_;
 
-    my $req = $args_ref->{req} || Apache2::Request->new($r);
+      my $req = $args_ref->{req} || Apache2::Request->new($r);
+      my ( $plan, $mac, $dest ) =
+        map { $req->param($_) } qw( plan mac url );
 
-    # apache request bug
-    my $plan     = $req->param('plan');
-    my $mac      = $req->param('mac');
-    my $dest_url = $req->param('url');
+      return Apache2::Const::NOT_FOUND
+        unless $class->valid_mac( $r, $mac ) && $plan;
 
-    my $router = $r->pnotes('router');
-    unless ($router) {
-        $r->log->error('router not set');
-        return Apache2::Const::SERVER_ERROR;
-    }
+      my $router = $r->pnotes('router');
 
-    my $lan_ip = $router->lan_ip
-      || die 'router not configured for CP';
+      my $stop =
+        DateTime::Format::Pg->format_datetime(
+          DateTime->now( time_zone => 'local' )
+            ->add( 'minutes' => $router->timeout ) );
 
-    my $timeout = $router->splash_timeout || die 'router not configured for CP';
+      # make a free payment entry
+      my $payment = SL::Model::App->resultset('Payment')->create( {
+              account_id => $router->account->account_id,
+              mac        => $mac,
+              amount     => '$0.00',
+              stop       => $stop,
+              email      => 'guest',
+              last_four  => 0,
+              card_type  => 'ads',
+              ip         => $r->connection->remote_ip,
+              expires    => $router->timeout,
+              approved   => 't',
+      } );
 
-    my $account = $router->account_id;
+      $payment->update;
 
-    my $stop =
-      DateTime::Format::Pg->format_datetime(
-        DateTime->now( time_zone => 'local' )->add( 'minutes' => $timeout ) );
+      # grab it for the md5
+      ($payment) =
+        SL::Model::App->resultset('Payment')->search(
+          { payment_id => $payment->payment_id } );
 
-    # make a free payment entry
-    my $payment = SL::Model::App->resultset('Payment')->create(
-        {
-            account_id => $account->account_id,
-            mac        => $mac,
-            amount     => '$0.00',
-            stop       => $stop,
-            email      => 'guest',
-            last_four  => 0,
-            card_type  => 'ads',
-            ip         => $r->connection->remote_ip,
-            expires    => $timeout,
-            approved   => 't',
-        }
-    );
-
-    $payment->update;
-
-    # grab it for the md5
-    ($payment) =
-      SL::Model::App->resultset('Payment')
-      ->search( { payment_id => $payment->payment_id } );
-
-    ## payment successful, redirect to auth
-    $mac      = URI::Escape::uri_escape($mac);
-    $dest_url = URI::Escape::uri_escape($dest_url);
-    $r->headers_out->set(
-        Location => "http://$lan_ip/ads?mac=$mac&url=$dest_url&token="
-          . $payment->md5 );
-    $r->no_cache(1);
-    return Apache2::Const::REDIRECT;
+      $r->log->debug("free payment ok, redirecting") if DEBUG;
+      return $class->auth_dest( $r, 'ads', $router, $mac, $dest, $payment );
 }
 
+sub auth_dest {
+      my ( $class, $r, $type, $router, $mac, $dest, $payment ) = @_;
+
+      ## payment successful, redirect to auth
+      $mac      = URI::Escape::uri_escape($mac);
+      $dest = URI::Escape::uri_escape($dest);
+      $r->headers_out->set( Location => sprintf(
+              'http://%s/%s?mac=%s&url=%s&token=%s',
+              $router->lan_ip, $type, $mac, $dest, $payment->md5
+      ) );
+      $r->no_cache(1);
+      return Apache2::Const::REDIRECT;
+
+}
 
 1;

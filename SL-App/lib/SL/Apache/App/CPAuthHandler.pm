@@ -21,7 +21,7 @@ sub handler {
       SL::Model::App->resultset('Location')->search( { ip => $ip } );
 
     unless ($location) {
-        $r->log->info("$$ no registered location for ip $ip and url $url");
+        $r->log->error("no registered location for ip $ip and url $url");
         return Apache2::Const::NOT_FOUND;
     }
 
@@ -36,14 +36,18 @@ sub handler {
     }
 
     my $router = $router__location->router_id;
-    unless ( $router->lan_ip ) {
-        $r->log->error( "$$ url $url no lan_ip for router id "
-              . $router->router_id );
-        return Apache2::Const::NOT_FOUND;
+
+    unless ($router
+        && $router->lan_ip
+        && $router->splash_timeout
+        && $router->wan_ip
+            && $router->account_id->aaa_email_cc) {
+
+        $r->log->error( sprintf( "rtr %s not setup", $router->router_id ) );
+        return Apache2::Const::SERVER_ERROR;
     }
 
     $r->pnotes( 'router' => $router );
-
     return Apache2::Const::OK;
 }
 

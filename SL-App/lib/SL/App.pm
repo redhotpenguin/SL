@@ -1,4 +1,4 @@
-package SL::Apache::App;
+package SL::App;
 
 use strict;
 use warnings;
