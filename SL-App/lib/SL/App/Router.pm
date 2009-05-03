@@ -17,24 +17,23 @@ use SL::Model;
 use SL::Model::App;    # works for now
 use SL::App::Template ();
 
-our $TMPL = SL::App::Template->template();
+our $Tmpl = SL::App::Template->template();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
-require Data::Dumper if DEBUG;
+use Data::Dumper;
 
 sub dispatch_index {
-    my ( $self, $r ) = @_;
+    my ( $class, $r ) = @_;
 
     my $output;
-    my $ok = $TMPL->process( 'router/index.tmpl', {}, \$output, $r );
-
-    return $self->ok( $r, $output ) if $ok;
-    return $self->error( $r, "Template error: " . $TMPL->error() );
+    $Tmpl->process( 'router/index.tmpl', {}, \$output, $r ) ||
+      return $class->error( $r, "Template error: " . $Tmpl->error );
+    return $class->ok( $r, $output );
 }
 
 sub dispatch_edit {
-    my ( $self, $r, $args_ref ) = @_;
+    my ( $class, $r, $args_ref ) = @_;
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
     my $reg = $r->pnotes( $r->user );
@@ -87,17 +86,16 @@ sub dispatch_edit {
             req       => $req,
         );
 
-        my $ok =
-          $TMPL->process( 'router/edit.tmpl', \%tmpl_data, \$output, $r );
-        
-        return $self->ok( $r, $output ) if $ok;
-        return $self->error( $r, "Template error: " . $TMPL->error() );
+        $Tmpl->process( 'router/edit.tmpl', \%tmpl_data, \$output, $r ) ||
+          return $class->error( $r, $Tmpl->error);
+
+        return $class->ok( $r, $output );
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
 
         # reset method to get for redirect
         $r->method_number(Apache2::Const::M_GET);
-        
+
 	my @required = qw( name  device macaddr );
 
         my %router_profile = (
@@ -105,16 +103,17 @@ sub dispatch_edit {
             optional => [qw( splash_href splash_timeout
 	    		     ssid serial_number )],
             constraint_methods => {
-                macaddr           => valid_macaddr(),
-                splash_href       => splash_href(),
+                serial_number     => $class->valid_serial(),
+                macaddr           => $class->valid_macaddr(),
+                splash_href       => $class->splash_href(),
             }
         );
         my $results = Data::FormValidator->check( $req, \%router_profile );
 
         # handle form errors
         if ( $results->has_missing or $results->has_invalid ) {
-            my $errors = $self->SUPER::_results_to_errors($results);
-            return $self->dispatch_edit(
+            my $errors = $class->SUPER::_results_to_errors($results);
+            return $class->dispatch_edit(
                 $r,
                 {
                     errors => $errors,
@@ -124,12 +123,12 @@ sub dispatch_edit {
         }
     }
 
-        my $macaddr = $req->param('macaddr');
+    my $macaddr = $req->param('macaddr');
 	if (substr(uc($macaddr), 0, 9) eq '00:12:CF:') {
 	    # this is an open-mesh router
 	    # translate the macaddress to ath1 format
 	    $macaddr = om_mac__to__mac($macaddr);
-        }
+    }
 
 
     unless ($router) {
@@ -223,12 +222,14 @@ sub om_mac__to__mac {
 
 
 sub dispatch_list {
-    my ( $self, $r, $args_ref ) = @_;
+    my ( $class, $r, $args_ref ) = @_;
 
     my $reg = $r->pnotes( $r->user );
     my $req = Apache2::Request->new($r);
 
     my @routers = $reg->get_routers( $req->param('ad_zone_id') );
+
+    $r->log->error("routers" . Dumper(\@routers));
 
     foreach my $router (@routers) {
         my $dt = DateTime::Format::Pg->parse_datetime( $router->last_ping );
@@ -268,39 +269,12 @@ sub dispatch_list {
     );
 
     my $output;
-    my $ok = $TMPL->process( 'router/list.tmpl', \%tmpl_data, \$output, $r );
-    $ok
-      ? return $self->ok( $r, $output )
-      : return $self->error( $r, "Template error: " . $TMPL->error() );
+    $Tmpl->process( 'router/list.tmpl', \%tmpl_data, \$output, $r ) ||
+        return $class->error( $r, $Tmpl->error );
+
+    return $class->ok( $r, $output );
 }
 
-sub splash_timeout {
-    return sub {
-        my $dfv = shift;
-        my $val = $dfv->get_current_constraint_value;
-        return $val if ( $val =~ m/^\d{1,3}$/ );
-        return;
-      }
-}
 
-sub splash_href {
-    return sub {
-        my $dfv = shift;
-        my $val = $dfv->get_current_constraint_value;
-
-        return $val if ( $val =~ m/^https?:\/\/\w+/ );
-        return;
-      }
-}
-
-sub valid_macaddr {
-    return sub {
-        my $dfv = shift;
-        my $val = $dfv->get_current_constraint_value;
-
-        return $val if ( $val =~ m/^([0-9a-fA-F]{2}([:-]|$)){6}$/i );
-        return;
-      }
-}
 
 1;

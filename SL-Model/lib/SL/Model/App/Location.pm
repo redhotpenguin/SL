@@ -8,119 +8,59 @@ use base 'DBIx::Class';
 __PACKAGE__->load_components("Core");
 __PACKAGE__->table("location");
 __PACKAGE__->add_columns(
-    "location_id",
-    {
-        data_type     => "integer",
-        default_value => "nextval('location_location_id_seq'::regclass)",
-        is_nullable   => 0,
-        size          => 4,
-    },
-    "ip",
-    {
-        data_type     => "inet",
-        default_value => undef,
-        is_nullable   => 0,
-        size          => undef,
-    },
-    "name",
-    {
-        data_type     => "text",
-        default_value => "''::text",
-        is_nullable   => 0,
-        size          => undef,
-    },
-    "description",
-    {
-        data_type     => "text",
-        default_value => "''::text",
-        is_nullable   => 0,
-        size          => undef,
-    },
-    "street_addr",
-    {
-        data_type     => "character varying",
-        default_value => undef,
-        is_nullable   => 1,
-        size          => 64,
-    },
-    "apt_suite",
-    {
-        data_type     => "character varying",
-        default_value => undef,
-        is_nullable   => 1,
-        size          => 5,
-    },
-    "zip",
-    {
-        data_type     => "character varying",
-        default_value => undef,
-        is_nullable   => 1,
-        size          => 9,
-    },
-    "city",
-    {
-        data_type     => "character varying",
-        default_value => undef,
-        is_nullable   => 1,
-        size          => 128,
-    },
-    "state",
-    {
-        data_type     => "character varying",
-        default_value => undef,
-        is_nullable   => 1,
-        size          => 2,
-    },
-    "cts",
-    {
-        data_type     => "timestamp without time zone",
-        default_value => "now()",
-        is_nullable   => 1,
-        size          => 8,
-    },
-    "mts",
-    {
-        data_type     => "timestamp without time zone",
-        default_value => "now()",
-        is_nullable   => 1,
-        size          => 8,
-    },
-    "active",
-    {
-        data_type     => "boolean",
-        default_value => "true",
-        is_nullable   => 1,
-        size          => 1,
-    },
-    "default_ok",
-    {
-        data_type     => "boolean",
-        default_value => "true",
-        is_nullable   => 1,
-        size          => 1,
-    },
-    "custom_rate_limit",
-    {
-        data_type     => "character varying",
-        default_value => undef,
-        is_nullable   => 1,
-        size          => 10,
-    },
+  "location_id",
+  {
+    data_type => "integer",
+    default_value => "nextval('location_location_id_seq'::regclass)",
+    is_nullable => 0,
+    size => 4,
+  },
+  "ip",
+  {
+    data_type => "inet",
+    default_value => undef,
+    is_nullable => 0,
+    size => undef,
+  },
+  "cts",
+  {
+    data_type => "timestamp without time zone",
+    default_value => "now()",
+    is_nullable => 1,
+    size => 8,
+  },
+  "mts",
+  {
+    data_type => "timestamp without time zone",
+    default_value => "now()",
+    is_nullable => 1,
+    size => 8,
+  },
+  "active",
+  {
+    data_type => "boolean",
+    default_value => "true",
+    is_nullable => 1,
+    size => 1,
+  },
 );
 __PACKAGE__->set_primary_key("location_id");
+__PACKAGE__->add_unique_constraint("location_pkey", ["location_id"]);
 __PACKAGE__->has_many(
-    "location__ad_groups",
-    "SL::Model::App::LocationAdGroup",
-    { "foreign.location_id" => "self.location_id" },
+  "router__locations",
+  "SL::Model::App::RouterLocation",
+  { "foreign.location_id" => "self.location_id" },
 );
 __PACKAGE__->has_many(
-    "router__locations",
-    "SL::Model::App::RouterLocation",
-    { "foreign.location_id" => "self.location_id" },
+  "views",
+  "SL::Model::App::View",
+  { "foreign.location_id" => "self.location_id" },
 );
 
-# Created by DBIx::Class::Schema::Loader v0.04002 @ 2007-08-14 15:56:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JBkgqMM8PKUQw1wb6lkyBw
+
+# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-05-01 19:38:05
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:A2BafaNw4I6aMQCyYcqB1A
+# These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Location.pm' found in @INC.# They are now part of the custom portion of this file# for you to hand-edit.  If you do not either delete# this section or remove that file from @INC, this section# will be repeated redundantly when you re-create this# file again via Loader!
 
 use SL::Model::App;
 use DateTime::Format::Pg;
@@ -130,7 +70,7 @@ sub run_query {
 
     die unless $sql && $start && $end;
 
-    unless ( $start->isa('DateTime') && $end->isa('DateTime') ) {
+    unless ( (ref($start) eq 'DateTime') && (ref($end) eq 'DateTime') ) {
         croak('No start and end times passed!');
     }
     my $dbh = SL::Model->db_Main();
@@ -157,7 +97,7 @@ SQL
 #         { ad => $ad_one_obj, count => '5' },
 #         { ad => $ad_two_obj, count => '3' }, );
 
-sub views {
+sub views_list {
     my ( $self, $start, $end) = @_;
     die unless SL::Model::App::validate_dt( $start, $end );
 

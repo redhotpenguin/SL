@@ -1,4 +1,5 @@
     <ul id="payment_info">
+    
 <!--
         <li>
             <h3>We also accept PayPal</h3>
@@ -8,19 +9,18 @@
             <div class="clear"></div>
         </li>
 -->
-        <li class="clear"><strong>Thank you for your business.</strong>  You are purchasing access to this high-speed WiFi network for the period of time you choose.</li>
+        <li class="clear"><strong>Thank you for your business.</strong>  You are purchasing access to this high-speed WiFi network for a <strong>
+[% IF req.param('plan') == 'one' %]1 hour ($2)
+[% ELSIF req.param('plan') == 'four' %]4 hours ($3)
+[% ELSIF req.param('plan') == 'day' %]24 hours ($5)
+[% ELSIF req.param('plan') == 'month' %]monthly ($15/month)
+[% END %]</strong>plan.</li>
 
-        <li>Your <strong class="lock">secure payment</strong> transaction is through Authorize.Net, the <strong>world's most trusted </strong>provider of Internet payment processing. If you have questions, or need assistance:
-            <ul>
-                <li>Phone: <strong>888.334.6602</strong></li>
-                <li><a href="mailto:support@silverliningnetworks.com">support@silverliningnetworks.com</a></li>
-            </ul>
-        </li>
+[% IF req.param('plan') == 'month' %]
+<li class="clear">Your monthly subscription to the WiFi network may be cancelled at any time by contacting Silver Lining Networks at the phone number or email address listed below.</li>
+[% END %]
 
-        <li><!-- (c) 2005, 2008. Authorize.Net is a registered trademark of CyberSource Corporation -->
-            <div class="AuthorizeNetSeal">
-            <script type="text/javascript" language="javascript">var ANS_customer_id="30450988-3d08-48c1-9d27-75071cb90664";</script>
-            <script type="text/javascript" language="javascript" src="//verify.authorize.net/anetseal/seal.js" ></script>  
-            </div>
-        </li>
+[% PROCESS billing/authorize.tmpl %]
+
+
     </ul>

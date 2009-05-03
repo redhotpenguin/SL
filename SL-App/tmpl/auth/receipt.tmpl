@@ -1,20 +1,20 @@
-Dear [% fname %],
+Dear [% req.param('fname') %],
 
 Thank you for purchasing WiFi Internet access with Silver Lining Networks.
 
 Billed To:
-[% fname %] [% lname %]
+[% req.param('fname') %] [% req.param('lname') %]
 [% IF ziponly %]
-Zip Code: [% zip %]
+Zip Code: [% req.param('zip') %]
 [% ELSE %]
-[% street %]
-[% city %], [% state %] [% zip %]
+[% req.param('street') %]
+[% req.param('city') %], [% req.param('state') %] [% req.param('zip') %]
 [% END %]
 
 ----------------------Purchase Receipt ---------------------
 Description: [% plan %] WiFi Internet Access
 Date: [% date %]
-Order Number: [% authorization_code %]
+Order Number: [% code %]
 Provider: [% network_name %]
 -------------------------------------------------------------------------
 

@@ -1,6 +1,6 @@
 <dd>
     <span class="special_button block">
-        <input tabindex="3" type="submit" id="submit" value="Finish Purchase" />
+        <input tabindex="3" type="submit" id="submit" value="[% IF req.param('plan') == 'free' %]Sign me up[% ELSE %]Finish Purchase[% END %]" />
     </span>
     <div>&nbsp;</div>
     <div class="clear"></div>

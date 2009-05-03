@@ -18,7 +18,6 @@ use base 'SL::App';
 
 use Data::FormValidator ();
 use Data::FormValidator::Constraints qw(:closures);
-use Regexp::Common qw( net );
 use Mail::Mailer     ();
 use DateTime         ();
 use Business::PayPal ();
@@ -129,11 +128,9 @@ sub post {
     my $dest_url = $req->param('url');
     my $mac      = $req->param('mac');
 
-    my $router = $r->pnotes('router') || die 'router missing';
-    my $splash_href = $router->splash_href
-      || die 'router not configured for CP';
+    my $router = $r->pnotes('router');
 
-    my $location = $class->make_post_url( $splash_href, $dest_url );
+    my $location = $class->make_post_url( $router->splash_href, $dest_url );
 
     $r->log->debug("splash page redir to $location for mac $mac") if DEBUG;
     $r->headers_out->set( Location => $location );
@@ -228,7 +225,7 @@ sub paypal_return {
     }
 
     # get the router
-    my $router =
+    my ($router) =
       SL::Model::App->resultset('Router')
       ->search( { router_id => $session{router_id} } );
 
@@ -257,60 +254,44 @@ sub auth {
     my ( $class, $r ) = @_;
 
     my $req     = Apache2::Request->new($r);
-    my $mac     = $req->param('mac');
-    my $url     = $req->param('url');
     my $expired = $req->param('expired');
 
-    unless ($mac) {
-        $r->log->error( "$$ auth page called without mac from ip "
-              . $r->connection->remote_ip
-              . " url: "
-              . $r->construct_url( $r->unparsed_uri ) );
+    unless ($req->param('mac')) {
+
+        $r->log->error( sprintf("auth page called without mac, ip %s, url %s",
+              $r->connection->remote_ip,
+              $r->construct_url( $r->unparsed_uri ) ));
         return Apache2::Const::NOT_FOUND;
     }
 
-    $mac = URI::Escape::uri_unescape($mac);
-    unless ( $mac =~ m/$RE{net}{MAC}/ ) {
-        $r->log->error( "$$ auth page called with invalid mac $mac from ip "
-              . $r->connection->remote_ip );
+    my $mac = URI::Escape::uri_unescape($req->param('mac'));
+    unless ( SL::App::check_mac($mac) ) {
+
+        $r->log->error( sprintf('auth called with invalid mac %s from ip %s',
+              $mac, $r->connection->remote_ip ));
         return Apache2::Const::SERVER_ERROR;
     }
 
     my $output;
-    $mac = URI::Escape::uri_escape($mac);
-    $url = URI::Escape::uri_escape($url);
-    my %args = (
-        mac => $mac,
-        url => $url,
-        req => $req,
-    );
+    my $url = URI::Escape::uri_escape($req->param('url'));
+    my %args = ( mac => $mac, url => $url, req => $req, );
 
-    my $ok = $Tmpl->process( 'auth/index.tmpl', \%args, \$output, $r );
-    $ok
-      ? return $class->ok( $r, $output )
-      : return $class->error( $r, "Template error: " . $Tmpl->error() );
-}
-
-sub valid_aaa_plan {
-    return sub {
-        my $dfv = shift;
-        my $val = $dfv->get_current_constraint_value;
-
-        return $val if ( $val =~ m/(?:one|four|day|month)/ );
-        return;
-      }
+    $Tmpl->process( 'auth/index.tmpl', \%args, \$output, $r ) ||
+        return $class->error( $r, $Tmpl->error );
+    return $class->ok( $r, $output )
 }
 
 sub token {
     my ( $class, $r ) = @_;
 
     my $req = Apache2::Request->new($r);
-    my ($mac, $token ) = map { $req->param($_) } qw( mac token );
-
-    $r->log->debug("token $token, mac $mac") if DEBUG;
+#    my ($mac, $token ) = map { $req->param($_) } qw( mac token );
+    my $mac = $req->param('mac');
+    my $token = $req->param('token');
 
     unless ( $token && $mac ) {
-        $r->log->error("$$ sub token called w/o token $token, mac $mac");
+        $r->log->error(sprintf('sub token called w/o token %s, mac %s',
+                               $token, $mac ));
         return Apache2::Const::SERVER_ERROR;
     }
 
@@ -326,22 +307,23 @@ sub token {
     );
 
     unless ($payment) {
-        $r->log->error("missing payment mac $mac, token $token, ip "
-              . $r->connection->remote_ip );
+
+        $r->log->error(sprintf('missing payment mac %s, token %s, ip %s',
+              $mac, $token, $r->connection->remote_ip ));
         return Apache2::Const::NOT_FOUND;
     }
 
     # check to make sure this payment hasn't already been called
     if ( $payment->token_processed ) {
-        $r->log->error( "dupe attempt for payment "
-              . $payment->payment_id . ", ip "
-              . $r->connection->remote_ip );
+
+        $r->log->error( sprintf('dupe attempt for payment %s, ip %s, mac %s',
+              $payment->payment_id,
+              $r->connection->remote_ip, $mac ));
         return Apache2::Const::NOT_FOUND;
     }
 
     # check to make sure the payment hasn't expired
     my $stop = DateTime::Format::Pg->parse_datetime( $payment->stop );
-
     my $now = DateTime->now( time_zone => 'local' );
     if ( $now > $stop ) {
 
@@ -388,33 +370,6 @@ sub send_cookie {
     return 1;
 }
 
-sub no_mac {
-    my ( $class, $r ) = @_;
-
-    return Apache2::Const::NOT_FOUND;
-}
-
-sub valid_mac {
-    my ( $class, $r, $mac ) = @_;
-
-    unless ($mac) {
-        $r->log->error(
-            sprintf(
-                'aaa page called w/o mac from ip %s, url %s',
-                $r->connection->remote_ip,
-                $r->construct_url( $r->unparsed_uri ),
-            )
-        );
-        return;
-    }
-
-    return 1 if $mac =~ m/$RE{net}{MAC}/;
-
-    $r->log->error( 'invalid mac %s from ip %s',
-        $mac, $r->connection->remote_ip );
-    return;
-}
-
 sub paid {
     my ( $class, $r, $args_ref ) = @_;
 
@@ -425,20 +380,24 @@ sub paid {
     my $plan = $req->param('plan');
 
     return Apache2::Const::NOT_FOUND
-      unless $plan && $class->valid_mac( $r, $mac );
+      unless $plan && SL::App::check_mac( $mac );
 
     my $router = $r->pnotes('router');
     my $ziponly = ( $plan eq 'month' ) ? undef: 1;
 
-    my %tmpl_data = (
-        ziponly => $ziponly,
-        errors  => $args_ref->{errors},
-        req     => $req,
-    );
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
         my $url = $r->construct_url( $r->unparsed_uri );
+
+        my %tmpl_data = (
+                         ziponly => $ziponly,
+                         errors  => $args_ref->{errors},
+                         req     => $req,
+                        );
+
+        ######################################
+        ## paypal
         my @button_args =
           ( 'test', $url, $router->account_id->name . ' WiFi Purchase', 1 );
 
@@ -463,6 +422,7 @@ sub paid {
 
         # cookie the user with the id
         $class->send_cookie( $r, $session_id );
+        ###############################
 
         my $output;
         $Tmpl->process( 'auth/paid.tmpl', \%tmpl_data, \$output, $r )
@@ -494,7 +454,7 @@ sub paid {
                 card_type   => cc_type(),
                 card_number => cc_number( { fields => ['card_type'] } ),
                 plan        => valid_aaa_plan(),
-                mac         => qr/$RE{net}{MAC}/,
+                mac         => $class->valid_mac,
             }
         );
 
@@ -535,8 +495,8 @@ sub paid {
         my $payment;
         my %addr;
         if ($ziponly) {
-            $payment = SL::Payment->process( \%payment_args );
 
+            $payment = SL::Payment->process( \%payment_args );
         }
         else {
 
@@ -631,9 +591,12 @@ sub coupon {
       $r->method_number(Apache2::Const::M_GET);
 
       my $req = $args_ref->{req} || Apache2::Request->new($r);
-      my ( $mac, $dest ) = map { $req->param($_) } qw( mac url );
+#      my ( $mac, $dest ) = map { $req->param($_) } qw( mac url );
+      my $mac = $req->param('mac');
+      my $dest = $req->param('url');
+      my $plan = $req->param('plan');
 
-      return Apache2::Const::NOT_FOUND unless $class->valid_mac( $r, $mac );
+      return Apache2::Const::NOT_FOUND unless SL::App::check_mac( $mac );
 
       my $router = $r->pnotes('router');
       my $coupon = $req->param('coupon');
@@ -658,11 +621,16 @@ sub free {
       my ( $class, $r, $args_ref ) = @_;
 
       my $req = $args_ref->{req} || Apache2::Request->new($r);
-      my ( $plan, $mac, $dest ) =
-        map { $req->param($_) } qw( plan mac url );
+#      my ( $plan, $mac, $dest ) =
+#        map { $req->param($_) } qw( plan mac url );
+
+    my $mac = $req->param('mac');
+    my $dest = $req->param('url');
+    my $plan = $req->param('plan');
+
 
       return Apache2::Const::NOT_FOUND
-        unless $class->valid_mac( $r, $mac ) && $plan;
+        unless SL::App::check_mac( $mac ) && $plan;
 
       my $router = $r->pnotes('router');
 

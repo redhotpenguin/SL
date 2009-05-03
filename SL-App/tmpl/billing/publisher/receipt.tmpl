@@ -1,20 +1,32 @@
 Dear [% fname %],
 
-Your Silver Lining Networks account has been successfully processed.  A charge in the amount of $[% amount %] will appear on your credit card every 30 days.  Please contact support@silverliningnetworks.com if you need to make a change to your subscription.  Thank you for using Silver Lining Networks.
+[% IF ! req.param('order_number') %]
+Thank you for registering with Silver Lining Networks.  Most users are able to get up and running within a few minutes of installing creating their account.
+[% ELSIF req.param('order_number') %]
+Your Silver Lining Networks account has been successfully created.  A charge in the amount of $[% amount %] will appear on your credit card every 30 days, starting on [% start_date %].  Please contact support@silverliningnetworks.com if you need to make a change to your subscription.  Thank you for using Silver Lining Networks.
+[% END %]
 
+Please feel free to write us with any questions about the service at support@silverliningnetworks.com.
+Sincerely,
+Silver Lining Networks Support
+
+[% IF req.param('order_number') %]
 Billed To:
 [% fname %] [% lname %]
 [% street %]
 [% city %], [% state %] [% zip %]
 
 ----------------------Purchase Receipt ---------------------
-Plan: [% $plan FILTER ucfirst %%] Network Operator Account for $[% amount %] per month.
+Plan: [% $plan FILTER ucfirst %%] Network Operator Account, $[% amount %]/month
 Date: [% date %]
-Order Number: [% authorization_code %]
+Order Number: [% order_number %]
 -------------------------------------------------------------------------
 
 PLEASE RETAIN THIS FOR YOUR RECORDS
+[% END %]
+
 
 Silver Lining Networks Inc.
 - If you have questions please contact us at support@silverliningnetworks.com
+- You may also give us a call at 888.334.6602 and we will return your call
 - For information regarding use of WiFi, please read our terms of service

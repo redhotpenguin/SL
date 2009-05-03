@@ -3,19 +3,23 @@
 
         <li class="clear"><strong>[% PROCESS billing/publisher/prices.tmpl %]</strong>
             <ul>
-                <li>Private Label: <strong>[% IF req.param('plan') == 'free' %]No[% ELSE %]Yes[% END %]</strong></li>
-                <li>Ad Insertions Per Month: <strong>
+                <li>Private Label:  <strong>[% IF req.param('plan') == 'free' %]No[% ELSE %]Yes[% END %]</strong></li>
+                <li>Ad Insertions Per Month:  <strong>
 [% IF req.param('plan') == 'free' %]0
 [% ELSIF req.param('plan') == 'basic' %]10,000
 [% ELSIF req.param('plan') == 'plus' %]25,000
 [% ELSIF req.param('plan') == 'premium' %]75,000
 [% ELSIF req.param('plan') == 'enterprise' %]250,000[% END %]</strong></li>
-                <li>Ad Marketplace Revenue Share: <strong>[% IF req.param('plan') == 'free' %]50[% ELSE %]70[% END %]%</strong></li>
-                <li>Cost Per Ad Insertion (CPMI): <strong>$[% IF req.param('plan') == 'free' %]NA
+
+                <li>Ad Marketplace Revenue Share:  <strong>[% IF req.param('plan') == 'free' %]50[% ELSE %]70[% END %]%</strong></li>
+
+                <li>Cost Per Ad Insertion (CPMI):  <strong>$[% IF req.param('plan') == 'free' %]NA
 [% ELSIF req.param('plan') == 'basic' %]2.40
 [% ELSIF req.param('plan') == 'plus' %]1.96
 [% ELSIF req.param('plan') == 'premium' %]1.32
 [% ELSIF req.param('plan') == 'enterprise' %]1.00[% END %]</strong></li>
+
+                <li>Priority Support:  <strong>[% IF req.param('plan') == 'free' %]No[% ELSE %]Yes[% END %]</strong></li>
             </ul>
         </li>
 

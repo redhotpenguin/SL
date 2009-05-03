@@ -1,4 +1,4 @@
-#!perl
+#!/usr/bin/perl
 
 use strict;
 use warnings;
@@ -51,36 +51,37 @@ use Apache2::SubRequest     ();
 use Apache2::Upload         ();
 use APR::Table              ();
 
-use SL::App::Template                       ();
-use SL::Apache::App                         ();
-use SL::Apache::App::Ad                     ();
-use SL::Apache::App::Billing                ();
-use SL::Apache::App::Blacklist              ();
-use SL::Apache::App::CookieAuth             ();
-use SL::Apache::App::CP                     ();
-use SL::Apache::App::CPAuthHandler          ();
-use SL::Apache::App::Home                   ();
-use SL::Apache::App::Logon                  ();
-use SL::Apache::App::PostReadRequestHandler ();
-use SL::Apache::App::Report                 ();
-use SL::Apache::App::Settings               ();
-use SL::Model                               ();
-use SL::Model::App                          ();
-use SL::Model::Report                       ();
-
 use DBI     ();
 use DBD::Pg ();
 DBI->install_driver('Pg');
+use DBIx::Class                 ();
+use DBIx::Class::Schema::Loader ();
+
+
+use SL::App                         ();
+use SL::App::Template               ();
+use SL::App::Ad                     ();
+use SL::App::Billing                ();
+use SL::App::Blacklist              ();
+use SL::App::CookieAuth             ();
+use SL::App::CP                     ();
+use SL::App::CPAuthHandler          ();
+use SL::App::Home                   ();
+use SL::App::Logon                  ();
+use SL::App::PostReadRequestHandler ();
+use SL::App::Report                 ();
+use SL::App::Router                 ();
+use SL::App::Settings               ();
+use SL::Model                       ();
+use SL::Model::App                  ();
+use SL::Model::Report               ();
 
 use Apache::Session::DB_File ();
 use Data::Dumper qw(Dumper);
 use Data::FormValidator         ();
-use DBIx::Class                 ();
-use DBIx::Class::Schema::Loader ();
 use Crypt::CBC                  ();
 use Crypt::DES                  ();
 use XML::Feed                   ();
-use Regexp::Common qw( net );
 use CGI ();
 CGI->compile(':all');
 
@@ -99,3 +100,5 @@ SL::Model->connect->disconnect;
 $DBI::connect_via = 'Apache::DBI::connect';
 
 print STDOUT "Startup.pl finished...\n";
+
+1;

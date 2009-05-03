@@ -16,7 +16,9 @@ if ( $ENV{SL_DEBUG} ) {
 }
 
 if ( $ENV{SL_TEST_MODE} ) {
+    $ENV{SL_DEBUG} = 1;
     print "Starting in TEST_MODE mode\n";
+    print "Starting in DEBUG mode\n";
 }
 
 # FIll out the httpd.conf

@@ -40,10 +40,12 @@
         <!-- MAIN COLUMN ######## -->
         [% PROCESS auth/form/paperbox_top.tmpl %]
 
-                <h2 class="header">Takes less than a minute</h2>
+         <h2 class="header">Takes less than a minute</h2>
 
-                <!-- PAYMENT FORM -->
-                <form id="sl_payment" action="[% base_uri %]/auth/paid" method="post">
+         <!-- PAYMENT FORM -->
+         <form id="sl_payment" action="[% base_uri %]/auth/paid" method="post">
+         <input type="hidden" name="plan" value="[% req.param('plan') %]">
+
                         <dl id="form_list">
 [% IF errors.payment %]
 <dd><font color="red">[% errors.payment %]</font></dd>
@@ -54,7 +56,7 @@
 [% END %]
 
                                 <dd class="subtle"><em>All fields required</em></dd>
-                                [% PROCESS auth/form/plan.tmpl %]
+                                
                                 [% PROCESS auth/form/name.tmpl %]
                                 [% PROCESS auth/form/user_info.tmpl nopass=1 %]
                                 [% PROCESS auth/form/creditcard.tmpl %]

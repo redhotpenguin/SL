@@ -104,12 +104,22 @@ function setBugList(ad_size_id) {
 [% FOREACH ad_size = ad_sizes %]
 
 [% IF loop.prev.grouping != ad_size.grouping %]
-<option value="">---</option>
+
+<option value=""></option>
+<option value="">--&nbsp; 
+
+[% IF ad_size.grouping == 1 %]Persistent Leaderboard Options
+
+[% ELSIF ad_size.grouping == 6 %]Persistent Full Banner Options
+[% ELSIF ad_size.grouping == 2 %]Persistent Branding Zone Image
+[% ELSIF ad_size.grouping == 3 %]Splash page Ad
+[% ELSIF ad_size.grouping == 7 %]Persistent Double Combinations[% END %]
+</option>
 [% END %]
 
 <option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size_id.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %]</option>
-
 [% END %]
+
 
 </select>
 </p>
@@ -131,7 +141,7 @@ function setBugList(ad_size_id) {
 Ad Invocation Code (provided by your ad server):&nbsp;&nbsp;
 [% IF errors.missing.code %]</font>[% END %]
 </p>
-<p><font color="#CCCCCC">For optimum ad serving speed, use secure (https) links to your ad server resources</font></p>
+<p><font color="#CCCCCC">For optimum ad serving speed, add the IP address of your ad server to the custom_skips.txt file on your router</font></p>
 
 <p><textarea [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %]name="code" rows="10" cols="80">[% req.param('code') or ad_zone.code %]</textarea>
 </p>

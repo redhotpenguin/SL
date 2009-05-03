@@ -17,17 +17,18 @@ use base 'SL::App';
 use SL::App::Template ();
 our $Tmpl = SL::App::Template->template();
 
-use SL::Payment                 ();
+use SL::Payment         ();
 use SL::App::CookieAuth ();
 
 use Data::FormValidator ();
 use Data::FormValidator::Constraints qw(:closures);
 
-use constant DEBUG     => $ENV{SL_DEBUG} || $ENV{SL_TEST_MODE} || 0;
+use constant DEBUG => $ENV{SL_DEBUG} || $ENV{SL_TEST_MODE} || 0;
 use constant TEST_MODE => $ENV{SL_TEST_MODE} || 0;
 
 our $Tech_error = 'Technical error, please repeat transaction';
 our $From       = 'SLN Support <support@silverliningnetworks.com>';
+our $Signup     = 'SLN Support <support@silverliningnetworks.com>';
 
 use SL::Model;
 use SL::Model::App;    # don't ask me why we need both
@@ -62,11 +63,10 @@ sub publisher {
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
 
-        # reset method to get for redirect
         $r->method_number(Apache2::Const::M_GET);
 
-        my @free_req = qw( email password retype );
-        my @paid_req = qw( first_name last_name card_type card_number cvv2
+        my @free_req = qw( email password retype first_name last_name);
+        my @paid_req = qw( card_type card_number cvv2
           month year street city zip state plan );
 
         my %payment_profile = (
@@ -107,116 +107,165 @@ sub publisher {
             );
         }
 
-        if ( $req->param('plan') == 'free' ) {
-            goto ACCOUNT;
+        # big conditional is better than goto
+        my $payment;
+        if ( $req->param('plan') ne 'free' ) {
+
+            $r->log->debug("making recurring payment") if DEBUG;
+            my $description = sprintf('Silver Lining Networks $%/month',
+                                      $req->param('plan'));
+            $payment = eval {
+                SL::Payment->recurring(
+                    {
+                        account_id  => 1,
+                        description => $description,
+                        email       => $req->param('email'),
+                        card_type   => $req->param('card_type'),
+                        card_number => $req->param('card_number'),
+                        card_exp    => join(
+                            '/', $req->param('month'), $req->param('year')
+                        ),
+                        cvv2       => $req->param('cvv2'),
+                        email      => $req->param('email'),
+                        zip        => $req->param('zip'),
+                        first_name => $req->param('first_name'),
+                        last_name  => $req->param('last_name'),
+                        ip         => $r->connection->remote_ip,
+                        street     => $req->param('street'),
+                        city       => $req->param('city'),
+                        state      => $req->param('state'),
+                        referer    => $r->headers_in->{'referer'},
+                        amount     => $req->param('plan'),
+                    }
+                );
+            };
+
+            if ($@) {
+
+                # error processing payment, try again
+                $r->log->error( sprintf( "fatal payment error: %s", $@ ) );
+                return $class->publisher(
+                    $r,
+                    {
+                        errors => { payment => $Tech_error, },
+                        req    => $req,
+                    }
+                );
+            }
+
+            if ( $payment->error_message ) {
+
+                $r->log->error(
+                    sprintf( "payment error: %s", $payment->error_message ) );
+
+                return $class->publisher(
+                    $r,
+                    {
+                        errors => { payment => $payment->error_message, },
+                        req    => $req,
+                    }
+                );
+            }
+
+            $r->log->debug( "receipt #" . $payment->order_number ) if DEBUG;
+
         }
 
-        # if this is a paid account then process the payment
-        $r->log->debug("$$ about to process payment") if DEBUG;
-        my $fname  = $req->param('first_name');
-        my $lname  = $req->param('last_name');
-        my $street = $req->param('street');
-        my $city   = $req->param('city');
-        my $state  = $req->param('state');
-        my $zip    = $req->param('zip');
-        my $email  = $req->param('email');
-        my $amount = $req->param('plan');
-
-        $r->log->debug("making recurring payment") if DEBUG;
-        my $payment = eval {
-            SL::Payment->recurring(
-                {
-                    account_id => 1,
-                    description =>
-                      "Silver Lining Networks Publisher \$$amount/month",
-                    email       => $req->param('email'),
-                    card_type   => $req->param('card_type'),
-                    card_number => $req->param('card_number'),
-                    card_exp =>
-                      join( '/', $req->param('month'), $req->param('year') ),
-                    cvv2       => $req->param('cvv2'),
-                    email      => $email,
-                    zip        => $zip,
-                    first_name => $fname,
-                    last_name  => $lname,
-                    ip         => $r->connection->remote_ip,
-                    street     => $street,
-                    city       => $city,
-                    state      => $state,
-                    referer    => $r->headers_in->{'referer'},
-                    amount     => $amount,
-                }
+        # send the welcome email / receipt
+            my $mailer    = Mail::Mailer->new('qmail');
+            my %mail_args = (
+                'To'      => $req->param('email'),
+                'From'    => $From,
+                'CC'      => $Signup,
+                'Subject' => "Welcome to Silver Lining Networks",
             );
-        };
 
-        if ($@) {
+            $mailer->open( \%mail_args );
 
-            # error processing payment, try again
-            $r->log->error( sprintf( "fatal payment error: %s", $@ ) );
-            return $class->publisher(
-                $r,
-                {
-                    errors => { payment => $Tech_error, },
-                    req    => $req,
-                }
+            my $mail;
+
+            my %tmpl_data = (
+                plan         => $plan,
+                email        => $req->param('email'),
+                fname        => $req->param('fname'),
+                lname        => $req->param('lname'),
+                date         => DateTime->now->mdy('/'),
+                amount       => $req->param('plan'),
             );
+
+            if ( $req->param('plan') ne 'free')  {
+              my %premium = (
+                city         => $req->param('city'),
+                state        => $req->param('state'),
+                street       => $req->param('street'),
+                zip          => $req->param('zip'),
+                order_number => $payment->order_number,);
+
+              %tmpl_data = ( %tmpl_data, %premium );
+            }
+
+            $Tmpl->process( 'billing/publisher/receipt.tmpl',
+                \%tmpl_data, \$mail, $r )
+              || return $class->error( $r, $mail );
+
+            print $mailer $mail;
+
+            if (TEST_MODE) {
+                $r->log->error("TEST_MODE ENABLED, email would be \n$mail");
+            }
+            else {
+                $mailer->close;
+            }
+
+
+
+        # look to see if this is an upgrade
+        my ($reg) = SL::Model::App->results('Reg')->search({
+                                email => $req->param('email') });
+        my $account;
+        unless ($reg) {
+
+            $r->log->debug(sprintf('new account for email %s',
+                                   $req->param('email')));
+
+            $reg = SL::Model::App->results('Reg')->create({
+                                          email => $req->param('email')});
+
+            $account = SL::Model::App->results('Account')->create({
+                                            name => $req->param('email') });
+
+            ## setup defaults and assign id
+            $account->update_example_ad_zones;
+            $reg->account_id($account->account_id);
+        } else {
+
+            $r->log->debug(sprintf('upgrading account account for email %s',
+                                   $req->param('email')));
+
+            $account = $reg->account_id;
         }
 
-        if ( $payment->error_message ) {
+        $reg->account_id->plan($req->param('plan'));
+        $reg->first_name($req->param('first_name'));
+        $reg->last_name($req->param('last_name'));
+        $reg->password_md5(Digest::MD5::md5_hex( $req->param('password') ));
 
-            $r->log->error(
-                sprintf( "payment error: %s", $payment->error_message ) );
+        if ($req->param('plan') ne 'free') {
 
-            return $class->publisher(
-                $r,
-                {
-                    errors => { payment => $payment->error_message, },
-                    req    => $req,
-                }
-            );
+          $account->street($req->param('street'));
+          $account->state($req->param('state'));
+          $account->city($req->param('city'));
+          $account->zip($req->param('zip'));
+
+          $account->card_type($req->param('card_type'));
+          $account->card_expires(join('/', $req->param('month'),
+                                      $req->param('year')));
+          $account->card_last_four( substr($req->param('card_number'),
+                                    length($req->param('card_number')-4)));
         }
 
-        $r->log->debug( "receipt #" . $payment->order_number ) if DEBUG;
-        my $mailer    = Mail::Mailer->new('qmail');
-        my %mail_args = (
-            'To'      => $email,
-            'From'    => $From,
-            'CC'      => $From,
-            'Subject' => "Welcome to Silver Lining Networks",
-        );
-
-        $mailer->open( \%mail_args );
-
-        my $mail;
-        my %tmpl_data = (
-            plan         => $plan,
-            email        => $email,
-            fname        => $fname,
-            lname        => $lname,
-            city         => $city,
-            state        => $state,
-            street       => $street,
-            zip          => $zip,
-            order_number => $payment->order_number,
-            date         => DateTime->now->mdy('/'),
-            amount       => $amount,
-        );
-
-        $Tmpl->process( 'billing/publisher/receipt.tmpl',
-            \%tmpl_data, \$mail, $r )
-          || return $class->error( $r, $mail );
-
-        print $mailer $mail;
-
-        if (TEST_MODE) {
-            $r->log->error("TEST_MODE ENABLED, email would be \n$mail");
-        }
-        else {
-            $mailer->close;
-        }
-
-        # create the account
-        my $reg;
+        $account->update;
+        $reg->update;
 
         ###############################
         # create a session
@@ -230,8 +279,7 @@ sub publisher {
         SL::App::CookieAuth->send_cookie( $r, $reg, $session_id );
 
         $r->headers_out->set( Location => $Config->sl_app_base_uri
-              . "/app/home/index?order_number="
-              . $payment->order_number );
+              . "/app/home/index" );
         $r->no_cache(1);
         return Apache2::Const::REDIRECT;
 
@@ -239,12 +287,6 @@ sub publisher {
 
         return SL::App::CookieAuth->auth_ok( $r, $reg );
     }
-
-    #        $r->headers_out->set( Location => $Config->sl_app_base_uri
-    #              . "/billing/success?auth_code=$auth_code" );
-    #        $r->no_cache(1);
-    #        return Apache2::Const::REDIRECT;
-
 }
 
 sub advertiser {
@@ -252,11 +294,8 @@ sub advertiser {
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
 
-    # apache request bug
     my $plan   = $req->param('plan');
-    my $coupon = $req->param('coupon');
 
-    # plan passed on GET
     my %tmpl_data = (
         errors => $args_ref->{errors},
         req    => $req,
@@ -309,34 +348,26 @@ sub advertiser {
             );
         }
 
-        ## process the payment
-        my $fname  = $req->param('first_name');
-        my $lname  = $req->param('last_name');
-        my $street = $req->param('street');
-        my $city   = $req->param('city');
-        my $state  = $req->param('state');
-        my $zip    = $req->param('zip');
-        my $email  = $req->param('email');
-        my $amount = $req->param('plan');
-
         my %payment_args = (
             account_id  => 1,
-            description => "Silver Lining Networks Advertiser \$$amount/month",
+            description =>
+                sprintf('Silver Lining Networks Advertiser $%s/month',
+                    $req->param('plan')),
             email       => $req->param('email'),
             card_type   => $req->param('card_type'),
             card_number => $req->param('card_number'),
             card_exp => join( '/', $req->param('month'), $req->param('year') ),
             cvv2     => $req->param('cvv2'),
-            email    => $email,
-            zip      => $zip,
-            first_name => $fname,
-            last_name  => $lname,
+            email    => $req->param('email'),
+            zip      => $req->param('zip'),
+            first_name => $req->param('first_name'),
+            last_name  => $req->param('last_name'),
             ip         => $r->connection->remote_ip,
-            street     => $street,
-            city       => $city,
-            state      => $state,
+            street     => $req->param('street'),
+            city       => $req->param('city'),
+            state      => $req->param('state'),
             referer    => $r->headers_in->{'referer'},
-            amount     => $amount,
+            amount     => $req->param('plan'),
         );
 
         if ( $req->param('special') ) {
@@ -349,7 +380,7 @@ sub advertiser {
         if ( $@ or !$payment ) {
 
             $r->log->error( sprintf("serious payment error for %s:%s"),
-                $req->param('emai'), $@ );
+                $req->param('email'), $@ );
 
             return $class->advertiser(
                 $r,
@@ -376,7 +407,7 @@ sub advertiser {
 
         my $mailer    = Mail::Mailer->new('qmail');
         my %mail_args = (
-            'To'      => $email,
+            'To'      => $req->param('email'),
             'From'    => $From,
             'CC'      => $From,
             'Subject' => "Advertiser Recurring Billing Receipt",
@@ -386,16 +417,16 @@ sub advertiser {
 
         my $mail;
         my %tmpl_data = (
-            email              => $email,
-            fname              => $fname,
-            lname              => $lname,
-            city               => $city,
-            state              => $state,
-            street             => $street,
-            zip                => $zip,
-            order_number       => $payment->order_number,
-            date               => DateTime->now->mdy('/'),
-            amount             => $amount,
+            email        => $req->param('email'),
+            fname        => $req->param('first_name'),
+            lname        => $req->param('last_name'),
+            city         => $req->param('city'),
+            state        => $req->param('state'),
+            street       => $req->param('street'),
+            zip          => $req->param('zip'),
+            order_number => $payment->order_number,
+            date         => DateTime->now->mdy('/'),
+            amount       => $req->param('plan'),
         );
 
         $Tmpl->process( 'billing/advertiser/receipt.tmpl',
@@ -412,7 +443,8 @@ sub advertiser {
         }
 
         $r->headers_out->set( Location => $Config->sl_app_base_uri
-              . "/billing/success?auth_code=" . $payment->order_number );
+              . "/billing/success?auth_code="
+              . $payment->order_number );
         $r->no_cache(1);
         return Apache2::Const::REDIRECT;
     }

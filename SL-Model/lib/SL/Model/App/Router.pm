@@ -17,10 +17,10 @@ __PACKAGE__->add_columns(
   },
   "serial_number",
   {
-    data_type => "character",
+    data_type => "character varying",
     default_value => undef,
     is_nullable => 1,
-    size => 12,
+    size => 24,
   },
   "macaddr",
   { data_type => "macaddr", default_value => undef, is_nullable => 1, size => 6 },
@@ -53,13 +53,6 @@ __PACKAGE__->add_columns(
     size => undef,
   },
   "description",
-  {
-    data_type => "text",
-    default_value => undef,
-    is_nullable => 1,
-    size => undef,
-  },
-  "device",
   {
     data_type => "text",
     default_value => undef,
@@ -142,7 +135,6 @@ __PACKAGE__->add_columns(
   { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
   "account_id",
   { data_type => "integer", default_value => 1, is_nullable => 0, size => 4 },
-
   "wan_ip",
   {
     data_type => "inet",
@@ -163,6 +155,13 @@ __PACKAGE__->add_columns(
     default_value => "false",
     is_nullable => 0,
     size => 1,
+  },
+  "device",
+  {
+    data_type => "character varying",
+    default_value => "''::character varying",
+    is_nullable => 1,
+    size => 64,
   },
 );
 __PACKAGE__->set_primary_key("router_id");
@@ -190,9 +189,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04002 @ 2008-12-26 16:44:05
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:STPS9nQfD/6gmTEe7deVoQ
-
+# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-05-01 18:10:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4xkCVgKCEqekfldk7ou8vw
 # These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Router.pm' found in @INC.# They are now part of the custom portion of this file# for you to hand-edit.  If you do not either delete# this section or remove that file from @INC, this section# will be repeated redundantly when you re-create this# file again via Loader!
 
 use SL::Model::App;
@@ -275,7 +273,7 @@ sub om_mac__to__mac {
 
 sub displaymac {
 	my $self = shift;
-	
+
 	my $mac = $self->macaddr;
 	if (substr(uc($mac), 0, 9) eq '06:12:CF:') {
 		# translate

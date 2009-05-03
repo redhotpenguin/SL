@@ -15,7 +15,7 @@ use Mail::Mailer;
 use Digest::MD5              ();
 use MIME::Lite               ();
 use Apache::Session::DB_File ();
-use Regexp::Common          qw( net );
+use Data::Dumper;
 
 use base 'SL::App';
 use SL::Model::App    ();
@@ -68,7 +68,7 @@ sub authenticate {
         if ( $r->prev->pnotes('session') ) {
 
             $r->log->debug( "$$ subrequest previous session "
-                  . Data::Dumper::Dumper( $r->prev->pnotes('session') ) )
+                  . Dumper( $r->prev->pnotes('session') ) )
               if DEBUG;
             $r->pnotes( 'session' => $r->prev->pnotes('session') );
         }
@@ -91,7 +91,7 @@ sub authenticate {
     my %state = $class->decode( $cookie->value );
 
     $r->log->debug(
-        "$$ state extracted from cookie: " . Data::Dumper::Dumper( \%state ) )
+        "state extracted from cookie: " . Dumper( \%state ) )
       if DEBUG;
 
     # check for malformed cookie
@@ -284,7 +284,7 @@ sub send_cookie {
     $cookie->bake($r);
 
     # they're ok
-    $r->log->debug( "send_cookie for state " . Data::Dumper::Dumper( \%state ) )
+    $r->log->debug( "send_cookie for state " . Dumper( \%state ) )
       if DEBUG;
 
     return 1;
@@ -323,156 +323,6 @@ sub redirect_auth {
     return Apache2::Const::REDIRECT;
 }
 
-sub valid_serial {
-    return sub {
-        my $dfv = shift;
-        my $val = $dfv->get_current_constraint_value;
-
-	return if $val eq 'CL7A0F318014';
-
-        return $val;
-      }
-}
-
-sub valid_macaddr {
-    return sub {
-        my $dfv = shift;
-        my $val = $dfv->get_current_constraint_value;
-
-        # first see if the mac is valid
-        # thx regexp::common
-        return unless $val =~ m/$RE{net}{MAC}/;
-
-	return if $val eq '00:17:f2:43:38:bd';
-
-        return $val;
-      }
-}
-
-sub signup {
-    my ( $class, $r, $args_ref ) = @_;
-    my $req = $args_ref->{req} || Apache2::Request->new($r);
-
-    # invoke this before anything else, bug in Apache2::Request
-    my $email = $req->param('email');
-
-    if ( $r->method_number == Apache2::Const::M_GET ) {
-        my $output;
-        my $ok = $Template->process(
-            'signup.tmpl',
-            {
-                errors => $args_ref->{'errors'},
-                req    => $req,
-            },
-            \$output,
-            $r
-        );
-
-        $ok
-          ? return $class->ok( $r, $output )
-          : return $class->ok( $r, "Template error: " . $Template->error() );
-
-    }
-    elsif ( $r->method_number == Apache2::Const::M_POST ) {
-        $r->method_number(Apache2::Const::M_GET);
-
-        my %profile = (
-            required => [qw( email password )],
-            constraint_methods => {
-                email      => email(),
-                password   => SL::App::check_password(
-                    { fields => [ 'password' ] }
-                ),
-            }
-        );
-
-        my $results = Data::FormValidator->check( $req, \%profile );
-
-        if ( $results->has_missing or $results->has_invalid ) {
-
-            my $errors = $class->SUPER::_results_to_errors($results);
-
-            return $class->signup(
-                $r,
-                {
-                    errors => $errors,
-                    req    => $req
-                }
-            );
-        }
-
-        # create an account
-        my $account =
-          SL::Model::App->resultset('Account')
-          ->find_or_create( { name => $req->param('email') } );
-        $account->update;
-
-        $account->update_example_ad_zones;
-        $account->update;
-
-        # signup was ok, first create the user account
-        my %reg_args = (
-            email        => $req->param('email'),
-            password_md5 => Digest::MD5::md5_hex( $req->param('password') ),
-            account_id   => $account->account_id,
-        );
-
-        my ($reg) =
-          SL::Model::App->resultset('Reg')->search( \%reg_args );
-	
-	if ($reg) {
-		$r->log->error("Duplicate registration for " . $req->param('email'));
-	} else {
-		$reg = SL::Model::App->resultset('Reg')->create( \%reg_args );
-		$r->log->error("new reg for " . $req->param('email') . " could not be created") if !$reg;
-	}
-        $reg->update;
-
-        my $support = "SLN Support <support\@silverliningnetworks.com>";
-	my $signup = 'signup@silverliningnetworks.com';
-        my $mailer  = Mail::Mailer->new('qmail');
-	my $to_email = $reg->email;
-        $mailer->open(
-            {
-                'To'      => $to_email,
-                'From'    => $support,
-                'CC'      => $signup,
-                'Subject' => "Welcome to Silver Lining Networks",
-            }
-        );
-
-print $mailer <<MAIL;
-Hi $to_email,
-
-Thank you for registering with Silver Lining Networks.  Most users are able to get up and running within a few minutes of installing the router firmware and registering for an account.
-
-Please feel free to write us with any questions about the service at support\@silverliningnetworks.com.
-
-Sincerely,
-
-Silver Lining Networks Support
-
-web:  http://support.silverliningnetworks.com/
-email: support\@silverliningnetworks.com 
-voicemail: 1.888.334.6602
-MAIL
-
-        $mailer->close;
-
-        # create a session
-        my %session;
-        tie %session, 'Apache::Session::DB_File', undef, \%SESS_OPTS;
-        my $session_id = $session{_session_id};
-        $r->pnotes( 'session' => \%session );
-
-        # auth the user and log them in
-        $class->send_cookie( $r, $reg, $session_id );
-
-        $r->internal_redirect("/app/home/index");
-        return $class->auth_ok( $r, $reg );
-    }
-
-}
 
 sub forgot {
     my ( $class, $r ) = @_;

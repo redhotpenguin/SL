@@ -50,9 +50,11 @@
 [% END %]
 
                                 <dd class="subtle"><em>All fields required</em></dd>
-                                [% PROCESS auth/form/user_info.tmpl %]
-                                [% IF req.param('plan') != 'free' %]
                                     [% PROCESS auth/form/name.tmpl %]
+
+                                [% PROCESS auth/form/user_info.tmpl %]
+
+                                [% IF req.param('plan') != 'free' %]
                                     [% PROCESS auth/form/creditcard.tmpl %]
                                     [% PROCESS auth/form/address.tmpl %]
                                 [% END %]

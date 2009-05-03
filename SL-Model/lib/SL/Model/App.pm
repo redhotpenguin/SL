@@ -3,16 +3,16 @@ package SL::Model::App;
 use strict;
 use warnings;
 
-use SL::Model;
 use base qw(DBIx::Class::Schema::Loader);
+use SL::Model;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
-our %LOADER_OPTIONS = ( relationships => 1 );
+our %LOADER_OPTIONS;#; = ( relationships => 1 );
 
 if (DEBUG) {
     $LOADER_OPTIONS{debug} = DEBUG;
-    $LOADER_OPTIONS{dump_directory} = '/tmp/sl_model',
+#    $LOADER_OPTIONS{dump_directory} = '/tmp/sl_model',
 }
 
 __PACKAGE__->loader_options( %LOADER_OPTIONS );

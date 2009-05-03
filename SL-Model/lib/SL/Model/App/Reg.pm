@@ -22,14 +22,7 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 64,
   },
-    "paypal_id",
-  {
-    data_type => "character varying",
-    default_value => "''::character varying",
-    is_nullable => 1,
-    size => 64,
-  },
-"mts",
+  "mts",
   {
     data_type => "timestamp without time zone",
     default_value => "now()",
@@ -115,6 +108,62 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 1,
   },
+  "paypal_id",
+  {
+    data_type => "text",
+    default_value => undef,
+    is_nullable => 1,
+    size => undef,
+  },
+  "first_name",
+  {
+    data_type => "text",
+    default_value => "''::text",
+    is_nullable => 0,
+    size => undef,
+  },
+  "last_name",
+  {
+    data_type => "text",
+    default_value => "''::text",
+    is_nullable => 0,
+    size => undef,
+  },
+  "street",
+  {
+    data_type => "text",
+    default_value => "''::text",
+    is_nullable => 0,
+    size => undef,
+  },
+  "zip",
+  {
+    data_type => "text",
+    default_value => "''::text",
+    is_nullable => 0,
+    size => undef,
+  },
+  "card_last_four",
+  {
+    data_type => "text",
+    default_value => "''::text",
+    is_nullable => 0,
+    size => undef,
+  },
+  "card_type",
+  {
+    data_type => "text",
+    default_value => "''::text",
+    is_nullable => 0,
+    size => undef,
+  },
+  "card_expires",
+  {
+    data_type => "text",
+    default_value => "''::text",
+    is_nullable => 0,
+    size => undef,
+  },
 );
 __PACKAGE__->set_primary_key("reg_id");
 __PACKAGE__->add_unique_constraint("reg_id_pkey", ["reg_id"]);
@@ -139,9 +188,9 @@ __PACKAGE__->has_many(
   { "foreign.reg_id" => "self.reg_id" },
 );
 
-# Created by DBIx::Class::Schema::Loader v0.04002 @ 2008-05-27 12:35:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dLewfI+AHp21rBSj7zc6UA
 
+# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-05-02 04:48:08
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rGboX/8BNpzWvgUh27j9vQ
 # These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Reg.pm' found in @INC.# They are now part of the custom portion of this file# for you to hand-edit.  If you do not either delete# this section or remove that file from @INC, this section# will be repeated redundantly when you re-create this# file again via Loader!
 
 use SL::Model::App   ();
@@ -223,8 +272,7 @@ sub get_routers {
     my ( $self, $ad_zone_id ) = @_;
 
     my @routers = SL::Model::App->resultset('Router')->search({
-        account_id => $self->account_id->account_id,
-	active => 't' });
+        account_id => $self->account_id->account_id, active => 't' });
 
     return unless scalar(@routers) > 0;
 

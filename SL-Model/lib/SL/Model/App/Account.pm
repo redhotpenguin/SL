@@ -22,13 +22,6 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => undef,
   },
-  "advertise_here",
-  {
-    data_type => "text",
-    default_value => undef,
-    is_nullable => 0,
-    size => undef,
-  },
   "premium",
   {
     data_type => "boolean",
@@ -57,12 +50,19 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => undef,
   },
-  "aaa",
+  "advertise_here",
   {
-    data_type => "boolean",
-    default_value => "false",
+    data_type => "text",
+    default_value => "'http://www.silverliningnetworks.com/site/advertise_here.html?'::text",
     is_nullable => 1,
-    size => 1,
+    size => undef,
+  },
+  "plan",
+  {
+    data_type => "text",
+    default_value => "'free'::text",
+    is_nullable => 0,
+    size => undef,
   },
 );
 __PACKAGE__->set_primary_key("account_id");
@@ -78,13 +78,13 @@ __PACKAGE__->has_many(
   { "foreign.account_id" => "self.account_id" },
 );
 __PACKAGE__->has_many(
-  "networks",
-  "SL::Model::App::Network",
+  "payments",
+  "SL::Model::App::Payment",
   { "foreign.account_id" => "self.account_id" },
 );
 __PACKAGE__->has_many(
-  "payments",
-  "SL::Model::App::Payment",
+  "paypal_attempts",
+  "SL::Model::App::PaypalAttempt",
   { "foreign.account_id" => "self.account_id" },
 );
 __PACKAGE__->has_many(
@@ -99,21 +99,18 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04002 @ 2009-02-08 17:39:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/S9iEzgkhsfPSqWQKR9RXw
+# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-05-01 18:26:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZPl9sx7sXEtxg0bgB6mg0w
+# These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Account.pm' found in @INC.# They are now part of the custom portion of this file# for you to hand-edit.  If you do not either delete# this section or remove that file from @INC, this section# will be repeated redundantly when you re-create this# file again via Loader!
 
-
-
+use SL::Config       ();
+use SL::Model::App   ();
 use File::Path       ();
 use Digest::MD5      ();
 
-use SL::Model::App   ();
-use SL::Config       ();
+our $Config = SL::Config->new();
 
-our $config = SL::Config->new();
-
-use constant DEBUG => $ENV{SL_DEBUG} || 1;
-require Data::Dumper if DEBUG;
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 sub report_dir_base {
     my $self = shift;
@@ -121,7 +118,7 @@ sub report_dir_base {
     return $self->{report_dir_base} if $self->{report_dir_base};
 
     # make the directory to store the reporting data
-     my $dir = join ( '/', $config->sl_data_root, $self->report_base );
+     my $dir = join ( '/', $Config->sl_data_root, $self->report_base );
 
     File::Path::mkpath($dir) unless ( -d $dir );
 

@@ -11,7 +11,7 @@ Apache::TestRunPerl->generate_script();
 use ModPerl::MM;
 ModPerl::MM::WriteMakefile(
     NAME         => 'SL-App',
-    VERSION_FROM => 'lib/SL/Apache/App.pm',
+    VERSION_FROM => 'lib/SL/App.pm',
     PREREQ_PM    => {
         'Apache::Reload'             => 0.10,
         'Apache::Dispatch::Util'     => 0.12,
@@ -28,7 +28,7 @@ ModPerl::MM::WriteMakefile(
         'Template::Plugin::DateTime' => 0.06001,
         'XML::Feed'                  => 0.42,
         'SL::Config'                 => 0.14,
-        'SL::Model'                  => 0.16,
+        'SL::Model'                  => 0.20,
     },
     EXE_FILES => [qw( bin/sl_app )],
     ABSTRACT  => 'The Silver Lining web application',

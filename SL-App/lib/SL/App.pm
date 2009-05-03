@@ -20,8 +20,8 @@ use SL::App::Template ();
 # don't add the () here
 use Data::Dumper;
 
-my $UA = LWP::UserAgent->new;
-$UA->timeout(10);    # needs to respond somewhat quickly
+my $Ua = LWP::UserAgent->new;
+$Ua->timeout(10);    # needs to respond somewhat quickly
 our $Tmpl = SL::App::Template->template();
 
 use constant MAX_IMAGE_BYTES => 40_960;
@@ -82,7 +82,7 @@ sub error {
 }
 
 sub ua {
-    return $UA;
+    return $Ua;
 }
 
 sub _results_to_errors {
@@ -109,7 +109,7 @@ sub valid_link {
 	    return;
 	}
 
-        my $response = eval { $UA->get( $uri ) };
+        my $response = eval { $Ua->get( $uri ) };
 	if ($@) {
 	    warn("$$ problem grabbing uri " . $uri->as_string . ": $@");
 	    return;
@@ -159,7 +159,7 @@ sub image_zone {
             ad_size_id =>  $ad_size_id });
 
         return unless $ad_size;
-        my $response = $UA->get( URI->new($image_href) );
+        my $response = $Ua->get( URI->new($image_href) );
 
         my ( $width, $height ) = Image::Size::imgsize( \$response->content );
 
@@ -261,6 +261,68 @@ sub valid_year {
         return if ( $val < $now[5] ) || ( $val == $now[5] && $val <= $now[4] );
 
         return $year;
+      }
+}
+
+sub valid_macaddr {
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+
+        # sample mac, invalid
+        return if lc($val) eq '00:17:f2:43:38:bd';
+
+        return $val if check_mac($val);
+
+        return;
+      }
+}
+
+sub check_mac {
+  my $mac = shift;
+
+  return 1 if ( $mac =~ m/^([0-9a-fA-F]{2}([:-]|$)){6}$/i );
+
+  return;
+}
+
+sub valid_serial {
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+
+        return if $val eq 'CL7A0F318014';
+
+        return $val;
+      }
+}
+
+sub splash_timeout {
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+        return $val if ( $val =~ m/^\d{1,3}$/ );
+        return;
+      }
+}
+
+sub splash_href {
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+
+        return $val if ( $val =~ m/^https?:\/\/\w+/ );
+        return;
+      }
+}
+
+sub valid_aaa_plan {
+    return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+
+        return $val if ( $val =~ m/(?:one|four|day|month)/ );
+        return;
       }
 }
 

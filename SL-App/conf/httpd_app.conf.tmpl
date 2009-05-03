@@ -55,7 +55,7 @@ PerlSetVar ReloadModules "SL::*"
 	PerlModule Apache::DProf
 [% END %]
 
-PerlPostReadRequestHandler SL::Apache::App::PostReadRequestHandler
+PerlPostReadRequestHandler SL::App::PostReadRequestHandler
 
 PerlLoadModule Apache2::Dispatch
 
@@ -65,7 +65,7 @@ PerlLoadModule Apache2::Dispatch
 	SetHandler modperl
 
     # dispatch directives
-	DispatchPrefix SL::Apache::App
+	DispatchPrefix SL::App
 	[% IF dispatch_debug %]DispatchDebug [% dispatchdebug %][% END %]
 	DispatchRequire On
 	DispatchUpperCase On
@@ -88,10 +88,10 @@ PerlLoadModule Apache2::Dispatch
 
 ## the user application, need to be logged in
 <Location  /app>
-	AuthType SL::Apache::App::CookieAuth
+	AuthType SL::App::CookieAuth
 	AuthName [% cfg.sl_app_cookie_name %]
 	SetHandler modperl
-	PerlAuthenHandler SL::Apache::App::CookieAuth->authenticate
+	PerlAuthenHandler SL::App::CookieAuth->authenticate
 	PerlAuthzHandler Apache2::Const::OK
 	require valid-user
 </Location>
@@ -102,27 +102,27 @@ PerlLoadModule Apache2::Dispatch
 
 <Location /login>
 	SetHandler modperl
-	PerlResponseHandler SL::Apache::App::CookieAuth->login
+	PerlResponseHandler SL::App::CookieAuth->login
 </Location>
 
 <Location /logout>
 	SetHandler modperl
-	PerlResponseHandler SL::Apache::App::CookieAuth->logout
+	PerlResponseHandler SL::App::CookieAuth->logout
 </Location>
 
 <Location /forgot>
 	SetHandler modperl
-	PerlResponseHandler SL::Apache::App::CookieAuth->forgot
+	PerlResponseHandler SL::App::CookieAuth->forgot
 </Location>
 
 <Location /signup>
 	SetHandler modperl
-	PerlResponseHandler SL::Apache::App::CookieAuth->signup
+	PerlResponseHandler SL::App::CookieAuth->signup
 </Location>
 
 <Location /forgot/reset>
     SetHandler modperl
-    PerlResponseHandler SL::Apache::App::CookieAuth->forgot_reset
+    PerlResponseHandler SL::App::CookieAuth->forgot_reset
 </Location>
 
 
@@ -130,58 +130,58 @@ PerlLoadModule Apache2::Dispatch
 
 <Location /auth>
     SetHandler modperl
-	PerlFixupHandler SL::Apache::App::CPAuthHandler
-    PerlResponseHandler SL::Apache::App::CP->auth
+	PerlFixupHandler SL::App::CPAuthHandler
+    PerlResponseHandler SL::App::CP->auth
 </Location>
 
 <Location /auth/free>
     SetHandler modperl
-    PerlResponseHandler SL::Apache::App::CP->free
+    PerlResponseHandler SL::App::CP->free
 </Location>
 
 <Location /auth/paid>
     SetHandler modperl
-    PerlResponseHandler SL::Apache::App::CP->paid
+    PerlResponseHandler SL::App::CP->paid
 </Location>
 
 <Location /auth/token>
     SetHandler modperl
-    PerlResponseHandler SL::Apache::App::CP->token
+    PerlResponseHandler SL::App::CP->token
 </Location>
 
 <Location /auth/post>
     SetHandler modperl
-    PerlResponseHandler SL::Apache::App::CP->post
+    PerlResponseHandler SL::App::CP->post
 </Location>
 
 <Location /auth/check>
     SetHandler modperl
-    PerlResponseHandler SL::Apache::App::CP->check
+    PerlResponseHandler SL::App::CP->check
 </Location>
 
 <Location /auth/paypal_notify>
     SetHandler modperl
-    PerlResponseHandler SL::Apache::App::CP->paypal_notify
+    PerlResponseHandler SL::App::CP->paypal_notify
 </Location>
 
 <Location /auth/paypal_return>
     SetHandler modperl
-    PerlResponseHandler SL::Apache::App::CP->paypal_return
+    PerlResponseHandler SL::App::CP->paypal_return
 </Location>
 
 <Location /billing/publisher>
     SetHandler modperl
-    PerlResponseHandler SL::Apache::App::Billing->publisher
+    PerlResponseHandler SL::App::Billing->publisher
 </Location>
 
 <Location /billing/advertiser>
     SetHandler modperl
-    PerlResponseHandler SL::Apache::App::Billing->advertiser
+    PerlResponseHandler SL::App::Billing->advertiser
 </Location>
 
 <Location /billing/success>
     SetHandler modperl
-    PerlResponseHandler SL::Apache::App::Billing->billing_success
+    PerlResponseHandler SL::App::Billing->billing_success
 </Location>
 
 ## optimizations, mod_perl for speed freaks
