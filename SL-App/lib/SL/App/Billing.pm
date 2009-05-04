@@ -23,17 +23,17 @@ use SL::App::CookieAuth ();
 use Data::FormValidator ();
 use Data::FormValidator::Constraints qw(:closures);
 
-use constant DEBUG => $ENV{SL_DEBUG} || 0;
+use constant DEBUG     => $ENV{SL_DEBUG}     || 0;
 use constant TEST_MODE => $ENV{SL_TEST_MODE} || 0;
 
 use SL::Model;
 use SL::Model::App;    # don't ask me why we need both
 
 our %Plans = (
-              enterprise => '$249.00',
-              premium    => '$99.00',
-              plus       => '$49.00',
-              basic      => '$24.00',
+    enterprise => '$249.00',
+    premium    => '$99.00',
+    plus       => '$49.00',
+    basic      => '$24.00',
 );
 
 use SL::Config;
@@ -45,7 +45,7 @@ sub publisher {
     my $req = $args_ref->{req} || Apache2::Request->new($r);
 
     # gotta hava a plan
-    unless ($req->param('plan')) {
+    unless ( $req->param('plan') ) {
         $r->log->error("missing plan");
         return Apache2::Const::NOT_FOUND;
     }
@@ -72,12 +72,19 @@ sub publisher {
           month year street city zip state plan );
 
         my %payment_profile = (
-            required =>
-              [ ( $req->param('plan') eq 'free' ) ? 
-                @free_req : ( @free_req, @paid_req ) ],
+            required => [
+                ( $req->param('plan') eq 'free' )
+                ? @free_req
+                : ( @free_req, @paid_req )
+            ],
             constraint_methods => {
-                password => $class->check_password,
-                retype   => $class->check_retype(
+                password => [
+                    $class->check_password,
+                    $class->valid_username(
+                        { fields => [ 'email', 'password' ] }
+                    )
+                ],
+                retype => $class->check_retype(
                     { fields => [ 'password', 'retype' ] }
                 ),
                 email       => email(),
@@ -115,10 +122,9 @@ sub publisher {
         if ( $req->param('plan') ne 'free' ) {
 
             $r->log->debug("making recurring payment") if DEBUG;
-            my $amount = $Plans{$req->param('plan')};
-            my $description =
-              sprintf( 'Network Operator % plan, $%/month',
-                       $req->param('plan'), $amount);
+            my $amount      = $Plans{ $req->param('plan') };
+            my $description = sprintf( 'Network Operator % plan, $%/month',
+                $req->param('plan'), $amount );
 
             $payment = eval {
                 SL::Payment->recurring(
@@ -190,13 +196,13 @@ sub publisher {
 
         my $mail;
         my %tmpl_data = (
-            req    => $req,
-            date   => DateTime->now->mdy('/'),
+            req  => $req,
+            date => DateTime->now->mdy('/'),
         );
 
         if ( $req->param('plan') ne 'free' ) {
-          $tmpl_data{'amount'} = $Plans{$req->param('plan')};
-          $tmpl_data{'order_number'} = $payment->order_number;
+            $tmpl_data{'amount'}       = $Plans{ $req->param('plan') };
+            $tmpl_data{'order_number'} = $payment->order_number;
         }
 
         $Tmpl->process( 'billing/publisher/receipt.tmpl',
@@ -262,7 +268,7 @@ sub publisher {
             $reg->card_last_four(
                 substr(
                     $req->param('card_number'),
-                    length( $req->param('card_number')) - 4
+                    length( $req->param('card_number') ) - 4
                 )
             );
         }

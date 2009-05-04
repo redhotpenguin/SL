@@ -371,7 +371,7 @@ sub paid {
     my ( $class, $r, $args_ref ) = @_;
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
-    #my ( $plan, $mac, $dest ) = map { $req->param($_) } ('plan','mac', 'url' );
+    #my ($plan, $mac, $dest ) = map { $req->param($_) } ('plan','mac', 'url' );
     my $mac = $req->param('mac');
     my $dest = $req->param('url');
     my $plan = $req->param('plan');

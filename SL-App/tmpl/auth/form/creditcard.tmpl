@@ -19,7 +19,7 @@
 <dd>
     <span class="half">
         <input type="text" id="card_number" name="card_number" maxlength="16" value="[% IF req.param('card_number') %][% req.param('card_number') %][% ELSE %]################[% END %]" />
-        <label for="card_number">[% IF errors.missing.card_number or errors.invalid.card_number %]<font color="red">[% END %]numbers only, no spaces[% IF errors.missing.card_number or errors.invalid.card_number %]</font>[% END %]</label>
+        <label for="card_number">[% IF errors.missing.card_number or errors.invalid.card_number %]<font color="red">[% END %]Numbers only, no spaces[% IF errors.missing.card_number or errors.invalid.card_number %]</font>[% END %]</label>
     </span>
 
     <span class="quarter">

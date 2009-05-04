@@ -13,6 +13,7 @@ use Apache2::RequestIO ();
 use LWP::UserAgent ();
 use URI            ();
 use Image::Size    ();
+use Digest::MD5    ();
 
 use SL::Model::App    ();
 use SL::App::Template ();
@@ -327,5 +328,26 @@ sub valid_aaa_plan {
       }
 }
 
+sub valid_username {
+  return sub {
+        my $dfv = shift;
+        my $val = $dfv->get_current_constraint_value;
+        my $data   = $dfv->get_filtered_data;
+        my $email   = $data->{email};
+        my $pass   = $data->{password};
+
+        my ($reg) = SL::Model::App->resultset('Reg')->search({
+                                                 email => $email });
+        # new user, ok
+        return $val if !$reg;
+
+        # existing user, make sure the password matches
+        if ($reg->password_md5 eq Digest::MD5::md5_hex( $pass )) {
+          # passwords match
+          return $val;
+        }
+        return;
+      }
+}
 
 1;
