@@ -233,9 +233,9 @@ sub recurring {
         action         => 'Recurring Authorization',
         interval       => '1 month',
         start          => DateTime->now->ymd,
-        periods        => 60,
-        trialperiods   => 0,
-        trialamount    => 0,
+        periods        => $args->{periods}      || 60,
+        trialperiods   => $args->{trialperiods} || 0,
+        trialamount    => $args->{trialamount}  || 0,
         description    => $args->{description},
         amount         => $args->{amount},
     );

@@ -137,17 +137,18 @@ sub publisher {
                         card_exp    => join(
                             '/', $req->param('month'), $req->param('year')
                         ),
-                        cvv2       => $req->param('cvv2'),
-                        email      => $req->param('email'),
-                        zip        => $req->param('zip'),
-                        first_name => $req->param('first_name'),
-                        last_name  => $req->param('last_name'),
-                        ip         => $r->connection->remote_ip,
-                        street     => $req->param('street'),
-                        city       => $req->param('city'),
-                        state      => $req->param('state'),
-                        referer    => $r->headers_in->{'referer'},
-                        amount     => $amount,
+                        cvv2         => $req->param('cvv2'),
+                        email        => $req->param('email'),
+                        zip          => $req->param('zip'),
+                        first_name   => $req->param('first_name'),
+                        last_name    => $req->param('last_name'),
+                        ip           => $r->connection->remote_ip,
+                        street       => $req->param('street'),
+                        city         => $req->param('city'),
+                        state        => $req->param('state'),
+                        referer      => $r->headers_in->{'referer'},
+                        amount       => $amount,
+                        trialperiods => 1,
                     }
                 );
             };
