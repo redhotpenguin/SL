@@ -26,7 +26,7 @@ sub process {
 
   # data for all templates
   if ($r) {
- 
+
  	if ($r->pnotes('session')) {
 	    $tmpl_data->{msg} = delete $r->pnotes('session')->{msg};
             $tmpl_data->{session} = $r->pnotes('session');
@@ -35,11 +35,9 @@ sub process {
         $tmpl_data->{email} = $r->user;
         $tmpl_data->{reg}   = $r->pnotes($r->user);
   }
-  my $ok = $self->SUPER::process( $tmpl_name, { %{$tmpl_data}, %Tmpl_global, },
-                           $output_ref);
-
-  return $ok if defined $ok;
-  return;
+  $self->SUPER::process( $tmpl_name, { %{$tmpl_data}, %Tmpl_global, },
+                           $output_ref) || return;
+  return 1;
 }
 
 sub template {

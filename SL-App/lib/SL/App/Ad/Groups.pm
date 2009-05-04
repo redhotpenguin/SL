@@ -17,20 +17,21 @@ use base 'SL::App';
 use SL::Model ();
 use SL::Model::App ();
 use SL::App::Template ();
+use Data::Dumper;
 
 our $TMPL = SL::App::Template->template();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
-require Data::Dumper if DEBUG;
+
 
 sub dispatch_index {
     my ( $self, $r ) = @_;
 
     my $output;
-    my $ok = $TMPL->process( 'ad/groups/index.tmpl', {}, \$output, $r );
+    $TMPL->process( 'ad/groups/index.tmpl', {}, \$output, $r ) ||
+      return $self->error( $r, $TMPL->error);
 
-    return $self->ok( $r, $output ) if $ok;
-    return $self->error( $r, "Template error: " . $TMPL->error() );
+    return $self->ok( $r, $output );
 }
 
 sub dispatch_edit {
@@ -81,11 +82,9 @@ sub dispatch_edit {
         $tmpl_data{bug_lists} = \@bug_lists;
 
         my $output;
-        my $ok =
-          $TMPL->process( 'ad/groups/edit.tmpl', \%tmpl_data, \$output, $r );
-
-        return $self->ok( $r, $output ) if $ok;
-        return $self->error( $r, "Template error: " . $TMPL->error() );
+        $TMPL->process( 'ad/groups/edit.tmpl', \%tmpl_data, \$output, $r ) ||
+          return $self->error( $r, $TMPL->error);
+        return $self->ok( $r, $output );
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
 
@@ -167,7 +166,7 @@ sub dispatch_list {
     		    sort { $b->mts cmp $a->mts }
     		    sort { $a->name cmp $b->name }  $reg->account_id->get_ad_zones;
 
-    $r->log->debug( "ad zones: " . Data::Dumper::Dumper( \@ad_zones ) )
+    $r->log->debug( "ad zones: " . Dumper( \@ad_zones ) )
       if DEBUG;
 
     my %tmpl_data = (
@@ -177,10 +176,9 @@ sub dispatch_list {
     );
 
     my $output;
-    my $ok = $TMPL->process( 'ad/groups/list.tmpl', \%tmpl_data, \$output, $r );
-
-    return $self->ok( $r, $output ) if $ok;
-    return $self->error( $r, "Template error: " . $TMPL->error() );
+    $TMPL->process( 'ad/groups/list.tmpl', \%tmpl_data, \$output, $r ) ||
+      return $self->error( $r, $TMPL->error);
+    return $self->ok( $r, $output );
 }
 
 1;

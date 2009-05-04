@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/perl
 
 use strict;
 use warnings FATAL => 'all';
@@ -11,15 +11,15 @@ use SL::Config;
 my $server = 'app';
 my $config = SL::Config->new();
 
+if ( $ENV{SL_TEST_MODE} ) {
+    $ENV{SL_DEBUG} = 1;
+    print "Starting in TEST_MODE mode\n";
+}
+
 if ( $ENV{SL_DEBUG} ) {
     print "Starting in DEBUG mode\n";
 }
 
-if ( $ENV{SL_TEST_MODE} ) {
-    $ENV{SL_DEBUG} = 1;
-    print "Starting in TEST_MODE mode\n";
-    print "Starting in DEBUG mode\n";
-}
 
 # FIll out the httpd.conf
 my $httpd_conf  = "httpd_$server.conf";

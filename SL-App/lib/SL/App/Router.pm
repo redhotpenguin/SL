@@ -104,7 +104,7 @@ sub dispatch_edit {
 	    		     ssid serial_number )],
             constraint_methods => {
                 serial_number     => $class->valid_serial(),
-                macaddr           => $class->valid_macaddr(),
+                macaddr           => $class->valid_mac(),
                 splash_href       => $class->splash_href(),
             }
         );

@@ -54,10 +54,9 @@ sub dispatch_list {
     );
 
     my $output;
-    my $ok = $tmpl->process( 'ad/groups/ads/list.tmpl', \%tmpl_data, \$output, $r );
-    $ok
-      ? return $self->ok( $r, $output )
-      : return $self->error( $r, "Template error: " . $tmpl->error() );
+    $tmpl->process( 'ad/groups/ads/list.tmpl', \%tmpl_data, \$output, $r ) ||
+       return $self->error( $r, $tmpl->error );
+    return $self->ok( $r, $output );
 }
 
 sub dispatch_edit {
@@ -89,11 +88,10 @@ sub dispatch_edit {
             req     => $req,
             errors => $args_ref->{errors},
         );
-        my $ok = $tmpl->process( 'ad/groups/ads/edit.tmpl',
-                                 \%tmpl_data, \$output, $r);
-        $ok
-          ? return $self->ok( $r, $output )
-          : return $self->error( $r, "Template error: " . $tmpl->error() );
+        $tmpl->process( 'ad/groups/ads/edit.tmpl',
+                                 \%tmpl_data, \$output, $r) ||
+          return $self->error( $r, $tmpl->error );
+          return $self->ok( $r, $output );
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
 

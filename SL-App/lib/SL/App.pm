@@ -24,10 +24,12 @@ my $Ua = LWP::UserAgent->new;
 $Ua->timeout(10);    # needs to respond somewhat quickly
 our $Tmpl = SL::App::Template->template();
 
+our $Tech_error = 'A technical problem occurred, please try again';
+our $From = 'SLN Support <support@silverliningnetworks.com>';
+our $Signup = 'SLN Signup <signup@silverliningnetworks.com>';
+
 use constant MAX_IMAGE_BYTES => 40_960;
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
-
-require Data::Dumper if DEBUG;
 
 =head1 METHODS
 
@@ -57,10 +59,9 @@ sub dispatch_index {
     }
 
     my $output;
-    my $ok = $Tmpl->process( 'index.tmpl', {}, \$output );
-
-    return $self->ok( $r, $output ) if $ok;
-    return $self->error( $r, "Template error: " . $Tmpl->error() );
+    $Tmpl->process( 'index.tmpl', {}, \$output ) ||
+      return $self->error( $r, $Tmpl->error );
+    return $self->ok( $r, $output );
 }
 
 
@@ -264,7 +265,7 @@ sub valid_year {
       }
 }
 
-sub valid_macaddr {
+sub valid_mac {
     return sub {
         my $dfv = shift;
         my $val = $dfv->get_current_constraint_value;

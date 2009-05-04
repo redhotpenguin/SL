@@ -17,13 +17,13 @@ use SL::Config        ();
 use SL::Model::App    ();
 use base 'SL::App';
 
+use Data::Dumper;
+
 our $CONFIG    = SL::Config->new();
 our $DATA_ROOT = $CONFIG->sl_data_root;
 our $TMPL      = SL::App::Template->template();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
-
-require Data::Dumper if DEBUG;
 
 sub dispatch_index {
     my ( $self, $r ) = @_;
@@ -38,11 +38,9 @@ sub dispatch_index {
             $tmpl_data{accounts} = [ sort { lc($a->name) cmp lc($b->name) } @accounts ];
         }
 
-        my $ok =
-          $TMPL->process( 'settings/index.tmpl', \%tmpl_data, \$output, $r );
-
-        return $self->ok( $r, $output ) if $ok;
-        return $self->error( $r, "Template error: " . $TMPL->error() );
+        $TMPL->process( 'settings/index.tmpl', \%tmpl_data, \$output, $r ) ||
+          return $self->error( $r, $TMPL->error);
+        return $self->ok( $r, $output );
     }
 }
 
@@ -80,11 +78,9 @@ sub dispatch_account {
         );
 
         my $output;
-        my $ok =
-          $TMPL->process( 'settings/account.tmpl', \%tmpl_data, \$output, $r );
-
-        return $self->ok( $r, $output ) if $ok;
-        return $self->error( $r, "Template error: " . $TMPL->error );
+        $TMPL->process( 'settings/account.tmpl', \%tmpl_data, \$output, $r ) ||
+          return $self->error( $r, $TMPL->error );
+        return $self->ok( $r, $output );
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
 
@@ -175,11 +171,9 @@ sub dispatch_users {
         );
 
         my $output;
-        my $ok =
-          $TMPL->process( 'settings/users.tmpl', \%tmpl_data, \$output, $r );
-
-        return $self->ok( $r, $output ) if $ok;
-        return $self->error( $r, "Template error: " . $TMPL->error() );
+        $TMPL->process( 'settings/users.tmpl', \%tmpl_data, \$output, $r ) ||
+          return $self->error( $r, $TMPL->error);
+        return $self->ok( $r, $output );
     }
 
 }
@@ -222,14 +216,12 @@ sub dispatch_payment {
         );
 
         my $output;
-        my $ok =
-          $TMPL->process( 'settings/payment.tmpl', \%tmpl_data, \$output, $r );
-
-        return $self->ok( $r, $output ) if $ok;
-        return $self->error( $r, "Template error: " . $TMPL->error() );
+        $TMPL->process( 'settings/payment.tmpl', \%tmpl_data, \$output, $r ) ||
+          return $self->error( $r, $TMPL->error );
+        return $self->ok( $r, $output );
     }
     else {
-      return Apache2::Const::SERVER_ERROR;
+      return Apache2::Const::HTTP_METHOD_NOT_ALLOWED;
     }
 }
 

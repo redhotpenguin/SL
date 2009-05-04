@@ -47,7 +47,7 @@ $dbh->do("alter table location drop column description");
 $dbh->do("alter table location drop column name");
 
 $dbh->do("alter table router drop column openmesh_macaddr");
-
+$dbh->do("alter table payment add column order_number text not null default '');
 
 
 

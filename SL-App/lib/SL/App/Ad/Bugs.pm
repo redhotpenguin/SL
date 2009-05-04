@@ -15,10 +15,9 @@ use base 'SL::App';
 use SL::App::Template ();
 use SL::Model;
 use SL::Model::App;    # works for now
+use Data::Dumper;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
-
-require Data::Dumper if DEBUG;
 
 our $TMPL = SL::App::Template->template();
 
@@ -26,10 +25,9 @@ sub dispatch_index {
     my ( $self, $r ) = @_;
 
     my $output;
-    my $ok = $TMPL->process( 'ad/bugs/index.tmpl', {}, \$output, $r );
-
-    return $self->ok( $r, $output ) if $ok;
-    return $self->error( $r, "Template error: " . $TMPL->error() );
+    $TMPL->process( 'ad/bugs/index.tmpl', {}, \$output, $r ) ||
+      return $self->error( $r, $TMPL->error );
+    return $self->ok( $r, $output );
 }
 
 sub dispatch_edit {
@@ -62,11 +60,9 @@ sub dispatch_edit {
 				SL::Model::App->resultset('AdSize')->all ],
         );
 
-        my $ok =
-          $TMPL->process( 'ad/bugs/edit.tmpl', \%tmpl_data, \$output, $r );
-
-        return $self->ok( $r, $output ) if $ok;
-        return $self->error( $r, "Template error: " . $TMPL->error() );
+        $TMPL->process( 'ad/bugs/edit.tmpl', \%tmpl_data, \$output, $r ) ||
+          return $self->error( $r, $TMPL->error);
+        return $self->ok( $r, $output );
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
         $r->method_number(Apache2::Const::M_GET);
@@ -143,10 +139,10 @@ sub dispatch_list {
     );
 
     my $output;
-    my $ok = $TMPL->process( 'ad/bugs/list.tmpl', \%tmpl_data, \$output, $r );
+    $TMPL->process( 'ad/bugs/list.tmpl', \%tmpl_data, \$output, $r ) ||
+          return $self->error( $r, $TMPL->error );
+    return $self->ok( $r, $output );
 
-    return $self->ok( $r, $output ) if $ok;
-    return $self->error( $r, "Template error: " . $TMPL->error() );
 }
 
 1;

@@ -26,9 +26,9 @@ sub dispatch_index {
     my %tmpl_data = ( root => $r->pnotes('root'),
                        email => $r->user);
     my $output;
-    my $ok = $tmpl->process('ad/index.tmpl', \%tmpl_data, \$output, $r);
-    $ok ? return $self->ok($r, $output) 
-        : return $self->error($r, "Template error: " . $tmpl->error());
+    $tmpl->process('ad/index.tmpl', \%tmpl_data, \$output, $r) ||
+        return $self->error($r, $tmpl->error);
+    return $self->ok($r, $output);
 }
 
 1;

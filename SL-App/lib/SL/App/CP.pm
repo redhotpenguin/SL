@@ -30,11 +30,8 @@ our $Cookie_name = 'SLN CP';
 use SL::Payment                 ();
 use SL::App::CookieAuth ();
 
-use constant DEBUG => $ENV{SL_DEBUG} || $ENV{SL_TEST_MODE} || 0;
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
 use constant TEST_MODE => $ENV{SL_TEST_MODE} || 0;
-
-our $Tech_error = 'Technical error, please repeat transaction';
-our $From = 'SLN Support <support@silverliningnetworks.com>';
 
 use SL::Model;
 use SL::Model::App;    # works for now
@@ -88,7 +85,7 @@ sub check {
       ->search( \%payment_args, { order_by => 'cts DESC', }, );
 
     if ( DEBUG && $payment ) {
-        $r->log->debug( "payment is " . $class->Dumperb($payment) );
+        $r->log->debug( "payment is " . $class->Dumper($payment) );
     }
 
     return Apache2::Const::NOT_FOUND unless $payment;
@@ -453,7 +450,7 @@ sub paid {
                 street      => $class->valid_street,
                 card_type   => cc_type(),
                 card_number => cc_number( { fields => ['card_type'] } ),
-                plan        => valid_aaa_plan(),
+                plan        => $class->valid_aaa_plan,
                 mac         => $class->valid_mac,
             }
         );
@@ -489,14 +486,14 @@ sub paid {
             last_name  => $req->param('last_name'),
             referer    => $r->headers_in->{'referer'},
             ip         => $r->connection->remote_ip,
-            plan       => $plan,
         );
 
         my $payment;
         my %addr;
         if ($ziponly) {
 
-            $payment = SL::Payment->process( \%payment_args );
+            $payment_args{plan} = $plan;
+            $payment = eval { SL::Payment->process( \%payment_args ) };
         }
         else {
 
@@ -504,6 +501,7 @@ sub paid {
                 street => $req->param('street'),
                 city   => $req->param('city'),
                 state  => $req->param('state'),
+                amount     => SL::Payment->plan($plan)->{cost},
             );
 
             $payment =
@@ -512,10 +510,11 @@ sub paid {
 
         if ($@) {
 
+            $r->log->error("Serious payment error:  $@");
             return $class->paid(
                 $r,
                 {
-                    errors => { payment => $Tech_error, },
+                    errors => { payment => $SL::App::Tech_error, },
                     req    => $req,
                 }
             );
@@ -540,8 +539,8 @@ sub paid {
         my $mailer    = Mail::Mailer->new('qmail');
         my %mail_args = (
               'To'      => $req->param('email'),
-              'From'    => $From,
-              'CC'      => $router->account->aaa_email_cc,
+              'From'    => $SL::App::From,
+              'CC'      => $router->account_id->aaa_email_cc,
               'Subject' => "WiFi Internet Receipt",
         );
 
@@ -557,7 +556,7 @@ sub paid {
               ziponly      => $ziponly,
               req          => $req,
               plan         => $duration,
-              network_name => $router->account->name,
+              network_name => $router->account_id->name,
               code         => $code,
               date         => DateTime->now->mdy('/'),
               amount       => $plan_hash->{cost},
@@ -579,7 +578,7 @@ sub paid {
         }
 
         $r->log->debug("payment plan $plan ok, redirecting") if DEBUG;
-        return $class->auth_dest( $r, $router, 'paid', $mac, $dest, $payment );
+        return $class->auth_dest( $r, 'paid', $router, $mac, $dest, $payment );
     }
 }
 
@@ -655,11 +654,6 @@ sub free {
 
       $payment->update;
 
-      # grab it for the md5
-      ($payment) =
-        SL::Model::App->resultset('Payment')->search(
-          { payment_id => $payment->payment_id } );
-
       $r->log->debug("free payment ok, redirecting") if DEBUG;
       return $class->auth_dest( $r, 'ads', $router, $mac, $dest, $payment );
 }
@@ -667,13 +661,22 @@ sub free {
 sub auth_dest {
       my ( $class, $r, $type, $router, $mac, $dest, $payment ) = @_;
 
+      # grab it for the md5
+      ($payment) =
+        SL::Model::App->resultset('Payment')->search(
+          { payment_id => $payment->payment_id } );
+
       ## payment successful, redirect to auth
       $mac      = URI::Escape::uri_escape($mac);
       $dest = URI::Escape::uri_escape($dest);
-      $r->headers_out->set( Location => sprintf(
+
+      my $location = sprintf(
               'http://%s/%s?mac=%s&url=%s&token=%s',
               $router->lan_ip, $type, $mac, $dest, $payment->md5
-      ) );
+      );
+      $r->log->debug("redirecting to $location") if DEBUG;
+
+      $r->headers_out->set( Location => $location );
       $r->no_cache(1);
       return Apache2::Const::REDIRECT;
 

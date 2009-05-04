@@ -35,10 +35,9 @@ sub dispatch_index {
 
     my %tmpl_data = ( rss_list => $feed->entries );
     my $output;
-    my $ok = $tmpl->process( 'home.tmpl', \%tmpl_data, \$output, $r );
-    $ok
-      ? return $self->ok( $r, $output )
-      : return $self->error( $r, "Template error: " . $tmpl->error() );
+    $tmpl->process( 'home.tmpl', \%tmpl_data, \$output, $r ) ||
+      return $self->error( $r, $tmpl->error);
+    return $self->ok( $r, $output );
 }
 
 1;

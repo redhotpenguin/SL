@@ -109,6 +109,13 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 1,
   },
+  "order_number",
+  {
+    data_type => "text",
+    default_value => "''::text",
+    is_nullable => 0,
+    size => undef,
+  },
 );
 __PACKAGE__->set_primary_key("payment_id");
 __PACKAGE__->add_unique_constraint("payment_pkey", ["payment_id"]);
@@ -119,8 +126,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-05-02 04:43:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:midpMGqNoTYg+rgZLs+Lwg
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-05-03 23:42:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MY00hdDcYA3koUU5HsP9AA
 # These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Payment.pm' found in @INC.# They are now part of the custom portion of this file# for you to hand-edit.  If you do not either delete# this section or remove that file from @INC, this section# will be repeated redundantly when you re-create this# file again via Loader!
 
 use Business::PayPal::API qw( MassPay DirectPayments );

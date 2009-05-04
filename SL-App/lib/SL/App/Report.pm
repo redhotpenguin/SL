@@ -57,10 +57,9 @@ sub dispatch_index {
 	}
 
         my $output;
-        my $ok = $tmpl->process( 'report.tmpl', \%tmpl_data, \$output, $r );
-
-        return $self->ok( $r, $output ) if $ok;
-        return $self->error( $r, "Template error: " . $tmpl->error() );
+        $tmpl->process( 'report.tmpl', \%tmpl_data, \$output, $r ) ||
+          return $self->error( $r, $tmpl->error );
+        return $self->ok( $r, $output );
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
 

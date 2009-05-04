@@ -26,10 +26,6 @@ use Data::FormValidator::Constraints qw(:closures);
 use constant DEBUG => $ENV{SL_DEBUG} || $ENV{SL_TEST_MODE} || 0;
 use constant TEST_MODE => $ENV{SL_TEST_MODE} || 0;
 
-our $Tech_error = 'Technical error, please repeat transaction';
-our $From       = 'SLN Support <support@silverliningnetworks.com>';
-our $Signup     = 'SLN Support <support@silverliningnetworks.com>';
-
 use SL::Model;
 use SL::Model::App;    # don't ask me why we need both
 
@@ -112,8 +108,8 @@ sub publisher {
         if ( $req->param('plan') ne 'free' ) {
 
             $r->log->debug("making recurring payment") if DEBUG;
-            my $description = sprintf('Silver Lining Networks $%/month',
-                                      $req->param('plan'));
+            my $description =
+              sprintf( 'Silver Lining Networks $%/month', $req->param('plan') );
             $payment = eval {
                 SL::Payment->recurring(
                     {
@@ -143,11 +139,11 @@ sub publisher {
             if ($@) {
 
                 # error processing payment, try again
-                $r->log->error( sprintf( "fatal payment error: %s", $@ ) );
+                $r->log->error("fatal payment error: $@");
                 return $class->publisher(
                     $r,
                     {
-                        errors => { payment => $Tech_error, },
+                        errors => { payment => $SL::App::Tech_error, },
                         req    => $req,
                     }
                 );
@@ -172,96 +168,105 @@ sub publisher {
         }
 
         # send the welcome email / receipt
-            my $mailer    = Mail::Mailer->new('qmail');
-            my %mail_args = (
-                'To'      => $req->param('email'),
-                'From'    => $From,
-                'CC'      => $Signup,
-                'Subject' => "Welcome to Silver Lining Networks",
-            );
+        my $mailer    = Mail::Mailer->new('qmail');
+        my %mail_args = (
+            'To'      => $req->param('email'),
+            'From'    => $SL::App::From,
+            'CC'      => $SL::App::Signup,
+            'Subject' => "Welcome to Silver Lining Networks",
+        );
 
-            $mailer->open( \%mail_args );
+        $mailer->open( \%mail_args );
 
-            my $mail;
+        my $mail;
 
-            my %tmpl_data = (
-                plan         => $plan,
-                email        => $req->param('email'),
-                fname        => $req->param('fname'),
-                lname        => $req->param('lname'),
-                date         => DateTime->now->mdy('/'),
-                amount       => $req->param('plan'),
-            );
+        my %tmpl_data = (
+            plan   => $plan,
+            email  => $req->param('email'),
+            fname  => $req->param('fname'),
+            lname  => $req->param('lname'),
+            date   => DateTime->now->mdy('/'),
+            amount => $req->param('plan'),
+        );
 
-            if ( $req->param('plan') ne 'free')  {
-              my %premium = (
+        if ( $req->param('plan') ne 'free' ) {
+            my %premium = (
                 city         => $req->param('city'),
                 state        => $req->param('state'),
                 street       => $req->param('street'),
                 zip          => $req->param('zip'),
-                order_number => $payment->order_number,);
+                order_number => $payment->order_number,
+            );
 
-              %tmpl_data = ( %tmpl_data, %premium );
-            }
+            %tmpl_data = ( %tmpl_data, %premium );
+        }
 
-            $Tmpl->process( 'billing/publisher/receipt.tmpl',
-                \%tmpl_data, \$mail, $r )
-              || return $class->error( $r, $mail );
+        $Tmpl->process( 'billing/publisher/receipt.tmpl',
+            \%tmpl_data, \$mail, $r )
+          || return $class->error( $r, $mail );
 
-            print $mailer $mail;
+        print $mailer $mail;
 
-            if (TEST_MODE) {
-                $r->log->error("TEST_MODE ENABLED, email would be \n$mail");
-            }
-            else {
-                $mailer->close;
-            }
-
-
+        if (TEST_MODE) {
+            $r->log->error("TEST_MODE ENABLED, email would be \n$mail");
+        }
+        else {
+            $mailer->close;
+        }
 
         # look to see if this is an upgrade
-        my ($reg) = SL::Model::App->results('Reg')->search({
-                                email => $req->param('email') });
+        my ($reg) =
+          SL::Model::App->results('Reg')
+          ->search( { email => $req->param('email') } );
         my $account;
         unless ($reg) {
 
-            $r->log->debug(sprintf('new account for email %s',
-                                   $req->param('email')));
+            $r->log->debug(
+                sprintf( 'new account for email %s', $req->param('email') ) );
 
-            $reg = SL::Model::App->results('Reg')->create({
-                                          email => $req->param('email')});
+            $reg =
+              SL::Model::App->results('Reg')
+              ->create( { email => $req->param('email') } );
 
-            $account = SL::Model::App->results('Account')->create({
-                                            name => $req->param('email') });
+            $account =
+              SL::Model::App->results('Account')
+              ->create( { name => $req->param('email') } );
 
             ## setup defaults and assign id
             $account->update_example_ad_zones;
-            $reg->account_id($account->account_id);
-        } else {
+            $reg->account_id( $account->account_id );
+        }
+        else {
 
-            $r->log->debug(sprintf('upgrading account account for email %s',
-                                   $req->param('email')));
+            $r->log->debug(
+                sprintf( 'upgrading account account for email %s',
+                    $req->param('email') )
+            );
 
             $account = $reg->account_id;
         }
 
-        $reg->account_id->plan($req->param('plan'));
-        $reg->first_name($req->param('first_name'));
-        $reg->last_name($req->param('last_name'));
-        $reg->password_md5(Digest::MD5::md5_hex( $req->param('password') ));
+        $reg->account_id->plan( $req->param('plan') );
+        $reg->first_name( $req->param('first_name') );
+        $reg->last_name( $req->param('last_name') );
+        $reg->password_md5( Digest::MD5::md5_hex( $req->param('password') ) );
 
-        if ($req->param('plan') ne 'free') {
+        if ( $req->param('plan') ne 'free' ) {
 
-          $account->street($req->param('street'));
-          $account->state($req->param('state'));
-          $account->city($req->param('city'));
-          $account->zip($req->param('zip'));
+            $account->street( $req->param('street') );
+            $account->state( $req->param('state') );
+            $account->city( $req->param('city') );
+            $account->zip( $req->param('zip') );
 
-          $account->card_type($req->param('card_type'));
-          $account->card_expires(join('/', $req->param('month'),
-                                      $req->param('year')));
-          $account->card_last_four( substr($req->param('card_number'),
-                                    length($req->param('card_number')-4)));
+            $account->card_type( $req->param('card_type') );
+            $account->card_expires(
+                join( '/', $req->param('month'), $req->param('year') ) );
+            $account->card_last_four(
+                substr(
+                    $req->param('card_number'),
+                    length( $req->param('card_number') - 4 )
+                )
+            );
         }
 
         $account->update;
@@ -278,8 +283,8 @@ sub publisher {
         # auth the user and log them in
         SL::App::CookieAuth->send_cookie( $r, $reg, $session_id );
 
-        $r->headers_out->set( Location => $Config->sl_app_base_uri
-              . "/app/home/index" );
+        $r->headers_out->set(
+            Location => $Config->sl_app_base_uri . "/app/home/index" );
         $r->no_cache(1);
         return Apache2::Const::REDIRECT;
 
@@ -294,7 +299,7 @@ sub advertiser {
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
 
-    my $plan   = $req->param('plan');
+    my $plan = $req->param('plan');
 
     my %tmpl_data = (
         errors => $args_ref->{errors},
@@ -349,10 +354,10 @@ sub advertiser {
         }
 
         my %payment_args = (
-            account_id  => 1,
+            account_id => 1,
             description =>
-                sprintf('Silver Lining Networks Advertiser $%s/month',
-                    $req->param('plan')),
+              sprintf( 'Silver Lining Networks Advertiser $%s/month',
+                $req->param('plan') ),
             email       => $req->param('email'),
             card_type   => $req->param('card_type'),
             card_number => $req->param('card_number'),
@@ -385,7 +390,7 @@ sub advertiser {
             return $class->advertiser(
                 $r,
                 {
-                    errors => { payment => $Tech_error, },
+                    errors => { payment => $SL::App::Tech_error, },
                     req    => $req,
                 }
             );
@@ -408,8 +413,8 @@ sub advertiser {
         my $mailer    = Mail::Mailer->new('qmail');
         my %mail_args = (
             'To'      => $req->param('email'),
-            'From'    => $From,
-            'CC'      => $From,
+            'From'    => $SL::App::From,
+            'CC'      => $SL::App::Signup,
             'Subject' => "Advertiser Recurring Billing Receipt",
         );
 

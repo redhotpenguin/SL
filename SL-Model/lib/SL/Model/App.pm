@@ -8,11 +8,11 @@ use SL::Model;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
-our %LOADER_OPTIONS;#; = ( relationships => 1 );
+our %LOADER_OPTIONS;
 
 if (DEBUG) {
     $LOADER_OPTIONS{debug} = DEBUG;
-#    $LOADER_OPTIONS{dump_directory} = '/tmp/sl_model',
+    $LOADER_OPTIONS{dump_directory} = '/tmp/sl_model',
 }
 
 __PACKAGE__->loader_options( %LOADER_OPTIONS );

@@ -1,4 +1,4 @@
-Dear [% fname %],
+Dear [% req.param('first_name') %],
 
 [% IF ! req.param('order_number') %]
 Thank you for registering with Silver Lining Networks.  Most users are able to get up and running within a few minutes of installing creating their account.

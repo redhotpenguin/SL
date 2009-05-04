@@ -17,7 +17,7 @@ use Data::Dumper;
 
 # some globals
 
-our $VERSION = 0.04;
+our $VERSION = 0.05;
 
 our ( $Config, %Authorize_creds, $Business, $Notify_url, $Return );
 
@@ -140,7 +140,7 @@ sub last_four {
 sub recurring {
     my ( $class, $args ) = @_;
 
-    die "missing args"
+    die "missing args in " . Dumper($args)
       unless (
            defined $args->{email}
         && defined $args->{card_number}
@@ -183,7 +183,7 @@ sub recurring {
         invoice_number => '42069',
         action         => 'Authorization Only',
         amount         => $Plans{test}->{cost},
-        description    => sprintf('publisher %s card verification', $args->{email}),
+        description    => sprintf('%s card verification', $args->{email}),
     );
 
     $tx->content( %Authorize_creds, %common_args, %auth_args, );
@@ -219,10 +219,14 @@ sub recurring {
             last_four  => last_four($args->{card_number}),
             card_type  => $args->{card_type},
             ip         => $args->{ip},
+            expires    => $args->{card_exp},
             expires    => 'N/A',
         }
     );
-    $payment->update or return { error => 'Payment system is temporarily unavailable' };
+
+    $payment->update or die;
+
+    warn(sprintf("payment id %s created", $payment->payment_id)) if DEBUG;
 
     # make the subscription request
     my %arb_args = (
@@ -249,24 +253,24 @@ sub recurring {
     $tx->content(%Authorize_creds, %common_args, %arb_args);
 
     if (TEST_MODE) {
-        warn( "TEST_MODE enabled, would have posted " . Dumper( $tx->content ) );
+        warn( "TEST_MODE, would have posted " . Dumper( $tx->content ) );
         $payment->approved('t');
-        $payment->token_processed('t');
         $payment->authorization_code( $payment->payment_id );
+        $payment->order_number( $payment->payment_id );
     }
     else {
         $tx->submit;
 
         if ( $tx->is_success  ) {
-          warn("Subscription processed successfully: " . $tx->order_number) if DEBUG;
+          warn("Order number: " . $tx->order_number) if DEBUG;
+          warn("Auth code: " . $tx->authorization_code) if DEBUG;
           $payment->approved('t');
-          $payment->token_processed('t');
-          $payment->authorization_code( $payment->order_number );
+          $payment->order_number( $payment->order_number );
+          $payment->authorization_code( $payment->authorization_code );
         }
         else {
-          warn "Card was rejected: " . $tx->error_message if DEBUG;
-          $payment->approved('t');
-          $payment->token_processed('t');
+          warn("Card was rejected: " . $tx->error_message) if DEBUG;
+          $payment->approved('f');
           $payment->error_message( $tx->error_message );
         }
     }
@@ -279,7 +283,7 @@ sub recurring {
 sub process {
     my ( $class, $args ) = @_;
 
-    die "missing args"
+    die "missing args in " . Dumper($args)
       unless ( defined $args->{account_id}
         && defined $args->{email}
         && defined $args->{mac}
@@ -354,7 +358,7 @@ sub process {
     $tx->content(%tx_content);
 
     if (TEST_MODE) {
-        warn("TEST_MODE enabled, would have sent " . Dumper( $tx->content ) );
+        warn("TEST_MODE, would have sent " . Dumper( $tx->content ) );
         $payment->authorization_code( $payment->payment_id );
         $payment->approved('t');
     }
@@ -362,12 +366,12 @@ sub process {
         $tx->submit;
 
         if ( $tx->is_success ) {
-            warn "Card processed successfully: " . $tx->authorization if DEBUG;
+            warn("Card processed ok: " . $tx->authorization) if DEBUG;
             $payment->authorization_code( $tx->authorization );
             $payment->approved('t');
         }
         else {
-            warn "Card was rejected: " . $tx->error_message if DEBUG;
+            warn("Card was rejected: " . $tx->error_message) if DEBUG;
             $payment->error_message( $tx->error_message );
         }
     }

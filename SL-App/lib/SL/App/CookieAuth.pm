@@ -90,8 +90,7 @@ sub authenticate {
     # decode the cookie
     my %state = $class->decode( $cookie->value );
 
-    $r->log->debug(
-        "state extracted from cookie: " . Dumper( \%state ) )
+    $r->log->debug( "state extracted from cookie: " . Dumper( \%state ) )
       if DEBUG;
 
     # check for malformed cookie
@@ -130,8 +129,7 @@ sub authenticate {
         };
 
         if ($@) {
-            $r->log->error(
-                "$$ session missing for user " . $reg->email . " $@" );
+            $r->log->error( "session missing for " . $reg->email . " $@" );
 
             # try to make a new session
             eval {
@@ -139,14 +137,14 @@ sub authenticate {
             };
 
             $r->log->error("WOW SOMETHING REALLY BAD HAPPENED: $@") if $@;
+            return Apache2::Const::SERVER_ERROR;
         }
     }
     else {
 
         # make a new session
         tie %session, 'Apache::Session::DB_File', undef, \%SESS_OPTS;
-        $r->log->debug( "$$ new session id " . $session{ _ $session_id} )
-          if DEBUG;
+        $r->log->debug( "new sess id " . $session{_session_id} ) if DEBUG;
     }
 
     $session_id = $session{_session_id};
@@ -165,10 +163,9 @@ sub logout {
     $class->expire_cookie($r);
 
     my $output;
-    my $ok = $Template->process( 'logout.tmpl', {}, \$output );
-
-    return $class->ok( $r, $output ) if $ok;
-    return $class->error( $r, "Template error: " . $Template->error() );
+    $Template->process( 'logout.tmpl', {}, \$output )
+      || return $class->error( $r, $Template->error );
+    return $class->ok( $r, $output );
 }
 
 sub login {
@@ -178,7 +175,7 @@ sub login {
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my $output;
-        my $ok = $Template->process(
+        $Template->process(
             'login.tmpl',
             {
                 status => $req->param('status') || '',
@@ -187,11 +184,9 @@ sub login {
             },
             \$output,
             $r
-        );
+        ) || return $class->error( $r, $Template->error );
 
-        $ok
-          ? return $class->ok( $r, $output )
-          : return $class->ok( $r, "Template error: " . $Template->error() );
+        return $class->ok( $r, $output );
     }
 
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
@@ -232,7 +227,7 @@ sub login {
 
         # they're ok
         my $destination = $req->param('dest') || '/app/home/index';
-        $r->log->debug("$$ login ok, redirecting to $destination") if DEBUG;
+        $r->log->debug("login ok, redirecting to $destination") if DEBUG;
         return $class->redirect_auth(
             $r,
             'successful auth',
@@ -274,9 +269,10 @@ sub send_cookie {
 
     my $cookie = Apache2::Cookie->new(
         $r,
-        -name    => $Config->sl_app_cookie_name,
-        -value   => $class->encode( \%state ),
-   #     -expires => '60s',
+        -name  => $Config->sl_app_cookie_name,
+        -value => $class->encode( \%state ),
+
+        #     -expires => '60s',
         -expires => '1h',
         -path    => $Config->sl_app_base_uri . '/app/',
     );
@@ -323,7 +319,6 @@ sub redirect_auth {
     return Apache2::Const::REDIRECT;
 }
 
-
 sub forgot {
     my ( $class, $r ) = @_;
 
@@ -332,7 +327,7 @@ sub forgot {
     my $email = $req->param('forgot_email');
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my $output;
-        my $ok = $Template->process(
+        $Template->process(
             'forgot.tmpl',
             {
                 status => $req->param('status') || '',
@@ -340,10 +335,9 @@ sub forgot {
             },
             \$output,
             $r
-        );
+        ) || return $class->error( $r, $Template->error);
 
-        return $class->ok( $r, $output ) if $ok;
-        return $class->ok( $r, "Template error: " . $Template->error() );
+        return $class->ok( $r, $output );
 
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
@@ -385,9 +379,9 @@ sub forgot {
                 $Config->sl_app_server, $Config->sl_app_base_uri,
                 '/forgot/reset/?key=' . $forgot->link_md5() );
 
-            my $ok =
-              $Template->process( 'forgot_email.tmpl',
-                { url => $url, email => $reg->email }, \$output );
+            $Template->process( 'forgot_email.tmpl',
+                { url => $url, email => $reg->email }, \$output ) ||
+                  return $class->error( $r, $Template->error);
 
             my $msg = MIME::Lite->new(
                 From =>
@@ -404,79 +398,78 @@ sub forgot {
             $r->headers_out->set( Location =>
                   $r->construct_url("/forgot/?status=sent&forgot_email=$email")
             );
-	return Apache2::Const::REDIRECT;
+            return Apache2::Const::REDIRECT;
 
-   }
-}
-
-sub forgot_reset {
-    my ( $class, $r ) = @_;
-
-    my $req = Apache2::Request->new($r);
-
-    return Apache2::Const::SERVER_ERROR unless $req->param('key');
-
-    my ($forgot) =
-      SL::Model::App->resultset('Forgot')
-      ->search( { link_md5 => $req->param('key'), expired => 'f' } );
-
-    return Apache2::Const::NOT_FOUND unless $forgot;
-
-    if ( $r->method_number == Apache2::Const::M_GET ) {
-
-        # found the link, serve the reset password page
-        my $output;
-        my $url =
-          $r->construct_url( '/forgot/reset/?key=' . $forgot->link_md5() );
-
-        my $ok = $Template->process(
-            'forgot_reset.tmpl',
-            {
-                key   => $req->param('key'),
-                error => $req->param('error') || ''
-            },
-            \$output
-        );
-
-        return $class->ok( $r, $output ) if $ok;
-        return $class->ok( $r, "Template error: " . $Template->error() );
-
+        }
     }
-    elsif ( $r->method_number == Apache2::Const::M_POST ) {
-        $r->method_number(Apache2::Const::M_GET);
 
-	if (length($req->param('password')) < 5) {
-            $r->headers_out->set(
-	Location => $r->construct_url(
-		'/forgot/reset/?error=tooshort&key=' . $req->param('key')
-		)
-	);
-	return Apache2::Const::REDIRECT;
-	}
+    sub forgot_reset {
+        my ( $class, $r ) = @_;
 
-        # update the password
-        my $reg = $forgot->reg_id;
-        $reg->password_md5( Digest::MD5::md5_hex( $req->param('password') ) );
-        $reg->update;
+        my $req = Apache2::Request->new($r);
 
-        # expire the link
-        $forgot->expired(1);
-        $forgot->update;
+        return Apache2::Const::SERVER_ERROR unless $req->param('key');
 
+        my ($forgot) =
+          SL::Model::App->resultset('Forgot')
+          ->search( { link_md5 => $req->param('key'), expired => 'f' } );
 
+        return Apache2::Const::NOT_FOUND unless $forgot;
 
-        # create a session
-        my %session;
-        tie %session, 'Apache::Session::DB_File', undef, \%SESS_OPTS;
-        my $session_id = $session{_session_id};
-        $r->pnotes( 'session' => \%session );
+        if ( $r->method_number == Apache2::Const::M_GET ) {
 
-        # auth the user and log them in
-        $class->send_cookie( $r, $reg, $session_id );
+            # found the link, serve the reset password page
+            my $output;
+            my $url =
+              $r->construct_url( '/forgot/reset/?key=' . $forgot->link_md5() );
 
-        $r->internal_redirect("/app/home/index");
-        return $class->auth_ok( $r, $reg );
-   }
+            $Template->process(
+                'forgot_reset.tmpl',
+                {
+                    key   => $req->param('key'),
+                    error => $req->param('error') || ''
+                },
+                \$output
+            ) || return $class->error( $r, $Template->error);
+
+            return $class->ok( $r, $output );
+
+        }
+        elsif ( $r->method_number == Apache2::Const::M_POST ) {
+            $r->method_number(Apache2::Const::M_GET);
+
+            if ( length( $req->param('password') ) < 5 ) {
+                $r->headers_out->set(
+                    Location => $r->construct_url(
+                        '/forgot/reset/?error=tooshort&key='
+                          . $req->param('key')
+                    )
+                );
+                return Apache2::Const::REDIRECT;
+            }
+
+            # update the password
+            my $reg = $forgot->reg_id;
+            $reg->password_md5(
+                Digest::MD5::md5_hex( $req->param('password') ) );
+            $reg->update;
+
+            # expire the link
+            $forgot->expired(1);
+            $forgot->update;
+
+            # create a session
+            my %session;
+            tie %session, 'Apache::Session::DB_File', undef, \%SESS_OPTS;
+            my $session_id = $session{_session_id};
+            $r->pnotes( 'session' => \%session );
+
+            # auth the user and log them in
+            $class->send_cookie( $r, $reg, $session_id );
+
+            $r->internal_redirect("/app/home/index");
+            return $class->auth_ok( $r, $reg );
+        }
     }
 }
 
