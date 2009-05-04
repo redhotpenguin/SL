@@ -220,7 +220,6 @@ sub recurring {
             card_type  => $args->{card_type},
             ip         => $args->{ip},
             expires    => $args->{card_exp},
-            expires    => 'N/A',
         }
     );
 

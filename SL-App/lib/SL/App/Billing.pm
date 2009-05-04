@@ -23,11 +23,18 @@ use SL::App::CookieAuth ();
 use Data::FormValidator ();
 use Data::FormValidator::Constraints qw(:closures);
 
-use constant DEBUG => $ENV{SL_DEBUG} || $ENV{SL_TEST_MODE} || 0;
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
 use constant TEST_MODE => $ENV{SL_TEST_MODE} || 0;
 
 use SL::Model;
 use SL::Model::App;    # don't ask me why we need both
+
+our %Plans = (
+              enterprise => '$249.00',
+              premium    => '$99.00',
+              plus       => '$49.00',
+              basic      => '$24.00',
+);
 
 use SL::Config;
 our $Config = SL::Config->new;
@@ -38,8 +45,7 @@ sub publisher {
     my $req = $args_ref->{req} || Apache2::Request->new($r);
 
     # gotta hava a plan
-    my $plan = $req->param('plan');
-    unless ($plan) {
+    unless ($req->param('plan')) {
         $r->log->error("missing plan");
         return Apache2::Const::NOT_FOUND;
     }
@@ -67,7 +73,8 @@ sub publisher {
 
         my %payment_profile = (
             required =>
-              [ ( $plan eq 'free' ) ? @free_req : ( @free_req, @paid_req ) ],
+              [ ( $req->param('plan') eq 'free' ) ? 
+                @free_req : ( @free_req, @paid_req ) ],
             constraint_methods => {
                 password => $class->check_password,
                 retype   => $class->check_retype(
@@ -108,8 +115,11 @@ sub publisher {
         if ( $req->param('plan') ne 'free' ) {
 
             $r->log->debug("making recurring payment") if DEBUG;
+            my $amount = $Plans{$req->param('plan')};
             my $description =
-              sprintf( 'Silver Lining Networks $%/month', $req->param('plan') );
+              sprintf( 'Network Operator % plan, $%/month',
+                       $req->param('plan'), $amount);
+
             $payment = eval {
                 SL::Payment->recurring(
                     {
@@ -131,7 +141,7 @@ sub publisher {
                         city       => $req->param('city'),
                         state      => $req->param('state'),
                         referer    => $r->headers_in->{'referer'},
-                        amount     => $req->param('plan'),
+                        amount     => $amount,
                     }
                 );
             };
@@ -179,31 +189,19 @@ sub publisher {
         $mailer->open( \%mail_args );
 
         my $mail;
-
         my %tmpl_data = (
-            plan   => $plan,
-            email  => $req->param('email'),
-            fname  => $req->param('fname'),
-            lname  => $req->param('lname'),
+            req    => $req,
             date   => DateTime->now->mdy('/'),
-            amount => $req->param('plan'),
         );
 
         if ( $req->param('plan') ne 'free' ) {
-            my %premium = (
-                city         => $req->param('city'),
-                state        => $req->param('state'),
-                street       => $req->param('street'),
-                zip          => $req->param('zip'),
-                order_number => $payment->order_number,
-            );
-
-            %tmpl_data = ( %tmpl_data, %premium );
+          $tmpl_data{'amount'} = $Plans{$req->param('plan')};
+          $tmpl_data{'order_number'} = $payment->order_number;
         }
 
         $Tmpl->process( 'billing/publisher/receipt.tmpl',
             \%tmpl_data, \$mail, $r )
-          || return $class->error( $r, $mail );
+          || return $class->error( $r, $Tmpl->error );
 
         print $mailer $mail;
 
@@ -216,7 +214,7 @@ sub publisher {
 
         # look to see if this is an upgrade
         my ($reg) =
-          SL::Model::App->results('Reg')
+          SL::Model::App->resultset('Reg')
           ->search( { email => $req->param('email') } );
         my $account;
         unless ($reg) {
@@ -246,25 +244,25 @@ sub publisher {
             $account = $reg->account_id;
         }
 
-        $reg->account_id->plan( $req->param('plan') );
+        $account->plan( $req->param('plan') );
         $reg->first_name( $req->param('first_name') );
         $reg->last_name( $req->param('last_name') );
         $reg->password_md5( Digest::MD5::md5_hex( $req->param('password') ) );
 
         if ( $req->param('plan') ne 'free' ) {
 
-            $account->street( $req->param('street') );
-            $account->state( $req->param('state') );
-            $account->city( $req->param('city') );
-            $account->zip( $req->param('zip') );
+            $reg->street( $req->param('street') );
+            $reg->state( $req->param('state') );
+            $reg->city( $req->param('city') );
+            $reg->zip( $req->param('zip') );
 
-            $account->card_type( $req->param('card_type') );
-            $account->card_expires(
+            $reg->card_type( $req->param('card_type') );
+            $reg->card_expires(
                 join( '/', $req->param('month'), $req->param('year') ) );
-            $account->card_last_four(
+            $reg->card_last_four(
                 substr(
                     $req->param('card_number'),
-                    length( $req->param('card_number') - 4 )
+                    length( $req->param('card_number')) - 4
                 )
             );
         }
