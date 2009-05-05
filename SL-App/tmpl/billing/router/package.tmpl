@@ -1,0 +1,9 @@
+
+<dt><label for="router_package">Router Package</label></dt>
+<dd>
+   <select name="plan">
+   <option value="1" [% IF req.param('plan') == 1 %]SELECTED[% END%]>1 Router - $89</option>
+  <option value="5" [% IF req.param('plan') == 5 %]SELECTED[% END %]>5 Routers - $429</option>
+  <option value="10" [% IF req.param('plan') == 10 %]SELECTED[% END %]>10 Routers - $799</option>
+   </select>
+ </dd>

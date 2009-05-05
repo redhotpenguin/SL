@@ -169,20 +169,18 @@ PerlLoadModule Apache2::Dispatch
     PerlResponseHandler SL::App::CP->paypal_return
 </Location>
 
-<Location /billing/publisher>
-    SetHandler modperl
-    PerlResponseHandler SL::App::Billing->publisher
+<Location /billing>
+	SetHandler modperl
+
+    # dispatch directives
+	DispatchPrefix SL::App::Billing
+	[% IF dispatch_debug %]DispatchDebug [% dispatchdebug %][% END %]
+	DispatchRequire On
+	DispatchUpperCase On
+
+	PerlResponseHandler Apache2::Dispatch
 </Location>
 
-<Location /billing/advertiser>
-    SetHandler modperl
-    PerlResponseHandler SL::App::Billing->advertiser
-</Location>
-
-<Location /billing/success>
-    SetHandler modperl
-    PerlResponseHandler SL::App::Billing->billing_success
-</Location>
 
 ## optimizations, mod_perl for speed freaks
 

@@ -36,10 +36,16 @@ our %Plans = (
     basic      => '$24.00',
 );
 
+our %Routers = (
+    1 => '$89.00',
+    2 => '$429.00',
+    5 => '$799.00',
+);
+
 use SL::Config;
 our $Config = SL::Config->new;
 
-sub publisher {
+sub dispatch_publisher {
     my ( $class, $r, $args_ref ) = @_;
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
@@ -108,7 +114,7 @@ sub publisher {
 
             $r->log->debug( $class->Dumper($results) ) if DEBUG;
             my $errors = $class->SUPER::_results_to_errors($results);
-            return $class->publisher(
+            return $class->dispatch_publisher(
                 $r,
                 {
                     errors => $errors,
@@ -138,7 +144,6 @@ sub publisher {
                             '/', $req->param('month'), $req->param('year')
                         ),
                         cvv2         => $req->param('cvv2'),
-                        email        => $req->param('email'),
                         zip          => $req->param('zip'),
                         first_name   => $req->param('first_name'),
                         last_name    => $req->param('last_name'),
@@ -157,7 +162,7 @@ sub publisher {
 
                 # error processing payment, try again
                 $r->log->error("fatal payment error: $@");
-                return $class->publisher(
+                return $class->dispatch_publisher(
                     $r,
                     {
                         errors => { payment => $SL::App::Tech_error, },
@@ -171,7 +176,7 @@ sub publisher {
                 $r->log->error(
                     sprintf( "payment error: %s", $payment->error_message ) );
 
-                return $class->publisher(
+                return $class->dispatch_publisher(
                     $r,
                     {
                         errors => { payment => $payment->error_message, },
@@ -299,7 +304,7 @@ sub publisher {
     }
 }
 
-sub advertiser {
+sub dispatch_advertiser {
     my ( $class, $r, $args_ref ) = @_;
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
@@ -349,7 +354,7 @@ sub advertiser {
 
             $r->log->debug( $class->Dumper($results) ) if DEBUG;
             my $errors = $class->SUPER::_results_to_errors($results);
-            return $class->advertiser(
+            return $class->dispatch_advertiser(
                 $r,
                 {
                     errors => $errors,
@@ -363,7 +368,6 @@ sub advertiser {
             description =>
               sprintf( 'Silver Lining Networks Advertiser $%s/month',
                 $req->param('plan') ),
-            email       => $req->param('email'),
             card_type   => $req->param('card_type'),
             card_number => $req->param('card_number'),
             card_exp => join( '/', $req->param('month'), $req->param('year') ),
@@ -392,7 +396,7 @@ sub advertiser {
             $r->log->error( sprintf("serious payment error for %s:%s"),
                 $req->param('email'), $@ );
 
-            return $class->advertiser(
+            return $class->dispatch_advertiser(
                 $r,
                 {
                     errors => { payment => $SL::App::Tech_error, },
@@ -406,7 +410,7 @@ sub advertiser {
             $r->log->error( sprintf("advertiser %s payment error %s"),
                 $req->param('email'), $payment->error_message );
 
-            return $class->advertiser(
+            return $class->dispatch_advertiser(
                 $r,
                 {
                     errors => { payment => $payment->error_message, },
@@ -460,7 +464,152 @@ sub advertiser {
     }
 }
 
-sub billing_success {
+sub dispatch_router {
+    my ( $class, $r, $args_ref ) = @_;
+
+    my $req = $args_ref->{req} || Apache2::Request->new($r);
+    my $plan = $req->param('plan');
+
+    my %tmpl_data = (
+        errors => $args_ref->{errors},
+        req    => $req,
+    );
+
+    if ( $r->method_number == Apache2::Const::M_GET ) {
+
+        my $output;
+        $Tmpl->process( 'billing/router.tmpl', \%tmpl_data, \$output, $r )
+          || return $class->error( $r, $Tmpl->error );
+        return $class->ok( $r, $output );
+    }
+    elsif ( $r->method_number == Apache2::Const::M_POST ) {
+
+        $r->method_number(Apache2::Const::M_GET);
+
+        my %payment_profile = (
+            required => [
+                qw( first_name last_name card_type card_number cvv2
+                  month year street city zip state email plan )
+            ],
+            constraint_methods => {
+                email       => email(),
+                zip         => zip(),
+                first_name  => $class->valid_first(),
+                last_name   => $class->valid_last(),
+                month       => $class->valid_month(),
+                year        => $class->valid_year(),
+                cvv2        => $class->valid_cvv(),
+                city        => $class->valid_city(),
+                street      => $class->valid_street(),
+                card_type   => cc_type(),
+                card_number => cc_number( { fields => ['card_type'] } ),
+            }
+         );
+
+        my $results = Data::FormValidator->check( $req, \%payment_profile );
+
+        # handle form errors
+        if ( $results->has_missing or $results->has_invalid ) {
+
+            $r->log->debug( $class->Dumper($results) ) if DEBUG;
+            my $errors = $class->SUPER::_results_to_errors($results);
+            return $class->dispatch_router(
+                $r,
+                {
+                    errors => $errors,
+                    req    => $req
+                }
+            );
+        }
+
+        my $amount = $Routers{$req->param('plan')};
+
+        my %payment_args = (
+            account_id  => 1,
+            description =>
+              sprintf( 'Silver Lining Router Purchase %s routers - %s',
+                $req->param('plan'), $amount ),
+            email       => $req->param('email'),
+            card_type   => $req->param('card_type'),
+            card_number => $req->param('card_number'),
+            card_exp => join( '/', $req->param('month'), $req->param('year') ),
+            cvv2     => $req->param('cvv2'),
+            zip      => $req->param('zip'),
+            first_name => $req->param('first_name'),
+            last_name  => $req->param('last_name'),
+            ip         => $r->connection->remote_ip,
+            street     => $req->param('street'),
+            city       => $req->param('city'),
+            state      => $req->param('state'),
+            referer    => $r->headers_in->{'referer'},
+            amount     => $amount,
+        );
+
+        $r->log->debug("processing router payment") if DEBUG;
+        my $payment = eval { SL::Payment->process( \%payment_args ); };
+
+        if ($@) {
+
+            $r->log->error("Serious payment error:  $@");
+            return $class->dispatch_router(
+                $r,
+                {
+                    errors => { payment => $SL::App::Tech_error, },
+                    req    => $req,
+                }
+            );
+        }
+        if ( $payment->error_message ) {
+
+            $r->log->debug( 'err: ' . $payment->error_message ) if DEBUG;
+            return $class->paid(
+                $r,
+                {
+                    errors => { payment => $payment->error_message, },
+                    req    => $req,
+                }
+            );
+        }
+
+        my $mailer    = Mail::Mailer->new('qmail');
+        my %mail_args = (
+              'To'      => $req->param('email'),
+              'From'    => $SL::App::From,
+              'CC'      => $SL::CP::Signup,
+              'Subject' => "Silver Lining Router Purchase Receipt",
+        );
+
+        $mailer->open( \%mail_args );
+
+        my %tmpl_data = (
+              req          => $req,
+              amount       => $amount,
+              payment      => $payment
+              date         => DateTime->now->mdy('/'),
+        );
+
+        $Tmpl->process( 'billing/router/receipt.tmpl',
+            \%tmpl_data, \$mail, $r )
+          || return $class->error( $r, $mail );
+
+        print $mailer $mail;
+
+        if (TEST_MODE) {
+            $r->log->error("TEST_MODE ENABLED, email would be \n$mail");
+        }
+        else {
+            $mailer->close;
+        }
+
+        $r->headers_out->set( Location => $Config->sl_app_base_uri
+              . "/billing/success?auth_code="
+              . $payment->authorization_code );
+        $r->no_cache(1);
+        return Apache2::Const::REDIRECT;
+    }
+}
+
+sub dispatch_success {
     my ( $class, $r ) = @_;
 
     my $req = Apache2::Request->new($r);
