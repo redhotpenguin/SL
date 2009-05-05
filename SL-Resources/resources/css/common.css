@@ -71,6 +71,10 @@ END ERIC MEYER RESET RELOAD
 .block {
 display:block;
 }
+.center{
+margin-left:auto;
+margin-right:auto;
+}
 
 /*LINKS
 === === === === === === === === === === */

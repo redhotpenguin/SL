@@ -9,7 +9,6 @@ Date: 1/19/09
 /* LAYOUT
 ============================================= */
 body {
-background: #f7f7f7 url(../images/backgrounds/content_bg.png) center top repeat-y ;
 color: #444;
 text-align: center;
 }
@@ -117,21 +116,35 @@ margin-left: 20px;
 /* ICONS
 ============================================= */
 .icon_add {
-padding-left: 28px;
+padding-left: 34px;
 background:  url(../images/icons/minicon/plus.png) no-repeat 5px center;
 }
 .icon_wand {
-padding-left: 28px;
-background:  url(../images/icons/minicon/wand.png) no-repeat 5px center;
+padding-left: 34px;
+background:  url(../images/icons/wand_24.png) no-repeat left center;
 }
 .icon_money {
-padding-left: 28px;
-background:  url(../images/icons/minicon/cash_coin.png) no-repeat 5px center;
+padding-left: 34px;
+background:  url(../images/icons/cash_24.png) no-repeat left center;
 }
 .icon_stats {
-padding-left: 28px;
-background:  url(../images/icons/minicon/stats.png) no-repeat 5px center;
+padding-left: 34px;
+background:  url(../images/icons/stats_24.png) no-repeat left center;
 }
+.icon_router {
+padding-left: 34px;
+background: url(../images/icons/signal_on.png) no-repeat center left;
+}
+.icon_home {
+padding-left: 34px;
+background: url(../images/icons/home_24.png) no-repeat center left;
+}
+.icon_network {
+padding-left: 34px;
+background: url(../images/icons/network_24.png) no-repeat center left;
+}
+
+
 
 /* BUTTONS
 ============================================= */
@@ -256,6 +269,7 @@ background:  url(../images/backgrounds/navbar_bg.png) repeat-x top left;
 float: right;
 margin-left: 10px;
 font-size: 85%;
+color: #FFF;
 }
 .topnav li a {
 float: right;
@@ -355,6 +369,36 @@ background-color: #bcd1db;
 color: #FFF;
 }
 
+/* SUB MENU LIST
+============================================= */
+#sub_menu {
+margin-bottom: 20px;
+padding-right: 20px;
+}
+#sub_menu li {
+border-bottom: 1px solid #EEE;
+}
+#sub_menu li a {
+display: block;
+padding: 15px 10px 15px 34px;
+font-size: 107%;
+text-decoration: none;
+color: #444;
+}
+
+/* GRAY BOX
+============================================= */
+.graybox_wrapper {
+background: url(../images/backgrounds/gray_box/graybox_bg.png) repeat-y center top;
+}
+.graybox {
+background: url(../images/backgrounds/gray_box/graybox_top.png) no-repeat center top;
+padding-top: 5px;
+}
+.graybox_inner {
+background: url(../images/backgrounds/gray_box/graybox_bottom.png) no-repeat center bottom;
+padding: 5px 10px 10px 10px;
+}
 
 /* CONTENT
 ============================================= */
@@ -362,8 +406,7 @@ color: #FFF;
 padding: 20px 0px;
 }
 
-
-/* NOTIFICAITON
+/* NOTIFICATION
 ============================================= */
 .notification {
 margin-bottom: 20px;
@@ -545,6 +588,9 @@ font-size: 100%;
 font-style: italic;
 font-size: 85%;
 color: #999;
+}
+.router_table td.router_name .router_info {
+display: none;
 }
 .router_table td.mac_address {
 font-size: 85%;
