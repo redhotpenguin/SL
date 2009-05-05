@@ -278,6 +278,94 @@ sub recurring {
     return $payment;
 }
 
+sub router_purchase {
+    my ( $class, $args ) = @_;
+
+    die "missing args in " . Dumper($args)
+      unless ( defined $args->{account_id}
+        && defined $args->{email}
+        && defined $args->{card_number}
+        && defined $args->{card_type}
+        && defined $args->{card_exp}
+        && defined $args->{zip}
+        && defined $args->{first_name}
+        && defined $args->{last_name}
+        && defined $args->{cvv2}
+        && defined $args->{ip}
+        && defined $args->{referer}
+        && defined $args->{amount} );
+
+    my $stop =
+      DateTime::Format::Pg->format_datetime(
+      DateTime->now( time_zone => 'local' ) );
+
+    # database
+    my $payment = SL::Model::App->resultset('Payment')->create(
+        {
+            account_id => $args->{account_id},
+            mac        => 'FF:FF:FF:FF:FF:FF',
+            amount     => $args->{amount},
+            stop       => $stop,
+            email      => $args->{email},
+            last_four  => last_four($args->{card_number}),
+            card_type  => $args->{card_type},
+            ip         => $args->{ip},
+            expires    => $args->{card_exp},
+        }
+    );
+
+    $payment->update;
+
+    $args->{invoice_number} = $payment->payment_id;
+    $args->{customer_id} =
+      sprintf( "%s %u", $args->{email}, delete $args->{account_id} );
+
+    # authorize
+    my $tx = Business::OnlinePayment->new('AuthorizeNet');
+
+    # base content
+      my %tx_content = (
+        %Authorize_creds,
+        action         => 'Normal Authorization',
+        description    => $args->{description},
+        amount         => $args->{amount},
+        invoice_number => $args->{invoice_number},
+        customer_id    => $args->{customer_id},
+        first_name     => $args->{first_name},
+        last_name      => $args->{last_name},
+        zip            => $args->{zip},
+        card_number    => $args->{card_number},
+        expiration     => $args->{card_exp},
+        type           => $args->{card_type},
+        cvv2           => $args->{cvv2},
+        referer        => $args->{referer},
+        email          => $args->{email},
+    );
+
+    $tx->content(%tx_content);
+
+    if (TEST_MODE) {
+        warn("TEST_MODE, would have sent " . Dumper( $tx->content ) );
+        $payment->authorization_code( $payment->payment_id );
+        $payment->approved('t');
+    }
+    else {
+        $tx->submit;
+
+        if ( $tx->is_success ) {
+            warn("Card processed ok: " . $tx->authorization) if DEBUG;
+            $payment->authorization_code( $tx->authorization );
+            $payment->approved('t');
+        }
+        else {
+            warn("Card was rejected: " . $tx->error_message) if DEBUG;
+            $payment->error_message( $tx->error_message );
+        }
+    }
+
+    $payment->update;
+    return $payment;
+}
 
 sub process {
     my ( $class, $args ) = @_;
@@ -324,9 +412,6 @@ sub process {
     );
 
     $payment->update;
-
-    # munge transaction args
-    my $email = delete $args->{email};
 
     $args->{invoice_number} = $payment->payment_id;
     $args->{customer_id} =

@@ -445,7 +445,7 @@ sub dispatch_advertiser {
 
         $Tmpl->process( 'billing/advertiser/receipt.tmpl',
             \%tmpl_data, \$mail, $r )
-          || return $class->error( $r, $mail );
+          || return $class->error( $r, $Tmpl->error );
 
         print $mailer $mail;
 
@@ -504,7 +504,7 @@ sub dispatch_router {
                 card_type   => cc_type(),
                 card_number => cc_number( { fields => ['card_type'] } ),
             }
-         );
+        );
 
         my $results = Data::FormValidator->check( $req, \%payment_profile );
 
@@ -522,13 +522,14 @@ sub dispatch_router {
             );
         }
 
-        my $amount = $Routers{$req->param('plan')};
+        my $amount = $Routers{ $req->param('plan') };
 
         my %payment_args = (
             account_id  => 1,
-            description =>
-              sprintf( 'Silver Lining Router Purchase %s routers - %s',
-                $req->param('plan'), $amount ),
+            description => sprintf(
+                'Silver Lining Router Purchase %s Routers - %s',
+                $req->param('plan'), $amount
+            ),
             email       => $req->param('email'),
             card_type   => $req->param('card_type'),
             card_number => $req->param('card_number'),
@@ -546,7 +547,7 @@ sub dispatch_router {
         );
 
         $r->log->debug("processing router payment") if DEBUG;
-        my $payment = eval { SL::Payment->process( \%payment_args ); };
+        my $payment = eval { SL::Payment->router_purchase( \%payment_args ); };
 
         if ($@) {
 
@@ -562,7 +563,7 @@ sub dispatch_router {
         if ( $payment->error_message ) {
 
             $r->log->debug( 'err: ' . $payment->error_message ) if DEBUG;
-            return $class->paid(
+            return $class->dispatch_router(
                 $r,
                 {
                     errors => { payment => $payment->error_message, },
@@ -571,26 +572,28 @@ sub dispatch_router {
             );
         }
 
+        $r->log->debug( "payment ok, id " . $payment->payment_id ) if DEBUG;
+
         my $mailer    = Mail::Mailer->new('qmail');
         my %mail_args = (
-              'To'      => $req->param('email'),
-              'From'    => $SL::App::From,
-              'CC'      => $SL::CP::Signup,
-              'Subject' => "Silver Lining Router Purchase Receipt",
+            'To'      => $req->param('email'),
+            'From'    => $SL::App::From,
+            'CC'      => $SL::App::Signup,
+            'Subject' => "Silver Lining Router Purchase Receipt",
         );
 
         $mailer->open( \%mail_args );
 
         my %tmpl_data = (
-              req          => $req,
-              amount       => $amount,
-              payment      => $payment
-              date         => DateTime->now->mdy('/'),
+            req     => $req,
+            amount  => $amount,
+            payment => $payment,
+            date    => DateTime->now->mdy('/'),
         );
 
-        $Tmpl->process( 'billing/router/receipt.tmpl',
-            \%tmpl_data, \$mail, $r )
-          || return $class->error( $r, $mail );
+        my $mail;
+        $Tmpl->process( 'billing/router/receipt.tmpl', \%tmpl_data, \$mail, $r )
+          || return $class->error( $r, $Tmpl->error );
 
         print $mailer $mail;
 

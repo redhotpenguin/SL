@@ -566,7 +566,7 @@ sub paid {
 
         my $mail;
         $Tmpl->process( 'auth/receipt.tmpl', \%tmpl_data, \$mail, $r )
-          || return $class->error( $r, $mail );
+          || return $class->error( $r, $Tmpl->error );
 
         print $mailer $mail;
 

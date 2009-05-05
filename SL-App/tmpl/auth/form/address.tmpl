@@ -1,7 +1,7 @@
 [% IF !ziponly %]
 <!-- STREET -->
 
-<dt><label for="street">[% IF errors.missing.street or errors.missing.city or errors.missing.zip or errors.missing.state %]<font color="red">[% END %]Billing Address[% IF errors.missing.street or errors.missing.city or errors.missing.zip or errors.missing.state %]</font>[% END %]</label></dt>
+<dt><label for="street">[% IF errors.missing.street or errors.missing.city or errors.missing.zip or errors.missing.state %]<font color="red">[% END %]Billing[% IF shipping %]/Shipping[% END %] Address[% IF errors.missing.street or errors.missing.city or errors.missing.zip or errors.missing.state %]</font>[% END %]</label></dt>
 <dd>
 	<span class="full">
         <input type="text" id="street" name="street" value="[% IF req.param('street') %][% req.param('street') %][% ELSE %]ex. 123 Huckleberry Drive[% END %]" />
