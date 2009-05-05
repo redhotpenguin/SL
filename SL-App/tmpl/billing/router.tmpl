@@ -1,0 +1,76 @@
+[% PROCESS billing/header.tmpl %]
+
+  <title>Purchase a router - Silver Lining Networks</title>
+</head>
+<body id="sln">
+
+<!-- TOP SECTION START #################### -->
+	<div id="section_one">
+		<div class="center">
+			<!-- CHOOSE WIFI COPY ************************ --> 
+			<div class="two_thirds left padding_top">
+				<h2>Silver Lining Ad Insertion Routers</h2>
+                <p>Enter your payment information to purchase preconfigured Silver Lining Routers</p>
+			
+			</div>
+
+			<!-- LOGO ************************ --> 
+			<div class="one_third right">
+                <h1 class="logo"><a href="#"><span></span>Silver Lining Networks</a></h1>
+            </div>
+
+			<div class="clear"></div>
+		</div>
+	</div>
+
+	
+    <!-- BODY SECTION START ######################################### -->
+    [% PROCESS auth/form/bodywrapper_top.tmpl %]
+
+        <!-- MAIN COLUMN ######## -->
+        [% PROCESS auth/form/paperbox_top.tmpl %]
+
+                <h2 class="header">Purchase Ad Insertion Routers</h2>
+
+                <!-- PAYMENT FORM -->
+                <form id="sl_payment" action="[% base_uri %]/billing/router" method="post">
+                        <dl id="form_list">
+
+[% IF errors.payment %]
+<dd><font color="red">[% errors.payment %]</font></dd>
+[% ELSIF errors.invalid %]
+<dd><font color="red">Some fields were invalid, please correct them</font></dd>
+[% ELSIF errors.missing %]
+<dd><font color="red">Please complete the missing fields</font></dd>
+[% END %]
+
+                                <dd class="subtle"><em>All fields required</em></dd>
+                                [% PROCESS billing/router/package.tmpl %]
+                                [% PROCESS auth/form/name.tmpl %]
+                                [% PROCESS auth/form/user_info.tmpl nopass=1%]
+                                [% PROCESS auth/form/creditcard.tmpl %]
+                                [% PROCESS auth/form/address.tmpl shipping=1 %]
+                                [% PROCESS auth/form/submit_button.tmpl %]
+                       </dl>
+                </form>
+
+        [% PROCESS auth/form/paperbox_bottom.tmpl %]
+        <!-- END MAIN COLUMN -->
+
+        <!-- SIDE COLUMN ##### -->
+        <div class="one_third left">
+            [% PROCESS billing/router/sidebar.tmpl %]
+        </div>
+        <!-- END SIDE COLUMN ##### -->
+
+        [% PROCESS auth/form/bodywrapper_bottom.tmpl %]
+
+        <!-- END BODY SECTION ######################################### -->
+
+        <!-- PLEDGE -->
+
+        [% PROCESS auth/form/our_pledge.tmpl %]
+
+  <script src="[% base_uri %]/resources/js/simple_validation.js" type="text/javascript"></script>
+</body>
+</html>

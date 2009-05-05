@@ -1,0 +1,28 @@
+Dear [% req.param('first_name') %],
+
+Thank you for placing your order for [% req.param('plan') %] Silver Lining Ad Insertion Routers at a price of [% amount %].  Your routers will be shipped via Fedex Ground to the shipping address listed below.
+
+Please feel free to write us with any questions about the service at support@silverliningnetworks.com.
+
+Sincerely,
+Silver Lining Networks Support
+
+Billed/Shipped To:
+[% req.param('first_name') %] [% req.param('last_name') %]
+[% req.param('street') %]
+[% req.param('city') %], [% req.param('state') %] [% req.param('zip') %]
+
+----------------------Purchase Receipt ---------------------
+Number of Routers: [% req.param('plan') %]
+Amount: [% amount %]
+Date: [% date %]
+Order Number: [% payment.payment_id %]
+Payment Authorization Number: [% payment.authorization_code %]
+-------------------------------------------------------------------------
+
+PLEASE RETAIN THIS FOR YOUR RECORDS
+
+Silver Lining Networks Inc.
+- If you have questions please contact us at support@silverliningnetworks.com
+- You may also give us a call at 888.334.6602 and we will return your call
+- For information regarding use of WiFi, please read our terms of service
