@@ -10,5 +10,8 @@ $(document).ready(function(){
 		return false;
 	});
 
-
+	$('.more_info').click(function(){
+		$('.router_info').toggle('fast');
+	
+	});
 });
