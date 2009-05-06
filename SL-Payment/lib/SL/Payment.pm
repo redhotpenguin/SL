@@ -13,7 +13,7 @@ use Business::PayPal                      ();
 use Business::OnlinePayment::AuthorizeNet ();
 use DateTime ();
 use DateTime::Format::Pg ();
-use Data::Dumper;
+use Data::Dumper qw(Dumper);
 
 # some globals
 
@@ -158,6 +158,28 @@ sub recurring {
         && defined $args->{account_id}
         && defined $args->{amount} );
 
+    ########################################
+    # make a new payment first
+    my $payment = SL::Model::App->resultset('Payment')->create(
+        {
+            account_id => $args->{account_id},
+            mac        => 'FF:FF:FF:FF:FF:FF',
+            amount     => '$' . $args->{amount},
+            stop       => DateTime::Format::Pg->format_datetime(
+                             DateTime->now( time_zone => 'local' )->add(months => 60)),
+            email      => $args->{email},
+            last_four  => last_four($args->{card_number}),
+            card_type  => $args->{card_type},
+            ip         => $args->{ip},
+            expires    => $args->{card_exp},
+        }
+    );
+
+    $payment->update or die("could not create payment");
+
+    warn(sprintf("payment id %s created", $payment->payment_id)) if DEBUG;
+
+
     ####################################################
     # place a small authorization on the account to check the card credentials
 
@@ -180,7 +202,7 @@ sub recurring {
     );
 
     my %auth_args = (
-        invoice_number => '42069',
+        invoice_number => $payment->payment_id,
         action         => 'Authorization Only',
         amount         => $Plans{test}->{cost},
         description    => sprintf('%s card verification', $args->{email}),
@@ -201,31 +223,13 @@ sub recurring {
                          $tx->authorization, $tx->order_number)) if DEBUG;
         }
         else {
-            warn "Card was rejected: " . $tx->error_message if DEBUG;
-            return { error => $tx->error_message };
-        }
+          warn("Card was rejected: " . $tx->error_message) if DEBUG;
+          $payment->approved('f');
+          $payment->error_message( $tx->error_message );
+          $payment->update;
+	  return $payment;
+	}
     }
-
-    ########################################
-    # make a new payment first
-    my $payment = SL::Model::App->resultset('Payment')->create(
-        {
-            account_id => $args->{account_id},
-            mac        => 'FF:FF:FF:FF:FF:FF',
-            amount     => $args->{amount},
-            stop       => DateTime::Format::Pg->format_datetime(
-                             DateTime->now( time_zone => 'local' )->add(months => 60)),
-            email      => $args->{email},
-            last_four  => last_four($args->{card_number}),
-            card_type  => $args->{card_type},
-            ip         => $args->{ip},
-            expires    => $args->{card_exp},
-        }
-    );
-
-    $payment->update or die;
-
-    warn(sprintf("payment id %s created", $payment->payment_id)) if DEBUG;
 
     # make the subscription request
     my %arb_args = (
@@ -249,6 +253,7 @@ sub recurring {
       }
     }
 
+    $tx = Business::OnlinePayment->new('AuthorizeNet');
     $tx->content(%Authorize_creds, %common_args, %arb_args);
 
     if (TEST_MODE) {
@@ -258,14 +263,14 @@ sub recurring {
         $payment->order_number( $payment->payment_id );
     }
     else {
-        $tx->submit;
+	$tx->submit;
 
         if ( $tx->is_success  ) {
           warn("Order number: " . $tx->order_number) if DEBUG;
-          warn("Auth code: " . $tx->authorization_code) if DEBUG;
+          warn("Auth code: " . $tx->authorization) if DEBUG;
           $payment->approved('t');
-          $payment->order_number( $payment->order_number );
-          $payment->authorization_code( $payment->authorization_code );
+          $payment->order_number( $tx->order_number );
+          $payment->authorization_code( $tx->authorization );
         }
         else {
           warn("Card was rejected: " . $tx->error_message) if DEBUG;
@@ -273,7 +278,7 @@ sub recurring {
           $payment->error_message( $tx->error_message );
         }
     }
-
+    
     $payment->update;
     return $payment;
 }
