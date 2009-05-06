@@ -38,6 +38,7 @@ sub handler {
     my $router = $router__location->router_id;
 
     unless ($router
+        && $router->account_id->aaa
         && $router->lan_ip
         && $router->splash_timeout
         && $router->wan_ip
