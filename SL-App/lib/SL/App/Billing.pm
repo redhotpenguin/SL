@@ -30,10 +30,10 @@ use SL::Model;
 use SL::Model::App;    # don't ask me why we need both
 
 our %Plans = (
-    enterprise => '$249.00',
-    premium    => '$99.00',
-    plus       => '$49.00',
-    basic      => '$24.00',
+    enterprise => '249.00',
+    premium    => '99.00',
+    plus       => '49.00',
+    basic      => '24.00',
 );
 
 our %Routers = (
@@ -129,8 +129,8 @@ sub dispatch_publisher {
 
             $r->log->debug("making recurring payment") if DEBUG;
             my $amount      = $Plans{ $req->param('plan') };
-            my $description = sprintf( 'Network Operator % plan, $%/month',
-                $req->param('plan'), $amount );
+            my $description = sprintf( 'Network Operator %s Account, $%s/month',
+                ucfirst($req->param('plan')), $amount );
 
             $payment = eval {
                 SL::Payment->recurring(
@@ -203,7 +203,7 @@ sub dispatch_publisher {
         my $mail;
         my %tmpl_data = (
             req  => $req,
-            date => DateTime->now->mdy('/'),
+            start_date => DateTime->now->mdy('/'),
         );
 
         if ( $req->param('plan') ne 'free' ) {
@@ -390,11 +390,11 @@ sub dispatch_advertiser {
 
         $r->log->debug("making recurring payment") if DEBUG;
         my $payment = eval { SL::Payment->recurring( \%payment_args ); };
+        
+	if ( $@ ) {
 
-        if ( $@ or !$payment ) {
-
-            $r->log->error( sprintf("serious payment error for %s:%s"),
-                $req->param('email'), $@ );
+            $r->log->error( sprintf('serious payment error for %s - %s',
+                $req->param('email'), $@ ));
 
             return $class->dispatch_advertiser(
                 $r,
@@ -431,16 +431,9 @@ sub dispatch_advertiser {
 
         my $mail;
         my %tmpl_data = (
-            email        => $req->param('email'),
-            fname        => $req->param('first_name'),
-            lname        => $req->param('last_name'),
-            city         => $req->param('city'),
-            state        => $req->param('state'),
-            street       => $req->param('street'),
-            zip          => $req->param('zip'),
-            order_number => $payment->order_number,
+            req          => $req,
+	    order_number => $payment->order_number,
             date         => DateTime->now->mdy('/'),
-            amount       => $req->param('plan'),
         );
 
         $Tmpl->process( 'billing/advertiser/receipt.tmpl',

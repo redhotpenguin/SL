@@ -501,7 +501,7 @@ sub paid {
                 street => $req->param('street'),
                 city   => $req->param('city'),
                 state  => $req->param('state'),
-                amount     => SL::Payment->plan($plan)->{cost},
+                amount     => substr(SL::Payment->plan($plan)->{cost}, 1),
             );
 
             $payment =
@@ -648,7 +648,7 @@ sub free {
               last_four  => 0,
               card_type  => 'ads',
               ip         => $r->connection->remote_ip,
-              expires    => $router->timeout,
+              expires    => $router->splash_timeout,
               approved   => 't',
       } );
 
