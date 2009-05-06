@@ -636,11 +636,11 @@ sub free {
       my $stop =
         DateTime::Format::Pg->format_datetime(
           DateTime->now( time_zone => 'local' )
-            ->add( 'minutes' => $router->timeout ) );
+            ->add( 'minutes' => $router->splash_timeout ) );
 
       # make a free payment entry
       my $payment = SL::Model::App->resultset('Payment')->create( {
-              account_id => $router->account->account_id,
+              account_id => $router->account_id->account_id,
               mac        => $mac,
               amount     => '$0.00',
               stop       => $stop,
