@@ -229,8 +229,6 @@ sub dispatch_list {
 
     my @routers = $reg->get_routers( $req->param('ad_zone_id') );
 
-    $r->log->error("routers" . Dumper(\@routers));
-
     foreach my $router (@routers) {
         my $dt = DateTime::Format::Pg->parse_datetime( $router->last_ping );
 
