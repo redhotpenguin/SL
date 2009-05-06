@@ -31,9 +31,20 @@ This method serves of the master ad control panel for now
 sub dispatch_index {
     my ( $self, $r ) = @_;
 
-    my $feed = XML::Feed->parse( URI->new(FORUM_URL) ) or die;
+    my $feed = XML::Feed->parse( URI->new(FORUM_URL) );
 
-    my %tmpl_data = ( rss_list => $feed->entries );
+    my %tmpl_data;
+    my @feed;
+    if ($feed) {
+	foreach my $entry ($feed->entries) {
+		push @feed, { title => $entry->title, 'link' => $entry->link,
+			content => $entry->content->body };
+	}
+	$tmpl_data{rss} = \@feed;
+    } else {
+    	$r->log->error(sprintf("could not parse feed %s, %s", FORUM_URL,
+		XML::Feed->errstr));
+    }
     my $output;
     $tmpl->process( 'home.tmpl', \%tmpl_data, \$output, $r ) ||
       return $self->error( $r, $tmpl->error);
