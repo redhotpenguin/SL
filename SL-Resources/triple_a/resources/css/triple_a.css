@@ -107,6 +107,9 @@ margin-right: 10px;
 .margin_t_5 {
 margin-top: 5px;
 }
+.margin_f_15 {
+margin: 5px 20px;
+}
 .padding_t_40 {
 padding-top: 40px;
 }
@@ -253,7 +256,7 @@ border: none;
 border-left: 1px solid #033a64;
 border-right: 1px solid #033a64;
 padding: 5px 8px 5px 8px;
-background: #175a81 url(/resources/images/buttons/blue_sqaure_bg.png) repeat-x top left;
+background: #175a81 url(../images/buttons/blue_sqaure_bg.png) repeat-x top left;
 display: block;
 margin: 0px -1px;
 color: #FFF;
@@ -829,3 +832,48 @@ font-weight: bold;
 font-size: 122%;
 color: #44879A;
 }
+
+
+/* PRICING TABLE
+============================================= */
+.pricing_table {
+width: 85%;
+margin:0px 20px;
+border-collapse: collapse;
+}
+.pricing_table th {
+background:#5db0ca url(../images/backgrounds/section_2_bg.png) repeat-x right top;
+padding: 10px;
+font-weight: bold;
+font-size: 100%;
+border: 1px solid #d5e1ee;
+text-align: center;
+color: #444;
+}
+.pricing_table .pricing_body th, .pricing_table .price_row th {
+background:none;
+background-color: #f7f7f7;
+padding: 10px;
+font-size: 92%;
+font-weight: bold;
+border: 1px solid #d5e1ee;
+text-align: right;
+color: #444;
+}
+.pricing_table td {
+padding: 10px;
+background-color: #FFF;
+text-align: center;
+border-right: 1px solid #d5e1ee;
+border-bottom: 1px solid #d5e1ee;
+}
+.pricing_table .price_row td strong {
+font-family: Georgia, Times, serif;
+font-size: 152%;
+font-weight: normal;
+color: #666;
+}
+
+
+
+
