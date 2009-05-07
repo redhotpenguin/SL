@@ -3,7 +3,7 @@ package SL::Subrequest;
 use strict;
 use warnings;
 
-our $VERSION = 0.03;
+our $VERSION = 0.04;
 
 use String::Strip    ();
 use HTML::TokeParser ();
@@ -78,7 +78,7 @@ sub collect_subrequests {
     my ( $content_ref, $base_url ) = @args{qw(content_ref base_url)};
 
     unless ( $$content_ref ne '' ) {
-        warn("$$ SL::Subrequest::collect_subrequests missing content_ref");
+        warn("SL::Subrequest::collect_subrequests missing content_ref") if DEBUG;
         return;
     }
 
