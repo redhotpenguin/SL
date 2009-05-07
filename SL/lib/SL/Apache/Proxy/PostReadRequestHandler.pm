@@ -27,7 +27,7 @@ sub handler {
 
     my $ua = $r->headers_in->{'user-agent'};
     unless ($ua) {
-        $r->log->error("$$ no user agent, request " . $r->as_string);
+        $r->log->debug("$$ no user agent, request " . $r->as_string) if DEBUG;
         $ua = 'none';
     }
     $r->pnotes( 'ua' => $ua );

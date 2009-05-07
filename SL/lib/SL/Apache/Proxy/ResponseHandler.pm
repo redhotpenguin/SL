@@ -633,8 +633,8 @@ sub twohundred {
         if ( !$response_content_ref ) {
 
             # we could not serve an ad on this page for some reason
-            $r->log->error(
-                "$$ ad not served, _generate_response failed url $url");
+            $r->log->info(
+                "ad not served, _generate_response failed url $url");
         }
         else {
 
@@ -815,7 +815,7 @@ sub _generate_response {
     unless ($ok) {
 
         # TODO - mark url to be skipped next time
-        $r->log->error("could not insert ad zone id $ad_zone_id into url $url");
+        $r->log->debug("could not insert adzone $ad_zone_id into url $url") if DEBUG;
         return;
     }
 
