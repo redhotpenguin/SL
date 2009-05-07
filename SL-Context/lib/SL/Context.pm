@@ -3,7 +3,7 @@ package SL::Context;
 use strict;
 use warnings;
 
-our $VERSION = 0.02;
+our $VERSION = 0.03;
 
 use HTML::TokeParser ();
 
@@ -29,8 +29,8 @@ sub collect_keywords {
     my ( $self, %args ) = @_;
     my $content_ref = @args{qw(content_ref)};
 
-    unless ( $$content_ref ne '' ) {
-        warn("$$ SL::Context::collect_keywords missing content_ref");
+	if ( $$content_ref eq '' ) {
+        warn("$$ SL::Context::collect_keywords missing content_ref") if DEBUG;
         return;
     }
 
