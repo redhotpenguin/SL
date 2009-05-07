@@ -77,7 +77,7 @@ sub collect_subrequests {
     my ( $self,        %args )     = @_;
     my ( $content_ref, $base_url ) = @args{qw(content_ref base_url)};
 
-    if ( !$content_ref or ($$content_ref eq '') ) {
+    if ( !$content_ref or (! defined $$content_ref) or ($$content_ref eq '') ) {
         warn("SL::Subrequest::collect_subrequests missing content_ref") if DEBUG;
         return;
     }
