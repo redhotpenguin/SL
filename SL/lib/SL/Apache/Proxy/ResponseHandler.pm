@@ -243,9 +243,9 @@ sub handler {
         );
     };
 
-    # dns error or socket timeout, give em the craxy page
+    # dns error or socket timeout, give em the crazy page
     if ($@) {
-        $r->log->error( "$$ error fetching url " . $r->pnotes('url') . ": $@" );
+        $r->log->debug("error fetching " . $r->pnotes('url') . ": $@" ) if DEBUG;
         return &crazypage($r);    # haha this page is kwazy!
     }
 
