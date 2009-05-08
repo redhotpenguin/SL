@@ -235,7 +235,7 @@ sub dispatch_publisher {
                 sprintf( 'new account for email %s', $req->param('email') ) );
 
             $reg =
-              SL::Model::App->results('Reg')
+              SL::Model::App->resultset('Reg')
               ->create( { email => $req->param('email') } );
 
             $account =
