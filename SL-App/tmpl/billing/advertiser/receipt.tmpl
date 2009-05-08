@@ -1,16 +1,16 @@
-Dear [% fname %],
+Dear [% req.param('first_name') %],
 
-Your ad campaign with Silver Lining Networks has been successfully processed.  A charge in the amount of $[% amount %] will appear on your credit card every month until you cancel.  Please contact support@silverliningnetworks.com if you need to make a change to your subscription.
+Your ad campaign with Silver Lining Networks has been successfully processed.  A charge in the amount of $[% req.param('plan') %] will appear on your credit card every month until you cancel.  Please contact support@silverliningnetworks.com if you need to make a change to your subscription.
 
 You wil be contacted by a Silver Lining Networks representative shortly who will assist you in placing your advertisements on the network, and will setup your email based advertising reports.
 
 Billed To:
-[% fname %] [% lname %]
-[% street %]
-[% city %], [% state %] [% zip %]
+[% req.param('first_name') %] [% req.param('last_name') %]
+[% req.param('street') %]
+[% req.param('city') %], [% req.param('state') %] [% req.param('zip') %]
 
 ----------------------Purchase Receipt ---------------------
-Description: Advertiser Recurring Billing for $[% amount %]/month
+Description: Advertiser Recurring Billing for $[% req.param('plan') %]/month
 Date: [% date %]
 Order Number: [% order_number %]
 -------------------------------------------------------------------------
