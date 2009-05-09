@@ -336,6 +336,7 @@ sub valid_username {
         my $email   = $data->{email};
         my $pass   = $data->{password};
 
+	return if !$pass;
         my ($reg) = SL::Model::App->resultset('Reg')->search({
                                                  email => $email });
         # new user, ok

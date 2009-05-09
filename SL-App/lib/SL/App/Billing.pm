@@ -239,7 +239,7 @@ sub dispatch_publisher {
               ->create( { email => $req->param('email') } );
 
             $account =
-              SL::Model::App->results('Account')
+              SL::Model::App->resultset('Account')
               ->create( { name => $req->param('email') } );
 
             ## setup defaults and assign id
