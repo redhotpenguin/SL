@@ -172,8 +172,8 @@ sub paid {
         my $location = "$Auth_url?mac=$esc_mac&url=$dest_url";
         $location .= "&expired=1" if ( $added == 401 );
 
-        $r->log->info( "$$ expired mac address $mac found, code "
-              . $added->code
+        $r->log->info( "expired mac address $mac found, code "
+              . $added
               . ", redirecting to $location" );
         $r->headers_out->set( Location => $location );
         $r->no_cache(1);
