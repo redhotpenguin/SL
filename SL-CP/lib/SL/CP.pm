@@ -95,10 +95,15 @@ sub ads {
     my $req_mac = $req->param('mac');
     my $token   = $req->param('token');
 
+    unless ($req_mac) {
+	   $r->log->error("no mac passed in url for dhcp mac $mac");
+	   return Apache2::Const::NOT_FOUND;
+    }
+
     # urls had better match up
     unless ( $req_mac eq $mac ) {
         $r->log->error(
-            "$$ auth macs didn't match up, mac $mac, req mac $req_mac");
+            "auth macs didn't match up, mac $mac, req mac $req_mac");
         return Apache2::Const::SERVER_ERROR;
     }
 
@@ -120,7 +125,7 @@ sub ads {
 
         $location .= "&expired=1" if ( $added == 401 );
         $r->log->info(
-"$$ expired mac address $mac found, code $added, redirecting to $location"
+"expired mac address $mac found, code $added, redirecting to $location"
         );
         $r->headers_out->set( Location => $location );
         $r->no_cache(1);
