@@ -18,7 +18,7 @@ MaxClients           [% cfg.sl_app_apache_maxclients %]
 ErrorLog             [% cfg.sl_app_root %]/logs/httpd_app_error_log
 TransferLog          [% cfg.sl_app_root %]/logs/httpd_app_access_log
 MaxRequestsPerChild  250
-LogFormat "%h %l %u %t (%{User-agent}i) \"%r\" %>s %b"
+LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\""
 UseCanonicalName     Off
 HostNameLookups      Off
 Timeout              300
