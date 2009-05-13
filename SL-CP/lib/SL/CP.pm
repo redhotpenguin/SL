@@ -42,8 +42,12 @@ sub handler {
     my ( $mac, $ip ) = _mac_from_ip($r);
     return Apache2::Const::NOT_FOUND unless $mac;
 
-    if ($r->header_only or ($r->method_number != Apache2::Const::M_GET) or (!SL::BrowserUtil->is_a_browser($r->headers_in->{'user-agent'}) )) {
-	   return Apache2::Const::HTTP_METHOD_NOT_ALLOWED;
+    if ($r->header_only or 
+	    ($r->method_number != Apache2::Const::M_GET) or 
+	    (!defined $r->headers_in->{'user-agent'}) or
+	    (!SL::BrowserUtil->is_a_browser($r->headers_in->{'user-agent'}) )) {
+
+ 	    return Apache2::Const::HTTP_METHOD_NOT_ALLOWED;
     }
 
     my $c = $r->connection;
@@ -65,7 +69,7 @@ sub handler {
 	if ($total_time != 0) {
 
 		my $rate = ($count / $total_time);
-		$r->log->error("throttle check mac $mac, ip $ip, count $count, time $total_time, rate $rate");
+		$r->log->debug("throttle check mac $mac, ip $ip, count $count, time $total_time, rate $rate") if DEBUG;
 		if (($count > MIN_COUNT) && ($rate > MAX_RATE)) {
 			$r->log->error("rate violation ip $ip, mac $mac, total time $total_time, count $count, rate $rate");
 			# make 'em wait
