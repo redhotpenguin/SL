@@ -5,7 +5,8 @@ use warnings;
 
 use Apache2::RequestRec ();
 use Apache2::Connection ();
-use Apache2::Const -compile => qw( NOT_FOUND OK REDIRECT SERVER_ERROR );
+use Apache2::ConnectionUtil ();
+use Apache2::Const -compile => qw( NOT_FOUND OK REDIRECT SERVER_ERROR HTTP_SERVICE_UNAVAILABLE M_GET HTTP_METHOD_NOT_ALLOWED );
 use Apache2::Log         ();
 use Apache2::RequestUtil ();
 use Apache2::Request     ();
@@ -16,10 +17,13 @@ use URI::Escape ();
 
 use SL::Config       ();
 use SL::CP::IPTables ();
+use SL::BrowserUtil  ();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
+use constant MAX_RATE  => 1;
+use constant MIN_COUNT => 5;
 
-our $VERSION = 0.02;
+our $VERSION = 0.03;
 
 our ( $Config, $Lease_file, $Auth_url );
 
@@ -32,11 +36,48 @@ BEGIN {
 sub handler {
     my $r = shift;
 
-    $r->log->debug( "$$ handling new request for " . $r->connection->remote_ip )
+    $r->log->debug( "handling new request for " . $r->connection->remote_ip )
       if DEBUG;
 
     my ( $mac, $ip ) = _mac_from_ip($r);
     return Apache2::Const::NOT_FOUND unless $mac;
+
+    if ($r->header_only or ($r->method_number != Apache2::Const::M_GET) or (!SL::BrowserUtil->is_a_browser($r->headers_in->{'user-agent'}) )) {
+	   return Apache2::Const::HTTP_METHOD_NOT_ALLOWED;
+    }
+
+    my $c = $r->connection;
+    if (my $attempts = $c->pnotes($c->remote_ip)) {
+	my $count = $attempts->{count};
+	my @times = @{$attempts->{times}};
+	my $idx;
+	if ($#times > 9) {
+		$count = 10;
+		$idx=$#times-$count;
+	} else {
+		$idx=0;
+	}
+	my $total_time = $times[$#times] - $times[$idx];
+
+	push @{$attempts->{times}}, time();
+	$attempts->{count}++;
+	$c->pnotes($c->remote_ip => $attempts);
+	if ($total_time != 0) {
+
+		my $rate = ($count / $total_time);
+		$r->log->error("throttle check mac $mac, ip $ip, count $count, time $total_time, rate $rate");
+		if (($count > MIN_COUNT) && ($rate > MAX_RATE)) {
+			$r->log->error("rate violation ip $ip, mac $mac, total time $total_time, count $count, rate $rate");
+			# make 'em wait
+			sleep 5;
+			return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
+		}
+	}
+    } else {
+	  my %attempts = ( 'count' => 1, 'times' => [ time() ]);
+	  $r->log->debug("setting new limit check for ip $ip, count 1, time " . time()) if DEBUG;
+  	  $c->pnotes($c->remote_ip => \%attempts);
+   }
 
     my $dest_url = $r->construct_url( $r->unparsed_uri );
 

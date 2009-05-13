@@ -19,6 +19,7 @@ use Apache2::RequestRec ();
 use Apache2::RequestUtil ();
 use Apache2::Log        ();
 use Apache2::Connection ();
+use Apache2::ConnectionUtil ();
 use Apache2::ServerUtil ();
 use Apache2::Request    ();
 use Apache2::URI        ();
@@ -29,6 +30,7 @@ use URI::Escape         ();
 
 use SL::CP           ();
 use SL::CP::IPTables ();
+use SL::BrowserUtil  ();
 
 print "Initializing firewall...\n";
 SL::CP::IPTables->init_firewall;

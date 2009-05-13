@@ -7,12 +7,12 @@ DocumentRoot         [% cfg.sl_root %]/htdocs
 TypesConfig          [% cfg.sl_root %]/conf/mime.types
 User                 [% cfg.sl_apache_user %]
 Group                [% cfg.sl_apache_group %]
-KeepAlive            Off
-# MaxKeepAliveRequests 0
-# KeepAliveTimeout     300
+KeepAlive            On
+MaxKeepAliveRequests 100
+KeepAliveTimeout     300
 MinSpareServers      4
 MaxSpareServers      8
-StartServers         16
+StartServers         24
 LogLevel             [% cfg.sl_apache_loglevel %]
 MaxClients           128
 ErrorLog             [% cfg.sl_root %]/logs/httpd_cp_error_log
