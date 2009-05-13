@@ -6,7 +6,8 @@ use warnings;
 use Apache2::RequestRec ();
 use Apache2::Connection ();
 use Apache2::ConnectionUtil ();
-use Apache2::Const -compile => qw( NOT_FOUND OK REDIRECT SERVER_ERROR HTTP_SERVICE_UNAVAILABLE M_GET HTTP_METHOD_NOT_ALLOWED );
+use Apache2::Const -compile => qw( NOT_FOUND OK REDIRECT SERVER_ERROR AUTH_REQUIRED
+				   HTTP_SERVICE_UNAVAILABLE M_GET HTTP_METHOD_NOT_ALLOWED );
 use Apache2::Log         ();
 use Apache2::RequestUtil ();
 use Apache2::Request     ();
@@ -42,13 +43,14 @@ sub handler {
     my ( $mac, $ip ) = _mac_from_ip($r);
     return Apache2::Const::NOT_FOUND unless $mac;
 
-    if ($r->header_only or 
-	    ($r->method_number != Apache2::Const::M_GET) or 
-	    (!defined $r->headers_in->{'user-agent'}) or
-	    (!SL::BrowserUtil->is_a_browser($r->headers_in->{'user-agent'}) )) {
+    return Apache2::Const::HTTP_METHOD_NOT_ALLOWED
+    	if ($r->header_only or ($r->method_number != Apache2::Const::M_GET));
 
- 	    return Apache2::Const::HTTP_METHOD_NOT_ALLOWED;
-    }
+    return Apache2::Const::AUTH_REQUIRED
+	if ((!defined $r->headers_in->{'user-agent'}) or
+	    (!SL::BrowserUtil->is_a_browser($r->headers_in->{'user-agent'})));
+
+    my $dest_url = $r->construct_url( $r->unparsed_uri );
 
     my $c = $r->connection;
     if (my $attempts = $c->pnotes($c->remote_ip)) {
@@ -65,25 +67,47 @@ sub handler {
 
 	push @{$attempts->{times}}, time();
 	$attempts->{count}++;
+
+	# keep a three deep history of previous urls, first_url is the first one seen
+	if (exists $attempts->{middle_url}) {
+		$attempts->{bottom_url} = $attempts->{middle_url};
+	}
+	$attempts->{middle_url} = $attempts->{top_url};
+	$attempts->{top_url} = $dest_url;
+
 	$c->pnotes($c->remote_ip => $attempts);
 	if ($total_time != 0) {
 
+		# three of the same urls in a row is a violation
+
+		if (exists $attempts->{bottom_url}) {
+
+			if (($attempts->{bottom_url} eq $attempts->{middle_url}) &&
+		   	    ($attempts->{middle_url} eq $attempts->{top_url})) {
+
+			    	# three requests the same in less than 5 seconds means 503
+				if (($times[$#times] - $times[$#times-2]) < 5) {
+
+					$r->log->error("triple rate violation ip $ip, mac $mac, url $dest_url");
+					return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
+				}
+			}
+		}
+
 		my $rate = ($count / $total_time);
 		$r->log->debug("throttle check mac $mac, ip $ip, count $count, time $total_time, rate $rate") if DEBUG;
-		if (($count > MIN_COUNT) && ($rate > MAX_RATE)) {
-			$r->log->error("rate violation ip $ip, mac $mac, total time $total_time, count $count, rate $rate");
-			# make 'em wait
-			sleep 5;
+
+		if (($count > $Min_count) && ($rate > $Max_rate)) {
+
+			$r->log->error("rate violation ip $ip, mac $mac, time $total_time, count $count, rate $rate, url $dest_url");
 			return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
 		}
 	}
     } else {
-	  my %attempts = ( 'count' => 1, 'times' => [ time() ]);
+	  my %attempts = ( 'count' => 1, 'times' => [ time() ], 'top_url' => $dest_url );
 	  $r->log->debug("setting new limit check for ip $ip, count 1, time " . time()) if DEBUG;
   	  $c->pnotes($c->remote_ip => \%attempts);
    }
-
-    my $dest_url = $r->construct_url( $r->unparsed_uri );
 
     # check to see if this mac has been paid for
     my $paid_code = eval { SL::CP::IPTables->check_for_paid_mac( $mac, $ip ); };
