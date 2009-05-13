@@ -20,7 +20,7 @@ use SL::CP::IPTables ();
 use SL::BrowserUtil  ();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
-use constant MAX_RATE  => 1;
+use constant MAX_RATE  => 0.5;
 use constant MIN_COUNT => 5;
 
 our $VERSION = 0.03;
