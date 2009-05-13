@@ -20,17 +20,17 @@ use SL::CP::IPTables ();
 use SL::BrowserUtil  ();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
-use constant MAX_RATE  => 0.5;
-use constant MIN_COUNT => 5;
 
 our $VERSION = 0.03;
 
-our ( $Config, $Lease_file, $Auth_url );
+our ( $Config, $Lease_file, $Auth_url, $Max_rate, $Min_count );
 
 BEGIN {
     $Config     = SL::Config->new;
-    $Auth_url   = $Config->sl_cp_auth_url || die 'oops';
-    $Lease_file = $Config->sl_dhcp_lease_file || die 'oops';
+    $Auth_url   = $Config->sl_cp_auth_url        || die 'oops';
+    $Lease_file = $Config->sl_dhcp_lease_file    || die 'oops';
+    $Max_rate = $Config->sl_ratelimit_max_rate   || die 'oops';
+    $Min_count = $Config->sl_ratelimit_min_count || die 'oops';
 }
 
 sub handler {
