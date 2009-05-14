@@ -258,6 +258,8 @@ sub ad_views {
 
 sub mac__to__om_mac {
 	my $mac = shift or die 'no mac passed';
+	my $gateway = shift;
+	return $mac if !$gateway;
 
 	my $last_two = substr($ mac, length($mac) - 2, length($mac));
 	$last_two = sprintf('%02x', sprintf('%d', hex($last_two))-1);
@@ -268,6 +270,8 @@ sub mac__to__om_mac {
 
 sub om_mac__to__mac {
 	my $mac = shift or die 'no mac passed';
+	my $gateway = shift;
+	return $mac if !$gateway;
 
 	my $last_two = substr($mac, length($mac) - 2, length($mac));
 	$last_two = sprintf('%02x', sprintf('%d', hex($last_two))+1);
@@ -284,7 +288,7 @@ sub displaymac {
 	my $mac = $self->macaddr;
 	if (substr(uc($mac), 0, 9) eq '06:12:CF:') {
 		# translate
-		$mac = mac__to__om_mac($mac);
+		$mac = mac__to__om_mac($mac, $self->gateway);
 	}
 	return $mac;
 }
