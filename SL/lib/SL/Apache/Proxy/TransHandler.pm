@@ -145,7 +145,7 @@ sub handler {
     my ( $hash_mac, $router_mac );
     if ( my $sl_header = $r->headers_in->{'x-sl'} ) {
         $r->pnotes( 'sl_header' => $sl_header );
-        $r->log->debug("$$ Found sl_header $sl_header") if DEBUG;
+		$r->log->debug("$$ Found sl_header $sl_header") if DEBUG;
 
         ( $hash_mac, $router_mac ) =
           split( /\|/, $r->pnotes('sl_header') );
@@ -177,9 +177,19 @@ sub handler {
 
 	my ( $om_hash_mac, $om_router_mac );
     if ( my $slr_header = $r->headers_in->{'x-slr'} ) {
-        $r->pnotes( 'slr_header' => $slr_header );
+
+		if ($slr_header =~ m/\,/) {
+		
+			# double header
+			# 25f279f0|0012cf81fd23, 52c15ea5|0012cf805eba
+			my ($last_header) = $slr_header =~ m/\s(\S+)$/;
+			$slr_header = $last_header;
+		}
+
+		$r->pnotes( 'slr_header' => $slr_header );
         $r->pnotes( 'sl_header'  => $slr_header );
-        $r->log->debug("$$ Found slr_header $slr_header") if DEBUG;
+        $r->log->error("$$ Found slr_header $slr_header");
+		#$r->log->debug("$$ Found slr_header $slr_header") if DEBUG;
 
         ( $om_hash_mac, $om_router_mac ) =
           split( /\|/, $r->pnotes('slr_header') );

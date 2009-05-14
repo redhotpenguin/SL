@@ -633,7 +633,7 @@ sub twohundred {
         if ( !$response_content_ref ) {
 
             # we could not serve an ad on this page for some reason
-            $r->log->info(
+            $r->log->error(
                 "ad not served, _generate_response failed url $url");
         }
         else {
