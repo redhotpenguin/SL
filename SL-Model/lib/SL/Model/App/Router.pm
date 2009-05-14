@@ -163,6 +163,13 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 64,
   },
+  "gateway",
+  {
+    data_type => "boolean",
+    default_value => "true",
+    is_nullable => 0,
+    size => 1,
+  },
 );
 __PACKAGE__->set_primary_key("router_id");
 __PACKAGE__->add_unique_constraint("router_pkey", ["router_id"]);
@@ -189,8 +196,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-05-01 18:10:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4xkCVgKCEqekfldk7ou8vw
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-05-13 20:13:04
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kkiwNx4xbPYvfqpHGLueRA
 # These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Router.pm' found in @INC.# They are now part of the custom portion of this file# for you to hand-edit.  If you do not either delete# this section or remove that file from @INC, this section# will be repeated redundantly when you re-create this# file again via Loader!
 
 use SL::Model::App;
