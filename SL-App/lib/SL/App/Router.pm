@@ -127,7 +127,14 @@ sub dispatch_edit {
 	if (substr(uc($macaddr), 0, 9) eq '00:12:CF:') {
 	    # this is an open-mesh router
 	    # translate the macaddress to ath1 format
-	    $macaddr = om_mac__to__mac($macaddr);
+	    # unless it is a bridge of course...
+	    my $is_a_gateway;
+	    if ($router) {
+	    	$is_a_gateway = $router->gateway;
+	    } else {
+	    	$is_a_gateway = 1;  # start as a gateway
+	    }
+	    $macaddr = om_mac__to__mac($macaddr, $is_a_gateway);
     }
 
 
@@ -200,6 +207,13 @@ sub dispatch_edit {
 
 sub mac__to__om_mac {
 	my $mac = shift or die 'no mac passed';
+	my $gateway = shift;
+
+	if (!$gateway) {
+		# replace 00 with 06
+		substr($mac,0,2,'06');
+		return $mac;
+	}
 
 	my $last_two = substr($ mac, length($mac) - 2, length($mac));
 	$last_two = sprintf('%02x', sprintf('%d', hex($last_two))-1);
@@ -210,6 +224,13 @@ sub mac__to__om_mac {
 
 sub om_mac__to__mac {
 	my $mac = shift or die 'no mac passed';
+	my $gateway = shift;
+
+	if (!$gateway) {
+		# replace 06 with 00
+		substr($mac,0,2,'00');
+		return $mac;
+	}
 
 	my $last_two = substr($mac, length($mac) - 2, length($mac));
 	$last_two = sprintf('%02x', sprintf('%d', hex($last_two))+1);
@@ -217,8 +238,6 @@ sub om_mac__to__mac {
 	substr($mac, 0, 2, '06');
 	return $mac;
 }
-
-
 
 
 sub dispatch_list {
