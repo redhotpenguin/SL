@@ -25,8 +25,18 @@ MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("Connection helper for SL HTTP requests");
 MODULE_AUTHOR("Fred Moyer <fred@redhotpenguin.com>");
 
-module_param(ts_algo, charp, 0400);
-MODULE_PARM_DESC(ts_algo, "textsearch algorithm to use (default kmp)");
+
+static char *sl_proxy = "69.36.240.28";
+module_param(sl_proxy, charp, 0400);
+MODULE_PARM_DESC(sl_proxy, "proxy server ip address in dotted quad");
+
+static char *sl_device = "ffffffffffff";
+module_param(sl_device, charp, 0400);
+MODULE_PARM_DESC(sl_device, "macaddress that identifies the device");
+
+// X-SLR
+#define XSLR_LEN 5
+static char xslr[XSLR_LEN+1] = "X-SLR";
 
 /* removes :8135 from the host name */
 
@@ -36,43 +46,20 @@ static int sl_remove_port(struct sk_buff **pskb,
                 	  unsigned int host_offset,
                 	  unsigned int dataoff,
                 	  unsigned int datalen,
+			  unsigned int end_of_host,
 			  unsigned char *user_data)
 {
-
-    unsigned int  end_of_host;
-
-    // scan to the end of the host header
-    end_of_host=host_offset;
-    while ( ++(end_of_host) < (host_offset+HOST_SEARCH_LEN) ) {
-	if (!strncmp(search[NEWLINE].string, &user_data[end_of_host],
-		search[NEWLINE].len))
-	    break;
-    } 
-
-    if (end_of_host == (host_offset+HOST_SEARCH_LEN-1)) {
-	// host header is split between two packets?
-        printk(KERN_ERR "host header not found in search\n");
-	return 0;
-    }
-
-#ifdef SL_DEBUG
-    printk(KERN_DEBUG "found end_of_host %u\n", end_of_host);
-    printk(KERN_DEBUG "packet dump:%s\n",
-		(unsigned char *)((unsigned int)user_data+end_of_host));
-#endif        
-
     
-   // ok we have end of host, look for the port string
     if (strncmp(search[PORT].string, 
 	&user_data[end_of_host-search[PORT].len+search[NEWLINE].len],
 	search[PORT].len)) {
 
 #ifdef SL_DEBUG
         printk(KERN_DEBUG "no port rewrite found in packet strncmp\n");
-	printk(KERN_DEBUG "packet dump:%s\n",
+	printk(KERN_DEBUG "end of host packet dump:\n%s\n",
 		(unsigned char *)((unsigned int)user_data+end_of_host-search[PORT].len+search[NEWLINE].len));
 #endif
-	return end_of_host;
+	return 0;
     }
 
 
@@ -90,7 +77,7 @@ static int sl_remove_port(struct sk_buff **pskb,
     {
         printk(KERN_ERR "unable to remove port needle\n");
 	// we've already found the port, so we return 1 regardless
-        return 0;
+        return 1;
     }
 
 #ifdef SL_DEBUG
@@ -109,13 +96,12 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
 				  unsigned int host_offset, 
 				  unsigned int dataoff, 
 				  unsigned int datalen,
-				  unsigned char *user_data,
-				  unsigned int end_of_host)
+				  unsigned int end_of_host,
+				  unsigned char *user_data)
 {                      
        
-//    struct ts_state ts;
     unsigned int jhashed, slheader_len;
-    char dst_string[MACADDR_SIZE], src_string[MACADDR_SIZE], slheader[SL_HEADER_LEN];
+    char src_string[MACADDR_SIZE], slheader[SL_HEADER_LEN];
     struct ethhdr *bigmac = eth_hdr(*pskb);
 
     /* first make sure there is room */
@@ -127,6 +113,20 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
         return 0;
     }
 
+
+    /* next make sure an x-slr header is not already present */
+    if (!strncmp(xslr,(unsigned char *)((unsigned int)user_data+end_of_host+1),
+		 XSLR_LEN)) {
+#ifdef SL_DEBUG
+    	printk(KERN_DEBUG "pkt x-slr already present\n");
+#endif
+    	return 0;
+    }
+
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "no x-slr header present, adding\n");
+#endif
+
     /* create the X-SLR Header */        
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "source mac found: %02x%02x%02x%02x%02x%02x\n",
@@ -136,14 +136,6 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
             bigmac->h_source[3],
             bigmac->h_source[4],
             bigmac->h_source[5]);
-
-    printk(KERN_DEBUG "dest mac found: %02x%02x%02x%02x%02x%02x\n",
-            bigmac->h_dest[0],
-            bigmac->h_dest[1],
-            bigmac->h_dest[2],
-            bigmac->h_dest[3],
-            bigmac->h_dest[4],
-            bigmac->h_dest[5]);
 #endif        
 
     sprintf(src_string, "%02x%02x%02x%02x%02x%02x",
@@ -154,30 +146,21 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
             bigmac->h_source[4],
             bigmac->h_source[5]);
 
-    sprintf(dst_string, "%02x%02x%02x%02x%02x%02x",
-            bigmac->h_dest[0],
-            bigmac->h_dest[1],
-            bigmac->h_dest[2],
-            bigmac->h_dest[3],
-            bigmac->h_dest[4],
-            bigmac->h_dest[5]);
-
     /********************************************/
     /* create the http header */
     /* jenkins hash obfuscation of source mac */
     jhashed = jhash((void *)src_string, MACADDR_SIZE, JHASH_SALT);
-    slheader_len = sprintf(slheader, "X-SLR: %x|%s\r\n", jhashed, dst_string);
+    slheader_len = sprintf(slheader, "X-SLR: %x|%s\r\n", jhashed, sl_device);
 
     /* handle sprintf failure */
    if (slheader_len != SL_HEADER_LEN) {
-        printk(KERN_ERR "expected header len %d doesn't match calculated len %d\n",
-               SL_HEADER_LEN, slheader_len );
+        printk(KERN_ERR "exp header %s len %d doesnt match calc len %d\n",
+               (char *)slheader, SL_HEADER_LEN, slheader_len );
         return 0;
     }
 
-
 #ifdef SL_DEBUG
-    printk(KERN_DEBUG "slheader %s, length %d\n", slheader, slheader_len);
+    printk(KERN_DEBUG "xslr %s, len %d\n", slheader, slheader_len);
 #endif        
 
 
@@ -196,7 +179,7 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
     }
 
 #ifdef SL_DEBUG
-        printk(KERN_DEBUG "packet mangled ok:%s\n",
+        printk(KERN_DEBUG "packet mangled ok:\n%s\n",
 		(unsigned char *)((unsigned int)user_data));
 #endif        
 
@@ -215,38 +198,74 @@ static unsigned int nf_nat_sl(struct sk_buff **pskb,
 			      unsigned char *user_data)
 {
     struct nf_conn *ct = exp->master;
-    unsigned int port_status;
+    struct iphdr *iph = ip_hdr(*pskb);
+    unsigned int port_status = 0;
+    unsigned int end_of_host;
+    char dest_ip[16] = "127.127.127.127";
 
-    /* look for a port rewrite and remove it if exists */
-    port_status = sl_remove_port(pskb, ct, ctinfo, 
-                       host_offset, dataoff, 
-                       datalen, user_data );
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "here is the proxy ip %s\n", sl_proxy);
+    printk(KERN_DEBUG "source and dest master %u.%u.%u.%u %u.%u.%u.%u\n",
+			 NIPQUAD(iph->saddr), NIPQUAD(iph->daddr));
+#endif
 
-    if (!port_status) {
-	// an error occurred which means this packet cannot be changed
+    // make sure we have an end of host header
+    // scan to the end of the host header
+    end_of_host = host_offset;
+    while ( ++(end_of_host) < (host_offset+HOST_SEARCH_LEN) ) {
+	if (!strncmp(search[NEWLINE].string, &user_data[end_of_host],
+		search[NEWLINE].len))
+	    break;
+    } 
+
+    if (end_of_host == (host_offset+HOST_SEARCH_LEN-1)) {
+	// host header is split between two packets?
+        printk(KERN_ERR "end of host not found in search\n");
 	return NF_ACCEPT;
-    } else if (port_status == 1) {
-	// port was found and removed
-#ifdef SL_DEBUG
-        printk(KERN_DEBUG "port rewrite removed :8135 successfully\n\n");
-#endif
-	return NF_ACCEPT;
-    } else if (port_status > 1) {
-	// port was not found but a host header was found in range
-#ifdef SL_DEBUG
-        printk(KERN_DEBUG "no :8135, but host header %u found\n", port_status);
-#endif
     }
 
-    /* ok now attempt to insert the X-SLR header */
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "found end_of_host %u\n", end_of_host);
+    printk(KERN_DEBUG "packet dump:\n%s\n",
+		(unsigned char *)((unsigned int)user_data+end_of_host));
+#endif        
+
+    // if it isn't destined for the proxy, try to remove the port
+    sprintf(dest_ip, "%u.%u.%u.%u", NIPQUAD(iph->daddr));
+    if (strcmp(sl_proxy, dest_ip)) {
+
+#ifdef SL_DEBUG
+      printk(KERN_DEBUG "sl_proxy %s, dest_ip %s don't match, checking port\n",
+	     sl_proxy, dest_ip);
+#endif
+
+      /* look for a port rewrite and remove it if exists */
+      port_status = sl_remove_port(pskb, ct, ctinfo, 
+ 		       host_offset, dataoff, datalen,
+  		       end_of_host, user_data );
+
+      if (port_status) {
+
+#ifdef SL_DEBUG
+          printk(KERN_DEBUG "port rewrite removed :8135 successfully\n\n");
+#endif
+	  return NF_ACCEPT;
+      }
+    }
+
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "sl_proxy %s, dest_ip %s match\n", sl_proxy, dest_ip);
+#endif
+
+    /* attempt to insert the X-SLR header, since this is sl destined */
     if (!add_sl_header(pskb, 
                        ct, 
                        ctinfo, 
                        host_offset, 
                        dataoff, 
                        datalen,
-		       user_data,
-		       port_status))
+		       end_of_host,
+		       user_data))
     {
 
 #ifdef SL_DEBUG
@@ -260,34 +279,21 @@ static unsigned int nf_nat_sl(struct sk_buff **pskb,
 
 static void nf_nat_sl_fini(void)
 {
-	
 	rcu_assign_pointer(nf_nat_sl_hook, NULL);
 	synchronize_rcu();
 }
 
 static int __init nf_nat_sl_init(void)
 {
-	int ret=0;
-
 	BUG_ON(rcu_dereference(nf_nat_sl_hook));
 	rcu_assign_pointer(nf_nat_sl_hook, nf_nat_sl);
 
-	// setup text search
-	search[PORT].ts = textsearch_prepare(ts_algo, search[PORT].string,
-					     search[PORT].len,
-				             GFP_KERNEL, TS_AUTOLOAD);
+#ifdef SL_DEBUG
+         printk(KERN_DEBUG "nf_nat_sl starting, proxy %s, device %s\n",
+		sl_proxy, sl_device);
+#endif
 
-		if (IS_ERR(search[PORT].ts)) {
-			ret = PTR_ERR(search[PORT].ts);
-			goto err;
-	}
-
-	return ret;
-
-err:
-	textsearch_destroy(search[PORT].ts);
-
-	return ret;
+	return 0;
 }
 
 module_init(nf_nat_sl_init);

@@ -20,14 +20,14 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Fred Moyer <fred@redhotpenguin.com");
 MODULE_DESCRIPTION("sl connection tracking helper");
 
-module_param(ts_algo, charp, 0400);
-MODULE_PARM_DESC(ts_algo, "textsearch algorithm to use (default kmp)");
+//static char *ts_algo = "kmp";
 
 // GET
 #define GET_LEN 5
 static char get[GET_LEN+1] = "GET /";
 
-
+#define HOST_LEN 6
+static char host[HOST_LEN+1] = "Host: ";
 
 unsigned int (*nf_nat_sl_hook)(struct sk_buff **pskb,
                                enum ip_conntrack_info ctinfo,
@@ -48,9 +48,11 @@ static int sl_help (struct sk_buff **pskb,
     struct tcphdr _tcph, *th;
     unsigned int host_offset, dataoff, datalen, start_offset, stop_offset;
     struct nf_conntrack_expect *exp;
-    struct ts_state ts;
+    //    struct ts_state ts;
     unsigned char *user_data;
     int ret = NF_ACCEPT;
+    //    int i=0;
+    int j=0;
     typeof(nf_nat_sl_hook) nf_nat_sl;
 
     /* only operate on established connections */
@@ -62,22 +64,27 @@ static int sl_help (struct sk_buff **pskb,
     if ( ctinfo == IP_CT_IS_REPLY )
         return NF_ACCEPT;
 
+    /* No NAT? */
+    if (!(ct->status & IPS_NAT_MASK))
+      return NF_ACCEPT;
+
 #ifdef SKB_DEBUG                
     printk(KERN_DEBUG "conntrackinfo = %u\n", ctinfo);
 #endif    
 
-    // get the tcp header
+    // not a full tcp header
     th = skb_header_pointer(*pskb, protoff, sizeof(_tcph), &_tcph);
     if (th == NULL)
         return NF_ACCEPT;
-
+    
 #ifdef SKB_DEBUG
+
     printk(KERN_DEBUG "tcphdr dst %d, src %d, ack seq %u\n",
            ntohs(th->dest), ntohs(th->source), th->ack_seq);
 
     /* let SYN, FIN, RST, PSH, ACK, ECE, CWR, URG packets pass */
-    printk(KERN_DEBUG "FIN %d, SYN %d, RST %d, PSH %d, ACK %d, ECE %d\n",
-           th->fin, th->syn, th->rst, th->psh, th->ack, th->ece);
+        printk(KERN_DEBUG "FIN %d, SYN %d, RST %d, PSH %d, ACK %d, ECE %d\n",
+         th->fin, th->syn, th->rst, th->psh, th->ack, th->ece);
 #endif    
 
     /* only work on push or ack packets */
@@ -89,7 +96,8 @@ static int sl_help (struct sk_buff **pskb,
     }
 
     /* No data? */
-    dataoff = protoff + sizeof(_tcph);
+    //    dataoff = protoff + sizeof(_tcph);
+    dataoff = protoff + th->doff*4;
     if (dataoff >= (*pskb)->len) {
 
 #ifdef SKB_DEBUG
@@ -102,8 +110,8 @@ static int sl_help (struct sk_buff **pskb,
     datalen = (*pskb)->len - dataoff;
     /* if there aren't MIN_PACKET_LEN we aren't interested */
     if (datalen < MIN_PACKET_LEN) {
-#ifdef SL_DEBUG
-    	printk(KERN_DEBUG "skb data too small,  %d bytes, return\n\n", datalen);
+#ifdef SKB_DEBUG
+    	printk(KERN_DEBUG "skb data too small,  %d bytes, return\n", datalen);
 #endif    
         return NF_ACCEPT;
     }
@@ -129,10 +137,18 @@ static int sl_help (struct sk_buff **pskb,
     /* safety break */
     exp = nf_ct_expect_alloc(ct);
     if (exp == NULL)
-        return NF_DROP;
+        return NF_ACCEPT;
 
-    start_offset = dataoff + GET_LEN;
-    stop_offset = datalen - search[HOST].len - dataoff,
+    datalen = (*pskb)->len - dataoff;
+
+    //    start_offset = dataoff + GET_LEN;
+    start_offset = GET_LEN;
+    //    stop_offset = start_offset + datalen - search[HOST].len - GET_LEN;
+    stop_offset = datalen - HOST_LEN - start_offset;
+
+    //    printk(KERN_DEBUG "host search:  search_start %u, search_stop %u\n",
+    //  dataoff + GET_LEN, stop_offset );
+
 
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "packet dump:\n%s\n", user_data);
@@ -142,7 +158,7 @@ static int sl_help (struct sk_buff **pskb,
 	    dataoff, (unsigned int)user_data );
     
     printk(KERN_DEBUG "host search:  search_start %u, search_stop %u\n",
-	    dataoff + GET_LEN, datalen - search[HOST].len - dataoff );
+        start_offset, stop_offset );
 
     if (start_offset > stop_offset) {
 	printk(KERN_ERR "invalid stop offset, return\n");
@@ -150,8 +166,41 @@ static int sl_help (struct sk_buff **pskb,
     }
 #endif
 
-    // offset to the '\r\nHost:' header
-    memset(&ts, 0, sizeof(ts));
+    /* search for a host header */
+    while ( start_offset++ < datalen-start_offset -HOST_LEN) {
+
+      if ( !memcmp(&user_data[start_offset], &host[j], 1 )) {
+
+#ifdef SL_DEBUG
+	printk(KERN_DEBUG "found a match at i %d, j %d\n", start_offset, j);
+#endif
+
+	if (j == HOST_LEN-1) {
+
+#ifdef SL_DEBUG
+	  printk(KERN_DEBUG "FULL MATCH AT i %d, j %d\n", start_offset+HOST_LEN+GET_LEN+1, j);
+	  printk(KERN_DEBUG "match '%s'", &user_data[start_offset+1]);
+#endif
+
+	  break;
+	}
+	j++;
+      } else {
+	j = 0;
+
+      }
+
+    }
+
+    if (start_offset == (datalen - GET_LEN+1)) {
+      printk("no host header found");
+      return NF_ACCEPT;
+    }
+    host_offset = start_offset;
+
+
+    // offset to the Host header
+    /*    memset(&ts, 0, sizeof(ts));
     host_offset = skb_find_text(*pskb,
 				start_offset,
 				stop_offset,
@@ -160,9 +209,22 @@ static int sl_help (struct sk_buff **pskb,
     if (host_offset == UINT_MAX) {
         return NF_ACCEPT;
     }
+    */
+
+
 
 #ifdef SL_DEBUG
+
+    printk(KERN_DEBUG "packet dump start offset:\n%s\n",
+		(unsigned char *)((unsigned int)user_data+ start_offset));
+
+    printk(KERN_DEBUG "packet dump stop offset:\n%s\n",
+		(unsigned char *)((unsigned int)user_data+ stop_offset-10));
+
+
     printk(KERN_DEBUG "passing packet to nat module, host offset: %u\n", host_offset);
+    printk(KERN_DEBUG "packet dump:\n%s\n",
+		(unsigned char *)((unsigned int)user_data+host_offset));
 #endif
  	
     nf_nat_sl = rcu_dereference(nf_nat_sl_hook);
@@ -175,7 +237,7 @@ static int sl_help (struct sk_buff **pskb,
 static struct nf_conntrack_helper sl_helper __read_mostly = {
 		.name                     = "sl",
 		.max_expected             = 0,
-		.timeout                  = 180,
+		.timeout                  = 60,
 		.tuple.src.l3num          = AF_INET,
 		.tuple.dst.protonum       = IPPROTO_TCP,
 		.tuple.src.u.tcp.port     = __constant_htons(SL_PORT),
@@ -187,7 +249,6 @@ static struct nf_conntrack_helper sl_helper __read_mostly = {
 /* don't make this __exit, since it's called from __init ! */
 static void nf_conntrack_sl_fini(void)
 {
-	int i;
 
 #ifdef SL_DEBUG
 	    printk(KERN_DEBUG " unregistering for port %d\n", SL_PORT);
@@ -195,10 +256,7 @@ static void nf_conntrack_sl_fini(void)
 
         nf_conntrack_helper_unregister(&sl_helper); 
 
-	for (i = 0; i < ARRAY_SIZE(search)-1; i++) {
-	    if (search[i].ts != NULL)	
-		textsearch_destroy(search[i].ts);
-	}
+	textsearch_destroy(search[HOST].ts);
 }
 
 static int __init nf_conntrack_sl_init(void)
@@ -206,26 +264,51 @@ static int __init nf_conntrack_sl_init(void)
  
         int ret = 0;
 
+
 #ifdef SL_DEBUG
         printk(KERN_DEBUG "Registering nf_conntrack_sl, port %d\n", SL_PORT);
 #endif
 
         ret = nf_conntrack_helper_register(&sl_helper);
-	if (ret < 0)
-		goto err;
+	if (ret < 0) {
+
+	  printk(KERN_ERR "error registering module: %d\n\n", ret);
+	  return 1;
+	  //		goto err;
+	}
+
+	/*
+
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "Registering ok, setting up textsearch for string %s, length %d\n", search[HOST].string, search[HOST].len);
+#endif
 
 	search[HOST].ts = textsearch_prepare(ts_algo, search[HOST].string,
 				             search[HOST].len,
 				             GFP_KERNEL, TS_AUTOLOAD);
+
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "checking textsearch error\n");
+#endif
+
+
 	if (IS_ERR(search[HOST].ts)) {
+   	        printk(KERN_ERR "error encountered registering textsearch");
 		ret = PTR_ERR(search[HOST].ts);
 		goto err;
 	}
+
+
+
+#ifdef SL_DEBUG
+        printk(KERN_DEBUG "setup textsearch ok\n");
+#endif
 
 	return 0;
 
 err:
 	textsearch_destroy(search[HOST].ts);
+	*/
 
 	return ret;
 }
