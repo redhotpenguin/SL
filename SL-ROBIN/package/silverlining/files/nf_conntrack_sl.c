@@ -256,7 +256,7 @@ static void nf_conntrack_sl_fini(void)
 
         nf_conntrack_helper_unregister(&sl_helper); 
 
-	textsearch_destroy(search[HOST].ts);
+//	textsearch_destroy(search[HOST].ts);
 }
 
 static int __init nf_conntrack_sl_init(void)
