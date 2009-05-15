@@ -29,10 +29,11 @@ $macaddr = lc($macaddr);
 my ($proxy, $port) = split(':', $config_proxy);
 
 # ok now load the kernel module
-my $load_cmd = "$INSMOD nf_nat_sl sl_device='$macaddr' sl_proxy='$proxy'";
+my $load_cmd = "$INSMOD nf_nat_sl sl_device=$macaddr sl_proxy=$proxy";
 print "load cmd is $load_cmd\n" if $DEBUG;
 
 unless ($DEBUG) {
+    `$INSMOD nf_conntrack_sl`;
     `$load_cmd`;    
 }
 
