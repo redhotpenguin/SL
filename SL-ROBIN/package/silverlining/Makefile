@@ -6,8 +6,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=sln
-PKG_VERSION:=0.20
-PKG_RELEASE:=12
+PKG_VERSION:=0.21
+PKG_RELEASE:=1
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/kernel.mk
@@ -34,9 +34,7 @@ define KernelPackage/sln
   DEPENDS:=@LINUX_2_6_23
   MAINTAINER:=fred@redhotpenguin.com
   FILES:=$(PKG_BUILD_DIR)/nf_nat_sl.$(LINUX_KMOD_SUFFIX) \
-	 $(PKG_BUILD_DIR)/nf_conntrack_sl.$(LINUX_KMOD_SUFFIX) \
-	$(LINUX_DIR)/lib/ts_kmp.$(LINUX_KMOD_SUFFIX)
-  AUTOLOAD:=$(call AutoLoad,70,ts_kmp nf_conntrack_sl nf_nat_sl)
+	 $(PKG_BUILD_DIR)/nf_conntrack_sl.$(LINUX_KMOD_SUFFIX)
 endef
 
 define KernelPackage/sln/description
@@ -44,7 +42,6 @@ define KernelPackage/sln/description
  Includes:
  - nf_nat_sl
  - nf_conntrack_sl
- - ts_kmp
 endef
 
 EXTRA_KCONFIG:= \

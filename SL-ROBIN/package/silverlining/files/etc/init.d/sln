@@ -10,6 +10,9 @@ ME="sln"
 start() {
 	logger -s -t "$ME" "starting..."
 
+	# load the kernel modules
+	/usr/bin/microperl /usr/bin/sl_load
+
 	# set the cron mod to a random time
 	/usr/bin/microperl /usr/bin/sl_cron
 }

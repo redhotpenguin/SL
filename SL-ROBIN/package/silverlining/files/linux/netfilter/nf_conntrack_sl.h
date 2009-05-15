@@ -1,10 +1,11 @@
+
 #ifndef _NF_CONNTRACK_SL_H
 #define _NF_CONNTRACK_SL_H
 
 #ifdef __KERNEL__
 
 /* enable for module debugging */
-// #define SL_DEBUG 1
+//#define SL_DEBUG 1
 
 // verbose packet debug
 // #define SKB_DEBUG 1
@@ -29,9 +30,7 @@
 #define MACADDR_SIZE 12
 
 /* max length for host header search */
-#define HOST_SEARCH_LEN 128
-
-static char *ts_algo = "kmp";
+#define HOST_SEARCH_LEN 256
 
 enum sl_strings {
    	HOST,
@@ -45,8 +44,8 @@ static struct {
         struct ts_config        *ts;
 } search[] __read_mostly = {
         [HOST] = {
-                .string = "\nHost: ",
-                .len    = 7,
+                .string = "Host",
+                .len    = 4,
         },
         [PORT] = {
                 .string = ":8135\r\n",
