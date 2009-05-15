@@ -309,7 +309,7 @@ sub ping_ok {
 
     # grab the mac address
     my $ifconfig = `ifconfig`;
-    my ($macaddr) = $ifconfig =~ m/$int.*?(\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2})/g;
+    my ($macaddr) = $ifconfig =~ m/eth0.*?(\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2})/g;
     print "Macaddr is $macaddr\n" if $DEBUG;
 
     # escape the macaddress
