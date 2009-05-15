@@ -6,7 +6,7 @@
 #include <linux/ip.h>
 #include <linux/ctype.h>
 #include <linux/inet.h>
-#include <linux/textsearch.h>
+//#include <linux/textsearch.h>
 #include <net/checksum.h>
 #include <net/tcp.h>
 
