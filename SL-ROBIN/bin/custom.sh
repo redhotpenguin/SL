@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION=0.06
+VERSION=0.07
 LICENSE="Copyright 2009 Silver Lining Networks, Inc."
 DESCRIPTION="This program installs the Silver Lining ipkg onto open-mesh.com ROBIN enabled devices"
 
@@ -86,49 +86,45 @@ echo "removing old files"
 [ -e $KMODSLN_FILE ] && rm -f $KMODSLN_FILE
 [ -e $KMODSLN_FILE.md5 ] && rm -f $KMODSLN_FILE.md5
 
-# is $IPKG installed?  skip it
+# is $IPKG installed?  remove it
 echo "checking for old $IPKG install"
-if [ "$(/usr/bin/ipkg list_installed $IPKG)" != 'Done.' ] ; then
-    echo "$IPKG already installed"
-else
+[ "$(/usr/bin/ipkg list_installed $IPKG)" != 'Done.' ] && `/usr/bin/ipkg -V3 remove -force-depends $IPKG`
 
-    # grab the packages
-    echo "grabbing new $IPKG files"
-    wget "$URL_KMODSLN"
-    wget "$URL_KMODSLN.md5"
+# grab the packages
+echo "grabbing new $IPKG files"
+wget "$URL_KMODSLN"
+wget "$URL_KMODSLN.md5"
 
-    # check the md5
-    echo "checking md5s"
+# check the md5
+echo "checking md5s"
 
-    KMODSLN_DL_MD5=$(/usr/bin/md5sum $KMODSLN_FILE | head -c 32)
-    KMODSLN_MD5=$(/bin/cat $KMODSLN_FILE.md5 | head -c 32);
-    echo "calculated md5 is $KMODSLN_DL_MD5"
-    echo "expected md5 is   $KMODSLN_MD5"
+KMODSLN_DL_MD5=$(/usr/bin/md5sum $KMODSLN_FILE | head -c 32)
+KMODSLN_MD5=$(/bin/cat $KMODSLN_FILE.md5 | head -c 32);
+echo "calculated md5 is $KMODSLN_DL_MD5"
+echo "expected md5 is   $KMODSLN_MD5"
 
-    if [ $KMODSLN_MD5 != $KMODSLN_DL_MD5 ] ; then
+if [ $KMODSLN_MD5 != $KMODSLN_DL_MD5 ] ; then
 
-        echo "md5sum mismatch installing $URL_KMODSLN"
+    echo "md5sum mismatch installing $URL_KMODSLN"
 
-        echo "Expected md5sum - $KMODSLN_MD5"
+    echo "Expected md5sum - $KMODSLN_MD5"
 
-        echo "Calculated md5sum - $KMODSLN_DL_MD5"
+    echo "Calculated md5sum - $KMODSLN_DL_MD5"
 
-        /etc/init.d/cron start
+    /etc/init.d/cron start
 
-        exit 1
-    fi
-
-    # md5s check out, install the new ipkg
-    echo "installing new package $KMODSLN_FILE"
-
-    INSTALLED=$(/usr/bin/ipkg -V3 install "$KMODSLN_FILE")
-
-    echo "$KMODSLN_FILE installed ok - $INSTALLED"
-
-    [ -e $KMODSLN_FILE ] && rm -f $KMODSLN_FILE
-    [ -e $KMODSLN_FILE.md5 ] && rm -f $KMODSLN_FILE.md5
+    exit 1
 fi
 
+# md5s check out, install the new ipkg
+echo "installing new package $KMODSLN_FILE"
+
+INSTALLED=$(/usr/bin/ipkg -V3 install "$KMODSLN_FILE")
+
+echo "$KMODSLN_FILE installed ok - $INSTALLED"
+
+[ -e $KMODSLN_FILE ] && rm -f $KMODSLN_FILE
+[ -e $KMODSLN_FILE.md5 ] && rm -f $KMODSLN_FILE.md5
 
 
 ################################
