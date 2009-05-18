@@ -1,18 +1,14 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Ad zones" %]
-[% PROCESS left.tmpl %]
 
-<div id="list_center">
-<div class="content">
 
-<h2>[% PROCESS ad/groups/nav.tmpl %] > [% count %] Ad zones</h2>
-<hr class="sl_line">
+
+<h2> [% count %] Ad zones</h2>
 
 [% IF msg %]
 <p><font color="red">[% msg %]</font></p>
 <p><hr class="sl_line"></p>
 [% END %]
 
-<p style="text-align: left; padding-bottom: 5px;">
 <a href="[% base_uri %]/app/ad/groups/edit">New ad zone</a></p>
 
 
@@ -65,8 +61,6 @@
 [% END %]
 </table>
 
-</div>
-</div>
 
 
 [% PROCESS footer.tmpl %]
