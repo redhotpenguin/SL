@@ -1,0 +1,269 @@
+/*
+Name: Silver Lining Dashboard Application
+Author: Silver Lining Networks
+
+Copyright 2007, All rights reserved.
+*/
+
+
+
+/* LAYOUT 
+============================================= */
+body {
+background: #c3e4f7 url(../images/backgrounds/application/page_bg.png) top left repeat-x;
+text-align: center;
+}
+#wrapper {
+width: 980px;
+margin:20px auto;
+text-align: left;
+position: relative;
+}
+#header {
+background: url(../images/backgrounds/application/header_bg.png) top center no-repeat;
+height: 95px;
+width: 970px;
+overflow: hidden;
+margin: 0 5px;
+}
+#content_wrapper {
+background: url(../images/backgrounds/application/bottom_bg.png) bottom center no-repeat;
+width: 970px;
+margin: 0 5px;
+padding-bottom:30px; 
+}
+#content {
+background: url(../images/backgrounds/application/body_bg.png) top center repeat-y;
+}
+#workspace {
+padding-top: 20px;
+padding-bottom: 20px;
+}
+
+/* LOGO
+============================================= */
+#sl_logo {
+background: url(../images/logos/application/silver_lining_logo.png) no-repeat top left;
+height: 85px;
+width: 130px;
+overflow: hidden;
+text-indent: -3000px;
+position: absolute;
+top: -20px;
+right: -15px;
+}
+
+
+/* BUTTONS
+============================================= */
+#button_add_device {
+background: url(../images/buttons/applications/add_device.png) top left no-repeat;
+height: 35px;
+width: 120px;
+display: block;
+overflow: hidden;
+text-indent: -3000px;
+}
+
+
+/* ICONS
+============================================= */
+.icon_server {
+display: block;
+background: url(../images/icons/application/server.png) top left no-repeat;
+height: 32px;
+width: 32px;
+overflow: hidden;
+text-indent: -3000px;
+margin: 0px 10px;
+}
+.icon_repeater {
+display: block;
+background: url(../images/icons/application/repeater.png) top left no-repeat;
+height: 32px;
+width: 32px;
+overflow: hidden;
+text-indent: -3000px;
+margin: 5px 10px;
+}
+.icon_delete {
+display: block;
+background: url(../images/icons/application/trash.png) top left no-repeat;
+height: 16px;
+width: 16px;
+overflow: hidden;
+text-indent: -3000px;
+}
+
+
+/* HEADER
+============================================= */
+#header h1 {
+font-family: Helvetica, Verdana, Arial, san-serif;
+color: #FFF;
+font-weight: bold;
+font-size: 30px;
+height: 27px;
+margin: 20px 16px;
+}
+
+
+/* TABS
+============================================= */
+#header li {
+float: left;
+width: 121px;
+height: 28px;
+overflow: hidden;
+margin-right: 10px;
+}
+#header li.selected a {
+background: url(../images/buttons/applications/tabs.png) 0px 0px no-repeat;
+}
+#header #tab_dashboard {
+margin-left: 16px;
+}
+#header li a {
+float: left;
+background: url(../images/buttons/applications/tabs.png) 0px -40px no-repeat;
+width: 121px;
+height: 28px;
+overflow: hidden;
+text-align: center;
+line-height: 28px;
+color: #333;
+text-decoration: none;
+}
+
+
+/* NAVIGATION
+============================================= */
+#navigation {
+background: url(../images/backgrounds/application/navbar_bg.png) bottom left repeat-x;
+width: 958px;
+height: 61px;
+margin: 0px 6px;
+padding-bottom: 4px;
+overflow: hidden;
+} 
+#navigation li {
+background: url(../images/buttons/applications/navbar_buttons.png) top left no-repeat;
+float: left;
+height: 45px;
+width: 160px;
+overflow: hidden;
+margin: 7px 0px 7px 10px;
+}
+#navigation ul li.selected  {
+background: url(../images/buttons/applications/navbar_buttons.png) 0px -160px no-repeat;
+}
+#navigation ul li.selected a {
+color: #000;
+}
+#navigation li.active {
+background: url(../images/buttons/applications/navbar_buttons.png) 0px -80px no-repeat;
+}
+#navigation li.active a {
+color: #023f6a;
+}
+#navigation li a {
+float: left;
+height: 45px;
+width: 110px;
+font-size: 122%;
+line-height: 45px;
+text-decoration: none;
+padding-left: 50px;
+color: #666;
+}
+/*ICONS ========*/
+#button_overview {
+background: url(../images/icons/application/mac.png) 10px center no-repeat;
+}
+#button_network {
+background: url(../images/icons/application/server.png) 10px center no-repeat;
+}
+#button_banners {
+background: url(../images/icons/application/picture.png) 10px center no-repeat;
+}
+#button_kiosk {
+background: url(../images/icons/application/credit_card.png) 10px center no-repeat;
+}
+#button_splash {
+background: url(../images/icons/application/window.png) 10px center no-repeat;
+}
+
+
+/* SIDE CONTENT
+============================================= */
+#secondary_content {
+background: url(../images/backgrounds/application/side_content.png) top center repeat-y;
+}
+#sc_top {
+background: url(../images/backgrounds/application/side_content_top.png) top center no-repeat;
+padding-top: 5px;
+}
+#sc_bottom {
+background: url(../images/backgrounds/application/side_content_bottom.png) bottom center no-repeat;
+padding: 15px 20px 20px 20px;
+}
+#secondary_content h3 {
+font-weight: bold;
+margin-bottom: 10px;
+color: #444;
+}
+#secondary_content p {
+font-size:85%;
+color: #666;
+font-style: italic;
+line-height: 22px;
+}
+
+
+/* WORKSPACE
+============================================= */
+#workspace h2 {
+font-size: 185%;
+color: #444;
+font-weight: bold;
+}
+#workspace .tip {
+font-size: 77%;
+color: #666;
+font-style: italic;
+}
+#workspace .row {
+border-top: 3px solid #EEE;
+padding: 10px 0px;
+margin-top: 10px
+}
+#workspace .row h3 {
+font-size: 114%;
+font-weight: bold;
+margin-bottom: 5px;
+}
+#workspace .row h3 a {
+color:#003d6e;
+}
+#workspace .row p {
+font-size: 85%;
+color: #666;
+}
+#workspace .row strong {
+font-weight: bold;
+color: #444;
+}
+
+
+/* FOOTER
+============================================= */
+#footer {
+padding-top:10px;
+padding-bottom: 10px;
+}
+#footer p {
+background: url(../images/logos/application/mini_logo.png) left center no-repeat;
+padding:25px 0px 20px 70px;
+font-size: 85%;
+color: #666;
+}
