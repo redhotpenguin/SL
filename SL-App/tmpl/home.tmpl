@@ -1,82 +1,31 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Announcements" %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard - Overview" %]
  
- <div class="three_column left">  
- 	[% PROCESS submenu.tmpl %]
- </div>
- 
-<div class="six_column left">
-	<div class="header_block">
-		<h1>Welcome to your new account</h1>
-		<div class="clear"></div>
+<div class="grid_10 suffix_1">
+
+[% PROCESS submenu.tmpl %]
+ 	
+	
+</div>
+
+<div id="secondary_content" class="grid_5">
+	<div id="sc_top">
+		<div id="sc_bottom">
+			[% FOREACH rss = rss_list %]
+				<h3><a href="[% rss.link %]">[% rss.title %]</a></h3>
+				<p>[% rss.description %]</p>
+			[% END %]
+			<a href="http://forums.silverliningnetworks.com/posts.rss">RSS</a>
+		</div>
 	</div>
-
-<h3>Announcements&nbsp;&nbsp;<a href="http://forums.silverliningnetworks.com/posts.rss"><img alt="Subscribe to Recent Posts" height="15" src="http://forums.silverliningnetworks.com/images/feed-icon.png?1219278561" width="15" border="0"/></a></h3>
-
-
-[% FOREACH rss = rss_list %]
-<div class="notification">
-	<div class="notification_header">
-	<h2><a href="[% rss.link %]">[% rss.title %]</a></h2>
-		<a href="#">Close</a>
-		<div class="clear"></div>
-	</div>
-[% rss.description %]
-
-</div>
-[% END %]
-
-
-<table class="activity_table">
-	<thead>
-		<tr>
-			<th colspan="4">Latest Account Activity</th>
-		</tr>
-	</thead>
-	<tbody>
-		<tr>
-			<td class="status money"><strong>Sale</strong></td>
-			<td class="activity"><a href="#">1 hour WiFi access sale</a></td>
-			<td class="date">Feb. 5th (8:31 am)</td>
-		</tr>
-		<tr>
-			<td class="status warning"><strong>Warning</strong></td>
-			<td class="activity"><a href="#">Router inactive (Little Coffee House)</a></td>
-			<td class="date">Feb. 5th (5:31 am)</td>
-		</tr>
-		<tr>
-			<td class="status added"><strong>New Router</strong></td>
-			<td class="activity"><a href="#">New router added (Airport Terminal 5)</a></td>
-			<td class="date">Feb. 5th (8:31 am)</td>
-		</tr>
-		<tr>
-			<td class="status money"><strong>Payment</strong></td>
-			<td class="activity"><a href="#">Payment for January transfered to paypal</a></td>
-			<td class="date">Feb. 5th (8:31 am)</td>
-		</tr>
-		
-	</tbody>
-</table>
-
-
-
 </div>
 
 
-<div class="three_column right">
-<div class="graybox_wrapper">
-<div class="graybox">
- <ul class="graybox_inner">
-     <li><a href="#">Home</a></li>
-     <li><a href="#">Portfolio</a></li>
-     <li><a href="#">Blog</a></li>
-     <li><a href="#">About</a></li>
-     <li><a href="#">Contact</a></li>
- </ul>
-</div>
-</div>
-</div>
 
-<div class="clear"></div>
+
+
+
+
+
 
 
 [% PROCESS footer.tmpl %]
