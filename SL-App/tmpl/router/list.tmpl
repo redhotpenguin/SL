@@ -1,64 +1,87 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  View routers"  %]
-<div class="nine_column">
 
-
-	<div class="header_block">
-		<h1 class="left">My Networks <em>[% count %] routers</em></h1>
-		<span class="pill_button right"><a href="[% base_uri %]/app/router/edit">ADD A ROUTER</a></span>
+<div class="grid_10 suffix_1">
+	
+	<!-- NETWORK TITLE -->
+	<div class="grid_6 alpha">
+		<h2>Network Devices</h2>
+		<p class="tip">You have a total of <strong>[% count %]</strong> devices on your network</p>
+	</div>
+	<div class="grid_4 omega">
+		<a class="right" id="button_add_device" href="[% base_uri %]/app/router/edit">Add a device</a>
 		<div class="clear"></div>
 	</div>
-	
+	<div class="clear"></div>
 
+
+	<!-- ERROR MESSAGE -->
 	[% IF msg %]
 	<p class="error">[% msg %]</p>
 	[% END %]
-	
-	
-	<table class="router_table">
-		<tr>
-			<th class="status">status</th>
-			<th class="router_name">router name</th>
-			<th>Mac address</th>
-			<th class="delete">delete</th>
-		</tr>
-		
-		[% FOREACH router = routers %]
-		<tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
-			
-			<!-- status -->
-			<td class="status">
-				<strong class="active">active</strong>
-			</td>
-			
-			<!-- name -->	
-			<td class="router_name [% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-				<a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">
-				[% router.name or 'unnamed' %]</a> <a href="#" class="more_info">more info</a>
-				<ul class="router_info">
-					<li><strong>SSID:</strong> [% router.ssid or '?'  %]</li>
-					<li><strong>Last seen:</strong>[% router.last_seen or '?'  %]</li>
-					<li><strong>Ad views yesterday:</strong>[% router.views_daily  %]</li>
-				</ul>
-			</td>
-		
-			<!-- device type -->
-			<td class="mac_address [% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-				[% router.device %]
-			</td>
 
-	
-			<!-- mac address -->
-			<td class="mac_address [% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-				[% router.macaddr %]
-			</td>
+
+	<!-- DEVICE LIST -->
+	[% FOREACH router = routers %]
+		<div class="row">
+			<div class="grid_1 alpha ">
+				<span class="icon_server">[% router.device %]</span>
+			</div>
 			
-			<!-- delete -->
-			<td class="delete">
-				<a href="#">delete</a>
-			</td>
-		</tr>
+			<div class="grid_8">
+				<h3><a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">[% router.name or 'unnamed' %]</a></h3>
+				<p>
+					MAC: [% router.macaddr %], 
+					SSID: [% router.ssid or '?'  %], 
+					Last seen:[% router.last_seen or '?'  %],  
+					<strong>Ad views yesterday: [% router.views_daily  %]</strong>
+				</p>
+			</div>
+			
+			<div class="grid_1 omega">
+				<a class="icon_delete right" href="#">Delete</a>
+				<div class="clear"></div>
+			</div>
+	
+			<div class="clear"></div>
+		</div>
 	[% END %]
-	</table>
 
+	
+	<!-- REPEATER EXAMPLE -->
+	<div class="row">
+		<div class="grid_1 alpha ">
+			<span class="icon_repeater">Router</span>
+		</div>
+		<div class="grid_8">
+			<h3><a href="#">Coffee Shop 1 Router</a></h3>
+			<p><strong>linuxbox</strong>, MAC: 00:18:8b:f9:40:6f , <strong>Ad Insertions: 4800</strong></p>
+		</div>
+		<div class="grid_1 omega">
+			<a class="icon_delete right" href="#">Delete</a>
+			<div class="clear"></div>
+		</div>
+		<div class="clear"></div>
+	</div>								
+	
 </div>
+
+
+<div id="secondary_content" class="grid_5">
+	<div id="sc_top">
+		<div id="sc_bottom">
+			<h3>Silver Lining News</h3>
+			<p>
+				Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
+				incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis 
+				nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+				Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore 
+				eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, 
+				sunt in culpa qui officia deserunt mollit anim id est laborum.
+			</p>
+			
+		</div>
+	</div>
+</div>
+
+
 [% PROCESS footer.tmpl %]
