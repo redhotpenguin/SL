@@ -6,13 +6,13 @@ DESCRIPTION="This program removes the Silver Lining ipkg onto open-mesh.com ROBI
 
 IPKG=/usr/bin/ipkg
 echo "removing sln"
-$($IPKG -noaction remove sln)
+$($IPKG remove sln)
 
 echo "removing kmod-sln"
-$($IPKG -noaction remove kmod-sln)
+$($IPKG remove kmod-sln)
 
 echo "removing microperl"
-$($IPKG -noaction remove microperl)
+$($IPKG remove microperl)
 
 echo "rebooting"
 /sbin/reboot
