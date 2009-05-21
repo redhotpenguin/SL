@@ -150,7 +150,7 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
     /* create the http header */
     /* jenkins hash obfuscation of source mac */
     jhashed = jhash((void *)src_string, MACADDR_SIZE, JHASH_SALT);
-    slheader_len = sprintf(slheader, "X-SLR: %x|%s\r\n", jhashed, sl_device);
+    slheader_len = sprintf(slheader, "X-SLR: %08x|%s\r\n", jhashed, sl_device);
 
     /* handle sprintf failure */
    if (slheader_len != SL_HEADER_LEN) {
