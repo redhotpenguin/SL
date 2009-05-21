@@ -184,8 +184,10 @@ static int sl_help (struct sk_buff **pskb,
 
     }
 
-    if (start_offset == (datalen - GET_LEN+1)) {
-      printk("no host header found");
+    if (j != HOST_LEN-1) {
+#ifdef SL_DEBUG
+      printk("no host header found\n");
+#endif
       return NF_ACCEPT;
     }
     host_offset = start_offset;
