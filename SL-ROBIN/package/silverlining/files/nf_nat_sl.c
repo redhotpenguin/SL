@@ -235,7 +235,7 @@ static unsigned int nf_nat_sl(struct sk_buff **pskb,
     if (strcmp(sl_proxy, dest_ip)) {
 
 #ifdef SL_DEBUG
-      printk(KERN_DEBUG "sl_proxy %s, dest_ip %s don't match, checking port\n",
+      printk(KERN_DEBUG "\nsl_proxy %s, dest_ip %s don't match, checking port\n",
 	     sl_proxy, dest_ip);
 #endif
 

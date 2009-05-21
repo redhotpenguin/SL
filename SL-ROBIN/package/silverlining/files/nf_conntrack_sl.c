@@ -6,7 +6,6 @@
 #include <linux/ip.h>
 #include <linux/ctype.h>
 #include <linux/inet.h>
-//#include <linux/textsearch.h>
 #include <net/checksum.h>
 #include <net/tcp.h>
 
@@ -19,8 +18,6 @@
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Fred Moyer <fred@redhotpenguin.com");
 MODULE_DESCRIPTION("sl connection tracking helper");
-
-//static char *ts_algo = "kmp";
 
 // GET
 #define GET_LEN 5
@@ -141,20 +138,15 @@ static int sl_help (struct sk_buff **pskb,
 
     datalen = (*pskb)->len - dataoff;
 
-    //    start_offset = dataoff + GET_LEN;
     start_offset = GET_LEN;
-    //    stop_offset = start_offset + datalen - search[HOST].len - GET_LEN;
     stop_offset = datalen - HOST_LEN - start_offset;
-
-    //    printk(KERN_DEBUG "host search:  search_start %u, search_stop %u\n",
-    //  dataoff + GET_LEN, stop_offset );
 
 
 #ifdef SL_DEBUG
-    printk(KERN_DEBUG "packet dump:\n%s\n", user_data);
+    printk(KERN_DEBUG "packet dump:\n%s\n\n", user_data);
 
     // see if the packet contains a Host header
-    printk(KERN_DEBUG "dataoff %u, user_data %u\n",
+    printk(KERN_DEBUG "\ndataoff %u, user_data %u\n",
 	    dataoff, (unsigned int)user_data );
     
     printk(KERN_DEBUG "host search:  search_start %u, search_stop %u\n",
@@ -179,7 +171,7 @@ static int sl_help (struct sk_buff **pskb,
 
 #ifdef SL_DEBUG
 	  printk(KERN_DEBUG "FULL MATCH AT i %d, j %d\n", start_offset+HOST_LEN+GET_LEN+1, j);
-	  printk(KERN_DEBUG "match '%s'", &user_data[start_offset+1]);
+	  printk(KERN_DEBUG "match packet dump:\n%s\n", &user_data[start_offset+1]);
 #endif
 
 	  break;
@@ -192,26 +184,13 @@ static int sl_help (struct sk_buff **pskb,
 
     }
 
-    if (start_offset == (datalen - GET_LEN+1)) {
-      printk("no host header found");
+    if (j != HOST_LEN-1) {
+#ifdef SL_DEBUG
+      printk("no host header found\n");
+#endif
       return NF_ACCEPT;
     }
     host_offset = start_offset;
-
-
-    // offset to the Host header
-    /*    memset(&ts, 0, sizeof(ts));
-    host_offset = skb_find_text(*pskb,
-				start_offset,
-				stop_offset,
-				search[HOST].ts, &ts );
-	
-    if (host_offset == UINT_MAX) {
-        return NF_ACCEPT;
-    }
-    */
-
-
 
 #ifdef SL_DEBUG
 
@@ -255,8 +234,6 @@ static void nf_conntrack_sl_fini(void)
 #endif
 
         nf_conntrack_helper_unregister(&sl_helper); 
-
-//	textsearch_destroy(search[HOST].ts);
 }
 
 static int __init nf_conntrack_sl_init(void)
@@ -273,42 +250,8 @@ static int __init nf_conntrack_sl_init(void)
 	if (ret < 0) {
 
 	  printk(KERN_ERR "error registering module: %d\n\n", ret);
-	  return 1;
-	  //		goto err;
+	  return ret;
 	}
-
-	/*
-
-#ifdef SL_DEBUG
-        printk(KERN_DEBUG "Registering ok, setting up textsearch for string %s, length %d\n", search[HOST].string, search[HOST].len);
-#endif
-
-	search[HOST].ts = textsearch_prepare(ts_algo, search[HOST].string,
-				             search[HOST].len,
-				             GFP_KERNEL, TS_AUTOLOAD);
-
-#ifdef SL_DEBUG
-        printk(KERN_DEBUG "checking textsearch error\n");
-#endif
-
-
-	if (IS_ERR(search[HOST].ts)) {
-   	        printk(KERN_ERR "error encountered registering textsearch");
-		ret = PTR_ERR(search[HOST].ts);
-		goto err;
-	}
-
-
-
-#ifdef SL_DEBUG
-        printk(KERN_DEBUG "setup textsearch ok\n");
-#endif
-
-	return 0;
-
-err:
-	textsearch_destroy(search[HOST].ts);
-	*/
 
 	return ret;
 }
