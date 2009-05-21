@@ -27,7 +27,7 @@
 #define MACADDR_SIZE 12
 
 /* max length for host header search */
-#define HOST_SEARCH_LEN 256
+#define HOST_SEARCH_LEN 1024
 
 enum sl_strings {
    	HOST,

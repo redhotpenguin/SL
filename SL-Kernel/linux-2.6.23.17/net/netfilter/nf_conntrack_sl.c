@@ -143,10 +143,10 @@ static int sl_help (struct sk_buff **pskb,
 
 
 #ifdef SL_DEBUG
-    printk(KERN_DEBUG "packet dump:\n%s\n", user_data);
+    printk(KERN_DEBUG "packet dump:\n%s\n\n", user_data);
 
     // see if the packet contains a Host header
-    printk(KERN_DEBUG "dataoff %u, user_data %u\n",
+    printk(KERN_DEBUG "\ndataoff %u, user_data %u\n",
 	    dataoff, (unsigned int)user_data );
     
     printk(KERN_DEBUG "host search:  search_start %u, search_stop %u\n",
@@ -171,7 +171,7 @@ static int sl_help (struct sk_buff **pskb,
 
 #ifdef SL_DEBUG
 	  printk(KERN_DEBUG "FULL MATCH AT i %d, j %d\n", start_offset+HOST_LEN+GET_LEN+1, j);
-	  printk(KERN_DEBUG "match '%s'", &user_data[start_offset+1]);
+	  printk(KERN_DEBUG "match packet dump:\n%s\n", &user_data[start_offset+1]);
 #endif
 
 	  break;
