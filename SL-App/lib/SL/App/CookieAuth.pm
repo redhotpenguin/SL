@@ -402,6 +402,7 @@ sub forgot {
 
         }
     }
+}
 
     sub forgot_reset {
         my ( $class, $r ) = @_;
@@ -471,6 +472,5 @@ sub forgot {
             return $class->auth_ok( $r, $reg );
         }
     }
-}
 
 1;

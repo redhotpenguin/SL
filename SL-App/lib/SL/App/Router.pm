@@ -124,18 +124,18 @@ sub dispatch_edit {
     }
 
     my $macaddr = $req->param('macaddr');
-	if (substr(uc($macaddr), 0, 9) eq '00:12:CF:') {
+#	if (substr(uc($macaddr), 0, 9) eq '00:12:CF:') {
 	    # this is an open-mesh router
 	    # translate the macaddress to ath1 format
 	    # unless it is a bridge of course...
-	    my $is_a_gateway;
-	    if ($router) {
-	    	$is_a_gateway = $router->gateway;
-	    } else {
-	    	$is_a_gateway = 1;  # start as a gateway
-	    }
-	    $macaddr = om_mac__to__mac($macaddr, $is_a_gateway);
-    }
+#	    my $is_a_gateway;
+#	    if ($router) {
+#	    	$is_a_gateway = $router->gateway;
+#	    } else {
+#	    	$is_a_gateway = 1;  # start as a gateway
+#	    }
+#	    $macaddr = om_mac__to__mac($macaddr, $is_a_gateway);
+ #   }
 
 
     unless ($router) {
