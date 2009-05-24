@@ -64,6 +64,20 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => undef,
   },
+  "twitter_id",
+  {
+    data_type => "text",
+    default_value => "'silver_lined'::text",
+    is_nullable => 0,
+    size => undef,
+  },
+  "text_message",
+  {
+    data_type => "text",
+    default_value => "'This is the default text message for the Silver Lining Text Message Bar'::text",
+    is_nullable => 0,
+    size => undef,
+  },
   "aaa",
   {
     data_type => "boolean",
@@ -106,9 +120,10 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-05-05 21:11:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7IPbQaQip9FecOfXu+iawQ
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-05-23 23:49:34
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3SM8Js5E4EWF6lHOodLqCA
 # These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Account.pm' found in @INC.# They are now part of the custom portion of this file# for you to hand-edit.  If you do not either delete# this section or remove that file from @INC, this section# will be repeated redundantly when you re-create this# file again via Loader!
+
 
 use SL::Config       ();
 use SL::Model::App   ();
