@@ -162,10 +162,8 @@ sub logout {
 
     $class->expire_cookie($r);
 
-    my $output;
-    $Template->process( 'logout.tmpl', {}, \$output )
-      || return $class->error( $r, $Template->error );
-    return $class->ok( $r, $output );
+    $r->headers_out->set( Location => 'http://www.silverliningnetworks.com/' );
+    return Apache2::Const::REDIRECT;
 }
 
 sub login {
@@ -273,7 +271,7 @@ sub send_cookie {
         -value => $class->encode( \%state ),
 
         #     -expires => '60s',
-        -expires => '1h',
+        -expires => '+1D',
         -path    => $Config->sl_app_base_uri . '/app/',
     );
 
