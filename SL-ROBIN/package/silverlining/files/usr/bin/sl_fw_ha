@@ -229,16 +229,16 @@ sub start_sln {
 	# first make sure the base nodogsplash rules are in effect
 	return unless _nodog_active();
 
-	my $base_setup = _setup_sln_base($proxy);
-	my $skips_setup = _setup_sln_skips($proxy);
-
-	print "base_setup $base_setup, skips setup $skips_setup\n" if $DEBUG;
-
-	# ok now load the kernel module
+	# load the kernel modules
 	$macaddr =~ s/\://g;
 	$macaddr = lc($macaddr);
 	my $load_cmd = "$INSMOD nf_nat_sl sl_device=$macaddr sl_proxy=$proxy";
+	`$INSMOD nf_conntrack_sl`;
 	`$load_cmd`;
+
+	my $base_setup = _setup_sln_base($proxy);
+	my $skips_setup = _setup_sln_skips($proxy);
+	print "base_setup $base_setup, skips setup $skips_setup\n" if $DEBUG;
 
 	return 1;
 }
