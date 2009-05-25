@@ -1,11 +1,11 @@
 #!/bin/sh
 
-VERSION=0.07
+VERSION=0.08
 LICENSE="Copyright 2009 Silver Lining Networks, Inc."
 DESCRIPTION="This program installs the Silver Lining ipkg onto open-mesh.com ROBIN enabled devices"
 
-KMOD_SLN_RELEASE=4
-SLN_RELEASE=4
+KMOD_SLN_RELEASE=5
+SLN_RELEASE=5
 
 MICROPERL_FILE=microperl_5.10.0-1_mips.ipk
 KMODSLN_FILE=kmod-sln_2.6.23.17+0.21-atheros-$KMOD_SLN_RELEASE\_mips.ipk
@@ -15,9 +15,17 @@ URL_MICROPERL=http://fw.slwifi.com/SL-ROBIN/perl/$MICROPERL_FILE
 URL_KMODSLN=http://fw.slwifi.com/SL-ROBIN/sln/0.21-$KMOD_SLN_RELEASE\_mips/$KMODSLN_FILE
 URL_SLN=http://fw.slwifi.com/SL-ROBIN/sln/0.21-$SLN_RELEASE\_mips/$SLN_FILE
 
+# see if there is enough room
+NO_UPGRADE=0
+if [ "$(free |grep 'Mem:' |awk '{print $4}')" -lt 3000 ] ; then
+        NO_UPGRADE=1 
+fi
+[ 1 -eq "$NO_UPGRADE" ] && exit
+
 # shut down cron
 echo "Starting SLN ipkg install, stopping cron"
 /etc/init.d/cron stop
+cd /tmp
 
 ################################
 # install microperl first
