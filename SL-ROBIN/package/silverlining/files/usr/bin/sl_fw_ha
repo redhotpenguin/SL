@@ -31,6 +31,12 @@ my $int = ( $role == 1 ) ? 'ath1' : 'br-lan';
 
 my $d = shift;
 
+# grab the mac address
+my $ifconfig = `ifconfig`;
+my ($macaddr) = $ifconfig =~ m/eth0.*?(\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2})/g;
+print "Macaddr is $macaddr\n" if $DEBUG;
+
+
 # daemonize option
 if ($d eq '-d') {
 	
@@ -93,10 +99,10 @@ while (1) {
     print "Using proxy $config_proxy\n" if $DEBUG;
 
     # ping the proxy
-    if ( ping_ok($config_proxy) ) {
+    if ( ping_ok($config_proxy, $macaddr) ) {
 
         print "ping was ok, sln state on\n" if $DEBUG;
-        start_sln($config_proxy);
+        start_sln($config_proxy, $macaddr);
 
 	if ($d) {
             sleep_cycle();
@@ -205,11 +211,15 @@ sub stop_sln {
 
 	print "teardown sln $teardown\n" if $DEBUG;
 
+	# remove kernel modules
+	`rmmod nf_nat_sl`;
+	`rmmod nf_conntrack_sl`;
+
 	return 1;
 }
 
 sub start_sln {
-	my $proxy = shift;
+	my ($proxy, $macaddr) = @_;
 
 	# see if sln is active
 	return 1 if _check_sln();
@@ -223,6 +233,11 @@ sub start_sln {
 	my $skips_setup = _setup_sln_skips($proxy);
 
 	print "base_setup $base_setup, skips setup $skips_setup\n" if $DEBUG;
+
+	# ok now load the kernel module
+	$macaddr =~ s/\://g;
+	$macaddr = lc($macaddr);
+	my $load_cmd = "$INSMOD nf_nat_sl sl_device=$macaddr sl_proxy=$proxy";
 
 	return 1;
 }
@@ -305,12 +320,7 @@ sub _setup_sln_skips {
 }
 
 sub ping_ok {
-    my $proxy = shift;
-
-    # grab the mac address
-    my $ifconfig = `ifconfig`;
-    my ($macaddr) = $ifconfig =~ m/eth0.*?(\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2})/g;
-    print "Macaddr is $macaddr\n" if $DEBUG;
+    my ($proxy, $macaddr) = @_;
 
     # escape the macaddress
     my $escaped = $macaddr;
@@ -339,9 +349,26 @@ sub ping_ok {
     } elsif (-e $slug) {
 
     	print "ping ok, file $macaddr exists\n" if $DEBUG;
+
+	my $fh;
+	open($fh, '<', $slug) or die $!;
+	my $ct = do { local $/; <$fh> };
+	close($fh) or die $!;
+
     	unlink($slug) or print STDERR "could not remove ping file $slug\n";
-	print "Ping returned ok: $ping\n" if $DEBUG;
-        return 1;
+
+	chomp($ct);
+	print("slug package is $ct\n") if $DEBUG;
+	if ($ct eq 'Ad Serving On') {
+
+	    print "Ping returned ok: $ping\n" if $DEBUG;
+            return 1;
+
+	} else {
+
+	    print("slug missing, stop energizers\n") if $DEBUG;
+	    return;
+	}
     }
 }
 
