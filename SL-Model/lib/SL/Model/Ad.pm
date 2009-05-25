@@ -78,6 +78,7 @@ FROM ad_zone, bug, ad_size
 WHERE ad_zone.ad_zone_id = ?
 AND ad_zone.bug_id = bug.bug_id
 AND ad_zone.ad_size_id = ad_size.ad_size_id
+AND ad_size.persistent = 't'
 };
 
     my $dbh = SL::Model->connect() or die $DBI::errstr;
@@ -260,6 +261,7 @@ AND router__ad_zone.ad_zone_id = ad_zone.ad_zone_id
 AND ad_zone.bug_id = bug.bug_id
 AND ad_zone.ad_size_id = ad_size.ad_size_id
 AND ad_zone.account_id = account.account_id
+AND ad_size.persistent = 't'
 ORDER BY RANDOM()
 LIMIT 1
 };

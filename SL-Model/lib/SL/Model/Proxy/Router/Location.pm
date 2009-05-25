@@ -23,6 +23,23 @@ location.ip = ?
 AND router.macaddr = ?
 };
 
+
+use constant FIND_OM_ROUTER_LOCATION => q{
+SELECT
+router__location.router_id,
+router__location.location_id,
+router.adserving
+FROM
+router__location
+INNER JOIN router USING(router_id)
+INNER JOIN location USING(location_id)
+WHERE
+location.ip = ?
+AND router.macaddr = ?
+};
+
+
+
 use constant UPDATE_ROUTER_ACTIVE => q{
 UPDATE ROUTER SET
 last_ping = now(),
@@ -42,8 +59,15 @@ sub get_registered {
       return;
     }
 
-    my $sth = $dbh->prepare_cached(FIND_ROUTER_LOCATION);
-    $sth->bind_param( 1, $ip );
+
+    my $sth;
+   
+	if (lc(substr($macaddr, 0, 8)) eq '00:12:cf') {
+		$sth = $dbh->prepare_cached(FIND_OM_ROUTER_LOCATION);
+	} else {
+		$sth = $dbh->prepare_cached(FIND_ROUTER_LOCATION);
+	}
+	$sth->bind_param( 1, $ip );
     $sth->bind_param( 2, $macaddr );
 
     my $rv = $sth->execute;
