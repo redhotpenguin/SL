@@ -20,6 +20,7 @@ BEGIN {
 
 use constant DEBUG    => $ENV{SL_DEBUG}             || 0;
 use constant MAX_LOAD => $CONFIG->sl_proxy_max_load || 4;
+use constant ADSERVING => 2;
 use constant SSID     => 2;
 use constant PASSWD   => 3;
 use constant FIRMWARE => 4;
@@ -114,6 +115,15 @@ sub handler {
 
     $r->log->debug("$$ ping ok for mac $macaddr") if DEBUG;
 
+	if (lc(substr($macaddr, 0, 8)) eq '00:12:cf') {
+
+		#$r->log->error("adserving for mac $macaddr is " . $router_ref->[ADSERVING]);
+		if (defined $router_ref->[ADSERVING] &&
+			($router_ref->[ADSERVING] == 1)) {
+			my $bytes = $r->print("Ad Serving On");
+		}
+	} else {
+
     # see if there are any events for this router to process
     if (
         ( defined $router_ref->[SSID] && ($router_ref->[SSID] ne ''))     or    # ssid event
@@ -162,7 +172,7 @@ sub handler {
         my $bytes = $r->print($encrypted) if $encrypted;
 
     }
-
+    }
     return Apache2::Const::DONE;
 }
 

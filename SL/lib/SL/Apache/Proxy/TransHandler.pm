@@ -180,6 +180,7 @@ sub handler {
 
 		if ($slr_header =~ m/\,/) {
 		
+			$r->log->error("$$ Found raw slr_header $slr_header");
 			# double header
 			# 25f279f0|0012cf81fd23, 52c15ea5|0012cf805eba
 			my ($last_header) = $slr_header =~ m/\s(\S+)$/;
