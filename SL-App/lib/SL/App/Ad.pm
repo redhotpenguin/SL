@@ -23,10 +23,8 @@ use SL::Model::App;    # works for now
 sub dispatch_index {
     my ($self, $r) = @_;
 
-    my %tmpl_data = ( root => $r->pnotes('root'),
-                       email => $r->user);
     my $output;
-    $tmpl->process('ad/index.tmpl', \%tmpl_data, \$output, $r) ||
+    $tmpl->process('ad/index.tmpl', {}, \$output, $r) ||
         return $self->error($r, $tmpl->error);
     return $self->ok($r, $output);
 }

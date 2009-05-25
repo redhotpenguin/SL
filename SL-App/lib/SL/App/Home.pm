@@ -14,7 +14,8 @@ use SL::App::Template ();
 our $tmpl = SL::App::Template->template();
 
 #use constant FORUM_URL => 'http://forums.silverliningnetworks.com/forums/5/posts.rss';
-use constant FORUM_URL => 'http://forums.silverliningnetworks.com/posts.rss';
+use constant FORUM_URL => 'http://www.silverliningnetworks.com/blog/rss/';
+#use constant FORUM_URL => 'http://forums.silverliningnetworks.com/posts.rss';
 
 =head1 METHODS
 
@@ -38,7 +39,8 @@ sub dispatch_index {
     if ($feed) {
 	foreach my $entry ($feed->entries) {
 		push @feed, { title => $entry->title, 'link' => $entry->link,
-			content => $entry->content->body };
+	date =>  $entry->issued->strftime("%a %b %e,%l:%m %p"),
+	content => $entry->content->body, };
 	}
 	$tmpl_data{rss} = \@feed;
     } else {
@@ -50,5 +52,16 @@ sub dispatch_index {
       return $self->error( $r, $tmpl->error);
     return $self->ok( $r, $output );
 }
+
+sub dispatch_welcome {
+    my ( $self, $r ) = @_;
+
+    my %tmpl_data;
+    my $output;
+    $tmpl->process( 'welcome.tmpl', \%tmpl_data, \$output, $r ) ||
+      return $self->error( $r, $tmpl->error);
+    return $self->ok( $r, $output );
+}
+
 
 1;

@@ -32,8 +32,8 @@ use SL::Model::App;    # don't ask me why we need both
 our %Plans = (
     enterprise => '249.00',
     premium    => '99.00',
-    plus       => '49.00',
-    basic      => '24.00',
+    plus       => '24.00',
+    basic      => '5.00',
 );
 
 our %Routers = (
@@ -294,7 +294,7 @@ sub dispatch_publisher {
         SL::App::CookieAuth->send_cookie( $r, $reg, $session_id );
 
         $r->headers_out->set(
-            Location => $Config->sl_app_base_uri . "/app/home/index" );
+            Location => $Config->sl_app_base_uri . "/app/home/welcome" );
         $r->no_cache(1);
         return Apache2::Const::REDIRECT;
 

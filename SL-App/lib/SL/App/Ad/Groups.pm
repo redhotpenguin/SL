@@ -23,7 +23,6 @@ our $TMPL = SL::App::Template->template();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
-
 sub dispatch_index {
     my ( $self, $r ) = @_;
 

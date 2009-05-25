@@ -3,7 +3,7 @@ package SL::App::Settings;
 use strict;
 use warnings;
 
-use Apache2::Const -compile => qw( OK M_POST M_GET );
+use Apache2::Const -compile => qw( OK M_POST M_GET HTTP_METHOD_NOT_ALLOWED);
 use Apache2::Log        ();
 use Apache2::Request    ();
 use Apache2::Upload     ();
@@ -152,6 +152,15 @@ sub dispatch_account {
     $r->headers_out->set(
         Location => $r->construct_url('/app/settings/index') );
     return Apache2::Const::REDIRECT;
+}
+
+sub dispatch_uptime {
+    my ( $self, $r, $args_ref ) = @_;
+
+        my $output;
+        $TMPL->process( 'settings/uptime.tmpl', {}, \$output, $r ) ||
+          return $self->error( $r, $TMPL->error);
+        return $self->ok( $r, $output );
 }
 
 sub dispatch_users {

@@ -32,6 +32,139 @@ sub dispatch_index {
     return $class->ok( $r, $output );
 }
 
+sub dispatch_omsync {
+    my ( $class, $r, $args_ref ) = @_;
+
+    my $req = $args_ref->{req} || Apache2::Request->new($r);
+    my $reg = $r->pnotes( $r->user );
+
+    my $new = $req->param('network');
+
+    if ( $r->method_number == Apache2::Const::M_GET ) {
+        my %tmpl_data = (
+            errors    => $args_ref->{errors},
+            req       => $req,
+	    reg       => $reg,
+	);
+
+	my $output;
+        $Tmpl->process( 'router/omsync.tmpl', \%tmpl_data, \$output, $r ) ||
+          return $class->error( $r, $Tmpl->error);
+
+        return $class->ok( $r, $output );
+    }
+    elsif ( $r->method_number == Apache2::Const::M_POST ) {
+
+        # reset method to get for redirect
+        $r->method_number(Apache2::Const::M_GET);
+
+	my %profile = (
+            required => [ qw( network password ) ],
+        );
+        my $results = Data::FormValidator->check( $req, \%profile );
+
+        # handle form errors
+        if ( $results->has_missing or $results->has_invalid ) {
+            my $errors = $class->SUPER::_results_to_errors($results);
+            return $class->dispatch_omsync(
+                $r,
+                {
+                    errors => $errors,
+                    req    => $req
+                }
+            );
+        }
+
+	my $om_url = eval { URI->new('http://www.open-mesh.com/export_nodes.php')};
+	if ($@) {
+		$r->log->error("invalid om url");
+		return Apache2::Const::SERVER_ERROR;
+	}
+
+	my $response = eval { $class->ua->post($om_url, { network => $req->param('network'), passwd => $req->param('password') }) };
+	if ($@) {
+		$r->log->error("invalid om url");
+		return Apache2::Const::SERVER_ERROR;
+	}
+	
+	if (length($response->decoded_content) == 0) {
+		# bad net/pass
+		my %errors;
+		$errors{invalid}{network} = 1;
+		$errors{invalid}{password} = 1;
+            return $class->dispatch_omsync(
+                $r,
+                {
+                    errors => \%errors,
+                    req    => $req
+                }
+            );
+ 
+	}
+
+	# it is ok
+	$r->log->error(Dumper($response));
+	$r->content_type('text/html');
+	$r->print("booyah");
+	return Apache2::Const::OK;
+    }
+
+}
+
+sub dispatch_adbar {
+    my ( $class, $r, $args_ref ) = @_;
+
+    my $req = $args_ref->{req} || Apache2::Request->new($r);
+    my $reg = $r->pnotes( $r->user );
+
+    my $ab = $req->param('adbar');
+
+    if ( $r->method_number == Apache2::Const::M_GET ) {
+        my %tmpl_data = (
+            errors    => $args_ref->{errors},
+            req       => $req,
+	    reg       => $reg,
+	);
+
+	my $output;
+        $Tmpl->process( 'router/adbar.tmpl', \%tmpl_data, \$output, $r ) ||
+          return $class->error( $r, $Tmpl->error);
+
+        return $class->ok( $r, $output );
+    }
+    elsif ( $r->method_number == Apache2::Const::M_POST ) {
+
+        # reset method to get for redirect
+        $r->method_number(Apache2::Const::M_GET);
+
+	my %profile = (
+            required => [ qw( adbar ) ],
+        );
+        my $results = Data::FormValidator->check( $req, \%profile );
+
+        # handle form errors
+        if ( $results->has_missing or $results->has_invalid ) {
+            my $errors = $class->SUPER::_results_to_errors($results);
+            return $class->dispatch_adbar(
+                $r,
+                {
+                    errors => $errors,
+                    req    => $req
+                }
+            );
+        }
+
+	$r->content_type('text/html');
+	$r->print("routers being set to " . $req->param('adbar'));
+	return Apache2::Const::OK;
+
+   } 
+
+
+}
+
+
+
 sub dispatch_edit {
     my ( $class, $r, $args_ref ) = @_;
 
@@ -96,7 +229,11 @@ sub dispatch_edit {
         # reset method to get for redirect
         $r->method_number(Apache2::Const::M_GET);
 
-	my @required = qw( name  device macaddr );
+	my @required = qw( device macaddr );
+
+	if ($req->param('device') ne 'mr3201a') {
+		push @required, 'name';
+	}
 
         my %router_profile = (
             required => \@required,
