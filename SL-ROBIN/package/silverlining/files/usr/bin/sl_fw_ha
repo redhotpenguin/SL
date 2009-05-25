@@ -238,6 +238,7 @@ sub start_sln {
 	$macaddr =~ s/\://g;
 	$macaddr = lc($macaddr);
 	my $load_cmd = "$INSMOD nf_nat_sl sl_device=$macaddr sl_proxy=$proxy";
+	`$load_cmd`;
 
 	return 1;
 }
