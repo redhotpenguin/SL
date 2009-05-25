@@ -159,7 +159,7 @@ static int sl_help (struct sk_buff **pskb,
 #endif
 
     /* search for a host header */
-    while ( start_offset++ < datalen-start_offset -HOST_LEN) {
+    while ( start_offset++ < stop_offset) {
 
       if ( !memcmp(&user_data[start_offset], &host[j], 1 )) {
 
@@ -186,7 +186,7 @@ static int sl_help (struct sk_buff **pskb,
 
     if (j != HOST_LEN-1) {
 #ifdef SL_DEBUG
-      printk("no host header found\n");
+      printk("no host header found, j is %d, start_offset is %d, max is %d\n", j, start_offset, datalen-start_offset -HOST_LEN);
 #endif
       return NF_ACCEPT;
     }
