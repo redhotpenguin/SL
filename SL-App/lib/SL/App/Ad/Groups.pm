@@ -59,7 +59,7 @@ sub dispatch_edit {
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
-            ad_sizes => [ sort { $a->grouping <=> $b->grouping }  sort { $a->name cmp $b->name } SL::Model::App->resultset('AdSize')->all ],
+            ad_sizes => [ sort { $a->grouping <=> $b->grouping }  sort { $a->name cmp $b->name } SL::Model::App->resultset('AdSize')->search({ hidden => 'f' }) ],
             ad_zone  => $ad_zone,
             errors   => $args_ref->{errors},
             req      => $req,
@@ -160,7 +160,7 @@ sub dispatch_list {
     my $reg = $r->pnotes( $r->user );
 
     # get the ad zones this user has access to
-    my @ad_zones = 
+    my @ad_zones =  grep { !$_->hidden }
     		    sort { $b->{router_count} <=> $a->{router_count} } 
     		    sort { $b->mts cmp $a->mts }
     		    sort { $a->name cmp $b->name }  $reg->account_id->get_ad_zones;

@@ -166,12 +166,6 @@ sub dispatch_omsync {
 	$r->headers_out->set(
 	    Location => $r->construct_url('/app/router/list') );
 	return Apache2::Const::REDIRECT;
-
-	# it is ok
-	$r->log->error(Dumper($response));
-	$r->content_type('text/html');
-	$r->print("booyah");
-	return Apache2::Const::OK;
     }
 
 }
@@ -255,7 +249,7 @@ sub dispatch_edit {
     my $reg = $r->pnotes( $r->user );
 
     # ad zones for this account
-    my @ad_zones = $reg->get_ad_zones;
+    my @ad_zones = grep { !$_->hidden } $reg->get_ad_zones;
 
     my ( %router__ad_zones, @locations, $router, $output );
     if ( $req->param('router_id') ) {    # edit existing router
@@ -282,8 +276,9 @@ sub dispatch_edit {
         @locations = sort { $b->mts cmp $a->mts } map { $_->location_id } $router->router__locations;
 
         # current associations for this router
-        %router__ad_zones =
-          map { $_->ad_zone_id->ad_zone_id => 1 } $router->router__ad_zones;
+        %router__ad_zones = 
+          map { $_->ad_zone_id->ad_zone_id => 1 }
+	    $router->router__ad_zones;
 
         foreach my $ad_zone (@ad_zones) {
             if ( exists $router__ad_zones{ $ad_zone->ad_zone_id } ) {
