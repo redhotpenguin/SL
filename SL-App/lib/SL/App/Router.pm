@@ -154,13 +154,24 @@ sub dispatch_adbar {
             );
         }
 
-	$r->content_type('text/html');
-	$r->print("routers being set to " . $req->param('adbar'));
-	return Apache2::Const::OK;
+	my @routers = SL::Model::App->resultset('Router')->search({
+	    account_id => $reg->account_id->account_id });
 
-   } 
+	foreach my $router (@routers) {
+	    $router->adserving($req->param('adbar'));
+	    $router->update;
+	}
 
+	my $status = ($req->param('adbar') eq 't') ? 'On' : 'Off';
 
+	$r->pnotes('session')->{msg} =
+	    sprintf( "Ad Serving was set to %s for %d routers", 
+		     $status, scalar(@routers) );
+
+	$r->headers_out->set(
+	    Location => $r->construct_url('/app/router/list') );
+	return Apache2::Const::REDIRECT;
+    }
 }
 
 
@@ -303,17 +314,21 @@ sub dispatch_edit {
         $router->update;
     }
 
-    # create an ssid event if the ssid changed
-    if ( defined $router->ssid && ( $router->ssid ne $req->param('ssid')  ) ) {
-        $router->ssid_event( $req->param('ssid') );
-    }
-
     $router->macaddr($macaddr);
-    # update each attribute
-    foreach my $param qw( name splash_href device
+
+    # create an ssid event if the ssid changed
+    if ($router->device eq 'wrt54gl') {
+	if ( defined $router->ssid && 
+	     ( $router->ssid ne $req->param('ssid')  ) ) {
+	    $router->ssid_event( $req->param('ssid') );
+	}
+
+	# update each attribute
+	foreach my $param qw( name splash_href device
       			serial_number ssid splash_timeout ) {
-        $router->$param( $req->param($param) );
-      }
+	    $router->$param( $req->param($param) );
+	}
+    }
 
     $router->update;
 

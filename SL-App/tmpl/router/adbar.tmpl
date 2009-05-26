@@ -1,0 +1,41 @@
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Create or edit router"  load="updateRouterForm()" %]
+[% PROCESS left.tmpl %]
+
+<div id="list_center">
+<div class="content">
+
+<h2>[% PROCESS router/nav.tmpl %] > Turn Ad Bar On/Off</h2>
+<hr class="sl_line">
+<br />
+<h1>Turn Ad Bar On/Off</h1>
+<div id="edit_form">
+
+[% IF errors.missing %]
+<p><font color="red">Please choose On or Off</font></p>
+[% END %]
+
+<p>This switch controls the ad bar on all routers.</p>
+<ul>
+<li>Choosing "Off" will turn off the ad bar on every router.</li>
+<li>Choosing "On" will turn on the ad bar on every router.</li>
+</ul>
+<p>This change will take 5 to 15 minutes to take effect.<br />Individual on/off functionality per router coming soon.</p>
+<br />
+
+<div class="edit_form">
+<form method="POST" action="[% base_uri %]/app/router/adbar">
+
+<select name="adbar">
+	<option value="" selected="selected">On or Off?</option>
+<option value="t">On</option>
+<option value="f">Off</option>
+</select>
+<input type="Submit" value="Make it so" onClick="this.disabled=true">
+
+</form>
+
+</div>
+</div>
+
+</div>
+[% PROCESS footer.tmpl %]
