@@ -153,6 +153,7 @@ sub dispatch_omsync {
 		    macaddr => $router_datum->{mac}, });
 		$router->account_id( $reg->account_id->account_id );
 		$router->name($router_datum->{name});
+		$router->device('mr3201a');
 		$router->update;
 		$created++;
 	    }
