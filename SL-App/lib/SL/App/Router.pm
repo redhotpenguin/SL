@@ -221,16 +221,23 @@ sub dispatch_adbar {
 	my @routers = SL::Model::App->resultset('Router')->search({
 	    account_id => $reg->account_id->account_id });
 
+	my $changed = 0;
 	foreach my $router (@routers) {
-	    $router->adserving($req->param('adbar'));
-	    $router->update;
+
+	    my $update = ($router->adserving == 1) ? 't' : 'f';
+	    if ($update ne $req->param('adbar')) {
+
+		$router->adserving($req->param('adbar'));
+		$router->update;
+		$changed++;
+	    }
 	}
 
 	my $status = ($req->param('adbar') eq 't') ? 'On' : 'Off';
 
 	$r->pnotes('session')->{msg} =
 	    sprintf( "Ad Serving was set to %s for %d routers", 
-		     $status, scalar(@routers) );
+		     $status, $changed );
 
 	$r->headers_out->set(
 	    Location => $r->construct_url('/app/router/list') );
