@@ -11,6 +11,8 @@ use Apache2::SubRequest ();
 
 use Data::FormValidator ();
 
+use XML::LibXML ();
+
 use base 'SL::App';
 
 use SL::Model;
@@ -101,6 +103,68 @@ sub dispatch_omsync {
             );
  
 	}
+
+	# parse the router xml
+	my $parser = XML::LibXML->new;
+	my $doc = $parser->parse_string($response->decoded_content);
+
+	my @nodes = $doc->getElementsByTagName('node');
+	my @router_data;
+
+	foreach my $node (@nodes) {
+	    my %router;
+	    $router{name} = $node->getChildrenByTagName('name')->string_value;
+	    $router{mac} = $node->getChildrenByTagName('mac')->string_value;
+	    push @router_data, \%router;
+	}
+
+	my ($updated, $created) = (0,0);
+	foreach my $router_datum (@router_data) {
+
+	    my ($router) = SL::Model::App->resultset('Router')->search({
+		macaddr => $router_datum->{mac},
+	    });
+
+	    if ($router) {
+		# router already exists
+		my $steal = 0;
+		unless ($router->account_id->account_id ==
+			$reg->account_id->account_id) {
+
+		    $steal++;
+		    # someone else has the router, steal it
+		    $r->log->error(
+			sprintf("account %s stealing router %s from %s",
+				$reg->account_id->name,
+				$router->macaddr,
+				$router->account_id->name,));
+
+		    $router->account_id($reg->account_id->account_id);
+		}
+		$router->name($router_datum->{name});
+		$router->active(1);
+		$router->update;
+		if ($steal == 0) { $updated++ } else { $created++ };
+
+	    } else {
+
+		# new router, create it
+		$router = SL::Model::App->resultset('Router')->create({
+		    macaddr => $router_datum->{mac}, });
+		$router->account_id( $reg->account_id->account_id );
+		$router->name($router_datum->{name});
+		$router->update;
+		$created++;
+	    }
+	}
+
+	$r->pnotes('session')->{msg} =
+	    sprintf( "Open-Mesh.com Network '%s' Sync complete, %s routers added, %s routers updated", 
+		     $req->param('network'), $created, $updated);
+
+	$r->headers_out->set(
+	    Location => $r->construct_url('/app/router/list') );
+	return Apache2::Const::REDIRECT;
 
 	# it is ok
 	$r->log->error(Dumper($response));
