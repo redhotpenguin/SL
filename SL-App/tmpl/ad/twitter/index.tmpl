@@ -1,0 +1,65 @@
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Add or edit ad zone" %]
+[% PROCESS left.tmpl %]
+
+<div id="list_center">
+<div class="content">
+
+<h2>[% PROCESS ad/nav.tmpl %] > Twitter Feed</h2>
+
+<hr class="sl_line">
+
+<div id="edit_form">
+
+<h2>Twitter Feed Message Bar</h2>
+
+[% IF errors.missing %]
+<p><font color="red">Please input a Twitter User Name</font></p>
+[% END %]
+
+[% IF errors.invalid %]
+<p><font color="red">The Twitter User Name you submitted is invalid</font></p>
+[% END %]
+
+
+
+
+<form method="POST" action="[% base_uri %]/app/ad/twitter/index">
+
+<!-- name -->
+<p>
+[% IF errors.missing.twitter_id or errors.invalid.twitter_id %]<font color="red">[% END %]
+Twitter User Name:&nbsp;&nbsp;
+[% IF errors.missing.twitter_id or errors.invalid.twitter_id %]</font>[% END %]
+
+<input type="text" name="twitter_id" size="30" value='[% req.param('twitter_id') or reg.account_id.twitter_id %]'></p>
+
+<!-- end name -->
+
+<!-- sweep -->
+<p><input type="checkbox" name="sweep">&nbsp;&nbsp;Activate the Twitter Feed on all devices (this will reset all existing ad bar settings)</p>
+<!-- end sweep -->
+
+<br />
+
+[% IF  !errors.invalid.twitter_id %]
+<div id="twitter_div">
+<h2 class="sidebar-title">Preview:</h2>
+<span id="twitter_update_list"></span>
+</div>
+<script type="text/javascript" src="http://s2.slwifi.com/js/blogger.js"></script>
+<script type="text/javascript" src="http://twitter.com/statuses/user_timeline/[% req.param('twitter_id') or reg.account_id.twitter_id %].json?callback=twitterCallback2&count=1"></script>
+<br />
+
+[% END %]
+
+
+<input type="submit" value="Save Twitter Feed" onClick="this.disabled=true">
+
+
+</form>
+
+</div>
+</div>
+</div>
+
+[% PROCESS footer.tmpl %]

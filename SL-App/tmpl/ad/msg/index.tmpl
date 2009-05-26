@@ -1,0 +1,58 @@
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Add or edit ad zone" %]
+[% PROCESS left.tmpl %]
+
+<div id="list_center">
+<div class="content">
+
+<h2>[% PROCESS ad/nav.tmpl %] > Text Entry Message Bar</h2>
+
+<hr class="sl_line">
+
+<div id="edit_form">
+
+<h2>Text Entry Message Bar</h2>
+
+[% IF errors.missing %]
+<p><font color="red">Please enter a text message</font></p>
+[% END %]
+
+[% IF errors.invalid %]
+<p><font color="red">Text message can be no greater than 140 characters</font></p>
+[% END %]
+
+
+
+
+
+<form method="POST" action="[% base_uri %]/app/ad/msg/index">
+
+<!-- name -->
+<p>
+[% IF errors.missing.text_message %]<font color="red">[% END %]
+Enter Text, max 140 characters:&nbsp;&nbsp;<br />
+[% IF errors.missing.text_message %]</font>[% END %]
+
+<input type="text" name="text_message" size="50" maxlength="140" value="[% req.param('text_message') or reg.account_id.text_message %]"></textarea>
+
+<!-- end name -->
+
+
+<!-- sweep -->
+<p><input type="checkbox" name="sweep">&nbsp;&nbsp;Activate the Message Bar on all devices (this will reset all existing ad bar settings)</p>
+<!-- end sweep -->
+
+
+<br />
+
+<hr class="sl_line">
+
+<input type="submit" value="Save Text Message">
+
+
+</form>
+
+</div>
+</div>
+</div>
+
+[% PROCESS footer.tmpl %]
