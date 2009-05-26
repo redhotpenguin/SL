@@ -1,0 +1,51 @@
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Create or edit router"  load="updateRouterForm()" %]
+[% PROCESS left.tmpl %]
+
+<div id="list_center">
+<div class="content">
+
+<h2>[% PROCESS router/nav.tmpl %] > Sync Open-Mesh.com Devices</h2>
+<hr class="sl_line">
+<br />
+<h1>Sync Open-Mesh.com Devices</h1>
+
+<p>Enter your Open-Mesh.com account information below to synchronize the list of devices registered to your Open-Mesh.com account.  You may repeat this process with different Open-Mesh.com networks to create an aggregate list.  The Open-Mesh.com network <a href="http://silverlining.zendesk.com/forums/26828/entries/37866">must have Silver Lining enabled.</a></p>
+<p>Devices that you have removed from your Open-Mesh.com network since the last synchronization will be removed from your router list.</p>
+<p>The synchronization may take a few minutes, please do not refresh the page.</p>
+<div id="edit_form">
+
+[% IF errors.missing %]
+<p><font color="red">Please complete the missing fields</font></p>
+[% END %]
+[% IF errors.invalid %]
+<p><font color="red">Network and/or password invalid</font></p>
+[% END %]
+
+
+<div class="edit_form">
+<form method="POST" action="[% base_uri %]/app/router/omsync">
+
+[% IF errors.missing.network %]<font color="red">[% END %]<p>Network Name:&nbsp;&nbsp;[% IF errors.missing.network %]</font>[% END %]
+
+<input type="text" name="network" size="20" maxlength="50" value='[% req.param('network')  %]'></p>
+
+<p><font color="#CCCCCC"><b>The network name you use to login to the Open-Mesh.com dashboard</b></font></p>
+
+
+
+[% IF errors.missing.password %]<font color="red">[% END %]
+<p>Network Password:&nbsp;&nbsp;
+[% IF errors.missing.name %]</font>[% END %]
+<input type="password"  name="password" size="20" maxlength="50" value='[% req.param('password')  %]'></p>
+<p><font color="#CCCCCC"><b>Password to your Open-Mesh.com network (not stored on our system)</b></font></p>
+<br />
+
+<input type="Submit" value="Sync Open-Mesh.com Devices" onClick="this.disabled=true">
+
+</form>
+
+</div>
+</div>
+
+</div>
+[% PROCESS footer.tmpl %]
