@@ -249,7 +249,12 @@ sub dispatch_edit {
     my $reg = $r->pnotes( $r->user );
 
     # ad zones for this account
-    my @ad_zones = grep { !$_->hidden } $reg->get_ad_zones;
+    my @ad_zones = $reg->get_ad_zones;
+
+    my @only_ads = grep { !$_->hidden } @ad_zones;
+
+    my ($twit_zone) = grep { $_->name eq '_twitter_feed' } @ad_zones;
+    my ($msg_zone)  = grep { $_->name eq '_message_bar' }  @ad_zones;
 
     my ( %router__ad_zones, @locations, $router, $output );
     if ( $req->param('router_id') ) {    # edit existing router
@@ -275,22 +280,38 @@ sub dispatch_edit {
         # get the locations for the router
         @locations = sort { $b->mts cmp $a->mts } map { $_->location_id } $router->router__locations;
 
-        # current associations for this router
+        # current associations for this router, including twitter
         %router__ad_zones = 
           map { $_->ad_zone_id->ad_zone_id => 1 }
 	    $router->router__ad_zones;
 
-        foreach my $ad_zone (@ad_zones) {
+        foreach my $ad_zone (@only_ads) {
             if ( exists $router__ad_zones{ $ad_zone->ad_zone_id } ) {
                 $ad_zone->{selected} = 1;
             }
 
         }
+
+	if ($twit_zone) {
+	    if (exists $router__ad_zones{ $twit_zone->ad_zone_id } ) {
+		$twit_zone->{selected} = 1;
+	    }
+	}
+
+
+	if ($msg_zone) {
+	    if (exists $router__ad_zones{ $msg_zone->ad_zone_id } ) {
+		$msg_zone->{selected} = 1;
+	    }
+	}
+
     }
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
-            ad_zones  => \@ad_zones,
+	    twit_zone => $twit_zone,
+	    msg_zone  => $msg_zone,
+            ad_zones  => \@only_ads,
             router    => $router,
             locations => scalar( @locations > 0 ) ? \@locations : '',
             errors    => $args_ref->{errors},
@@ -339,19 +360,6 @@ sub dispatch_edit {
     }
 
     my $macaddr = $req->param('macaddr');
-#	if (substr(uc($macaddr), 0, 9) eq '00:12:CF:') {
-	    # this is an open-mesh router
-	    # translate the macaddress to ath1 format
-	    # unless it is a bridge of course...
-#	    my $is_a_gateway;
-#	    if ($router) {
-#	    	$is_a_gateway = $router->gateway;
-#	    } else {
-#	    	$is_a_gateway = 1;  # start as a gateway
-#	    }
-#	    $macaddr = om_mac__to__mac($macaddr, $is_a_gateway);
- #   }
-
 
     unless ($router) {
         # adding a new router
@@ -404,15 +412,35 @@ sub dispatch_edit {
     SL::Model::App->resultset('RouterAdZone')
       ->search( { router_id => $router->router_id } )->delete_all;
 
-    foreach my $ad_zone_id ( $req->param('ad_zone') ) {
-        $r->log->debug("$$ associating router with ad zone $ad_zone_id")
-          if DEBUG;
-        SL::Model::App->resultset('RouterAdZone')->find_or_create(
-            {
-                router_id  => $router->router_id,
-                ad_zone_id => $ad_zone_id,
-            }
-        );
+
+    # handle twitter feed
+    if ($req->param('zone_type') eq 'twitter') {
+
+	SL::Model::App->resultset('RouterAdZone')->find_or_create({
+	    router_id => $router->router_id,
+	    ad_zone_id => $twit_zone->ad_zone_id, });
+
+    } elsif ($req->param('zone_type') eq 'msg') {
+
+	SL::Model::App->resultset('RouterAdZone')->find_or_create({
+	    router_id => $router->router_id,
+	    ad_zone_id => $msg_zone->ad_zone_id, });
+
+
+    } elsif ($req->param('zone_type') eq 'iab') {
+
+	# for ad zones
+	foreach my $ad_zone_id ( $req->param('ad_zone') ) {
+	    $r->log->debug("$$ associating router with ad zone $ad_zone_id")
+		if DEBUG;
+	    SL::Model::App->resultset('RouterAdZone')->find_or_create(
+		{
+		    router_id  => $router->router_id,
+		    ad_zone_id => $ad_zone_id,
+		}
+		);
+	}
+
     }
 
     my $status = $req->param('router_id') ? 'updated' : 'created';
@@ -422,40 +450,6 @@ sub dispatch_edit {
     $r->headers_out->set(
         Location => $r->construct_url('/app/router/list') );
     return Apache2::Const::REDIRECT;
-}
-
-sub mac__to__om_mac {
-	my $mac = shift or die 'no mac passed';
-	my $gateway = shift;
-
-	if (!$gateway) {
-		# replace 00 with 06
-		substr($mac,0,2,'06');
-		return $mac;
-	}
-
-	my $last_two = substr($ mac, length($mac) - 2, length($mac));
-	$last_two = sprintf('%02x', sprintf('%d', hex($last_two))-1);
-	substr($mac, length($mac) - 2, length($mac), $last_two);
-	substr($mac, 0, 2, '00');
-	return $mac;
-}
-
-sub om_mac__to__mac {
-	my $mac = shift or die 'no mac passed';
-	my $gateway = shift;
-
-	if (!$gateway) {
-		# replace 06 with 00
-		substr($mac,0,2,'00');
-		return $mac;
-	}
-
-	my $last_two = substr($mac, length($mac) - 2, length($mac));
-	$last_two = sprintf('%02x', sprintf('%d', hex($last_two))+1);
-	substr($mac, length($mac) - 2, length($mac), $last_two);
-	substr($mac, 0, 2, '06');
-	return $mac;
 }
 
 
