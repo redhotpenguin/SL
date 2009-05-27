@@ -13,58 +13,79 @@ padding: 0;
 .silver_lining_clear {
 clear: both;
 }
+
+
 #silver_lining_ad_horizontal {
-text-align: center;
-padding: 4px 0px 4px 0px;
-background: #FFF url(../images/backgrounds/border-small2.png) repeat-x bottom left; 
-position: relative;
-}
+background:#FFFFFF url(../images/backgrounds/border-small2.png) repeat-x scroll left bottom !important;
+padding:4px 0 !important;
+position:relative !important;
+text-align:center !important;
+} 
+
 #silver_lining_webpage {
 position: relative;
 }
 
 /*= TEXT AD
 === === === === === === === === === === === === === */
+
+#twitter_div img {
+float:left  !important;
+margin-right:5px  !important;
+margin-top:3px  !important;
+} 
+
 #silver_lining_text_ad {
-text-align: left;
-margin-left:auto;
-margin-right: auto;
-max-width: 860px;
-min-width: 860px;
-height: 32px;
-position: relative;
-}
+height:32px !important;
+margin-left:auto !important;
+margin-right:auto !important;
+max-width:860px !important;
+min-width:860px !important;
+position:relative !important;
+text-align:left !important;
+} 
+
 * html #silver_lining_text_ad {
 width:960px;
 }
-#silver_lining_text_ad #silver_lining_bug {
-float: left; 
-height: 32px;
-width: 120px;
-background-position: top left !important;
-background-repeat: no-repeat !important;
-overflow: hidden;
-}
-#silver_lining_text_ad #silver_lining_client_ad
-{background-color:#f8f4c7;
-color:#0b6bb1;
-float:left;
-font-family:Verdana,Arial,serif;
-font-size:13px;
-height:32px;
-line-height:14px;
-list-style-image:none;
-list-style-position:outside;
-list-style-type:none;
-margin-left:10px;
-overflow:hidden;
-padding:0 10px;
-text-align:left;
-width:580px;}
 
-#silver_lining_text_ad #silver_lining_client_ad p,
-#silver_lining_text_ad #silver_lining_client_ad a 
-{color:#0076a3;text-decoration:none;}
+#silver_lining_text_ad #silver_lining_bug {
+background-position:left top !important;
+background-repeat:no-repeat !important;
+float:left !important;
+height:32px !important;
+overflow:hidden !important;
+text-decoration:none !important;
+width:120px !important;
+}
+
+#silver_lining_text_ad #silver_lining_client_ad {
+vertical-align: middle;
+background-color:#F8F4C7 !important;
+color:#0B6BB1 !important;
+float:left !important;
+font-family:Verdana,Arial,serif !important;
+font-size:12px !important;
+height:32px !important;
+line-height:14px !important;
+list-style-image:none !important;
+list-style-position:outside !important;
+list-style-type:none !important;
+margin-left:10px !important;
+overflow:hidden !important;
+padding:0 5px !important;
+text-align:left !important;
+width:580px !important;
+}
+
+
+
+#silver_lining_text_ad #silver_lining_client_ad p, #silver_lining_text_ad #silver_lining_client_ad a {
+color:#0076A3 !important;
+text-decoration:none !important;
+} 
+
+
 
 #silver_lining_text_ad #silver_lining_client_ad a:hover  {
 text-decoration: underline;
