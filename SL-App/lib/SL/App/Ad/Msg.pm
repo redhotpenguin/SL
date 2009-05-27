@@ -129,7 +129,7 @@ sub dispatch_index {
 	    }
 
 	    $r->pnotes('session')->{msg} = 
-	     sprintf("Message Bar updated to %s, assigned to %d devices",
+	     sprintf("Message Bar updated to '%s', assigned to %d devices",
 		     $text_message, scalar(@routers));
 	}
 

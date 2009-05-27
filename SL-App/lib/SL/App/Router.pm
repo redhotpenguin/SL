@@ -195,7 +195,6 @@ sub dispatch_adbar {
 
         # reset method to get for redirect
         $r->method_number(Apache2::Const::M_GET);
-
 	my %profile = (
             required => [ qw( adbar ) ],
         );
@@ -404,6 +403,9 @@ sub dispatch_edit {
 	    $router->$param( $req->param($param) );
 	}
     }
+
+    # active?  adserving?
+    $router->$_($req->param($_)) for qw( active adserving );
 
     $router->update;
 
