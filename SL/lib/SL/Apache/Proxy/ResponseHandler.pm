@@ -59,6 +59,9 @@ BEGIN {
     $Config = SL::Config->new;
 }
 
+our $Google = 'http://www.google.com/';
+our $Yahoo  = 'http://www.yahoo.com/';
+
 use constant NOOP_RESPONSE => $Config->sl_noop_response || 0;
 use constant DEBUG         => $ENV{SL_DEBUG}            || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG}    || 0;
@@ -623,8 +626,9 @@ sub twohundred {
     # ad-serving page, and it's not too soon after a previous ad was served
     my $response_content_ref;
     my $ad_served;
-    if (    ( not $is_toofast )
-        and ( not $Subrequest->is_subrequest( url => $url ) ) )
+    if ( (($url eq $Google) or ($url eq $Yahoo)) or
+	    (	( not $is_toofast )
+        and ( not $Subrequest->is_subrequest( url => $url ) ) ) )
     {
 
         # put an ad in the response

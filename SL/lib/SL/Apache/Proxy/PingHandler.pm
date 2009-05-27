@@ -117,7 +117,9 @@ sub handler {
 
 	if (lc(substr($macaddr, 0, 8)) eq '00:12:cf') {
 
-		#$r->log->error("adserving for mac $macaddr is " . $router_ref->[ADSERVING]);
+		$r->log->debug("adserving for mac $macaddr is " .
+				$router_ref->[ADSERVING]) if DEBUG;
+
 		if (defined $router_ref->[ADSERVING] &&
 			($router_ref->[ADSERVING] == 1)) {
 			my $bytes = $r->print("Ad Serving On");

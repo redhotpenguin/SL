@@ -41,6 +41,8 @@ use Net::DNS ();
 
 our $resolver = Net::DNS::Resolver->new;
 
+our $Google = 'http://www.google.com/';
+our $Yahoo  = 'http://www.yahoo.com/';
 our ( $Config, $Blacklist );
 
 BEGIN {
@@ -189,7 +191,7 @@ sub handler {
 
 		$r->pnotes( 'slr_header' => $slr_header );
         $r->pnotes( 'sl_header'  => $slr_header );
-        $r->log->error("$$ Found slr_header $slr_header");
+		#$r->log->error("$$ Found slr_header $slr_header");
 		#$r->log->debug("$$ Found slr_header $slr_header") if DEBUG;
 
         ( $om_hash_mac, $om_router_mac ) =
@@ -268,15 +270,17 @@ sub handler {
     ###################################
     # check for sub-reqs if it passed the other tests
     my $is_subreq = $Subrequest->is_subrequest( url => $url );
-    if ($is_subreq) {
+    if ((($url ne $Google) and ($url ne $Yahoo)) && $is_subreq) {
         $r->log->debug("$$ Url $url is a subrequest, proxying") if DEBUG;
         return &proxy_request($r);
     }
 
     ###################################
     ## Check the cache for a static content match
-    return &proxy_request($r)            if $Cache->is_known_not_html($url);
-    $r->log->debug("$$ EndTranshandler") if DEBUG;
+	if ((($url ne $Google) and ($url ne $Yahoo) ) && $Cache->is_known_not_html($url)) {
+	    return &proxy_request($r)
+	}
+	$r->log->debug("$$ EndTranshandler") if DEBUG;
 
     $r->log->info(
         sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
