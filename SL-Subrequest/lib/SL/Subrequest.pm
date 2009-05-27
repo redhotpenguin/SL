@@ -3,7 +3,7 @@ package SL::Subrequest;
 use strict;
 use warnings;
 
-our $VERSION = 0.04;
+our $VERSION = 0.05;
 
 use String::Strip    ();
 use HTML::TokeParser ();
@@ -231,6 +231,9 @@ sub is_subrequest {
 
     $url = _normalize_url($url);
     return 0 unless $url;
+
+	# root domain, is not a subrequest
+	return 0 if $url->path eq '/';
 
     # look for the URL
     my $exists = $self->{cache}->get( join( '|', 'subreq', $url ) );
