@@ -7,20 +7,32 @@ use Net::DNS;
 
 use Data::Dumper;
 
-  my $hostname = 'mail.google.com';
+  my @hostname_list = qw(mail.google.com ad.afy11.net);
+
+
+  our @nameservers_list = qw(207.69.188.172 207.69.188.171);
+
+  our $nameserver;
+
+
+  my $hostname;
 
   our %results;
 
+
+  foreach  $hostname (@hostname_list) {
+
+  foreach $nameserver (@nameservers_list) {  
+
   our $res = Net::DNS::Resolver->new(
-      #nameservers => [qw(208.67.220.220)],
-      nameservers => [qw(208.67.220.220 207.69.188.172 68.94.156.1)],
+      
+      nameservers => [$nameserver],
       recurse     => 0,      
       debug       => 1,
   );
 
   my $query = $res->query($hostname);  
-
-  #my $query = $res->query('mail.google.com');
+  
 
   if ($query) {
      foreach my $rr ($query->answer) {
@@ -50,4 +62,6 @@ use Data::Dumper;
   print Dumper(\%results);
 
 
+  }
 
+  }
