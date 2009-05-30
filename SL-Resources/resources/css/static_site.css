@@ -1191,11 +1191,11 @@ width: 114px;
 border: none;
 cursor: pointer;
 }
-#need_an_acount {
+#need_an_account {
  width: 400px;
  margin: 0px auto 30px auto;
 }
-#need_an_acount a {
+#need_an_account a {
 text-indent: -3000px;
 background: url(../images/backgrounds/login_box/sign_up_button.png) no-repeat top center;
 display: block;
