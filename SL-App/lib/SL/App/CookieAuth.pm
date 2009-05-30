@@ -58,7 +58,7 @@ sub authenticate {
     # subrequests ok
     unless ( $r->is_initial_req ) {
 
-        $r->log->debug("$$ handling authenticate subrequest") if DEBUG;
+        $r->log->debug("handling authenticate subrequest") if DEBUG;
 
         # FIXME - abstract this out to match auth_ok
         $r->user( $r->prev->user );
@@ -67,7 +67,7 @@ sub authenticate {
         # pass the session from the subrequest
         if ( $r->prev->pnotes('session') ) {
 
-            $r->log->debug( "$$ subrequest previous session "
+            $r->log->debug( "subrequest previous session "
                   . Dumper( $r->prev->pnotes('session') ) )
               if DEBUG;
             $r->pnotes( 'session' => $r->prev->pnotes('session') );
@@ -83,6 +83,13 @@ sub authenticate {
     # user doesn't have a cookie?
     unless ($cookie) {
         $dest .= "/?dest=" . $r->unparsed_uri;
+
+        # replace /login with /home
+        if ( substr($dest, length($dest)-5, length($dest)) ) {
+
+            substr($dest, length($dest)-5, length($dest), 'home');
+        }
+
         $r->log->debug("$$ redirecting to $dest, no cookie present") if DEBUG;
         return $class->redirect_auth( $r, 'No Cookie', $dest );
     }

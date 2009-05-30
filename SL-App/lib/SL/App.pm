@@ -47,22 +47,28 @@ This is the home page
 sub dispatch_index {
     my ( $self, $r ) = @_;
 
+    $r->log->debug("index page") if DEBUG;
+
     if ( $r->user ) {
 
-        $r->log->debug( "$$ authenticated user " . $r->user . " detected" )
+        $r->log->debug(sprintf('authd user %s, redirecting', $r->user))
           if DEBUG;
 
         # authenticated user, send to the dashboard home page
-
         $r->headers_out->set(
             Location => $r->construct_url('/app/home/index') );
+
+        return Apache2::Const::REDIRECT;
+
+    } else {
+
+      $r->log->debug("unknown user, redirecting to login") if DEBUG;
+
+      $r->headers_out->set(
+            Location => $r->construct_url('/app/login') );
+
         return Apache2::Const::REDIRECT;
     }
-
-    my $output;
-    $Tmpl->process( 'index.tmpl', {}, \$output ) ||
-      return $self->error( $r, $Tmpl->error );
-    return $self->ok( $r, $output );
 }
 
 
