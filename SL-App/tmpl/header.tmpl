@@ -45,17 +45,17 @@
 
             [% IF selected !="account" %]
 				 <ul id="nav_dashboard">
-				    <li [% IF selected == 'overview' %]class="selected"[% END %]><a id="button_overview" href="[% base_uri %]/app/home/index">Overview</a></li>
-				    <li [% IF selected == 'network' %]class="selected"[% END %]<a id="button_network" href="[% base_uri %]/app/router/list">Network</a></li>
-				    <li [% IF selected == 'adcenter' %]class="selected"[% END %]><a id="button_banners" href="[% base_uri %]/app/ad/index">Ad Center</a></li>
+				    <li[% IF selected == 'overview' %] class="selected"[% END %]><a id="button_overview" href="[% base_uri %]/app/home/index">Overview</a></li>
+				    <li[% IF selected == 'network' %] class="selected"[% END %]<a id="button_network" href="[% base_uri %]/app/router/list">Network</a></li>
+				    <li[% IF selected == 'adcenter' %] class="selected"[% END %]><a id="button_banners" href="[% base_uri %]/app/ad/index">Ad Center</a></li>
 				    <li><a id="button_kiosk" href="#">Virtual Kiosk</a></li>
 				    <li><a id="button_splash" href="#">Splash Page</a></li>
 				  </ul>
 			[% ELSE %]
-				 <ul id="nav_account" [% IF selected!="account" %]style="display:none;"[% END %]>
-				    <li><a id="button_profile" href="[% base_uri %]/app/settings/account">Profile</a></li>
-				    <li><a id="button_users" href="[% base_uri %]/app/settings/users">Users</a></li>
-				    <li><a id="button_profit" href="[% base_uri %]/app/settings/payment">Profit Center</a></li> 
+				 <ul id="nav_account">
+				    <li[% IF subselected=="profile" %] class="selected"[% END %] ><a id="button_profile" href="[% base_uri %]/app/settings/account">Profile</a></li>
+				    <li[% IF subselected=="users" %]class="selected"[% END %]><a id="button_users" href="[% base_uri %]/app/settings/users">Users</a></li>
+				    <li[% IF subselected=="payment" %]class="selected"[% END %]><a id="button_profit" href="[% base_uri %]/app/settings/payment">Profit Center</a></li> 
 				  </ul>				  
 
               [% END %]
