@@ -19,18 +19,6 @@
 </div>
 <!-- END WRAPPER -->
 
-<script language="javascript" type="text/javascript" src="http://jqueryjs.googlecode.com/files/jquery-1.3.1.js"></script>
-<script type="text/javascript">
-$(document).ready(function(){
-$("#submit").click(function(){
-$("<input disabled='disabled' type='submit' value='Please Wait'>").insertBefore("#submit");
-$(this).hide();	
-}).submit(function(){
-$(this).attr("disabled", "disabled");
-});
-
-});
-</script>
 
 
 <script type="text/javascript">
@@ -42,8 +30,6 @@ zenbox_params.text = "How may we help you? Please fill in details below, and we'
 zenbox_params.tag = "dropbox";
 zenbox_params.url = "silverlining.zendesk.com";
 </script>
-<style type='text/css'>@import url('//assets0.zendesk.com/external/zenbox/overlay.css');</style>
 <script type='text/javascript' src='//assets0.zendesk.com/external/zenbox/overlay.js'></script>
-
 </body>
 </html>
