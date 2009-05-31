@@ -30,7 +30,7 @@
 			[% FOREACH router = routers %]
 				<div class="row">
 					<div class="grid_1 alpha ">
-						<span class="icon_server">[% router.device %]</span>
+						<span class="icon_server [% router.active %]">[% router.device %]</span>
 					</div>
 					
 					<div class="grid_8">
