@@ -4,16 +4,33 @@
 <div id="list_center">
 <div class="content">
 
-<h2>[% PROCESS dashboard.tmpl %] > Manage ads</h2>
+<h2>[% PROCESS dashboard.tmpl %] > Manage Ads</h2>
 
-<hr class="sl_line">
+<hr class="sl_line" style="width: 600px;">
+<p style="text-align: left; padding-bottom: 5px; width: 600px;">
+<h1>Ad Center</h1>
 
-<p>This is the home page for managing ads.</p>
-  <ul>
-  <li><a href="[% base_uri %]/app/ad/groups/list">Edit ad zones</a></li>
-  <li><a href="[% base_uri %]/app/ad/bugs/list">Edit ad zone branding images</a></li>
-</ul>
+[% IF msg %]
+<br />
+<p><font color="red">[% msg %]</font></p>
+[% END %]
 
+
+<br />
+<font color="#666666">This is where you manage the targeting of ads and messages on your Silver Lining<br /> routers.  Click on the links below to edit message bars or ad zones.<br />While you can edit all of these items in this section, you will only be able to<br /> choose one of the three ad types for any given router<br /> (Twitter Feed, Text Entry, or Ad Invocation Code)</font>
+</p>
+<br />
+<div id="edit_form">
+
+<p><a href="[% base_uri %]/app/ad/twitter/index">Twitter Feed Message Bar</a><br /><font color="#666666">Click here to change which Twitter account "Tweets" to your message bar.</font></p>
+<br />
+<p><a href="[% base_uri %]/app/ad/msg/index">Text Entry Message Bar</a><br /><font color="#666666">Click here to manually enter text for your message bar.</font></p>
+<br />
+<p><a href="[% base_uri %]/app/ad/groups/list">OpenX Ad Zones</a><br /><font color="#666666">Click here to edit the ad invocation code for your IAB standard ad banners.</font></p>
+<br />
+<p><a href="[% base_uri %]/app/ad/bugs/list">Branding Images</a><br /><font color="#666666">Click here to edit the branding image displayed on the left side of your<br />messages or ads.</font></p>
+
+</div>
 
 </div>
 </div>

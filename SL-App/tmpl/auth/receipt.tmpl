@@ -4,21 +4,17 @@ Thank you for purchasing WiFi Internet access with [% network_name %].
 
 Billed To:
 [% req.param('first_name') %] [% req.param('last_name') %]
-[% IF ziponly %]Zip Code: [% req.param('zip') %]
-[% ELSE %]
+[% IF ziponly %]Zip Code: [% req.param('zip') %][% ELSE %]
 [% req.param('street') %]
-[% req.param('city') %], [% req.param('state') %] [% req.param('zip') %]
-[% END %]
+[% req.param('city') %], [% req.param('state') %] [% req.param('zip') %][% END %]
 
 ----------------------Purchase Receipt ---------------------
 Description: [% IF !ziponly %]Monthly [% network_name %] WiFi Internet Access [% ELSE %][% plan %] WiFi Internet Access[% END %]
 Date: [% date %]
 Order Number: [% code %]
 Provider: [% network_name %]
--------------------------------------------------------------------------
-
 Total Cost: [% amount %]
-
+-------------------------------------------------------------------------
 [% IF !ziponly %]
 Your credit card will be charged [% amount %] once a month until you
 cancel your subscription.

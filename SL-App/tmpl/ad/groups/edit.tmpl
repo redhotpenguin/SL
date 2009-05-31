@@ -1,10 +1,10 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Add or edit ad zone" %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Add or edit ad zone"  load="changeBugList()" %]
 [% PROCESS left.tmpl %]
 
 <div id="list_center">
 <div class="content">
 
-<h2>[% PROCESS ad/groups/nav.tmpl %] > [% UNLESS ad_zone.ad_zone_id  %]Add a new ad zone[% ELSE %]Edit ad zone '[% ad_zone.name %]'[% END %]</h2>
+<h2>[% PROCESS ad/groups/nav.tmpl %] > [% UNLESS ad_zone.ad_zone_id  %]Create an Ad Zone[% ELSE %]Edit Ad Zone '[% ad_zone.name %]'[% END %]</h2>
 
 <hr class="sl_line">
 
@@ -64,38 +64,6 @@ Ad Zone Name:&nbsp;&nbsp;
 Ad Size:&nbsp;&nbsp;
 [% IF errors.missing.ad_size_id %]</font>[% END %]
 
-<script type="text/javascript">
-function changeBugList() {
-
-    // hide all sub lists
-    for (var i = 1; i < 14; i++) {
-
-        document.getElementById('bug_list_' + i).style.display='none';
-    }
-
-
-    // what ad size is selected?
-    size = document.getElementById('ad_size_id').value;
-
-    if (size != '') {
-        document.getElementById('bug_list_' + size).style.display='block';
-    }
-
-    // show second box for double ad zones
-    if (((size > 6) && (size < 10) ) || ( size == 14 )) {
-        document.getElementById('code_double').style.display='block';
-    } else {
-        document.getElementById('code_double').style.display='none';
-   }
-}
-
-
-function setBugList(ad_size_id) {
-
-    document.getElementById('bug_list_' + ad_size_id).style.display='block';
-}
-</script>
-
 <select [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %]name="ad_size_id" id="ad_size_id" onChange="changeBugList();void 0;">
 
 <option value="" [% IF ! bug.ad_size_id and req.param('ad_size_id') == '' %][% END %]>Select ad zone size</option>
@@ -105,19 +73,22 @@ function setBugList(ad_size_id) {
 
 [% IF loop.prev.grouping != ad_size.grouping %]
 
+[% IF ad_size.grouping != 3 and ad_size.grouping != 2 and ad_size.grouping !=7 %]
 <option value=""></option>
 <option value="">--&nbsp; 
 
 [% IF ad_size.grouping == 1 %]Persistent Leaderboard Options
-
 [% ELSIF ad_size.grouping == 6 %]Persistent Full Banner Options
 [% ELSIF ad_size.grouping == 2 %]Persistent Branding Zone Image
 [% ELSIF ad_size.grouping == 3 %]Splash page Ad
 [% ELSIF ad_size.grouping == 7 %]Persistent Double Combinations[% END %]
 </option>
+
 [% END %]
 
+[% IF ad_size.grouping != 3 and ad_size.grouping != 2 and ad_size.grouping !=7 %]
 <option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size_id.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %]</option>
+[% END %]
 [% END %]
 
 
@@ -254,5 +225,39 @@ Is this Ad Zone active? (To ensure consistency in reporting, ad zones cannot be 
 </div>
 </div>
 </div>
+
+
+<script type="text/javascript">
+function changeBugList() {
+
+    // hide all sub lists
+    for (var i = 1; i < 14; i++) {
+
+        document.getElementById('bug_list_' + i).style.display='none';
+    }
+
+
+    // what ad size is selected?
+    size = document.getElementById('ad_size_id').value;
+
+    if (size != '') {
+        document.getElementById('bug_list_' + size).style.display='block';
+    }
+
+    // show second box for double ad zones
+    if (((size > 6) && (size < 10) ) || ( size == 14 )) {
+        document.getElementById('code_double').style.display='block';
+    } else {
+        document.getElementById('code_double').style.display='none';
+   }
+}
+
+
+function setBugList(ad_size_id) {
+
+    document.getElementById('bug_list_' + ad_size_id).style.display='block';
+}
+</script>
+
 
 [% PROCESS footer.tmpl %]

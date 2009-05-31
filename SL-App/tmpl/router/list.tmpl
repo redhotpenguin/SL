@@ -19,8 +19,15 @@
 	<p class="error">[% msg %]</p>
 	[% END %]
 
+<h1>Manage Routers</h1>
+<br />
+<a href="[% base_uri %]/app/router/edit">Add New Router</a> | <a href="[% base_uri %]/app/router/omsync">Sync Open-Mesh.com Devices</a> | <a href="[% base_uri %]/app/router/adbar">Turn Ad Bar On/Off</a></p>
 
-	<!-- DEVICE LIST -->
+[% IF msg %]
+<p><font color="red">[% msg %]</font></p>
+[% END %]
+	
+<!-- DEVICE LIST -->
 	[% FOREACH router = routers %]
 		<div class="row">
 			<div class="grid_1 alpha ">
@@ -47,6 +54,28 @@
 		</div>
 	[% END %]
 
+<p style="text-align: left; padding-bottom: 5px; width: 600px;"></p>
+
+
+[% IF !routers.0 %]
+
+<p>Oops!  It looks like you don't have any routers added.</p>
+<p>In order to use Silver Lining on your network, you will need to <a href="[% base_uri %]/app/router/edit">add a router.</a></p>
+<p>Or you can <a href="[% base_uri %]/app/router/omsync">sync your Open-Mesh.com devices</a></p>
+[% ELSE %]
+
+<table class="list">
+<tr class="list_header">
+<td class="header">Name</td>
+<td class="header">Mac address</td>
+<td class="header">Device type</td>
+<td class="header">Last seen</td>
+<td class="header">Ad insertions yesterday</td>
+<td class="header">Ad Bar</td>
+</tr>
+
+[% FOREACH router = routers %]
+  <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
 	
 	<!-- REPEATER EXAMPLE -->
 	<div class="row">
@@ -55,7 +84,7 @@
 		</div>
 		<div class="grid_8">
 			<h3><a href="#">Coffee Shop 1 Router</a></h3>
-			<p><strong>linuxbox</strong>, MAC: 00:18:8b:f9:40:6f , <strong>Ad Insertions: 4800</strong></p>
+			<p><strong>[% router.device %]</strong>, MAC: [% router.displaymac %], <strong>Ad Insertions: [% router.views_daily %]</strong></p>
 		</div>
 		<div class="grid_1 omega">
 			<a class="icon_delete right" href="#">Delete</a>
@@ -83,6 +112,4 @@
 		</div>
 	</div>
 </div>
-
-
 [% PROCESS footer.tmpl %]

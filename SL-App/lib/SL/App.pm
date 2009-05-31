@@ -47,8 +47,6 @@ This is the home page
 sub dispatch_index {
     my ( $self, $r ) = @_;
 
-    $r->log->debug("index page") if DEBUG;
-
     if ( $r->user ) {
 
         $r->log->debug(sprintf('authd user %s, redirecting', $r->user))
@@ -58,8 +56,6 @@ sub dispatch_index {
         $r->headers_out->set(
             Location => $r->construct_url('/app/home/index') );
 
-        return Apache2::Const::REDIRECT;
-
     } else {
 
       $r->log->debug("unknown user, redirecting to login") if DEBUG;
@@ -67,10 +63,10 @@ sub dispatch_index {
       $r->headers_out->set(
             Location => $r->construct_url('/app/login') );
 
-        return Apache2::Const::REDIRECT;
     }
-}
 
+        return Apache2::Const::REDIRECT;
+}
 
 
 sub ok {

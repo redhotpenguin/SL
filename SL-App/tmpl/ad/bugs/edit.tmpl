@@ -125,9 +125,15 @@ Ad zone type associated with this branding image:&nbsp;&nbsp;
 
 [% FOREACH ad_size = ad_sizes %]
 
+[% IF ad_size.grouping == 3 || ad_size.grouping == 2 || ad_size.grouping ==7 %][% NEXT %][% END %]
+
 
 [% IF loop.prev.grouping != ad_size.grouping %]
-<option value="">---</option>
+<option value=""></option>
+<option value="">---&nbsp;
+[% IF ad_size.grouping == 1 %]Persistent Leaderboard Options
+[% ELSIF ad_size.grouping == 6 %]Persistent Full Banner Options[% END %]
+</option>
 [% END %]
 
 [% IF ! req.param('ad_size_id') %]

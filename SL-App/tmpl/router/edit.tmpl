@@ -1,4 +1,4 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Create or edit router"  %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Create or edit router"  load="updateRouterForm()" %]
 [% PROCESS left.tmpl %]
 
 <div id="list_center">
@@ -8,7 +8,21 @@
 [% UNLESS router.router_id  %]New router[% ELSE %]Edit router '[% router.name %]'[% END %]</h2>
 <hr class="sl_line">
 
-<h3>[% IF router.name %][% router.name %][% ELSE %]New router[% END %]</h3>
+[% IF !router && (reg.account_id.account_id !=2 ) %]
+<br />
+<h3>Existing Customers</h3>
+<p>Learn about our brand new Silver Lining Repeaters. Our <a href="http://www.silverliningnetworks.com/store/">new repeaters are plug and play</a> and work out of the box!</p>
+<p>If you are already using one or more WRT54GL device, rest assured you are a highly valued customer<br /> and we will continue to support you and your WRT54GL for the life of your account.</p>
+ 
+<br />
+<h3>Open-Mesh.com Users</h3>
+<p>If you have an existing Open-Mesh.com account, <a href="[% base_uri %]/app/router/omsync">click here</a> to sync<br />Silver Lining with your Open-Mesh.com network and update your list of devices.</p>
+<p><a href="http://silverlining.zendesk.com/forums/26828/entries/37866">Click here</a> to learn more about integrating Open-Mesh.com with Silver Lining.</a></p>
+ 
+
+[% ELSE %]
+
+<h3>[% IF router.name %][% router.name %][% ELSE %]Add New Router[% END %]</h3>
 <div id="edit_form">
 
 [% IF errors.missing %]
@@ -25,33 +39,19 @@
 <input type="hidden" name="router_id" value="[% router.router_id %]">
 
 
-
 <!-- device -->
 [% IF errors.missing.device %]<font color="red">[% END %]
 <p>Device Type:&nbsp;&nbsp;
 [% IF errors.missing.device %]</font>[% END %]
-<select name="device">
+<select name="device" id="device" onChange="updateRouterForm(); void 1;">
 
 <option value="" [% IF ! router.device and req.param('device') == '' %][% END %]>Select a device type</option>
-<option value="mr3201a" [% IF req.param('device') == 'mr3201a' or router.device == 'mr3201a' %]SELECTED[% END %]>Accton MR3201A or compatible</option>
-<option value="wrt54gl" [% IF req.param('device') == 'wrt54gl' or router.device == 'wrt54gl' %]SELECTED[% END %]>Linksys WRT54GL or compatible</option>
-<option value="linuxbox" [% IF req.param('device') == 'linuxbox' or router.device =='linuxbox' %]SELECTED[% END %]>Centos 5.2 Linux server or compatible</option>
+<option value="mr3201a" [% IF req.param('device') == 'mr3201a' or router.device == 'mr3201a' %]SELECTED[% END %]>Open-Mesh.com 32MB (MR3201A, OM1P, PicoStation)</option>
+[% IF router || reg.account_id.account_id == 2 %]<option value="wrt54gl" [% IF req.param('device') == 'wrt54gl' or router.device == 'wrt54gl' %]SELECTED[% END %]>Linksys WRT54GL</option>[% END %]
+<!--<option value="linuxbox" [% IF req.param('device') == 'linuxbox' or router.device =='linuxbox' %]SELECTED[% END %]>Centos 5.2 Linux Server</option>-->
 </select></p>
-<p>
-<font color="#CCCCCC"><b>Select an option that best describes your Silver Lining router</b></font></p>
-
-
-<hr class="sl_line">
-
-
-
-
-<!-- name -->
-[% IF errors.missing.name %]<font color="red">[% END %]
-<p>Name:&nbsp;&nbsp;
-[% IF errors.missing.name %]</font>[% END %]
-<input type="text" name = "name" size="45" maxlength="50" value='[% req.param('name') or router.name %]'></p>
-<p><font color="#CCCCCC"><b>100 character limit</b></font></p>
+<p><font color="#CCCCCC"><strong>Silver Lining currently works with only the devices in the list above.</strong></font><br />
+<font color="#CCCCCC"><strong>Greyed out items are controlled from your <a href="http://www.open-mesh.com/dashboard.php">Open-Mesh.com dashboard</a></strong></font></p>
 
 
 <hr class="sl_line">
@@ -64,51 +64,55 @@
 
 [% IF errors.missing.macaddr or errors.invalid.macaddr %]</font>[% END %]
 
-<input type="text" name = "macaddr" size="17" maxlength="17" value='[% req.param('macaddr') or router.displaymac %]'></p>
+<input type="text" name="macaddr" size="17" maxlength="17" value='[% req.param('macaddr') or router.displaymac %]'></p>
 
-<p><font color="#CCCCCC"><b>Example:  00:17:f2:43:38:bd</b></font></p>
+<p><font color="#CCCCCC"><b>Example:  00:12:cf:43:38:bd</b></font></p>
 
 <hr class="sl_line">
+
+
+<!-- name -->
+[% IF errors.missing.name %]<font color="red">[% END %]
+<p>Name:&nbsp;&nbsp;
+[% IF errors.missing.name %]</font>[% END %]
+<input type="text" id="name" name="name" size="45" maxlength="50" value='[% req.param('name') or router.name %]'></p>
+<p><font color="#CCCCCC"><b>100 character limit</b></font></p>
 
 <!-- SSID -->
 [% IF errors.missing.ssid %]<font color="red">[% END %]
 <p>SSID:&nbsp;&nbsp;
 [% IF errors.missing.ssid %]</font>[% END %]
 <input type="text" name = "ssid" size="25" maxlength="25" value='[% req.param('ssid') or router.ssid %]'></p>
-<p<font color="#CCCCCC"><b>Allow up to a minute to take effect, Linksys WRT54GL only</b></font></p>
-
+<p><font color="#CCCCCC"><b>Allow up to a minute to take effect, Linksys WRT54GL only</b></font></p>
+<p<font color="#CCCCCC"><b>Allow up to five minutes to take effect</b></font></p>
 
 <hr class="sl_line">
 
 
-
-
-
+<div id="serial" style="display:none;">
 <!-- serial number -->
 <p>
 [% IF errors.missing.serial_number or errors.invalid.serial_number %]<font color="red">[% END %]
 Serial number or service tag:&nbsp;&nbsp;
 [% IF errors.missing.serial_number or errors.invalid.serial_number %]</font>[% END %]
-<input type="text" name="serial_number" size="25" maxlength="25" value='[% req.param('serial_number') or router.serial_number %]'></p>
+<input type="text" id="serial_number" name="serial_number" size="25" maxlength="25" value='[% req.param('serial_number') or router.serial_number %]'></p>
 <p><font color="#CCCCCC"><b>Optional, to determine router model compatibility, example CL7A0F318014</b></font></p>
 
-
 <hr class="sl_line">
-
+</div>
  
+
 <!-- splash page -->
 <p>
 [% IF errors.missing.splash_href or errors.invalid.splash_href %]<font color="red">[% END %]
 Splash page url:&nbsp;&nbsp;
 [% IF errors.missing.splash_href or errors.invalid.splash_href %]</font>[% END %]
-<input type="text" name="splash_href" size="45" maxlength="255" value='[% req.param('splash_href') or router.splash_href %]'></p>
-<p><font color="#CCCCCC"><b>Example:  http://www.silverliningnetworks.com/network/</b></font></p>
+<input type="text" id="splash_href" name="splash_href" size="45" maxlength="255" value='[% req.param('splash_href') or router.splash_href %]'></p>
+<p><font color="#CCCCCC"><b>Example:  http://silverliningworks.typepad.com/network/</b></font></p>
 <p><font color="#CCCCCC"><b>Linksys WRT54GL and Linux server only<b></font></p>
 
 
 <hr class="sl_line">
-
-
 
 
 <!-- splash page timeout -->
@@ -116,16 +120,52 @@ Splash page url:&nbsp;&nbsp;
 [% IF errors.missing.splash_timeout or errors.invalid.splash_timeout %]<font color="red">[% END %]
 Splash page timeout:&nbsp;&nbsp;
 [% IF errors.missing.splash_timeout or errors.invalid.splash_timeout %]</font>[% END %]
-<input type="text" name="splash_timeout" size="3" maxlength="3" value='[% req.param('splash_timeout') or router.splash_timeout or '20' %]'></p>
+<input type="text" id="splash_timeout" name="splash_timeout" size="3" maxlength="3" value='[% req.param('splash_timeout') or router.splash_timeout or '20' %]'></p>
 <p><font color="#CCCCCC"><b>Number of inactive minutes before splash page is shown</b></font></p>
 
 <hr class="sl_line">
 
-
-
-
 <!-- ad zones -->
-<p>Ad zones associated with this router</p>
+
+<p>Select one of the following three options for display on this router</p>
+
+[% IF msg_zone %]
+
+<p><input id="text" type="radio" name="zone_type" value="msg" [% IF msg_zone.selected %]checked="1"[% END %] onChange="updateZones(); void 0;"/>&nbsp;1 - Use Text Entry Message Bar</p>
+<p>[% reg.account_id.text_message %]</p>
+
+[% ELSE %]
+
+<p><input id="text" type="radio" name="zone_type" value="msg" disabled="1" />&nbsp;<strong>1 - Configure your <a href="[% base_uri %]/app/ad/msg/index">Text Message Bar</a> to enable a Text Message in your message bar.</strong></p>
+
+[% END %]
+
+<br /><br />
+
+
+
+[% IF twit_zone %]
+
+<p><input id="twitter" type="radio" name="zone_type" value="twitter" [% IF twit_zone.selected %]checked="1"[% END %] onChange="updateZones(); void 0;"/>&nbsp;2 - Use Twitter Feed</p>
+
+<br />
+<div id="twitter_div">
+<span id="twitter_update_list"></span>
+</div>
+<script type="text/javascript" src="http://s2.slwifi.com/js/blogger.js"></script>
+<script type="text/javascript" src="http://twitter.com/statuses/user_timeline/[% reg.account_id.twitter_id %].json?callback=twitterCallback2&count=1"></script>
+
+
+[% ELSE %]
+
+<p><input id="twitter" type="radio" name="zone_type" value="twitter" disabled="1" />&nbsp;<strong>2 - Configure your <a href="[% base_uri %]/app/ad/twitter/index">Twitter Feed</a> to enable Twitter in your message bar.</strong></p>
+
+[% END %]
+
+<br /><br />
+
+
+<p><input id="iab" type="radio" name="zone_type" value="iab" [% IF !twit_zone.selected and !msg_zone.selected %]checked="1"[% END %]/>&nbsp;3 - Use Ad Server Ad Zones</p>
 <p>
 <table>
 [% IF ad_zones %]
@@ -141,9 +181,36 @@ Splash page timeout:&nbsp;&nbsp;
 <p>You have not created any ad zones, please <a href="/app/ad/groups/list">create a few</a> to serve ads on this router</p>
 [% END %]
 
-<br />
 
-<input type="Submit" value="Save router settings">
+<br />
+<hr class="sl_line">
+
+
+<!-- adbar -->
+
+<p>Ad Bar:&nbsp;&nbsp;On<input type="radio" name="adserving" value="t" [% IF router.adserving == 1 %]checked[% END %]>&nbsp;
+Off<input type="radio" name="adserving" value="f" [% IF ad_zone.adserving == 0 %] checked [% END %]></p>
+
+<p><font color="#CCCCCC">Turn the ad and messaging bar On or Off.  Takes 5-15 minutes to take effect.</font></p>
+
+<!-- end adbar -->
+<hr class="sl_line">
+
+
+
+<!-- active -->
+
+<p>Active:&nbsp;&nbsp;Yes<input type="radio" name="active" value="t" [% IF router.active ==1 %]checked[% END %]>&nbsp;
+No<input type="radio" name="active" value="f" [% IF ad_zone.active == 0 %] checked [% END %]></p>
+
+<p><font color="#CCCCCC">
+Is this router active? (To ensure consistency in reporting, routers cannot be deleted, just hidden)
+</font></p>
+
+<!-- end active -->
+<hr class="sl_line">
+
+<input id="submit" type="Submit" value="Save router settings">
 
 </form>
 
@@ -161,7 +228,45 @@ Splash page timeout:&nbsp;&nbsp;
 
 [% END %]
 
+
+
 </div>
 </div>
+
+[% END %]
 </div>
+
+
+<script type="text/javascript">
+function updateRouterForm() {
+
+    device = document.getElementById('device').value;
+
+    if (device == 'mr3201a' || device == '') {
+        document.getElementById('ssid').disabled=true;
+        document.getElementById('name').disabled=true;
+        document.getElementById('splash_href').disabled=true;
+        document.getElementById('splash_timeout').disabled=true;
+        document.getElementById('serial_number').disabled=true;
+ 
+    } else {
+        document.getElementById('ssid').disabled=false;
+        document.getElementById('name').disabled=false;
+        document.getElementById('splash_href').disabled=false;
+        document.getElementById('splash_timeout').disabled=false;
+        document.getElementById('serial_number').disabled=false;
+        document.getElementById('serial').display=block;
+    }
+}
+
+function updateZones() {
+
+    adzones=document.getElementsByName('ad_zone');
+    for (var i=0;i<adzones.length-1;i++) {
+        adzones[i].checked=false;
+    }
+}
+</script>
+
+
 [% PROCESS footer.tmpl %]

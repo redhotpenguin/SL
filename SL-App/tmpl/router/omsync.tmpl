@@ -1,4 +1,6 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Create or edit router"  load="updateRouterForm()" %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Create or edit router" %]
+
+
 [% PROCESS left.tmpl %]
 
 <div id="list_center">
@@ -35,12 +37,12 @@
 
 [% IF errors.missing.password %]<font color="red">[% END %]
 <p>Network Password:&nbsp;&nbsp;
-[% IF errors.missing.name %]</font>[% END %]
+[% IF errors.missing.password %]</font>[% END %]
 <input type="password"  name="password" size="20" maxlength="50" value='[% req.param('password')  %]'></p>
 <p><font color="#CCCCCC"><b>Password to your Open-Mesh.com network (not stored on our system)</b></font></p>
 <br />
 
-<input type="Submit" value="Sync Open-Mesh.com Devices" onClick="this.disabled=true">
+<input id="submit" type="Submit" value="Sync Open-Mesh.com Devices">
 
 </form>
 

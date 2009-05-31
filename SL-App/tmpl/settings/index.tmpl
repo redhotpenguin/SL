@@ -6,17 +6,27 @@
 
 <h2>[% PROCESS settings/nav.tmpl %] > Manage account '[% reg.account_id.name %]'</h2>
 <hr class="sl_line">
+<p style="text-align: left; padding-bottom: 5px; width: 600px;">
+<h1>Manage Account '[% reg.account_id.name %]'</h1>
+<br />
+
 
 [% IF msg %]
 <p><font color="red">[% msg %]</font></p>
 <p><hr class="sl_line"></p>
 [% END %]
 
-<h3>Manage account '[% reg.account_id.name %]'</h3>
-<hr class="sl_line">
-<p><a href="[% base_uri %]/app/settings/account">My info</a></p>
-<p><a href="[% base_uri %]/app/settings/payment">Payment</a></p>
+<p><a href="[% base_uri %]/app/settings/account">Change Login Info</a></p>
+[% IF reg.account_id.account_id == 1 or reg.account_id.account_id ==2 or reg.account_id.account_id == 21 %]
 <p><a href="[% base_uri %]/app/settings/users">Users</a></p>
+<p><a href="[% base_uri %]/app/settings/payment">Payment</a></p>
+[% END %]
+
+<p>Your current subscription rate: <strong><font color="black">$[% IF reg.account_id.plan == 'enterprise' %]249 (Enterprise)[% ELSIF reg.account_id.plan == 'premium' %]99 (Premium)[% ELSIF reg.account_id.plan == 'plus' %]24 (Plus)[% ELSIF reg.account_id.plan == 'basic' %]5 (Basic)[% ELSIF reg.account_id.plan == 'free' %]0 (Free)[% END %]</font></strong></p>
+<p>To change your subscription plan, just <a href="http://www.silverliningnetworks.com/pricing/?email=[% reg.email %]">click here to view subscription plans</a> and use <strong><font color="black">[% reg.email %]</font></strong> when you select a different plan.</p>
+
+<p>You can cancel at anytime.  To cancel your subscription, email <a href="mailto:support@silverliningnetworks.com">support@silverliningnetworks.com</a> and we will notify you promptly once your subscription is canceled.</p>
+
 
 <p><hr class="sl_line"></p>
 
@@ -43,12 +53,6 @@
 <hr class="sl_line">
 
 [% END %]
-
-<h3>Service Uptime</h3>
-<br />
-<iframe width="480" height="340" align="middle" src="https://www.siteuptime.com/prem_statistics.php?Id=617&&UserId=87549">
-
-
 
 
 

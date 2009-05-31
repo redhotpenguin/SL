@@ -87,7 +87,7 @@ sub authenticate {
         # replace /login with /home
         if ( substr($dest, length($dest)-5, length($dest)) ) {
 
-            substr($dest, length($dest)-5, length($dest), 'home');
+            substr($dest, length($dest)-5, length($dest), 'home/index');
         }
 
         $r->log->debug("$$ redirecting to $dest, no cookie present") if DEBUG;

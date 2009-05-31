@@ -1,4 +1,4 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Create or edit router"  load="updateRouterForm()" %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Create or edit router"  %]
 [% PROCESS left.tmpl %]
 
 <div id="list_center">
@@ -7,30 +7,30 @@
 <h2>[% PROCESS router/nav.tmpl %] > Turn Ad Bar On/Off</h2>
 <hr class="sl_line">
 <br />
-<h1>Turn Ad Bar On/Off</h1>
+<h1>Turn Ad Bar On/Off for All Routers</h1>
 <div id="edit_form">
 
 [% IF errors.missing %]
 <p><font color="red">Please choose On or Off</font></p>
 [% END %]
 
-<p>This switch controls the ad bar on all routers.</p>
+<p>This master switch toggles the ad and messaging bar on ALL routers.</p>
 <ul>
 <li>Choosing "Off" will turn off the ad bar on every router.</li>
 <li>Choosing "On" will turn on the ad bar on every router.</li>
 </ul>
-<p>This change will take 5 to 15 minutes to take effect.<br />Individual on/off functionality per router coming soon.</p>
+<p>This change will take 5 to 15 minutes to take effect.  You may toggle adserving for individual routers on the edit router page.</p>
 <br />
 
 <div class="edit_form">
-<form method="POST" action="[% base_uri %]/app/router/adbar">
+<form id="adbar" method="POST" action="[% base_uri %]/app/router/adbar">
 
 <select name="adbar">
 	<option value="" selected="selected">On or Off?</option>
 <option value="t">On</option>
 <option value="f">Off</option>
 </select>
-<input type="Submit" value="Make it so" onClick="this.disabled=true">
+&nbsp;<input id="submit" type="Submit" value="Make it so">
 
 </form>
 
