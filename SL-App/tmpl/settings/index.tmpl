@@ -1,62 +1,44 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage account" selected="account" %]
+<div class="grid_10 suffix_1">	
+	<p>[% PROCESS settings/nav.tmpl %] > Manage account '[% reg.account_id.name %]'</p>
+	<h2>Manage Account '[% reg.account_id.name %]'</h2>
+	
+	[% IF msg %]
+	<p class="error">[% msg %]</p>
+	[% END %]
 
 
-<div id="center">
-<div class="content">
-
-<h2>[% PROCESS settings/nav.tmpl %] > Manage account '[% reg.account_id.name %]'</h2>
-<hr class="sl_line">
-<p style="text-align: left; padding-bottom: 5px; width: 600px;">
-<h1>Manage Account '[% reg.account_id.name %]'</h1>
-<br />
-
-
-[% IF msg %]
-<p><font color="red">[% msg %]</font></p>
-<p><hr class="sl_line"></p>
-[% END %]
-
-<p><a href="[% base_uri %]/app/settings/account">Change Login Info</a></p>
-[% IF reg.account_id.account_id == 1 or reg.account_id.account_id ==2 or reg.account_id.account_id == 21 %]
-<p><a href="[% base_uri %]/app/settings/users">Users</a></p>
-<p><a href="[% base_uri %]/app/settings/payment">Payment</a></p>
-[% END %]
-
-<p>Your current subscription rate: <strong><font color="black">$[% IF reg.account_id.plan == 'enterprise' %]249 (Enterprise)[% ELSIF reg.account_id.plan == 'premium' %]99 (Premium)[% ELSIF reg.account_id.plan == 'plus' %]24 (Plus)[% ELSIF reg.account_id.plan == 'basic' %]5 (Basic)[% ELSIF reg.account_id.plan == 'free' %]0 (Free)[% END %]</font></strong></p>
-<p>To change your subscription plan, just <a href="http://www.silverliningnetworks.com/pricing/?email=[% reg.email %]">click here to view subscription plans</a> and use <strong><font color="black">[% reg.email %]</font></strong> when you select a different plan.</p>
-
-<p>You can cancel at anytime.  To cancel your subscription, email <a href="mailto:support@silverliningnetworks.com">support@silverliningnetworks.com</a> and we will notify you promptly once your subscription is canceled.</p>
+	[% IF reg.root %]
+		<form method="POST" action="[% base_uri %]/app/settings/root">
+			<select name="account_id" id="account_id">
+			[% FOREACH account = accounts %]
+				<option value="[% account.account_id %]" [% IF reg.account_id.account_id == account.account_id %]SELECTED[% END %]>[% account.name %]</option>
+			[% END %]
+			</select>
+			<input type="submit" value="Account">
+		</form>
+	[% END %]
+	
+		
+	<p>Your current subscription rate: <strong><font color="black">$[% IF reg.account_id.plan == 'enterprise' %]249 (Enterprise)[% ELSIF reg.account_id.plan == 'premium' %]99 (Premium)[% ELSIF reg.account_id.plan == 'plus' %]24 (Plus)[% ELSIF reg.account_id.plan == 'basic' %]5 (Basic)[% ELSIF reg.account_id.plan == 'free' %]0 (Free)[% END %]</font></strong></p>
+	<p>To change your subscription plan, just <a href="http://www.silverliningnetworks.com/pricing/?email=[% reg.email %]">click here to view subscription plans</a> and use <strong><font color="black">[% reg.email %]</font></strong> when you select a different plan.</p>
+	
+	<p>You can cancel at anytime.  To cancel your subscription, email <a href="mailto:support@silverliningnetworks.com">support@silverliningnetworks.com</a> and we will notify you promptly once your subscription is canceled.</p>
+	
+</div>
 
 
-<p><hr class="sl_line"></p>
+<div id="secondary_content" class="grid_5">
+	<div id="sc_top">
+		<div id="sc_bottom">
+				<p><a href="[% base_uri %]/app/settings/account">Change Login Info</a></p>
+				[% IF reg.account_id.account_id == 1 or reg.account_id.account_id ==2 or reg.account_id.account_id == 21 %]
+				<p><a href="[% base_uri %]/app/settings/users">Users</a></p>
+				<p><a href="[% base_uri %]/app/settings/payment">Payment</a></p>
+				[% END %]
 
-[% IF reg.root %]
-<form method="POST" action="[% base_uri %]/app/settings/root">
-
-
-<p>
-<select name="account_id" id="account_id">
-
-[% FOREACH account = accounts %]
-
-<option value="[% account.account_id %]" [% IF reg.account_id.account_id == account.account_id %]SELECTED[% END %]>[% account.name %]</option>
-
-[% END %]
-</select>
-&nbsp;
-<input type="submit" value="Account">
-</form>
-
-</p>
-
-
-<hr class="sl_line">
-
-[% END %]
-
-
-
-    </div>
+		</div>
+	</div>
 </div>
 
 
