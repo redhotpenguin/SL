@@ -192,7 +192,15 @@ background: url(../images/icons/application/credit_card.png) 10px center no-repe
 #button_splash {
 background: url(../images/icons/application/window.png) 10px center no-repeat;
 }
-
+#button_profile {
+background: url(../images/icons/application/user.png) 10px center no-repeat;
+}
+#button_users {
+background: url(../images/icons/application/users.png) 10px center no-repeat;
+}
+#button_profit {
+background: url(../images/icons/application/cash.png) 10px center no-repeat;
+}
 
 /* SIDE CONTENT
 ============================================= */
