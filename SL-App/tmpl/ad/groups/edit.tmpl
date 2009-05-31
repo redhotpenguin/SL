@@ -1,5 +1,4 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Add or edit ad zone"  load="changeBugList()" %]
-[% PROCESS left.tmpl %]
 
 <div id="list_center">
 <div class="content">
@@ -10,16 +9,7 @@
 
 <div id="edit_form">
 
-<p>
-[% IF ad_zone.ad_zone_id %]
-[% IF ad_zone.public == 1  && reg.root != 1 %]
-<h2><font color="red">Read Only Ad Zone '[% ad_zone.name %]'</font></h2>
-[% ELSE %]
-	<h2>You are editing ad zone '[% ad_zone.name %]'</h2>[% END %]
-[% ELSE %]
-	<h2>You are adding a new ad zone</h2>
-[% END %]
-</p>
+<p><h2>[% IF ad_zone.ad_zone_id %]You are editing ad zone '[% ad_zone.name %]'[% ELSE%]<h2>You are adding a new ad zone[% END %]</h2></p>
 
 
 [% IF status == 'update_ok' %]
@@ -39,9 +29,7 @@
 <hr class="sl_line">
 
 
-[% IF ! ad_zone.public or reg.root != 1 %]
 <form method="POST" action="[% base_uri %]/app/ad/groups/edit">
-[% END %]
 
 <!-- name -->
 <p>
@@ -72,10 +60,12 @@ Ad Size:&nbsp;&nbsp;
 [% FOREACH ad_size = ad_sizes %]
 
 [% IF loop.prev.grouping != ad_size.grouping %]
-
+[% END %]
 [% IF ad_size.grouping != 3 and ad_size.grouping != 2 and ad_size.grouping !=7 %]
 <option value=""></option>
 <option value="">--&nbsp; 
+[% END %]
+
 
 [% IF ad_size.grouping == 1 %]Persistent Leaderboard Options
 [% ELSIF ad_size.grouping == 6 %]Persistent Full Banner Options
@@ -86,10 +76,11 @@ Ad Size:&nbsp;&nbsp;
 
 [% END %]
 
+
 [% IF ad_size.grouping != 3 and ad_size.grouping != 2 and ad_size.grouping !=7 %]
 <option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size_id.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %]</option>
 [% END %]
-[% END %]
+
 
 
 </select>
@@ -210,17 +201,15 @@ Is this Ad Zone active? (To ensure consistency in reporting, ad zones cannot be 
 <hr class="sl_line">
 
 
-
-
 [% IF ! ad_zone.public  or reg.root == 1 %]
 <input type="submit" value="Save ad zone">
+[% END %]
 
 [% IF ad_zone.ad_zone_id %]
 <input type="hidden" name="id" value="[% ad_zone.ad_zone_id %]">
 [% END %]
 
 </form>
-[% END %]
 
 </div>
 </div>
