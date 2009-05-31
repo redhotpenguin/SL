@@ -26,6 +26,17 @@
 [% IF msg %]
 <p><font color="red">[% msg %]</font></p>
 [% END %]
+
+
+[% IF !routers.0 %]
+
+<p>Oops!  It looks like you don't have any routers added.</p>
+<p>In order to use Silver Lining on your network, you will need to <a href="[% base_uri %]/app/router/edit">add a router.</a></p>
+<p>Or you can <a href="[% base_uri %]/app/router/omsync">sync your Open-Mesh.com devices</a></p>
+
+[% ELSE %]
+
+
 	
 <!-- DEVICE LIST -->
 	[% FOREACH router = routers %]
@@ -56,45 +67,7 @@
 
 <p style="text-align: left; padding-bottom: 5px; width: 600px;"></p>
 
-
-[% IF !routers.0 %]
-
-<p>Oops!  It looks like you don't have any routers added.</p>
-<p>In order to use Silver Lining on your network, you will need to <a href="[% base_uri %]/app/router/edit">add a router.</a></p>
-<p>Or you can <a href="[% base_uri %]/app/router/omsync">sync your Open-Mesh.com devices</a></p>
-[% ELSE %]
-
-<table class="list">
-<tr class="list_header">
-<td class="header">Name</td>
-<td class="header">Mac address</td>
-<td class="header">Device type</td>
-<td class="header">Last seen</td>
-<td class="header">Ad insertions yesterday</td>
-<td class="header">Ad Bar</td>
-</tr>
-
-[% FOREACH router = routers %]
-  <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
-	
-	<!-- REPEATER EXAMPLE -->
-	<div class="row">
-		<div class="grid_1 alpha ">
-			<span class="icon_repeater">Router</span>
-		</div>
-		<div class="grid_8">
-			<h3><a href="#">Coffee Shop 1 Router</a></h3>
-			<p><strong>[% router.device %]</strong>, MAC: [% router.displaymac %], <strong>Ad Insertions: [% router.views_daily %]</strong></p>
-		</div>
-		<div class="grid_1 omega">
-			<a class="icon_delete right" href="#">Delete</a>
-			<div class="clear"></div>
-		</div>
-		<div class="clear"></div>
-	</div>								
-	
-</div>
-
+[% END %]
 
 <div id="secondary_content" class="grid_5">
 	<div id="sc_top">
