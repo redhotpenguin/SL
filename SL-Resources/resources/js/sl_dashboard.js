@@ -11,4 +11,12 @@ $(document).ready(function(){
 		$(this).addClass('selected');
 	});
 	
+	//SUBMIT FORM DISABLE BUTTON
+	$("#submit").click(function(){
+	$("<input disabled='disabled' type='submit' value='Please Wait'>").insertBefore("#submit");
+	$(this).hide();	
+	}).submit(function(){
+	$(this).attr("disabled", "disabled");
+	});
+	
 });
