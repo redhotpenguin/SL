@@ -6,7 +6,7 @@
   font-weight: bold; height:18px; border: solid 2px #000; 
 }
 #zenbox_main #overlay_header span {
-  float:right; height:20px; padding-right:20px; background: transparent url(/external/zenbox/images/close.png) no-repeat 33px 0; 
+  float:right; height:20px; padding-right:20px; background: transparent url(../images/icons/application/close.png) no-repeat 33px 0; 
   text-decoration:underline; font-size:11px; cursor:pointer; color: #fff; 
 }
 
