@@ -61,7 +61,7 @@ sub dispatch_index {
       $r->log->debug("unknown user, redirecting to login") if DEBUG;
 
       $r->headers_out->set(
-            Location => $r->construct_url('/app/login') );
+            Location => $r->construct_url('/login') );
 
     }
 
