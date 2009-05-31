@@ -13,11 +13,16 @@
 	
 	
 	<hr class="sl_line">
-		<h3>Blog&nbsp;&nbsp;<a href="http://www.silverliningnetworks.com/blog/rss/"><img alt="Subscribe to the Blog" height="15" src="http://forums.silverliningnetworks.com/images/feed-icon.png?1219278561" width="15" border="0"/></a></h3>
+		<h2>
+			Blog 
+				<a href="http://www.silverliningnetworks.com/blog/rss/">
+			<img alt="Subscribe to the Blog" height="15" src="http://forums.silverliningnetworks.com/images/feed-icon.png?1219278561" width="15" border="0"/>
+			</a>
+		</h2>
 
 	[% FOREACH item = rss %]
-		<h2><a href="[% item.link %]">[% item.title %]</a>&nbsp;&nbsp;[% item.date %]</h2>
-		[% item.content %]
+		<h3><a href="[% item.link %]">[% item.title %]</a>&nbsp;&nbsp;[% item.date %]</h3>
+		<p>[% item.content %]</p>
 	[% END %]
 	
 	

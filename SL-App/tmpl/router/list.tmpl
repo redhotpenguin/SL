@@ -18,60 +18,53 @@
 	[% IF msg %]
 	<p class="error">[% msg %]</p>
 	[% END %]
-
-<h1>Manage Routers</h1>
-<br />
-<a href="[% base_uri %]/app/router/edit">Add New Router</a> | <a href="[% base_uri %]/app/router/omsync">Sync Open-Mesh.com Devices</a> | <a href="[% base_uri %]/app/router/adbar">Turn Ad Bar On/Off</a></p>
-
-[% IF msg %]
-<p><font color="red">[% msg %]</font></p>
-[% END %]
-
-
-[% IF !routers.0 %]
-
-<p>Oops!  It looks like you don't have any routers added.</p>
-<p>In order to use Silver Lining on your network, you will need to <a href="[% base_uri %]/app/router/edit">add a router.</a></p>
-<p>Or you can <a href="[% base_uri %]/app/router/omsync">sync your Open-Mesh.com devices</a></p>
-
-[% ELSE %]
-
-
 	
-<!-- DEVICE LIST -->
-	[% FOREACH router = routers %]
-		<div class="row">
-			<div class="grid_1 alpha ">
-				<span class="icon_server">[% router.device %]</span>
-			</div>
-			
-			<div class="grid_8">
-				<h3><a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">[% router.name or 'unnamed' %]</a></h3>
-				<p>
-					<strong>[% router.device %]</strong>, 
-					MAC: [% router.macaddr %], 
-					SSID: [% router.ssid or '?'  %], 
-					Last seen:[% router.last_seen or '?'  %],  
-					<strong>Ad views yesterday: [% router.views_daily  %]</strong>
-				</p>
-			</div>
-			
-			<div class="grid_1 omega">
-				<a class="icon_delete right" href="#">Delete</a>
-				<div class="clear"></div>
-			</div>
 	
-			<div class="clear"></div>
-		</div>
+	[% IF !routers.0 %]
+			<p>Oops!  It looks like you don't have any routers added.</p>
+			<p>In order to use Silver Lining on your network, you will need to <a href="[% base_uri %]/app/router/edit">add a router.</a></p>
+			<p>Or you can <a href="[% base_uri %]/app/router/omsync">sync your Open-Mesh.com devices</a></p>
+		[% ELSE %]
+	
+			<!-- DEVICE LIST -->
+			[% FOREACH router = routers %]
+				<div class="row">
+					<div class="grid_1 alpha ">
+						<span class="icon_server">[% router.device %]</span>
+					</div>
+					
+					<div class="grid_8">
+						<h3><a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">[% router.name or 'unnamed' %]</a></h3>
+						<p>
+							<strong>[% router.device %]</strong>, 
+							MAC: [% router.macaddr %], 
+							SSID: [% router.ssid or '?'  %], 
+							Last seen:[% router.last_seen or '?'  %],  
+							<strong>Ad views yesterday: [% router.views_daily  %]</strong>
+						</p>
+					</div>
+					
+					<div class="grid_1 omega">
+						<a class="icon_delete right" href="#">Delete</a>
+						<div class="clear"></div>
+					</div>
+			
+					<div class="clear"></div>
+				</div>
+			[% END %]
 	[% END %]
-
-<p style="text-align: left; padding-bottom: 5px; width: 600px;"></p>
-
-[% END %]
+</div>
 
 <div id="secondary_content" class="grid_5">
 	<div id="sc_top">
 		<div id="sc_bottom">
+			<!-- Device Options -->
+			<ul>
+				<li><a href="[% base_uri %]/app/router/edit">Add New Router</a>				 </li>
+				<li><a href="[% base_uri %]/app/router/omsync">Sync Open-Mesh.com Devices</a></li>
+				<li><a href="[% base_uri %]/app/router/adbar">Turn Ad Bar On/Off</a>		 </li>
+			</ul>		
+			
 			<h3>Silver Lining News</h3>
 			<p>
 				Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
@@ -85,4 +78,5 @@
 		</div>
 	</div>
 </div>
+
 [% PROCESS footer.tmpl %]
