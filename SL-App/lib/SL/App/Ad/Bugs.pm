@@ -57,7 +57,8 @@ sub dispatch_edit {
             errors => $args_ref->{errors},
             req    => $req,
             ad_sizes => [ sort { $a->grouping <=> $b->grouping } 
-				SL::Model::App->resultset('AdSize')->all ],
+				SL::Model::App->resultset('AdSize')->search({
+                                          persistent => 1 }) ],
         );
 
         $TMPL->process( 'ad/bugs/edit.tmpl', \%tmpl_data, \$output, $r ) ||
@@ -69,9 +70,8 @@ sub dispatch_edit {
 
         # validate input
         my %bug_profile = (
-            required           => [qw( ad_size_id link_href image_href )],
+            required  => [qw( ad_size_id link_href image_href active )],
             constraint_methods => {
-
                 link_href  => SL::App::valid_link(),
                 image_href => [
                     SL::App::valid_link(),
@@ -106,7 +106,7 @@ sub dispatch_edit {
     }
 
     # add arguments
-    foreach my $param qw( link_href image_href ad_size_id ) {
+    foreach my $param qw( link_href image_href ad_size_id active ) {
         $bug->$param( $req->param($param) );
     }
     $bug->account_id( $reg->account_id->account_id );
@@ -127,7 +127,8 @@ sub dispatch_list {
 
     my @bugs = sort { $b->mts cmp $a->mts }
       SL::Model::App->resultset('Bug')
-      ->search( { account_id => $reg->account_id->account_id } );
+      ->search( { account_id => $reg->account_id->account_id,
+                  active     => 't', } );
 
     my $msg = delete $r->pnotes('session')->{msg};
 

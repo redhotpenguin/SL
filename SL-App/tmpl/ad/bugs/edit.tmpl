@@ -3,7 +3,6 @@
 <div id="list_center">
 	<div class="content">
 
-<h2>[% PROCESS ad/bugs/nav.tmpl %] > 
 [% UNLESS bug.bug_id  %]New branding image[% ELSE %]Edit existing branding image[% END %]</h2>
 
 <hr class="sl_line">
@@ -20,6 +19,7 @@
 <h2>Create a new branding image</h2></td></tr>
 [% END %]
 </td></tr>
+
 
 
 [% IF errors.missing %]
@@ -80,11 +80,12 @@ Example http://www.silverliningnetworks.com/images/silver-lining-ad-bar.gif
 <img border="1" src="[% req.param('image_href') or bug.image_href %]">&nbsp;&nbsp;[% bug.ad_size_id.bug_width %]px wide by [% bug.ad_size_id.bug_height %]px tall</td></tr>
 [% END %]
 
+<tr><td colspan=2><hr class="sl_line"></td></tr>
+
 <!-- end image_href -->
 
 
 
-<tr><td colspan=2><hr class="sl_line"></td></tr>
 
 
 
@@ -108,16 +109,23 @@ Example http://www.silverliningnetworks.com/?referer=silverlining</font></td></t
 
 [% IF bug.link_href %]
 <tr><td colspan=2><a href="[% bug.link_href %]">Branding image link</a></td></tr>[% END %]
-<!-- end link_href -->
 
 <tr><td colspan=2><hr class="sl_line"></td></tr>
+<!-- end link_href -->
+
+
+
+
 
 
 <!-- ad_size -->
+
 <tr><td colspan=2>
 [% IF errors.missing.ad_size_id %]<font color="red">[% END %]
 Ad zone type associated with this branding image:&nbsp;&nbsp;
 [% IF errors.missing.ad_size_id %]</font>[% END %]
+
+[% bug.ad_size_id.ad_size_id %]
 <select name="ad_size_id">
 
 <option value="" [% IF ! bug.ad_size_id and req.param('ad_size_id') == '' %]SELECTED[% END %]>Select Ad Format</option>
@@ -145,6 +153,28 @@ Ad zone type associated with this branding image:&nbsp;&nbsp;
 [% END %]
 </select>
 </td></tr>
+<!-- end ad size -->
+
+
+
+
+<!-- active -->
+
+<p>Active:&nbsp;&nbsp;Yes<input type="radio" name="active" value="t" [% IF (bug.active == 1) or (! bug) %]checked[% END %]>&nbsp;
+No<input type="radio" name="active" value="f" [% IF bug.active == 0 %] checked [% END %]></p>
+
+<p><font color="#CCCCCC">
+Click No to remove this branding image from the active list.
+</font></p>
+
+<hr class="sl_line">
+
+
+<!-- end active -->
+
+
+
+
 
 <tr><td colspan=2>
 <font color="#CCCCCC">Choose the ad zone type which this image is associated with.</font>

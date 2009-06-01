@@ -50,8 +50,9 @@
 				    <li[% IF selected == 'overview' %] class="selected"[% END %]><a id="button_overview" href="[% base_uri %]/app/home/index">Overview</a></li>
 				    <li[% IF selected == 'network' %] class="selected"[% END %]<a id="button_network" href="[% base_uri %]/app/router/list">Network</a></li>
 				    <li[% IF selected == 'adcenter' %] class="selected"[% END %]><a id="button_banners" href="[% base_uri %]/app/ad/index">Ad Center</a></li>
-				    <li><a id="button_kiosk" href="#">Virtual Kiosk</a></li>
+[% IF new %]				    <li><a id="button_kiosk" href="#">Virtual Kiosk</a></li>
 				    <li><a id="button_splash" href="#">Splash Page</a></li>
+[% END %]
 				  </ul>
 			[% ELSE %]
 				 <ul id="nav_account">

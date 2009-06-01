@@ -21,7 +21,7 @@ use base 'SL::App';
 use SL::Model::App    ();
 use SL::App::Template ();
 
-use constant DEBUG => $ENV{SL_DEBUG} || 0;
+use constant DEBUG => $ENV{SL_DEBUG_AUTH} || 0;
 
 our $Template = SL::App::Template->template();
 

@@ -1,0 +1,33 @@
+
+<select [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %]name="ad_size_id" id="ad_size_id" onChange="changeBugList();void 0;">
+
+<option value="" [% IF ! bug.ad_size_id and req.param('ad_size_id') == '' %][% END %]>Select ad zone size</option>
+
+
+
+[% FOREACH ad_size = ad_sizes %]
+
+    [% IF loop.prev.grouping != ad_size.grouping %]
+[% END %]
+[% IF ad_size.grouping != 3 and ad_size.grouping != 2 and ad_size.grouping !=7 %]
+<option value=""></option>
+<option value="">--&nbsp; 
+[% END %]
+
+
+[% IF ad_size.grouping == 1 %]Persistent Leaderboard Options
+[% ELSIF ad_size.grouping == 2 %]Persistent Branding Zone Image
+[% ELSIF ad_size.grouping == 3 %]Splash page Ad
+[% ELSIF ad_size.grouping == 4 %]Twitter/Message Bar
+[% ELSIF ad_size.grouping == 6 %]Persistent Full Banner Options
+[% ELSIF ad_size.grouping == 7 %]Persistent Double Combinations[% END %]
+</option>
+
+[% END %]
+
+
+[% IF ad_size.grouping != 3 and ad_size.grouping != 2 and ad_size.grouping !=7 %]
+<option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size_id.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %]</option>
+[% END %]
+
+</select>

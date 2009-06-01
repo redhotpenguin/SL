@@ -46,49 +46,20 @@ Ad Zone Name:&nbsp;&nbsp;
 
 
 
+
+
 <!-- ad_size_id -->
 <p>
 [% IF errors.missing.ad_size_id %]<font color="red">[% END %]
 Ad Size:&nbsp;&nbsp;
 [% IF errors.missing.ad_size_id %]</font>[% END %]
 
-<select [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %]name="ad_size_id" id="ad_size_id" onChange="changeBugList();void 0;">
-
-<option value="" [% IF ! bug.ad_size_id and req.param('ad_size_id') == '' %][% END %]>Select ad zone size</option>
-
-
-[% FOREACH ad_size = ad_sizes %]
-
-[% IF loop.prev.grouping != ad_size.grouping %]
-[% END %]
-[% IF ad_size.grouping != 3 and ad_size.grouping != 2 and ad_size.grouping !=7 %]
-<option value=""></option>
-<option value="">--&nbsp; 
-[% END %]
-
-
-[% IF ad_size.grouping == 1 %]Persistent Leaderboard Options
-[% ELSIF ad_size.grouping == 6 %]Persistent Full Banner Options
-[% ELSIF ad_size.grouping == 2 %]Persistent Branding Zone Image
-[% ELSIF ad_size.grouping == 3 %]Splash page Ad
-[% ELSIF ad_size.grouping == 7 %]Persistent Double Combinations[% END %]
-</option>
-
-[% END %]
-
-
-[% IF ad_size.grouping != 3 and ad_size.grouping != 2 and ad_size.grouping !=7 %]
-<option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size_id.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %]</option>
-[% END %]
-
-
-
-</select>
+[% PROCESS ad_size.tmpl adsizes=adsizes selected=ad_zone.ad_size_id.ad_size_id %]
 </p>
 
 <p><font color="#CCCCCC">See the <a target="_new" href="http://www.silverliningnetworks.com/pdf/Silver_Lining_Ad_Zones.pdf">ad zone white paper</a> for details</font></p>
-
 <!-- end ad_size_id -->
+
 
 
 <hr class="sl_line">
@@ -120,9 +91,11 @@ Ad Invocation Code (provided by your ad server):&nbsp;&nbsp;
 
 
 
-<div id="code_double" [% IF ad_zone.code_double == '' %]style="display: none;"[% END %]>
 
 <!-- invocation double code -->
+
+<div id="code_double" [% IF ad_zone.code_double == '' %]style="display: none;"[% END %]>
+
 <p>
 [% IF errors.missing.code_double %]<font color="red">[% END %]
 Double Ad Zone Code (provided by your ad server):&nbsp;&nbsp;
@@ -139,15 +112,13 @@ Double Ad Zone Code (provided by your ad server):&nbsp;&nbsp;
 </p>
 
 
-
-
+</div>
 
 <!-- end invocation code -->
 
 
 <hr class="sl_line">
 
-</div>
 
 
 
@@ -193,12 +164,12 @@ No<input type="radio" name="active" value="f" [% IF ad_zone.active == 0 %] check
 <p><font color="#CCCCCC">
 Is this Ad Zone active? (To ensure consistency in reporting, ad zones cannot be deleted)
 </font></p>
+<hr class="sl_line">
 
 
 <!-- end active -->
 
 
-<hr class="sl_line">
 
 
 [% IF ! ad_zone.public  or reg.root == 1 %]
