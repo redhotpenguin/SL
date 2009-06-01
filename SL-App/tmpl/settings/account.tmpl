@@ -6,12 +6,23 @@
 	
 	<h2>Update Your Account Profile</h2>
 	<form class="form row" method="post" action="[% base_uri %]/app/settings/account">
-		[% IF errors %]<p class="error">Please correct the form errors below</p>[% END %]
+		[% IF errors %]<p class="error">Oops, please correct the fields below and try again.</p>[% END %]
 		
 		[% IF errors.invalid.password %]<p class="error">Your passwords did not match or were too short</p>[% END %]
 		
 		
 		<ul> 
+			<li>
+				<div class="grid_6 alpha omega suffix_4">
+				<!-- email -->
+				<label for="acount">Account Name</label>
+				<input type="text" name="account" id="account" size="32" maxlength="50" value="[% req.param('account') or reg.account %]" />
+				<label for="account" class="tip clear [% IF errors.invalid.account or errors.missing.account %]error[% END %]">Your company name</label>
+				<div class="clear"></div>
+				</div>
+				<div class="clear"></div>
+			</li>		
+		
 			<li>
 				<div class="grid_6 alpha omega suffix_4">
 				<!-- email -->
@@ -28,7 +39,7 @@
 				<label for="password">Password</label>
 				<div class="alpha grid_3">
 					<!-- password -->
-					<input type="password" name="password" size="14" maxlength="15" value="" />
+					<input type="password" name="password" id="password" size="14" maxlength="15" value="" />
 					<label class="clear tip [% IF errors.invalid.password or errors.missing.password %]error[% END %]">Create Password</label>
 					<div class="clear"></div>
 				</div>
