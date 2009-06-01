@@ -177,6 +177,34 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 1,
   },
+  "notes",
+  {
+    data_type => "text",
+    default_value => "''::text",
+    is_nullable => 0,
+    size => undef,
+  },
+  "ip",
+  {
+    data_type => "inet",
+    default_value => undef,
+    is_nullable => 1,
+    size => undef,
+  },
+  "lat",
+  {
+    data_type => "double precision",
+    default_value => undef,
+    is_nullable => 1,
+    size => 8,
+  },
+  "lng",
+  {
+    data_type => "double precision",
+    default_value => undef,
+    is_nullable => 1,
+    size => 8,
+  },
 );
 __PACKAGE__->set_primary_key("router_id");
 __PACKAGE__->add_unique_constraint("router_pkey", ["router_id"]);
@@ -203,8 +231,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-05-24 21:49:59
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:M8LHIQZf7XqDeXnyJRS44w
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-06-01 16:38:47
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8N3bes94seHw+Z7hdHKRJQ
 # These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Router.pm' found in @INC.# They are now part of the custom portion of this file# for you to hand-edit.  If you do not either delete# this section or remove that file from @INC, this section# will be repeated redundantly when you re-create this# file again via Loader!
 
 use SL::Model::App;
