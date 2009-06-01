@@ -1,26 +1,30 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage ads" selected="adcenter" %]
 
-<div class="grid_10 suffix_1">	
+<div id="main_content" class="grid_10 suffix_1">	
 	<h2>Ad Center</h2>
 	
 	[% IF msg %]
 		<p class="error">[% msg %]</p>
 	[% END %]
-	
-	<p>This is where you manage the targeting of ads and messages on your Silver Lining routers.  Click on the links below to edit message bars or ad zones.While you can edit all of these items in this section, you will only be able to choose one of the three ad types for any given router (Twitter Feed, Text Entry, or Ad Invocation Code)
-	</p>
+	<div class="row">
+		<p>This is where you manage the targeting of ads and messages on your Silver Lining routers.  Click on the links below to edit message bars or ad zones.While you can edit all of these items in this section, you will only be able to choose one of the three ad types for any given router (Twitter Feed, Text Entry, or Ad Invocation Code)
+		</p>
+
+		<ul class="bullet_list">
+			<li><a href="[% base_uri %]/app/ad/twitter/index">Twitter Feed Message Bar</a> Use twitter in your message bar.</li>
+			<li><a href="[% base_uri %]/app/ad/msg/index">Text Entry Message Bar</a> enter text messages in your message bar.</li>
+			<li><a href="[% base_uri %]/app/ad/groups/list">OpenX Ad Zones</a> Add invocation code for your IAB standard ad banners.</li>
+			<li><a href="[% base_uri %]/app/ad/bugs/list">Branding Images</a> Brand your ad banners with your logo.</li>
+		</ul>		
+		
+	</div>
 </div> 
 
 
 <div id="secondary_content" class="grid_5">
 	<div id="sc_top">
 		<div id="sc_bottom">
-			<ul>
-				<li><a href="[% base_uri %]/app/ad/twitter/index">Twitter Feed Message Bar</a>Click here to change which Twitter account "Tweets" to your message bar.</li>
-				<li><a href="[% base_uri %]/app/ad/msg/index">Text Entry Message Bar</a>Click here to manually enter text for your message bar.</li>
-				<li><a href="[% base_uri %]/app/ad/groups/list">OpenX Ad Zones</a>Click here to edit the ad invocation code for your IAB standard ad banners.</li>
-				<li><a href="[% base_uri %]/app/ad/bugs/list">Branding Images</a>Click here to edit the branding image displayed on the left side of your messages or ads.</li>
-			</ul>
+
 		</div>
 	</div>
 </div>

@@ -1,51 +1,53 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  My info"  selected="account" subselected="profile"%]
-<div class="grid_10 suffix_1">	
+<div id="main_content" class="grid_10 suffix_1">	
 
-	<p>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage account</a> >My info</p>
-	<h2>Update your login information</h2>
-	
-	<form method="POST" action="[% base_uri %]/app/settings/account">
+	<!-- Breadcrumb<p>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage account</a> >My info</p>--> 
 	
 	
-	[% IF errors %]
-	<p class="error">Please correct the form errors below</p>
-	[% END %]
-	
-	[% IF errors.invalid.password %]
-	<p><font color="red">Your passwords did not match or were too short</font></p>
-	[% END %]
-	
-	
-	
-	<!-- email -->
-	<input type="hidden" name="current_email" value="[% reg.email %]">
-	<p>
-	[% IF errors.invalid.email or errors.missing.email %]<font color="red">[% END %]
-	Email address:&nbsp;&nbsp;
-	[% IF errors.invalid.email or errors.missing.email %]</font>[% END %]
-	<input type="text" name="email" size="25" maxlength="50" value="[% req.param('email') or reg.email %]"></p>
-	
-	
-	
-	
-	<!-- password -->
-	[% IF errors.invalid.password or errors.missing.password %]<font color="red">[% END %]
-	Password:
-	[% IF errors.invalid.password or errors.missing.password %]</font>[% END %]
-	<input type="password" name="password" size="15" maxlength="15" value="">
-	<p><font color="#CCCCCC">Minimum 5 characters</font></p>
-	
-	
-	
-	
-	<!-- retype -->
-	[% IF errors.invalid.password or errors.missing.retype %]<font color="red">[% END %]
-	Retype password:&nbsp;&nbsp;
-	[% IF errors.invalid.password or errors.missing.retype %]</font>[% END %]
-	<input type="password" name="retype" size="15" maxlength="15" value="">
-	<label>Please retype your password</label>
-	
-	<input type="submit" value="Save">
+	<h2>Update Your Account Profile</h2>
+	<form class="form row" method="post" action="[% base_uri %]/app/settings/account">
+		[% IF errors %]<p class="error">Please correct the form errors below</p>[% END %]
+		
+		[% IF errors.invalid.password %]<p class="error">Your passwords did not match or were too short</p>[% END %]
+		
+		
+		<ul> 
+			<li>
+				<div class="grid_6 alpha omega suffix_4">
+				<!-- email -->
+				<input type="hidden" name="current_email" value="[% reg.email %]" />
+				<label for="email">Email (Username)</label>
+				<input type="text" name="email" id="email" size="32" maxlength="50" value="[% req.param('email') or reg.email %]" />
+				<label for="email" class="tip clear [% IF errors.invalid.email or errors.missing.email %]error[% END %]">Email address</label>
+				<div class="clear"></div>
+				</div>
+				<div class="clear"></div>
+			</li>
+		
+			<li>
+				<label for="password">Password</label>
+				<div class="alpha grid_3">
+					<!-- password -->
+					<input type="password" name="password" size="14" maxlength="15" value="" />
+					<label class="clear tip [% IF errors.invalid.password or errors.missing.password %]error[% END %]">Create Password</label>
+					<div class="clear"></div>
+				</div>
+				
+				<div class="grid_3 omega suffix_4">
+					<!-- retype -->					
+					<input type="password" id="retype" name="retype" size="14" maxlength="15" value="" />
+					<label for="retype" class="clear tip [% IF errors.invalid.password or errors.missing.retype %]error[% END %]">Retype Password</label>
+					
+					<div class="clear"></div>
+				</div>
+				<div class="clear"></div>
+			</li>
+			
+			
+			<li>
+				<input type="submit" value="Update Profile" />
+			</li>
+		</ul>
 	</form>
 </div>
 
@@ -63,6 +65,12 @@
 	</div>
 </div>
 
+<script type="text/javascript">
+$(function() {
+    //find all form with class jqtransform and apply the plugin
+    $("form.form").jqTransform();
+});
+</script>
 
 
 [% PROCESS footer.tmpl %]
