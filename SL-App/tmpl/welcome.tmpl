@@ -1,28 +1,60 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Announcements" selected="selected" %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Announcements" selected="overview" %]
  
-<div id="center">
-<div class="content">
+<div class="grid_10 suffix_1" id="main_content">	
 
-<h3>Welcome to Silver Lining Dashboard!</h3>
-
-<hr class="sl_line">
-
-<p>This dashboard gives you control over each part of your Silver Lining Network. Use the buttons on the left-hand side of the dashboard to control the following:</p>
-
-
-<p><strong><font color="black">Manage Message Bars</font></strong><br />This section is where you control your message bars. Here you manage which message bars appear on which routers, and what appears in each message bar. <a href="[% base_uri %]/app/ad/index">Click here</a> to manage your message bars.</p>
-
-
-<p><strong><font color="black">Manage Routers</font></strong><br />In this section you can add or edit routers in your Silver Lining network. You will need to add at least one router in order to use Silver Lining on your network. <a href="[% base_uri %]/app/router/list">Click here</a> to manage your routers.</p>
-
-<p><strong><font color="black">View Reports</font></strong><br />Here is where you view reports for activity across your Silver Lining network. You can view reports of unique users and message bar impressions, each by different time periods. <a href="[% base_uri %]/app/report/index">Click here</a> to view reports.</p>
-
-<p><strong><font color="black">Manage Account</font></strong><br />This section of the dashboard is where you edit information about your Silver Lining account. <a href="[% base_uri %]/app/settings/index">Click here</a> to update your login information or change your subscription plan.</p>
-
-
-
+	<h2>Welcome to Silver Lining Dashboard!</h2>
+	
+	<p>
+	This dashboard gives you control over each part of your Silver Lining 
+	Network.
+	</p>
+	
+	<h3>Manage Message Bars</h3>
+	<p>
+	This section is where you control your message bars. 
+	Here you manage which message bars appear on which routers, and what appears in each 
+	message bar. <a href="[% base_uri %]/app/ad/index">Click here</a> to manage your message bars.
+	</p>
+	
+	
+	<h3>Manage Routers</h3>
+	<p>
+	In this section you can add or edit routers in your Silver Lining network. You will need
+	 to add at least one router in order to use Silver Lining on your network. 
+	 <a href="[% base_uri %]/app/router/list">Click here</a> to manage your routers.
+	</p>
+	
+	<h3>View Reports</h3>
+	<p>
+	Here is where you view reports for activity across your Silver Lining network. 
+	You can view reports of unique users and message bar impressions, each by different time periods. 
+	<a href="[% base_uri %]/app/report/index">Click here</a> to view reports.
+	</p>
+	
+	<h3>Manage Account</h3>
+	<p>
+	This section of the dashboard is where you edit information about 
+	your Silver Lining account. <a href="[% base_uri %]/app/settings/index">Click here</a> 
+	to update your login information or change your subscription plan.
+	</p>
 
 </div>
+
+<div id="secondary_content" class="grid_5">
+	<div id="sc_top">
+		<div id="sc_bottom">
+				<p><a href="[% base_uri %]/app/settings/account">Change Login Info</a></p>
+				[% IF reg.account_id.account_id == 1 or reg.account_id.account_id ==2 or reg.account_id.account_id == 21 %]
+				<p><a href="[% base_uri %]/app/settings/users">Users</a></p>
+				<p><a href="[% base_uri %]/app/settings/payment">Payment</a></p>
+				[% END %]
+
+		</div>
+	</div>
 </div>
+
+
+
+
 
 [% PROCESS footer.tmpl %]

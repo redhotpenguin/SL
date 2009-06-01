@@ -1,35 +1,22 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard - Overview" selected="overview" %]
  
-<div class="grid_10 suffix_1">	
+<div id="main_content" class="grid_10 suffix_1">	
 	<!-- Hokey breadcrumb -->
-	<a href="[% base_uri %]/app/home/welcome">Welcome</a> Silver Lining
-
-	<h2>Twitter <a href="http://twitter.com/silver_lined"><img border="0" src="[% base_uri %]/img/twitter16.png"></a></h2>
+	<p><a href="[% base_uri %]/app/home/welcome">Welcome</a> Silver Lining</p>
 	
-	<div id="twitter_div">
-		<ul id="twitter_update_list"></ul>
-		<a href="http://twitter.com/silver_lined" id="twitter-link" style="display:block;text-align:right;">follow me on Twitter</a>
-	</div>
-	
-	
-	<hr class="sl_line">
-		<h2>
-			Blog 
-				<a href="http://www.silverliningnetworks.com/blog/rss/">
+	<h2>
+		News from the blog 
+		<a href="http://www.silverliningnetworks.com/blog/rss/">
 			<img alt="Subscribe to the Blog" height="15" src="http://forums.silverliningnetworks.com/images/feed-icon.png?1219278561" width="15" border="0"/>
-			</a>
-		</h2>
+		</a>
+	</h2>
 
 	[% FOREACH item = rss %]
-		<h3><a href="[% item.link %]">[% item.title %]</a>&nbsp;&nbsp;[% item.date %]</h3>
+		<h3><a href="[% item.link %]">[% item.title %]</a></h3>
+		<p class="tip">[% item.date %]</p>
 		<p>[% item.content %]</p>
 	[% END %]
-	
-	
-	<script type="text/javascript" src="http://twitter.com/javascripts/blogger.js"></script>
-	<script type="text/javascript" src="http://twitter.com/statuses/user_timeline/silver_lined.json?callback=twitterCallback2&amp;count=5"></script>
-	
-	
+		
 	<div class="clear"></div>
 </div>
 
@@ -37,17 +24,18 @@
 <div id="secondary_content" class="grid_5">
 	<div id="sc_top">
 		<div id="sc_bottom">
-			<!-- SUB Menu -->
-			[% PROCESS submenu.tmpl %]
-			
-			<!-- RSS -->
-			[% FOREACH rss = rss_list %]
-				<h3><a href="[% rss.link %]">[% rss.title %]</a></h3>
-				<p>[% rss.description %]</p>
-			[% END %]
-			<a href="http://forums.silverliningnetworks.com/posts.rss">RSS</a>
+		
+			<h3>Twitter Updates</h3>
+			<p class="tip"><a href="http://twitter.com/silver_lined">follow me on Twitter</a></p>
+			<div id="twitter_div">
+				<ul id="twitter_update_list" class="bullet_list"></ul>
+			</div>	
+					
 		</div>
 	</div>
 </div>
 
+
+<script type="text/javascript" src="http://twitter.com/javascripts/blogger.js"></script>
+<script type="text/javascript" src="http://twitter.com/statuses/user_timeline/silver_lined.json?callback=twitterCallback2&amp;count=5"></script>
 [% PROCESS footer.tmpl %]
