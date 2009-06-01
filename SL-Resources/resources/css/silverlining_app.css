@@ -202,6 +202,71 @@ background: url(../images/icons/application/users.png) 10px center no-repeat;
 background: url(../images/icons/application/cash.png) 10px center no-repeat;
 }
 
+
+/* ALL CONTENT (main content + secondary content)
+============================================= */
+#workspace h2 {
+font-size: 185%;
+color: #444;
+font-weight: bold;
+}
+#workspace .tip {
+font-size: 77%;
+color: #666;
+font-style: italic;
+margin-bottom: 0;
+}
+#workspace .row {
+border-top: 3px solid #EEE;
+padding: 10px 0px;
+margin-top: 10px
+}
+#workspace .row h3 {
+font-size: 114%;
+font-weight: bold;
+margin-bottom: 5px;
+}
+#workspace .row h3 a {
+color:#003d6e;
+}
+#workspace .row p {
+font-size: 85%;
+color: #666;
+}
+#workspace .row strong {
+font-weight: bold;
+color: #444;
+}
+/*LISTS*/
+.bullet_list {
+margin: 0px 0px 20px 25px;
+list-style-type: square;
+}
+.bullet_list li {
+margin-bottom: 10px;
+font-size: 88%;
+line-height: 18px;
+color: #444;
+list-style-type: square;
+}
+
+
+/* MAIN CONTENT
+============================================= */
+#main_content p {
+font-size: 92%;
+color: #444;
+line-height: 22px;
+margin-bottom: 20px;
+}
+#main_content h3 {
+font-size: 107%;
+color: #333;
+font-weight: bold;
+margin-bottom: 5px;
+}
+
+
 /* SIDE CONTENT
 ============================================= */
 #secondary_content {
@@ -228,39 +293,7 @@ line-height: 22px;
 }
 
 
-/* WORKSPACE
-============================================= */
-#workspace h2 {
-font-size: 185%;
-color: #444;
-font-weight: bold;
-}
-#workspace .tip {
-font-size: 77%;
-color: #666;
-font-style: italic;
-}
-#workspace .row {
-border-top: 3px solid #EEE;
-padding: 10px 0px;
-margin-top: 10px
-}
-#workspace .row h3 {
-font-size: 114%;
-font-weight: bold;
-margin-bottom: 5px;
-}
-#workspace .row h3 a {
-color:#003d6e;
-}
-#workspace .row p {
-font-size: 85%;
-color: #666;
-}
-#workspace .row strong {
-font-weight: bold;
-color: #444;
-}
+
 
 
 /* FOOTER
