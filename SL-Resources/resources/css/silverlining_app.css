@@ -374,4 +374,9 @@ font-weight: normal;
 .form .jqTransformSelectWrapper li {
 margin-bottom: 0;
 }
+.form .check_label {
+font-weight: normal;
+font-size: 92%;
+line-height: 30px;
+}
 

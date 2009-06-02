@@ -142,10 +142,11 @@ background: none;
 table.jqTransformTextarea td#jqTransformTextarea-tl{
 background: url(../images/form/textarea-tl.gif) no-repeat bottom left;
 }
-table.jqTransformTextarea td#jqTransformTextarea-tm../images/form/
+table.jqTransformTextarea td#jqTransformTextarea-tm {
+background: url(../images/form/textarea-tm.gif) repeat-x top left;
+}
 table.jqTransformTextarea td#jqTransformTextarea-tr{
 background: url(../images/form/textarea-tr.gif) no-repeat bottom left;
-
 }
 table.jqTransformTextarea td#jqTransformTextarea-ml{
 background: url(../images/form/textarea-ml.gif) repeat-y top left;
@@ -236,6 +237,7 @@ a.jqTransformCheckbox {
 	height: 19px;
 	width: 18px;
 	display:block;/*display: -moz-inline-block;*/
+	margin-right: 5px;
 }
 
 /* -------------
