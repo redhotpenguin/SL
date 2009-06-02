@@ -20,6 +20,11 @@ NO_UPGRADE=0
 if [ "$(free |grep 'Mem:' |awk '{print $4}')" -lt 3000 ] ; then
         NO_UPGRADE=1 
 fi
+
+if [ "$(uname -r | awk -F '\.' '{print $3}')" -ne 23 ] ; then
+        NO_UPGRADE=1;
+fi
+
 [ 1 -eq "$NO_UPGRADE" ] && exit
 
 # shut down cron
