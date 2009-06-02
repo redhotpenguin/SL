@@ -28,9 +28,12 @@
   <title>[% title %]</title>	
 
 </head>
-
-	<body [% IF load %]onload="[% load %]"[% END %]>
+<body [% IF load %]onload="[% load %]"[% END %]>
 	<div id="wrapper">
+		<ul id="login_nav">
+			<li>Welcome [% email %]</li>
+			<li><a href="[% base_uri %]/logout">Logout</a></li>
+		</ul>			
 		<h1 id="sl_logo">Silver Lining Networks</h1>
 		<div id="header">
 			<h1>[% reg.account_id.name %]</h1>
@@ -66,37 +69,3 @@
 			</div>
 			
 			<div class="container_16" id="workspace">		
-			
-	
-	
-			
-			
-<!--
-[% UNLESS no_settings %]
-    <a href="http://www.silverliningnetworks.com/site/support.html">Help</a>
-    <a href="[% base_uri %]/logout">Logout</a>
-    <span>Welcome [% email %]</span>		
-[% END %]
-
-	  </div>
-      [% UNLESS no_settings %]
-      <div id="settings">
-        <p style="font-size: 12px; font-family: 'Trebuchet MS', Verdana, sans-serif;">[% IF reg.root %][% reg.account_id.name %] | [% END %][% email %] | <a href="[% base_uri %]/app/settings/uptime">Service Uptime</a> | <a href="http://silverlining.zendesk.com/portal">Help</a> | <a href="[% base_uri %]/logout">Logout</a></p>
-      </div>
-      [% END %]
-    </div>
-	<div id="container">
-
-NAVIGATION 
-<a href="[% base_uri %]/app/settings/index">Account Settings</a>
-<a href="[% base_uri %]/app/ad/index">Campaigns</a>
-<a href="[% base_uri %]/app/report/index">Reports</a>
-<a href="[% base_uri %]/app/router/list">My Network</a>
-<a href="[% base_uri %]/app/home/index">My Network</a>
-
-
-
-<ul>
-	<li>[% PROCESS router/nav.tmpl %]</li>
-</ul>
--->
