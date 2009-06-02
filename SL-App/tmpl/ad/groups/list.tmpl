@@ -1,70 +1,66 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Ad Zones" selected="adcenter" %]
+<div class="grid_16">
+	<div id="breadcrumb">
+		<div id="breadcrumb_inner">
+			<ul>[% PROCESS ad/nav.tmpl %]<li><strong>Open-X Ads</strong></li></ul>
+		</div>
+	</div>
+</div>
+<div class="clear"></div>
 
 
-<p style="text-align: left; padding-bottom: 5px; width: 600px;">
-<h1>Manage Ads</h1>
-<br />
-
-<h2> [% count %] Ad Zones</h2>
-
-[% IF msg %]
-<p><font color="red">[% msg %]</font></p>
-<p><hr class="sl_line"></p>
-[% END %]
-
-<a href="[% base_uri %]/app/ad/groups/edit">New Ad Zone</a></p>
-
-
-<table class="list">
-<tr class="list_header">
-
-<td class="header">Ad Zone Name</td>
-<td class="header">Ad Zone Type</td>
-<!--<td class="header">Active</td>-->
-<td class="header">Assigned Routers</td>
-<td class="header">Last Modified By</td>
-</tr>
-
-[% FOREACH ad_zone = ad_zones %]
-  <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
-
-<!-- name -->	
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-<a href="[% base_uri %]/app/ad/groups/edit/?id=[% ad_zone.ad_zone_id %]">
-[% ad_zone.name %]</a></td>
-
-<!-- ad_size -->
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% ad_zone.ad_size_id.name %]</td>
-
-<!-- active -->	
-<!--  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% IF ad_zone.active %]Yes[% ELSE %]No[% END %]</td>-->
-
-
-
-<!-- routers -->
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% IF ad_zone.router_count == 0 %]
-    [% ad_zone.router_count %]
-[% ELSE %]
-<a href="[% base_uri %]/app/router/list?ad_zone_id=[% ad_zone.ad_zone_id %]">
-[% ad_zone.router_count %]</a>
-[% END %]
-</td>
-
-
-<!-- last modified -->	
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-<a href="mailto:[% ad_zone.reg_id.email %]">[% ad_zone.reg_id.email %]</a><br />[% ad_zone.mts %]</td>
-
-
-
-</tr>
-[% END %]
-</table>
-
+<div id="main_content" class="grid_10 suffix_1">
+	<h2>Manage Ads</h2>
+	
+	<h3> [% count %] Ad Zones</h3>
+	
+	[% IF msg %]<p class="error">[% msg %]</p>[% END %]
+	
+	<a href="[% base_uri %]/app/ad/groups/edit">New Ad Zone</a>
+	
+	
+	<table class="list">
+	<tr class="list_header">
+		<td class="header">Ad Zone Name</td>
+		<td class="header">Ad Zone Type</td>
+		<!--<td class="header">Active</td>-->
+		<td class="header">Assigned Routers</td>
+		<td class="header">Last Modified By</td>
+	</tr>
+	
+	[% FOREACH ad_zone = ad_zones %]
+		<tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
+			<!-- name -->	
+			<td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+			<a href="[% base_uri %]/app/ad/groups/edit/?id=[% ad_zone.ad_zone_id %]">
+			[% ad_zone.name %]</a></td>
+			
+			<!-- ad_size -->
+			  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+			[% ad_zone.ad_size_id.name %]</td>
+			
+			<!-- active -->	
+			<!--  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+			[% IF ad_zone.active %]Yes[% ELSE %]No[% END %]</td>-->
+			
+			<!-- routers -->
+			<td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+			[% IF ad_zone.router_count == 0 %]
+			    [% ad_zone.router_count %]
+			[% ELSE %]
+			<a href="[% base_uri %]/app/router/list?ad_zone_id=[% ad_zone.ad_zone_id %]">
+			[% ad_zone.router_count %]</a>
+			[% END %]
+			</td>
+			
+			
+			<!-- last modified -->	
+			<td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+			<a href="mailto:[% ad_zone.reg_id.email %]">[% ad_zone.reg_id.email %]</a><br />[% ad_zone.mts %]</td>
+		</tr>
+	[% END %]
+	</table>
+</div>
 
 
 [% PROCESS footer.tmpl %]
-

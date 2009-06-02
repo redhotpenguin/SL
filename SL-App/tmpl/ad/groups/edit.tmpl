@@ -1,190 +1,115 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Add or edit ad zone"  load="changeBugList()" selected="adcenter" %]
-
-<div id="list_center">
-<div class="content">
-
-<h2>[% PROCESS ad/groups/nav.tmpl %] > [% UNLESS ad_zone.ad_zone_id  %]Create an Ad Zone[% ELSE %]Edit Ad Zone '[% ad_zone.name %]'[% END %]</h2>
-
-<hr class="sl_line">
-
-<div id="edit_form">
-
-<p><h2>[% IF ad_zone.ad_zone_id %]You are editing ad zone '[% ad_zone.name %]'[% ELSE%]<h2>You are adding a new ad zone[% END %]</h2></p>
+<div class="grid_16">
+	<div id="breadcrumb">
+		<div id="breadcrumb_inner">
+			<ul>[% PROCESS ad/groups/nav.tmpl %]<li><strong>[% UNLESS ad_zone.ad_zone_id  %]Create Ad Zone[% ELSE %]Edit Ad Zone '[% ad_zone.name %]'[% END %]</strong></li></ul>
+		</div>
+	</div>
+</div>
+<div class="clear"></div>
 
 
-[% IF status == 'update_ok' %]
-<p><font color="red">Your ad zone has been updated.</font></p>
-[% END %]
+<div id="main_content" class="grid_10 suffix_1">
+	<h2>[% IF ad_zone.ad_zone_id %]Edit ad zone '[% ad_zone.name %]'[% ELSE%]Create ad zone[% END %]</h2>
 
-[% IF errors.missing %]
-<p><font color="red">Please fill in the missing fields</font></p>
-[% END %]
-
-[% IF errors.invalid %]
-<p><font color="red">Some fields were invalid, please correct them</font></p>
-[% END %]
-
-
-
-<hr class="sl_line">
-
-
-<form method="POST" action="[% base_uri %]/app/ad/groups/edit">
-
-<!-- name -->
-<p>
-[% IF errors.missing.name %]<font color="red">[% END %]
-Ad Zone Name:&nbsp;&nbsp;
-[% IF errors.missing.name %]</font>[% END %]
-
-<input [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %] type="text" name="name" size="30" value='[% req.param('name') or ad_zone.name %]'></p>
-
-<!-- end name -->
-
-
-<hr class="sl_line">
-
-
-
-
-
-<!-- ad_size_id -->
-<p>
-[% IF errors.missing.ad_size_id %]<font color="red">[% END %]
-Ad Size:&nbsp;&nbsp;
-[% IF errors.missing.ad_size_id %]</font>[% END %]
-
-[% PROCESS ad_size.tmpl adsizes=adsizes selected=ad_zone.ad_size_id.ad_size_id %]
-</p>
-
-<p><font color="#CCCCCC">See the <a target="_new" href="http://www.silverliningnetworks.com/pdf/Silver_Lining_Ad_Zones.pdf">ad zone white paper</a> for details</font></p>
-<!-- end ad_size_id -->
-
-
-
-<hr class="sl_line">
-
-
-
-
-
-<!-- invocation code -->
-<p>
-[% IF errors.missing.code %]<font color="red">[% END %]
-Ad Invocation Code (provided by your ad server):&nbsp;&nbsp;
-[% IF errors.missing.code %]</font>[% END %]
-</p>
-<p><font color="#CCCCCC">For optimum ad serving speed, add the IP address of your ad server to the custom_skips.txt file on your router</font></p>
-
-<p><textarea [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %]name="code" rows="10" cols="80">[% req.param('code') or ad_zone.code %]</textarea>
-</p>
-
-[% IF req.param('code') or ad_zone.code %]
-<p>[% req.param('code') or ad_zone.code %]</p>
-[% END %]
-
-<!-- end invocation code -->
-
-
-<hr class="sl_line">
-
-
-
-
-
-<!-- invocation double code -->
-
-<div id="code_double" [% IF ad_zone.code_double == '' %]style="display: none;"[% END %]>
-
-<p>
-[% IF errors.missing.code_double %]<font color="red">[% END %]
-Double Ad Zone Code (provided by your ad server):&nbsp;&nbsp;
-[% IF errors.missing.code_double %]</font>[% END %]
-</p>
-
-<p><font color="#CCCCCC">For optimum ad serving speed, use secure (https) links to your ad server resources</font></p>
-
-<p>
-<textarea name="code_double" rows="10" cols="100">[% req.param('code_double') or ad_zone.code_double %]</textarea>
-
-[% IF req.param('code_double') or ad_zone.code_double %][% req.param('code_double') or ad_zone.code_double %][% END %]
-
-</p>
-
+	<form class="form row" method="POST" action="[% base_uri %]/app/ad/groups/edit">
+		<!-- Errors -->
+		[% IF status == 'update_ok' %]<p class="error">Your ad zone has been updated.</p>[% END %]
+		
+		[% IF errors.missing %]<p class="error">Please fill in the missing fields</p>[% END %]
+		
+		[% IF errors.invalid %]<p class="error">Some fields were invalid, please correct them</p>[% END %]
+		<ul> 
+			<li>
+				<div class="grid_6 alpha omega suffix_4">
+					<label for="name" class="[% IF errors.missing.name %]error[% END %]">Ad zone name</label>
+					<input [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %] type="text" name="name" size="30" value='[% req.param('name') or ad_zone.name %]' />
+					<div class="clear"></div>
+				</div>
+				<div class="clear"></div>
+			</li>
+			
+			<li>
+				<label for="ad_size_id" class="[% IF errors.missing.ad_size_id %]error[% END %]">Ad Size</label>
+				[% PROCESS ad_size.tmpl adsizes=adsizes selected=ad_zone.ad_size_id.ad_size_id %]		
+				<div class="clear"></div>
+				<p><a target="_new" href="http://www.silverliningnetworks.com/pdf/Silver_Lining_Ad_Zones.pdf">ad zone white paper</a> for details</p>
+			</li>	
+			<li>
+				<label for="code" class="[% IF errors.missing.code %]error[% END %]">Ad Invocation Code (provided by your ad server)</label>
+				<textarea [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %]name="code" rows="10" cols="80">[% req.param('code') or ad_zone.code %]</textarea>
+				<label class="tip" for="code">For optimum ad serving speed, add the IP address of your ad server to the custom_skips.txt file on your router</label>
+				<div class="clear"></div>
+				[% IF req.param('code') or ad_zone.code %]
+				<p>[% req.param('code') or ad_zone.code %]</p>
+				[% END %]			
+			</li>
+			<li>
+				<!-- active -->
+				<label for="active">Is this Ad Zone active?</label>
+				<input [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %]type="radio" name="active" value="t" [% IF (ad_zone.active == 1) or (! ad_zone) %]checked[% END %] />
+				<label for="t" class="check_label">Yes</label>	
+				<div class="clear"></div>
+						
+				<input type="radio" name="active" value="f" id="f" [% IF ad_zone.active == 0 %] checked [% END %] /> 
+				<label for="f" class="check_label">No</label>
+				<div class="clear"></div>
+				<label class="tip">(To ensure consistency in reporting, ad zones cannot be deleted)</label>
+			</li>
+			<li>
+				[% IF ! ad_zone.public  or reg.root == 1 %]<input type="submit" value="Save ad zone" />[% END %]		
+			</li>
+		</ul>
+	
+	
+	<!-- invocation double code -->
+	<div id="code_double" [% IF ad_zone.code_double == '' %]style="display: none;"[% END %]>
+	[% IF errors.missing.code_double %]<font color="red">[% END %]
+	Double Ad Zone Code (provided by your ad server):&nbsp;&nbsp;
+	[% IF errors.missing.code_double %]</font>[% END %]
+	<p>For optimum ad serving speed, use secure (https) links to your ad server resources</p>
+	<textarea name="code_double" rows="10" cols="100">[% req.param('code_double') or ad_zone.code_double %]</textarea>
+	[% IF req.param('code_double') or ad_zone.code_double %][% req.param('code_double') or ad_zone.code_double %][% END %]
+	</div>
+	<!-- end invocation code -->
+	
+	
+	
+	<!-- branding image -->
+	[% IF errors.missing.bug_id %]<font color="red">You need a valid branding image for this ad zone.</font>
+	
+	[% END %]
+	
+	[% FOREACH buglist = bug_lists %]
+	
+	<div id="[% buglist %]" [% IF $buglist.0.ad_size_id.ad_size_id != ad_size_id %]style="display: none;"[% END %]>
+	
+	[% IF $buglist.0.ad_size_id.ad_size_id %]
+	<p>Select a branding image for this ad zone:</p>
+	
+	[% FOREACH bug = $buglist %]
+	<p><input [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %]type="radio" name="bug_id" value="[% bug.bug_id %]" [% IF ad_zone.bug_id.bug_id == bug.bug_id %]checked[% END %]>&nbsp;&nbsp;<a href="[% bug.link_href %]"><img src="[% bug.image_href %]" border="1"></a>&nbsp;&nbsp;[% bug.ad_size_id.bug_width %]px wide by [% bug.ad_size_id.bug_height %]px tall</p>
+	[% END %]
+	
+	[% ELSE %]
+	
+	<p>You haven't created any <a href="[% base_uri %]/app/ad/bugs/list">branding images yet</a> for this ad zone size,<br /> please do so to create this zone.</p>
+	[% END %]
+	
+	</div>
+	[% END %]
+	<!-- end branding image -->
+	
+	
+	
+	[% IF ad_zone.ad_zone_id %]
+	<input type="hidden" name="id" value="[% ad_zone.ad_zone_id %]">
+	[% END %]
+	</form>
 
 </div>
 
-<!-- end invocation code -->
 
-
-<hr class="sl_line">
-
-
-
-
-<!-- branding image -->
-[% IF errors.missing.bug_id %]<font color="red">You need a valid branding image for this ad zone.</font>
-<hr class="sl_line">
-[% END %]
-
-[% FOREACH buglist = bug_lists %]
-
-<div id="[% buglist %]" [% IF $buglist.0.ad_size_id.ad_size_id != ad_size_id %]style="display: none;"[% END %]>
-
-
-
-[% IF $buglist.0.ad_size_id.ad_size_id %]
-<p>Select a branding image for this ad zone:</p>
-
-[% FOREACH bug = $buglist %]
-<p><input [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %]type="radio" name="bug_id" value="[% bug.bug_id %]" [% IF ad_zone.bug_id.bug_id == bug.bug_id %]checked[% END %]>&nbsp;&nbsp;<a href="[% bug.link_href %]"><img src="[% bug.image_href %]" border="1"></a>&nbsp;&nbsp;[% bug.ad_size_id.bug_width %]px wide by [% bug.ad_size_id.bug_height %]px tall</p>
-[% END %]
-
-[% ELSE %]
-
-<p>You haven't created any <a href="[% base_uri %]/app/ad/bugs/list">branding images yet</a> for this ad zone size,<br /> please do so to create this zone.</p>
-[% END %]
-
-<hr class="sl_line"> <!-- don't move this :) -->
-
-</div>
-[% END %]
-
-
-<!-- end branding image -->
-
-
-
-
-<!-- active -->
-
-<p>Active:&nbsp;&nbsp;Yes<input [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %]type="radio" name="active" value="t" [% IF (ad_zone.active == 1) or (! ad_zone) %]checked[% END %]>&nbsp;
-No<input type="radio" name="active" value="f" [% IF ad_zone.active == 0 %] checked [% END %]></p>
-
-<p><font color="#CCCCCC">
-Is this Ad Zone active? (To ensure consistency in reporting, ad zones cannot be deleted)
-</font></p>
-<hr class="sl_line">
-
-
-<!-- end active -->
-
-
-
-
-[% IF ! ad_zone.public  or reg.root == 1 %]
-<input type="submit" value="Save ad zone">
-[% END %]
-
-[% IF ad_zone.ad_zone_id %]
-<input type="hidden" name="id" value="[% ad_zone.ad_zone_id %]">
-[% END %]
-
-</form>
-
-</div>
-</div>
-</div>
 
 
 <script type="text/javascript">
@@ -212,9 +137,7 @@ function changeBugList() {
    }
 }
 
-
 function setBugList(ad_size_id) {
-
     document.getElementById('bug_list_' + ad_size_id).style.display='block';
 }
 </script>
