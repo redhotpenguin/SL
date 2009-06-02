@@ -1,71 +1,62 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Billing and Payment" selected="account" subselected="payment" %]
-
-<div id="list_center">
-	<div class="content">
-
-<h2>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage Account</a> > Payment History</h2>
-
-<p><hr class="sl_line"></p>
-
-<h3>Payment History - Total $[% total %]</h3>
-<p><hr class="sl_line"></p>
-
-<table class="list">
-<tr class="list_header">
-<td class="header">Email</td>
-<td class="header">Mac Address</td>
-<td class="header">Amount</td>
-<td class="header">Auth Code</td>
-<td class="header">Payment Time</td>
-<td class="header">Start Time</td>
-<td class="header">End Time</td>
-<td class="header">Card Type</td>
-<td class="header">Last Four</td>
-<td class="header">Approved</td>
-<td class="header">Token Processed</td>
-<td class="header">Voided</td>
-</tr>
-
-[% FOREACH payment = payments %]
-<tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
-
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% payment.email %]</td>
-
-
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% payment.mac %]</td>
-
-
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% payment.amount %]</td>
-  
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% payment.authorization_code %]</td>
-  
-[% USE paid = DateTime(from_string => payment.cts) %]
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% paid.mdy %] [% paid.hms %]</td>
-
-
-
-[% USE start = DateTime(from_string => payment.start) %]
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% start.mdy %] [% start.hms %]</td>
-
-[% USE stop = DateTime(from_string => payment.stop) %]
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% stop.mdy %] [% stop.hms %]</td>
-
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[%  payment.card_type %]</td>
-
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[%  payment.last_four %]</td>
-
-
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% IF payment.approved == 1 %]<font color="green">Yes</font>[% ELSE %]<font color="red">No</font>[% END %]</td>
-  
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% IF payment.token_processed == 1 %]<font color="green">Yes</font>[% ELSE %]<font color="red">No</font>[% END %]</td>
-
-  <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">[% IF payment.voided == 1 %]<font color="red">Yes</font>[% ELSE %]<font color="green">No</font>[% END %]</td>
-</tr>
-
-[% END %]
-</table>
-
-</div>
+<div id="main_content" class="grid_16">
+	<h2>Payment History - Total $[% total %]</h2>
+	<div class="row">
+	<table class="small_table basic_table">
+	<tr>
+		<th>Email</th>
+		<th>Mac Address</th>
+		<th>Amount</th>
+		<th>Auth Code</th>
+		<th>Payment Time</th>
+		<th>Start Time</th>
+		<th>End Time</th>
+		<th>Card Type</th>
+		<th>Last Four</th>
+		<th>Approved</th>
+		<th>Token Processed</th>
+		<th>Voided</th>
+	</tr>
+	
+	[% FOREACH payment = payments %]
+	<tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
+	
+	  <td>[% payment.email %]</td>
+	
+	
+	  <td>[% payment.mac %]</td>
+	
+	
+	  <td><strong class="active">[% payment.amount %]</strong></td>
+	  
+	  <td>[% payment.authorization_code %]</td>
+	  
+	[% USE paid = DateTime(from_string => payment.cts) %]
+	  <td>[% paid.mdy %] [% paid.hms %]</td>
+	
+	
+	
+	[% USE start = DateTime(from_string => payment.start) %]
+	  <td>[% start.mdy %] [% start.hms %]</td>
+	
+	[% USE stop = DateTime(from_string => payment.stop) %]
+	  <td>[% stop.mdy %] [% stop.hms %]</td>
+	
+	  <td>[%  payment.card_type %]</td>
+	
+	  <td>[%  payment.last_four %]</td>
+	
+	
+	  <td>[% IF payment.approved == 1 %]<span class="active">Yes</span>[% ELSE %]<strong class="inactive">No</strong>[% END %]</td>
+	  
+	  <td>[% IF payment.token_processed == 1 %]<span class="active">Yes</span>[% ELSE %]<strong class="inactive">No</strong>[% END %]</td>
+	
+	  <td>[% IF payment.voided == 1 %]<span class="active">Yes</span>[% ELSE %]<strong class="inactive">No</strong>[% END %]</td>
+	</tr>
+	
+	[% END %]
+	</table>
+	</div>
 </div>
 
 [% PROCESS  footer.tmpl %]

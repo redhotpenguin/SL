@@ -1,47 +1,41 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage Users"  selected="account" subselected="users" %]
 
-<div id="list_center">
-<div class="content">
-
-
-<h2>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage account</a> > Manage users for account '[% reg.account_id.name %]'</h2>
-
-<hr class="sl_line">
-
-<p>Please email <a href="mailto:support@silverliningnetworks.com">support@silverliningnetworks.com</a> to add a user to your account.</p>
-<p style="text-align: left; padding-bottom: 5px; width: 600px;">
-
-<table class="list">
-<tr class="list_header">
-<td class="header">Email</td>
-<td class="header">Active</td>
-<!-- <td class="header">Admin</td> -->
-</tr>
-
-[% FOREACH user = users %]
-  <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
-
-<!-- email -->	
-<td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-<a href="mailto:[% user.email %]">[% user.email %]</a></td>
-
-
-<!-- active -->
-<td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% IF user.active %]Yes[% ELSE %]No[% END %]</td>
-
-
-<!-- admin -->
-<!-- <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
-[% IF user.admin %]Yes[% ELSE %]No[% END %]</td> -->
-
-
-</tr>
-
-[% END %]
-</table>
-
+<div id="main_content" class="grid_10 suffix_1">
+<h2>Account Users</h2>
+	<div class="row">
+		<p>Please email <a href="mailto:support@silverliningnetworks.com">support@silverliningnetworks.com</a> to add a user to your account.</p>
+		
+		<table  class="basic_table">
+			<tr>
+				<th>Email</th>
+				<th>Active</th>
+				<!-- <th class="header">Admin</th> -->
+			</tr>
+			[% FOREACH user = users %]
+			<tr>
+				<!-- email -->	
+				<td>
+				<a href="mailto:[% user.email %]">[% user.email %]</a></td>
+				
+				
+				<!-- active -->
+				<td>
+				[% IF user.active %]<span class="active">Yes</span>[% ELSE %]<strong class="inactive">No</strong>[% END %]</td>
+				
+				
+				<!-- admin -->
+				<!-- <td class="[% IF loop.index % 2 %]el_lite[% ELSE %]el_dark[% END %]">
+				[% IF user.admin %]Yes[% ELSE %]No[% END %]</td> -->
+			</tr>
+			
+			[% END %]
+		</table>
+	</div>
 </div>
-</div>
+
+
+
+
+
 
 [% PROCESS  footer.tmpl %]
