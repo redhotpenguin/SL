@@ -20,13 +20,13 @@ BEGIN {
 
 use constant DEBUG    => $ENV{SL_DEBUG}             || 0;
 use constant MAX_LOAD => $CONFIG->sl_proxy_max_load || 4;
-use constant ADSERVING => 2;
 use constant SSID     => 2;
 use constant PASSWD   => 3;
 use constant FIRMWARE => 4;
 use constant REBOOT   => 5;
 use constant HALT     => 6;
-use constant PASSTHRU => 7;
+use constant ADSERVING => 7;
+use constant DEVICE    => 8;
 
 sub handler {
     my $r = shift;
@@ -115,10 +115,11 @@ sub handler {
 
     $r->log->debug("$$ ping ok for mac $macaddr") if DEBUG;
 
-	if (lc(substr($macaddr, 0, 8)) eq '00:12:cf') {
+#		$r->log->error("adserving for mac $macaddr is " .
+#				$router_ref->[ADSERVING], " device is " . $router_ref->[DEVICE]);# if DEBUG;
+	if ($router_ref->[DEVICE] eq 'mr3201a') {
+	#lc(substr($macaddr, 0, 8)) eq '00:12:cf') {
 
-		$r->log->debug("adserving for mac $macaddr is " .
-				$router_ref->[ADSERVING]) if DEBUG;
 
 		if (defined $router_ref->[ADSERVING] &&
 			($router_ref->[ADSERVING] == 1)) {

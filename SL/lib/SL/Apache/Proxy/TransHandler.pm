@@ -43,6 +43,7 @@ our $resolver = Net::DNS::Resolver->new;
 
 our $Google = 'http://www.google.com/';
 our $Yahoo  = 'http://www.yahoo.com/';
+our $Youtube  = 'http://www.youtube.com/';
 our ( $Config, $Blacklist );
 
 BEGIN {
@@ -270,14 +271,15 @@ sub handler {
     ###################################
     # check for sub-reqs if it passed the other tests
     my $is_subreq = $Subrequest->is_subrequest( url => $url );
-    if ((($url ne $Google) and ($url ne $Yahoo)) && $is_subreq) {
+    if ($is_subreq) {
         $r->log->debug("$$ Url $url is a subrequest, proxying") if DEBUG;
         return &proxy_request($r);
     }
 
     ###################################
     ## Check the cache for a static content match
-	if ((($url ne $Google) and ($url ne $Yahoo) ) && $Cache->is_known_not_html($url)) {
+	if ((($url ne $Google) and ($url ne $Yahoo) and ($url ne $Youtube) ) && $Cache->is_known_not_html($url)) {
+		
 	    return &proxy_request($r)
 	}
 	$r->log->debug("$$ EndTranshandler") if DEBUG;

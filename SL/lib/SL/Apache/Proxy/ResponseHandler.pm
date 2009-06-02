@@ -626,8 +626,7 @@ sub twohundred {
     # ad-serving page, and it's not too soon after a previous ad was served
     my $response_content_ref;
     my $ad_served;
-    if ( (($url eq $Google) or ($url eq $Yahoo)) or
-	    (	( not $is_toofast )
+    if ((	( not $is_toofast )
         and ( not $Subrequest->is_subrequest( url => $url ) ) ) )
     {
 
