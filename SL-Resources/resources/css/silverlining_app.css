@@ -203,6 +203,50 @@ background: url(../images/icons/application/cash.png) 10px center no-repeat;
 }
 
 
+/* BREADCRUMB
+============================================= */
+#breadcrumb {
+background: url(../images/backgrounds/application/breadcrumb_left.png) top left no-repeat;
+padding-left: 3px;
+margin-top: -12px;
+margin-bottom: 20px;
+}
+#breadcrumb_inner {
+background: url(../images/backgrounds/application/breadcrumb_right.png) top right no-repeat;
+padding-right: 3px;
+}
+#breadcrumb ul {
+background: url(../images/backgrounds/application/breadcrumb_bg.png) top left repeat-x;
+height: 40px;
+}
+#breadcrumb li {
+background: url(../images/backgrounds/application/breadcrumb_arrow.png) top right no-repeat;
+padding: 0px 20px 0px 5px;
+font-size: 92%;
+line-height:38px;
+height: 40px;
+float: left;
+color: #444;
+}
+#breadcrumb a {
+text-decoration: none;
+float: left;
+line-height:38px;
+height: 40px;
+}
+#breadcrumb strong {
+font-weight: bold;
+}
+#breadcrumb_home a {
+background: url(../images/backgrounds/application/breadcrumb_home.png) top left no-repeat;
+height: 40px;
+width: 37px;
+text-indent: -3000px;
+overflow: hidden;
+float: left;
+}
+
+
 /* ALL CONTENT (main content + secondary content)
 ============================================= */
 #workspace h2 {
@@ -327,5 +371,7 @@ color: #444;
 .form label.tip {
 font-weight: normal;
 }
-
+.form .jqTransformSelectWrapper li {
+margin-bottom: 0;
+}
 

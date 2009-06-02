@@ -19,4 +19,8 @@ $(document).ready(function(){
 	$(this).attr("disabled", "disabled");
 	});
 	
+	
+    //find all form with class jqtransform and apply the plugin
+    $("form.form").jqTransform();	
+	
 });
