@@ -47,9 +47,6 @@ $(document).ready(function(){
     $("#device").change(setDeviceForm);
     setDeviceForm();
 
-});
-	
-	
     //find all form with class jqtransform and apply the plugin
     $("form.form").jqTransform();	
 	
