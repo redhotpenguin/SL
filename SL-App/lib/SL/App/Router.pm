@@ -360,7 +360,7 @@ sub dispatch_edit {
         my %router_profile = (
             required => \@required,
             optional => [
-                qw( splash_href splash_timeout
+                qw( splash_href splash_timeout notes
                   ssid serial_number )
             ],
             constraint_methods => {
@@ -411,7 +411,7 @@ sub dispatch_edit {
               ->create( { macaddr => $macaddr } );
         }
 
-        foreach my $param qw( name splash_href
+        foreach my $param qw( name splash_href notes
           serial_number ssid splash_timeout ) {
             $router->$param( $req->param($param) );
           } $router->active(1);

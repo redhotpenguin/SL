@@ -16,7 +16,7 @@
 				<div class="grid_6 alpha omega suffix_4">
 				<!-- email -->
 				<label for="account">Account Name</label>
-				<input type="text" name="account" id="account" size="32" maxlength="50" value="[% req.param('account') or reg.account %]" />
+				<input type="text" name="account" id="account" size="32" maxlength="50" value="[% req.param('account') or reg.account_id.name %]" />
 				<label for="account" class="tip clear [% IF errors.invalid.account or errors.missing.account %]error[% END %]">Your company name</label>
 				<div class="clear"></div>
 				</div>

@@ -67,6 +67,7 @@ sub dispatch_root {
 sub dispatch_account {
     my ( $self, $r, $args_ref ) = @_;
 
+    my $reg = $r->pnotes( $r->user );
     my $req = $args_ref->{req} || Apache2::Request->new($r);
     my $email = $req->param('email');    # libapreq workaround
 
@@ -75,6 +76,7 @@ sub dispatch_account {
         my %tmpl_data = (
             errors => $args_ref->{errors},
             req    => $req,
+            reg    => $reg,
         );
 
         my $output;
@@ -88,8 +90,7 @@ sub dispatch_account {
 
         my %profile = (
             required => [
-                qw( password current_email retype email
-                  first_name last_name)
+                qw( password current_email retype email account )
             ],
             constraint_methods => {
                 email => [
@@ -123,8 +124,11 @@ sub dispatch_account {
 
     }
 
+    my $account = $reg->account_id;
+    $account->name( $req->param('account') );
+    $account->update;
+
     # update the password
-    my $reg = $r->pnotes( $r->user );
     $reg->password_md5( Digest::MD5::md5_hex( $req->param('password') ) );
 
     my $update_cookies;
@@ -132,7 +136,7 @@ sub dispatch_account {
         $update_cookies = 1;
     }
 
-    foreach my $param (qw( email first_name last_name )) {
+    foreach my $param (qw( email )) {
         $reg->$param( $req->param($param) );
     }
     $reg->update;
