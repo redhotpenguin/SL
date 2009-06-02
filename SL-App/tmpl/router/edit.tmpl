@@ -1,4 +1,4 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Create or edit router"  load="updateRouterForm()" selected="network" %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Create or edit router"  selected="network" %]
 
 <div class="grid_16">
 	<div id="breadcrumb">
@@ -17,7 +17,6 @@
 <div id="main_content" class="grid_10 suffix_1">
 [% IF !router && (reg.account_id.account_id !=2 ) %]
 
-
 <h3>Existing Customers</h3>
 <p>Learn about our brand new Silver Lining Repeaters. Our <a href="http://www.silverliningnetworks.com/store/">new repeaters are plug and play</a> and work out of the box!</p>
 <p>If you are already using one or more WRT54GL device, rest assured you are a highly valued customer and we will continue to support you and your WRT54GL for the life of your account.</p>
@@ -27,7 +26,11 @@
 <p><a href="http://silverlining.zendesk.com/forums/26828/entries/37866">Click here</a> to learn more about integrating Open-Mesh.com with Silver Lining.</p>
  
 
+
+
 [% ELSE %]
+
+
 
 <h3>[% IF router.name %][% router.name %][% ELSE %]Add New Router[% END %]</h3>
 <div id="edit_form">
@@ -44,11 +47,14 @@
 <input type="hidden" name="router_id" value="[% router.router_id %]">
 
 
+
+
+
 <!-- device -->
 [% IF errors.missing.device %]<font color="red">[% END %]
 <p>Device Type:&nbsp;&nbsp;
 [% IF errors.missing.device %]</font>[% END %]
-<select name="device" id="device" onChange="updateRouterForm(); void 1;">
+<select name="device" id="device">
 
 <option value="" [% IF ! router.device and req.param('device') == '' %][% END %]>Select a device type</option>
 <option value="mr3201a" [% IF req.param('device') == 'mr3201a' or router.device == 'mr3201a' %]SELECTED[% END %]>Open-Mesh.com 32MB (MR3201A, OM1P, PicoStation)</option>
@@ -61,6 +67,8 @@
 
 
 
+
+
 <!-- macaddr -->
 [% IF errors.missing.macaddr or errors.invalid.macaddr %]<font color="red">[% END %]
 
@@ -68,9 +76,13 @@
 
 [% IF errors.missing.macaddr or errors.invalid.macaddr %]</font>[% END %]
 
-<input type="text" name="macaddr" size="17" maxlength="17" value='[% req.param('macaddr') or router.displaymac %]'></p>
+<input type="text" name="macaddr" id="macaddr" size="17" maxlength="17" value='[% req.param('macaddr') or router.displaymac %]'></p>
 
 <p><font color="#CCCCCC"><b>Example:  00:12:cf:43:38:bd</b></font></p>
+
+
+
+
 
 
 
@@ -78,16 +90,30 @@
 [% IF errors.missing.name %]<font color="red">[% END %]
 <p>Name:&nbsp;&nbsp;
 [% IF errors.missing.name %]</font>[% END %]
-<input type="text" id="name" name="name" size="45" maxlength="50" value='[% req.param('name') or router.name %]'></p>
+<input type="text" id="name" name="name" size="40" maxlength="50" value="[% req.param('name') or router.name %]"></p>
+<p><font color="#CCCCCC"><b>50 character limit</b></font></p>
+
+
+
+<!-- notes -->
+<p>Notes:&nbsp;&nbsp;<input type="text" id="notes" name="notes" size="80" maxlength="100" value="[% req.param('notes') or router.notes %]"></p>
 <p><font color="#CCCCCC"><b>100 character limit</b></font></p>
+
+
+
+
+
+
+<div id="wrt54gl" style="display: none;">
 
 <!-- SSID -->
 [% IF errors.missing.ssid %]<font color="red">[% END %]
 <p>SSID:&nbsp;&nbsp;
 [% IF errors.missing.ssid %]</font>[% END %]
-<input type="text" name = "ssid" size="25" maxlength="25" value='[% req.param('ssid') or router.ssid %]'></p>
+<input type="text" id="ssid" name="ssid" size="25" maxlength="25" value='[% req.param('ssid') or router.ssid %]'></p>
 <p><font color="#CCCCCC"><b>Allow up to a minute to take effect, Linksys WRT54GL only</b></font></p>
 <p<font color="#CCCCCC"><b>Allow up to five minutes to take effect</b></font></p>
+
 
 
 
@@ -103,6 +129,8 @@ Serial number or service tag:&nbsp;&nbsp;
 </div>
  
 
+
+
 <!-- splash page -->
 <p>
 [% IF errors.missing.splash_href or errors.invalid.splash_href %]<font color="red">[% END %]
@@ -111,6 +139,7 @@ Splash page url:&nbsp;&nbsp;
 <input type="text" id="splash_href" name="splash_href" size="45" maxlength="255" value='[% req.param('splash_href') or router.splash_href %]'></p>
 <p><font color="#CCCCCC"><b>Example:  http://silverliningworks.typepad.com/network/</b></font></p>
 <p><font color="#CCCCCC"><b>Linksys WRT54GL and Linux server only<b></font></p>
+<hr class="sl_line">
 
 
 
@@ -122,6 +151,12 @@ Splash page timeout:&nbsp;&nbsp;
 [% IF errors.missing.splash_timeout or errors.invalid.splash_timeout %]</font>[% END %]
 <input type="text" id="splash_timeout" name="splash_timeout" size="3" maxlength="3" value='[% req.param('splash_timeout') or router.splash_timeout or '20' %]'></p>
 <p><font color="#CCCCCC"><b>Number of inactive minutes before splash page is shown</b></font></p>
+
+
+
+
+</div>
+
 
 
 <!-- ad zones -->
@@ -149,8 +184,6 @@ Splash page timeout:&nbsp;&nbsp;
 <div id="twitter_div">
 <span id="twitter_update_list"></span>
 </div>
-<script type="text/javascript" src="http://s2.slwifi.com/js/blogger.js"></script>
-<script type="text/javascript" src="http://twitter.com/statuses/user_timeline/[% reg.account_id.twitter_id %].json?callback=twitterCallback2&count=1"></script>
 
 
 [% ELSE %]
@@ -202,7 +235,7 @@ Is this router active? (To ensure consistency in reporting, routers cannot be de
 
 <!-- end active -->
 <hr class="sl_line">
-
+jq
 <input id="submit" type="Submit" value="Save router settings">
 
 </form>
@@ -238,28 +271,8 @@ Is this router active? (To ensure consistency in reporting, routers cannot be de
 </div>
 
 
-
-<script type="text/javascript">
-function updateRouterForm() {
-
-    device = document.getElementById('device').value;
-
-    if (device == 'mr3201a' || device == '') {
-        document.getElementById('ssid').disabled=true;
-        document.getElementById('name').disabled=true;
-        document.getElementById('splash_href').disabled=true;
-        document.getElementById('splash_timeout').disabled=true;
-        document.getElementById('serial_number').disabled=true;
- 
-    } else {
-        document.getElementById('ssid').disabled=false;
-        document.getElementById('name').disabled=false;
-        document.getElementById('splash_href').disabled=false;
-        document.getElementById('splash_timeout').disabled=false;
-        document.getElementById('serial_number').disabled=false;
-        document.getElementById('serial').display=block;
-    }
-};
+<script type="text/javascript" src="[% base_uri %]/resources/js/blogger.js"></script>
+<script type="text/javascript" src="http://twitter.com/statuses/user_timeline/[% reg.account_id.twitter_id %].json?callback=twitterCallback2&count=1"></script>
 
 function updateZones() {
 
