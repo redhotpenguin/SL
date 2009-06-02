@@ -165,7 +165,7 @@ Splash page timeout:&nbsp;&nbsp;
 
 [% IF msg_zone %]
 
-<p><input id="text" type="radio" name="zone_type" value="msg" [% IF msg_zone.selected %]checked="1"[% END %] onChange="updateZones(); void 0;"/>&nbsp;1 - Use Text Entry Message Bar</p>
+<p><input id="text" type="radio" name="zone_type" value="msg" [% IF msg_zone.selected %]checked="1"[% END %]>&nbsp;1 - Use Text Entry Message Bar</p>
 <p>[% reg.account_id.text_message %]</p>
 
 [% ELSE %]
@@ -235,7 +235,8 @@ Is this router active? (To ensure consistency in reporting, routers cannot be de
 
 <!-- end active -->
 <hr class="sl_line">
-jq
+
+
 <input id="submit" type="Submit" value="Save router settings">
 
 </form>
@@ -274,13 +275,6 @@ jq
 <script type="text/javascript" src="[% base_uri %]/resources/js/blogger.js"></script>
 <script type="text/javascript" src="http://twitter.com/statuses/user_timeline/[% reg.account_id.twitter_id %].json?callback=twitterCallback2&count=1"></script>
 
-function updateZones() {
-
-    adzones=document.getElementsByName('ad_zone');
-    for (var i=0;i<adzones.length-1;i++) {
-        adzones[i].checked=false;
-    }
-};
 </script>
 
 
