@@ -1,51 +1,84 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Create or edit router" selected="network" %]
-
-
-<div id="list_center">
-<div class="content">
-
-<h2>[% PROCESS router/nav.tmpl %] > Sync Open-Mesh.com Devices</h2>
-<hr class="sl_line">
-<br />
-<h1>Sync Open-Mesh.com Devices</h1>
-
-<p>Enter your Open-Mesh.com account information below to synchronize the list of devices registered to your Open-Mesh.com account.  You may repeat this process with different Open-Mesh.com networks to create an aggregate list.  The Open-Mesh.com network <a href="http://silverlining.zendesk.com/forums/26828/entries/37866">must have Silver Lining enabled.</a></p>
-<p>Devices that you have removed from your Open-Mesh.com network since the last synchronization will be removed from your router list.</p>
-<p>The synchronization may take a few minutes, please do not refresh the page.</p>
-<div id="edit_form">
-
-[% IF errors.missing %]
-<p><font color="red">Please complete the missing fields</font></p>
-[% END %]
-[% IF errors.invalid %]
-<p><font color="red">Network and/or password invalid</font></p>
-[% END %]
-
-
-<div class="edit_form">
-<form method="POST" action="[% base_uri %]/app/router/omsync">
-
-[% IF errors.missing.network %]<font color="red">[% END %]<p>Network Name:&nbsp;&nbsp;[% IF errors.missing.network %]</font>[% END %]
-
-<input type="text" name="network" size="20" maxlength="50" value='[% req.param('network')  %]'></p>
-
-<p><font color="#CCCCCC"><b>The network name you use to login to the Open-Mesh.com dashboard</b></font></p>
-
-
-
-[% IF errors.missing.password %]<font color="red">[% END %]
-<p>Network Password:&nbsp;&nbsp;
-[% IF errors.missing.password %]</font>[% END %]
-<input type="password"  name="password" size="20" maxlength="50" value='[% req.param('password')  %]'></p>
-<p><font color="#CCCCCC"><b>Password to your Open-Mesh.com network (not stored on our system)</b></font></p>
-<br />
-
-<input id="submit" type="Submit" value="Sync Open-Mesh.com Devices">
-
-</form>
-
+<div class="grid_16">
+	<div id="breadcrumb">
+		<div id="breadcrumb_inner">
+			<ul>[% PROCESS router/nav.tmpl %]<li><strong>Sync Open-Mesh.com Devices</strong></li></ul>
+		</div>
+	</div>
 </div>
+<div class="clear"></div>
+
+<div id="main_content" class="grid_10 suffix_1">
+	
+	
+	<h2>Sync Open-Mesh.com Devices</h2>
+	<div class="row">
+		<p>
+			Enter your Open-Mesh.com account information below to synchronize 
+			your Open-Mesh.com devices. For more information about syncing your 
+			Open-Mesh.com account <a href="http://silverlining.zendesk.com/forums/26828/entries/37866">please 
+			read our integration guide</a>.
+		</p>
+	
+	[% IF errors.missing %]
+		<p class="error">Please complete the missing fields</p>
+	[% END %]
+	[% IF errors.invalid %]
+		<p class="error">Network and/or password invalid</p>
+	[% END %]
+	
+	
+	<form class="form" method="post" action="[% base_uri %]/app/router/omsync">
+		
+		<ul> 
+			<li>
+				<div class="grid_6 alpha omega suffix_4">
+					<!-- email -->
+					<label for="network">Network Name</label>
+					<input type="text" name="network" id="network" size="32" maxlength="50" value='[% req.param('network')  %]' />
+					<label for="network" class="tip clear [% IF errors.missing.network %]error[% END %]">Open-Mesh.com network name</label>
+					<div class="clear"></div>
+				</div>
+				<div class="clear"></div>
+			</li>		
+			
+			<li>
+				<div class="grid_6 alpha omega suffix_4">
+					<label for="password">Password</label>
+					<input type="password"  name="password" id="password" size="20" maxlength="50" value='[% req.param('password')  %]' />
+					<label for="password" class="clear tip [% IF errors.missing.password %]error[% END %]">Password to your Open-Mesh.com network</label>
+					<div class="clear"></div>
+				</div>
+				<div class="clear"></div>
+			</li>	
+			<li>
+				<input id="submit" type="submit" value="Sync Open-Mesh.com Devices" />
+			</li>
+		</ul>
+	
+	
+	
+	</form>
+	</div>
 </div>
 
+<div id="secondary_content" class="grid_5">
+	<div id="sc_top">
+		<div id="sc_bottom">
+			<ul class="bullet_list">
+				<li><a href="[% base_uri %]/app/router/omsync">Sync Open-Mesh.com Devices</a></li>
+				<li><a href="[% base_uri %]/app/router/edit">Add New Router</a></li>
+				<li><a href="[% base_uri %]/app/router/adbar">Turn Ad Bar On/Off</a></li>
+			</ul>		
+
+			<h3>More Details</h3>
+			<p>Devices that you have removed from your Open-Mesh.com network since the last synchronization will be removed from your router list.</p>
+			<p>The synchronization may take a few minutes, please do not refresh the page.</p>
+
+					
+		</div>
+	</div>
 </div>
+
+
 [% PROCESS footer.tmpl %]

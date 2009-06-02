@@ -1,22 +1,30 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Create or edit router"  load="updateRouterForm()" selected="network" %]
 
-<div id="list_center">
-<div class="content">
+<div class="grid_16">
+	<div id="breadcrumb">
+		<div id="breadcrumb_inner">
+			<ul>
+				[% PROCESS router/nav.tmpl %] 
 
-<h2>[% PROCESS router/nav.tmpl %] > 
-[% UNLESS router.router_id  %]New router[% ELSE %]Edit router '[% router.name %]'[% END %]</h2>
-<hr class="sl_line">
+				<li><strong>[% UNLESS router.router_id  %]New router[% ELSE %]Edit router '[% router.name %]'[% END %]</strong></li>
+			</ul>
+		</div>
+	</div>
+</div>
+<div class="clear"></div>
 
+
+<div id="main_content" class="grid_10 suffix_1">
 [% IF !router && (reg.account_id.account_id !=2 ) %]
-<br />
+
+
 <h3>Existing Customers</h3>
 <p>Learn about our brand new Silver Lining Repeaters. Our <a href="http://www.silverliningnetworks.com/store/">new repeaters are plug and play</a> and work out of the box!</p>
-<p>If you are already using one or more WRT54GL device, rest assured you are a highly valued customer<br /> and we will continue to support you and your WRT54GL for the life of your account.</p>
+<p>If you are already using one or more WRT54GL device, rest assured you are a highly valued customer and we will continue to support you and your WRT54GL for the life of your account.</p>
  
-<br />
 <h3>Open-Mesh.com Users</h3>
-<p>If you have an existing Open-Mesh.com account, <a href="[% base_uri %]/app/router/omsync">click here</a> to sync<br />Silver Lining with your Open-Mesh.com network and update your list of devices.</p>
-<p><a href="http://silverlining.zendesk.com/forums/26828/entries/37866">Click here</a> to learn more about integrating Open-Mesh.com with Silver Lining.</a></p>
+<p>If you have an existing Open-Mesh.com account, <a href="[% base_uri %]/app/router/omsync">click here</a> to sync Silver Lining with your Open-Mesh.com network and update your list of devices.</p>
+<p><a href="http://silverlining.zendesk.com/forums/26828/entries/37866">Click here</a> to learn more about integrating Open-Mesh.com with Silver Lining.</p>
  
 
 [% ELSE %]
@@ -31,9 +39,7 @@
 <p><font color="red">Some fields were invalid, please correct them</font></p>
 [% END %]
 
-<hr class="sl_line">
 
-<div class="edit_form">
 <form method="POST" action="[% base_uri %]/app/router/edit">
 <input type="hidden" name="router_id" value="[% router.router_id %]">
 
@@ -53,7 +59,6 @@
 <font color="#CCCCCC"><strong>Greyed out items are controlled from your <a href="http://www.open-mesh.com/dashboard.php">Open-Mesh.com dashboard</a></strong></font></p>
 
 
-<hr class="sl_line">
 
 
 <!-- macaddr -->
@@ -67,7 +72,6 @@
 
 <p><font color="#CCCCCC"><b>Example:  00:12:cf:43:38:bd</b></font></p>
 
-<hr class="sl_line">
 
 
 <!-- name -->
@@ -85,7 +89,6 @@
 <p><font color="#CCCCCC"><b>Allow up to a minute to take effect, Linksys WRT54GL only</b></font></p>
 <p<font color="#CCCCCC"><b>Allow up to five minutes to take effect</b></font></p>
 
-<hr class="sl_line">
 
 
 <div id="serial" style="display:none;">
@@ -97,7 +100,6 @@ Serial number or service tag:&nbsp;&nbsp;
 <input type="text" id="serial_number" name="serial_number" size="25" maxlength="25" value='[% req.param('serial_number') or router.serial_number %]'></p>
 <p><font color="#CCCCCC"><b>Optional, to determine router model compatibility, example CL7A0F318014</b></font></p>
 
-<hr class="sl_line">
 </div>
  
 
@@ -111,7 +113,6 @@ Splash page url:&nbsp;&nbsp;
 <p><font color="#CCCCCC"><b>Linksys WRT54GL and Linux server only<b></font></p>
 
 
-<hr class="sl_line">
 
 
 <!-- splash page timeout -->
@@ -122,7 +123,6 @@ Splash page timeout:&nbsp;&nbsp;
 <input type="text" id="splash_timeout" name="splash_timeout" size="3" maxlength="3" value='[% req.param('splash_timeout') or router.splash_timeout or '20' %]'></p>
 <p><font color="#CCCCCC"><b>Number of inactive minutes before splash page is shown</b></font></p>
 
-<hr class="sl_line">
 
 <!-- ad zones -->
 
@@ -139,7 +139,6 @@ Splash page timeout:&nbsp;&nbsp;
 
 [% END %]
 
-<br /><br />
 
 
 
@@ -147,7 +146,6 @@ Splash page timeout:&nbsp;&nbsp;
 
 <p><input id="twitter" type="radio" name="zone_type" value="twitter" [% IF twit_zone.selected %]checked="1"[% END %] onChange="updateZones(); void 0;"/>&nbsp;2 - Use Twitter Feed</p>
 
-<br />
 <div id="twitter_div">
 <span id="twitter_update_list"></span>
 </div>
@@ -161,7 +159,6 @@ Splash page timeout:&nbsp;&nbsp;
 
 [% END %]
 
-<br /><br />
 
 
 <p><input id="iab" type="radio" name="zone_type" value="iab" [% IF !twit_zone.selected and !msg_zone.selected %]checked="1"[% END %]/>&nbsp;3 - Use Ad Server Ad Zones</p>
@@ -181,8 +178,6 @@ Splash page timeout:&nbsp;&nbsp;
 [% END %]
 
 
-<br />
-<hr class="sl_line">
 
 
 <!-- adbar -->
@@ -193,7 +188,6 @@ Off<input type="radio" name="adserving" value="f" [% IF ad_zone.adserving == 0 %
 <p><font color="#CCCCCC">Turn the ad and messaging bar On or Off.  Takes 5-15 minutes to take effect.</font></p>
 
 <!-- end adbar -->
-<hr class="sl_line">
 
 
 
@@ -215,25 +209,34 @@ Is this router active? (To ensure consistency in reporting, routers cannot be de
 
 [% IF locations != '' %]
 
-<hr class="sl_line">
 <p>This device has been registered at the following locations and times:</p>
 
 [% FOREACH location = locations %]
 <ul>
       <li>[% IF location.name %][% location.name %] - [% ELSE %][% END %]
           [% location.ip %] - [% location.mts %]</li>
-  </ul>
+</ul>
 [% END %]
 
 [% END %]
 
-
-
-</div>
-</div>
-
 [% END %]
 </div>
+
+
+<div id="secondary_content" class="grid_5">
+	<div id="sc_top">
+		<div id="sc_bottom">
+			<ul class="bullet_list">
+				<li><a href="[% base_uri %]/app/router/omsync">Sync Open-Mesh.com Devices</a></li>
+				<li><a href="[% base_uri %]/app/router/edit">Add New Router</a></li>
+				<li><a href="[% base_uri %]/app/router/adbar">Turn Ad Bar On/Off</a></li>
+			</ul>		
+
+		</div>
+	</div>
+</div>
+
 
 
 <script type="text/javascript">
@@ -256,7 +259,7 @@ function updateRouterForm() {
         document.getElementById('serial_number').disabled=false;
         document.getElementById('serial').display=block;
     }
-}
+};
 
 function updateZones() {
 
@@ -264,7 +267,7 @@ function updateZones() {
     for (var i=0;i<adzones.length-1;i++) {
         adzones[i].checked=false;
     }
-}
+};
 </script>
 
 

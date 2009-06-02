@@ -1,41 +1,66 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Create or edit router"  %]
-[% PROCESS left.tmpl %]
-
-<div id="list_center">
-<div class="content">
-
-<h2>[% PROCESS router/nav.tmpl %] > Turn Ad Bar On/Off</h2>
-<hr class="sl_line">
-<br />
-<h1>Turn Ad Bar On/Off for All Routers</h1>
-<div id="edit_form">
-
-[% IF errors.missing %]
-<p><font color="red">Please choose On or Off</font></p>
-[% END %]
-
-<p>This master switch toggles the ad and messaging bar on ALL routers.</p>
-<ul>
-<li>Choosing "Off" will turn off the ad bar on every router.</li>
-<li>Choosing "On" will turn on the ad bar on every router.</li>
-</ul>
-<p>This change will take 5 to 15 minutes to take effect.  You may toggle adserving for individual routers on the edit router page.</p>
-<br />
-
-<div class="edit_form">
-<form id="adbar" method="POST" action="[% base_uri %]/app/router/adbar">
-
-<select name="adbar">
-	<option value="" selected="selected">On or Off?</option>
-<option value="t">On</option>
-<option value="f">Off</option>
-</select>
-&nbsp;<input id="submit" type="Submit" value="Make it so">
-
-</form>
-
+<div class="grid_16">
+	<div id="breadcrumb">
+		<div id="breadcrumb_inner">
+			<ul>[% PROCESS router/nav.tmpl %] <li><strong>Turn Ad Bar On/Off</strong></li></ul>
+		</div>
+	</div>
 </div>
+<div class="clear"></div>
+
+
+<div id="main_content" class="grid_10 suffix_1">
+
+	<h2>Turn Ad Bar On/Off for All Routers</h2>
+	<div class="row">
+		[% IF errors.missing %]<p class="error">Please choose On or Off</p>[% END %]
+		<p>This master switch toggles the ad and messaging bar on ALL routers.</p>
+		
+		<ul class="bullet_list">
+			<li>Choosing "Off" will turn off the ad bar on every router.</li>
+			<li>Choosing "On" will turn on the ad bar on every router.</li>
+		</ul>
+		
+		
+		<form class="form" id="adbar" method="post" action="[% base_uri %]/app/router/adbar">
+			<ul>
+				<li>
+					<div class="grid_6 alpha omega suffix_4">
+						<!-- email -->
+						<label for="adbar">Ad Bar On/OFF</label>
+						<select name="adbar" size="40">
+							<option value="" selected="selected">On or Off?</option>
+							<option value="t">On</option>
+							<option value="f">Off</option>
+						</select>
+						<div class="clear"></div>
+					</div>
+					<div class="clear"></div>
+				</li>		
+				<li>
+					<input id="submit" type="submit" value="Make it so"/>
+					<div class="clear"></div>
+				</li>
+			</ul>
+			
+			<p>This change will take 5 to 15 minutes to take effect.  You may toggle adserving for individual routers on the edit router page.</p>
+		</form>
+	</div>
 </div>
 
+<div id="secondary_content" class="grid_5">
+	<div id="sc_top">
+		<div id="sc_bottom">
+			<ul class="bullet_list">
+				<li><a href="[% base_uri %]/app/router/omsync">Sync Open-Mesh.com Devices</a></li>
+				<li><a href="[% base_uri %]/app/router/edit">Add New Router</a></li>
+				<li><a href="[% base_uri %]/app/router/adbar">Turn Ad Bar On/Off</a></li>
+			</ul>		
+
+		</div>
+	</div>
 </div>
+
+
+
 [% PROCESS footer.tmpl %]
