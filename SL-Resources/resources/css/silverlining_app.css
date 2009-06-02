@@ -314,6 +314,32 @@ color: #333;
 font-weight: bold;
 margin-bottom: 5px;
 }
+#main_content table.basic_table {
+width: 90%;
+border: 1px solid #CCC;
+color: #444;
+}
+#main_content table.small_table {
+font-size: 92%;
+}
+#main_content .basic_table th {
+padding: 3px;
+background-color: #EEE;
+font-weight: bold;
+font-size: 85%;
+}
+#main_content .basic_table td {
+padding: 5px;
+border-top:1px solid #CCC;
+border-collapse:collapse;
+font-size: 92%;
+}
+#main_content .basic_table .active {
+color: #006600;
+}
+#main_content .basic_table .inactive {
+color: #900;
+}
 
 
 /* SIDE CONTENT
