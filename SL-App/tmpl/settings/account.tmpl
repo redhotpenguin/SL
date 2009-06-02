@@ -1,5 +1,5 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  My info"  selected="account" subselected="profile"%]
-<div id="main_content" class="grid_10 suffix_1">	
+<div id="main_content" class="grid_10 suffix_6">	
 
 	<!-- Breadcrumb<p>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage account</a> >My info</p>--> 
 	
@@ -63,17 +63,6 @@
 </div>
 
 
-<div id="secondary_content" class="grid_5">
-	<div id="sc_top">
-		<div id="sc_bottom">
-				<p><a href="[% base_uri %]/app/settings/account">Change Login Info</a></p>
-				[% IF reg.account_id.account_id == 1 or reg.account_id.account_id ==2 or reg.account_id.account_id == 21 %]
-				<p><a href="[% base_uri %]/app/settings/users">Users</a></p>
-				<p><a href="[% base_uri %]/app/settings/payment">Payment</a></p>
-				[% END %]
 
-		</div>
-	</div>
-</div>
 
 [% PROCESS footer.tmpl %]
