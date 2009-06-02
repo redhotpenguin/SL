@@ -96,6 +96,23 @@ text-indent: -3000px;
 }
 
 
+/* LOGIN NAV
+============================================= */
+#login_nav {
+position: absolute;
+top: 20px;
+right: 115px;
+}
+#login_nav li {
+display: inline;
+margin-right: 10px;
+color: #EEE;
+font-size: 92%;
+}
+#login_nav li a {
+color: #EEE;
+}
+
 /* HEADER
 ============================================= */
 #header h1 {
