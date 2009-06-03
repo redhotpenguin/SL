@@ -58,8 +58,14 @@ sub dispatch_edit {
     }
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
+
+      my @ad_sizes =
+        sort { $a->grouping <=> $b->grouping }
+        sort { $a->name cmp $b->name }
+          SL::Model::App->resultset('AdSize')->search({ grouping => [ 1,6 ] });
+
         my %tmpl_data = (
-            ad_sizes => [ sort { $a->grouping <=> $b->grouping }  sort { $a->name cmp $b->name } SL::Model::App->resultset('AdSize')->search({ hidden => 'f' }) ],
+            ad_sizes => \@ad_sizes,
             ad_zone  => $ad_zone,
             errors   => $args_ref->{errors},
             req      => $req,
@@ -98,6 +104,8 @@ sub dispatch_edit {
 
         if ( $results->has_missing or $results->has_invalid ) {
             my $errors = $self->SUPER::_results_to_errors($results);
+
+#            $r->log->error(Dumper($errors));
 
             return $self->dispatch_edit(
                 $r,
