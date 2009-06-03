@@ -3,6 +3,11 @@
 	
 	<h2>Manage Account '[% reg.account_id.name %]'</h2>
 	<div class="row">
+	<p>Your current subscription rate: <strong>$[% IF reg.account_id.plan == 'enterprise' %]249 (Enterprise)[% ELSIF reg.account_id.plan == 'premium' %]99 (Premium)[% ELSIF reg.account_id.plan == 'plus' %]24 (Plus)[% ELSIF reg.account_id.plan == 'basic' %]5 (Basic)[% ELSIF reg.account_id.plan == 'free' %]0 (Free)[% END %]</strong></p>
+	
+	<p>To change your subscription plan, just <a href="http://www.silverliningnetworks.com/pricing/?email=[% reg.email %]">click here to view subscription plans</a> and use <strong>[% reg.email %]</strong> when you select a different plan.</p>	
+	
+	
 	[% IF msg %]<p class="error">[% msg %]</p>[% END %]
 
 
@@ -11,12 +16,12 @@
 			<ul>
 				<li>
 				<div class="grid_6 alpha omega suffix_4">
-				<select name="account_id" id="account_id">
-				[% FOREACH account = accounts %]
-					<option value="[% account.account_id %]" [% IF reg.account_id.account_id == account.account_id %]selected="selected"[% END %]>[% account.name %]</option>
-				[% END %]
-				</select>
-				<div class="clear"></div>				
+					<select name="account_id" id="account_id">
+					[% FOREACH account = accounts %]
+						<option value="[% account.account_id %]" [% IF reg.account_id.account_id == account.account_id %]selected="selected"[% END %]>[% account.name %]</option>
+					[% END %]
+					</select>
+					<div class="clear"></div>				
 				</div>
 				<div class="clear"></div>
 				</li>
@@ -25,16 +30,11 @@
 					<input type="submit" value="Change Account" />				
 				</li>
 			</ul>
-		
-
-			
 		</form>
 	[% END %]
 	
 		
-	<p>Your current subscription rate: <strong>$[% IF reg.account_id.plan == 'enterprise' %]249 (Enterprise)[% ELSIF reg.account_id.plan == 'premium' %]99 (Premium)[% ELSIF reg.account_id.plan == 'plus' %]24 (Plus)[% ELSIF reg.account_id.plan == 'basic' %]5 (Basic)[% ELSIF reg.account_id.plan == 'free' %]0 (Free)[% END %]</strong></p>
-	
-	<p>To change your subscription plan, just <a href="http://www.silverliningnetworks.com/pricing/?email=[% reg.email %]">click here to view subscription plans</a> and use <strong>[% reg.email %]</strong> when you select a different plan.</p>
+
 	
 	</div>
 </div>
