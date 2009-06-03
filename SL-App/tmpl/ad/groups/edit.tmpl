@@ -69,7 +69,7 @@
 				<p>Select a branding image for this ad zone:</p>
 				
 				[% FOREACH bug = $buglist %]
-				<p><input [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %]type="radio" name="bug_id" value="[% bug.bug_id %]" [% IF ad_zone.bug_id.bug_id == bug.bug_id %]checked[% END %]>&nbsp;&nbsp;<a href="[% bug.link_href %]"><img src="[% bug.image_href %]" border="1"></a>&nbsp;&nbsp;[% bug.ad_size_id.bug_width %]px wide by [% bug.ad_size_id.bug_height %]px tall</p>
+				<p><input type="radio" name="bug_id" value="[% bug.bug_id %]" [% IF ad_zone.bug_id.bug_id == bug.bug_id %]checked[% END %]>&nbsp;&nbsp;<a href="[% bug.link_href %]"><img src="[% bug.image_href %]" border="1"></a>&nbsp;&nbsp;[% bug.ad_size_id.bug_width %]px wide by [% bug.ad_size_id.bug_height %]px tall</p>
 				[% END %]
 				
 				[% ELSE %]
@@ -106,39 +106,6 @@
 		</ul>
 	</form>
 </div>
-
-
-
-
-<script type="text/javascript">
-function changeBugList() {
-
-    // hide all sub lists
-    for (var i = 1; i < 14; i++) {
-
-        document.getElementById('bug_list_' + i).style.display='none';
-    }
-
-
-    // what ad size is selected?
-    size = document.getElementById('ad_size_id').value;
-
-    if (size != '') {
-        document.getElementById('bug_list_' + size).style.display='block';
-    }
-
-    // show second box for double ad zones
-    if (((size > 6) && (size < 10) ) || ( size == 14 )) {
-        document.getElementById('code_double').style.display='block';
-    } else {
-        document.getElementById('code_double').style.display='none';
-   }
-}
-
-function setBugList(ad_size_id) {
-    document.getElementById('bug_list_' + ad_size_id).style.display='block';
-}
-</script>
 
 
 [% PROCESS footer.tmpl %]

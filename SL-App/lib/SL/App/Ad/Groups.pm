@@ -59,6 +59,7 @@ sub dispatch_edit {
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
+      # only get leaderboard and full banner sizes
       my @ad_sizes =
         sort { $a->grouping <=> $b->grouping }
         sort { $a->name cmp $b->name }
@@ -70,9 +71,12 @@ sub dispatch_edit {
             errors   => $args_ref->{errors},
             req      => $req,
         );
+
         if ($ad_size_id) {
             $tmpl_data{ad_size_id} = $ad_size_id;
         }
+
+
         my @bug_lists;
         foreach my $ad_size ( SL::Model::App->resultset('AdSize')->all ) {
             my @bugs = SL::Model::App->resultset('Bug')->search(
@@ -85,6 +89,7 @@ sub dispatch_edit {
             push @bug_lists, 'bug_list_' . $ad_size->ad_size_id;
         }
         $tmpl_data{bug_lists} = \@bug_lists;
+
 
         my $output;
         $TMPL->process( 'ad/groups/edit.tmpl', \%tmpl_data, \$output, $r ) ||
@@ -105,7 +110,7 @@ sub dispatch_edit {
         if ( $results->has_missing or $results->has_invalid ) {
             my $errors = $self->SUPER::_results_to_errors($results);
 
-#            $r->log->error(Dumper($errors));
+            $r->log->error(Dumper($errors));
 
             return $self->dispatch_edit(
                 $r,
