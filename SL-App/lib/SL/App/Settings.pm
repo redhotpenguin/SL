@@ -19,8 +19,8 @@ use base 'SL::App';
 
 use Data::Dumper;
 
-our $CONFIG    = SL::Config->new();
-our $DATA_ROOT = $CONFIG->sl_data_root;
+our $Config    = SL::Config->new();
+our $DATA_ROOT = $Config->sl_data_root;
 our $TMPL      = SL::App::Template->template();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
@@ -125,8 +125,21 @@ sub dispatch_account {
     }
 
     my $account = $reg->account_id;
-    $account->name( $req->param('account') );
-    $account->update;
+   if ($account->name ne $req->param('account')) {
+   	# we need to update the account
+	my $oldbase = $account->report_base;
+	my $old_report_base = join('/', $Config->sl_data_root, 
+		 , substr($oldbase, 0, length($oldbase)-7));
+
+	# update the account
+	$account->name( $req->param('account') );
+	$account->update;
+	my $newbase = $account->report_base;
+	my $new_report_base = join('/', $Config->sl_data_root, 
+		 , substr($newbase, 0, length($newbase)-7));
+
+	system("mv $old_report_base $new_report_base") == 0 or die $!;
+    }
 
     # update the password
     $reg->password_md5( Digest::MD5::md5_hex( $req->param('password') ) );
