@@ -31,16 +31,21 @@
 	<!-- IF TRYING TO EDIT AN EXISTING ROUTER -->
 	<h2>[% IF router.name %][% router.name %][% ELSE %]Add New Router[% END %]</h2>
 
-	<form class="row form" method="post" action="[% base_uri %]/app/router/edit">
+
+
+	<form class="row" method="post" action="[% base_uri %]/app/router/edit">
 		[% IF errors.missing %]<p class="error">Please complete the missing fields</p>[% END %]
 		[% IF errors.invalid %]<p class="error">Some fields were invalid, please correct them</p>[% END %]
 
+
+
+
 		<input type="hidden" name="router_id" value="[% router.router_id %]"/>
-		<ul> 
+		<ul>
 			<li>
 				<div class="grid_8 alpha omega suffix_2">
 					<!-- device -->
-					<label for="device" class="[% IF errors.missing.device %]error[% END %]">Device Type</label>
+					<label for="device" class="label [% IF errors.missing.device %]error[% END %]">Device Type</label>
 					<select name="device" id="device">
 						<option value="" [% IF ! router.device and req.param('device') == '' %][% END %]>Select a device type</option>
 						<option value="mr3201a" [% IF req.param('device') == 'mr3201a' or router.device == 'mr3201a' %]SELECTED[% END %]>Open-Mesh.com 32MB (MR3201A, OM1P, PicoStation)</option>
@@ -55,7 +60,10 @@
 				</div>
 				<div class="clear"></div>
 			</li>	
-
+		</ul>		
+		
+		
+		<ul class="form"> 
 
 			<li>
 				<div class="grid_6 alpha omega suffix_4">
@@ -83,17 +91,23 @@
 
 			
 			<li>
-				<div class="grid_6 alpha omega suffix_4">
+				<div class="grid_8 alpha omega suffix_2">
 					<!-- notes -->
 					<label for="notes">Notes</label>
 					<textarea id="notes" name="notes" rows="2" cols="50">[% req.param('notes') or router.notes %]</textarea>
 					<div class="clear"></div>
 					<label for="notes" class="tip">100 character limit</label>
-					
+				</div>
+				<div class="clear"></div>				
+			</li>	
+			
+			<li>
+				<div class="grid_6 alpha omega suffix_4">
 					<div id="ssid" style="display: none;">
 						<!-- SSID -->
 						<label for="ssid" class="[% IF errors.missing.ssid %]error[% END %]">Allow up to five minutes to take effect</label>
 						<input type="text" id="ssid" name="ssid" size="25" maxlength="25" value='[% req.param('ssid') or router.ssid %]'/>
+						<div class="clear"></div>
 						<label for="ssid" class="tip">Allow up to five minutes to take effect</label>
 					</div>
 
@@ -107,8 +121,9 @@
 						<label for="serial_number" class="tip">Optional, to determine router model compatibility, example CL7A0F318014</label>
 					</div>
 				</div>
-				<div class="clear"></div>				
-			</li>	
+				<div class="clear"></div>
+			</li>				
+			
 			
 			<li>
 				<div class="grid_6 alpha omega suffix_4">
@@ -154,7 +169,7 @@
 					<!-- twitter -->
 					[% IF twit_zone %]
 						<input id="twitter" type="radio" name="zone_type" value="twitter" [% IF twit_zone.selected %]checked="1"[% END %] />
-						<label for="twitter" class="check_label">2 - Use Twitter Feed</label>
+						<label for="twitter" class="check_label">2 - Use Twitter Feed <a href="#">?</a></label>
 						<div id="twitter_div">
 							<span id="twitter_update_list"></span>
 						</div>
