@@ -1,46 +1,46 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Ad zone branding images" selected="adcenter" %]
+<div class="grid_16">
+	<div id="breadcrumb">
+		<div id="breadcrumb_inner">
+			<ul>[% PROCESS ad/bugs/nav.tmpl %]<li><strong>[% count %] images</strong></li></ul>
+		</div>
+	</div>
+</div>
+<div class="clear"></div>
 
-<div id="list_center">
-<div class="content">
 
-<h2>[% PROCESS ad/bugs/nav.tmpl %] > [% count %] images</h2>
-<hr class="sl_line"></p>
- 
-[% IF msg %]
-<p><font color="red">[% msg %]</p>
-<p><hr class="sl_line"></p>
-[% END %]
 
-<p style="text-align: left; padding-bottom: 5px;">
-<a href="[% base_uri %]/app/ad/bugs/edit">Add an ad zone branding image</a></span></p>
 
-<table class="list">
-<tr class="list_header">
+ <div id="main_content" class="grid_16">
+[% IF msg %]<p class="error">[% msg %]</p>[% END %]
 
-<td class="header">Image (click to edit)</td>
-<td class="header">Ad zone type bug size</td>
-<td class="header">Image link</td>
-</tr>
+<h3><a href="[% base_uri %]/app/ad/bugs/edit">Add an ad zone branding image</a></h3>
 
-[% FOREACH bug = bugs %]
-  <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
+<table class="basic_table">
+	<tr class="list_header">
+	<th>Image (click to edit)</th>
+	<th>Ad zone type bug size</th>
+	<th>Image link</th>
+	</tr>
 	
-<!-- image href -->
-<td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
-<a href="[% base_uri %]/app/ad/bugs/edit/?id=[% bug.bug_id %]"><img src="[% bug.image_href %]"></a></td>
-
-<!-- zone type -->
-<td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
-[% bug.ad_size_id.name %] - [% bug.ad_size_id.bug_width %]px wide x [% bug.ad_size_id.bug_height %]px tall</td>
-
-<!-- link -->
-<td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
-<a href="[% bug.link_href %]">[% bug.link_href %]</a></td>
-
-</tr>
-[% END %]
+	[% FOREACH bug = bugs %]
+	  <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
+		
+	<!-- image href -->
+	<td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
+	<a href="[% base_uri %]/app/ad/bugs/edit/?id=[% bug.bug_id %]"><img src="[% bug.image_href %]"></a></td>
+	
+	<!-- zone type -->
+	<td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
+	[% bug.ad_size_id.name %] - [% bug.ad_size_id.bug_width %]px wide x [% bug.ad_size_id.bug_height %]px tall</td>
+	
+	<!-- link -->
+	<td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
+	<a href="[% bug.link_href %]">[% bug.link_href %]</a></td>
+	
+	</tr>
+	[% END %]
 </table>
+</div>
 
-</div>
-</div>
 [% PROCESS footer.tmpl %]
