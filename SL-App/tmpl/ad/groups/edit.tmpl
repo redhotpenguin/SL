@@ -8,18 +8,17 @@
 </div>
 <div class="clear"></div>
 
-
+<form class="form" method="POST" action="[% base_uri %]/app/ad/groups/edit">
 <div id="main_content" class="grid_10 suffix_1">
 	<h2>[% IF ad_zone.ad_zone_id %]Edit ad zone '[% ad_zone.name %]'[% ELSE%]Create ad zone[% END %]</h2>
 
-	<form class="form row" method="POST" action="[% base_uri %]/app/ad/groups/edit">
 		<!-- Errors -->
 		[% IF status == 'update_ok' %]<p class="error">Your ad zone has been updated.</p>[% END %]
 		
 		[% IF errors.missing %]<p class="error">Please fill in the missing fields</p>[% END %]
 		
 		[% IF errors.invalid %]<p class="error">Some fields were invalid, please correct them</p>[% END %]
-		<ul> 
+		<ul class="row"> 
 			<li>
 				<div class="grid_6 alpha omega suffix_4">
 					<label for="name" class="[% IF errors.missing.name %]error[% END %]">Ad zone name</label>
@@ -74,41 +73,51 @@
 	<!-- end invocation code -->
 	
 	
-	
-	<!-- branding image -->
-	[% IF errors.missing.bug_id %]<font color="red">You need a valid branding image for this ad zone.</font>
-	
-	[% END %]
-	
-	[% FOREACH buglist = bug_lists %]
-	
-	<div id="[% buglist %]" [% IF $buglist.0.ad_size_id.ad_size_id != ad_size_id %]style="display: none;"[% END %]>
-	
-	[% IF $buglist.0.ad_size_id.ad_size_id %]
-	<p>Select a branding image for this ad zone:</p>
-	
-	[% FOREACH bug = $buglist %]
-	<p><input [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %]type="radio" name="bug_id" value="[% bug.bug_id %]" [% IF ad_zone.bug_id.bug_id == bug.bug_id %]checked[% END %]>&nbsp;&nbsp;<a href="[% bug.link_href %]"><img src="[% bug.image_href %]" border="1"></a>&nbsp;&nbsp;[% bug.ad_size_id.bug_width %]px wide by [% bug.ad_size_id.bug_height %]px tall</p>
-	[% END %]
-	
-	[% ELSE %]
-	
-	<p>You haven't created any <a href="[% base_uri %]/app/ad/bugs/list">branding images yet</a> for this ad zone size,<br /> please do so to create this zone.</p>
-	[% END %]
-	
-	</div>
-	[% END %]
-	<!-- end branding image -->
+
 	
 	
 	
 	[% IF ad_zone.ad_zone_id %]
 	<input type="hidden" name="id" value="[% ad_zone.ad_zone_id %]">
 	[% END %]
-	</form>
 
 </div>
 
+
+<div id="secondary_content" class="grid_5">
+	<div id="sc_top">
+		<div id="sc_bottom">
+		
+			<h3>Branding (Your Logo)</h3>
+			<!-- branding image -->
+			[% IF errors.missing.bug_id %]<font color="red">You need a valid branding image for this ad zone.</font>
+			
+			[% END %]
+			
+			[% FOREACH buglist = bug_lists %]
+			
+			<div id="[% buglist %]" [% IF $buglist.0.ad_size_id.ad_size_id != ad_size_id %]style="display: none;"[% END %]>
+			
+			[% IF $buglist.0.ad_size_id.ad_size_id %]
+			<p>Select a branding image for this ad zone:</p>
+			
+			[% FOREACH bug = $buglist %]
+			<p><input [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %]type="radio" name="bug_id" value="[% bug.bug_id %]" [% IF ad_zone.bug_id.bug_id == bug.bug_id %]checked[% END %]>&nbsp;&nbsp;<a href="[% bug.link_href %]"><img src="[% bug.image_href %]" border="1"></a>&nbsp;&nbsp;[% bug.ad_size_id.bug_width %]px wide by [% bug.ad_size_id.bug_height %]px tall</p>
+			[% END %]
+			
+			[% ELSE %]
+			
+			<p>You haven't created any <a href="[% base_uri %]/app/ad/bugs/list">branding images yet</a> for this ad zone size,<br /> please do so to create this zone.</p>
+			[% END %]
+			
+			</div>
+			[% END %]
+			<!-- end branding image -->
+						
+		</div>
+	</div>
+</div>
+</form>
 
 
 
