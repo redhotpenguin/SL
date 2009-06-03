@@ -330,6 +330,7 @@ sub om_mac__to__mac {
 sub displaymac {
 	my $self = shift;
 
+	return $self->macaddr;
 	my $mac = $self->macaddr;
 	if (substr(uc($mac), 0, 9) eq '06:12:CF:') {
 		# translate
