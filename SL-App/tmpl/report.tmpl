@@ -1,16 +1,10 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Reporting" %]
-[% PROCESS left.tmpl %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Reporting" selected="stats" %]
 
-<div id="list_center">
-<div class="content">
 
-<h2>[% PROCESS dashboard.tmpl %] > View reports</h2>
 
-<hr class="sl_line">
+<h2>View Reports</h2>
 
-<p style="text-align: left; padding-bottom: 5px; width: 600px;">
-<h1>View Reports</h1>
-<br />
+
 [% IF status == 'updated' %]
 <p><font color="red">Email preferences updated</font></p>
 [% END %]
@@ -69,10 +63,6 @@
 No report is available for this reporting period yet.
 [% END %]
 </p>
-<hr class="sl_line">
 
-
-</div>
-</div>
 
 [% PROCESS footer.tmpl %]
