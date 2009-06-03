@@ -20,16 +20,19 @@ $(document).ready(function(){
 	});
 
 
-    // readonly for deterin fields
+    // readonly for determining fields
     function setDeviceForm() {
 
         var device = $("#device").val();
+
         if ( device == 'mr3201a' || !device ) {
+
 
             $("#name").attr("readonly", true);
             $("#device").attr("readonly", true);
             $("#macaddr").attr("readonly", true);
             $("#notes").attr("readonly", true);
+
             $("#wrt54gl").css("display","none");
 
         } else if (device == 'wrt54gl' ) {
@@ -38,6 +41,7 @@ $(document).ready(function(){
             $("#name").attr("readonly", false);
             $("#macaddr").attr("readonly", false);
             $("#notes").attr("readonly", false);
+
             $("#wrt54gl").css("display","block");
 
         }
@@ -49,5 +53,33 @@ $(document).ready(function(){
 
     //find all form with class jqtransform and apply the plugin
     $("form.form").jqTransform();	
-	
+
+    // clear checkboxes for twitter or text message radio selection
+    $("#twitter").change(updateZones);
+    $("#text").change(updateZones);
+
+    $("INPUT[type='checkbox']").click(
+            function()
+             {
+                 if ($('#iab').attr('checked', false)) {
+                         $('#iab').attr('checked', true);
+                     }
+              }
+    )
+
+
+    function updateIab() {
+
+        if ($("#iab").attr('checked', false) ) {
+            $("#iab").attr('checked', true);
+        }
+    }
+    
+   function updateZones() {
+       adzones=document.getElementsByName('ad_zone');
+       for (var i=0;i<adzones.length-1;i++) {
+           adzones[i].checked=false;
+       }	
+   }
+
 });
