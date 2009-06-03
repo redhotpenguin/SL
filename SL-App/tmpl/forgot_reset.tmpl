@@ -1,22 +1,49 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Reset Password" no_settings="1" %]
-[% PROCESS left.tmpl %]
 
-<div id="center">
-<div class="content">
+		 <h1 id="sl_logo" class="center margin_25_t"><a href="[% base_uri %]/app/"><span></span>Silver Lining Networks</a></h1>
 
-<h2><a href="[% home_uri %]">Home</a> > <a href="[% base_uri %]/login/">Login</a> > <a href="[% base_uri %]/forgot/">Forgot Password?</a> > Reset Password</h2>
-<hr class="sl_line">
-[% IF error == 'tooshort' %]<p><font color="red">Your password was too short, please try again</font></p>[% END %]
-<br />
-<h3>Enter a new password</h3>
-<form method="POST" action="[% base_uri %]/forgot/reset/">
-<p>Password:&nbsp;&nbsp;<input type="password" name="password"></p>
-<p><font color="#CCCCCC">Minimum 6 characters</font></p>
-<input type="hidden" name="key" value="[% key %]">
-<hr class="sl_line">
+			<div class="message_box center">
+				[% IF error == 'tooshort' %]<ul class="error_message"><li>Your password was too short, please try again</li></ul>[% END %]
+			</div>
+			<div class="login_box">				
+				<form method="post" action="[% base_uri %]/forgot/reset/">
+					<ul>
+						<li>
+							<p>Please enter a new password.</p>
+						</li>		
+						<li>
+							<label for="password">Password</label>
+							<input type="password" name="password" id="password"/>
+							<p>Minimum 6 characters</p>
+							<input type="hidden" name="key" value="[% key %]"/>
+						</li>	
+						<li>
+							<input type="submit" name="login" value="Submit"/>
+						</li>	
+					</ul>
+				</form>
+			</div>
+			
+			<p id="need_an_account">
+				<a href="http://www.silverliningnetworks.com/pricing/">Need An Account? Sign up free.</a>
+			</p>
 
-<p><input type="submit" name="login" value="Submit"></p>
-</form>
-</div>
-</div>
-[% PROCESS footer.tmpl %]
+
+
+<script type="text/javascript">
+var zenbox_params = {};
+zenbox_params.tab_id = "support";
+zenbox_params.tab_color = "black";
+zenbox_params.title = "Silver Lining Support";
+zenbox_params.text = "How may we help you? Please fill in details below, and we'll get back to you as soon as possible.";
+zenbox_params.tag = "dropbox";
+zenbox_params.url = "silverlining.zendesk.com";
+</script>
+<style type='text/css'>@import url('//assets0.zendesk.com/external/zenbox/overlay.css');</style>
+<script type='text/javascript' src='//assets0.zendesk.com/external/zenbox/overlay.js'></script>
+
+
+
+</body>
+</html>
+
