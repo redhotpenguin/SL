@@ -1,13 +1,8 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Create or Edit Image Bug" selected="adcenter" %]
 
-<div id="list_center">
-	<div class="content">
 
 [% UNLESS bug.bug_id  %]New branding image[% ELSE %]Edit existing branding image[% END %]</h2>
 
-<hr class="sl_line">
-
-<div id="edit_form">
 
 <table class="edit"> 
 
@@ -185,8 +180,6 @@ Click No to remove this branding image from the active list.
 </form>
 </table>
 
-</div>
-</div>
-</div>
+
 
 [% PROCESS footer.tmpl %]
