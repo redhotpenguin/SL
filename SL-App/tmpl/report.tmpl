@@ -1,68 +1,75 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Reporting" selected="stats" %]
 
+<div id="main_content" class="grid_10 suffix_1">
+	<h2>View Reports</h2>
+	
+	<h3 class="row">Select a type of report</h3>
+	<p>
+	[% FOREACH mytype = [ 'views', 'users' ] %]
+	    [% UNLESS mytype == type %]
+	    <strong><a href="[% base_uri %]/app/report/index/?type=[% mytype %]&temporal=[% temporal %]">
+	    [% END %]
+	    [% types.$mytype %]
+	    [% UNLESS mytype == type %]</a></strong>[% END %]
+	    &nbsp;
+	[% END %]
+	</p>
+	
+	<h3>Select a date range</h3>
+	<p>
+	[% FOREACH mytemporal = [ 'daily', 'weekly', 'monthly', 'quarterly', 'biannually', 'annually' ] %]
+	    [% UNLESS mytemporal == temporal %]
+	    <strong><a href="[% base_uri %]/app/report/index/?temporal=[% mytemporal %]&type=[% type %]">
+	    [% END %]
+	    [% temporals.$mytemporal %]
+	    [% UNLESS mytemporal == temporal %]</a></strong>[% END %]
+	    &nbsp;
+	[% END %]
+	</p>
+	
+	
+	
+	
+	<h3>Viewing [% types.$type %] report for the last [% temporals.$temporal %]</h3>
+	
+	[% IF report_uri %]
+	<img width="600" src="[% report_uri %]" />
+	[% ELSE %]
+	<p><strong>No report is available for this reporting period yet.</strong></p>
+	[% END %]
+</div>
 
-
-<h2>View Reports</h2>
-
-
-[% IF status == 'updated' %]
-<p><font color="red">Email preferences updated</font></p>
-[% END %]
-
-<form method="POST" action="[% base_uri %]/app/report/index">
-<p style="padding: 10px; background-color: #EEEEEE;">Email these reports to <b>[% reg.email %]</b>
-<br />
-<input type="radio" name="report_email_frequency" value="monthly"
-[% IF report_email_frequency == 'monthly' %]checked[% END %]>monthly
-
-<input type="radio" name="report_email_frequency" value="weekly"
-[% IF report_email_frequency == 'weekly' %]checked[% END %]>weekly
-
-<input type="radio" name="report_email_frequency" value="daily"
-[% IF report_email_frequency == 'daily' %]checked[% END %]>daily
-
-<input type="radio" name="report_email_frequency" value="never"
-[% IF report_email_frequency == '' || report_email_frequency == 'never' %]checked[% END %]>never
-&nbsp;&nbsp;&nbsp;
-<input type="submit" value="Save">
-
-</form>
-<p>Select a type of report:&nbsp;&nbsp;
- 
-[% FOREACH mytype = [ 'views', 'users' ] %]
-    [% UNLESS mytype == type %]
-    <a href="[% base_uri %]/app/report/index/?type=[% mytype %]&temporal=[% temporal %]">
-    [% END %]
-    [% types.$mytype %]
-    [% UNLESS mytype == type %]</a>[% END %]
-    &nbsp;
-[% END %]
-</p>
-<p>Select a date range:&nbsp;&nbsp;
-
-[% FOREACH mytemporal = [ 'daily', 'weekly', 'monthly', 'quarterly', 'biannually', 'annually' ] %]
-    [% UNLESS mytemporal == temporal %]
-    <a href="[% base_uri %]/app/report/index/?temporal=[% mytemporal %]&type=[% type %]">
-    [% END %]
-    [% temporals.$mytemporal %]
-    [% UNLESS mytemporal == temporal %]</a>[% END %]
-    &nbsp;
-[% END %]
-</p>
-
-
-<hr class="sl_line">
-
-
-<h2>Viewing [% types.$type %] report for the last [% temporals.$temporal %]</h2>
-
-<p style="width: 600px;">
-[% IF report_uri %]
-<img width="600" src="[% report_uri %]">
-[% ELSE %]
-No report is available for this reporting period yet.
-[% END %]
-</p>
+<div id="secondary_content" class="grid_5">
+	<div id="sc_top">
+		<div id="sc_bottom">
+		
+			<form class="form" method="post" action="[% base_uri %]/app/report/index">
+				[% IF status == 'updated' %]<p class="error">Email preferences updated</p>[% END %]
+				<ul>
+					<li>
+						<label>Send reports to <span class="tip">[% reg.email %]</span></label>
+						
+						<input type="radio" name="report_email_frequency" value="monthly" [% IF report_email_frequency == 'monthly' %]checked="checked"[% END %]/>
+						<label for="monthly" class="check_label">monthly</label>
+						
+						<input type="radio" name="report_email_frequency" value="weekly" [% IF report_email_frequency == 'weekly' %]checked="checked"[% END %]/>
+						<label for="weekly" class="check_label">weekly</label>
+						
+						<input type="radio" name="report_email_frequency" value="daily" [% IF report_email_frequency == 'daily' %]checked="checked"[% END %] />
+						<label for="daily" class="check_label">daily</label>
+						
+						<input type="radio" name="report_email_frequency" value="never" [% IF report_email_frequency == '' || report_email_frequency == 'never' %]checked[% END %]>
+						<label for="never" class="check_label">never</label>
+						<div class="clear"></div>
+					</li>
+					<li>
+						<input type="submit" value="Save" />
+					</li>
+				</ul>
+			</form>					
+		</div>
+	</div>
+</div>
 
 
 [% PROCESS footer.tmpl %]
