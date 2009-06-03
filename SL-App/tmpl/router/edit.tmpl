@@ -45,15 +45,18 @@
 						<option value="" [% IF ! router.device and req.param('device') == '' %][% END %]>Select a device type</option>
 						<option value="mr3201a" [% IF req.param('device') == 'mr3201a' or router.device == 'mr3201a' %]SELECTED[% END %]>Open-Mesh.com 32MB (MR3201A, OM1P, PicoStation)</option>
 						[% IF router || reg.account_id.account_id == 2 %]<option value="wrt54gl" [% IF req.param('device') == 'wrt54gl' or router.device == 'wrt54gl' %]SELECTED[% END %]>Linksys WRT54GL</option>[% END %]
-						<!--<option value="linuxbox" [% IF req.param('device') == 'linuxbox' or router.device =='linuxbox' %]SELECTED[% END %]>Centos 5.2 Linux Server</option>-->
+
 					</select>
+
+						<!-- value="linuxbox" [% IF req.param('device') == 'linuxbox' or router.device =='linuxbox' %]SELECTED[% END %]>Centos 5.2 Linux Server</option>-->
 					<div class="clear"></div>
 					<label for="device" class="tip">Silver Lining currently works with only the devices in the list above.</label>
 					<label for="device" class="tip">Greyed out items are controlled from your <a href="http://www.open-mesh.com/dashboard.php">Open-Mesh.com dashboard</a></label>
 				</div>
 				<div class="clear"></div>
 			</li>	
-			
+
+
 			<li>
 				<div class="grid_6 alpha omega suffix_4">
 					<!-- macaddr -->
@@ -75,6 +78,9 @@
 				</div>
 				<div class="clear"></div>
 			</li>	
+
+			<div id="wrt54gl">
+
 			
 			<li>
 				<div class="grid_6 alpha omega suffix_4">
@@ -84,12 +90,15 @@
 					<div class="clear"></div>
 					<label for="notes" class="tip">100 character limit</label>
 					
-					<div id="wrt54gl" style="display: none;">
+					<div id="ssid" style="display: none;">
 						<!-- SSID -->
 						<label for="ssid" class="[% IF errors.missing.ssid %]error[% END %]">Allow up to five minutes to take effect</label>
 						<input type="text" id="ssid" name="ssid" size="25" maxlength="25" value='[% req.param('ssid') or router.ssid %]'/>
 						<label for="ssid" class="tip">Allow up to five minutes to take effect</label>
 					</div>
+
+
+
 							
 					<div id="serial" style="display:none;">
 						<!-- serial number -->
@@ -123,7 +132,11 @@
 				</div>
 				<div class="clear"></div>
 			</li>	
+
 			
+            </div>
+
+
 			<li>
 				<div class="grid_10 alpha omega">
 					<!-- ad zones -->
@@ -140,7 +153,7 @@
 					
 					<!-- twitter -->
 					[% IF twit_zone %]
-						<input id="twitter" type="radio" name="zone_type" value="twitter" [% IF twit_zone.selected %]checked="1"[% END %] onChange="updateZones(); void 0;"/>
+						<input id="twitter" type="radio" name="zone_type" value="twitter" [% IF twit_zone.selected %]checked="1"[% END %] />
 						<label for="twitter" class="check_label">2 - Use Twitter Feed</label>
 						<div id="twitter_div">
 							<span id="twitter_update_list"></span>
@@ -159,7 +172,7 @@
 						[% FOREACH ad_zone = ad_zones %]
 						[% IF loop.index % 2 == 0 %] <tr>[% END %]
 						    <td>
-						    	<input type="checkbox" name="ad_zone" value="[% ad_zone.ad_zone_id %]"[% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]CHECKED[% END %]>[% ad_zone.name %]
+						    	<input id="adzone" type="checkbox" name="ad_zone" value="[% ad_zone.ad_zone_id %]"[% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]CHECKED[% END %]>[% ad_zone.name %]
 						    </td>
 						[% IF loop.index % 2 != 0 %] </tr>[% END %]
 						[% END %]
