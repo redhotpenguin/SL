@@ -3,15 +3,11 @@
 ================================================= */
 #sl_logo {
 background:none;
-filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='/sl/resources/images/logo/master_logo.png',sizingMethod='scale');
+filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='/sl/resources/images/logos/master_logo.png',sizingMethod='scale');
 text-indent:-3000px;
 }
 #sl_logo span {
 background:none;
-}
-.login_box {
-background:none;
-filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='/sl/resources/images/backgrounds/login_box/login_box_border.png',sizingMethod='scale');
 }
 
 
