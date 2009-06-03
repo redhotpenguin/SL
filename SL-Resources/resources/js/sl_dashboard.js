@@ -48,6 +48,39 @@ $(document).ready(function(){
     setDeviceForm();
 
     //find all form with class jqtransform and apply the plugin
-    $(".form").jqTransform();	
+    //    $(".form").jqTransform();	
+
+
+function changeBugList() {
+
+    // hide all sub lists
+    for (var i = 1; i < 14; i++) {
+
+        document.getElementById('bug_list_' + i).style.display='none';
+    }
+
+
+    // what ad size is selected?
+    size = document.getElementById('ad_size_id').value;
+
+    if (size != '') {
+        document.getElementById('bug_list_' + size).style.display='block';
+    }
+
+    // show second box for double ad zones
+    if (((size > 6) && (size < 10) ) || ( size == 14 )) {
+        document.getElementById('code_double').style.display='block';
+    } else {
+        document.getElementById('code_double').style.display='none';
+   }
+}
+
+function setBugList(ad_size_id) {
+    document.getElementById('bug_list_' + ad_size_id).style.display='block';
+}
+
+    
+    changeBugList();
+
 	
 });
