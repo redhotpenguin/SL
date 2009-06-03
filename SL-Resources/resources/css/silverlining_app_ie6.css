@@ -1,0 +1,41 @@
+
+/* PNG IMAGE
+================================================= */
+#sl_logo {
+background:none;
+filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='/resources/images/logo/master_logo.png',sizingMethod='scale');
+text-indent:-3000px;
+}
+#sl_logo span {
+background:none;
+}
+.login_box {
+background:none;
+filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='/resources/images/backgrounds/login_box/login_box_border.png',sizingMethod='scale');
+}
+
+
+/* DOUBLE MARGIN
+================================================= */
+.half_page,
+.one_sixth,
+.one_third,
+.two_thirds,
+.two_thirds .third,
+.five_sixths,
+.menu_list,
+.white_box dd a, 
+#login_box #forgot_password  {
+display:inline;
+height:1%;
+}
+#video {
+display:inline;
+}
+
+
+/* MAIN NAVIGATION 
+================================================= */
+#main_navigation {
+height:1%;
+}
