@@ -35,6 +35,7 @@ LoadModule perl_module        modules/mod_perl.so
 PerlOptions +GlobalRequest
 PerlPassEnv SL_DEBUG
 PerlPassEnv SL_TEST_MODE
+PerlPassEnv DBIC_TRACE
 
 PerlPostConfigRequire "[% cfg.sl_app_root %]/conf/startup_app.pl"
 
