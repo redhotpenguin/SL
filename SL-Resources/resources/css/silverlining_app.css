@@ -218,6 +218,9 @@ background: url(../images/icons/application/users.png) 10px center no-repeat;
 #button_profit {
 background: url(../images/icons/application/cash.png) 10px center no-repeat;
 }
+#button_stats {
+background: url(../images/icons/application/stats.png) 10px center no-repeat;
+}
 
 
 /* BREADCRUMB
