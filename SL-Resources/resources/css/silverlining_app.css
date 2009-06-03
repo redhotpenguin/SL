@@ -405,7 +405,7 @@ color: #666;
 .form li {
 margin-bottom: 15px;
 }
-.form label {
+.form label, .label {
 display: block;
 font-weight: bold;
 margin-bottom: 3px;
