@@ -158,8 +158,7 @@
 					<label for="zone_type">Select one of the following three options for display on this router</label>
 					[% IF msg_zone %]
 						<input id="text" type="radio" name="zone_type" value="msg" [% IF msg_zone.selected %]checked="1"[% END %]/>
-						<label for="msg" class="check_label">1 - Use Text Entry Message Bar</label>
-						<p>[% reg.account_id.text_message %]</p>
+						<label for="msg" class="check_label">1 - Text Message Bar <a href="#">?</a></label>
 					[% ELSE %]
 						<input id="text" type="radio" name="zone_type" value="msg" disabled="1" />
 						<label for="msg" class="check_label">1 - Configure your <a href="[% base_uri %]/app/ad/msg/index">Text Message Bar</a> to enable a Text Message in your message bar.</label>
@@ -169,10 +168,7 @@
 					<!-- twitter -->
 					[% IF twit_zone %]
 						<input id="twitter" type="radio" name="zone_type" value="twitter" [% IF twit_zone.selected %]checked="1"[% END %] />
-						<label for="twitter" class="check_label">2 - Use Twitter Feed <a href="#">?</a></label>
-						<div id="twitter_div">
-							<span id="twitter_update_list"></span>
-						</div>
+						<label for="twitter" class="check_label">2 - Twitter Feed <a href="#">?</a></label>
 					[% ELSE %]
 						<input id="twitter" type="radio" name="zone_type" value="twitter" disabled="1" />
 						<label for="twitter" class="check_label">2 - Configure your <a href="[% base_uri %]/app/ad/twitter/index">Twitter Feed</a> to enable Twitter in your message bar.</label>
@@ -180,14 +176,14 @@
 			
 			
 					<input id="iab" type="radio" name="zone_type" value="iab" [% IF !twit_zone.selected and !msg_zone.selected %]checked="1"[% END %]/>
-					<label for="iab" class="check_label">3 - Use Ad Server Ad Zones</label>
+					<label for="iab" class="check_label">3 - Ad Server Ad Zones <a href="#">?</a></label>
 			
-					<table>
+					<table style="margin-left:30px;">
 						[% IF ad_zones %]
 						[% FOREACH ad_zone = ad_zones %]
 						[% IF loop.index % 2 == 0 %] <tr>[% END %]
 						    <td>
-						    	<input id="adzone" type="checkbox" name="ad_zone" value="[% ad_zone.ad_zone_id %]"[% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]CHECKED[% END %]>[% ad_zone.name %]
+						    	<input id="adzone" type="checkbox" name="ad_zone" value="[% ad_zone.ad_zone_id %]"[% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]CHECKED[% END %]><label class="check_label">[% ad_zone.name %]</label>
 						    </td>
 						[% IF loop.index % 2 != 0 %] </tr>[% END %]
 						[% END %]
@@ -258,8 +254,6 @@
 </div>
 
 
-<script type="text/javascript" src="[% base_uri %]/resources/js/blogger.js"></script>
-<script type="text/javascript" src="http://twitter.com/statuses/user_timeline/[% reg.account_id.twitter_id %].json?callback=twitterCallback2&count=1"></script>
 
 
 
