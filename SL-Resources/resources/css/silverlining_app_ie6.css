@@ -9,6 +9,9 @@ text-indent:-3000px;
 #sl_logo span {
 background:none;
 }
-
+.login_box #signin {
+float: left;
+line-height: 500px;
+}
 
 
