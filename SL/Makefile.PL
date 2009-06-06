@@ -1,11 +1,11 @@
-#!/usr/bin/env/perl:
+#!/usr/bin/perl:
 
 use strict;
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
               NAME      => 'SL',
-              VERSION   => '0.13',
+              VERSION   => '0.14',
               PREREQ_PM => {
                             'Apache::DBI'          => 1.06,
                             'Cache::FastMmap'      => 1.14,
@@ -15,6 +15,7 @@ WriteMakefile(
                             'Crypt::Blowfish_PP'   => 1.12,
                             'Crypt::CBC'           => 2.22,
                             'Digest::SHA1'         => 2.11,
+                            'LWP::UserAgent'       => 5.826,
                             'Template'             => 2.14,
                             'Sys::Load'            => 0.2,
                             'SL::BrowserUtil'      => 0.02,
