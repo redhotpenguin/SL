@@ -9,4 +9,3 @@ t/SL-Subrequest-Sfgate.t
 t/SL-Subrequest-WSJ.t
 t/SL-Subrequest-Yahoo.t
 t/SL-Subrequest-Youtube.t
-src/String-Strip-1.01.tar.gz
