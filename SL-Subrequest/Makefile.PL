@@ -1,4 +1,4 @@
-#!perl
+#!/usr/bin/perl
 
 use strict;
 use warnings;
@@ -14,6 +14,7 @@ WriteMakefile(
         'SL::Static'       => 0.12,
         'SL::Cache'        => 0.23,
         'SL::Config'       => 0.14,
+        'String::Strip'    => 1.01,
     },
     ABSTRACT => 'extracts and replaces http subrequests',
     AUTHOR   => 'Fred Moyer <phred@redhotpenguin.com>'
