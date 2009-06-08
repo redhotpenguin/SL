@@ -13,7 +13,7 @@ WriteMakefile(
                             'Crypt::Blowfish_PP'   => 1.12,
                             'Crypt::CBC'           => 2.30,
                             'Digest::SHA1'         => 2.12,
-                            'Template'             => 2.14,
+                            'Template'             => 2.20,
 			    'Net::DNS'             => 0.64,
                             'Sys::Load'            => 0.2,
                             'SL::BrowserUtil'      => 0.02,
