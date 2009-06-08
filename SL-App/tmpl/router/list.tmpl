@@ -2,7 +2,6 @@
 
 <div class="grid_10 suffix_1">
 	
-	<!-- NETWORK TITLE -->
 	<div class="grid_6 alpha">
 		<h2>Network Devices</h2>
 		<p class="tip">You have a total of <strong>[% count %]</strong> devices on your network</p>
@@ -42,13 +41,8 @@
 							Last seen:[% router.last_seen or '?'  %],  
 							<strong>Ad views yesterday: [% router.views_daily  %]</strong>
 						</p>
-					</div>
-					
-					<div class="grid_1 omega">
 						<!-- <a class="icon_delete right" href="#">Delete</a>--> 
-						<div class="clear"></div>
 					</div>
-			
 					<div class="clear"></div>
 				</div>
 			[% END %]
@@ -58,7 +52,6 @@
 <div id="secondary_content" class="grid_5">
 	<div id="sc_top">
 		<div id="sc_bottom">
-			<!-- Device Options -->
 			<ul class="bullet_list">
 				<li><a href="[% base_uri %]/app/router/omsync">Sync Open-Mesh.com Devices</a></li>
 				<li><a href="[% base_uri %]/app/router/edit">Add New Router</a></li>

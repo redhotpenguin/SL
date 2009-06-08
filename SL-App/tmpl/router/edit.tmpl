@@ -14,7 +14,7 @@
 <div class="clear"></div>
 
 
-<div id="main_content" class="grid_10 suffix_1">
+<div id="main_content" class="grid_9 suffix_2">
 
 [% IF !router && (reg.account_id.account_id !=2 ) %]
 	<!-- IF TRYING TO ADD A NEW ROUTER -->
@@ -43,7 +43,7 @@
 		<input type="hidden" name="router_id" value="[% router.router_id %]"/>
 		<ul>
 			<li>
-				<div class="grid_8 alpha omega suffix_2">
+				<div class="grid_8 alpha omega suffix_2 form_row">
 					<!-- device -->
 					<label for="device" class="label [% IF errors.missing.device %]error[% END %]">Device Type</label>
 					<select name="device" id="device">
@@ -56,6 +56,7 @@
 						<!-- value="linuxbox" [% IF req.param('device') == 'linuxbox' or router.device =='linuxbox' %]SELECTED[% END %]>Centos 5.2 Linux Server</option>-->
 					<div class="clear"></div>
 					<label for="device" class="tip">Silver Lining currently works with only the devices in the list above.</label>
+					<div class="clear"></div>
 					<label for="device" class="tip">Greyed out items are controlled from your <a href="http://www.open-mesh.com/dashboard.php">Open-Mesh.com dashboard</a></label>
 				</div>
 				<div class="clear"></div>
@@ -87,10 +88,7 @@
 				<div class="clear"></div>
 			</li>	
 
-			<div id="wrt54gl">
-
-			
-			<li>
+			<li id="wrt54gl">
 				<div class="grid_8 alpha omega suffix_2">
 					<!-- notes -->
 					<label for="notes">Notes</label>
@@ -99,10 +97,8 @@
 					<label for="notes" class="tip">100 character limit</label>
 				</div>
 				<div class="clear"></div>				
-			</li>	
 			
-			<li>
-				<div class="grid_6 alpha omega suffix_4">
+				<div class="grid_6 alpha omega suffix_4 form_row">
 					<div id="ssid" style="display: none;">
 						<!-- SSID -->
 						<label for="ssid" class="[% IF errors.missing.ssid %]error[% END %]">Allow up to five minutes to take effect</label>
@@ -110,8 +106,6 @@
 						<div class="clear"></div>
 						<label for="ssid" class="tip">Allow up to five minutes to take effect</label>
 					</div>
-
-
 
 							
 					<div id="serial" style="display:none;">
@@ -122,23 +116,19 @@
 					</div>
 				</div>
 				<div class="clear"></div>
-			</li>				
-			
-			
-			<li>
-				<div class="grid_6 alpha omega suffix_4">
+
+				<div class="grid_6 alpha omega suffix_4 form_row">
 					<!-- splash page -->
 					<label for="splash_href" class="[% IF errors.missing.splash_href or errors.invalid.splash_href %]error[% END %]">Splash page url</label>
 					<input type="text" id="splash_href" name="splash_href" size="45" maxlength="255" value='[% req.param('splash_href') or router.splash_href %]'/>
 					<div class="clear"></div>
 					<label for="splash_href" class="tip">Example:  http://silverliningworks.typepad.com/network/</label>
+					<div class="clear"></div>
 					<label for="splash_href" class="tip">Available on Linksys WRT54GL and Linux server only</label>
 				</div>
 				<div class="clear"></div>
-			</li>	
-			
-			<li>
-				<div class="grid_6 alpha omega suffix_4">
+	
+				<div class="grid_6 alpha omega suffix_4 form_row">
 					<!-- splash page timeout -->
 					<label for="splash_timeout" class="[% IF errors.missing.splash_timeout or errors.invalid.splash_timeout %]error[% END %]">Splash page timeout</label>
 					<input type="text" id="splash_timeout" name="splash_timeout" size="3" maxlength="3" value='[% req.param('splash_timeout') or router.splash_timeout or '20' %]'/>
@@ -147,9 +137,6 @@
 				</div>
 				<div class="clear"></div>
 			</li>	
-
-			
-            </div>
 
 
 			<li>
@@ -201,6 +188,7 @@
 				<div class="grid_6 alpha omega suffix_4">
 		<!-- adbar -->
 					<label for="adserving">Ad Bar</label>
+					<div class="clear"></div>
 					<label for="adserving" class="tip">Turn the ad and messaging bar On or Off.  Takes 5-15 minutes to take effect.</label>
 					<input type="radio" name="adserving" value="t" [% IF router.adserving == 1 %]checked[% END %]/><label for="adserving" class="check_label">On</label>
 					<input type="radio" name="adserving" value="f" [% IF ad_zone.adserving == 0 %] checked [% END %]/><label for="adserving" class="check_label">Off</label>
@@ -213,6 +201,7 @@
 				<div class="grid_6 alpha omega suffix_4">
 					<!-- active -->
 					<label for="active">Active</label>
+					<div class="clear"></div>
 					<label class="tip" for="active">Is this router active? (To ensure consistency in reporting, routers cannot be deleted, just hidden)</label>
 					<input type="radio" name="active" value="t" [% IF router.active ==1 %]checked[% END %]><label class="check_label">Yes</label>
 					<input type="radio" name="active" value="f" [% IF ad_zone.active == 0 %] checked [% END %]><label class="check_label">No</label>
@@ -222,14 +211,13 @@
 			</li>	
 			
 			<li>
-				<input id="submit" type="Submit" value="Save router settings"/>
+				<input id="submit" type="Submit" value="Save router settings" size="50"/>
 			</li>
 		</ul>		
 	</form>
 
 [% END %]
 
-<div class="clear"></div>
 </div>
 
 
