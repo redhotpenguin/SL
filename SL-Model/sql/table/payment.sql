@@ -35,7 +35,9 @@ CREATE TABLE payment (
     email text NOT NULL,
     md5 text NOT NULL,
     token_processed boolean DEFAULT false NOT NULL,
-    expires text
+    expires text,
+    voided boolean DEFAULT false,
+    order_number text DEFAULT ''::text NOT NULL
 );
 
 
