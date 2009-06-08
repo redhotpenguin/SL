@@ -37,8 +37,9 @@
 						<p>
 							<strong>[% router.device %]</strong>, 
 							MAC: [% router.macaddr %], 
-							SSID: [% router.ssid or '?'  %], 
+							[% IF router.device=='wrt54gl' %]SSID: [% router.ssid or '?'  %],[% END %] 
 							Last seen:[% router.last_seen or '?'  %],  
+							[% IF router.device=='mr3201a' %]Ad bar:  [% IF router.adserving==1 %]On[% ELSE %]Off[% END %],[% END %]  
 							<strong>Ad views yesterday: [% router.views_daily  %]</strong>
 						</p>
 						<!-- <a class="icon_delete right" href="#">Delete</a>--> 

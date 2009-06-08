@@ -3,7 +3,7 @@
 	
 	<h2>Manage Account '[% reg.account_id.name %]'</h2>
 	<div class="row">
-	<p>Your current subscription rate: <strong>$[% IF reg.account_id.plan == 'enterprise' %]249 (Enterprise)[% ELSIF reg.account_id.plan == 'premium' %]99 (Premium)[% ELSIF reg.account_id.plan == 'plus' %]24 (Plus)[% ELSIF reg.account_id.plan == 'basic' %]5 (Basic)[% ELSIF reg.account_id.plan == 'free' %]0 (Free)[% END %]</strong></p>
+	<p>Your current subscription rate: <strong>$[% IF reg.account_id.plan == 'enterprise' %]249 (Enterprise)[% ELSIF reg.account_id.plan == 'premium' %]99 (Premium)[% ELSIF reg.account_id.plan == 'plus' %]24 (Plus)[% ELSIF reg.account_id.plan == 'basic' %]10 (Basic)[% ELSIF reg.account_id.plan == 'free' %]0 (Free)[% END %]</strong></p>
 	
 	<p>To change your subscription plan, just <a href="http://www.silverliningnetworks.com/pricing/?email=[% reg.email %]">click here to view subscription plans</a> and use <strong>[% reg.email %]</strong> when you select a different plan.</p>	
 	
