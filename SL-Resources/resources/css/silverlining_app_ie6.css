@@ -3,12 +3,38 @@
 ================================================= */
 #sl_logo {
 background:none;
-filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='/sl/resources/images/logos/master_logo.png',sizingMethod='scale');
-text-indent:-3000px;
+filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='/resources/images/logos/application/silver_lining_logo.png',sizingMethod='scale');
 }
-#sl_logo span {
+
+
+/* HEADER
+============================================= */
+#header h1 {
+margin-bottom: 10px;
+}
+
+/* BREADCRUMB TRAIL
+============================================= */
+#breadcrumb {
+margin-top:0px;
+}
+
+/* FOOTER
+============================================= */
+
+#footer p {
 background:none;
+padding-left: 0;
 }
 
+/* FIX FLOATS
+============================================= */
+#main_content, #secondary_content {
+overflow: hidden;
+}
 
-
+/* FORM
+============================================= */
+.jqTransformButton span span {
+width: 200px;
+}

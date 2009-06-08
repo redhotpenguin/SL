@@ -223,7 +223,7 @@ background: url(../images/icons/application/stats.png) 10px center no-repeat;
 }
 
 
-/* BREADCRUMB
+/* BREADCRUMB TRAIL
 ============================================= */
 #breadcrumb {
 background: url(../images/backgrounds/application/breadcrumb_left.png) top left no-repeat;
@@ -256,6 +256,7 @@ height: 40px;
 }
 #breadcrumb strong {
 font-weight: bold;
+line-height:38px;
 }
 #breadcrumb_home a {
 background: url(../images/backgrounds/application/breadcrumb_home.png) top left no-repeat;
@@ -425,4 +426,6 @@ font-weight: normal;
 font-size: 92%;
 line-height: 30px;
 }
-
+.form_row {
+margin-bottom: 20px;
+}
