@@ -95,7 +95,7 @@ Index: lib/Perlbal/BackendHTTP.pm
 ===================================================================
 --- lib/Perlbal/BackendHTTP.pm	(revision 820)
 +++ lib/Perlbal/BackendHTTP.pm	(working copy)
-@@ -262,10 +262,6 @@
+@@ -262,12 +262,9 @@
  
      $hds->header("Connection", $persist ? "keep-alive" : "close");
  
@@ -105,8 +105,19 @@ Index: lib/Perlbal/BackendHTTP.pm
 -
      # decide whether we trust the upstream or not, to give us useful
      # forwarding info headers
++=cut
      if ($svc->trusted_ip($client_ip)) {
-@@ -525,7 +521,10 @@
+         # yes, we trust our upstream, so just append our client's IP
+         # to the existing list of forwarded IPs, if we're a blind proxy
+@@ -283,6 +280,7 @@
+         $hds->header("X-Host", undef);
+         $hds->header("X-Forwarded-Host", undef);
+     }
++=cut
+ 
+     $self->tcp_cork(1);
+     $client->state('backend_req_sent');
+@@ -525,7 +523,10 @@
      }
  
      print "  writing response headers to client\n" if Perlbal::DEBUG >= 3;
