@@ -20,7 +20,6 @@ WriteMakefile(
         'DBIx::Class::Schema::Loader' => 0.04006,
         'DBD::Pg'                     => 1.49,
         'Number::Format'              => 1.70,
-        'Params::Validate'            => 0.76,
         'Regexp::Assemble'            => 0.34,
         'URI'                         => 1.37,
         'Text::Wrap'                  => 2005.0824_01,
