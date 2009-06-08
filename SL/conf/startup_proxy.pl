@@ -48,8 +48,6 @@ use SL::Apache::Proxy::AccessHandler          ();
 use SL::Apache::Proxy::TransHandler           ();
 use SL::Apache::Proxy::ResponseHandler        ();
 use SL::Apache::Proxy::SplashHandler          ();
-use SL::Apache::Proxy::OperaHandler           ();
-use SL::Apache::Proxy::BlacklistHandler       ();
 use SL::Apache::Proxy::PostReadRequestHandler ();
 use SL::Apache::Proxy::PingHandler            ();
 use SL::Apache::Proxy::LogHandler             ();

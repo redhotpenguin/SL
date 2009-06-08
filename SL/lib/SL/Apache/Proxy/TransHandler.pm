@@ -100,14 +100,7 @@ sub handler {
     }
     elsif ($browser_name) {
 
-        if ( $browser_name eq 'opera' ) {
-
-            # sorry opera locks up on stuff
-            return handle_opera_redirect($r);
-        }
-        else {
-            $r->pnotes( 'browser_name' => $browser_name );
-        }
+        $r->pnotes( 'browser_name' => $browser_name );
 
     }
 
@@ -372,14 +365,6 @@ sub _handle_chitika_ad {
 
     $r->unparsed_uri( $base_path . '?' . $new_args );
     return 1;
-}
-
-sub handle_opera_redirect {
-    my $r = shift;
-
-    $r->set_handlers(
-        PerlResponseHandler => ['SL::Apache::Proxy::OperaHandler'] );
-    return Apache2::Const::OK;
 }
 
 sub handle_splash {
