@@ -48,7 +48,6 @@ use SL::Context              ();
 # non core perl libs
 use Encode           ();
 use RHP::Timer       ();
-use Regexp::Assemble ();
 use Compress::Zlib   ();
 use Compress::Bzip2  ();
 use URI::Escape      ();
