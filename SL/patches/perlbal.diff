@@ -1,6 +1,6 @@
 Index: lib/Perlbal/ClientHTTPBase.pm
 ===================================================================
---- lib/Perlbal/ClientHTTPBase.pm	(revision 786)
+--- lib/Perlbal/ClientHTTPBase.pm	(revision 820)
 +++ lib/Perlbal/ClientHTTPBase.pm	(working copy)
 @@ -44,17 +44,38 @@
  
@@ -41,7 +41,7 @@ Index: lib/Perlbal/ClientHTTPBase.pm
                      tif   image/tiff
                      tiff  image/tiff
                      torrent  application/x-bittorrent
-@@ -449,7 +470,7 @@
+@@ -524,7 +545,7 @@
              unless ($not_mod || $not_satisfiable) {
                  my ($ext) = ($file =~ /\.(\w+)$/);
                  $res->header("Content-Type",
@@ -50,7 +50,7 @@ Index: lib/Perlbal/ClientHTTPBase.pm
  
                  unless ($status == 206) {
                      $res->header("Content-Length", $size);
-@@ -566,7 +587,7 @@
+@@ -641,7 +662,7 @@
      # files must all exist
      my $sum_length      = 0;
      my $most_recent_mod = 0;
@@ -59,7 +59,7 @@ Index: lib/Perlbal/ClientHTTPBase.pm
      foreach my $f (@$filelist) {
          my $stat = $stats->{$f};
          unless (S_ISREG($stat->[2] || 0)) {
-@@ -580,7 +601,7 @@
+@@ -655,7 +676,7 @@
          $most_recent_mod = $stat->[9] if
              $stat->[9] >$most_recent_mod;
      }
@@ -70,20 +70,20 @@ Index: lib/Perlbal/ClientHTTPBase.pm
      my $ims     = $hd->header("If-Modified-Since") || "";
 Index: lib/Perlbal/ClientProxy.pm
 ===================================================================
---- lib/Perlbal/ClientProxy.pm	(revision 786)
+--- lib/Perlbal/ClientProxy.pm	(revision 820)
 +++ lib/Perlbal/ClientProxy.pm	(working copy)
 @@ -261,6 +261,10 @@
  
      my $bad_code = sub {
          return 0 if $code >= 200 && $code <= 299;
 +
-+        # handle redirects
-+        return 0 if $code >= 300 && $code <= 400;
++        # handle redirects and auth failures
++        return 0 if $code >= 300 && $code <= 500;
 +
          return 0 if $code == 416;
          return 1;
      };
-@@ -780,6 +784,7 @@
+@@ -794,6 +798,7 @@
      } else {
          # get the backend request process moving, since we aren't buffering
          $self->{is_buffering} = 0;
@@ -93,7 +93,7 @@ Index: lib/Perlbal/ClientProxy.pm
          return if $svc->{reproxy_cache} && $self->satisfy_request_from_cache;
 Index: lib/Perlbal/BackendHTTP.pm
 ===================================================================
---- lib/Perlbal/BackendHTTP.pm	(revision 786)
+--- lib/Perlbal/BackendHTTP.pm	(revision 820)
 +++ lib/Perlbal/BackendHTTP.pm	(working copy)
 @@ -262,10 +262,6 @@
  
