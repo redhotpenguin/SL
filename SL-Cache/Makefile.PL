@@ -9,6 +9,7 @@ WriteMakefile(
     PREREQ_PM    => {
         'Cache::FastMmap'  => 1.14,
         'SL::Config'       => 0.14,
+        'Cache::Memcached' => 1.26,
     },
     ABSTRACT => 'Caching abstraction for SL',
     AUTHOR   => 'Fred Moyer <fred@redhotpenguin.com>',
