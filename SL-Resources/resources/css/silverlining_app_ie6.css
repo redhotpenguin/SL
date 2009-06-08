@@ -1,3 +1,9 @@
+/* 
+NAME: IE 6 STYLESHEET
+FOR: DASHBOARD
+
+COPYRIGHT: SILVER LINING NETWORKS
+*/
 
 /* PNG IMAGE
 ================================================= */
@@ -5,7 +11,6 @@
 background:none;
 filter:progid:DXImageTransform.Microsoft.AlphaImageLoader (src='/resources/images/logos/application/silver_lining_logo.png',sizingMethod='scale');
 }
-
 
 /* HEADER
 ============================================= */
@@ -33,8 +38,3 @@ padding-left: 0;
 overflow: hidden;
 }
 
-/* FORM
-============================================= */
-.jqTransformButton span span {
-width: 200px;
-}

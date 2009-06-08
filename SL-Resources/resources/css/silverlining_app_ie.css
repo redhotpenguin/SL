@@ -1,4 +1,14 @@
-.login_box #signin {
-float: left;
-line-height: 500px;
-}
+/* 
+NAME: IE 6 & 7 STYLESHEET
+FOR: DASHBOARD
+
+COPYRIGHT: SILVER LINING NETWORKS
+*/
+
+
+/* FORM
+============================================= */
+.jqTransformButton span span {
+width: 200px;
+
+
