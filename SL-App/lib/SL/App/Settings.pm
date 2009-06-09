@@ -33,13 +33,15 @@ sub dispatch_index {
         my %tmpl_data;
         my $output;
 
-        if ($r->pnotes( $r->user )->root) {
-            my @accounts = SL::Model::App->resultset('Account')->search({ active => 't' });
-            $tmpl_data{accounts} = [ sort { lc($a->name) cmp lc($b->name) } @accounts ];
+        if ( $r->pnotes( $r->user )->root ) {
+            my @accounts =
+              SL::Model::App->resultset('Account')->search( { active => 't' } );
+            $tmpl_data{accounts} =
+              [ sort { lc( $a->name ) cmp lc( $b->name ) } @accounts ];
         }
 
-        $TMPL->process( 'settings/index.tmpl', \%tmpl_data, \$output, $r ) ||
-          return $self->error( $r, $TMPL->error);
+        $TMPL->process( 'settings/index.tmpl', \%tmpl_data, \$output, $r )
+          || return $self->error( $r, $TMPL->error );
         return $self->ok( $r, $output );
     }
 }
@@ -48,21 +50,47 @@ sub dispatch_root {
     my ( $self, $r, $args_ref ) = @_;
 
     my $reg = $r->pnotes( $r->user );
-    return $self->error( $r, "Root error for user " . $r->user) unless ($reg->root);
+    return $self->error( $r, "Root error for " . $r->user ) unless $reg->root;
 
     # this user can proceed
     my $req = $args_ref->{req} || Apache2::Request->new($r);
     my $account_id = $req->param('account_id');
-    return $self->error( $r, "No account for " . $r->user) unless $account_id;
-    $reg->account_id( $account_id );
+    return $self->error( $r, "No account for " . $r->user ) unless $account_id;
+    $reg->account_id($account_id);
     $reg->update;
 
-    $r->headers_out->set(
-        Location => $r->headers_in->{'Referer'}  );
+    $r->pnotes('session')->{msg} =
+      "Account changed to " . $reg->account_id->name;
+    $r->headers_out->set( Location => $r->headers_in->{'Referer'} );
     return Apache2::Const::REDIRECT;
 
 }
 
+sub dispatch_market {
+    my ( $self, $r, $args_ref ) = @_;
+
+    my $reg = $r->pnotes( $r->user );
+    my $req = $args_ref->{req} || Apache2::Request->new($r);
+
+    if ( $req->param('marketplace') ) {
+
+        $r->log->debug("setting marketplace to " . $req->param('marketplace')) if DEBUG;
+
+        $r->pnotes('session')->{msg} = "Ad Marketplace Enabled";
+        $reg->account_id->advertise_here( $Config->sl_advertise_here
+              . '?network='
+              . $reg->account_id->account_id );
+    }
+    else {
+        $r->log->debug("setting marketplace to off") if DEBUG;
+        $r->pnotes('session')->{msg} = "Ad Marketplace Disabled";
+        $reg->account_id->advertise_here(undef);
+    }
+
+    $reg->account_id->update;
+    $r->headers_out->set( Location => $r->headers_in->{'Referer'} );
+    return Apache2::Const::REDIRECT;
+}
 
 sub dispatch_account {
     my ( $self, $r, $args_ref ) = @_;
@@ -80,8 +108,8 @@ sub dispatch_account {
         );
 
         my $output;
-        $TMPL->process( 'settings/account.tmpl', \%tmpl_data, \$output, $r ) ||
-          return $self->error( $r, $TMPL->error );
+        $TMPL->process( 'settings/account.tmpl', \%tmpl_data, \$output, $r )
+          || return $self->error( $r, $TMPL->error );
         return $self->ok( $r, $output );
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
@@ -89,9 +117,8 @@ sub dispatch_account {
         $r->method_number(Apache2::Const::M_GET);
 
         my %profile = (
-            required => [
-                qw( password current_email retype email account )
-            ],
+            required           => [qw( current_email  email account )],
+            optional           => [qw( password retype )],
             constraint_methods => {
                 email => [
                     email(),
@@ -125,20 +152,23 @@ sub dispatch_account {
     }
 
     my $account = $reg->account_id;
-   if ($account->name ne $req->param('account')) {
-   	# we need to update the account
-	my $oldbase = $account->report_base;
-	my $old_report_base = join('/', $Config->sl_data_root, 
-		 , substr($oldbase, 0, length($oldbase)-7));
+    if ( $account->name ne $req->param('account') ) {
 
-	# update the account
-	$account->name( $req->param('account') );
-	$account->update;
-	my $newbase = $account->report_base;
-	my $new_report_base = join('/', $Config->sl_data_root, 
-		 , substr($newbase, 0, length($newbase)-7));
+        # we need to update the account
+        my $oldbase         = $account->report_base;
+        my $old_report_base = join( '/',
+            $Config->sl_data_root,,
+            substr( $oldbase, 0, length($oldbase) - 7 ) );
 
-	system("mv $old_report_base $new_report_base") == 0 or die $!;
+        # update the account
+        $account->name( $req->param('account') );
+        $account->update;
+        my $newbase         = $account->report_base;
+        my $new_report_base = join( '/',
+            $Config->sl_data_root,,
+            substr( $newbase, 0, length($newbase) - 7 ) );
+
+        system("mv $old_report_base $new_report_base") == 0 or die $!;
     }
 
     # update the password
@@ -174,10 +204,10 @@ sub dispatch_account {
 sub dispatch_uptime {
     my ( $self, $r, $args_ref ) = @_;
 
-        my $output;
-        $TMPL->process( 'settings/uptime.tmpl', {}, \$output, $r ) ||
-          return $self->error( $r, $TMPL->error);
-        return $self->ok( $r, $output );
+    my $output;
+    $TMPL->process( 'settings/uptime.tmpl', {}, \$output, $r )
+      || return $self->error( $r, $TMPL->error );
+    return $self->ok( $r, $output );
 }
 
 sub dispatch_users {
@@ -197,8 +227,8 @@ sub dispatch_users {
         );
 
         my $output;
-        $TMPL->process( 'settings/users.tmpl', \%tmpl_data, \$output, $r ) ||
-          return $self->error( $r, $TMPL->error);
+        $TMPL->process( 'settings/users.tmpl', \%tmpl_data, \$output, $r )
+          || return $self->error( $r, $TMPL->error );
         return $self->ok( $r, $output );
     }
 
@@ -210,44 +240,48 @@ sub dispatch_payment {
     my $reg = $r->pnotes( $r->user );
     my $req = $args_ref->{req} || Apache2::Request->new($r);
 
-    my @payments =
-      SL::Model::App->resultset('Payment')
-      ->search( { account_id => $reg->account_id->account_id,
-            amount => { '>' => '$0.00'}, },
-                  {
-                   order_by => 'me.start DESC',
-                 } );
+    my @payments = SL::Model::App->resultset('Payment')->search(
+        {
+            account_id => $reg->account_id->account_id,
+            amount     => { '>' => '$0.00' },
+        },
+        { order_by => 'me.start DESC', }
+    );
 
     # total up the payments
     my $total = 0;
     foreach my $payment (@payments) {
-	next unless defined $payment->approved && defined $payment->token_processed;
-	next unless ($payment->approved == 1 ) && ($payment->token_processed == 1);
-	next if defined $payment->voided && $payment->voided == 1;
+        next
+          unless defined $payment->approved
+          && defined $payment->token_processed;
+        next
+          unless ( $payment->approved == 1 )
+          && ( $payment->token_processed == 1 );
+        next if defined $payment->voided && $payment->voided == 1;
 
-	my $amount = $payment->amount;
-	$amount =~ s/^\$(\d+)\.\d+$/$1/;
-	next unless $amount > 0.01;
-	$total += $amount;
+        my $amount = $payment->amount;
+        $amount =~ s/^\$(\d+)\.\d+$/$1/;
+        next unless $amount > 0.01;
+        $total += $amount;
     }
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
         my %tmpl_data = (
-            req    => $req,
-	    total    => $total,
+            req      => $req,
+            total    => $total,
             payments => \@payments,
-            errors => $args_ref->{errors},
-            ip     => $r->connection->remote_ip,
+            errors   => $args_ref->{errors},
+            ip       => $r->connection->remote_ip,
         );
 
         my $output;
-        $TMPL->process( 'settings/payment.tmpl', \%tmpl_data, \$output, $r ) ||
-          return $self->error( $r, $TMPL->error );
+        $TMPL->process( 'settings/payment.tmpl', \%tmpl_data, \$output, $r )
+          || return $self->error( $r, $TMPL->error );
         return $self->ok( $r, $output );
     }
     else {
-      return Apache2::Const::HTTP_METHOD_NOT_ALLOWED;
+        return Apache2::Const::HTTP_METHOD_NOT_ALLOWED;
     }
 }
 

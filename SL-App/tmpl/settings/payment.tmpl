@@ -1,5 +1,6 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Billing and Payment" selected="account" subselected="payment" %]
 <div id="main_content" class="grid_16">
+	[% UNLESS reg.account_id.advertise_here == '' %]<p class="error">Your Ad Marketplace is not enabled.  <a href="[% base_uri %]/app/settings/index">Click here to enable it.</a>  You cannot receive payments without it.</a></p>[% END %]
 	<h2>Payment History - Total $[% total %]</h2>
 	<div class="row">
 	<table class="small_table basic_table">
