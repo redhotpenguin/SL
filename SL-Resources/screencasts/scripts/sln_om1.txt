@@ -1,0 +1,16 @@
+Hi, I'm Heather, and this is the screencast  for integrating your Open Mesh network with Silverlining.[[slnc 300]]
+
+This video asooms that you have an [[slnc 100]]Open Mesh capable why fi device, such as an M R 32 oh one Ay, or an oh em one pee.  These devices are available on the open mesh dot com website.[[slnc 300]]
+Begin by going to the Silver Lining Networks website at www.silverliningnetworks.com. [[slnc 200]] Click on the Open-Mesh Icon - this will take you to our support portal web page where the open mesh integration instructions are. [[slnc 200]] Click the open mesh dashboard link to go the open mesh dashboard.[[slnc 300]]
+
+This is the open mesh dashboard.  [[slnc 200]]Click on the dash board link to gain access.  [[slnc 200]]If you already have an existing open mesh network, [[slnc 200]]enter your network name and password.  [[slnc 200]]If not, click the Create text on the leaft, [[slnc 100]]then fill out the details for your network. [[slnc 200]]
+
+To create your network, [[slnc 100]]choose an easy to remember network name, [[slnc 200]]a strong paassword, [[slnc 200]]a contact email adddress, [[slnc 300]]and a specific location.  [[slnc 200]] The location wiill be used to place our devices on an easy to use map. [[slnc 200]] Click the create network button, [[slnc 200]]then go back to the open mesh dashboard login page.[[slnc 300]]
+
+Enter your network name and password. [[slnc 200]] You will see the home page of the open mesh dashboard. [[slnc 200]] Update the settings as needed on this page. [[slnc 200]] Don't forget to click update network settings.
+[[slnc 300]]
+Now click on the tab labeled s s eye dee number one.[[slnc 200]]  Give your network an easy to use ssid; [[slnc 200]]we like 'Free'.[[slnc 300]]  Scroll down until you see the Silver Lining logo. [[slnc 200]] Click the checkbox marked messaging, then scroll up and click update network settings.  [[slnc 200]]Silver Lining is being installed on your network devices as we speak.[[slnc 300]]
+
+Next, You'll need a Silver Lining Dashboard account.  [[slnc 200]]CLick on sign up, [[slnc 100]]and then choose one of our paid plans,[[slnc 100]] or our free plan.
+[[slnc 200]]
+If you have any problems, [[slnc 100]] please send an email to support at silver lining networks dot com.  [[slnc 200]]  I hope you enjoyed this screen cast; [[slnc 200]]  see you next time!
