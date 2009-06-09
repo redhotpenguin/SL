@@ -1,16 +1,23 @@
-Hi, I'm Heather, and this is the screencast  for integrating your Open Mesh network with Silverlining.[[slnc 300]]
+[[volm 1.0]]Hi,[[slnc 100]] I'm Heather. [[slnc 200 ]] This is the screencast  for integrating [[rate -15]]Silver Lining with your Open Mesh network.[[rate +15]][[slnc 300]]
 
-This video asooms that you have an [[slnc 100]]Open Mesh capable why fi device, such as an M R 32 oh one Ay, or an oh em one pee.  These devices are available on the open mesh dot com website.[[slnc 300]]
-Begin by going to the Silver Lining Networks website at www.silverliningnetworks.com. [[slnc 200]] Click on the Open-Mesh Icon - this will take you to our support portal web page where the open mesh integration instructions are. [[slnc 200]] Click the open mesh dashboard link to go the open mesh dashboard.[[slnc 300]]
+This video asooms that you have an [[slnc 100]]Open Mesh capable why fi device, such as an em our thirty two oh one ay,[[slnc 200]] or a zero em one pee why fi router.  These devices are available on the open mesh dot com web site.[[slnc 300]]
 
-This is the open mesh dashboard.  [[slnc 200]]Click on the dash board link to gain access.  [[slnc 200]]If you already have an existing open mesh network, [[slnc 200]]enter your network name and password.  [[slnc 200]]If not, click the Create text on the leaft, [[slnc 100]]then fill out the details for your network. [[slnc 200]]
+Begin by going to the Silver Lining Networks website, at www.silverliningnetworks.com. [[slnc 200]] Click on the Open Mesh eye con; [[slnc 400]]  This will take you to our support portal web page where the open mesh integration instructions are. [[slnc 300]] Click the open mesh dash bored link to go to the open mesh login page.[[slnc 300]]
 
-To create your network, [[slnc 100]]choose an easy to remember network name, [[slnc 200]]a strong paassword, [[slnc 200]]a contact email adddress, [[slnc 300]]and a specific location.  [[slnc 200]] The location wiill be used to place our devices on an easy to use map. [[slnc 200]] Click the create network button, [[slnc 200]]then go back to the open mesh dashboard login page.[[slnc 300]]
+[[slnc 200]]If you already have an existing open mesh network, [[slnc 200]]enter your network name and password.  [[slnc 200]]If not, click the Create text on the leaft, [[slnc 100]]then fill out the details for your network. [[slnc 200]]
 
-Enter your network name and password. [[slnc 200]] You will see the home page of the open mesh dashboard. [[slnc 200]] Update the settings as needed on this page. [[slnc 200]] Don't forget to click update network settings.
+To create your network, [[slnc 100]]choose an easy to remember network name, [[slnc 400]]a strong paassword, [[slnc 400]]a contact email adddress, [[slnc 400]]and a specific geographic location.  [[slnc 1000]] The location will be used to place your devices on an easy to use map. [[slnc 300]] Click the create network button, [[slnc 200]]then go back to the open mesh dash board login page.[[slnc 500]]
+
+Enter your network name and password. [[slnc 400]] You will see the home page of the open mesh dash bored. [[slnc 200]] Update the settings as needed on this page. [[slnc 200]] Don't forget to click update network settings.
 [[slnc 300]]
-Now click on the tab labeled s s eye dee number one.[[slnc 200]]  Give your network an easy to use ssid; [[slnc 200]]we like 'Free'.[[slnc 300]]  Scroll down until you see the Silver Lining logo. [[slnc 200]] Click the checkbox marked messaging, then scroll up and click update network settings.  [[slnc 200]]Silver Lining is being installed on your network devices as we speak.[[slnc 300]]
+Now click on the tab labeled s s eye dee number one.[[slnc 200]]  Give your network an easy to use ess ess eye dee; [[slnc 200]]we like 'Free'.[[slnc 300]]  Scroll down until you see the Silver Lining logo. [[slnc 200]] Click the checkbox marked messaging, then scroll up and click update network settings.  [[slnc 200]]Silver Lining is being installed on your network devices, and will take anywhere from five to fifteen minutes to complete the installation.  The devices will reboot after the installation is complete.[[slnc 300]]
+[[slnc 500]]
+Next, You'll need a Silver Lining Dashbored account.  [[slnc 300]]CLick on sine up, [[slnc 200]]and then choose one of our paid plans,[[slnc 100]] or our free plan.[[slnc 400]] Fill out the sine up form, [[ slnc 300]] and click submit. [[ slnc 1000]] You will be logged into the dashbored. 
+[[ slnc 500]] You will see the silver lining dashbored home page.  The twitter feed is on your right, and the blog entries are in the center.  Let's synchronize your open mesh network with the silver lining dashbored.  Click the Manage Network button.  Now click sync open mesh network on the sidebar.  Enter your open mesh network name and password into the form.  Click the save button.  You will be returned to the device list, and a message will tell you how many devices were imported.
+[[ slnc 500]]
+Lets turn on the ad bar.  Click ad bar on the side bar, and select On, then click submit.  The ad bar on   your devices will become active in the next 5 to 10 minutes.
+[[ slnc 500 ]]
+Lets add a message to the ad bar that all users will see.  CLick on Ad Center, then click on Text Message Bar.  Enter a custom text message into the box, select the all device checkbox, then click submit.  This message will be displayed on all devices.
 
-Next, You'll need a Silver Lining Dashboard account.  [[slnc 200]]CLick on sign up, [[slnc 100]]and then choose one of our paid plans,[[slnc 100]] or our free plan.
 [[slnc 200]]
-If you have any problems, [[slnc 100]] please send an email to support at silver lining networks dot com.  [[slnc 200]]  I hope you enjoyed this screen cast; [[slnc 200]]  see you next time!
+If you have any problems, [[slnc 200]] please send an email to [[slnc 200]] [[rate -25]]support at silver lining networks dot com.[[rate +25]]  [[slnc 500]]  This is Heather, thank you for your attention and see you next time.[[ slnc 400]] 
