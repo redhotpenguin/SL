@@ -33,7 +33,7 @@ our %Plans = (
     enterprise => '249.00',
     premium    => '99.00',
     plus       => '24.00',
-    basic      => '5.00',
+    basic      => '10.00',
 );
 
 our %Routers = (
@@ -127,6 +127,9 @@ sub dispatch_publisher {
         my $payment;
         if ( $req->param('plan') ne 'free' ) {
 
+	my $num = $req->param('card_number');
+	$num = substr($num, length($num)-4,length($num)); 
+            $r->log->error(sprintf("making recurring payment for cvv %s, month %s, year %s, email %s, card %s", $req->param('cvv2'), $req->param('month'), $req->param('year'), $req->param('email'), $num));
             $r->log->debug("making recurring payment") if DEBUG;
             my $amount      = $Plans{ $req->param('plan') };
             my $description = sprintf( 'Network Operator %s Account, $%s/month',
@@ -203,7 +206,8 @@ sub dispatch_publisher {
         my $mail;
         my %tmpl_data = (
             req  => $req,
-            start_date => DateTime->now->mdy('/'),
+            start_date => DateTime->now->add(months => 1)->mdy('/'),
+            date => DateTime->now->mdy('/'),
         );
 
         if ( $req->param('plan') ne 'free' ) {
