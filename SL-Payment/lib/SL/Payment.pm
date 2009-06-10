@@ -154,6 +154,7 @@ sub recurring {
         && defined $args->{street}
         && defined $args->{city}
         && defined $args->{state}
+        && defined $args->{country}
         && defined $args->{referer}
         && defined $args->{account_id}
         && defined $args->{amount} );
@@ -192,6 +193,7 @@ sub recurring {
         address        => $args->{street},
         city           => $args->{city},
         state          => $args->{state},
+        country        => $args->{country},
         zip            => $args->{zip},
         card_number    => $args->{card_number},
         expiration     => $args->{card_exp},
