@@ -99,7 +99,7 @@
 				<div class="clear"></div>				
 			
 				<div class="grid_6 alpha omega suffix_4 form_row">
-					<div id="ssid" style="display: none;">
+					<div id="ssid">
 						<!-- SSID -->
 						<label for="ssid" class="[% IF errors.missing.ssid %]error[% END %]">Allow up to five minutes to take effect</label>
 						<input type="text" id="ssid" name="ssid" size="25" maxlength="25" value='[% req.param('ssid') or router.ssid %]'/>
@@ -108,7 +108,7 @@
 					</div>
 
 							
-					<div id="serial" style="display:none;">
+					<div id="serial">
 						<!-- serial number -->
 						<label for="serial_number" class="[% IF errors.missing.serial_number or errors.invalid.serial_number %]error[% END %]">Serial number or service tag</label>
 						<input type="text" id="serial_number" name="serial_number" size="25" maxlength="25" value='[% req.param('serial_number') or router.serial_number %]'/>
