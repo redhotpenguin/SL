@@ -95,7 +95,7 @@ sub dispatch_publisher {
                 ),
     		state       => state_or_province(),
     		email       => email(),
-                zip         => zip(),
+                zip         => zip_or_postcode(),
                 first_name  => $class->valid_first,
                 last_name   => $class->valid_last,
                 month       => $class->valid_month,
@@ -340,7 +340,7 @@ sub dispatch_advertiser {
             ],
             constraint_methods => {
                 email       => email(),
-                zip         => zip(),
+                zip         => zip_or_postcode(),
                 first_name  => $class->valid_first(),
                 last_name   => $class->valid_last(),
                 month       => $class->valid_month(),
