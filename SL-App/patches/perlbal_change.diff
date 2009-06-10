@@ -1,0 +1,366 @@
+Index: conf/httpd_app.conf.tmpl
+===================================================================
+--- conf/httpd_app.conf.tmpl	(revision 2838)
++++ conf/httpd_app.conf.tmpl	(working copy)
+@@ -62,7 +62,7 @@
+ 
+ ## the public facing page
+ ## FIXME - apache dispatch bug
+-<Location />
++<Location [% cfg.sl_app_base_uri %]/>
+ 	SetHandler modperl
+ 
+     # dispatch directives
+@@ -74,21 +74,21 @@
+ 	PerlResponseHandler Apache2::Dispatch
+ </Location>
+ 
+-<Location /css>
++<Location [% cfg.sl_app_base_uri %]/css>
+     SetHandler default-handler
+ </Location>
+ 
+-<Location /img>
++<Location [% cfg.sl_app_base_uri %]/img>
+     SetHandler default-handler
+ </Location>
+ 
+-<Location /resources>
++<Location [% cfg.sl_app_base_uri %]/resources>
+     SetHandler default-handler
+ </Location>
+ 
+ 
+ ## the user application, need to be logged in
+-<Location  /app>
++<Location  [% cfg.sl_app_base_uri %]/app>
+ 	AuthType SL::App::CookieAuth
+ 	AuthName [% cfg.sl_app_cookie_name %]
+ 	SetHandler modperl
+@@ -101,27 +101,27 @@
+ 
+ ## method handlers for authentication and signup
+ 
+-<Location /login>
++<Location [% cfg.sl_app_base_uri %]/login>
+ 	SetHandler modperl
+ 	PerlResponseHandler SL::App::CookieAuth->login
+ </Location>
+ 
+-<Location /logout>
++<Location [% cfg.sl_app_base_uri %]/logout>
+ 	SetHandler modperl
+ 	PerlResponseHandler SL::App::CookieAuth->logout
+ </Location>
+ 
+-<Location /forgot>
++<Location [% cfg.sl_app_base_uri %]/forgot>
+ 	SetHandler modperl
+ 	PerlResponseHandler SL::App::CookieAuth->forgot
+ </Location>
+ 
+-<Location /signup>
++<Location [% cfg.sl_app_base_uri %]/signup>
+ 	SetHandler modperl
+ 	PerlResponseHandler SL::App::CookieAuth->signup
+ </Location>
+ 
+-<Location /forgot/reset>
++<Location [% cfg.sl_app_base_uri %]/forgot/reset>
+     SetHandler modperl
+     PerlResponseHandler SL::App::CookieAuth->forgot_reset
+ </Location>
+@@ -129,48 +129,48 @@
+ 
+ ## captive portal handler
+ 
+-<Location /auth>
++<Location [% cfg.sl_app_base_uri %]/auth>
+     SetHandler modperl
+ 	PerlFixupHandler SL::App::CPAuthHandler
+     PerlResponseHandler SL::App::CP->auth
+ </Location>
+ 
+-<Location /auth/free>
++<Location [% cfg.sl_app_base_uri %]/auth/free>
+     SetHandler modperl
+     PerlResponseHandler SL::App::CP->free
+ </Location>
+ 
+-<Location /auth/paid>
++<Location [% cfg.sl_app_base_uri %]/auth/paid>
+     SetHandler modperl
+     PerlResponseHandler SL::App::CP->paid
+ </Location>
+ 
+-<Location /auth/token>
++<Location [% cfg.sl_app_base_uri %]/auth/token>
+     SetHandler modperl
+     PerlResponseHandler SL::App::CP->token
+ </Location>
+ 
+-<Location /auth/post>
++<Location [% cfg.sl_app_base_uri %]/auth/post>
+     SetHandler modperl
+     PerlResponseHandler SL::App::CP->post
+ </Location>
+ 
+-<Location /auth/check>
++<Location [% cfg.sl_app_base_uri %]/auth/check>
+     SetHandler modperl
+     PerlResponseHandler SL::App::CP->check
+ </Location>
+ 
+-<Location /auth/paypal_notify>
++<Location [% cfg.sl_app_base_uri %]/auth/paypal_notify>
+     SetHandler modperl
+     PerlResponseHandler SL::App::CP->paypal_notify
+ </Location>
+ 
+-<Location /auth/paypal_return>
++<Location [% cfg.sl_app_base_uri %]/auth/paypal_return>
+     SetHandler modperl
+     PerlResponseHandler SL::App::CP->paypal_return
+ </Location>
+ 
+-<Location /billing>
++<Location [% cfg.sl_app_base_uri %]/billing>
+ 	SetHandler modperl
+ 
+     # dispatch directives
+Index: lib/SL/App/CookieAuth.pm
+===================================================================
+--- lib/SL/App/CookieAuth.pm	(revision 2838)
++++ lib/SL/App/CookieAuth.pm	(working copy)
+@@ -78,7 +78,8 @@
+     # grab the cookies
+     my $jar    = Apache2::Cookie::Jar->new($r);
+     my $cookie = $jar->cookies( $Config->sl_app_cookie_name );
+-    my $dest   = $r->construct_url( $Config->sl_app_auth_uri );
++    my $dest   = $r->construct_url( $Config->sl_app_base_uri . 
++            $Config->sl_app_auth_uri );
+ 
+     # user doesn't have a cookie?
+     unless ($cookie) {
+@@ -198,9 +199,11 @@
+ 
+         # check for both username and password present
+         unless ( $req->param('email') && $req->param('password') ) {
++
+             my $dest =
+-              $r->construct_url(
++              $r->construct_url( $Config->sl_app_base_uri . 
+                 $Config->sl_app_auth_uri . '/?error=incomplete' );
++
+             return $class->redirect_auth( $r, "username, password missing",
+                 $dest );
+         }
+@@ -215,9 +218,12 @@
+ 
+         # send them back to the login page if pass is invalid
+         unless ($reg) {
++    
+             my $dest =
+-              $r->construct_url( $Config->sl_app_auth_uri . '/?error=invalid' );
+-            return $class->redirect_auth( $r, "username, password missing",
++              $r->construct_url( $Config->sl_app_base_uri .
++                      $Config->sl_app_auth_uri . '/?error=invalid' );
++
++             return $class->redirect_auth( $r, "username, password missing",
+                 $dest );
+         }
+ 
+@@ -231,7 +237,7 @@
+         $class->send_cookie( $r, $reg, $session_id );
+ 
+         # they're ok
+-        my $destination = $req->param('dest') || '/app/home/index';
++        my $destination = $req->param('dest') || $Config->sl_app_base_uri . '/app/home/index';
+         $r->log->debug("login ok, redirecting to $destination") if DEBUG;
+         return $class->redirect_auth(
+             $r,
+@@ -320,7 +326,8 @@
+ 
+     $r->log->debug( $class . " redirecting to $dest, reason '$reason'" )
+       if DEBUG;
+-    $r->headers_out->set( Location => $dest );
++
++    $r->headers_out->set( Location =>  $dest );
+     return Apache2::Const::REDIRECT;
+ }
+ 
+@@ -353,7 +360,8 @@
+ 
+             # missing email
+             $r->headers_out->set(
+-                Location => $r->construct_url('/forgot/?status=blank') );
++                Location => $r->construct_url($Config->sl_app_base_uri . 
++                        '/forgot/?status=blank') );
+             return Apache2::Const::REDIRECT;
+         }
+ 
+@@ -363,7 +371,7 @@
+         unless ($reg) {
+ 
+             $r->headers_out->set(
+-                Location => $r->construct_url(
++                Location => $r->construct_url($Config->sl_app_base_uri .
+                     '/forgot/?status=notfound&forgot_email='
+                       . $req->param('forgot_email')
+                 )
+@@ -401,7 +409,8 @@
+             #$msg->send_by_smtp('www.redhotpenguin.com');
+ 
+             $r->headers_out->set( Location =>
+-                  $r->construct_url("/forgot/?status=sent&forgot_email=$email")
++                  $r->construct_url($Config->sl_app_base_uri . 
++                          "/forgot/?status=sent&forgot_email=$email")
+             );
+             return Apache2::Const::REDIRECT;
+ 
+@@ -427,7 +436,8 @@
+             # found the link, serve the reset password page
+             my $output;
+             my $url =
+-              $r->construct_url( '/forgot/reset/?key=' . $forgot->link_md5() );
++              $r->construct_url( $Config->sl_app_base_url . 
++                  '/forgot/reset/?key=' . $forgot->link_md5() );
+ 
+             $Template->process(
+                 'forgot_reset.tmpl',
+@@ -447,6 +457,7 @@
+             if ( length( $req->param('password') ) < 5 ) {
+                 $r->headers_out->set(
+                     Location => $r->construct_url(
++                        $Config->sl_app_base_uri . 
+                         '/forgot/reset/?error=tooshort&key='
+                           . $req->param('key')
+                     )
+@@ -473,7 +484,7 @@
+             # auth the user and log them in
+             $class->send_cookie( $r, $reg, $session_id );
+ 
+-            $r->internal_redirect("/app/home/index");
++            $r->internal_redirect($Config->sl_app_base_uri . "/app/home/index");
+             return $class->auth_ok( $r, $reg );
+         }
+     }
+Index: lib/SL/App/Billing.pm
+===================================================================
+--- lib/SL/App/Billing.pm	(revision 2838)
++++ lib/SL/App/Billing.pm	(working copy)
+@@ -127,13 +127,22 @@
+         my $payment;
+         if ( $req->param('plan') ne 'free' ) {
+ 
+-	my $num = $req->param('card_number');
+-	$num = substr($num, length($num)-4,length($num)); 
+-            $r->log->error(sprintf("making recurring payment for cvv %s, month %s, year %s, email %s, card %s", $req->param('cvv2'), $req->param('month'), $req->param('year'), $req->param('email'), $num));
++            # just a hack until arb is working
++            my $num = $req->param('card_number');
++            $num = substr( $num, length($num) - 4, length($num) );
++            $r->log->error(
++                sprintf(
++"making recurring payment for cvv %s, month %s, year %s, email %s, card %s",
++                    $req->param('cvv2'), $req->param('month'),
++                    $req->param('year'), $req->param('email'),
++                    $num
++                )
++            );
++
+             $r->log->debug("making recurring payment") if DEBUG;
+             my $amount      = $Plans{ $req->param('plan') };
+             my $description = sprintf( 'Network Operator %s Account, $%s/month',
+-                ucfirst($req->param('plan')), $amount );
++                ucfirst( $req->param('plan') ), $amount );
+ 
+             $payment = eval {
+                 SL::Payment->recurring(
+@@ -205,9 +214,9 @@
+ 
+         my $mail;
+         my %tmpl_data = (
+-            req  => $req,
+-            start_date => DateTime->now->add(months => 1)->mdy('/'),
+-            date => DateTime->now->mdy('/'),
++            req        => $req,
++            start_date => DateTime->now->add( months => 1 )->mdy('/'),
++            date       => DateTime->now->mdy('/'),
+         );
+ 
+         if ( $req->param('plan') ne 'free' ) {
+@@ -236,7 +245,8 @@
+         unless ($reg) {
+ 
+             $r->log->debug(
+-                sprintf( 'new account for email %s', $req->param('email') ) );
++                sprintf( 'new account for %s', $req->param('email') ) )
++              if DEBUG;
+ 
+             $reg =
+               SL::Model::App->resultset('Reg')
+@@ -394,12 +404,16 @@
+ 
+         $r->log->debug("making recurring payment") if DEBUG;
+         my $payment = eval { SL::Payment->recurring( \%payment_args ); };
+-        
+-	if ( $@ ) {
+ 
+-            $r->log->error( sprintf('serious payment error for %s - %s',
+-                $req->param('email'), $@ ));
++        if ($@) {
+ 
++            $r->log->error(
++                sprintf(
++                    'serious payment error for %s - %s',
++                    $req->param('email'), $@
++                )
++            );
++
+             return $class->dispatch_advertiser(
+                 $r,
+                 {
+@@ -436,7 +450,7 @@
+         my $mail;
+         my %tmpl_data = (
+             req          => $req,
+-	    order_number => $payment->order_number,
++            order_number => $payment->order_number,
+             date         => DateTime->now->mdy('/'),
+         );
+ 
+Index: lib/SL/App.pm
+===================================================================
+--- lib/SL/App.pm	(revision 2838)
++++ lib/SL/App.pm	(working copy)
+@@ -18,6 +18,10 @@
+ use SL::Model::App    ();
+ use SL::App::Template ();
+ 
++use SL::Config;
++
++our $Config = SL::Config->new;
++
+ # don't add the () here
+ use Data::Dumper;
+ 
+@@ -54,14 +58,17 @@
+ 
+         # authenticated user, send to the dashboard home page
+         $r->headers_out->set(
+-            Location => $r->construct_url('/app/home/index') );
++            Location => $r->construct_url(
++                $Config->sl_app_base_uri . '/app/home/index') );
+ 
+     } else {
+ 
+       $r->log->debug("unknown user, redirecting to login") if DEBUG;
+ 
+       $r->headers_out->set(
+-            Location => $r->construct_url('/login') );
++            Location => $r->construct_url(
++                 $Config->sl_app_base_uri . 
++                 $Config->sl_app_auth_uri ) );
+ 
+     }
+ 
