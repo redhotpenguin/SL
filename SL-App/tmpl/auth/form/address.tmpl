@@ -36,8 +36,8 @@
 <!-- STATE -->
 <dd class="large_margin">
 	<span class="half">
-							<select id="state" name="state">
-								<option value="">State</option>
+				<select id="state" name="state">
+				<option value="">State</option>
                                 <option value="AL" [% IF req.param('state') == 'AL' %]SELECTED[% END %]>Alabama</option>
                                 <option value="AK" [% IF req.param('state') == 'AK' %]SELECTED[% END %]>Alaska</option>
                                 <option value="AZ" [% IF req.param('state') == 'AZ' %]SELECTED[% END %]>Arizona</option>
@@ -89,9 +89,33 @@
                                 <option value="WV" [% IF req.param('state') == 'WV' %]SELECTED[% END %]>West Virginia</option>
                                 <option value="WI" [% IF req.param('state') == 'WI' %]SELECTED[% END %]>Wisconsin</option>
                                 <option value="WY" [% IF req.param('state') == 'WY' %]SELECTED[% END %]>Wyoming</option>
+                                <option value="ON" [% IF req.param('state') == 'ON' %]SELECTED[% END %]>Ontario</option>
+                                <option value="QC" [% IF req.param('state') == 'QC' %]SELECTED[% END %]>Quebec</option>
+                                <option value="NS" [% IF req.param('state') == 'NS' %]SELECTED[% END %]>Nova Scotia</option>
+                                <option value="NB" [% IF req.param('state') == 'NB' %]SELECTED[% END %]>New Brunswick</option>
+                                <option value="MB" [% IF req.param('state') == 'MB' %]SELECTED[% END %]>Manitoba</option>
+                                <option value="BC" [% IF req.param('state') == 'BC' %]SELECTED[% END %]>British Columbia</option>
+                                <option value="PE" [% IF req.param('state') == 'PE' %]SELECTED[% END %]>Prince Edward Island</option>
+                                <option value="SK" [% IF req.param('state') == 'SK' %]SELECTED[% END %]>Saskatchewan</option>
+                                <option value="AB" [% IF req.param('state') == 'AB' %]SELECTED[% END %]>Alberta</option>
+                                <option value="NL" [% IF req.param('state') == 'NL' %]SELECTED[% END %]>Newfoundland and Labrador</option>
 								</select>
 								<label for="state">[% IF errors.missing.state or errors.invalid.state %]<font color="red">[% END %]State[% IF errors.missing.state or errors.invalid.state %]</font>[% END %]</label>
 							</span>
-						<div class="clear"></div>
+<div class="clear"></div>
 						</dd>
+
+<!-- COUNTRY -->
+<dd class="large_margin">
+	<span class="half">
+		<select id="country" name="country">
+		<option value="">Country</option>
+                                <option value="US" [% IF req.param('country') == '' || req.param('country') == 'US' %]SELECTED[% END %]>United States</option>
+                                <option value="CA" [% IF req.param('country') == 'CA' %]SELECTED[% END %]>Canada</option>
+               </select> 
+	<label for="country">[% IF errors.missing.country or errors.invalid.country %]<font color="red">[% END %]Country[% IF errors.missing.country or errors.invalid.country %]</font>[% END %]</label>
+							</span>
+<div class="clear"></div>
+						</dd>
+
 [% END %]

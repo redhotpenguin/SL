@@ -75,7 +75,7 @@ sub dispatch_publisher {
 
         my @free_req = qw( email password retype first_name last_name);
         my @paid_req = qw( card_type card_number cvv2
-          month year street city zip state plan );
+          month year street city zip state plan country );
 
         my %payment_profile = (
             required => [
@@ -93,7 +93,8 @@ sub dispatch_publisher {
                 retype => $class->check_retype(
                     { fields => [ 'password', 'retype' ] }
                 ),
-                email       => email(),
+    		state       => state_or_province(),
+    		email       => email(),
                 zip         => zip(),
                 first_name  => $class->valid_first,
                 last_name   => $class->valid_last,
@@ -157,7 +158,8 @@ sub dispatch_publisher {
                         referer      => $r->headers_in->{'referer'},
                         amount       => $amount,
                         trialperiods => 1,
-                    }
+			country      => $req->param('country'),
+}
                 );
             };
 
