@@ -110,7 +110,7 @@ sub dispatch_edit {
         if ( $results->has_missing or $results->has_invalid ) {
             my $errors = $self->SUPER::_results_to_errors($results);
 
-            $r->log->error(Dumper($errors));
+            $r->log->debug(Dumper($errors)) if DEBUG;
 
             return $self->dispatch_edit(
                 $r,
