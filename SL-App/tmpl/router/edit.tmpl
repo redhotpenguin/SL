@@ -191,7 +191,7 @@
 					<div class="clear"></div>
 					<label for="adserving" class="tip">Turn the ad and messaging bar On or Off.  Takes 5-15 minutes to take effect.</label>
 					<input type="radio" name="adserving" value="t" [% IF router.adserving == 1 %]checked[% END %]/><label for="adserving" class="check_label">On</label>
-					<input type="radio" name="adserving" value="f" [% IF ad_zone.adserving == 0 %] checked [% END %]/><label for="adserving" class="check_label">Off</label>
+					<input type="radio" name="adserving" value="f" [% IF !router.adserving %] checked [% END %]/><label for="adserving" class="check_label">Off</label>
 					<div class="clear"></div>
 				</div>
 				<div class="clear"></div>
