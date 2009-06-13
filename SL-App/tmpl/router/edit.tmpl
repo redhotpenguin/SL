@@ -204,7 +204,7 @@
 					<div class="clear"></div>
 					<label class="tip" for="active">Is this router active? (To ensure consistency in reporting, routers cannot be deleted, just hidden)</label>
 					<input type="radio" name="active" value="t" [% IF router.active ==1 %]checked[% END %]><label class="check_label">Yes</label>
-					<input type="radio" name="active" value="f" [% IF ad_zone.active == 0 %] checked [% END %]><label class="check_label">No</label>
+					<input type="radio" name="active" value="f" [% IF !router.active %] checked [% END %]><label class="check_label">No</label>
 					<div class="clear"></div>
 				</div>
 				<div class="clear"></div>
