@@ -456,6 +456,19 @@ sub log_view {
       || warn("no ad_zone_id passed") && return;
     my $referer = $args_ref->{referer} || '';
 
+    # grab a mac from this account in the event the default is present
+    # this means that a different device can be attributed rather
+    # than the one that was used in random_ad but good enough for now FIXME
+    if ($mac eq $Default_Router_Mac) {
+
+        # unknown mac address, see if we can get an ip from it
+        my $latest_mac = SL::Model::Proxy::Router->_mac_from_ip( $ip );
+
+        if ($latest_mac) {
+          $mac = $latest_mac;
+        }
+    }
+
     my $dbh = SL::Model->db_Main();
     my $sth = $dbh->prepare(LOG_VIEW_SQL);
 
