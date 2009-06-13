@@ -6,7 +6,7 @@ use warnings;
 use base 'SL::Model';
 
 use Template                           ();
-use SL::Model::Proxy::Router::Location ();
+use SL::Model::Proxy::Router           ();
 use SL::Config                         ();
 
 =head1 NAME
@@ -25,7 +25,7 @@ use constant AD_ZONE_CODE_DOUBLE => 2;
 use constant AD_SIZE_CSS_URL     => 3;
 use constant AD_SIZE_JS_URL      => 4;
 use constant AD_SIZE_HEAD_HTML   => 5;
-use constant AD_SIZE_TEMPLATE    => 6;
+use constant AD_SIZE_Template    => 6;
 use constant AD_SIZE_ID          => 7;
 use constant BUG_IMAGE_HREF      => 8;
 use constant BUG_LINK_HREF       => 9;
@@ -38,19 +38,18 @@ use constant OUTPUT_REF          => 15;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
-our ( $CONFIG, $TEMPLATE );
-our $Default_Ad_Data;
-
-our %Leaderboard;
+our ( $Config, $Template, $Default_Ad_Data, %Leaderboard, $Default_Router_Mac, $Default_Hash_Mac );
 
 BEGIN {
-    $CONFIG = SL::Config->new;
+    $Config = SL::Config->new;
 
     require Data::Dumper if DEBUG;
 
-    # create the default ad on startup and cache the data
+    $Default_Router_Mac = $Config->sl_default_router_mac || die 'set sl_default_router_mac';
+    $Default_Hash_Mac   = $Config->sl_default_hash_mac   || die 'set sl_default_hash_mac';
 
-    my $default_ad_zone_id = $CONFIG->default_ad_zone_id || 1;
+    # create the default ad on startup and cache the data
+    my $default_ad_zone_id = $Config->sl_default_ad_zone_id || 1;
     my $default_ad_sql = q{
 SELECT
 
@@ -100,11 +99,11 @@ SQL
     $rv = $sth->execute;
     %Leaderboard = %{ $sth->fetchrow_hashref };
 
-    our $PATH = $CONFIG->sl_root . '/tmpl/';
+    our $PATH = $Config->sl_root . '/tmpl/';
     die "Template include path $PATH doesn't exist!\n" unless -d $PATH;
 
-    our $TMPL_CONFIG = { ABSOLUTE => 1, INCLUDE_PATH => $PATH, };
-    $TEMPLATE = Template->new($TMPL_CONFIG) || die $Template::ERROR, "\n";
+    my $tmpl_config = { ABSOLUTE => 1, INCLUDE_PATH => $PATH, };
+    $Template = Template->new($tmpl_config) || die $Template::ERROR,;
 }
 
 =head1 METHODS
@@ -179,7 +178,7 @@ sub container {
     $matched = $$decoded_content_ref =~ s{$start_body_regex}
                          {$1<body$2>$$ad_ref$3};
     warn( 'failed to insert ad content ' . $$ad_ref ) unless $matched;
- 
+
  	# insert the tail
 	my $js = sprintf("$JS", $$js_url_ref);
     $matched = $$decoded_content_ref =~ s{$end_body_match}{$1$tail$js$2};
@@ -190,45 +189,76 @@ sub container {
     return 1;
 }
 
-=item C<body_regex> 
 
-Method for ad insertion which puts an html paragraph right after the body tag.
 
-  $page_with_ad = body_regex( $decoded_content, $ad );
+use constant DEFAULT_AD_ZONE_FROM_MAC => q{
+SELECT
 
-=over 4
+ad_zone.ad_zone_id,
+ad_zone.code,
+ad_zone.code_double,
 
-=item C<$decoded_content> ( string )
+ad_size.css_url,
+ad_size.js_url,
+ad_size.head_html,
+ad_size.template,
+ad_size.ad_size_id,
 
-The decoded HTTP::Response content.
+bug.image_href,
+bug.link_href,
 
-=item C<$ad> ( string )
+account.premium,
+account.close_box,
+account.aaa,
+account.advertise_here,
 
-The ad content
+router.lan_ip
 
-=back
+FROM ad_zone, bug, router, router__ad_zone, ad_size, account
 
-=cut
+WHERE router.macaddr = ?
 
-sub body_regex {
-    my ( $decoded_content, $ad ) = @_;
-    $decoded_content =~ s{^(.*?)<body([^>]*?)>}{$1<body$2>$$ad}isxm;
-    return $decoded_content;
+AND account.account_id = router.account_id
+AND ad_zone.account_id = account.account_id
+
+AND ad_zone.is_default = 't'
+AND ad_zone.bug_id = bug.bug_id
+AND ad_zone.ad_size_id = ad_size.ad_size_id
+AND ad_size.persistent = 't'
+ORDER BY RANDOM()
+LIMIT 1
+};
+
+
+sub _default_ad_from_mac {
+    my ( $class, $mac ) = @_;
+
+    unless ($mac) {
+        warn("no mac passed");
+        return;
+    }
+
+    my $dbh = SL::Model->connect();
+    my $sth = $dbh->prepare_cached(DEFAULT_AD_ZONE_FROM_MAC);
+    $sth->bind_param( 1, $mac );
+    my $rv = $sth->execute;
+    die "Problem executing query: " . DEFAULT_AD_ZONE_FROM_MAC unless $rv;
+    my $ad_data = $sth->fetchrow_arrayref;
+    $sth->finish;
+
+    unless ( defined $ad_data->[AD_ZONE_ID] ) {
+        warn("No default ads returned for mac $mac") if DEBUG;
+        return;
+    }
+
+    warn( "Default ad zone id found for mac $mac:" . $ad_data->[AD_ZONE_ID] )
+      if DEBUG;
+    return $ad_data;
 }
 
-=item C<_stacked_page($decoded_content, $ad)>
 
-Method for ad insertion which puts the ad in the html page and serves that
-inline with the original request response.
 
-=cut
 
-sub stacked {
-    my ( $decoded_content, $ad ) = @_;
-    my $html = qq{<html><body>$$ad</body></html>};
-    $decoded_content = join( "\n", $html, $decoded_content );
-    return $decoded_content;
-}
 
 use constant RANDOM_AD_ZONE_FROM_MAC => q{
 SELECT
@@ -292,6 +322,8 @@ sub _random_ad_from_mac {
     return $ad_data;
 }
 
+
+
 # silverlining ad dispatcher
 # this method returns a random ad, given the ip of the router
 
@@ -304,8 +336,32 @@ sub random {
     my $user = $args->{user} || warn("no user passed") && return;
     my $ua   = $args->{ua}   || warn("no ua passed") && return;
 
-    # get the list of ad zones we can server for this router
-    my $ad_data = $class->_random_ad_from_mac($mac) || $Default_Ad_Data;
+    my $ad_data;
+    # first check for unknown mac
+    if ($mac eq $Default_Router_Mac) {
+
+        # unknown mac address, see if we can get an ip from it
+        my $latest_mac = SL::Model::Proxy::Router->_mac_from_ip( $ip );
+
+        unless ($latest_mac) {
+
+          # no mac addrs for this ip
+          warn("no mac address for ip $ip");
+          return;
+
+        } else {
+
+          # set the mac address based on the router account default
+          $mac = $latest_mac;
+          $ad_data = $class->_default_ad_from_mac( $mac ) || $Default_Ad_Data;
+        }
+
+    } else {
+
+        # grab a random ad which is assigned to this device
+        $ad_data = $class->_random_ad_from_mac($mac) || $Default_Ad_Data;
+    }
+
 
     # check to see if this is a floating horizontal ad zone
     if ( ( (substr($ua, 13, 6) eq 'iPhone') or   # iPhone
@@ -319,7 +375,7 @@ sub random {
            $ad_data->[AD_SIZE_CSS_URL]   = $Leaderboard{css_url};
            $ad_data->[AD_SIZE_JS_URL]    = $Leaderboard{js_url};
            $ad_data->[AD_SIZE_HEAD_HTML] = $Leaderboard{head_html};
-           $ad_data->[AD_SIZE_TEMPLATE]  = $Leaderboard{template};
+           $ad_data->[AD_SIZE_Template]  = $Leaderboard{template};
     }
 
     # process the template
@@ -367,13 +423,13 @@ sub process_ad_template {
     	( $ad_data->[ADVERTISE_HERE] ne '') ) {
       $tmpl_vars{advertise_here} = $ad_data->[ADVERTISE_HERE],
     }
-    
+
     warn( "tmpl vars: " . Data::Dumper::Dumper( \%tmpl_vars ) ) if DEBUG;
 
     # generate the ad
     my $output;
-    $TEMPLATE->process( $ad_data->[AD_SIZE_TEMPLATE], \%tmpl_vars, \$output )
-      || die $TEMPLATE->error();
+    $Template->process( $ad_data->[AD_SIZE_Template], \%tmpl_vars, \$output )
+      || die $Template->error();
 
     return \$output;
 }

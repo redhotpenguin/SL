@@ -26,7 +26,6 @@ my $dbh = DBI->connect( $dsn, 'phred', '', $db_options );
 
 ##############################
 
-$dbh->do("alter table router add column notes text not null default ''");
-$dbh->do("alter table router add lat float8");
-$dbh->do("alter table router add lng float8");
-$dbh->do("alter table router add column ip inet");
+$dbh->do("alter table ad_zone add column is_default boolean not null default 'f'");
+
+
