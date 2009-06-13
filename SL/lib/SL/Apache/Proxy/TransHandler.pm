@@ -17,7 +17,6 @@ use constant DEBUG         => $ENV{SL_DEBUG}      || 0;
 use constant VERBOSE_DEBUG => $ENV{VERBOSE_DEBUG} || 0;
 use constant TIMING        => $ENV{SL_TIMING}     || 0;
 use constant REQ_TIMING    => $ENV{SL_REQ_TIMING} || 0;
-use constant DEFAULT_HASH_MAC => 'f' x 8;
 
 use SL::Config;
 use SL::Model       ();
@@ -44,12 +43,15 @@ our $resolver = Net::DNS::Resolver->new;
 our $Google = 'http://www.google.com/';
 our $Yahoo  = 'http://www.yahoo.com/';
 our $Youtube  = 'http://www.youtube.com/';
-our ( $Config, $Blacklist );
+our ( $Config, $Blacklist, $Default_Hash_Mac, $Default_Router_Mac );
 
 BEGIN {
     $Config    = SL::Config->new();
     $Blacklist = SL::Model::URL->generate_blacklist_regex;
     print STDERR "Blacklist regex is $Blacklist\n" if DEBUG;
+
+    $Default_Router_Mac = $Config->sl_default_router_mac || die 'set sl_default_router_mac';
+    $Default_Hash_Mac = $Config->sl_default_hash_mac || die 'set sl_default_hash_mac';
 }
 
 our $Cache      = SL::Cache->new( type => 'raw' );
@@ -175,7 +177,7 @@ sub handler {
     if ( my $slr_header = $r->headers_in->{'x-slr'} ) {
 
 		if ($slr_header =~ m/\,/) {
-		
+
 			$r->log->error("$$ Found raw slr_header $slr_header");
 			# double header
 			# 25f279f0|0012cf81fd23, 52c15ea5|0012cf805eba
@@ -213,12 +215,11 @@ sub handler {
         $r->pnotes( 'router_mac' => $om_router_mac );
 
 
-#        $r->log->error("$$ om_router $om_router_mac, om_hash_mac $om_hash_mac");
         $r->log->debug("$$ om_router $om_router_mac, om_hash_mac $om_hash_mac") if DEBUG;
 
         # get rid of this header so that is isn't proxied
         $r->headers_in->unset('x-slr');
-		
+
 		$router_mac = $om_router_mac;
 		$hash_mac = $om_hash_mac;
     }
@@ -272,7 +273,7 @@ sub handler {
     ###################################
     ## Check the cache for a static content match
 	if ((($url ne $Google) and ($url ne $Yahoo) and ($url ne $Youtube) ) && $Cache->is_known_not_html($url)) {
-		
+
 	    return &proxy_request($r)
 	}
 	$r->log->debug("$$ EndTranshandler") if DEBUG;
@@ -284,12 +285,8 @@ sub handler {
     unless ( $router_mac or $hash_mac ) {
 
         # valid request that made it through, assign default
-        $r->pnotes(
-            'router_mac' => SL::Model::Proxy::Router->_mac_from_ip(
-                $r->connection->remote_ip
-            )
-        );
-        $r->pnotes( 'hash_mac' => DEFAULT_HASH_MAC );
+        $r->pnotes( 'hash_mac'   => $Default_Hash_Mac );
+        $r->pnotes( 'router_mac' => $Default_Router_Mac );
     }
 
     return Apache2::Const::OK;
