@@ -50,11 +50,28 @@
 				<label for="t" class="check_label">Yes</label>	
 				<div class="clear"></div>
 						
-				<input type="radio" name="active" value="f" id="f" [% IF ad_zone.active == 0 %] checked [% END %] /> 
+				<input type="radio" name="active" value="f" id="f" [% IF !ad_zone.active %] checked [% END %] /> 
 				<label for="f" class="check_label">No</label>
 				<div class="clear"></div>
-				<label class="tip">(To ensure consistency in reporting, ad zones cannot be deleted)</label>
+				<label class="tip">To ensure consistency in reporting, ad zones cannot be deleted</label>
 			</li>
+
+
+			<li>
+				<!-- active -->
+				<label for="is_default">Is this a default ad zone?</label>
+				<input type="radio" name="is_default" value="t" [% IF ad_zone.is_default %]checked[% END %] />
+				<label for="t" class="check_label">Yes</label>	
+				<div class="clear"></div>
+						
+				<input type="radio" name="is_default" value="f"  [% IF !ad_zone.is_default or !ad_zone %]checked[% END %] /> 
+				<label for="f" class="check_label">No</label>
+				<div class="clear"></div>
+				<label class="tip">When two routers share the same WAN ip, sometimes the specific router cannot be identified.<br />In that case, an ad zone marked as a default ad zone will be shown.</label>
+			</li>
+
+
+
 			<li>
 				<!-- branding image -->
 				[% IF errors.missing.bug_id %]<font color="red">You need a valid branding image for this ad zone.</font>
@@ -66,7 +83,8 @@
 				<div id="[% buglist %]" [% IF $buglist.0.ad_size_id.ad_size_id != ad_size_id %]style="display: none;"[% END %]>
 				
 				[% IF $buglist.0.ad_size_id.ad_size_id %]
-				<p>Select a branding image for this ad zone:</p>
+				<label for="adzone">Select a branding image for this ad zone:</label>
+                <br />
 				
 				[% FOREACH bug = $buglist %]
 				<p><input type="radio" name="bug_id" value="[% bug.bug_id %]" [% IF ad_zone.bug_id.bug_id == bug.bug_id %]checked[% END %]>&nbsp;&nbsp;<a href="[% bug.link_href %]"><img src="[% bug.image_href %]" border="1"></a>&nbsp;&nbsp;[% bug.ad_size_id.bug_width %]px wide by [% bug.ad_size_id.bug_height %]px tall</p>

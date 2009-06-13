@@ -19,7 +19,7 @@ use SL::Model::App ();
 use SL::App::Template ();
 use Data::Dumper;
 
-our $TMPL = SL::App::Template->template();
+our $Tmpl = SL::App::Template->template();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
@@ -27,8 +27,8 @@ sub dispatch_index {
     my ( $self, $r ) = @_;
 
     my $output;
-    $TMPL->process( 'ad/groups/index.tmpl', {}, \$output, $r ) ||
-      return $self->error( $r, $TMPL->error);
+    $Tmpl->process( 'ad/groups/index.tmpl', {}, \$output, $r ) ||
+      return $self->error( $r, $Tmpl->error);
 
     return $self->ok( $r, $output );
 }
@@ -92,8 +92,8 @@ sub dispatch_edit {
 
 
         my $output;
-        $TMPL->process( 'ad/groups/edit.tmpl', \%tmpl_data, \$output, $r ) ||
-          return $self->error( $r, $TMPL->error);
+        $Tmpl->process( 'ad/groups/edit.tmpl', \%tmpl_data, \$output, $r ) ||
+          return $self->error( $r, $Tmpl->error);
         return $self->ok( $r, $output );
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
@@ -136,6 +136,7 @@ sub dispatch_edit {
         bug_id     => $req->param('bug_id'),
         name       => $req->param('name'),
         active     => $req->param('active'),
+        is_default => $req->param('is_default'),
     );
 
     if ( my $double = $req->param('code_double') ) {
@@ -188,8 +189,8 @@ sub dispatch_list {
     );
 
     my $output;
-    $TMPL->process( 'ad/groups/list.tmpl', \%tmpl_data, \$output, $r ) ||
-      return $self->error( $r, $TMPL->error);
+    $Tmpl->process( 'ad/groups/list.tmpl', \%tmpl_data, \$output, $r ) ||
+      return $self->error( $r, $Tmpl->error);
     return $self->ok( $r, $output );
 }
 
