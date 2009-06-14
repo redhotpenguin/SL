@@ -52,7 +52,7 @@
 	  
 	  <td>[% IF payment.token_processed == 1 %]<span class="active">Yes</span>[% ELSE %]<strong class="inactive">No</strong>[% END %]</td>
 	
-	  <td>[% IF payment.voided == 1 %]<span class="active">Yes</span>[% ELSE %]<strong class="inactive">No</strong>[% END %]</td>
+	  <td>[% IF payment.voided == 1 %]<strong class="inactive">Yes</strong>[% ELSE %]<span class="active">No</span>[% END %]</td>
 	</tr>
 	
 	[% END %]
