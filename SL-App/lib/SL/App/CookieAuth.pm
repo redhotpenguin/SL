@@ -143,8 +143,10 @@ sub authenticate {
                 tie %session, 'Apache::Session::DB_File', undef, \%SESS_OPTS;
             };
 
-            $r->log->error("WOW SOMETHING REALLY BAD HAPPENED: $@") if $@;
-            return Apache2::Const::SERVER_ERROR;
+            if ($@) {
+                $r->log->error("WOW SOMETHING REALLY BAD HAPPENED: $@");
+                return Apache2::Const::SERVER_ERROR;
+            }
         }
     }
     else {
