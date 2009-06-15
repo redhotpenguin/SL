@@ -57,8 +57,9 @@
 			</li>
 
 
+[% IF reg.account_id.plan != 'free' %]
 			<li>
-				<!-- active -->
+				<!-- is_default -->
 				<label for="is_default">Is this a default ad zone?</label>
 				<input type="radio" name="is_default" value="t" [% IF ad_zone.is_default %]checked[% END %] />
 				<label for="t" class="check_label">Yes</label>	
@@ -69,7 +70,9 @@
 				<div class="clear"></div>
 				<label class="tip">When two routers share the same WAN ip, sometimes the specific router cannot be identified.<br />In that case, an ad zone marked as a default ad zone will be shown.</label>
 			</li>
-
+[% ELSE %]
+<input type="hidden" name="is_default" value="f">
+[% END %]
 
 
 			<li>
