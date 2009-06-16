@@ -65,7 +65,6 @@ use SL::App::Ad::Bugs               ();
 use SL::App::Ad::Msg                     ();
 use SL::App::Ad::Twitter              ();
 use SL::App::Ad::Groups              ();
-use SL::App::Ad::Groups::Ads              ();
 use SL::App::Billing                ();
 use SL::App::Blacklist              ();
 use SL::App::CookieAuth             ();
