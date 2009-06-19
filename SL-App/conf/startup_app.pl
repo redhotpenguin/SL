@@ -71,7 +71,6 @@ use SL::App::CookieAuth             ();
 use SL::App::CP                     ();
 use SL::App::CPAuthHandler          ();
 use SL::App::Home                   ();
-use SL::App::Logon                  ();
 use SL::App::PostReadRequestHandler ();
 use SL::App::Report                 ();
 use SL::App::Router                 ();
