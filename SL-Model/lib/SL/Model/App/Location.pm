@@ -5,13 +5,14 @@ use warnings;
 
 use base 'DBIx::Class';
 
-__PACKAGE__->load_components("Core");
+__PACKAGE__->load_components("InflateColumn::DateTime", "Core");
 __PACKAGE__->table("location");
 __PACKAGE__->add_columns(
   "location_id",
   {
     data_type => "integer",
     default_value => "nextval('location_location_id_seq'::regclass)",
+    is_auto_increment => 1,
     is_nullable => 0,
     size => 4,
   },
@@ -45,7 +46,6 @@ __PACKAGE__->add_columns(
   },
 );
 __PACKAGE__->set_primary_key("location_id");
-__PACKAGE__->add_unique_constraint("location_pkey", ["location_id"]);
 __PACKAGE__->has_many(
   "router__locations",
   "SL::Model::App::RouterLocation",
@@ -58,11 +58,15 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-05-01 19:38:05
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:A2BafaNw4I6aMQCyYcqB1A
-# These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Location.pm' found in @INC.# They are now part of the custom portion of this file# for you to hand-edit.  If you do not either delete# this section or remove that file from @INC, this section# will be repeated redundantly when you re-create this# file again via Loader!
+# Created by DBIx::Class::Schema::Loader v0.04999_07 @ 2009-06-14 16:15:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:P/nzOF9oCp9Cc3I1g84f5A
+# These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Location.pm' found in @INC.
+# They are now part of the custom portion of this file
+# for you to hand-edit.  If you do not either delete
+# this section or remove that file from @INC, this section
+# will be repeated redundantly when you re-create this
+# file again via Loader!
 
-use SL::Model::App;
 use DateTime::Format::Pg;
 
 sub run_query {
@@ -134,3 +138,4 @@ sub views_count {
 }
 
 1;
+# End of lines loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Location.pm' 

@@ -36,7 +36,7 @@
 		</ul>			
 		<h1 id="sl_logo">Silver Lining Networks</h1>
 		<div id="header">
-			<h1>[% reg.account_id.name %]</h1>
+			<h1>[% reg.account.name %]</h1>
 			<ul>
 				<li id="tab_dashboard" [% IF selected != "account" %]class="selected"[% END %]><a href="[% base_uri %]/app/home/index">Dashboard</a></li>
 				<li id="tab_account" [% IF selected=="account" %]class="selected"[% END %] ><a href="[% base_uri %]/app/settings/index">Account</a></li>
@@ -54,9 +54,12 @@
 				    <li[% IF selected == 'network' %] class="selected"[% END %]><a id="button_network" href="[% base_uri %]/app/router/list">Network</a></li>
 				    <li[% IF selected == 'adcenter' %] class="selected"[% END %]><a id="button_banners" href="[% base_uri %]/app/ad/index">Ad Center</a></li>
 				    <li[% IF selected == 'stats' %] class="selected"[% END %]><a id="button_stats" href="[% base_uri %]/app/report/index">Reports</a></li>
-[% IF new %]				    <li><a id="button_kiosk" href="#">Virtual Kiosk</a></li>
-				    <li><a id="button_splash" href="#">Splash Page</a></li>
+[% IF new %]
+				    <li><a id="button_kiosk" href="#">Virtual Kiosk</a></li>
 [% END %]
+
+				    <li[% IF selected == 'splash' %] class="selected"[% END %]><a id="button_splash" href="[% base_uri %]/app/ad/splash/index">Splash Page Ad Management</a></li>
+
 				  </ul>
 			[% ELSE %]
 				 <ul id="nav_account">

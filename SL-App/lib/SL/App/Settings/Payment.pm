@@ -50,7 +50,7 @@ sub dispatch_payment {
     # look for existing cc info
     my ($cc) =
       SL::Model::App->resultset('Cc')
-      ->search( { account_id => $reg->account_id->account_id } );
+      ->search( { account_id => $reg->account->account_id } );
 
     my %cc;
     if ($cc) {

@@ -2,7 +2,7 @@
 <div class="grid_16">
 	<div id="breadcrumb">
 		<div id="breadcrumb_inner">
-			<ul>[% PROCESS ad/nav.tmpl %]<li><strong>Open-X Ads</strong></li></ul>
+			<ul>[% PROCESS ad/nav.tmpl %]<li><strong>Persistent Ads</strong></li></ul>
 		</div>
 	</div>
 </div>
@@ -10,7 +10,7 @@
 
 
 <div id="main_content" class="grid_16">
-	<h2>Manage Ads</h2>
+	<h2>Manage Persistent Ad Zones</h2>
 	<p class="tip"> [% count %] Ad Zones</p>
 	
 	<h3 class="row">Select an ad zone below to edit</h3>
@@ -23,10 +23,13 @@
 	<table class="basic_table">
 	<tr>
 		<th>Ad Zone Name</th>
-		<th>Ad Zone Type</th>
+		<th>Ad Zone Size</th>
 		<!--<th>Active</td>-->
 		<th>Assigned Routers</th>
 		<th>Last Modified By</th>
+		<th>Clone</th>
+		<th>Assign Devices</th>
+		<th>Remove Devices</th>
 	</tr>
 	
 	[% FOREACH ad_zone = ad_zones %]
@@ -35,8 +38,8 @@
 			<a href="[% base_uri %]/app/ad/groups/edit/?id=[% ad_zone.ad_zone_id %]">
 			[% ad_zone.name %]</a></td>
 			
-			<td>
-			[% ad_zone.ad_size_id.name %]</td>
+			<!--<td>[% IF ad_zone.ad_size.persistent == 1 %]Persistent[% ELSIF ad_zone.ad_size.grouping == 2 %]Branding[% ELSIF ad_zone.ad_size.grouping == 3 %]Splash Page[% END %]</td>-->
+		    <td>[% ad_zone.ad_size.name %]</td>
 			
 			<!-- active -->	
 			<!--  <td>
@@ -52,8 +55,22 @@
 			</td>
 			
 			<td>
-			<a href="mailto:[% ad_zone.reg_id.email %]">[% ad_zone.reg_id.email %]</a><br />[% ad_zone.mts %]
+			<a href="mailto:[% ad_zone.reg.email %]">[% ad_zone.reg.email %]</a><br />[% ad_zone.mts %]
 			</td>
+
+			<td>
+			<a href="[% base_uri %]/app/ad/groups/clone?id=[% ad_zone.ad_zone_id %]">Clone</a>
+			</td>
+
+			<td>
+			<a href="[% base_uri %]/app/ad/groups/assign?id=[% ad_zone.ad_zone_id %]">Assign Devices</a>
+			</td>
+
+			<td>
+			<a href="[% base_uri %]/app/ad/groups/remove?id=[% ad_zone.ad_zone_id %]">Remove Devices</a>
+			</td>
+
+
 		</tr>
 	[% END %]
 	</table>

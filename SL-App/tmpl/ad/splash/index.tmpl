@@ -1,0 +1,20 @@
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage ads" selected="splash" %]
+
+<div id="main_content" class="grid_10 suffix_6">	
+	<h2>Manage Splash Page Advertising</h2>
+	
+	[% IF msg %]
+		<p class="error">[% msg %]</p>
+	[% END %]
+	<div class="row">
+		<p>This is where you manage the targeting of ads on your splash pages.</p>
+
+        <p>Use the following invocation code on your splash page to show targeted splash page ads:</p>
+        <p><textarea rows="2" readonly="1" cols="100">&lt;script type="javascript" src="[% link %]"&gt;</script></textarea></p>
+		
+	</div>
+</div> 
+
+
+
+[% PROCESS footer.tmpl %]

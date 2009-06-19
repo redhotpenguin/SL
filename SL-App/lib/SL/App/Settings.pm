@@ -60,7 +60,7 @@ sub dispatch_root {
     $reg->update;
 
     $r->pnotes('session')->{msg} =
-      "Account changed to " . $reg->account_id->name;
+      "Account changed to " . $reg->account->name;
     $r->headers_out->set( Location => $r->headers_in->{'Referer'} );
     return Apache2::Const::REDIRECT;
 
@@ -77,17 +77,17 @@ sub dispatch_market {
         $r->log->debug("setting marketplace to " . $req->param('marketplace')) if DEBUG;
 
         $r->pnotes('session')->{msg} = "Ad Marketplace Enabled";
-        $reg->account_id->advertise_here( $Config->sl_advertise_here
+        $reg->account->advertise_here( $Config->sl_advertise_here
               . '?network='
-              . $reg->account_id->account_id );
+              . $reg->account->account_id );
     }
     else {
         $r->log->debug("setting marketplace to off") if DEBUG;
         $r->pnotes('session')->{msg} = "Ad Marketplace Disabled";
-        $reg->account_id->advertise_here(undef);
+        $reg->account->advertise_here(undef);
     }
 
-    $reg->account_id->update;
+    $reg->account->update;
     $r->headers_out->set( Location => $r->headers_in->{'Referer'} );
     return Apache2::Const::REDIRECT;
 }
@@ -218,7 +218,7 @@ sub dispatch_users {
 
     my @users =
       SL::Model::App->resultset('Reg')
-      ->search( { account_id => $reg->account_id->account_id } );
+      ->search( { account_id => $reg->account->account_id } );
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
@@ -242,7 +242,7 @@ sub dispatch_payment {
 
     my @payments = SL::Model::App->resultset('Payment')->search(
         {
-            account_id => $reg->account_id->account_id,
+            account_id => $reg->account->account_id,
             amount     => { '>' => '$0.00' },
         },
         { order_by => 'me.start DESC', }

@@ -22,7 +22,7 @@
 				<div class="grid_6 alpha omega suffix_4">
 					<!-- email -->
 					<label for="twitter_id" class="[% IF errors.missing.twitter_id or errors.invalid.twitter_id %]error[% END %]">Twitter user name</label>
-					<input type="text" name="twitter_id" id="twitter_id" size="32" value='[% req.param('twitter_id') or reg.account_id.twitter_id %]' />
+					<input type="text" name="twitter_id" id="twitter_id" size="32" value='[% req.param('twitter_id') or reg.account.twitter_id %]' />
 					<div class="clear"></div>
 				</div>
 				<div class="clear"></div>
@@ -51,7 +51,7 @@
 				<p style="margin-bottom:15px;" id="twitter_update_list"></p>
 			</div>
 			<script type="text/javascript" src="http://s2.slwifi.com/js/blogger.js"></script>
-			<script type="text/javascript" src="http://twitter.com/statuses/user_timeline/[% req.param('twitter_id') or reg.account_id.twitter_id %].json?callback=twitterCallback2&count=1"></script>	
+			<script type="text/javascript" src="http://twitter.com/statuses/user_timeline/[% req.param('twitter_id') or reg.account.twitter_id %].json?callback=twitterCallback2&count=1"></script>	
 			[% END %]			
 		</div>
 	</div>

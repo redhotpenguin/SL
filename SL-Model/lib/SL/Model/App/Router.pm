@@ -5,13 +5,14 @@ use warnings;
 
 use base 'DBIx::Class';
 
-__PACKAGE__->load_components("Core");
+__PACKAGE__->load_components("InflateColumn::DateTime", "Core");
 __PACKAGE__->table("router");
 __PACKAGE__->add_columns(
   "router_id",
   {
     data_type => "integer",
     default_value => "nextval('router_router_id_seq'::regclass)",
+    is_auto_increment => 1,
     is_nullable => 0,
     size => 4,
   },
@@ -71,7 +72,7 @@ __PACKAGE__->add_columns(
   "splash_href",
   {
     data_type => "text",
-    default_value => "'http://silverliningworks.typepad.com/network/'::text",
+    default_value => "''::text",
     is_nullable => 1,
     size => undef,
   },
@@ -134,7 +135,13 @@ __PACKAGE__->add_columns(
   "views_daily",
   { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
   "account_id",
-  { data_type => "integer", default_value => 1, is_nullable => 0, size => 4 },
+  {
+    data_type => "integer",
+    default_value => 1,
+    is_foreign_key => 1,
+    is_nullable => 0,
+    size => 4,
+  },
   "wan_ip",
   {
     data_type => "inet",
@@ -184,13 +191,6 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => undef,
   },
-  "ip",
-  {
-    data_type => "inet",
-    default_value => undef,
-    is_nullable => 1,
-    size => undef,
-  },
   "lat",
   {
     data_type => "double precision",
@@ -205,12 +205,18 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 8,
   },
+  "ip",
+  {
+    data_type => "inet",
+    default_value => undef,
+    is_nullable => 1,
+    size => undef,
+  },
 );
 __PACKAGE__->set_primary_key("router_id");
-__PACKAGE__->add_unique_constraint("router_pkey", ["router_id"]);
 __PACKAGE__->add_unique_constraint("madaddr_uniq", ["macaddr"]);
 __PACKAGE__->belongs_to(
-  "account_id",
+  "account",
   "SL::Model::App::Account",
   { account_id => "account_id" },
 );
@@ -231,11 +237,15 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-06-01 16:38:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8N3bes94seHw+Z7hdHKRJQ
-# These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Router.pm' found in @INC.# They are now part of the custom portion of this file# for you to hand-edit.  If you do not either delete# this section or remove that file from @INC, this section# will be repeated redundantly when you re-create this# file again via Loader!
+# Created by DBIx::Class::Schema::Loader v0.04999_07 @ 2009-06-14 16:15:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:guzqf7AkYvQDdIY1ok26rw
+# These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Router.pm' found in @INC.
+# They are now part of the custom portion of this file
+# for you to hand-edit.  If you do not either delete
+# this section or remove that file from @INC, this section
+# will be repeated redundantly when you re-create this
+# file again via Loader!
 
-use SL::Model::App;
 use DateTime::Format::Pg;
 
 sub run_query {
@@ -372,3 +382,4 @@ sub users_count {
 
 
 1;
+# End of lines loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Router.pm' 

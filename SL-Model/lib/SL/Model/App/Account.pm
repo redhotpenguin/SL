@@ -5,13 +5,14 @@ use warnings;
 
 use base 'DBIx::Class';
 
-__PACKAGE__->load_components("Core");
+__PACKAGE__->load_components("InflateColumn::DateTime", "Core");
 __PACKAGE__->table("account");
 __PACKAGE__->add_columns(
   "account_id",
   {
     data_type => "integer",
     default_value => "nextval('account_account_id_seq'::regclass)",
+    is_auto_increment => 1,
     is_nullable => 0,
     size => 4,
   },
@@ -64,6 +65,13 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => undef,
   },
+  "aaa",
+  {
+    data_type => "boolean",
+    default_value => "false",
+    is_nullable => 0,
+    size => 1,
+  },
   "twitter_id",
   {
     data_type => "text",
@@ -78,16 +86,8 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => undef,
   },
-  "aaa",
-  {
-    data_type => "boolean",
-    default_value => "false",
-    is_nullable => 0,
-    size => 1,
-  },
 );
 __PACKAGE__->set_primary_key("account_id");
-__PACKAGE__->add_unique_constraint("account_pkey", ["account_id"]);
 __PACKAGE__->has_many(
   "ad_zones",
   "SL::Model::App::AdZone",
@@ -120,13 +120,17 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-05-23 23:49:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3SM8Js5E4EWF6lHOodLqCA
-# These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Account.pm' found in @INC.# They are now part of the custom portion of this file# for you to hand-edit.  If you do not either delete# this section or remove that file from @INC, this section# will be repeated redundantly when you re-create this# file again via Loader!
+# Created by DBIx::Class::Schema::Loader v0.04999_07 @ 2009-06-14 16:15:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RRtYhfWXU2vb5qbH+bvNaw
+# These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Account.pm' found in @INC.
+# They are now part of the custom portion of this file
+# for you to hand-edit.  If you do not either delete
+# this section or remove that file from @INC, this section
+# will be repeated redundantly when you re-create this
+# file again via Loader!
 
 
 use SL::Config       ();
-use SL::Model::App   ();
 use File::Path       ();
 use Digest::MD5      ();
 
@@ -311,3 +315,5 @@ sub users_unique {
 }
 
 1;
+
+# End of lines loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Account.pm' 

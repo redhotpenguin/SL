@@ -5,13 +5,14 @@ use warnings;
 
 use base 'DBIx::Class';
 
-__PACKAGE__->load_components("Core");
+__PACKAGE__->load_components("InflateColumn::DateTime", "Core");
 __PACKAGE__->table("reg");
 __PACKAGE__->add_columns(
   "reg_id",
   {
     data_type => "integer",
     default_value => "nextval('reg_reg_id_seq'::regclass)",
+    is_auto_increment => 1,
     is_nullable => 0,
     size => 4,
   },
@@ -100,7 +101,13 @@ __PACKAGE__->add_columns(
     size => 16,
   },
   "account_id",
-  { data_type => "integer", default_value => 1, is_nullable => 0, size => 4 },
+  {
+    data_type => "integer",
+    default_value => 1,
+    is_foreign_key => 1,
+    is_nullable => 0,
+    size => 4,
+  },
   "root",
   {
     data_type => "boolean",
@@ -166,7 +173,6 @@ __PACKAGE__->add_columns(
   },
 );
 __PACKAGE__->set_primary_key("reg_id");
-__PACKAGE__->add_unique_constraint("reg_id_pkey", ["reg_id"]);
 __PACKAGE__->has_many(
   "ad_zones",
   "SL::Model::App::AdZone",
@@ -178,7 +184,7 @@ __PACKAGE__->has_many(
   { "foreign.reg_id" => "self.reg_id" },
 );
 __PACKAGE__->belongs_to(
-  "account_id",
+  "account",
   "SL::Model::App::Account",
   { account_id => "account_id" },
 );
@@ -189,11 +195,16 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-05-02 04:48:08
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rGboX/8BNpzWvgUh27j9vQ
-# These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Reg.pm' found in @INC.# They are now part of the custom portion of this file# for you to hand-edit.  If you do not either delete# this section or remove that file from @INC, this section# will be repeated redundantly when you re-create this# file again via Loader!
+# Created by DBIx::Class::Schema::Loader v0.04999_07 @ 2009-06-14 16:15:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1Ozsqu3Gt1C8tzOFYyGq/Q
+# These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Reg.pm' found in @INC.
+# They are now part of the custom portion of this file
+# for you to hand-edit.  If you do not either delete
+# this section or remove that file from @INC, this section
+# will be repeated redundantly when you re-create this
+# file again via Loader!
 
-use SL::Model::App   ();
+
 use SL::Config       ();
 
 our $config = SL::Config->new();
@@ -206,8 +217,8 @@ sub get_ad_zone {
       ->search( { ad_zone_id => $ad_zone_id, });
 
 	if (!$ad_zone->public) {
-		return unless 
-			$self->account_id->account_id == $ad_zone->account_id->account_id;
+		return unless
+			$self->account->account_id == $ad_zone->account->account_id;
 	}
 
     $self->process_ad_zone($ad_zone);
@@ -221,12 +232,8 @@ sub get_ad_zones {
     # ad zones allowed for this user
     my @ad_zones = SL::Model::App->resultset('AdZone')->search({
 					 active => 't',
-                     account_id => $self->account_id->account_id });
+                     account_id => $self->account->account_id });
 
-	my @public_ad_zones = SL::Model::App->resultset('AdZone')->search({
-			public => 't' });
-
-	@ad_zones = ( @ad_zones, @public_ad_zones );
     return unless scalar(@ad_zones) > 0;
 
     # get router count for each ad zone
@@ -235,12 +242,125 @@ sub get_ad_zones {
     return @ad_zones;
 }
 
+sub get_persistent_zones {
+    my $self = shift;
+
+    my @ad_sizes = $self->get_persistent_sizes;
+
+    # ad zones allowed for this user
+    my @ad_zones = SL::Model::App->resultset('AdZone')->search({
+					 active => 't',
+                     account_id => $self->account->account_id,
+                     ad_size_id => { -in => [ map { $_->ad_size_id }
+                                          @ad_sizes  ], },});
+
+    return unless scalar(@ad_zones) > 0;
+
+    # get router count for each ad zone
+    $self->process_ad_zone($_) for @ad_zones;
+
+    return @ad_zones;
+}
+
+sub get_persistent_sizes {
+    my $self = shift;
+
+    my @ad_sizes = SL::Model::App->resultset('AdSize')->search({
+                     persistent => 't',
+                     grouping => [ 1,6,8 ],
+                     hidden => 0,},);
+
+    return unless scalar(@ad_sizes) > 0;
+
+    return @ad_sizes;
+}
+
+
+
+
+
+
+sub get_splash_zones {
+    my $self = shift;
+
+    my @ad_sizes = $self->get_splash_sizes;
+
+    # ad zones allowed for this user
+    my @ad_zones = SL::Model::App->resultset('AdZone')->search({
+					 active => 't',
+                     account_id => $self->account->account_id,
+                     ad_size_id => { -in => [ map { $_->ad_size_id }
+                                          @ad_sizes  ], },});
+
+    return unless scalar(@ad_zones) > 0;
+
+    # get router count for each ad zone
+    $self->process_ad_zone($_) for @ad_zones;
+
+    return @ad_zones;
+}
+
+
+sub get_splash_sizes {
+    my $self = shift;
+
+    my @ad_sizes = SL::Model::App->resultset('AdSize')->search({
+                     persistent => 0,
+                     grouping => 3,
+                     hidden => 0,},);
+
+    return unless scalar(@ad_sizes) > 0;
+
+    return @ad_sizes;
+}
+
+
+
+
+
+sub get_branding_zones {
+    my $self = shift;
+
+    my @ad_sizes = $self->get_branding_sizes;
+
+    # ad zones allowed for this user
+    my @ad_zones = SL::Model::App->resultset('AdZone')->search({
+					 active => 't',
+                     account_id => $self->account->account_id,
+                     ad_size_id => { -in => [ map { $_->ad_size_id }
+                                          @ad_sizes  ], },});
+
+    return unless scalar(@ad_zones) > 0;
+
+    # get router count for each ad zone
+    $self->process_ad_zone($_) for @ad_zones;
+
+    return @ad_zones;
+}
+
+
+
+sub get_branding_sizes {
+    my $self = shift;
+
+    my @ad_sizes = SL::Model::App->resultset('AdSize')->search({
+                     grouping => [2,9]});
+
+    return unless scalar(@ad_sizes) > 0;
+
+    return @ad_sizes;
+}
+
+
+
+
+
 sub process_ad_zone {
     my ( $self, $ad_zone ) = @_;
 
     # get routers for this account
     my @routers = SL::Model::App->resultset('Router')->search({
-             account_id => $self->account_id->account_id });
+             account_id => $self->account->account_id });
 
     if ( scalar(@routers) == 0 ) {
         $ad_zone->{router_count} = 0;
@@ -272,7 +392,7 @@ sub get_routers {
     my ( $self, $ad_zone_id ) = @_;
 
     my @routers = SL::Model::App->resultset('Router')->search({
-        account_id => $self->account_id->account_id, active => 't' });
+        account_id => $self->account->account_id, active => 't' });
 
     return unless scalar(@routers) > 0;
 
@@ -301,3 +421,4 @@ sub get_routers {
 
 1;
 
+# End of lines loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Reg.pm' 

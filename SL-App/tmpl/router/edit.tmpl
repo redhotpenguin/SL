@@ -97,6 +97,8 @@
 					<label for="notes" class="tip">100 character limit</label>
 				</div>
 				<div class="clear"></div>				
+
+
 			
 				<div class="grid_6 alpha omega suffix_4 form_row">
 					<div id="ssid">
@@ -106,6 +108,8 @@
 						<div class="clear"></div>
 						<label for="ssid" class="tip">Allow up to five minutes to take effect</label>
 					</div>
+
+
 
 							
 					<div id="serial">
@@ -117,6 +121,8 @@
 				</div>
 				<div class="clear"></div>
 
+
+
 				<div class="grid_6 alpha omega suffix_4 form_row">
 					<!-- splash page -->
 					<label for="splash_href" class="[% IF errors.missing.splash_href or errors.invalid.splash_href %]error[% END %]">Splash page url</label>
@@ -127,6 +133,8 @@
 					<label for="splash_href" class="tip">Available on Linksys WRT54GL and Linux server only</label>
 				</div>
 				<div class="clear"></div>
+
+
 	
 				<div class="grid_6 alpha omega suffix_4 form_row">
 					<!-- splash page timeout -->
@@ -137,6 +145,8 @@
 				</div>
 				<div class="clear"></div>
 			</li>	
+
+
 
 
 			<li>
@@ -152,6 +162,7 @@
 					[% END %]
 					
 					
+
 					<!-- twitter -->
 					[% IF twit_zone %]
 						<input id="twitter" type="radio" name="zone_type" value="twitter" [% IF twit_zone.selected %]checked="1"[% END %] />
@@ -161,28 +172,97 @@
 						<label for="twitter" class="check_label">2 - Configure your <a href="[% base_uri %]/app/ad/twitter/index">Twitter Feed</a> to enable Twitter in your message bar.</label>
 					[% END %]
 			
+
 			
 					<input id="iab" type="radio" name="zone_type" value="iab" [% IF !twit_zone.selected and !msg_zone.selected %]checked="1"[% END %]/>
 					<label for="iab" class="check_label">3 - Ad Server Ad Zones</label>
-			
+
+
+
+				    [% IF ad_zones %]
+					<label for="adzone" class="check_label" style="margin-left:15px;">Persistent Ad Zones</label>
 					<table style="margin-left:30px;">
-						[% IF ad_zones %]
+
 						[% FOREACH ad_zone = ad_zones %]
 						[% IF loop.index % 2 == 0 %] <tr>[% END %]
 						    <td>
-						    	<input id="adzone" type="checkbox" name="ad_zone" value="[% ad_zone.ad_zone_id %]"[% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]CHECKED[% END %]><label class="check_label">[% ad_zone.name %]</label>
+						    	<input id="adzone" type="checkbox" name="ad_zone" value="[% ad_zone.ad_zone_id %]"[% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]CHECKED[% END %]><label class="check_label"><a href="[% base_uri %]/app/ad/groups/edit?id=[% ad_zone.id %]">[% ad_zone.name %]</a></label>
 						    </td>
 						[% IF loop.index % 2 != 0 %] </tr>[% END %]
 						[% END %]
 					</table>
 					
-					<label class="check_label" for="ad_zone">Click checkbox to add the ad zone to the router (random rotation)</label>
 					[% ELSE %]
-						<p class="error">You have not created any ad zones, please <a href="/app/ad/groups/list">create a few</a> to serve ads on this router</p>
+
+				    <p class="error">You have not created any ad zones, please <a href="/app/ad/groups/list">create a few</a> to serve ads on this router</p>
 					[% END %]
+
+
+                    [% IF reg.account.plan == 'free' %]
+
+            <label class="check_label" for="adzone" style="margin-left: 15px;">To brand your ad bar, you will need a paid account.  <a href="[% base_uri %]/billing/publisher/?plan=basic&email=[% reg.email %]">Click here</a> to sign up for our Basic Plan.</label>
+                   [% ELSE %]
+
+				    [% IF bzones %]
+					<label class="check_label" for="adzone" style="margin-left:15px;">Branding Image Ad Zones</label>
+					<table style="margin-left:30px;">
+
+						[% FOREACH bzone = bzones %]
+						[% IF loop.index % 2 == 0 %] <tr>[% END %]
+						    <td>
+						    	<input id="adzone" type="checkbox" name="ad_zone" value="[% bzone.ad_zone_id %]"[% IF bzone.selected or (req.param('ad_zone_id') == bzone.ad_zone_id) %]CHECKED[% END %]><label class="check_label"><a href="[% base_uri %]/app/ad/groups/edit?id=[% bzone.id %]">[% bzone.name %]</a></label>
+						    </td>
+						[% IF loop.index % 2 != 0 %] </tr>[% END %]
+						[% END %]
+					</table>
+					
+
+					[% ELSE %]
+
+						<p class="error">You have not created any branding images, please <a href="/app/ad/groups/list">create a few</a></p>
+					[% END %]
+                    [% END %]
+
+					<label for="adzone" class="tip">Click checkbox to add the ad zone to the router (random rotation)</label>
+
+                    
 					</div>
 				<div class="clear"></div>			
 			</li>
+
+
+
+			<li>
+				<div class="grid_10 alpha omega">
+					<!-- splash page -->
+
+				    [% IF szones %]
+					<label for="adzone">Assign a <a href="[% base_uri %]/ad/splash/index">splash page ad</a> to this device</label>
+
+					<table style="margin-left:30px;">
+
+						[% FOREACH szone = szones %]
+						[% IF loop.index % 2 == 0 %] <tr>[% END %]
+						    <td>
+						    	<input id="adzone" type="checkbox" name="ad_zone" value="[% szone.ad_zone_id %]"[% IF szone.selected or (req.param('ad_zone_id') == szone.ad_zone_id) %]CHECKED[% END %]><label class="check_label"><a href="[% base_uri %]/app/ad/groups/edit?id=[% szone.id %]">[% szone.name %]</a></label>
+						    </td>
+						[% IF loop.index % 2 != 0 %] </tr>[% END %]
+						[% END %]
+					</table>
+					
+
+					[% ELSE %]
+
+						<p class="error">You have not created any splash page ads, please <a href="/app/ad/groups/list">create a few</a></p>
+					[% END %]
+
+					<label for="ad_zone" class="tip">Click checkbox to add the splash page ad zone to the router (random rotation)</label>
+                </div>
+				<div class="clear"></div>			
+            </li>
+
+
+
 			
 			<li>
 				<div class="grid_6 alpha omega suffix_4">
@@ -197,6 +277,8 @@
 				<div class="clear"></div>
 			</li>	
 			
+
+
 			<li>
 				<div class="grid_6 alpha omega suffix_4">
 					<!-- active -->
@@ -218,7 +300,9 @@
 
 [% END %]
 
+
 </div>
+
 
 
 <div id="secondary_content" class="grid_5">

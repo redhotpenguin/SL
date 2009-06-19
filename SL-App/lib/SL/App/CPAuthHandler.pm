@@ -41,7 +41,7 @@ sub handler {
         && $router->lan_ip
         && $router->splash_timeout
         && $router->wan_ip
-            && $router->account_id->aaa_email_cc) {
+            && $router->account->aaa_email_cc) {
 
         $r->log->error( sprintf( "rtr %s not setup", $router->router_id ) );
         return Apache2::Const::SERVER_ERROR;

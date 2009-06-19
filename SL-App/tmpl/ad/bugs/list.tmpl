@@ -1,46 +1,80 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Ad zone branding images" selected="adcenter" %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Ad Zones" selected="adcenter" %]
 <div class="grid_16">
 	<div id="breadcrumb">
 		<div id="breadcrumb_inner">
-			<ul>[% PROCESS ad/bugs/nav.tmpl %]<li><strong>[% count %] images</strong></li></ul>
+			<ul>[% PROCESS ad/nav.tmpl %]<li><strong>Branding Images</strong></li></ul>
 		</div>
 	</div>
 </div>
 <div class="clear"></div>
 
 
-
-
- <div id="main_content" class="grid_16">
-[% IF msg %]<p class="error">[% msg %]</p>[% END %]
-
-<h3><a href="[% base_uri %]/app/ad/bugs/edit">Add an ad zone branding image</a></h3>
-
-<table class="basic_table">
-	<tr class="list_header">
-	<th>Image (click to edit)</th>
-	<th>Ad zone type bug size</th>
-	<th>Image link</th>
+<div id="main_content" class="grid_16">
+	<h2>Manage Branding Images</h2>
+	<p class="tip"> [% count %] Ad Zones</p>
+	
+	<h3 class="row">Select a branding image ad zone below to edit</h3>
+	
+	[% IF msg %]<p class="error">[% msg %]</p>[% END %]
+	
+	
+	
+	
+	<table class="basic_table">
+	<tr>
+		<th>Ad Zone Name</th>
+		<th>Ad Zone Size</th>
+		<!--<th>Active</td>-->
+		<th>Assigned Routers</th>
+		<th>Last Modified By</th>
+		<th>Clone</th>
+		<th>Assign Devices</th>
+		<th>Remove Devices</th>
 	</tr>
 	
-	[% FOREACH bug = bugs %]
-	  <tr class="[% IF loop.index % 2 %]lite[% ELSE %]dark[% END %]">
-		
-	<!-- image href -->
-	<td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
-	<a href="[% base_uri %]/app/ad/bugs/edit/?id=[% bug.bug_id %]"><img src="[% bug.image_href %]"></a></td>
-	
-	<!-- zone type -->
-	<td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
-	[% bug.ad_size_id.name %] - [% bug.ad_size_id.bug_width %]px wide x [% bug.ad_size_id.bug_height %]px tall</td>
-	
-	<!-- link -->
-	<td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
-	<a href="[% bug.link_href %]">[% bug.link_href %]</a></td>
-	
-	</tr>
+	[% FOREACH ad_zone = ad_zones %]
+		<tr>
+			<td>
+			<a href="[% base_uri %]/app/ad/bugs/edit/?id=[% ad_zone.ad_zone_id %]">
+			[% ad_zone.name %]</a></td>
+			
+			<!--<td>[% IF ad_zone.ad_size.persistent == 1 %]Persistent[% ELSIF ad_zone.ad_size.grouping == 2 %]Branding[% ELSIF ad_zone.ad_size.grouping == 3 %]Splash Page[% END %]</td>-->
+		    <td>[% ad_zone.ad_size.name %]</td>
+			
+			<!-- active -->	
+			<!--  <td>
+			[% IF ad_zone.active %]Yes[% ELSE %]No[% END %]</td>-->
+			
+			<td>
+			[% IF ad_zone.router_count == 0 %]
+			    [% ad_zone.router_count %]
+			[% ELSE %]
+			<a href="[% base_uri %]/app/router/list?ad_zone_id=[% ad_zone.ad_zone_id %]">
+			[% ad_zone.router_count %]</a>
+			[% END %]
+			</td>
+			
+			<td>
+			<a href="mailto:[% ad_zone.reg.email %]">[% ad_zone.reg.email %]</a><br />[% ad_zone.mts %]
+			</td>
+
+			<td>
+			<a href="[% base_uri %]/app/ad/groups/clone?id=[% ad_zone.ad_zone_id %]">Clone</a>
+			</td>
+
+			<td>
+			<a href="[% base_uri %]/app/ad/groups/assign?id=[% ad_zone.ad_zone_id %]">Assign Devices</a>
+			</td>
+
+			<td>
+			<a href="[% base_uri %]/app/ad/groups/remove?id=[% ad_zone.ad_zone_id %]">Remove Devices</a>
+			</td>
+
+
+		</tr>
 	[% END %]
-</table>
+	</table>
 </div>
+
 
 [% PROCESS footer.tmpl %]

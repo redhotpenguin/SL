@@ -1,185 +1,190 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Create or Edit Image Bug" selected="adcenter" %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Edit Branding Image Ad Zone"  selected="adcenter" %]
+<div class="grid_16">
+	<div id="breadcrumb">
+		<div id="breadcrumb_inner">
+			<ul>[% PROCESS ad/bugs/nav.tmpl %]<li><strong>Edit Ad Zone '[% ad_zone.name %]'</strong></li></ul>
+		</div>
+	</div>
+</div>
+<div class="clear"></div>
+
+<div id="main_content" class="grid_16">
+	<h2>[% IF ad_zone.ad_zone_id %]Edit Branding Image '[% ad_zone.name %]'</h2>
+		<form class="form row" method="POST" action="[% base_uri %]/app/ad/bugs/edit">
+
+		<!-- Errors -->
+		[% IF status == 'update_ok' %]<p class="error">Your ad zone has been updated.</p>[% END %]
+		
+		[% IF errors.missing %]<p class="error">Please fill in the missing fields</p>[% END %]
+		
+		[% IF errors.invalid %]<p class="error">Some fields were invalid, please correct them</p>[% END %]
+		<ul> 
 
 
-[% UNLESS bug.bug_id  %]New branding image[% ELSE %]Edit existing branding image[% END %]</h2>
-
-
-<table class="edit"> 
-
-
-<tr><td colspan="2">
-[% IF bug.bug_id %]
-	<h2>Edit existing branding image</h2>
-[% ELSE %]
-<h2>Create a new branding image</h2></td></tr>
-[% END %]
-</td></tr>
-
-
-
-[% IF errors.missing %]
-<tr><td colspan="2">
-<font color="red">Please complete the missing fields</font>
-</td></tr>
-[% END %]
-
-[% IF errors.invalid %]
-<tr><td colspan="2">
-<font color="red">Some fields were invalid, please correct them</font>
-</td></tr>
-[% END %]
-
-
-<tr><td colspan=2><hr class="sl_line"></td></tr>
-
-<form method="POST" action="[% base_uri %]/app/ad/bugs/edit">
-
-[% IF bug.bug_id %]
-<input type="hidden" name="id" value="[% bug.bug_id %]">
-[% END %]
+			<li>
+				<!-- name -->
+				<div class="grid_6 alpha omega suffix_4">
+					<label for="name" class="[% IF errors.missing.name %]error[% END %]">Ad Zone Name</label>
+					<input type="text" name="name" size="30" value='[% req.param('name') or ad_zone.name %]' />
+					<div class="clear"></div>
+				</div>
+				<div class="clear"></div>
+			</li>
 
 
 
-
-<!-- image_href -->
-[% IF errors.missing.image_href or errors.invalid.image_href%]<font color="red">
-
-<tr><td colspan="2">
-[% IF errors.missing.image_href or errors.invalid.image_href%]<font color="red">
-[% IF req.param('ad_size_id') or bug.ad_size_id %]
-- Image must match the ad zone type dimensions shown in the select box<br />
-[% END %]
-- Image must be less than 20,480 bytes (20k) in size<br />
-- Image should be .png format for best results<br />
-[% END %]
-</td></tr>
-[% END %]
-
-<tr><td>
-[% IF errors.missing.image_href or errors.invalid.image_href%]<font color="red">
-[% END %]
-Branding image location:
-[% IF errors.missing.image_href or errors.invalid.image_href %]</font>[% END %]
-</td>
-
-<td><input type="text" name="image_href" size="50" maxlength="512" value="
-[% req.param('image_href') or bug.image_href or 'http://' %]">
-</td></tr>
-
-<tr><td colspan=2><font color="#CCCCCC">
-Example http://www.silverliningnetworks.com/images/silver-lining-ad-bar.gif
-</font></td></tr>
-
-[% IF req.param('image_href') or bug.image_href %]
-<tr><td colspan=2>
-<img border="1" src="[% req.param('image_href') or bug.image_href %]">&nbsp;&nbsp;[% bug.ad_size_id.bug_width %]px wide by [% bug.ad_size_id.bug_height %]px tall</td></tr>
-[% END %]
-
-<tr><td colspan=2><hr class="sl_line"></td></tr>
-
-<!-- end image_href -->
+			
+			<li>
+				<!-- ad size -->
+				<label for="ad_size_id" class="[% IF errors.missing.ad_size_id %]error[% END %]">Ad Size</label>
 
 
+<select name="ad_size_id" id="ad_size_id">
 
-
-
-
-
-
-<!-- link_href -->
-
-<tr><td>
-[% IF errors.missing.link_href or errors.invalid.link_href %]<font color="red">
-[% END %]
-Branding image links to:
-[% IF errors.missing.link_href or errors.invalid.link_href %]</font>[% END %]
-</td>
-
-<td>
-<input type="text" name="link_href" size="50" maxlength="512" value="[% req.param('link_href') or bug.link_href or 'http://' %]">
-</td></tr>
-
-<tr><td colspan=2><font color="#CCCCCC">
-Example http://www.silverliningnetworks.com/?referer=silverlining</font></td></tr>
-
-[% IF bug.link_href %]
-<tr><td colspan=2><a href="[% bug.link_href %]">Branding image link</a></td></tr>[% END %]
-
-<tr><td colspan=2><hr class="sl_line"></td></tr>
-<!-- end link_href -->
-
-
-
-
-
-
-<!-- ad_size -->
-
-<tr><td colspan=2>
-[% IF errors.missing.ad_size_id %]<font color="red">[% END %]
-Ad zone type associated with this branding image:&nbsp;&nbsp;
-[% IF errors.missing.ad_size_id %]</font>[% END %]
-<select name="ad_size_id">
-
-<option value="" [% IF ! bug.ad_size_id and req.param('ad_size_id') == '' %]SELECTED[% END %]>Select Ad Format</option>
+<option value="">Select ad zone size</option>
 
 [% FOREACH ad_size = ad_sizes %]
 
-[% IF ad_size.grouping == 3 || ad_size.grouping == 2 || ad_size.grouping ==7 %][% NEXT %][% END %]
+    [% IF loop.prev.grouping != ad_size.grouping %]
+    <option value=""></option>
+    <option value="">--&nbsp; 
+    [% END %]
+    [% IF ad_size.grouping == 2 %]Leaderboard Branding Size (200x90)
+    [% ELSIF ad_size.grouping == 8 %]Full Banner Branding Size (120x60)[% END %]
+    [% END %]
+    </option>
 
-
-[% IF loop.prev.grouping != ad_size.grouping %]
-<option value=""></option>
-<option value="">---&nbsp;
-[% IF ad_size.grouping == 1 %]Persistent Leaderboard Options
-[% ELSIF ad_size.grouping == 6 %]Persistent Full Banner Options[% END %]
-</option>
-[% END %]
-
-[% IF ! req.param('ad_size_id') %]
-<option value="[% ad_size.ad_size_id %]" [% IF bug.ad_size_id.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %] - image [% ad_size.bug_width %]px wide x [% ad_size.bug_height %]px tall</option>
-
-[% ELSIF req.param('ad_size_id') %]
-<option value="[% ad_size_id.ad_size_id %]" [% IF req.param('ad_size_id') == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %] - image [% ad_size.bug_width %]px wide x [% ad_size.bug_height %]px tall</option>
-[% END %]
+<option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %]</option>
 
 [% END %]
 </select>
-</td></tr>
-<!-- end ad size -->
+
+
+				[% # PROCESS ad_size.tmpl adsizes=adsizes selected=ad_zone.ad_size.ad_size_id %]
+
+				<div class="clear"></div>
+				<p><a target="_new" href="http://www.silverliningnetworks.com/pdf/Silver_Lining_Ad_Zones.pdf">ad zone white paper</a> for details</p>
+			</li>	
+
+
+         <label for="zone_type">Select ad server invocation code or a banner image location and link</label>
+			<input id="text" type="radio" name="zone_type" value="banner" [% IF ad_zone.image_href or ad_zone.link_href %]checked="1"[% END %]/>
+			<label for="banner" class="check_label">Ad Banner</label>
+
+
+	<li>
+		<!-- banner entry -->
+		<div id="banner">
+	       <div class="grid_6 alpha omega suffix_4">
+            <label for="image_href" class="[% IF errors.missing.image_href %]error[% END %]">Banner Image Location</label>
+			<input type="text" name="image_href" size="30" value="[% req.param('image_href') or ad_zone.image_href %]" />
+			<label class="tip" for="image_href">Banner location, e.g. http://s1.slwifi.com/image/banner.gif</label>
+
+            <label for="link_href" class="[% IF errors.missing.link_href %]error[% END %]">Banner Image Link</label>
+			<input type="text" name="link_href" size="30" value="[% req.param('link_href') or ad_zone.link_href %]" />
+			<label class="tip" for="link_href">Banner link, e.g. http://ads.slwifi.com/click/1j6ha56aa81gpa</label>
+
+			<div class="clear"></div>
+
+				[% IF ad_zone.image_href %]
+                    [% IF req.param('code') or ad_zone.code %]
+				    <p>[% req.param('code') or ad_zone.code %]</p>
+				    [% END %]
+                [% END %]
+
+        </div>
+		<div class="clear"></div>
+
+		<!-- end banner entry-->
+	</li>
 
 
 
-
-<!-- active -->
-
-<p>Active:&nbsp;&nbsp;Yes<input type="radio" name="active" value="t" [% IF (bug.active == 1) or (! bug) %]checked[% END %]>&nbsp;
-No<input type="radio" name="active" value="f" [% IF bug.active == 0 %] checked [% END %]></p>
-
-<p><font color="#CCCCCC">
-Click No to remove this branding image from the active list.
-</font></p>
-
-<hr class="sl_line">
+	<input id="text" type="radio" name="zone_type" value="code" [% IF !ad_zone.image_href or !ad_zone.link_href %]checked="1"[% END %]/>
+						<label for="banner" class="check_label">Ad Server Invocation Code</label>
 
 
-<!-- end active -->
+			<li>
+				<!-- invocation code -->
+				<div id="code">
+				<label for="code" class="[% IF errors.missing.code %]error[% END %]">Ad Invocation Code (provided by your ad server)</label>
+				<label class="tip" for="code">For optimum ad serving speed, add the IP address of your ad server to the custom_skips.txt file on your router</label>
+
+				<textarea name="code" rows="10" cols="80">[% IF !ad_zone.image_href %][% req.param('code') or ad_zone.code %][% END %]</textarea>
+				<div class="clear"></div>
+				[% IF !ad_zone.image_href %]
+                    [% IF req.param('code') or ad_zone.code %]
+				    <p>[% req.param('code') or ad_zone.code %]</p>
+				    [% END %]
+                [% END %]
+				</div>
+
+				<div class="clear"></div>	
+				<!-- end invocation code -->		
+			</li>
 
 
 
+[% IF foo %]
+			<!-- invocation double code -->
+			<li>
+				<div id="code_double" [% IF ad_zone.code_double2 != '' %]style="display: none;"[% END %]>
+				<label for="code" class="[% IF errors.missing.code_double %]error[% END %]">Double Ad Zone Code (provided by your ad server)</label>
+				<textarea name="code_double" rows="10" cols="100">[% req.param('code_double') or ad_zone.code_double %]</textarea>
+                <div class="clear"></div>
+				[% IF req.param('code_double') or ad_zone.code_double %]
+                <p>[% req.param('code_double') or ad_zone.code_double %]</p>
+                [% END %]
+				</div>
+
+				<div class="clear"></div>	
+
+			</li>
+			<!-- end invocation code -->
+[% END %]
 
 
-<tr><td colspan=2>
-<font color="#CCCCCC">Choose the ad zone type which this image is associated with.</font>
-</td></tr>
+
+			<li>
+
+				<!-- active -->
+				<label for="active">Is this Ad Zone active?</label>
+				<input type="radio" name="active" value="t" [% IF ad_zone.active %]checked[% END %] />
+				<label for="t" class="check_label">Yes</label>	
+				<div class="clear"></div>
+						
+				<input type="radio" name="active" value="f" id="f" [% IF !ad_zone.active %]checked[% END %] /> 
+				<label for="f" class="check_label">No</label>
+				<div class="clear"></div>
+				<label class="tip">To ensure consistency in reporting, ad zones cannot be deleted</label>
+			</li>
+
+
+			<li>
+				<!-- default -->
+				<label for="is_default">Is this a default Ad Zone?</label>
+				<input type="radio" name="is_default" value="t" [% IF ad_zone.is_default %]checked[% END %] />
+				<label for="t" class="check_label">Yes</label>	
+				<div class="clear"></div>
+						
+				<input type="radio" name="is_default" value="f"  [% IF !ad_zone.is_default or !ad_zone %]checked[% END %] /> 
+				<label for="f" class="check_label">No</label>
+				<div class="clear"></div>
+				<label class="tip">When two routers share the same WAN ip, sometimes the specific router cannot be identified.<br />In that case, an ad zone marked as a default ad zone will be shown.</label>
+				<label class="tip">The default ad zone is also automatically assigned to a device that has no ad zones assigned.</label>
+			</li>
 
 
 
-<tr><td colspan=2><hr class="sl_line"></td></tr>
-<tr><td><input type="submit" value="Save"></td></tr>
-</form>
-</table>
-
-
+			
+			<li>
+				[% IF ad_zone.ad_zone_id %]
+				<input type="hidden" name="id" value="[% ad_zone.ad_zone_id %]">
+				[% END %]			
+				<input type="submit" value="Save ad zone" />
+			</li>
+		</ul>
+	</form>
+</div>
 
 [% PROCESS footer.tmpl %]

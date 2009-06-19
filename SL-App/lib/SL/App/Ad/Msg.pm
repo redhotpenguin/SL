@@ -66,20 +66,20 @@ sub dispatch_index {
         }
 
 	# twitter id is valid
-	$reg->account_id->text_message($req->param('text_message'));
-	$reg->account_id->update;
+	$reg->account->text_message($req->param('text_message'));
+	$reg->account->update;
 
 	# make sure we have a twitter ad zone
 	my $tsize_id = 23;
 	my %args = ( name => '_message_bar',
 		     ad_size_id => $tsize_id,
-		     account_id => $reg->account_id->account_id, );
+		     account_id => $reg->account->account_id, );
 	my ($ad_zone) = SL::Model::App->resultset('AdZone')->search(\%args);
 
 	unless ($ad_zone) {
 
 	    my %bug_args = ( ad_size_id => $tsize_id,
-		account_id => $reg->account_id->account_id, );
+		account_id => $reg->account->account_id, );
 
 	    my ($bug) = SL::Model::App->resultset('Bug')->search(\%bug_args);
 
@@ -113,7 +113,7 @@ sub dispatch_index {
 	    # sweep
 
 	    my @routers = SL::Model::App->resultset('Router')->search({
-		active => 't', account_id => $reg->account_id->account_id });
+		active => 't', account_id => $reg->account->account_id });
 
 	    foreach my $router (@routers) {
 
@@ -147,7 +147,7 @@ sub valid_msg {
         my $dfv = shift;
         my $val = $dfv->get_current_constraint_value;
 
-	return if length($val) > 140;
+	return if length($val) > 300;
 
 	return $val;
       }

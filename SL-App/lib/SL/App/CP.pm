@@ -64,7 +64,7 @@ sub check {
 
     my %payment_args = (
         mac             => $mac,
-        account_id      => $r->pnotes('router')->account_id->account_id,
+        account_id      => $r->pnotes('router')->account->account_id,
         approved        => 't',
         token_processed => 't',
     );
@@ -298,7 +298,7 @@ sub token {
             mac        => $mac,
             md5        => $token,
             ip         => $r->connection->remote_ip,
-            account_id => $r->pnotes('router')->account_id->account_id,
+            account_id => $r->pnotes('router')->account->account_id,
             approved   => 't',
         }
     );
@@ -396,7 +396,7 @@ sub paid {
         ######################################
         ## paypal
         my @button_args =
-          ( 'test', $url, $router->account_id->name . ' WiFi Purchase', 1 );
+          ( 'test', $url, $router->account->name . ' WiFi Purchase', 1 );
 
         # add the paypal button
         my ( $button, $id ) = SL::Payment->paypal_button(@button_args);
@@ -412,7 +412,7 @@ sub paid {
         }
 
         my $session_id = $session{_session_id};
-        $session{account_id} = $router->account_id->account_id;
+        $session{account_id} = $router->account->account_id;
         $session{mac}        = $mac;
         $session{ip}         = $r->connection->remote_ip;
         $session{custom}     = $id;
@@ -474,7 +474,7 @@ sub paid {
         $r->log->debug("about to process payment") if DEBUG;
 
         my %payment_args = (
-            account_id  => $router->account_id->account_id,
+            account_id  => $router->account->account_id,
             mac         => $mac,
             email       => $req->param('email'),
             card_type   => $req->param('card_type'),
@@ -540,7 +540,7 @@ sub paid {
         my %mail_args = (
               'To'      => $req->param('email'),
               'From'    => $SL::App::From,
-              'CC'      => $router->account_id->aaa_email_cc,
+              'CC'      => $router->account->aaa_email_cc,
               'Subject' => "WiFi Internet Receipt",
         );
 
@@ -556,7 +556,7 @@ sub paid {
               ziponly      => $ziponly,
               req          => $req,
               plan         => $duration,
-              network_name => $router->account_id->name,
+              network_name => $router->account->name,
               code         => $code,
               date         => DateTime->now->mdy('/'),
               amount       => $plan_hash->{cost},
@@ -640,7 +640,7 @@ sub free {
 
       # make a free payment entry
       my $payment = SL::Model::App->resultset('Payment')->create( {
-              account_id => $router->account_id->account_id,
+              account_id => $router->account->account_id,
               mac        => $mac,
               amount     => '$0.00',
               stop       => $stop,

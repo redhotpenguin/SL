@@ -128,13 +128,22 @@ sub dispatch_publisher {
         my $payment;
         if ( $req->param('plan') ne 'free' ) {
 
-	my $num = $req->param('card_number');
-	$num = substr($num, length($num)-4,length($num)); 
-            $r->log->error(sprintf("making recurring payment for cvv %s, month %s, year %s, email %s, card %s", $req->param('cvv2'), $req->param('month'), $req->param('year'), $req->param('email'), $num));
+            # just a hack until arb is working
+            my $num = $req->param('card_number');
+            $num = substr( $num, length($num) - 4, length($num) );
+            $r->log->error(
+                sprintf(
+"making recurring payment for cvv %s, month %s, year %s, email %s, card %s",
+                    $req->param('cvv2'), $req->param('month'),
+                    $req->param('year'), $req->param('email'),
+                    $num
+                )
+            );
+
             $r->log->debug("making recurring payment") if DEBUG;
             my $amount      = $Plans{ $req->param('plan') };
             my $description = sprintf( 'Network Operator %s Account, $%s/month',
-                ucfirst($req->param('plan')), $amount );
+                ucfirst( $req->param('plan') ), $amount );
 
             $payment = eval {
                 SL::Payment->recurring(
@@ -207,9 +216,9 @@ sub dispatch_publisher {
 
         my $mail;
         my %tmpl_data = (
-            req  => $req,
-            start_date => DateTime->now->add(months => 1)->mdy('/'),
-            date => DateTime->now->mdy('/'),
+            req        => $req,
+            start_date => DateTime->now->add( months => 1 )->mdy('/'),
+            date       => DateTime->now->mdy('/'),
         );
 
         if ( $req->param('plan') ne 'free' ) {
@@ -238,7 +247,8 @@ sub dispatch_publisher {
         unless ($reg) {
 
             $r->log->debug(
-                sprintf( 'new account for email %s', $req->param('email') ) );
+                sprintf( 'new account for %s', $req->param('email') ) )
+              if DEBUG;
 
             $reg =
               SL::Model::App->resultset('Reg')
@@ -396,11 +406,15 @@ sub dispatch_advertiser {
 
         $r->log->debug("making recurring payment") if DEBUG;
         my $payment = eval { SL::Payment->recurring( \%payment_args ); };
-        
-	if ( $@ ) {
 
-            $r->log->error( sprintf('serious payment error for %s - %s',
-                $req->param('email'), $@ ));
+        if ($@) {
+
+            $r->log->error(
+                sprintf(
+                    'serious payment error for %s - %s',
+                    $req->param('email'), $@
+                )
+            );
 
             return $class->dispatch_advertiser(
                 $r,
@@ -438,7 +452,7 @@ sub dispatch_advertiser {
         my $mail;
         my %tmpl_data = (
             req          => $req,
-	    order_number => $payment->order_number,
+            order_number => $payment->order_number,
             date         => DateTime->now->mdy('/'),
         );
 

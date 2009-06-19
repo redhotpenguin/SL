@@ -37,28 +37,28 @@ sub dispatch_edit {
 
     my $reg = $r->pnotes( $r->user );
 
-    my ( $bug, $output, $link );
-    if ( $req->param('id') ) {    # edit existing ad group
-        ($bug) = SL::Model::App->resultset('Bug')->search(
+    my ( $output, $link );
+    my ($bug) = SL::Model::App->resultset('AdZone')->search(
             {
-                account_id => $r->pnotes( $r->user )->account_id->account_id,
-                bug_id => $req->param('id'),
+                account_id => $reg->account->account_id,
+                ad_zone_id => $req->param('id'),
             }
-        );
+    );
 
-        return Apache2::Const::NOT_FOUND unless $bug;
-    }
+
+    return Apache2::Const::NOT_FOUND unless $bug;
+
+    my @ad_sizes = sort { $a->grouping <=> $b->grouping }
+                     $reg->get_branding_sizes;
 
     # get the bugs
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
         my %tmpl_data = (
-            bug    => $bug,
+            ad_zone    => $bug,
             errors => $args_ref->{errors},
             req    => $req,
-            ad_sizes => [ sort { $a->grouping <=> $b->grouping } 
-				SL::Model::App->resultset('AdSize')->search({
-                                          persistent => 1 }) ],
+            ad_sizes => \@ad_sizes,
         );
 
         $TMPL->process( 'ad/bugs/edit.tmpl', \%tmpl_data, \$output, $r ) ||
@@ -97,19 +97,11 @@ sub dispatch_edit {
         }
     }
 
-    unless ($bug) {
-
-        # create a new bug
-        $bug =
-          SL::Model::App->resultset('Bug')
-          ->new( { ad_size_id => $req->param('ad_size_id') } );
-    }
-
     # add arguments
     foreach my $param qw( link_href image_href ad_size_id active ) {
         $bug->$param( $req->param($param) );
     }
-    $bug->account_id( $reg->account_id->account_id );
+    $bug->account_id( $reg->account_id );
 
     $req->param('id') ? $bug->update : $bug->insert;
 
@@ -126,14 +118,13 @@ sub dispatch_list {
     my $reg = $r->pnotes( $r->user );
 
     my @bugs = sort { $b->mts cmp $a->mts }
-      SL::Model::App->resultset('Bug')
-      ->search( { account_id => $reg->account_id->account_id,
-                  active     => 't', } );
+               sort { $a->grouping cmp $b->grouping }
+                 $reg->get_branding_zones;
 
     my $msg = delete $r->pnotes('session')->{msg};
 
     my %tmpl_data = (
-        bugs    => \@bugs,
+        ad_zones    => \@bugs,
         count   => scalar(@bugs),
         session => $r->pnotes('session'),
         msg => $msg,

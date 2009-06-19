@@ -26,6 +26,7 @@ my $dbh = DBI->connect( $dsn, 'phred', '', $db_options );
 
 ##############################
 
-$dbh->do("alter table ad_zone add column is_default boolean not null default 'f'");
-
-
+$dbh->do("alter table ad_zone add column image_href text");
+$dbh->do("alter table ad_zone add column link_href text");
+$dbh->do("update ad_size set grouping='8' where ad_size_id=23");
+$dbh->do("update ad_size set grouping=9 where ad_size_id in (20,21)");

@@ -34,7 +34,7 @@ sub dispatch_index {
     my $reg      = $r->pnotes( $r->user );
 
     my $report_base = join('/', 
-    	$reg->account_id->report_base, $type . '_' . $temporal . '.png' );
+    	$reg->account->report_base, $type . '_' . $temporal . '.png' );
 
     my $report_uri;
     if (-f join('/', $Config->sl_data_root, $report_base)) {

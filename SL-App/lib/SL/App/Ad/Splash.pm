@@ -90,7 +90,8 @@ sub dispatch_splash {
 
     my $rand = $adzones[int(rand(scalar(@adzones)-1))];
 
-    my $output  = $rand->code;
+    my $output  = (defined $rand) ? $rand->code  : '';
+    $r->content_type('text/javascript');
     return $class->ok($r, $output);
 }
 

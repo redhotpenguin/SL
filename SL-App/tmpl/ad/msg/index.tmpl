@@ -21,7 +21,7 @@
 			<div class="grid_6 alpha omega suffix_4">
 				<!-- email -->
 				<label for="text_message" class="[% IF errors.missing.text_message %]error[% END %]">Enter Text, max 140 characters</label>
-				<textarea name="text_message" id="text_message" rows="5" cols="40">[% req.param('text_message') or reg.account_id.text_message %]</textarea>
+				<textarea name="text_message" id="text_message" rows="5" cols="40">[% req.param('text_message') or reg.account.text_message %]</textarea>
 				<div class="clear"></div>
 			</div>
 			<div class="clear"></div>

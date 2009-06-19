@@ -142,8 +142,8 @@ sub dispatch_omsync {
 
                 # router already exists
                 my $steal = 0;
-                unless ( $router->account_id->account_id ==
-                    $reg->account_id->account_id )
+                unless ( $router->account->account_id ==
+                    $reg->account->account_id )
                 {
 
                     $steal++;
@@ -152,11 +152,11 @@ sub dispatch_omsync {
                     $r->log->error(
                         sprintf(
                             "account %s stealing router %s from %s",
-                            $reg->account_id->name, $router->macaddr,
-                            $router->account_id->name,
+                            $reg->account->name, $router->macaddr,
+                            $router->account->name,
                         )
                     );
-                    $router->account_id( $reg->account_id->account_id );
+                    $router->account_id( $reg->account->account_id );
                 }
 
                 if   ( $steal == 0 ) { $updated++ }
@@ -169,7 +169,7 @@ sub dispatch_omsync {
                 $router =
                   SL::Model::App->resultset('Router')
                   ->create( { macaddr => $router_datum->{mac}, } );
-                $router->account_id( $reg->account_id->account_id );
+                $router->account_id( $reg->account->account_id );
                 $router->device('mr3201a');
                 $created++;
             }
@@ -239,7 +239,7 @@ sub dispatch_adbar {
 
         my @routers =
           SL::Model::App->resultset('Router')
-          ->search( { account_id => $reg->account_id->account_id } );
+          ->search( { account_id => $reg->account->account_id } );
 
         my $changed = 0;
         foreach my $router (@routers) {
@@ -274,17 +274,32 @@ sub dispatch_edit {
     # ad zones for this account
     my @ad_zones = $reg->get_ad_zones;
 
-    my @only_ads = grep { !$_->hidden } @ad_zones;
+    my @visible_ads = grep { !$_->hidden } @ad_zones;
 
-    my ($twit_zone) = grep { $_->name eq '_twitter_feed' } @ad_zones;
-    my ($msg_zone)  = grep { $_->name eq '_message_bar' } @ad_zones;
+    #$r->log->debug("got zones " . join("\n", map { $_->name } @visible_ads));
+
+    my ($twit_zone) = grep { $_->name eq '_twitter_feed' } @visible_ads;
+    my ($msg_zone)  = grep { $_->name eq '_message_bar' } @visible_ads;
+
+    # persistent zones
+    my @pzones = grep { $_->ad_size->persistent == 1 } @visible_ads;
+    #$r->log->debug("got pzones " . join("\n", map { $_->name } @pzones));
+
+
+    # splash page
+    my @szones = grep { $_->ad_size->grouping == 3 } @visible_ads;
+    #$r->log->debug("got szones " . join("\n", map { $_->name } @szones));
+
+    # branding images
+    my @bzones = grep { $_->ad_size->grouping == 2 } @visible_ads;
+    #$r->log->debug("got bzones " . join("\n", map { $_->name } @bzones));
 
     my ( %router__ad_zones, @locations, $router, $output );
     if ( $req->param('router_id') ) {    # edit existing router
 
         ($router) = SL::Model::App->resultset('Router')->search(
             {
-                account_id => $reg->account_id->account_id,
+                account_id => $reg->account->account_id,
                 router_id  => $req->param('router_id'),
             }
         );
@@ -303,13 +318,17 @@ sub dispatch_edit {
         # get the locations for the router
         @locations =
           sort { $b->mts cmp $a->mts }
-          map  { $_->location_id } $router->router__locations;
+          map  { $_->location } $router->router__locations;
+
+        # format the time
+        $_->mts(DateTime::Format::Pg->parse_datetime($_->mts)
+            ->strftime("%a %b %e,%l:%m %p")) for @locations;
 
         # current associations for this router, including twitter
         %router__ad_zones =
-          map { $_->ad_zone_id->ad_zone_id => 1 } $router->router__ad_zones;
+          map { $_->ad_zone->ad_zone_id => 1 } $router->router__ad_zones;
 
-        foreach my $ad_zone (@only_ads) {
+        foreach my $ad_zone (@pzones, @szones, @bzones) {
             if ( exists $router__ad_zones{ $ad_zone->ad_zone_id } ) {
                 $ad_zone->{selected} = 1;
             }
@@ -334,7 +353,9 @@ sub dispatch_edit {
         my %tmpl_data = (
             twit_zone => $twit_zone,
             msg_zone  => $msg_zone,
-            ad_zones  => \@only_ads,
+            ad_zones  => \@pzones,
+            szones => \@szones,
+            bzones => \@bzones,
             router    => $router,
             locations => scalar( @locations > 0 ) ? \@locations : '',
             errors    => $args_ref->{errors},
@@ -399,7 +420,7 @@ sub dispatch_edit {
             $r->log->error(
                 sprintf(
                     'user %s stealing router %s from account %s',
-                    $reg->email, $macaddr, $router->account_id->name
+                    $reg->email, $macaddr, $router->account->name
                 )
             );
         }
@@ -415,7 +436,7 @@ sub dispatch_edit {
           serial_number ssid splash_timeout ) {
             $router->$param( $req->param($param) );
           } $router->active(1);
-        $router->account_id( $reg->account_id->account_id );
+        $router->account_id( $reg->account->account_id );
         $router->update;
     }
 

@@ -66,20 +66,20 @@ sub dispatch_index {
         }
 
 	# twitter id is valid
-	$reg->account_id->twitter_id($req->param('twitter_id'));
-	$reg->account_id->update;
+	$reg->account->twitter_id($req->param('twitter_id'));
+	$reg->account->update;
 
 	# make sure we have a twitter ad zone
 	my $tsize_id = 23;
 	my %args = ( name => '_twitter_feed',
 		     ad_size_id => $tsize_id,
-		     account_id => $reg->account_id->account_id, );
+		     account_id => $reg->account->account_id, );
 	my ($ad_zone) = SL::Model::App->resultset('AdZone')->search(\%args);
 
 	unless ($ad_zone) {
 
 	    my %bug_args = ( ad_size_id => $tsize_id,
-		account_id => $reg->account_id->account_id, );
+		account_id => $reg->account->account_id, );
 
 	    my ($bug) = SL::Model::App->resultset('Bug')->search(\%bug_args);
 
@@ -115,7 +115,7 @@ sub dispatch_index {
 	    # sweep
 
 	    my @routers = SL::Model::App->resultset('Router')->search({
-		active => 't', account_id => $reg->account_id->account_id });
+		active => 't', account_id => $reg->account->account_id });
 
 	    foreach my $router (@routers) {
 

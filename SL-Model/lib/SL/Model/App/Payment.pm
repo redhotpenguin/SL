@@ -5,18 +5,25 @@ use warnings;
 
 use base 'DBIx::Class';
 
-__PACKAGE__->load_components("Core");
+__PACKAGE__->load_components("InflateColumn::DateTime", "Core");
 __PACKAGE__->table("payment");
 __PACKAGE__->add_columns(
   "payment_id",
   {
     data_type => "integer",
     default_value => "nextval('payment_payment_id_seq'::regclass)",
+    is_auto_increment => 1,
     is_nullable => 0,
     size => 4,
   },
   "account_id",
-  { data_type => "integer", default_value => undef, is_nullable => 0, size => 4 },
+  {
+    data_type => "integer",
+    default_value => undef,
+    is_foreign_key => 1,
+    is_nullable => 0,
+    size => 4,
+  },
   "amount",
   { data_type => "money", default_value => undef, is_nullable => 0, size => 8 },
   "start",
@@ -118,21 +125,25 @@ __PACKAGE__->add_columns(
   },
 );
 __PACKAGE__->set_primary_key("payment_id");
-__PACKAGE__->add_unique_constraint("payment_pkey", ["payment_id"]);
 __PACKAGE__->belongs_to(
-  "account_id",
+  "account",
   "SL::Model::App::Account",
   { account_id => "account_id" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-05-03 23:42:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MY00hdDcYA3koUU5HsP9AA
-# These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Payment.pm' found in @INC.# They are now part of the custom portion of this file# for you to hand-edit.  If you do not either delete# this section or remove that file from @INC, this section# will be repeated redundantly when you re-create this# file again via Loader!
+# Created by DBIx::Class::Schema::Loader v0.04999_07 @ 2009-06-14 16:15:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:W2IlnpNz7WmJYrW0PX0IVQ
+# These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Payment.pm' found in @INC.
+# They are now part of the custom portion of this file
+# for you to hand-edit.  If you do not either delete
+# this section or remove that file from @INC, this section
+# will be repeated redundantly when you re-create this
+# file again via Loader!
+
 
 use Business::PayPal::API qw( MassPay DirectPayments );
 use Business::PayPal::API::DirectPayments;
-use SL::Model::App;
 use Mail::Mailer;
 
 use SL::Config;
@@ -406,3 +417,4 @@ sub send_receipt {
 }
 
 1;
+# End of lines loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Payment.pm' 

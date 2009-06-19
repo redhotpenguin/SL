@@ -1,8 +1,8 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Add or edit ad zone"  selected="adcenter" %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Edit ad zone"  selected="adcenter" %]
 <div class="grid_16">
 	<div id="breadcrumb">
 		<div id="breadcrumb_inner">
-			<ul>[% PROCESS ad/groups/nav.tmpl %]<li><strong>[% UNLESS ad_zone.ad_zone_id  %]Create Ad Zone[% ELSE %]Edit Ad Zone '[% ad_zone.name %]'[% END %]</strong></li></ul>
+			<ul>[% PROCESS ad/groups/nav.tmpl %]<li><strong>Edit Ad Zone '[% ad_zone.name %]'</strong></li></ul>
 		</div>
 	</div>
 </div>
@@ -19,38 +19,141 @@
 		
 		[% IF errors.invalid %]<p class="error">Some fields were invalid, please correct them</p>[% END %]
 		<ul> 
+
+
 			<li>
+				<!-- name -->
 				<div class="grid_6 alpha omega suffix_4">
-					<label for="name" class="[% IF errors.missing.name %]error[% END %]">Ad zone name</label>
-					<input [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %] type="text" name="name" size="30" value='[% req.param('name') or ad_zone.name %]' />
+					<label for="name" class="[% IF errors.missing.name %]error[% END %]">Ad Zone Name</label>
+					<input type="text" name="name" size="30" value='[% req.param('name') or ad_zone.name %]' />
 					<div class="clear"></div>
 				</div>
 				<div class="clear"></div>
 			</li>
+
+
+
 			
 			<li>
+				<!-- ad size -->
 				<label for="ad_size_id" class="[% IF errors.missing.ad_size_id %]error[% END %]">Ad Size</label>
-				[% PROCESS ad_size.tmpl adsizes=adsizes selected=ad_zone.ad_size_id.ad_size_id %]		
+
+
+<select name="ad_size_id" id="ad_size_id">
+
+<option value="">Select ad zone size</option>
+
+[% FOREACH ad_size = ad_sizes %]
+
+    [% IF loop.prev.grouping != ad_size.grouping %]
+    <option value=""></option>
+    <option value="">--&nbsp; 
+    [% END %]
+    [% IF ad_size.grouping == 1 %]Persistent Leaderboard
+    [% ELSIF ad_size.grouping == 8 %]Persistent Micro Bar
+    [% ELSIF ad_size.grouping == 6 %]Persistent Full Banner[% END %]
+    </option>
+
+<option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %]</option>
+
+[% END %]
+</select>
+
+
+				[% # PROCESS ad_size.tmpl adsizes=adsizes selected=ad_zone.ad_size.ad_size_id %]
+
 				<div class="clear"></div>
 				<p><a target="_new" href="http://silverliningworks.typepad.com/pdf/Silver_Lining_Ad_Zones.pdf">ad zone white paper</a> for details</p>
 			</li>	
+
+
+         <label for="zone_type">Select ad server invocation code or a banner image location and link</label>
+			<input id="text" type="radio" name="zone_type" value="banner" [% IF ad_zone.image_href or ad_zone.link_href %]checked="1"[% END %]/>
+			<label for="banner" class="check_label">Ad Banner</label>
+
+
+	<li>
+		<!-- banner entry -->
+		<div id="banner">
+	       <div class="grid_6 alpha omega suffix_4">
+            <label for="image_href" class="[% IF errors.missing.image_href %]error[% END %]">Banner Image Location</label>
+			<input type="text" name="image_href" size="30" value="[% req.param('image_href') or ad_zone.image_href %]" />
+			<label class="tip" for="image_href">Banner location, e.g. http://s1.slwifi.com/image/banner.gif</label>
+
+            <label for="link_href" class="[% IF errors.missing.link_href %]error[% END %]">Banner Image Link</label>
+			<input type="text" name="link_href" size="30" value="[% req.param('link_href') or ad_zone.link_href %]" />
+			<label class="tip" for="link_href">Banner link, e.g. http://ads.slwifi.com/click/1j6ha56aa81gpa</label>
+
+			<div class="clear"></div>
+
+				[% IF ad_zone.image_href %]
+                    [% IF req.param('code') or ad_zone.code %]
+				    <p>[% req.param('code') or ad_zone.code %]</p>
+				    [% END %]
+                [% END %]
+
+        </div>
+		<div class="clear"></div>
+
+		<!-- end banner entry-->
+	</li>
+
+
+
+	<input id="text" type="radio" name="zone_type" value="code" [% IF !ad_zone.image_href or !ad_zone.link_href %]checked="1"[% END %]/>
+						<label for="banner" class="check_label">Ad Server Invocation Code</label>
+
+
 			<li>
+				<!-- invocation code -->
+				<div id="code">
 				<label for="code" class="[% IF errors.missing.code %]error[% END %]">Ad Invocation Code (provided by your ad server)</label>
-				<textarea [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %]name="code" rows="10" cols="80">[% req.param('code') or ad_zone.code %]</textarea>
 				<label class="tip" for="code">For optimum ad serving speed, add the IP address of your ad server to the custom_skips.txt file on your router</label>
+
+				<textarea name="code" rows="10" cols="80">[% IF !ad_zone.image_href %][% req.param('code') or ad_zone.code %][% END %]</textarea>
 				<div class="clear"></div>
-				[% IF req.param('code') or ad_zone.code %]
-				<p>[% req.param('code') or ad_zone.code %]</p>
-				[% END %]			
+				[% IF !ad_zone.image_href %]
+                    [% IF req.param('code') or ad_zone.code %]
+				    <p>[% req.param('code') or ad_zone.code %]</p>
+				    [% END %]
+                [% END %]
+				</div>
+
+				<div class="clear"></div>	
+				<!-- end invocation code -->		
 			</li>
+
+
+
+[% IF foo %]
+			<!-- invocation double code -->
 			<li>
+				<div id="code_double" [% IF ad_zone.code_double2 != '' %]style="display: none;"[% END %]>
+				<label for="code" class="[% IF errors.missing.code_double %]error[% END %]">Double Ad Zone Code (provided by your ad server)</label>
+				<textarea name="code_double" rows="10" cols="100">[% req.param('code_double') or ad_zone.code_double %]</textarea>
+                <div class="clear"></div>
+				[% IF req.param('code_double') or ad_zone.code_double %]
+                <p>[% req.param('code_double') or ad_zone.code_double %]</p>
+                [% END %]
+				</div>
+
+				<div class="clear"></div>	
+
+			</li>
+			<!-- end invocation code -->
+[% END %]
+
+
+
+			<li>
+
 				<!-- active -->
 				<label for="active">Is this Ad Zone active?</label>
-				<input [% IF ad_zone.public == 1  && reg.root != 1 %]disabled="1" [% END %]type="radio" name="active" value="t" [% IF (ad_zone.active == 1) or (! ad_zone) %]checked[% END %] />
+				<input type="radio" name="active" value="t" [% IF ad_zone.active %]checked[% END %] />
 				<label for="t" class="check_label">Yes</label>	
 				<div class="clear"></div>
 						
-				<input type="radio" name="active" value="f" id="f" [% IF !ad_zone.active %] checked [% END %] /> 
+				<input type="radio" name="active" value="f" id="f" [% IF !ad_zone.active %]checked[% END %] /> 
 				<label for="f" class="check_label">No</label>
 				<div class="clear"></div>
 				<label class="tip">To ensure consistency in reporting, ad zones cannot be deleted</label>
@@ -59,8 +162,8 @@
 
 [% IF reg.account_id.plan != 'free' %]
 			<li>
-				<!-- is_default -->
-				<label for="is_default">Is this a default ad zone?</label>
+				<!-- default -->
+				<label for="is_default">Is this a default Ad Zone?</label>
 				<input type="radio" name="is_default" value="t" [% IF ad_zone.is_default %]checked[% END %] />
 				<label for="t" class="check_label">Yes</label>	
 				<div class="clear"></div>
@@ -69,97 +172,22 @@
 				<label for="f" class="check_label">No</label>
 				<div class="clear"></div>
 				<label class="tip">When two routers share the same WAN ip, sometimes the specific router cannot be identified.<br />In that case, an ad zone marked as a default ad zone will be shown.</label>
+				<label class="tip">The default ad zone is also automatically assigned to a device that has no ad zones assigned.</label>
 			</li>
 [% ELSE %]
 <input type="hidden" name="is_default" value="f">
 [% END %]
 
 
-			<li>
-				<!-- branding image -->
-				[% IF errors.missing.bug_id %]<font color="red">You need a valid branding image for this ad zone.</font>
-				
-				[% END %]
-				
-				[% FOREACH buglist = bug_lists %]
-				
-				<div id="[% buglist %]" [% IF $buglist.0.ad_size_id.ad_size_id != ad_size_id %]style="display: none;"[% END %]>
-				
-				[% IF $buglist.0.ad_size_id.ad_size_id %]
-				<label for="adzone">Select a branding image for this ad zone:</label>
-                <br />
-				
-				[% FOREACH bug = $buglist %]
-				<p><input type="radio" name="bug_id" value="[% bug.bug_id %]" [% IF ad_zone.bug_id.bug_id == bug.bug_id %]checked[% END %]>&nbsp;&nbsp;<a href="[% bug.link_href %]"><img src="[% bug.image_href %]" border="1"></a>&nbsp;&nbsp;[% bug.ad_size_id.bug_width %]px wide by [% bug.ad_size_id.bug_height %]px tall</p>
-				[% END %]
-				
-				[% ELSE %]
-				
-				<p>You haven't created any <a href="[% base_uri %]/app/ad/bugs/list">branding images yet</a> for this ad zone size,<br /> please do so to create this zone.</p>
-				[% END %]
-				
-				</div>
-				[% END %]
-				<!-- end branding image -->			
-				<div class="clear"></div>
-			</li>
-			
-			<li>
-				<!-- invocation double code -->
-				<div id="code_double" [% IF ad_zone.code_double == '' %]style="display: none;"[% END %]>
-				[% IF errors.missing.code_double %]<font color="red">[% END %]
-				Double Ad Zone Code (provided by your ad server):&nbsp;&nbsp;
-				[% IF errors.missing.code_double %]</font>[% END %]
-				<p>For optimum ad serving speed, use secure (https) links to your ad server resources</p>
-				<textarea name="code_double" rows="10" cols="100">[% req.param('code_double') or ad_zone.code_double %]</textarea>
-				[% IF req.param('code_double') or ad_zone.code_double %][% req.param('code_double') or ad_zone.code_double %][% END %]
-				</div>
-				<!-- end invocation code -->		
-				<div class="clear"></div>	
-			</li>
 			
 			<li>
 				[% IF ad_zone.ad_zone_id %]
 				<input type="hidden" name="id" value="[% ad_zone.ad_zone_id %]">
 				[% END %]			
-				[% IF ! ad_zone.public  or reg.root == 1 %]<input type="submit" value="Save ad zone" />[% END %]		
+				<input type="submit" value="Save ad zone" />
 			</li>
 		</ul>
 	</form>
 </div>
-
-<script type="text/javascript">
-
-    function changeBugList() {
-
-    // hide all sub lists
-    for (var i = 1; i < 14; i++) {
-
-        document.getElementById('bug_list_' + i).style.display='none';
-    }
-
-
-    // what ad size is selected?
-    size = document.getElementById('ad_size_id').value;
-
-    if (size != '') {
-        document.getElementById('bug_list_' + size).style.display='block';
-    }
-
-    // show second box for double ad zones
-    if (((size > 6) && (size < 10) ) || ( size == 14 )) {
-        document.getElementById('code_double').style.display='block';
-    } else {
-        document.getElementById('code_double').style.display='none';
-   }
-    }
-
-    function setBugList(ad_size_id) {
-        document.getElementById('bug_list_' + ad_size_id).style.display='block';
-    }
-    
-
-</script>
-
 
 [% PROCESS footer.tmpl %]
