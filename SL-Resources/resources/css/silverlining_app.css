@@ -77,6 +77,60 @@ overflow: hidden;
 text-indent: -3000px;
 margin: 0px 10px;
 }
+.icon_linuxbox_1 {/*Server ON*/
+display: block;
+background: url(../images/icons/application/server_on.png) top left no-repeat;
+height: 32px;
+width: 32px;
+overflow: hidden;
+text-indent: -3000px;
+margin: 0px 10px;
+}
+.icon_linuxbox_0 {/*Server OFF*/
+display: block;
+background: url(../images/icons/application/server_off.png) top left no-repeat;
+height: 32px;
+width: 32px;
+overflow: hidden;
+text-indent: -3000px;
+margin: 0px 10px;
+}
+.icon_mr3201a_1, .icon__1 {/*Repater ON*/
+display: block;
+background: url(../images/icons/application/repeater_on.png) top left no-repeat;
+height: 32px;
+width: 32px;
+overflow: hidden;
+text-indent: -3000px;
+margin: 0px 10px;
+}
+.icon_mr3201a_0, .icon__0 {/*Repater OFF*/
+display: block;
+background: url(../images/icons/application/repeater_off.png) top left no-repeat;
+height: 32px;
+width: 32px;
+overflow: hidden;
+text-indent: -3000px;
+margin: 0px 10px;
+}
+.icon_wrt54gl_1 {/*Diablo ON*/
+display: block;
+background: url(../images/icons/application/diablo_on.png) top left no-repeat;
+height: 32px;
+width: 32px;
+overflow: hidden;
+text-indent: -3000px;
+margin: 0px 10px;
+}
+.icon_wrt54gl_0 {/*Diablo OFF*/
+display: block;
+background: url(../images/icons/application/diablo_off.png) top left no-repeat;
+height: 32px;
+width: 32px;
+overflow: hidden;
+text-indent: -3000px;
+margin: 0px 10px;
+}
 .icon_repeater {
 display: block;
 background: url(../images/icons/application/repeater.png) top left no-repeat;
