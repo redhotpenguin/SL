@@ -58,8 +58,8 @@ right: -15px;
 ============================================= */
 #button_add_device {
 background: url(../images/buttons/applications/add_device.png) top left no-repeat;
-height: 35px;
-width: 120px;
+height: 39px;
+width: 139px;
 display: block;
 overflow: hidden;
 text-indent: -3000px;
@@ -147,6 +147,20 @@ height: 16px;
 width: 16px;
 overflow: hidden;
 text-indent: -3000px;
+}
+.icon_on_off {
+display: block;
+height: 16px;
+line-height: 16px;
+background: url(../images/icons/application/switch.png) top left no-repeat;
+padding-left: 22px;
+}
+.icon_sync {
+display: block;
+height: 16px;
+line-height: 16px;
+background: url(../images/icons/application/sync.png) top left no-repeat;
+padding-left: 22px;
 }
 
 
@@ -331,7 +345,7 @@ font-weight: bold;
 }
 #workspace .tip {
 font-size: 77%;
-color: #666;
+color: #868686;
 font-style: italic;
 margin-bottom: 0;
 }
@@ -441,8 +455,13 @@ color: #666;
 font-style: italic;
 line-height: 22px;
 }
-
-
+#secondary_content ul {
+margin: 0;
+list-style-type: none;
+}
+#secondary_content ul li {
+list-style-type: none;
+}
 
 /* FOOTER
 ============================================= */
