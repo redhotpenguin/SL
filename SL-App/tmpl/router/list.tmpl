@@ -7,7 +7,7 @@
 		<p class="tip">You have a total of <strong>[% count %]</strong> devices on your network</p>
 	</div>
 	<div class="grid_4 omega">
-		<!--<a class="right" id="button_add_device" href="[% base_uri %]/app/router/edit">Add a device</a>-->
+		<a class="right" id="button_add_device" href="[% base_uri %]/app/router/edit">Add a device</a>
 		<div class="clear"></div>
 	</div>
 	<div class="clear"></div>
@@ -40,9 +40,11 @@
 							[% IF router.device=='wrt54gl' %]SSID: [% router.ssid or '?'  %],[% END %] 
 							Last seen:[% router.last_seen or '?'  %],  
 							[% IF router.device=='mr3201a' %]Ad bar:  [% IF router.adserving==1 %]On[% ELSE %]Off[% END %],[% END %]  
-							<strong>Ad views yesterday: [% router.views_daily  %]</strong>
+							<br/><strong>Ad views yesterday: [% router.views_daily  %]</strong>
 						</p>
-						<!-- <a class="icon_delete right" href="#">Delete</a>--> 
+					</div>
+					<div class="grid_1 omega">
+						<a class="icon_delete right confirm" rel="[% base_uri %]" href="[% base_uri %]/router/deactivate">Delete</a>
 					</div>
 					<div class="clear"></div>
 				</div>
@@ -54,12 +56,19 @@
 	<div id="sc_top">
 		<div id="sc_bottom">
 			<ul class="bullet_list">
-				<li><a href="[% base_uri %]/app/router/omsync">Sync Open-Mesh.com Devices</a></li>
-				<li><a href="[% base_uri %]/app/router/edit">Add New Router</a></li>
-				<li><a href="[% base_uri %]/app/router/adbar">Turn Ad Bar On/Off</a></li>
+				<li><a class="icon_sync" href="[% base_uri %]/app/router/omsync">Sync Open-Mesh Devices</a></li>
+				<li><a class="icon_on_off" href="[% base_uri %]/app/router/adbar">Turn Ad Bar On/Off</a></li>
 			</ul>		
 		</div>
 	</div>
 </div>
 
 [% PROCESS footer.tmpl %]
+<div id='confirm' style='display:none'>
+	<a href='#' title='Close' class='modalCloseX simplemodal-close'>x</a>
+	<div class='header'><span>Confirm</span></div>
+	<p class='message'></p>
+	<div class='buttons'>
+		<div class='no simplemodal-close'>No</div><div class='yes'>Yes</div>
+	</div>
+</div>
