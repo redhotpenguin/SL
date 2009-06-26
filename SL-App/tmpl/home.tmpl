@@ -1,9 +1,11 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard - Overview" selected="overview" %]
  
 <div id="main_content" class="grid_10 suffix_1">	
-	<!-- Hokey breadcrumb 
-	<p><a href="[% base_uri %]/app/home/welcome">Welcome</a> Silver Lining</p>
-	-->
+	<h3>Welcome to Silver Lining</h3>
+	<div class="row">
+	<p style="margin-bottom:20px;">If your a first time user you may want to view our <a href="[% base_uri %]/app/home/welcome">short list of tips</a> for getting started with your account.</p>
+	</div>
+	
 	<h3>Welcome Open-Mesh.com Users!</h3>
 	<div class="row">
 		<p>Please use the support tab for any questions not covered on our <a href="http://www.silverliningnetworks.com/faq/">website</a> or <a href="http://silverlining.zendesk.com/home">support portal</a>.  Your devices will need to be running the 2.6.23 kernel to use Silver Lining (r1522 and r2168 images ship with 2.6.23 kernel).  <a href="http://silverlining.zendesk.com/forums/26828/entries/37866">Click here</a> to see how to integrate Silver Lining with Open-Mesh.</p>
@@ -28,11 +30,9 @@
 <div id="secondary_content" class="grid_5">
 	<div id="sc_top">
 		<div id="sc_bottom">
-			<h3>Welcome to Silver Lining</h3>
-			<p style="margin-bottom:20px;">If your a first time user, <a href="[% base_uri %]/app/home/welcome">click here</a> to get started.</p>
-			
-			<h3>Twitter Updates</h3>
-			<p class="tip"><a href="http://twitter.com/silver_lined">follow me on Twitter</a></p>
+			<!-- TWITTER FEED -->			
+			<h3 class="twitter_header">Twitter Updates</h3>
+			<a class="follow_me" href="http://twitter.com/silver_lined">Follow Silver Lining on Twitter</a>
 			<div id="twitter_div">
 				<ul id="twitter_update_list" class="bullet_list"></ul>
 			</div>	
