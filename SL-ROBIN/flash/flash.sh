@@ -1,9 +1,11 @@
 #!/bin/sh
 
 # stop energizers
+echo "stopping cron"
 /etc/init.d/cron stop
 
 # give everything a chance to finish up, but don't wait too long
+echo "sleeping 5 minutes to let in progress jobs finish"
 sleep 300
 
 # upgrade the kernel if it is not 2.6.23
