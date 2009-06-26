@@ -64,7 +64,30 @@ display: block;
 overflow: hidden;
 text-indent: -3000px;
 }
-
+.large_button {
+display: block;
+margin-bottom: 20px;
+padding:10px 10px 0px 10px;
+width: 260px;
+height: 71px;
+background: url(../images/buttons/applications/large_button.png) top left no-repeat;
+text-decoration: none;
+color: #666;
+}
+.large_button img {
+float: left;
+margin: 0px 5px 10px 0px;
+}
+.large_button strong {
+padding-top: 10px;
+display: block;
+color: #003d63;
+font-size: 107%;
+font-weight: bold;
+}
+.large_button span {
+font-size: 85%;
+}
 
 /* ICONS
 ============================================= */
@@ -462,6 +485,33 @@ list-style-type: none;
 #secondary_content ul li {
 list-style-type: none;
 }
+
+
+/* TWIITER LIST
+============================================= */
+#secondary_content .twitter_header {
+background: url(../images/icons/application/twitter_plain.png) left  top no-repeat;
+height: 28px;
+line-height: 40px;
+padding: 10px 0px 10px 60px;
+font-size: 122%;
+margin-bottom: 0;
+}
+#secondary_content .follow_me {
+display: block;
+padding: 5px;
+background-color: #FFF;
+margin-bottom: 10px;
+font-size: 85%;
+font-style: italic;
+}
+#twitter_update_list li {
+background-color: #FFF;
+padding: 5px;
+border: 1px solid #CCC;
+margin-bottom: 10px;
+}
+
 
 /* FOOTER
 ============================================= */
