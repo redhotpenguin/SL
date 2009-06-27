@@ -8,12 +8,13 @@ use Test::More tests => 28;
 my $pkg;
 
 BEGIN {
-    $pkg = 'SL::Model::Ad';
+    $pkg = 'SL::Model::Proxy::Ad';
     use_ok($pkg);
 
     can_ok(
-        $pkg, qw( random _random_ad_from_mac process_ad_template
-          log_view container stacked body_regex )
+        $pkg, qw( random process_ad_template retrieve_account_default_persistents
+                  retrieve_account_default_brandings
+                  log_view container )
     );
 }
 
@@ -38,15 +39,14 @@ my $content = do { local $/ = undef; <DATA> };
 
 my $ad       = 'Hoo haa biz bang';
 my $css_link = 'http://www.redhotpenguin.com/css/sl.css';
+my $js_link = 'http://www.redhotpenguin.com/js/sl.js';
 my $template = 'text_ad.tmpl';
+my $head_html = '';
 
 use Time::HiRes qw(tv_interval gettimeofday);
 
-# bring in dbix::class to save us some typing
-use SL::Model::App;
-
 my $start = [gettimeofday];
-ok( SL::Model::Ad::container( \$css_link, \$content, \$ad ) );
+ok( SL::Model::Proxy::Ad::container( \$css_link, \$js_link, \$head_html, \$content, \$ad ) );
 my $interval = tv_interval( $start, [gettimeofday] );
 
 like( $content, qr/$ad/,       'Yahoo ad inserted ok' );
@@ -56,7 +56,7 @@ cmp_ok( $interval, '<', 0.010,
     'Yahoo Ad inserted in less than 10 milliseconds' );
 
 $start = [gettimeofday];
-SL::Model::Ad::container( \$css_link, \$HTML, \$ad );
+SL::Model::Proxy::Ad::container( \$js_link, \$css_link, \$HTML, \$ad );
 $interval = tv_interval( $start, [gettimeofday] );
 
 like( $HTML, qr/$ad/,       'ad inserted ok' );
@@ -69,98 +69,26 @@ cmp_ok( $interval, '<', 0.002, 'HTML Ad inserted in less than 2 milliseconds' );
 
 diag('check the default ad serving logic');
 
-diag('put a test router in place');
-
-use SL::Model::Proxy::Router::Location;
-use SL::Model;
-
-my $ip      = '127.0.0.1';
-my $macaddr = '00:02:B3:4D:BD:87';
-my $url     = 'http://www.foo.com/';
-my $user    = 'phred';
-
-# get rid of routers and locations
-my $dbh = SL::Model->connect;
-
-# make some test data
-my $router =
-  SL::Model::App->resultset('Router')
-  ->find_or_create( { ip => $ip, macaddr => $macaddr } )
-  or die 'no router';
-
-# make a new ad
-my $account_id = 1;
-my $ad_zone    = SL::Model::App->resultset('AdZone')->create(
-    {
-        code       => 'foo',
-        name       => 'test',
-        account_id => $account_id,
-        ad_size_id => 1,
-        bug_id     => 1
-    }
-) or die 'no ad zone';
-$ad_zone->update;
-
-my $account__ad_zone =
-  SL::Model::App->resultset('AccountAdZone')
-  ->create( { account_id => $account_id, ad_zone_id => $ad_zone->ad_zone_id } )
-  or die;
-$account__ad_zone->update;
-
-my $router__ad_zone =
-  SL::Model::App->resultset('RouterAdZone')
-  ->create(
-    { ad_zone_id => $ad_zone->ad_zone_id, router_id => $router->router_id } )
-  or die;
-$router__ad_zone->update;
-
 ##############################
 
-# evil
-use constant AD_ZONE_ID      => 0;
-use constant AD_ZONE_CODE    => 1;
-use constant AD_SIZE_CSS_URL => 2;
-use constant BUG_IMAGE_HREF  => 3;
-use constant BUG_LINK_HREF   => 4;
-use constant PREMIUM         => 5;
-use constant OUTPUT_REF      => 6;
-
-diag('make sure that the default works');
-
-# make sure we have a default ad
-my $Default_Ad_Data = $SL::Model::Ad::Default_Ad_Data;
-ok( defined $Default_Ad_Data, 'default ad zone present' );
-
-ok( defined $Default_Ad_Data->[AD_ZONE_ID],      'id' );
-ok( defined $Default_Ad_Data->[AD_ZONE_CODE],    'code' );
-ok( defined $Default_Ad_Data->[AD_SIZE_CSS_URL], 'css' );
-ok( defined $Default_Ad_Data->[BUG_IMAGE_HREF],  'image' );
-ok( defined $Default_Ad_Data->[BUG_LINK_HREF],   'link' );
-ok( defined $Default_Ad_Data->[PREMIUM],         'premium' );
-
-my $test_ad = $pkg->_random_ad_from_mac($macaddr);
-
-ok( $test_ad, 'test ad present' );
-
-ok( defined $test_ad->[AD_ZONE_ID],      'id' );
-ok( defined $test_ad->[AD_ZONE_CODE],    'code' );
-ok( defined $test_ad->[AD_SIZE_CSS_URL], 'css' );
-ok( defined $test_ad->[BUG_IMAGE_HREF],  'image' );
-ok( defined $test_ad->[BUG_LINK_HREF],   'link' );
-ok( defined $test_ad->[PREMIUM],         'premium' );
-
-my ( $ad_zone_id, $output, $css ) = SL::Model::Ad->random(
+diag('grab a random ad');
+my $url = 'http://foo.com';
+my $user = 'ffffff';
+$DB::single = 1;
+my ( $ad_zone_id, $output, $css, $js, $html ) = SL::Model::Proxy::Ad->random(
     {
-        ip   => $ip,
-        mac  => $macaddr,
+        account_id => 35,
+        router_id => 113,
         url  => $url,
-        user => $user
+        user => $user,
+        ua   => 'iPhone',
     }
 );
 
 ok( $ad_zone_id, 'ad_zone_id present' );
 cmp_ok( ref $output, 'eq', 'SCALAR', 'output' );
 cmp_ok( ref $css,    'eq', 'SCALAR', 'css' );
+cmp_ok( ref $js,    'eq', 'SCALAR', 'js' );
 
 1;
 

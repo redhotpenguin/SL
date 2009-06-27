@@ -1,4 +1,4 @@
-package SL::Model::URL;
+package SL::Model::Proxy::URL;
 
 use strict;
 use warnings;

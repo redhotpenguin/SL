@@ -6,7 +6,7 @@ use warnings FATAL => 'all';
 use Test::More tests => 5;
 
 BEGIN {
-    use_ok('SL::Model::Ad');
+    use_ok('SL::Model::Proxy::Ad');
 }
 
 my $content = do { local $/ = undef; <DATA> };
@@ -17,7 +17,7 @@ my $css_link = 'http://www.redhotpenguin.com/css/local.css';
 use Time::HiRes qw(tv_interval gettimeofday);
 
 my $start = [gettimeofday];
-ok(SL::Model::Ad::container( \$css_link, \$content, \$ad ));
+ok(SL::Model::Proxy::Ad::container( \$css_link, \$content, \$ad ));
 my $interval = tv_interval( $start, [gettimeofday] );
 
 like( $content, qr/$ad/s,       'ad inserted ok' );

@@ -1,4 +1,4 @@
-package SL::Model::Ad;
+package SL::Model::Proxy::Ad;
 
 use strict;
 use warnings;
@@ -6,7 +6,6 @@ use warnings;
 use base 'SL::Model';
 
 use Template                 ();
-use SL::Model::Proxy::Router ();
 use SL::Config               ();
 use SL::Cache                ();
 
@@ -110,9 +109,7 @@ our $JS = <<JS;
 JS
 
 sub container {
-    my ( $css_url_ref, $js_url_ref, $head_html_ref, $decoded_content_ref,
-        $ad_ref, $ad_size_id )
-      = @_;
+    my ( $css_url_ref, $js_url_ref, $head_html_ref, $decoded_content_ref, $ad_ref ) = @_;
 
     # check to make sure that we can insert all parts of the ad
     return
@@ -153,7 +150,7 @@ sub container {
 sub retrieve_account_default_persistents {
     my ( $class, $account_id ) = @_;
 
-    my $ad_data = $class->connect->selectall_hashref(<<SQL, {}, $account_id);
+    my $ad_data = $class->connect->selectall_arrayref(<<SQL, { Slice => {}}, $account_id);
 SELECT
 ad_zone.ad_zone_id,
 ad_zone.weight
@@ -261,10 +258,10 @@ sub account_default_brandings {
 sub retrieve_router_persistents {
     my ( $class, $router_id ) = @_;
 
-    my $ad_data = $class->connect->selectall_hashref(<<SQL, {}, $router_id);
+    my $ad_data = $class->connect->selectall_arrayref(<<SQL, {Slice => {}}, $router_id);
 SELECT
 ad_zone.ad_zone_id,
-ad_zone.weight,
+ad_zone.weight
 FROM ad_zone,router,ad_size,router__ad_zone
 WHERE router.router_id = ?
 AND ad_zone.active = 't'
@@ -282,7 +279,7 @@ SQL
 sub retrieve_router_brandings {
     my ( $class, $router_id ) = @_;
 
-    my $ad_data = $class->connect->selectall_hashref(<<SQL, {}, $router_id);
+    my $ad_data = $class->connect->selectall_arrayref(<<SQL, {Slice => {}}, $router_id);
 SELECT
 ad_zone.ad_zone_id,
 ad_zone.weight
@@ -328,8 +325,7 @@ sub router_persistents {
         }
 
         # update the cache
-        $persistents = [ map { $_->[0] => $_->[1] } @{$persistents} ];
-        SL::Cache->memd->set("adzone|$router_id|persistents") = $persistents;
+        SL::Cache->memd->set("adzone|$router_id|persistents" => $persistents);
     }
 
     return $persistents;
@@ -349,8 +345,7 @@ sub router_brandings {
         }
 
         # update the cache
-        $brandings = [ map { $_->[0] => $_->[1] } @{$brandings} ];
-        SL::Cache->memd->set("adzone|$router_id|brandings") = $brandings;
+        SL::Cache->memd->set("adzone|$router_id|brandings" => $brandings);
     }
 
     return $brandings;
@@ -393,7 +388,7 @@ ad_zone.ad_size_id,
 ad_size.head_html,
 ad_size.js_url,
 ad_size.css_url
-FROM ad_zone,ad_size_id
+FROM ad_zone,ad_size
 WHERE ad_zone.ad_zone_id = ?
 AND ad_size.ad_size_id = ad_zone.ad_size_id
 SQL
@@ -433,7 +428,7 @@ sub random {
         ($persistents, $brandings) = $class->router_ad_zones( $router_id, $account_id );
     }
 
-    unless ($persistents && $brandings) {
+    unless (@{$persistents} && @{$brandings}) {
 
         warn("no ads for router $router_id, account $account_id") if DEBUG;
         return;
@@ -442,21 +437,19 @@ sub random {
 
     # grab a weighted random ad
     my @persistents_list;
-    foreach my $ad_zone_id ( keys %{$persistents} ) {
-        push @persistents_list, $ad_zone_id for 1..$persistents->{$ad_zone_id};
+    foreach my $ad_zone ( @{$persistents} ) {
+        push @persistents_list, $ad_zone->{ad_zone_id} for 1..$ad_zone->{weight};
     }
 
     my $persistent_id = $persistents_list[int(rand(scalar(@persistents_list)))];
 
 
-
     my @brandings_list;
-    foreach my $ad_zone_id ( keys %{$brandings} ) {
-        push @brandings_list, $ad_zone_id for 1..$brandings->{$ad_zone_id};
+    foreach my $ad_zone ( @{$brandings} ) {
+        push @brandings_list, $ad_zone->{ad_zone_id} for 1..$brandings->{weight};
     }
 
     my $branding_id = $brandings_list[int(rand(scalar(@brandings_list)))];
-
 
     my $persistent = $class->get_ad_zone( $persistent_id );
     my $branding   = $class->get_ad_zone( $branding_id );

@@ -89,6 +89,13 @@ VALUES
 (?,?)
 };
 
+use constant UPDATE_ROUTER_WAN_IP => q{
+UPDATE router SET
+wan_ip = ?
+WHERE router_id = ?
+};
+
+
 sub register {
     my ( $class, $args_ref ) = @_;
 
@@ -125,6 +132,8 @@ sub register {
           );
           return;
     }
+
+    my $update_sth = $class->connect->prepare_cached(UPDATE_ROUTER_WAN_IP
 
     # call get_registered and return
     return $class->get_registered($args_ref);
