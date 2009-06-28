@@ -9,59 +9,64 @@
 <div class="clear"></div>
 
 
-<div id="main_content" class="grid_16">
-	<h2>Manage Persistent Ad Zones</h2>
-	<p class="tip"> [% count %] Ad Zones</p>
+<div id="main_content" class="grid_10 suffix_1">
+
+
+	<div class="grid_6 alpha">
+		<h2>Banner Advertisements</h2>
+		<p class="tip">You have <strong>[% count %]</strong> banner advertisements</p>
+	</div>
+	<div class="grid_4 omega">
+		<a class="right" id="button_add_banner" href="#">Add a Banner</a>
+		<div class="clear"></div>
+	</div>
+	<div class="clear"></div>
+
+
+
 	
-	<h3 class="row">Select an ad zone below to edit</h3>
 	
 	[% IF msg %]<p class="error">[% msg %]</p>[% END %]
 	
 	
 	
 	
-	<table class="basic_table">
+	<table class="large_table">
 	<tr>
 		<th>Ad Zone Name</th>
-		<th>Ad Zone Size</th>
 		<!--<th>Active</td>-->
-		<th>Assigned Routers</th>
-		<th>Last Modified By</th>
-		<th>Clone</th>
-		<th>Assign Devices</th>
-		<th>Remove Devices</th>
+		<th>Last Modified</th>
+		<th>Active on</th>
+		<!--<th>Assign Devices</th>-->
+		<!--<th>Remove Devices</th>-->
 	</tr>
 	
 	[% FOREACH ad_zone = ad_zones %]
 		<tr>
-			<td>
+			<td class="larger">
 			<a href="[% base_uri %]/app/ad/groups/edit/?id=[% ad_zone.ad_zone_id %]">
 			[% ad_zone.name %]</a></td>
 			
 			<!--<td>[% IF ad_zone.ad_size.persistent == 1 %]Persistent[% ELSIF ad_zone.ad_size.grouping == 2 %]Branding[% ELSIF ad_zone.ad_size.grouping == 3 %]Splash Page[% END %]</td>-->
-		    <td>[% ad_zone.ad_size.name %]</td>
 			
 			<!-- active -->	
 			<!--  <td>
 			[% IF ad_zone.active %]Yes[% ELSE %]No[% END %]</td>-->
-			
-			<td>
+
+			<td class="smaller">[% ad_zone.mts %]</td>
+
+			<td class="smaller">
 			[% IF ad_zone.router_count == 0 %]
 			    [% ad_zone.router_count %]
 			[% ELSE %]
 			<a href="[% base_uri %]/app/router/list?ad_zone_id=[% ad_zone.ad_zone_id %]">
 			[% ad_zone.router_count %]</a>
 			[% END %]
+			devices
 			</td>
 			
-			<td>
-			<a href="mailto:[% ad_zone.reg.email %]">[% ad_zone.reg.email %]</a><br />[% ad_zone.mts %]
-			</td>
 
-			<td>
-			<a href="[% base_uri %]/app/ad/groups/clone?id=[% ad_zone.ad_zone_id %]">Clone</a>
-			</td>
-
+			<!--
 			<td>
 			<a href="[% base_uri %]/app/ad/groups/assign?id=[% ad_zone.ad_zone_id %]">Assign Devices</a>
 			</td>
@@ -69,12 +74,30 @@
 			<td>
 			<a href="[% base_uri %]/app/ad/groups/remove?id=[% ad_zone.ad_zone_id %]">Remove Devices</a>
 			</td>
-
+			--> 
 
 		</tr>
 	[% END %]
 	</table>
 </div>
 
+<div id="secondary_content" class="grid_5">
+	<div id="sc_top">
+		<div id="sc_bottom">
+		
+			<h3>Brand your Network</h3>
+			[% IF reg.account_id.plan == 'free' %]
+			To brand your ad bar, you will need a paid account.  <a href="[% base_uri %]/billing/publisher/?plan=basic&email=[% reg.email %]">Click here</a> to sign up for our Basic Plan.
+			
+			[% ELSE %]
+			<a href="[% base_uri %]/app/ad/bugs/list">
+				<img alt="Brand your ad banners with your logo." src="[% base_uri %]/resources/images/logos/application/brand_placeholder_lb.png" width="244" height="90"/>
+			</a>
+			<p><a href="[% base_uri %]/app/ad/bugs/list">Customize the logo</a> that is displayed next to the Ad banners on your network. </p>
+			[% END %]
+			
+		</div>
+	</div>
+</div>
 
 [% PROCESS footer.tmpl %]

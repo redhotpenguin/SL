@@ -46,10 +46,10 @@
 		<div id="sc_bottom">
 			<!-- TWITTER FEED -->
 			[% IF  !errors.invalid.twitter_id %]
-			<div id="twitter_div">
-				<h3>Your Twitter Feed</h3>
-				<p style="margin-bottom:15px;" id="twitter_update_list"></p>
-			</div>
+				<h3 class="twitter_header">[% req.param('twitter_id') or reg.account.twitter_id %]</h3>
+				<div id="twitter_div">
+					<p id="twitter_update_list"></div>
+				</div>	
 			<script type="text/javascript" src="http://s2.slwifi.com/js/blogger.js"></script>
 			<script type="text/javascript" src="http://twitter.com/statuses/user_timeline/[% req.param('twitter_id') or reg.account.twitter_id %].json?callback=twitterCallback2&count=1"></script>	
 			[% END %]			
