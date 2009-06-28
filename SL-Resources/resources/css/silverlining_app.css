@@ -64,6 +64,14 @@ display: block;
 overflow: hidden;
 text-indent: -3000px;
 }
+#button_add_banner {
+background: url(../images/buttons/applications/add_banner.png) top left no-repeat;
+height: 39px;
+width: 139px;
+display: block;
+overflow: hidden;
+text-indent: -3000px;
+}
 .large_button {
 display: block;
 margin-bottom: 20px;
@@ -185,7 +193,12 @@ line-height: 16px;
 background: url(../images/icons/application/sync.png) top left no-repeat;
 padding-left: 22px;
 }
-
+.icon_textmsg {
+padding-left: 70px; 
+background: url(../images/icons/application/Comment_edit.png) top left no-repeat;
+height: 64px;
+line-height: 60px;
+}
 
 /* LOGIN NAV
 ============================================= */
@@ -426,6 +439,8 @@ color: #333;
 font-weight: bold;
 margin-bottom: 5px;
 }
+
+/*BASIC TABLE*/
 #main_content table.basic_table {
 width: 90%;
 border: 1px solid #CCC;
@@ -446,13 +461,41 @@ border-top:1px solid #CCC;
 border-collapse:collapse;
 font-size: 92%;
 }
-#main_content .basic_table .active {
+#main_content .basic_table .active, #main_content .large_table .active {
 color: #006600;
 }
-#main_content .basic_table .inactive {
+#main_content .basic_table .inactive, #main_content .large_table .inactive {
 color: #900;
 }
 
+/*LARGE TABLE*/
+#main_content table.large_table {
+width: 578px;
+border: 1px solid #CCC;
+color: #444;
+margin-top: 20px;
+}
+#main_content table.large_table {
+font-size: 92%;
+}
+#main_content .large_table th {
+padding: 3px;
+background-color: #EEE;
+font-weight: bold;
+font-size: 85%;
+}
+#main_content .large_table td {
+padding:10px 5px;
+border-top:1px solid #CCC;
+border-collapse:collapse;
+font-size: 92%;
+}
+#main_content .large_table td.larger {
+font-weight: bold;
+}
+#main_content .large_table td.smaller {
+font-size: 85%;
+}
 
 /* SIDE CONTENT
 ============================================= */
@@ -490,10 +533,10 @@ list-style-type: none;
 /* TWIITER LIST
 ============================================= */
 #secondary_content .twitter_header {
-background: url(../images/icons/application/twitter_plain.png) left  top no-repeat;
+background: url(../images/icons/application/twitter_plain.png) 0px -10px no-repeat;
 height: 28px;
-line-height: 40px;
-padding: 10px 0px 10px 60px;
+line-height: 30px;
+padding: 0px 0px 10px 60px;
 font-size: 122%;
 margin-bottom: 0;
 }
@@ -505,7 +548,7 @@ margin-bottom: 10px;
 font-size: 85%;
 font-style: italic;
 }
-#twitter_update_list li {
+#twitter_update_list li, p#twitter_update_list {
 background-color: #FFF;
 padding: 5px;
 border: 1px solid #CCC;
@@ -547,8 +590,14 @@ margin-bottom: 0;
 .form .check_label {
 font-weight: normal;
 font-size: 92%;
-line-height: 30px;
+line-height: 24px;
 }
 .form_row {
 margin-bottom: 20px;
+}
+
+/* ZENDESK DROPBOX
+============================================= */
+#zenbox_iframe img#logo {
+display: none;
 }
