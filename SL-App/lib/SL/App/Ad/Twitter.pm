@@ -29,27 +29,73 @@ sub dispatch_index {
 
     my $twitter_id = $req->param('twitter_id');
 
+    # make sure we have a twitter ad zone
+    my $tsize_id = 23;
+    my %args     = (
+        name       => '_twitter_feed',
+        ad_size_id => $tsize_id,
+        account_id => $reg->account->account_id,
+    );
+
+    my ($ad_zone) = SL::Model::App->resultset('AdZone')->search( \%args );
+
+    my $bug;
+    unless ($ad_zone) {
+
+        my %bug_args = (
+            ad_size_id => $tsize_id,
+            account_id => $reg->account->account_id,
+        );
+
+        ($bug) = SL::Model::App->resultset('Bug')->search( \%bug_args );
+
+        unless ($bug) {
+
+            # create it
+            $bug = SL::Model::App->resultset('Bug')->create(
+                {
+                    %bug_args,
+                    image_href =>
+                      'http://s1.slwifi.com/images/ads/sln/micro_bug.gif',
+                    link_href => 'http://www.silverliningnetworks.com/',
+                }
+            );
+            $bug->update;
+        }
+
+        # create it
+
+        $ad_zone =
+          SL::Model::App->resultset('AdZone')
+          ->create( { %args, code => '', hidden => 't' } );
+        $ad_zone->bug_id( $bug->bug_id );
+        $ad_zone->reg_id( $reg->reg_id );
+    }
+
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
         my %tmpl_data = (
+            ad_zone => $ad_zone,
+            bug     => $bug,
             errors => $args_ref->{errors},
             req    => $req,
         );
 
-	my $output;
-	$TMPL->process( 'ad/twitter/index.tmpl', \%tmpl_data, \$output, $r ) ||
-	    return $self->error( $r, $TMPL->error );
-	return $self->ok( $r, $output );
+        my $output;
+        $TMPL->process( 'ad/twitter/index.tmpl', \%tmpl_data, \$output, $r )
+          || return $self->error( $r, $TMPL->error );
+        return $self->ok( $r, $output );
 
-    } elsif ( $r->method_number == Apache2::Const::M_POST ) {
+    }
+    elsif ( $r->method_number == Apache2::Const::M_POST ) {
 
         $r->method_number(Apache2::Const::M_GET);
 
         my %profile = (
-            required => [qw( twitter_id ) ],
-	    optional => [qw( sweep ) ],
-            constraint_methods => {
-                twitter_id  => $self->valid_twitter(), } );
+            required           => [qw( twitter_id )],
+            optional           => [qw( sweep )],
+            constraint_methods => { twitter_id => $self->valid_twitter(), }
+        );
 
         my $results = Data::FormValidator->check( $req, \%profile );
 
@@ -65,82 +111,57 @@ sub dispatch_index {
             );
         }
 
-	# twitter id is valid
-	$reg->account->twitter_id($req->param('twitter_id'));
-	$reg->account->update;
+        # twitter id is valid
+        $reg->account->twitter_id( $req->param('twitter_id') );
+        $reg->account->update;
 
-	# make sure we have a twitter ad zone
-	my $tsize_id = 23;
-	my %args = ( name => '_twitter_feed',
-		     ad_size_id => $tsize_id,
-		     account_id => $reg->account->account_id, );
-	my ($ad_zone) = SL::Model::App->resultset('AdZone')->search(\%args);
+        my $count = $req->param('count') || 1;
+        my $code =
+qq{<div id="twitter_div"><span id="twitter_update_list"></span></div><script type="text/javascript" src="http://s2.slwifi.com/js/blogger.js"></script><script type="text/javascript" src="http://twitter.com/statuses/user_timeline/$twitter_id.json?callback=twitterCallback2&count=$count"></script>};
 
-	unless ($ad_zone) {
+        $ad_zone->code($code);
+        $ad_zone->update;
 
-	    my %bug_args = ( ad_size_id => $tsize_id,
-		account_id => $reg->account->account_id, );
+        if ( !$req->param('sweep') ) {
 
-	    my ($bug) = SL::Model::App->resultset('Bug')->search(\%bug_args);
+            $r->pnotes('session')->{msg} =
+"Twitter User Name updated to $twitter_id, $count random last tweets";
 
-	    unless ($bug) {
-		# create it
-		$bug = SL::Model::App->resultset('Bug')->create({
-		    %bug_args,
-		    image_href => 'http://s1.slwifi.com/images/ads/sln/micro_bug.gif',
-		    link_href => 'http://www.silverliningnetworks.com/',});
-		$bug->update;
-	    }
+        }
+        else {
 
+            # sweep
 
-	    # create it
+            my @routers =
+              SL::Model::App->resultset('Router')
+              ->search(
+                { active => 't', account_id => $reg->account->account_id } );
 
-	    $ad_zone = SL::Model::App->resultset('AdZone')->create(
-		{ %args, code => '', hidden => 't'});
-	    $ad_zone->bug_id($bug->bug_id);
-	    $ad_zone->reg_id($reg->reg_id);
+            foreach my $router (@routers) {
+
+                SL::Model::App->resultset('RouterAdZone')
+                  ->search( { router_id => $router->router_id } )->delete_all;
+
+                SL::Model::App->resultset('RouterAdZone')->find_or_create(
+                    {
+                        router_id  => $router->router_id,
+                        ad_zone_id => $ad_zone->ad_zone_id,
+                    }
+                );
+
+            }
+
+            $r->pnotes('session')->{msg} =
+              sprintf(
+                "Twitter User Name updated to %s, assigned to %d devices",
+                $twitter_id, scalar(@routers) );
         }
 
-	my $code = qq{<div id="twitter_div"><span id="twitter_update_list"></span></div><script type="text/javascript" src="http://s2.slwifi.com/js/blogger.js"></script><script type="text/javascript" src="http://twitter.com/statuses/user_timeline/$twitter_id.json?callback=twitterCallback2&count=1"></script>};
-
-	$ad_zone->code($code);
-	$ad_zone->update;
-
-	if (!$req->param('sweep')) {
-
-	    $r->pnotes('session')->{msg} = 
-		"Twitter User Name updated to $twitter_id";
-
-	} else {
-	    # sweep
-
-	    my @routers = SL::Model::App->resultset('Router')->search({
-		active => 't', account_id => $reg->account->account_id });
-
-	    foreach my $router (@routers) {
-
-	      SL::Model::App->resultset('RouterAdZone')
-		  ->search( { router_id => $router->router_id } )->delete_all;
-
-
-	      SL::Model::App->resultset('RouterAdZone')->find_or_create({
-                router_id  => $router->router_id,
-                ad_zone_id => $ad_zone->ad_zone_id, });
-
-
-	    }
-
-	    $r->pnotes('session')->{msg} = 
-	     sprintf("Twitter User Name updated to %s, assigned to %d devices",
-		     $twitter_id, scalar(@routers));
-	}
-
-       $r->headers_out->set( Location => $r->construct_url('/app/ad/index') );
-       return Apache2::Const::REDIRECT;
+        $r->headers_out->set( Location => $r->construct_url('/app/ad/index') );
+        return Apache2::Const::REDIRECT;
 
     }
 }
-
 
 sub valid_twitter {
     my $self = shift;
@@ -149,17 +170,17 @@ sub valid_twitter {
         my $dfv = shift;
         my $val = $dfv->get_current_constraint_value;
 
-	my $uri = eval { URI->new("http://twitter.com/$val") };
-	if ($@) {
-	    warn("$$ problem creating URI object from twitter id $val: $@");
-	    return;
-	}
+        my $uri = eval { URI->new("http://twitter.com/$val") };
+        if ($@) {
+            warn("$$ problem creating URI object from twitter id $val: $@");
+            return;
+        }
 
-        my $response = eval { $self->ua->get( $uri ) };
-	if ($@) {
-	    warn("problem grabbing uri " . $uri->as_string . ": $@");
-	    return;
-	}
+        my $response = eval { $self->ua->get($uri) };
+        if ($@) {
+            warn( "problem grabbing uri " . $uri->as_string . ": $@" );
+            return;
+        }
 
         return $val if $response->is_success;
         return;    # oops didn't validate
