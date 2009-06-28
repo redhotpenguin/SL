@@ -28,11 +28,28 @@
 				<div class="clear"></div>
 			</li>		
 			
+            <li>
+
+                <select id="count" name="count">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="100">100</option>
+                </select>
+                <label class="check_label" for="count">&nbsp;Number of latest tweets to select a random tweet from.</label>
+				<div class="clear"></div>
+				<label class="tip" for="count">One tweet at random will be chosen from your latest tweets.</label>
+			</li>
+
 			<li>
 				<input type="checkbox" name="sweep" id="sweep" /> <label class="check_label" for="sweep">Activate the Twitter Feed on all devices </label>
 				<div class="clear"></div>
 				<label class="tip" for="sweep">(this will reset all existing ad bar settings)</label>
-			</li>	
+			</li>
 			<li>
 				<input type="submit" value="Save Twitter Feed" />
 				<div class="clear"></div>
