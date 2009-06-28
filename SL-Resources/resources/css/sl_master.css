@@ -73,7 +73,6 @@ margin-left: 10px;
 }
 #silver_lining_full_banner #silver_lining_homepage {
 position: absolute;
-background: url(../images/logos/sl_logo_small.png) no-repeat top left;
 width: 89px;
 height: 64px;
 overflow: hidden;
@@ -83,9 +82,6 @@ text-indent: -3000px;
 bottom: -37px;
 right: 5px;
 border: none;
-}
-* html #silver_lining_full_banner #silver_lining_homepage {
-background: url(../images/logos/sl_logo_small_low.png) no-repeat top left;
 }
 #silver_lining_full_banner #silver_lining_close {
 position: absolute;
@@ -132,7 +128,6 @@ margin-left: 10px;
 }
 #silver_lining_leaderboard #silver_lining_homepage {
 position: absolute;
-background: url(../images/logos/sl_logo_small.png) no-repeat top left;
 width: 89px;
 height: 64px;
 overflow: hidden;
@@ -142,9 +137,6 @@ text-indent: -3000px;
 bottom: -40px;
 right: 5px;
 border: none;
-}
-* html #silver_lining_leaderboard #silver_lining_homepage {
-background: url(../images/logos/sl_logo_small_low.png) no-repeat top left;
 }
 #silver_lining_leaderboard #silver_lining_close {
 position: absolute;
@@ -201,7 +193,6 @@ text-decoration: underline;
 }
 #silver_lining_text_ad #silver_lining_homepage {
 position: absolute;
-background: url(../images/logos/sl_logo_small.png) no-repeat top left;
 width: 89px;
 height: 64px;
 overflow: hidden;
@@ -211,9 +202,6 @@ text-indent: -3000px;
 bottom: -40px;
 right: 5px;
 border: none;
-}
-* html #silver_lining_text_ad #silver_lining_homepage {
-background: url(../images/logos/sl_logo_small_low.png) no-repeat top left;
 }
 #silver_lining_text_ad #silver_lining_close {
 position: absolute;
@@ -263,7 +251,6 @@ text-decoration: underline;
 }
 #silver_lining_skyscraper #silver_lining_homepage {
 position: absolute;
-background: url(../images/logos/sl_logo_small.png) no-repeat top left;
 width: 89px;
 height: 64px;
 overflow: hidden;
@@ -273,9 +260,6 @@ text-indent: -3000px;
 bottom: -40px;
 right: -45px;
 border: none;
-}
-* html #silver_lining_skyscraper #silver_lining_homepage {
-background: url(../images/logos/sl_logo_small_low.png) no-repeat top left;
 }
 #silver_lining_skyscraper #silver_lining_close {
 position: absolute;
@@ -328,7 +312,6 @@ text-decoration: underline;
 }
 #silver_lining_wide_skyscraper #silver_lining_homepage {
 position: absolute;
-background: url(../images/logos/sl_logo_small.png) no-repeat top left;
 width: 89px;
 height: 64px;
 overflow: hidden;
@@ -338,9 +321,6 @@ text-indent: -3000px;
 bottom: -40px;
 right: -45px;
 border: none;
-}
-* html #silver_lining_wide_skyscraper #silver_lining_homepage {
-background: url(../images/logos/sl_logo_small_low.png) no-repeat top left;
 }
 #silver_lining_wide_skyscraper #silver_lining_close {
 position: absolute;
@@ -390,7 +370,6 @@ text-decoration: underline;
 }
 #silver_lining_half_page #silver_lining_homepage {
 position: absolute;
-background: url(../images/logos/sl_logo_small.png) no-repeat top left;
 width: 89px;
 height: 64px;
 overflow: hidden;
@@ -400,9 +379,6 @@ text-indent: -3000px;
 bottom: -40px;
 right: -45px;
 border: none;
-}
-* html #silver_lining_half_page #silver_lining_homepage {
-background: url(../images/logos/sl_logo_small_low.png) no-repeat top left;
 }
 #silver_lining_half_page #silver_lining_close {
 position: absolute;
@@ -430,24 +406,15 @@ height: 215px;
 position: absolute;
 z-index: 100;
 }
-#silver_lining_cloud {
-width: 295px;
-height: 215px;
-overflow: hidden;
-background: url(../images/backgrounds/floating_cloud_large.png) no-repeat top left;
-position: relative;
-}
-*html #silver_lining_cloud {
-background: url(../images/backgrounds/floating_cloud_large.gif) no-repeat top left; 
-}
-#silver_lining_cloud #silver_lining_close {
+
+#silver_lining_close {
 position: absolute;
 top: 115px;
 right: 25px;
 border: none;
 z-index: 200;
 }
-#silver_lining_cloud #silver_lining_homepage {
+#silver_lining_homepage {
 text-decoration: none;
 font-family: Helvetica, Verdana, Arial, serif;
 font-size: 11px;
@@ -457,7 +424,7 @@ bottom: 30px;
 left: 90px;
 z-index: 300;
 }
-#silver_lining_cloud #silver_lining_client_ad {
+#silver_lining_client_ad {
 position: absolute;
 top: 90px;
 left: 70px;
@@ -469,10 +436,10 @@ line-height: 18px;
 color: #087877;
 overflow: hidden;
 }
-#silver_lining_cloud #silver_lining_client_ad a {
+#silver_lining_client_ad a {
 text-decoration: none;
 color: #087877;
 }
-#silver_lining_cloud #silver_lining_close img {
+#silver_lining_close img {
 border: none;
 }

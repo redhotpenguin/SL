@@ -68,7 +68,6 @@ margin-left: 10px;
 }
 #silver_lining_leaderboard #silver_lining_homepage {
 position: absolute;
-background: url(../images/logos/sl_logo_small.png) no-repeat top left;
 width: 89px;
 height: 64px;
 overflow: hidden;
@@ -79,9 +78,6 @@ bottom: -40px;
 right: 5px;
 border: none;
 z-index: 5000;
-}
-* html #silver_lining_leaderboard #silver_lining_homepage {
-background: url(../images/logos/sl_logo_small_low.png) no-repeat top left;
 }
 #silver_lining_leaderboard #silver_lining_close {
 position: absolute;
