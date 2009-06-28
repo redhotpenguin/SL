@@ -3,23 +3,25 @@ package SL::Apache::Proxy::PingHandler;
 use strict;
 use warnings;
 
-use Apache2::Const -compile => qw( HTTP_SERVICE_UNAVAILABLE DONE SERVER_ERROR OK );
+use Apache2::Const -compile =>
+  qw( HTTP_SERVICE_UNAVAILABLE DONE SERVER_ERROR OK );
 use Apache2::Log                       ();
 use Crypt::Blowfish_PP                 ();
 use Sys::Load                          ();
+
 use SL::Model                          ();
 use SL::Model::Proxy::Router           ();
 use SL::Model::Proxy::Router::Location ();
 use SL::Config;
 
-our $CONFIG;
+our $Config;
 
 BEGIN {
-    $CONFIG = SL::Config->new();
+  $Config = SL::Config->new;
 }
 
 use constant DEBUG    => $ENV{SL_DEBUG}             || 0;
-use constant MAX_LOAD => $CONFIG->sl_proxy_max_load || 4;
+use constant MAX_LOAD => $Config->sl_proxy_max_load || 4;
 use constant SSID     => 2;
 use constant PASSWD   => 3;
 use constant FIRMWARE => 4;
@@ -57,33 +59,28 @@ sub handler {
                 $minute_avg, $count
             )
         );
-	return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
+        return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
     }
 
     # grab the mac address if there is one
     my ( $macaddr, $version ) =
       $r->uri =~ m/\/(\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2})_?(\d+)?$/;
 
-    # set the remote ip from perlbal
-    if ( defined $r->headers_in->{'X-Forwarded-For'} ) {
-        $r->connection->remote_ip( $r->headers_in->{'X-Forwarded-For'} );
-    }
-
-    my %args = ( ip => $r->connection->remote_ip );
-    if ( defined $macaddr ) {
-        $r->log->debug("$$ Macaddr $macaddr\n") if DEBUG;
-        $args{'macaddr'} = $macaddr;
-    }
-    else {
+    unless (defined $macaddr) {
 
         # no mac addr means something is probably broken
         $r->log->error( "$$ no mac address in ping uri " . $r->uri );
-        return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
+        return Apache2::Const::SERVER_ERROR;
     }
+
+
+    my %args = ( ip => $r->connection->remote_ip, macaddr => $macaddr );
+
 
     # Grab any registered routers for this location
     my $router_ref =
       eval { SL::Model::Proxy::Router::Location->get_registered( \%args ) };
+
     if ($@) {
         require Data::Dumper;
         $r->log->error( "$$ db exception $@ grabbing registered routers for ",
@@ -115,66 +112,93 @@ sub handler {
 
     $r->log->debug("$$ ping ok for mac $macaddr") if DEBUG;
 
-#		$r->log->error("adserving for mac $macaddr is " .
-#				$router_ref->[ADSERVING], " device is " . $router_ref->[DEVICE]);# if DEBUG;
-	if ($router_ref->[DEVICE] eq 'mr3201a') {
-	#lc(substr($macaddr, 0, 8)) eq '00:12:cf') {
 
+    if ( $router_ref->[DEVICE] eq 'mr3201a' ) {
 
-		if (defined $router_ref->[ADSERVING] &&
-			($router_ref->[ADSERVING] == 1)) {
-			my $bytes = $r->print("Ad Serving On");
-		}
-	} else {
+        #lc(substr($macaddr, 0, 8)) eq '00:12:cf') {
 
-    # see if there are any events for this router to process
-    if (
-        ( defined $router_ref->[SSID] && ($router_ref->[SSID] ne ''))     or    # ssid event
-        ( defined $router_ref->[PASSWD] &&  ($router_ref->[PASSWD] ne ''))   or    # passwd event
-        ( defined $router_ref->[FIRMWARE] && ($router_ref->[FIRMWARE] ne '')) or    # firmware event
-        ( defined $router_ref->[REBOOT] &&  ($router_ref->[REBOOT] ne ''))   or    # reboot event
-        ( defined $router_ref->[HALT] &&  ($router_ref->[HALT] ne ''))           # halt event
-      )
-    {
-        my $events = '';
-
-	$r->log->error("processing some events");
-        if ( defined $router_ref->[SSID] && ($router_ref->[SSID] ne '')) {
-            $r->log->error("$$ ping event for ssid: " . $router_ref->[SSID]);
-            $events .= _gen_event( ssid => $router_ref->[SSID] );
-            SL::Model::Proxy::Router->reset_events( $router_ref->[0],
-                'ssid_event' );
+        if ( defined $router_ref->[ADSERVING]
+            && ( $router_ref->[ADSERVING] == 1 ) )
+        {
+            my $bytes = $r->print("Ad Serving On");
         }
-        elsif ( defined $router_ref->[PASSWD] && ($router_ref->[PASSWD] ne '')) {
-            $r->log->error("$$ ping event for passwd: " . $router_ref->[PASSWD]);
-            $events .= _gen_event( passwd => $router_ref->[PASSWD] );
-            SL::Model::Proxy::Router->reset_events( $router_ref->[0],
-                'passwd_event' );
-        }
-        elsif ( defined $router_ref->[FIRMWARE] && ($router_ref->[FIRMWARE] ne '')) {
-            $r->log->error("$$ ping event for firmware" . $router_ref->[FIRMWARE]);;
-            $events .= _gen_event( firmware => $router_ref->[FIRMWARE] );
-            SL::Model::Proxy::Router->reset_events( $router_ref->[0],
-                'firmware_event' );
-        }
-        elsif ( defined $router_ref->[REBOOT] && ($router_ref->[REBOOT] ne '')) {
-            $r->log->error("$$ ping event for reboot: " . $router_ref->[REBOOT]);
-            $events .= _gen_event( reboot => $router_ref->[REBOOT] );
-            SL::Model::Proxy::Router->reset_events( $router_ref->[0],
-                'reboot_event' );
-        }
-        elsif ( defined $router_ref->[HALT] && ($router_ref->[HALT] ne '')) {
-            $r->log->error("$$ ping event for halt" . $router_ref->[HALT]);
-            $events .= _gen_event( halt => $router_ref->[HALT] );
-            SL::Model::Proxy::Router->reset_events( $router_ref->[0],
-                'halt_event' );
-        }
-
-        # encrypt the events and send them to the client
-        my $encrypted = _encrypt( $events, $macaddr, $version );
-        my $bytes = $r->print($encrypted) if $encrypted;
-
     }
+    else {
+
+        # see if there are any events for this router to process
+        if (
+            ( defined $router_ref->[SSID] && ( $router_ref->[SSID] ne '' ) )
+            or    # ssid event
+            (
+                defined $router_ref->[PASSWD] && ( $router_ref->[PASSWD] ne '' )
+            )
+            or    # passwd event
+            (
+                defined $router_ref->[FIRMWARE]
+                && ( $router_ref->[FIRMWARE] ne '' )
+            )
+            or    # firmware event
+            (
+                defined $router_ref->[REBOOT] && ( $router_ref->[REBOOT] ne '' )
+            )
+            or    # reboot event
+            ( defined $router_ref->[HALT]
+                && ( $router_ref->[HALT] ne '' ) )    # halt event
+          )
+        {
+            my $events = '';
+
+            $r->log->error("processing some events");
+            if ( defined $router_ref->[SSID] && ( $router_ref->[SSID] ne '' ) )
+            {
+                $r->log->error(
+                    "$$ ping event for ssid: " . $router_ref->[SSID] );
+                $events .= _gen_event( ssid => $router_ref->[SSID] );
+                SL::Model::Proxy::Router->reset_events( $router_ref->[0],
+                    'ssid_event' );
+            }
+            elsif ( defined $router_ref->[PASSWD]
+                && ( $router_ref->[PASSWD] ne '' ) )
+            {
+                $r->log->error(
+                    "$$ ping event for passwd: " . $router_ref->[PASSWD] );
+                $events .= _gen_event( passwd => $router_ref->[PASSWD] );
+                SL::Model::Proxy::Router->reset_events( $router_ref->[0],
+                    'passwd_event' );
+            }
+            elsif ( defined $router_ref->[FIRMWARE]
+                && ( $router_ref->[FIRMWARE] ne '' ) )
+            {
+                $r->log->error(
+                    "$$ ping event for firmware" . $router_ref->[FIRMWARE] );
+                $events .= _gen_event( firmware => $router_ref->[FIRMWARE] );
+                SL::Model::Proxy::Router->reset_events( $router_ref->[0],
+                    'firmware_event' );
+            }
+            elsif ( defined $router_ref->[REBOOT]
+                && ( $router_ref->[REBOOT] ne '' ) )
+            {
+                $r->log->error(
+                    "$$ ping event for reboot: " . $router_ref->[REBOOT] );
+                $events .= _gen_event( reboot => $router_ref->[REBOOT] );
+                SL::Model::Proxy::Router->reset_events( $router_ref->[0],
+                    'reboot_event' );
+            }
+            elsif ( defined $router_ref->[HALT]
+                && ( $router_ref->[HALT] ne '' ) )
+            {
+                $r->log->error(
+                    "$$ ping event for halt" . $router_ref->[HALT] );
+                $events .= _gen_event( halt => $router_ref->[HALT] );
+                SL::Model::Proxy::Router->reset_events( $router_ref->[0],
+                    'halt_event' );
+            }
+
+            # encrypt the events and send them to the client
+            my $encrypted = _encrypt( $events, $macaddr, $version );
+            my $bytes = $r->print($encrypted) if $encrypted;
+
+        }
     }
     return Apache2::Const::DONE;
 }
@@ -199,13 +223,13 @@ sub _encrypt {
     # handle the version kludge
     $mac .= "_$version" if $version;
 
-    my $mac_salt = join ( '', reverse( split ( ':', $mac ) ) );
+    my $mac_salt = join( '', reverse( split( ':', $mac ) ) );
     warn("$$ mac salt is $mac_salt") if DEBUG;
     my $blowfish = Crypt::Blowfish_PP->new($mac_salt);
 
     # split the string into 8 byte pieces and encrypt
     my @groups = ( $string =~ /.{1,8}/gs );
-    warn( "$$ groups are " . join ( ',', @groups ) ) if DEBUG;
+    warn( "$$ groups are " . join( ',', @groups ) ) if DEBUG;
 
     my $encrypted = '';
     foreach my $member (@groups) {

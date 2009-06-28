@@ -38,11 +38,11 @@ use Apache2::Filter         ();
 use APR::Table              ();
 
 use SL::Model                          ();
-use SL::Model::Ad                      ();
-use SL::Model::URL                     ();
+use SL::Model::Proxy::Ad               ();
 use SL::Model::Proxy::Router           ();
 use SL::Model::Proxy::Location         ();
 use SL::Model::Proxy::Router::Location ();
+use SL::Model::Proxy::URL              ();
 
 use SL::Apache::Proxy::AccessHandler          ();
 use SL::Apache::Proxy::TransHandler           ();
@@ -59,7 +59,6 @@ use SL::RateLimit    ();
 use SL::HTTP::Client ();
 use SL::BrowserUtil  ();
 use SL::User         ();
-use SL::Context      ();
 
 use Digest::MD5 ();
 use DBI         ();

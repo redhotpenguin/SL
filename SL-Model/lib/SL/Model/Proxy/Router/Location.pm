@@ -133,7 +133,9 @@ sub register {
           return;
     }
 
-    my $update_sth = $class->connect->prepare_cached(UPDATE_ROUTER_WAN_IP
+    my $update_sth = $class->connect->prepare_cached(UPDATE_ROUTER_WAN_IP, $ip, $router_id);
+    $update_sth->execute;
+    $update_sth->finish;
 
     # call get_registered and return
     return $class->get_registered($args_ref);

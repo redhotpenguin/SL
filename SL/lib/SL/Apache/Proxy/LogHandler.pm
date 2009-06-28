@@ -3,10 +3,11 @@ package SL::Apache::Proxy::LogHandler;
 use strict;
 use warnings;
 
-use SL::Model::Ad ();
 use Apache2::Const -compile => qw( DECLINED );
 use Apache2::RequestUtil ();
 use Apache2::Log         ();
+
+use SL::Model::Proxy::Ad ();
 
 use SL::Config;
 our $CONFIG;
@@ -32,31 +33,14 @@ sub handler {
     my $r = shift;
 
     my $url = $r->pnotes('url');
-    unless ($url) {
-        $r->log->error("$$ no url in loghandler, something is broken");
-        return Apache2::Const::DECLINED;
-    }
 
     $r->log->debug("$$ executing LogHandler for url $url") if VERBOSE_DEBUG;
+
     if ( $url =~ m/sl_secret/ ) {
         $r->log->debug("$$ secret url, no log handling") if VERBOSE_DEBUG;
         return Apache2::Const::DECLINED;
     }
 
-    if (   ( !$r->pnotes('hash_mac') )
-        or ( !$r->pnotes('router_mac') ) )
-    {
-
-        # something is weird, so log it
-        $r->log->error(
-            sprintf(
-"e: args sl_header %s, hash_mac %s, router %s, url %s, ip %s, ad_id %d",
-                $r->pnotes('sl_header'),   $r->pnotes('hash_mac'),
-                $r->pnotes('router_mac'),  $r->pnotes('url'),
-                $r->connection->remote_ip, $r->pnotes('ad_zone_id')
-            )
-        );
-    }
 
     $r->subprocess_env( "SL_URL" => sprintf( 'sl_url|%s', $url ) );
 
@@ -75,8 +59,15 @@ sub handler {
     # for subrequests we don't have any log_data since no ad was inserted
     return Apache2::Const::DECLINED unless $r->pnotes('ad_zone_id');
 
+    $r->log->debug(
+        sprintf(
+            "$$ logging view for url %s, ad_zone_id %d",
+            $url, $r->pnotes('ad_zone_id')
+        )
+    ) if DEBUG;
+
     $TIMER->start('log_ad_view') if TIMING;
-    my $logged = SL::Model::Ad->log_view(
+    my $logged = SL::Model::Proxy::Ad->log_view(
         {
             ad_zone_id => $r->pnotes('ad_zone_id'),
             ip         => $r->connection->remote_ip,
@@ -86,12 +77,7 @@ sub handler {
             referer    => $r->pnotes('referer') || ''
         }
     );
-    $r->log->debug(
-        sprintf(
-            "$$ logging view for url %s, ad_zone_id %d",
-            $url, $r->pnotes('ad_zone_id')
-        )
-    ) if DEBUG;
+
 
     $r->log->error(
         sprintf(

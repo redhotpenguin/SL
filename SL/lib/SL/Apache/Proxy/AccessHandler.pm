@@ -19,16 +19,18 @@ sub handler {
         return Apache2::Const::OK;
     }
 
-    # delete the X-Forwarded header and set the connection ip
-    if ( defined $r->headers_in->{'X-Forwarded-For'} ) {
-	        $r->connection->remote_ip( $r->headers_in->{'X-Forwarded-For'} );
-	        delete $r->headers_in->{'X-Forwarded-For'};
-    }
 
-    # see if we know this ip is registered
-    my $location_id = eval {
-        SL::Model::Proxy::Location->get_location_id_from_ip(
-            $r->connection->remote_ip );
+    # figure out which device this is
+    # $r->headers_in->{'x-sl|x-slr'} = '12345678|00188bf9406f';
+    my $sl_header = $r->headers_in->{'x-slr'} || $r->headers_in->{'x-sl'} || '';
+
+    my ($router_id, $hash_mac, $device_guess) = eval {
+        SL::Model::Proxy::Router->identity(
+            {
+                ip        => $r->connection->remote_ip,
+                sl_header => $sl_header,
+            }
+        );
     };
 
     if ($@) {
@@ -46,13 +48,20 @@ sub handler {
 
         return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
     }
-    elsif ($location_id) {
+    elsif ($router_id) {
 
-        # authorized client, let them pass
-        $r->pnotes( location_id => $location_id );
+        # authorized device, let them pass
+        $r->pnotes( router_id => $router_id );
+        $r->pnotes( sl_header => $sl_header );
+        $r->pnotes( hash_mac  => $hash_mac  );
+
+        if (defined $device_guess) {
+            $r->pnotes( device_guess => 1 );
+        }
+
         return Apache2::Const::OK;
     }
-    elsif ( !$location_id ) {
+    elsif ( !$router_id ) {
 
         # unauthorized attempt, probably a bot
         $r->log->error(
@@ -63,6 +72,7 @@ sub handler {
         );
         return Apache2::Const::FORBIDDEN;
     }
+
 }
 
 1;

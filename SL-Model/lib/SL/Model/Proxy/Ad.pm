@@ -412,7 +412,11 @@ sub random {
     my $router_id   = $args->{router_id}  || warn("no router_id passed")  && return;
     my $user        = $args->{user}       || warn("no user passed")       && return;
     my $ua          = $args->{ua}         || warn("no ua passed")         && return;
-    my $account_id  = $args->{account_id} || warn("no account_id passed") && return;
+
+
+    my $device = SL::Cache->memd->get("router|$router_id");
+
+    my $account_id = $device->{account_id};
 
     my $device_guess = $args->{device_guess};
 

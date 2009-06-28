@@ -19,8 +19,9 @@ use constant TIMING        => $ENV{SL_TIMING}     || 0;
 use constant REQ_TIMING    => $ENV{SL_REQ_TIMING} || 0;
 
 use SL::Config;
-use SL::Model       ();
-use SL::Model::URL  ();
+use SL::Model             ();
+use SL::Model::Proxy::URL ();
+
 use SL::BrowserUtil ();
 use SL::Cache       ();
 use SL::User        ();
@@ -43,15 +44,12 @@ our $resolver = Net::DNS::Resolver->new;
 our $Google = 'http://www.google.com/';
 our $Yahoo  = 'http://www.yahoo.com/';
 our $Youtube  = 'http://www.youtube.com/';
-our ( $Config, $Blacklist, $Default_Hash_Mac, $Default_Router_Mac );
+our ( $Config, $Blacklist );
 
 BEGIN {
     $Config    = SL::Config->new();
-    $Blacklist = SL::Model::URL->generate_blacklist_regex;
+    $Blacklist = SL::Model::Proxy::URL->generate_blacklist_regex;
     print STDERR "Blacklist regex is $Blacklist\n" if DEBUG;
-
-    $Default_Router_Mac = $Config->sl_default_router_mac || die 'set sl_default_router_mac';
-    $Default_Hash_Mac = $Config->sl_default_hash_mac || die 'set sl_default_hash_mac';
 }
 
 our $Cache      = SL::Cache->new( type => 'raw' );
@@ -135,102 +133,6 @@ sub handler {
         return &perlbal($r);
     }
 
-    # this for testing only!
-    # $r->headers_in->{'x-sl'} = '12345678|00188bf9406f';
-
-    #####################################
-    # process the sl header
-    my ( $hash_mac, $router_mac );
-    if ( my $sl_header = $r->headers_in->{'x-sl'} ) {
-        $r->pnotes( 'sl_header' => $sl_header );
-		$r->log->debug("$$ Found sl_header $sl_header") if DEBUG;
-
-        ( $hash_mac, $router_mac ) =
-          split( /\|/, $r->pnotes('sl_header') );
-
-        # the leading zero is omitted on some sl_headers
-        if ( length($hash_mac) == 7 ) {
-            $hash_mac = '0' . $hash_mac;
-        }
-
-        $r->log->error("$$ Found sl_header $sl_header")
-          unless ( ( length($hash_mac) == 8 )
-            && ( length($router_mac) == 12 ) );
-
-        unless ( $router_mac && $hash_mac ) {
-            $r->log->error("$$ sl_header present but no hash or router mac");
-            return Apache2::Const::SERVER_ERROR;    # not really anything better
-        }
-
-        # stash these
-        $r->pnotes( 'hash_mac'   => $hash_mac );
-        $r->pnotes( 'router_mac' => $router_mac );
-
-        $r->log->debug("$$ router $router_mac, hash_mac $hash_mac") if DEBUG;
-
-        # get rid of this header so that is isn't proxied
-        $r->headers_in->unset('x-sl');
-
-    }
-
-	my ( $om_hash_mac, $om_router_mac );
-    if ( my $slr_header = $r->headers_in->{'x-slr'} ) {
-
-		if ($slr_header =~ m/\,/) {
-
-			$r->log->error("$$ Found raw slr_header $slr_header");
-			# double header
-			# 25f279f0|0012cf81fd23, 52c15ea5|0012cf805eba
-			my ($last_header) = $slr_header =~ m/\s(\S+)$/;
-			$slr_header = $last_header;
-		}
-
-		$r->pnotes( 'slr_header' => $slr_header );
-        $r->pnotes( 'sl_header'  => $slr_header );
-		#$r->log->error("$$ Found slr_header $slr_header");
-		#$r->log->debug("$$ Found slr_header $slr_header") if DEBUG;
-
-        ( $om_hash_mac, $om_router_mac ) =
-          split( /\|/, $r->pnotes('slr_header') );
-
-        # the leading zero is omitted on some sl_headers
-        if ( length($om_hash_mac) == 7 ) {
-            $om_hash_mac = '0' . $om_hash_mac;
-        }
-
-        $r->log->error("$$ Found slr_header $slr_header")
-          unless ( ( length($om_hash_mac) == 8 )
-            && ( length($om_router_mac) == 12 ) );
-
-        unless ( $om_router_mac && $om_hash_mac ) {
-            $r->log->error("$$ slr_header present but no hash or router mac");
-            return Apache2::Const::SERVER_ERROR;    # not really anything better
-        }
-
-        # stash these
-        $r->pnotes( 'om_hash_mac'   => $om_hash_mac );
-        $r->pnotes( 'om_router_mac' => $om_router_mac );
-
-        $r->pnotes( 'hash_mac'   => $om_hash_mac );
-        $r->pnotes( 'router_mac' => $om_router_mac );
-
-
-        $r->log->debug("$$ om_router $om_router_mac, om_hash_mac $om_hash_mac") if DEBUG;
-
-        # get rid of this header so that is isn't proxied
-        $r->headers_in->unset('x-slr');
-
-		$router_mac = $om_router_mac;
-		$hash_mac = $om_hash_mac;
-    }
-
-
-    # check for chitika ad
-    if ( $r->hostname eq 'mm.chitika.net' ) {
-        _handle_chitika_ad($r);
-        return &proxy_request($r);
-    }
-
     #############################################
     # start the clock - the stuff above is all memory
     $TIMER->start('db_mod_proxy_filters') if TIMING;
@@ -244,10 +146,10 @@ sub handler {
     }
 
     ###################################
-    # ok check for a splash page if we have a router_mac
-    if ( $r->pnotes('sl_header') ) {
+    # ok check for a splash page if we have a router_id
+    if ( $r->pnotes('router_id') ) {
         my ( $splash_url, $timeout ) =
-          SL::Model::Proxy::Router->splash_page($router_mac);
+          SL::Model::Proxy::Router->splash_page($r->pnotes('router_id'));
 
         if ($splash_url) {
             my $show_splash = handle_splash( $r, $splash_url, $timeout );
@@ -282,86 +184,7 @@ sub handler {
         sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
       if TIMING;
 
-    unless ( $router_mac or $hash_mac ) {
-
-        # valid request that made it through, assign default
-        $r->pnotes( 'hash_mac'   => $Default_Hash_Mac );
-        $r->pnotes( 'router_mac' => $Default_Router_Mac );
-    }
-
     return Apache2::Const::OK;
-}
-
-# chitika minimall premium
-#
-# GET /minimall?w=728&h=90&client=silverlining&noctxt=4&sid=Chitika%20Premium&url=http%3A//www.silverliningnetworks.com/network/%23mortgage&type=mpu&searchref=1&vertical=premium&cb=606&required_text=overture&output=simplejs&callback=ch_ad_render_search HTTP/1.1
-
-sub _handle_chitika_ad {
-    my $r = shift;
-
-    # require
-    my $base_path = '/minimall';
-    return unless $r->uri eq $base_path;
-
-    my $args = $r->args;
-
-    my @pairs = split( /\&/, $args );
-    my %q;
-    my $order = 1;
-    foreach my $arg (@pairs) {
-        my ( $key, $value ) = split( /\=/, $arg );
-        $q{$key}{value} = $value;
-        $q{$key}{order} = $order++;
-    }
-
-    # these are searches
-    return if defined $q{query};
-
-    # normalize the urls
-    my $url = $q{url}{value};
-    Apache2::URI::unescape_url($url);
-
-    my $ref;
-    if ( defined $q{ref} ) {
-        $ref = $q{ref}{value};
-        Apache2::URI::unescape_url($ref);
-    }
-    else {
-        $q{ref}{order} = $order++;
-    }
-
-    # is the referer already a search page?
-    if (   $r->pnotes('referer') =~ m/(?:www\.google\.com|search\.yahoo\.com)/ )
-    {
-
-        # let the existing referer through
-        return;
-    }
-
-    # aha, fixup the chitika ad.  First grab the keywords
-    my $keywords = SL::Cache->memd->get($url);
-
-    $r->log->debug(
-        "retrieved keywords for url $url, " . join( ',', @{$keywords} ) )
-      if DEBUG;
-
-    $keywords ||= [qw( flights cars vacations )];
-
-    my $query = join( '++', @{$keywords} );
-
-    $q{ref}{value} =
-      URI::Escape::uri_escape(
-"http://www.google.com/search?hl=en&q=$query&btnG=Google+Search&aq=f&oq=&type=mpu&searchref=1"
-      );
-    my $new_args = '';
-    foreach my $key ( sort { $q{$a}{order} <=> $q{$b}{order} } keys %q ) {
-        $new_args .= join( '=', $key, $q{$key}{value} ) . '&';
-    }
-
-    $r->args( substr( $new_args, 0, length($new_args) - 1 ) );
-
-    $r->unparsed_uri( $base_path . '?' . $new_args );
-    return 1;
 }
 
 sub handle_splash {
@@ -399,13 +222,6 @@ sub handle_splash {
 sub url_blacklisted {
     my $url = shift;
 
-    my $ping = SL::Model::URL->ping_blacklist_regex;
-
-    if ($ping) {    # update the blacklist if it has changed
-
-        $Blacklist = $ping;
-    }
-
     return 1 if ( $url =~ m{$Blacklist}i );
 
 }
@@ -419,7 +235,7 @@ sub proxy_request {
 sub _unset_proxy_headers {
     my $r = shift;
     $r->headers_in->unset($_)
-      for qw( X-Proxy-Capabilities X-SL X-Forwarded-For );
+      for qw( X-Proxy-Capabilities X-SL X-SLR X-Forwarded-For );
 
     return 1;
 }

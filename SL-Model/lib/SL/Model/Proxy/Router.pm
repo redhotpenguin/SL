@@ -8,8 +8,7 @@ use base 'SL::Model';
 
 use SL::Config;
 our $Config           = SL::Config->new;
-our $Default_Hash_Mac = $Config->sl_default_hash_mac
-  || die 'set sl_default_hash_mac';
+our $Default_Hash_Mac = 'ffffffff';
 
 sub identify {
     my ( $class, $args ) = @_;

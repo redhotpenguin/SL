@@ -44,6 +44,13 @@ sub handler {
         }
     }
 
+    # delete the X-Forwarded header and set the connection ip
+    if ( defined $r->headers_in->{'X-Forwarded-For'} ) {
+        $r->connection->remote_ip( $r->headers_in->{'X-Forwarded-For'} );
+        delete $r->headers_in->{'X-Forwarded-For'};
+    }
+
+
     $TIMER->start('global_request_timer') if ( TIMING or REQ_TIMING );
     $r->pnotes( 'global_request_timer' => $TIMER ) if ( TIMING or REQ_TIMING );
     return Apache2::Const::DECLINED;

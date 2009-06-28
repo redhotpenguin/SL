@@ -37,13 +37,12 @@ use APR::Table           ();
 # sl libraries
 use SL::Config               ();
 use SL::HTTP::Client         ();
-use SL::Model::Ad            ();
-use SL::Cache                ();
+use SL::Model::Proxy::Ad     ();
+
 use SL::Subrequest           ();
 use SL::RateLimit            ();
 use SL::Model::Proxy::Router ();
 use SL::Static               ();
-use SL::Context              ();
 
 # non core perl libs
 use Encode           ();
@@ -58,6 +57,7 @@ BEGIN {
     $Config = SL::Config->new;
 }
 
+# shite
 our $Google = 'http://www.google.com/';
 our $Yahoo  = 'http://www.yahoo.com/';
 
@@ -655,16 +655,6 @@ sub twohundred {
     # settings for ad not served
     $response_content_ref = \$response->decoded_content unless $ad_served;
 
-    my $keywords =
-      SL::Context->collect_keywords( content_ref => $response_content_ref );
-
-    SL::Cache->memd->set( $url =>
-          [ sort { $keywords->{$b} <=> $keywords->{$a} } keys %{$keywords} ] );
-
-    $r->log->debug(
-        "stashed keywords for url $url, " . join( ',', keys %{$keywords} ) )
-      if DEBUG;
-
     ##############################################
     # grab the links from the page and stash them
     $TIMER->start('collect_subrequests') if TIMING;
@@ -776,18 +766,20 @@ sub _generate_response {
     $TIMER->start('random_ad') if TIMING;
 
     my %ad_args = (
-        ip   => $r->connection->remote_ip,
-        url  => $url,
-        mac  => $r->pnotes('router_mac'),
-        user => $r->pnotes('hash_mac'),
+        url        => $url,
+        router_id  => $r->pnotes('router_id'),
+        user       => $r->pnotes('hash_mac'),
+        ua         => $ua,
     );
-    $ad_args{premium} = 1 if $r->pnotes('premium');
-    $ad_args{close_box} = 1 unless $r->pnotes('noclose');
-	$ad_args{ua} = $ua;
+
+    if ($r->pnotes('device_guess')) {
+        $ad_args{device_guess} = $r->pnotes('device_guess');
+    }
+
     my (
         $ad_zone_id, $ad_content_ref, $css_url_ref,
         $js_url_ref, $head_html_ref,  $ad_size_id,
-    ) = SL::Model::Ad->random( \%ad_args );
+    ) = SL::Model::Proxy::Ad->random( \%ad_args );
 
     # checkpoint random ad
     $r->log->info(
@@ -804,9 +796,9 @@ sub _generate_response {
     ########################################
     # put the ad in the page
     $TIMER->start('container insertion') if TIMING;
-    my $ok = SL::Model::Ad::container(
+    my $ok = SL::Model::Proxy::Ad::container(
         $css_url_ref,      $js_url_ref,     $head_html_ref,
-        \$decoded_content, $ad_content_ref, $ad_size_id
+        \$decoded_content, $ad_content_ref
     );
 
     # checkpoint
