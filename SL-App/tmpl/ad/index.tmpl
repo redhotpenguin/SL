@@ -1,6 +1,6 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage ads" selected="adcenter" %]
 
-<div id="main_content" class="grid_10 suffix_1">	
+<div id="main_content" class="grid_10 suffix_6">	
 	<h2>Advertisement Center</h2>
 	
 	[% IF msg %]
@@ -55,24 +55,6 @@
 
 
 
-
-
-<div id="secondary_content" class="grid_5">
-	<div id="sc_top">
-		<div id="sc_bottom">
-		<!--
-			<h3>Brand your Network</h3>
-			<img alt="Brand your ad banners with your logo." src="[% base_uri %]/resources/images/logos/application/brand_placeholder_lb.png" width="244" height="90"/>
-			[% IF reg.account_id.plan == 'free' %]
-			To brand your ad bar, you will need a paid account.  <a href="[% base_uri %]/billing/publisher/?plan=basic&email=[% reg.email %]">Click here</a> to sign up for our Basic Plan.
-			
-			[% ELSE %]
-				<p><a href="[% base_uri %]/app/ad/bugs/list">Customize the logo</a> that is displayed next to the Ad banners on your network. </p>
-			[% END %]
-			--> 
-		</div>
-	</div>
-</div>
 
 
 [% PROCESS footer.tmpl %]

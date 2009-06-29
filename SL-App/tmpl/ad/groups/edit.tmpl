@@ -2,26 +2,26 @@
 <div class="grid_16">
 	<div id="breadcrumb">
 		<div id="breadcrumb_inner">
-			<ul>[% PROCESS ad/groups/nav.tmpl %]<li><strong>Edit Ad Zone '[% ad_zone.name %]'</strong></li></ul>
+			<ul>[% PROCESS ad/groups/nav.tmpl %]<li>Edit<strong> '[% ad_zone.name %]'</strong> Banner</li></ul>
 		</div>
 	</div>
 </div>
 <div class="clear"></div>
 
-<div id="main_content" class="grid_16">
-	<h2>[% IF ad_zone.ad_zone_id %]Edit ad zone '[% ad_zone.name %]'[% ELSE%]Create ad zone[% END %]</h2>
-		<form class="form row" method="POST" action="[% base_uri %]/app/ad/groups/edit">
+<div id="main_content" class="grid_10 suffix_1">
+	<h2>[% IF ad_zone.ad_zone_id %]'[% ad_zone.name %]' Banner[% ELSE%]Create ad zone[% END %]</h2>
+	
+
+	
+		<form class=" row" method="POST" action="[% base_uri %]/app/ad/groups/edit">
 
 		<!-- Errors -->
 		[% IF status == 'update_ok' %]<p class="error">Your ad zone has been updated.</p>[% END %]
-		
 		[% IF errors.missing %]<p class="error">Please fill in the missing fields</p>[% END %]
-		
 		[% IF errors.invalid %]<p class="error">Some fields were invalid, please correct them</p>[% END %]
+		
 		<ul> 
-
-
-			<li>
+			<li class="form">
 				<!-- name -->
 				<div class="grid_6 alpha omega suffix_4">
 					<label for="name" class="[% IF errors.missing.name %]error[% END %]">Ad Zone Name</label>
@@ -30,104 +30,82 @@
 				</div>
 				<div class="clear"></div>
 			</li>
-
-
-
 			
-			<li>
+			<li style="display:none;">
 				<!-- ad size -->
 				<label for="ad_size_id" class="[% IF errors.missing.ad_size_id %]error[% END %]">Ad Size</label>
-
-
-<select name="ad_size_id" id="ad_size_id">
-
-<option value="">Select ad zone size</option>
-
-[% FOREACH ad_size = ad_sizes %]
-
-    [% IF loop.prev.grouping != ad_size.grouping %]
-    <option value=""></option>
-    <option value="">--&nbsp; 
-    [% END %]
-    [% IF ad_size.grouping == 1 %]Persistent Leaderboard
-    [% ELSIF ad_size.grouping == 8 %]Persistent Micro Bar
-    [% ELSIF ad_size.grouping == 6 %]Persistent Full Banner[% END %]
-    </option>
-
-<option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %]</option>
-
-[% END %]
-</select>
-
+				<select name="ad_size_id" id="ad_size_id">
+					<option value="">Select ad zone size</option>
+					[% FOREACH ad_size = ad_sizes %]
+				    [% IF loop.prev.grouping != ad_size.grouping %]
+				    <option value=""></option>
+				    <option value="">--&nbsp; 
+				    [% END %]
+				    [% IF ad_size.grouping == 1 %]Persistent Leaderboard
+				    [% ELSIF ad_size.grouping == 8 %]Persistent Micro Bar
+				    [% ELSIF ad_size.grouping == 6 %]Persistent Full Banner[% END %]
+				    </option>
+					<option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %]</option>
+					[% END %]
+				</select>
 
 				[% # PROCESS ad_size.tmpl adsizes=adsizes selected=ad_zone.ad_size.ad_size_id %]
-
 				<div class="clear"></div>
 				<p><a target="_new" href="http://silverliningworks.typepad.com/pdf/Silver_Lining_Ad_Zones.pdf">ad zone white paper</a> for details</p>
 			</li>	
 
-
-         <label for="zone_type">Select ad server invocation code or a banner image location and link</label>
-			<input id="text" type="radio" name="zone_type" value="banner" [% IF ad_zone.image_href or ad_zone.link_href %]checked="1"[% END %]/>
-			<label for="banner" class="check_label">Ad Banner</label>
-
-
-	<li>
-		<!-- banner entry -->
-		<div id="banner">
-	       <div class="grid_6 alpha omega suffix_4">
-            <label for="image_href" class="[% IF errors.missing.image_href %]error[% END %]">Banner Image Location</label>
-			<input type="text" name="image_href" size="30" value="[% req.param('image_href') or ad_zone.image_href %]" />
-			<label class="tip" for="image_href">Banner location, e.g. http://s1.slwifi.com/image/banner.gif</label>
-
-            <label for="link_href" class="[% IF errors.missing.link_href %]error[% END %]">Banner Image Link</label>
-			<input type="text" name="link_href" size="30" value="[% req.param('link_href') or ad_zone.link_href %]" />
-			<label class="tip" for="link_href">Banner link, e.g. http://ads.slwifi.com/click/1j6ha56aa81gpa</label>
-
-			<div class="clear"></div>
-
-				[% IF ad_zone.image_href %]
-                    [% IF req.param('code') or ad_zone.code %]
-				    <p>[% req.param('code') or ad_zone.code %]</p>
-				    [% END %]
-                [% END %]
-
-        </div>
-		<div class="clear"></div>
-
-		<!-- end banner entry-->
-	</li>
-
-
-
-	<input id="text" type="radio" name="zone_type" value="code" [% IF !ad_zone.image_href or !ad_zone.link_href %]checked="1"[% END %]/>
-						<label for="banner" class="check_label">Ad Server Invocation Code</label>
-
-
 			<li>
-				<!-- invocation code -->
-				<div id="code">
-				<label for="code" class="[% IF errors.missing.code %]error[% END %]">Ad Invocation Code (provided by your ad server)</label>
-				<label class="tip" for="code">For optimum ad serving speed, add the IP address of your ad server to the custom_skips.txt file on your router</label>
-
-				<textarea name="code" rows="10" cols="80">[% IF !ad_zone.image_href %][% req.param('code') or ad_zone.code %][% END %]</textarea>
-				<div class="clear"></div>
-				[% IF !ad_zone.image_href %]
-                    [% IF req.param('code') or ad_zone.code %]
-				    <p>[% req.param('code') or ad_zone.code %]</p>
-				    [% END %]
-                [% END %]
+				<label for="zone_type" class="block">Insert banner by:</label>
+				<div class="grid_2" id="zone_type_banner">
+					<input id="text" type="radio" name="zone_type" value="banner" [% IF ad_zone.image_href or ad_zone.link_href %]checked="1"[% END %]/>
+					<label for="banner" class="check_label">Image Link</label>
 				</div>
+				
+				<div class="grid_4" id="zone_type_code">
+					<input id="text" type="radio" name="zone_type" value="code" [% IF !ad_zone.image_href or !ad_zone.link_href %]checked="1"[% END %]/>
+					<label for="banner" class="check_label">Invocation Code</label>
+				</div>
+				<div class="clear"></div>
+			</li>
+			<li id="banner" class="form">
+			       <div class="grid_6 alpha omega suffix_4">
+		            <label for="image_href" class="[% IF errors.missing.image_href %]error[% END %]">Banner Image Link</label>
+					<input type="text" name="image_href" size="30" value="[% req.param('image_href') or ad_zone.image_href %]" />
+					<div class="clear"></div>
+					<label class="tip" for="image_href">Location of the Banner image, ex. yoursite.com/banner.gif</label>
+		
+		            <label for="link_href" class="[% IF errors.missing.link_href %]error[% END %]">Banner Destination</label>
+					<input type="text" name="link_href" size="30" value="[% req.param('link_href') or ad_zone.link_href %]" />
+					<div class="clear"></div>
+					<label class="tip" for="link_href">The webpage displayed when the Banner is clicked.</label>
+		
+		
+						[% IF ad_zone.image_href %]
+		                    [% IF req.param('code') or ad_zone.code %]
+						    <p>[% req.param('code') or ad_zone.code %]</p>
+						    [% END %]
+		                [% END %]
+					</div>
+				<div class="clear"></div>
+			</li>
 
+
+
+
+
+			<li id="code" class="form">
+				<!-- invocation code -->
+				<label for="code" class="[% IF errors.missing.code %]error[% END %]">Banner Invocation Code (provided by your ad server)</label>
+				<textarea name="code" rows="10" cols="80">[% IF !ad_zone.image_href %][% req.param('code') or ad_zone.code %][% END %]</textarea>
+				<label class="tip" for="code">For optimum ad serving speed, add the IP address of your ad server to the custom_skips.txt file on your router</label>
 				<div class="clear"></div>	
-				<!-- end invocation code -->		
 			</li>
 
 
 
 [% IF foo %]
 			<!-- invocation double code -->
-			<li>
+			<li class="form">
 				<div id="code_double" [% IF ad_zone.code_double2 != '' %]style="display: none;"[% END %]>
 				<label for="code" class="[% IF errors.missing.code_double %]error[% END %]">Double Ad Zone Code (provided by your ad server)</label>
 				<textarea name="code_double" rows="10" cols="100">[% req.param('code_double') or ad_zone.code_double %]</textarea>
@@ -143,44 +121,7 @@
 			<!-- end invocation code -->
 [% END %]
 
-
-
-			<li>
-
-				<!-- active -->
-				<label for="active">Is this Ad Zone active?</label>
-				<input type="radio" name="active" value="t" [% IF ad_zone.active %]checked[% END %] />
-				<label for="t" class="check_label">Yes</label>	
-				<div class="clear"></div>
-						
-				<input type="radio" name="active" value="f" id="f" [% IF !ad_zone.active %]checked[% END %] /> 
-				<label for="f" class="check_label">No</label>
-				<div class="clear"></div>
-				<label class="tip">To ensure consistency in reporting, ad zones cannot be deleted</label>
-			</li>
-
-
-[% IF reg.account_id.plan != 'free' %]
-			<li>
-				<!-- default -->
-				<label for="is_default">Is this a default Ad Zone?</label>
-				<input type="radio" name="is_default" value="t" [% IF ad_zone.is_default %]checked[% END %] />
-				<label for="t" class="check_label">Yes</label>	
-				<div class="clear"></div>
-						
-				<input type="radio" name="is_default" value="f"  [% IF !ad_zone.is_default or !ad_zone %]checked[% END %] /> 
-				<label for="f" class="check_label">No</label>
-				<div class="clear"></div>
-				<label class="tip">When two routers share the same WAN ip, sometimes the specific router cannot be identified.<br />In that case, an ad zone marked as a default ad zone will be shown.</label>
-				<label class="tip">The default ad zone is also automatically assigned to a device that has no ad zones assigned.</label>
-			</li>
-[% ELSE %]
-<input type="hidden" name="is_default" value="f">
-[% END %]
-
-
-			
-			<li>
+			<li class="form">
 				[% IF ad_zone.ad_zone_id %]
 				<input type="hidden" name="id" value="[% ad_zone.ad_zone_id %]">
 				[% END %]			
@@ -189,5 +130,62 @@
 		</ul>
 	</form>
 </div>
+
+
+<div id="secondary_content" class="grid_5">
+	<div id="sc_top">
+		<div id="sc_bottom">
+			<h3>Advanced Options</h3>
+			<ul class="form">
+				<li>
+	
+					<!-- active -->
+					<label for="active">Is this Ad Zone active?</label>
+					<input type="radio" name="active" value="t" [% IF ad_zone.active %]checked[% END %] />
+					<label for="t" class="check_label">Yes</label>	
+					<div class="clear"></div>
+							
+					<input type="radio" name="active" value="f" id="f" [% IF !ad_zone.active %]checked[% END %] /> 
+					<label for="f" class="check_label">No</label>
+					<div class="clear"></div>
+					<label class="tip">To ensure consistency in reporting, ad zones cannot be deleted</label>
+				</li>
+	
+	
+				[% IF reg.account_id.plan != 'free' %]
+				<li>
+					<!-- default -->
+					<label for="is_default">Is this a default Ad Zone?</label>
+					<input type="radio" name="is_default" value="t" [% IF ad_zone.is_default %]checked[% END %] />
+					<label for="t" class="check_label">Yes</label>	
+					<div class="clear"></div>
+							
+					<input type="radio" name="is_default" value="f"  [% IF !ad_zone.is_default or !ad_zone %]checked[% END %] /> 
+					<label for="f" class="check_label">No</label>
+					<div class="clear"></div>
+					<label class="tip">When two routers share the same WAN ip, sometimes the specific router cannot be identified.<br />In that case, an ad zone marked as a default ad zone will be shown.</label>
+					<label class="tip">The default ad zone is also automatically assigned to a device that has no ad zones assigned.</label>
+				</li>
+				[% ELSE %]
+				<input type="hidden" name="is_default" value="f">
+				[% END %]			
+			</ul>
+		</div>
+	</div>
+</div>
+
+<div class="grid_16">
+	<div id="banner_preview">
+	<h2>Banner Preview</h2>
+	<img class="left" alt="Brand your ad banners with your logo." src="[% base_uri %]/resources/images/logos/application/brand_placeholder_lb.png" width="200" height="90"/>
+	[% IF !ad_zone.image_href %]
+	    [% IF req.param('code') or ad_zone.code %]
+	    <div class="right">[% req.param('code') or ad_zone.code %]</div>
+	    [% END %]
+	[% END %]
+	<div class="clear"></div>
+	</div>
+</div>
+
 
 [% PROCESS footer.tmpl %]
