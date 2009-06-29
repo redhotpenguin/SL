@@ -50,5 +50,25 @@ $(document).ready(function(){
     //find all form with class jqtransform and apply the plugin
     $(".form").jqTransform();	
 
+
+	//CODE FOR HIDING OR SHOWING BANNER IMAGE LINK OR INVOCATION CODE
+	 if ($("input[name='zone_type']:checked").val() == 'banner') {
+    	$('#code').hide();
+    	$('#banner').show();
+    } else if ($("input[name='zone_type']:checked").val() == 'code') {
+    	$('#banner').hide();
+    	$('#code').show();
+    };
+	//Check again when value changes
+	$("input[name='zone_type']").change(function(){
+    if ($("input[name='zone_type']:checked").val() == 'banner') {
+    	$('#code').hide();
+    	$('#banner').show();
+    } else if ($("input[name='zone_type']:checked").val() == 'code') {
+    	$('#banner').hide();
+    	$('#code').show();
+    };
+	});
+
 	
 });

@@ -380,7 +380,7 @@ color: #444;
 font-weight: bold;
 }
 #workspace .tip {
-font-size: 77%;
+font-size: 85%;
 color: #868686;
 font-style: italic;
 margin-bottom: 0;
@@ -548,11 +548,14 @@ margin-bottom: 10px;
 font-size: 85%;
 font-style: italic;
 }
-#twitter_update_list li, p#twitter_update_list {
+#twitter_update_list li {
 background-color: #FFF;
 padding: 5px;
 border: 1px solid #CCC;
 margin-bottom: 10px;
+font-size: 85%;
+line-height: 18px;
+color: #444;
 }
 
 
@@ -600,4 +603,16 @@ margin-bottom: 20px;
 ============================================= */
 #zenbox_iframe img#logo {
 display: none;
+}
+
+/* BANNER PREVIEW
+============================================= */
+#banner_preview {
+margin-top: 20px;
+border-top: 2px solid #EEE;
+padding: 10px 0px 0px 0px;
+}
+#banner_preview h2 {
+font-size: 93%;
+margin-bottom: 5px;
 }
