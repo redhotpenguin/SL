@@ -16,12 +16,12 @@ $(document).ready(function () {
 	$('.confirm').click(function (e) {
 		e.preventDefault();
 		
-		var baseUrl = $('.confirm').attr('rel');
+		var routerId = $('.confirm').attr('rel');
 
 		// example of calling the confirm function
 		// you must use a callback function to perform the "yes" action
 		confirm("Are you sure you want to remove this device?", function () {
-			window.location.href = '/app/router/deactivate';
+			window.location.href = '/app/router/deactivate?id=' + routerId;
 		});
 	});
 });

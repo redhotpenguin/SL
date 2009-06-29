@@ -122,12 +122,11 @@ sub dispatch_omsync {
             my %router;
             $router{name} = $node->getChildrenByTagName('name')->string_value;
             $router{mac}  = $node->getChildrenByTagName('mac')->string_value;
-            $router{lat} =  $node->getChildrenByTagName('lat')->string_value;
-            $router{lng} =  $node->getChildrenByTagName('lng')->string_value;
-            $router{ip} = $node->getChildrenByTagName('ip')->string_value;
+            $router{lat}  = $node->getChildrenByTagName('lat')->string_value;
+            $router{lng}  = $node->getChildrenByTagName('lng')->string_value;
+            $router{ip}   = $node->getChildrenByTagName('ip')->string_value;
 
-            $router{notes} =
-              $node->getChildrenByTagName('notes')->string_value;
+            $router{notes} = $node->getChildrenByTagName('notes')->string_value;
             push @router_data, \%router;
         }
 
@@ -142,8 +141,8 @@ sub dispatch_omsync {
 
                 # router already exists
                 my $steal = 0;
-                unless ( $router->account->account_id ==
-                    $reg->account->account_id )
+                unless (
+                    $router->account->account_id == $reg->account->account_id )
                 {
 
                     $steal++;
@@ -176,8 +175,8 @@ sub dispatch_omsync {
 
             $router->name( $router_datum->{name} );
             $router->active(1);
-            $router->lat($router_datum->{lat});
-            $router->lng($router_datum->{lng});
+            $router->lat( $router_datum->{lat} );
+            $router->lng( $router_datum->{lng} );
             $router->ip( $router_datum->{ip} );
             $router->notes( $router_datum->{notes} );
             $router->update;
@@ -283,15 +282,17 @@ sub dispatch_edit {
 
     # persistent zones
     my @pzones = grep { $_->ad_size->persistent == 1 } @visible_ads;
-    #$r->log->debug("got pzones " . join("\n", map { $_->name } @pzones));
 
+    #$r->log->debug("got pzones " . join("\n", map { $_->name } @pzones));
 
     # splash page
     my @szones = grep { $_->ad_size->grouping == 3 } @visible_ads;
+
     #$r->log->debug("got szones " . join("\n", map { $_->name } @szones));
 
     # branding images
     my @bzones = grep { $_->ad_size->grouping == 2 } @visible_ads;
+
     #$r->log->debug("got bzones " . join("\n", map { $_->name } @bzones));
 
     my ( %router__ad_zones, @locations, $router, $output );
@@ -321,14 +322,15 @@ sub dispatch_edit {
           map  { $_->location } $router->router__locations;
 
         # format the time
-        $_->mts(DateTime::Format::Pg->parse_datetime($_->mts)
-            ->strftime("%a %b %e,%l:%m %p")) for @locations;
+        $_->mts( DateTime::Format::Pg->parse_datetime( $_->mts )
+              ->strftime("%a %b %e,%l:%m %p") )
+          for @locations;
 
         # current associations for this router, including twitter
         %router__ad_zones =
           map { $_->ad_zone->ad_zone_id => 1 } $router->router__ad_zones;
 
-        foreach my $ad_zone (@pzones, @szones, @bzones) {
+        foreach my $ad_zone ( @pzones, @szones, @bzones ) {
             if ( exists $router__ad_zones{ $ad_zone->ad_zone_id } ) {
                 $ad_zone->{selected} = 1;
             }
@@ -354,8 +356,8 @@ sub dispatch_edit {
             twit_zone => $twit_zone,
             msg_zone  => $msg_zone,
             ad_zones  => \@pzones,
-            szones => \@szones,
-            bzones => \@bzones,
+            szones    => \@szones,
+            bzones    => \@bzones,
             router    => $router,
             locations => scalar( @locations > 0 ) ? \@locations : '',
             errors    => $args_ref->{errors},
@@ -568,6 +570,33 @@ sub dispatch_list {
       || return $class->error( $r, $Tmpl->error );
 
     return $class->ok( $r, $output );
+}
+
+sub dispatch_deactivate {
+    my ( $class, $r, $args_ref ) = @_;
+
+    my $reg = $r->pnotes( $r->user );
+    my $req = Apache2::Request->new($r);
+
+    my $id = $req->param('id');
+
+    my ($router) = SL::Model::App->resultset('Router')->search(
+        {
+            account_id => $reg->account_id,
+            router_id  => $id,
+            active     => 't',
+        }
+    );
+
+    return Apache2::Const::NOT_FOUND unless $router;
+
+    $router->active(0);
+    $router->update;
+
+    $r->pnotes('session')->{msg} = sprintf( "Router '%s' was deleted", $router->name );
+    $r->headers_out->set(
+        Location => $r->headers_in->{'referer'} );
+    return Apache2::Const::REDIRECT;
 }
 
 1;
