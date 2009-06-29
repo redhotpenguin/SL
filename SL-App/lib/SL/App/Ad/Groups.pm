@@ -55,12 +55,11 @@ sub dispatch_add {
                 code       => '',
             }
         );
-        $ad_zone->name('New Ad Zone');
+        return Apache2::Const::NOT_FOUND unless $ad_zone;
         $ad_zone->update;
 
+
 =cut
-
-
         # fix this when dbix::class::row->copy is fixed
         my ($ad_zone) = SL::Model::App->resultset('AdZone')->search(
             {
@@ -70,25 +69,12 @@ sub dispatch_add {
             },
             { join => 'ad_size', order_by => 'me.mts asc', limit    => 1 }
         );
-=cut
-
-        return Apache2::Const::NOT_FOUND unless $ad_zone;
 
         my $clone = $ad_zone->copy( { name => 'New Ad Zone' } );
+=cut
 
-        $r->headers_out->set(
-            Location => $r->construct_url(
-                    $Config->base_uri
-                  . '/app/ad/groups/edit?id='
-                  . $clone->ad_zone_id
-            )
-        );
-        return Apache2::Const::REDIRECT;
+        return $self->dispatch_edit( $r, { req => $req }, $ad_zone );
 
-    }
-    else {
-
-        return Apache2::Const::HTTP_METHOD_NOT_ALLOWED;
     }
 
 }
@@ -172,12 +158,22 @@ sub dispatch_remove {
 }
 
 sub dispatch_edit {
-    my ( $self, $r, $args_ref ) = @_;
+    my ( $self, $r, $args_ref, $ad_zone_obj ) = @_;
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
     my $reg = $r->pnotes( $r->user );
 
-    my $ad_zone = $reg->get_ad_zone( $req->param('id') );
+    my $ad_zone;
+    if (my $id = $req->param('id')) {
+
+      $ad_zone = $reg->get_ad_zone( $id );
+
+    } elsif ($ad_zone_obj) {
+
+      $ad_zone = $ad_zone_obj;
+
+    }
+
     return Apache2::Const::NOT_FOUND unless $ad_zone;
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
