@@ -34,11 +34,10 @@
 	<table class="large_table">
 	<tr>
 		<th>Ad Zone Name</th>
-		<!--<th>Active</td>-->
+<!--		<th>Views Yesterday</th>-->
 		<th>Last Modified</th>
 		<th>Active on</th>
-		<!--<th>Assign Devices</th>-->
-		<!--<th>Remove Devices</th>-->
+
 	</tr>
 	
 	[% FOREACH ad_zone = ad_zones %]
@@ -47,12 +46,8 @@
 			<a href="[% base_uri %]/app/ad/groups/edit/?id=[% ad_zone.ad_zone_id %]">
 			[% ad_zone.name %]</a></td>
 			
-			<!--<td>[% IF ad_zone.ad_size.persistent == 1 %]Persistent[% ELSIF ad_zone.ad_size.grouping == 2 %]Branding[% ELSIF ad_zone.ad_size.grouping == 3 %]Splash Page[% END %]</td>-->
+			<!--<td class="smaller">69</td>-->
 			
-			<!-- active -->	
-			<!--  <td>
-			[% IF ad_zone.active %]Yes[% ELSE %]No[% END %]</td>-->
-
 			<td class="smaller">[% ad_zone.mts %]</td>
 
 			<td class="smaller">
@@ -65,17 +60,6 @@
 			devices
 			</td>
 			
-
-			<!--
-			<td>
-			<a href="[% base_uri %]/app/ad/groups/assign?id=[% ad_zone.ad_zone_id %]">Assign Devices</a>
-			</td>
-
-			<td>
-			<a href="[% base_uri %]/app/ad/groups/remove?id=[% ad_zone.ad_zone_id %]">Remove Devices</a>
-			</td>
-			--> 
-
 		</tr>
 	[% END %]
 	</table>

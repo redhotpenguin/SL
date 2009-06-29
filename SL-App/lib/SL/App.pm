@@ -353,4 +353,13 @@ sub valid_username {
       }
 }
 
+sub sldatetime {
+  my ($self, $mts) = @_;
+
+
+  return DateTime::Format::Pg->parse_datetime( $mts )
+              ->strftime("%m/%d/%y (%I:%M %p)");
+
+}
+
 1;

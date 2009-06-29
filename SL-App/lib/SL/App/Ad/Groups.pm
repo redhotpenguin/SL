@@ -307,9 +307,7 @@ sub dispatch_list {
 
     #$r->log->debug( "ad zones: " . Dumper( \@ad_zones ) ) if DEBUG;
 
-    $_->mts( DateTime::Format::Pg->parse_datetime( $_->mts )
-          ->strftime("%a %b %e,%l:%m %p") )
-      for @ad_zones;
+    $_->mts( $class->sldatetime( $_->mts ) for @ad_zones;
 
     my %tmpl_data = (
         session  => $r->pnotes('session'),

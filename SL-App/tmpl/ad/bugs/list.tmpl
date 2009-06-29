@@ -9,27 +9,22 @@
 <div class="clear"></div>
 
 
+
 <div id="main_content" class="grid_16">
 	<h2>Manage Branding Images</h2>
-	<p class="tip"> [% count %] Ad Zones</p>
+	<p class="tip"> [% count %] Branding Images</p>
 	
-	<h3 class="row">Select a branding image ad zone below to edit</h3>
+	<h3 class="row">Select a branding image below to edit</h3>
 	
 	[% IF msg %]<p class="error">[% msg %]</p>[% END %]
 	
 	
-	
-	
 	<table class="basic_table">
 	<tr>
-		<th>Ad Zone Name</th>
-		<th>Ad Zone Size</th>
-		<!--<th>Active</td>-->
-		<th>Assigned Routers</th>
+		<th>Name</th>
+		<th>Active On</th>
 		<th>Last Modified By</th>
-		<th>Clone</th>
-		<th>Assign Devices</th>
-		<th>Remove Devices</th>
+		<th>Default Image</th>
 	</tr>
 	
 	[% FOREACH ad_zone = ad_zones %]
@@ -37,13 +32,6 @@
 			<td>
 			<a href="[% base_uri %]/app/ad/bugs/edit/?id=[% ad_zone.ad_zone_id %]">
 			[% ad_zone.name %]</a></td>
-			
-			<!--<td>[% IF ad_zone.ad_size.persistent == 1 %]Persistent[% ELSIF ad_zone.ad_size.grouping == 2 %]Branding[% ELSIF ad_zone.ad_size.grouping == 3 %]Splash Page[% END %]</td>-->
-		    <td>[% ad_zone.ad_size.name %]</td>
-			
-			<!-- active -->	
-			<!--  <td>
-			[% IF ad_zone.active %]Yes[% ELSE %]No[% END %]</td>-->
 			
 			<td>
 			[% IF ad_zone.router_count == 0 %]
@@ -58,17 +46,7 @@
 			<a href="mailto:[% ad_zone.reg.email %]">[% ad_zone.reg.email %]</a><br />[% ad_zone.mts %]
 			</td>
 
-			<td>
-			<a href="[% base_uri %]/app/ad/groups/clone?id=[% ad_zone.ad_zone_id %]">Clone</a>
-			</td>
-
-			<td>
-			<a href="[% base_uri %]/app/ad/groups/assign?id=[% ad_zone.ad_zone_id %]">Assign Devices</a>
-			</td>
-
-			<td>
-			<a href="[% base_uri %]/app/ad/groups/remove?id=[% ad_zone.ad_zone_id %]">Remove Devices</a>
-			</td>
+            <td>[% IF ad_zone.is_default %]Yes[% ELSE %]No[% END %]</td>
 
 
 		</tr>

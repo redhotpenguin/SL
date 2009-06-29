@@ -322,9 +322,7 @@ sub dispatch_edit {
           map  { $_->location } $router->router__locations;
 
         # format the time
-        $_->mts( DateTime::Format::Pg->parse_datetime( $_->mts )
-              ->strftime("%a %b %e,%l:%m %p") )
-          for @locations;
+        $_->mts( $class->sldatetime( $_->mts ) ) for @locations;
 
         # current associations for this router, including twitter
         %router__ad_zones =
