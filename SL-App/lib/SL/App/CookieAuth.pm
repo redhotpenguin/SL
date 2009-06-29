@@ -85,7 +85,7 @@ sub authenticate {
         $dest .= "/?dest=" . $r->unparsed_uri;
 
         # replace /login with /home
-        if ( substr($dest, length($dest)-5, length($dest)) ) {
+        if ( substr($dest, length($dest)-5, length($dest)) eq 'login' ) {
 
             substr($dest, length($dest)-5, length($dest), 'home/index');
         }
