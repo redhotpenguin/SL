@@ -310,7 +310,6 @@ sub dispatch_list {
     $_->mts( $self->sldatetime( $_->mts ) ) for @ad_zones;
 
     my %tmpl_data = (
-        session  => $r->pnotes('session'),
         ad_zones => \@ad_zones,
         count    => scalar(@ad_zones),
     );

@@ -1,19 +1,20 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Edit ad zone"  selected="adcenter" %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Edit Splash Page Ad"  selected="adcenter" %]
 <div class="grid_16">
 	<div id="breadcrumb">
 		<div id="breadcrumb_inner">
-			<ul>[% PROCESS ad/groups/nav.tmpl %]<li>Edit<strong> '[% ad_zone.name %]'</strong> Banner</li></ul>
+			<ul>[% PROCESS ad/splash/nav.tmpl %]<li>Edit<strong> '[% ad_zone.name %]'</strong> Splash Page Ad</li></ul>
 		</div>
 	</div>
 </div>
+
 <div class="clear"></div>
 
 <div id="main_content" class="grid_10 suffix_1">
-	<h2>'[% ad_zone.name %]' Banner</h2>
+	<h2>'[% ad_zone.name %]' Splash Page Ad</h2>
 	
 
 	
-		<form class=" row" method="POST" action="[% base_uri %]/app/ad/groups/edit">
+		<form class=" row" method="POST" action="[% base_uri %]/app/ad/splash/edit">
 
 		<!-- Errors -->
 		[% IF status == 'update_ok' %]<p class="error">Your ad zone has been updated.</p>[% END %]
@@ -24,57 +25,36 @@
 			<li class="form">
 				<!-- name -->
 				<div class="grid_6 alpha omega suffix_4">
-					<label for="name" class="[% IF errors.missing.name %]error[% END %]">Ad Zone Name</label>
+					<label for="name" class="[% IF errors.missing.name %]error[% END %]">Splash Page Ad Name</label>
 					<input type="text" name="name" size="30" value='[% req.param('name') or ad_zone.name %]' />
 					<div class="clear"></div>
 				</div>
 				<div class="clear"></div>
 			</li>
 			
-			<li style="display:none;">
-				<!-- ad size -->
-				<label for="ad_size_id" class="[% IF errors.missing.ad_size_id %]error[% END %]">Ad Size</label>
-				<select name="ad_size_id" id="ad_size_id">
-					<option value="">Select ad zone size</option>
-					[% FOREACH ad_size = ad_sizes %]
-				    [% IF loop.prev.grouping != ad_size.grouping %]
-				    <option value=""></option>
-				    <option value="">--&nbsp; 
-				    [% END %]
-				    [% IF ad_size.grouping == 1 %]Persistent Leaderboard
-				    [% ELSIF ad_size.grouping == 8 %]Persistent Micro Bar
-				    [% ELSIF ad_size.grouping == 6 %]Persistent Full Banner[% END %]
-				    </option>
-					<option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %]</option>
-					[% END %]
-				</select>
-
-				[% # PROCESS ad_size.tmpl adsizes=adsizes selected=ad_zone.ad_size.ad_size_id %]
-				<div class="clear"></div>
-				<p><a target="_new" href="http://silverliningworks.typepad.com/pdf/Silver_Lining_Ad_Zones.pdf">ad zone white paper</a> for details</p>
-			</li>	
 
 			<li>
 				<label for="zone_type" class="block">Insert banner by:</label>
 				<div class="grid_2" id="zone_type_banner">
-					<input id="text" type="radio" name="zone_type" value="banner" [% IF ad_zone.image_href or ad_zone.link_href %]checked="1"[% END %]/>
+					<input id="text" type="radio" name="zone_type" value="banner" [% IF req.param('zone_type') == 'banner' or req.param('image_href') or req.param('link_href') or ad_zone.image_href or ad_zone.link_href %]checked="1"[% END %]/>
 					<label for="banner" class="check_label">Image Link</label>
 				</div>
 				
 				<div class="grid_4" id="zone_type_code">
-					<input id="text" type="radio" name="zone_type" value="code" [% IF !ad_zone.image_href or !ad_zone.link_href %]checked="1"[% END %]/>
+					<input id="text" type="radio" name="zone_type" value="code" [% IF req.param('zone_type') == 'code' or !ad_zone.image_href or !ad_zone.link_href %]checked="1"[% END %]/>
 					<label for="banner" class="check_label">Invocation Code</label>
 				</div>
 				<div class="clear"></div>
 			</li>
+
 			<li id="banner" class="form">
 			       <div class="grid_6 alpha omega suffix_4">
-		            <label for="image_href" class="[% IF errors.missing.image_href %]error[% END %]">Banner Image Link</label>
+		            <label for="image_href" class="[% IF error.invalid.image_href or errors.missing.image_href %]error[% END %]">Banner Image Link</label>
 					<input type="text" name="image_href" size="30" value="[% req.param('image_href') or ad_zone.image_href %]" />
 					<div class="clear"></div>
 					<label class="tip" for="image_href">Location of the Banner image, ex. yoursite.com/banner.gif</label>
 		
-		            <label for="link_href" class="[% IF errors.missing.link_href %]error[% END %]">Banner Destination</label>
+		            <label for="link_href" class="[% IF errors.invalid.link_href or errors.missing.link_href %]error[% END %]">Banner Destination</label>
 					<input type="text" name="link_href" size="30" value="[% req.param('link_href') or ad_zone.link_href %]" />
 					<div class="clear"></div>
 					<label class="tip" for="link_href">The webpage displayed when the Banner is clicked.</label>
@@ -110,7 +90,7 @@
 				<input type="submit" value="Save ad zone" />
 			</li>
 		</ul>
-	</form>
+
 </div>
 
 
@@ -134,7 +114,6 @@
 				</li>
 	
 	
-				[% IF reg.account_id.plan != 'free' %]
 				<li>
 					<!-- default -->
 					<label for="is_default">Is this a default Ad Zone?</label>
@@ -148,13 +127,12 @@
 					<label class="tip">When two routers share the same WAN ip, sometimes the specific router cannot be identified.<br />In that case, an ad zone marked as a default ad zone will be shown.</label>
 					<label class="tip">The default ad zone is also automatically assigned to a device that has no ad zones assigned.</label>
 				</li>
-				[% ELSE %]
-				<input type="hidden" name="is_default" value="f">
-				[% END %]			
+
 			</ul>
 		</div>
 	</div>
 </div>
+
 
 <div class="grid_16">
 	<div id="banner_preview">
@@ -168,6 +146,7 @@
 	<div class="clear"></div>
 	</div>
 </div>
+	</form>
 
 
 [% PROCESS footer.tmpl %]

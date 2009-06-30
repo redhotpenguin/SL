@@ -558,7 +558,6 @@ sub dispatch_list {
       sort { $a->{'last_seen'} cmp $b->{'last_seen'} } @routers;
 
     my %tmpl_data = (
-        session => $r->pnotes('session'),
         routers => \@routers,
         count   => scalar(@routers),
     );

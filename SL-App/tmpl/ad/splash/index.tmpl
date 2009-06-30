@@ -1,18 +1,87 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage ads" selected="splash" %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage Ads" selected="adcenter" %]
 
-<div id="main_content" class="grid_10 suffix_6">	
-	<h2>Manage Splash Page Advertising</h2>
-	
-	[% IF msg %]
-		<p class="error">[% msg %]</p>
-	[% END %]
-	<div class="row">
-        <p>Use the following invocation code on your splash page to show targeted splash page ads:</p>
-        <p><textarea rows="2" readonly="1" cols="100">&lt;script type="javascript" src="[% link %]"&gt;</script></textarea></p>
-		
+
+<div class="grid_16">
+	<div id="breadcrumb">
+		<div id="breadcrumb_inner">
+			<ul>[% PROCESS ad/nav.tmpl %]<li><strong>Splash Page Ads</strong></li></ul>
+		</div>
 	</div>
-</div> 
+</div>
+<div class="clear"></div>
 
 
+<div id="main_content" class="grid_10 suffix_1">
+
+
+	<div class="grid_6 alpha">
+		<h2>Splash Page Advertisements</h2>
+		<p class="tip">You have <strong>[% count %]</strong> splash page advertisements</p>
+
+	</div>
+
+
+	<div class="grid_4 omega">
+		<a class="right" id="button_add_banner" href="[% base_uri %]/app/ad/splash/add">Add a Splash Page Ad</a>
+		<div class="clear"></div>
+	</div>
+	<div class="clear"></div>
+
+
+
+		[% IF msg %]<p class="error">[% msg %]</p>[% END %]
+	
+	
+	
+	
+	<table class="large_table">
+	<tr>
+		<th>Ad Zone Name</th>
+<!--		<th>Views Yesterday</th>-->
+		<th>Last Modified</th>
+		<th>Active on</th>
+
+	</tr>
+
+	
+	[% FOREACH ad_zone = ad_zones %]
+		<tr>
+			<td class="larger">
+			<a href="[% base_uri %]/app/ad/splash/edit/?id=[% ad_zone.ad_zone_id %]">
+			[% ad_zone.name %]</a></td>
+			
+			<!--<td class="smaller">69</td>-->
+			
+			<td class="smaller">[% ad_zone.mts %]</td>
+
+			<td class="smaller">
+			[% IF ad_zone.router_count == 0 %]
+			    [% ad_zone.router_count %]
+			[% ELSE %]
+			<a href="[% base_uri %]/app/router/list?ad_zone_id=[% ad_zone.ad_zone_id %]">
+			[% ad_zone.router_count %]</a>
+			[% END %]
+			devices
+			</td>
+			
+		</tr>
+	[% END %]
+	</table>
+</div>
+
+<div id="secondary_content" class="grid_5">
+	<div id="sc_top">
+		<div id="sc_bottom">
+		
+			<h3>Splash Page Invocation Code</h3>
+
+        <p>You can use Silver Lining to target your splash (or login) page advertisements by using the following html code on your splash page.<br />Add your splash page ads to the Ad Center, then target them to devices as you would the banner ads.</p>
+        <p><textarea rows="4" readonly="1" cols="40">&lt;script type="javascript" src="[% link %]"&gt;</script></textarea></p>
+
+			
+		</div>
+	</div>
+</div>
 
 [% PROCESS footer.tmpl %]
+
