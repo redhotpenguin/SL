@@ -8,20 +8,36 @@
 </div>
 <div class="clear"></div>
 
+
+<!-- BANNER PREVIEW -->
+[% IF !ad_zone.image_href %]
+	[% IF req.param('code') or ad_zone.code %]
+	   <div class="grid_16">
+			<div id="banner_preview">
+	   		 <div id="banner">[% req.param('code') or ad_zone.code %]</div>
+			<div class="clear"></div>
+			</div>
+		</div>	
+	[% END %]
+[% END %]
+
+
+
+
+<form method="post" action="[% base_uri %]/app/ad/groups/edit">
 <div id="main_content" class="grid_10 suffix_1">
 	<h2>'[% ad_zone.name %]' Banner</h2>
 	
 
 	
-		<form class=" row" method="POST" action="[% base_uri %]/app/ad/groups/edit">
 
 		<!-- Errors -->
 		[% IF status == 'update_ok' %]<p class="error">Your ad zone has been updated.</p>[% END %]
 		[% IF errors.missing %]<p class="error">Please fill in the missing fields</p>[% END %]
 		[% IF errors.invalid %]<p class="error">Some fields were invalid, please correct them</p>[% END %]
 		
-		<ul> 
-			<li class="form">
+		<ul class="form row"> 
+			<li>
 				<!-- name -->
 				<div class="grid_6 alpha omega suffix_4">
 					<label for="name" class="[% IF errors.missing.name %]error[% END %]">Ad Zone Name</label>
@@ -45,7 +61,7 @@
 				    [% ELSIF ad_size.grouping == 8 %]Persistent Micro Bar
 				    [% ELSIF ad_size.grouping == 6 %]Persistent Full Banner[% END %]
 				    </option>
-					<option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %]</option>
+					<option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size.ad_size_id == ad_size.ad_size_id %]selected="selected"[% END %]>[% ad_size.name %]</option>
 					[% END %]
 				</select>
 
@@ -53,57 +69,65 @@
 				<div class="clear"></div>
 				<p><a target="_new" href="http://silverliningworks.typepad.com/pdf/Silver_Lining_Ad_Zones.pdf">ad zone white paper</a> for details</p>
 			</li>	
-
+		</ul>
+		
+		<ul>
 			<li>
-				<label for="zone_type" class="block">Insert banner by:</label>
-				<div class="grid_2" id="zone_type_banner">
-					<input id="text" type="radio" name="zone_type" value="banner" [% IF ad_zone.image_href or ad_zone.link_href %]checked="1"[% END %]/>
-					<label for="banner" class="check_label">Image Link</label>
+				<label for="zone_type" class="label">Insert banner with</label>
+				<div class="grid_2 alpha" id="zone_type_banner">
+					<input class="left" id="text" type="radio" name="zone_type" value="banner" [% IF ad_zone.image_href or ad_zone.link_href %]checked="1"[% END %]/>
+					<label for="banner" class="check_label left">Image URL</label>
+					<div class="clear"></div>
 				</div>
 				
-				<div class="grid_4" id="zone_type_code">
-					<input id="text" type="radio" name="zone_type" value="code" [% IF !ad_zone.image_href or !ad_zone.link_href %]checked="1"[% END %]/>
-					<label for="banner" class="check_label">Invocation Code</label>
+				<div class="grid_4 omega" id="zone_type_code">
+					<input class="left" id="text" type="radio" name="zone_type" value="code" [% IF !ad_zone.image_href or !ad_zone.link_href %]checked="1"[% END %]/>
+					<label for="banner" class="check_label left">Invocation Code</label>
+					<div class="clear"></div>
 				</div>
 				<div class="clear"></div>
 			</li>
-			<li id="banner" class="form">
-			       <div class="grid_6 alpha omega suffix_4">
-		            <label for="image_href" class="[% IF errors.missing.image_href %]error[% END %]">Banner Image Link</label>
-					<input type="text" name="image_href" size="30" value="[% req.param('image_href') or ad_zone.image_href %]" />
-					<div class="clear"></div>
-					<label class="tip" for="image_href">Location of the Banner image, ex. yoursite.com/banner.gif</label>
+		</ul>
 		
-		            <label for="link_href" class="[% IF errors.missing.link_href %]error[% END %]">Banner Destination</label>
-					<input type="text" name="link_href" size="30" value="[% req.param('link_href') or ad_zone.link_href %]" />
-					<div class="clear"></div>
-					<label class="tip" for="link_href">The webpage displayed when the Banner is clicked.</label>
-		
-		
-						[% IF ad_zone.image_href %]
-		                    [% IF req.param('code') or ad_zone.code %]
-						    <p>[% req.param('code') or ad_zone.code %]</p>
-						    [% END %]
-		                [% END %]
-					</div>
+		<ul class="form">
+			<li class="banner">
+		       <div class="grid_10 alpha omega ">
+	            <label for="image_href" class="[% IF errors.missing.image_href %]error[% END %]">Banner Image Link</label>
+				<input type="text" name="image_href" size="50" value="[% req.param('image_href') or ad_zone.image_href %]" />
+				<div class="clear"></div>
+				<label class="tip margin_b_20" for="image_href">Location of the Banner image, ex. yoursite.com/banner.gif</label>
+				</div>
+				<div class="clear"></div>
+			</li>
+			
+			<li class="banner">
+		       <div class="grid_10 alpha omega ">
+	            <label for="link_href" class="[% IF errors.missing.link_href %]error[% END %]">Banner Destination</label>
+				<input type="text" name="link_href" size="50" value="[% req.param('link_href') or ad_zone.link_href %]" />
+				<div class="clear"></div>
+				<label class="tip" for="link_href">The webpage displayed when the Banner is clicked.</label>
+	
+	
+					[% IF ad_zone.image_href %]
+	                    [% IF req.param('code') or ad_zone.code %]
+					    <p>[% req.param('code') or ad_zone.code %]</p>
+					    [% END %]
+	                [% END %]
+				</div>
 				<div class="clear"></div>
 			</li>
 
-
-
-
-
-			<li id="code" class="form">
-				<!-- invocation code -->
+			<li id="code" >
+		       <div class="grid_10 alpha omega">
 				<label for="code" class="[% IF errors.missing.code %]error[% END %]">Banner Invocation Code (provided by your ad server)</label>
-				<textarea name="code" rows="10" cols="80">[% IF !ad_zone.image_href %][% req.param('code') or ad_zone.code %][% END %]</textarea>
-				<label class="tip" for="code">For optimum ad serving speed, add the IP address of your ad server to the custom_skips.txt file on your router</label>
+				<textarea name="code" rows="10" cols="75">[% IF !ad_zone.image_href %][% req.param('code') or ad_zone.code %][% END %]</textarea>
+				<label class="tip" for="code">For faster speed add your Ad Server IP address to the custom_skips.txt on your router</label>
 				<div class="clear"></div>	
+				</div>
+				<div class="clear"></div>
 			</li>
 
-
-
-			<li class="form">
+			<li>
 				[% IF ad_zone.ad_zone_id %]
 				<input type="hidden" name="id" value="[% ad_zone.ad_zone_id %]">
 				[% END %]			
@@ -152,18 +176,7 @@
 	</div>
 </div>
 
-<div class="grid_16">
-	<div id="banner_preview">
-	<h2>Banner Preview</h2>
-	<img class="left" alt="Brand your ad banners with your logo." src="[% base_uri %]/resources/images/logos/application/brand_placeholder_lb.png" width="200" height="90"/>
-	[% IF !ad_zone.image_href %]
-	    [% IF req.param('code') or ad_zone.code %]
-	    <div class="right">[% req.param('code') or ad_zone.code %]</div>
-	    [% END %]
-	[% END %]
-	<div class="clear"></div>
-	</div>
-</div>
+
 </form>
 
 
