@@ -97,7 +97,7 @@ sub dispatch_edit {
     }
     $bug->ad_size_id( LEADERBOARD_BUG_SIZE );
     $bug->bug_id( 1 );
-    $bug->mts( DateTime::Format::Pg->format_datetime( DateTime->now ));
+    $bug->mts( DateTime::Format::Pg->format_datetime( DateTime->now(time_zone => 'local')));
     $bug->update;
 
 

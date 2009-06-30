@@ -64,9 +64,8 @@
 					[% END %]
 				</select>
 
-				[% # PROCESS ad_size.tmpl adsizes=adsizes selected=ad_zone.ad_size.ad_size_id %]
 				<div class="clear"></div>
-				<p><a target="_new" href="http://silverliningworks.typepad.com/pdf/Silver_Lining_Ad_Zones.pdf">ad zone white paper</a> for details</p>
+
 			</li>	
 		</ul>
 		
@@ -87,6 +86,7 @@
 			
     <li id="banner" class="form">
 			       <div class="grid_6 alpha omega suffix_4">
+
 		            <label for="image_href" class="[% IF errors.missing.image_href or errors.invalid.image_href %]error[% END %]">Banner Image Link</label>
 					<input type="text" name="image_href" size="30" value="[% req.param('image_href') or ad_zone.image_href %]" />
 					<div class="clear"></div>
@@ -96,6 +96,7 @@
 					<input type="text" name="link_href" size="30" value="[% req.param('link_href') or ad_zone.link_href %]" />
 					<div class="clear"></div>
 					<label class="tip" for="link_href">The webpage displayed when the Banner is clicked.</label>
+
 		
 		
 						[% IF ad_zone.image_href %]

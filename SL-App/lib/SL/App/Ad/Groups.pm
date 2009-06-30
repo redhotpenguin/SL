@@ -59,20 +59,6 @@ sub dispatch_add {
         $ad_zone->update;
 
 
-=cut
-        # fix this when dbix::class::row->copy is fixed
-        my ($ad_zone) = SL::Model::App->resultset('AdZone')->search(
-            {
-                'me.account_id' => $reg->account_id,
-                'me.active'     => 't',
-                'ad_size.grouping'   => 1,
-            },
-            { join => 'ad_size', order_by => 'me.mts asc', limit    => 1 }
-        );
-
-        my $clone = $ad_zone->copy( { name => 'New Ad Zone' } );
-=cut
-
         return $self->dispatch_edit( $r, { req => $req }, $ad_zone );
 
     }
@@ -272,6 +258,8 @@ sub dispatch_edit {
 
     # add arguments
     $ad_zone->$_( $args{$_} ) for keys %args;
+    $ad_zone->bug_id( 1 );
+    $ad_zone->mts( DateTime::Format::Pg->format_datetime( DateTime->now( time_zone => 'local')));
     $ad_zone->update;
 
     $r->log->debug("ad zone is " . Dumper($ad_zone)) if DEBUG;
