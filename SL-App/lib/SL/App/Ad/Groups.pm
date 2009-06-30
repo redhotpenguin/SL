@@ -225,6 +225,7 @@ sub dispatch_edit {
         if ( $results->has_missing or $results->has_invalid ) {
             my $errors = $self->SUPER::_results_to_errors($results);
 
+            $r->log->debug( Dumper($results) ) if DEBUG;
             $r->log->debug( Dumper($errors) ) if DEBUG;
 
             return $self->dispatch_edit(
@@ -269,25 +270,15 @@ sub dispatch_edit {
             $args{'link_href'}, $args{'image_href'} );
     }
 
-=cut
-
-
-    if ( my $double = $req->param('code_double') ) {
-
-        #$double = minify( $double );
-        #		$double =~ s/(?:\t|\r|\n|\s{2,})/ /g;
-        $args{'code_double'} = $double;
-    }
-=cut
-
     # add arguments
     $ad_zone->$_( $args{$_} ) for keys %args;
     $ad_zone->update;
 
+    $r->log->debug("ad zone is " . Dumper($ad_zone)) if DEBUG;
+
+
     # done with argument processing
-    my $status = $req->param('id') ? 'updated' : 'created';
-    $r->pnotes('session')->{msg} =
-      sprintf( "Ad Zone '%s' was %s", $ad_zone->name, $status );
+    $r->pnotes('session')->{msg} = sprintf( "Ad Zone '%s' was updated", $ad_zone->name );
 
     $r->headers_out->set(
         Location => $r->construct_url('/app/ad/groups/list') );

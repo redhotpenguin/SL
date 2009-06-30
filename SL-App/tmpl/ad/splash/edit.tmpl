@@ -103,11 +103,11 @@
 	
 					<!-- active -->
 					<label for="active">Is this Ad Zone active?</label>
-					<input type="radio" name="active" value="t" [% IF ad_zone.active %]checked[% END %] />
+					<input type="radio" name="active" value="t" [% IF ad_zone.active %]checked="1"[% END %] />
 					<label for="t" class="check_label">Yes</label>	
 					<div class="clear"></div>
 							
-					<input type="radio" name="active" value="f" id="f" [% IF !ad_zone.active %]checked[% END %] /> 
+					<input type="radio" name="active" value="f" [% IF !ad_zone.active %]checked[% END %] /> 
 					<label for="f" class="check_label">No</label>
 					<div class="clear"></div>
 					<label class="tip">To ensure consistency in reporting, ad zones cannot be deleted</label>
@@ -117,11 +117,11 @@
 				<li>
 					<!-- default -->
 					<label for="is_default">Is this a default Ad Zone?</label>
-					<input type="radio" name="is_default" value="t" [% IF ad_zone.is_default %]checked[% END %] />
+					<input type="radio" name="is_default" value="t" [% IF ad_zone.is_default %]checked="1"[% END %] />
 					<label for="t" class="check_label">Yes</label>	
 					<div class="clear"></div>
 							
-					<input type="radio" name="is_default" value="f"  [% IF !ad_zone.is_default or !ad_zone %]checked[% END %] /> 
+					<input type="radio" name="is_default" value="f"  [% IF !ad_zone.is_default or !ad_zone %]checked="1"[% END %] /> 
 					<label for="f" class="check_label">No</label>
 					<div class="clear"></div>
 					<label class="tip">When two routers share the same WAN ip, sometimes the specific router cannot be identified.<br />In that case, an ad zone marked as a default ad zone will be shown.</label>

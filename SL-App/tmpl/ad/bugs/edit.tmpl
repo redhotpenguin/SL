@@ -70,11 +70,11 @@
 
 				<!-- active -->
 				<label for="active">Is this Branding Image active?</label>
-				<input type="radio" name="active" value="t" [% IF ad_zone.active %]checked[% END %] />
+				<input type="radio" name="active" value="t" [% IF ad_zone.active %]checked="1"[% END %] />
 				<label for="t" class="check_label">Yes</label>	
 				<div class="clear"></div>
 						
-				<input type="radio" name="active" value="f" id="f" [% IF !ad_zone.active %]checked[% END %] /> 
+				<input type="radio" name="active" value="f" id="f" [% IF !ad_zone.active %]checked="1"[% END %] /> 
 				<label for="f" class="check_label">No</label>
 				<div class="clear"></div>
 				<label class="tip">To ensure consistency in reporting, branding images cannot be deleted</label>
