@@ -110,7 +110,6 @@
 				<input type="submit" value="Save ad zone" />
 			</li>
 		</ul>
-	</form>
 </div>
 
 
@@ -134,7 +133,6 @@
 				</li>
 	
 	
-				[% IF reg.account_id.plan != 'free' %]
 				<li>
 					<!-- default -->
 					<label for="is_default">Is this a default Ad Zone?</label>
@@ -148,9 +146,7 @@
 					<label class="tip">When two routers share the same WAN ip, sometimes the specific router cannot be identified.<br />In that case, an ad zone marked as a default ad zone will be shown.</label>
 					<label class="tip">The default ad zone is also automatically assigned to a device that has no ad zones assigned.</label>
 				</li>
-				[% ELSE %]
-				<input type="hidden" name="is_default" value="f">
-				[% END %]			
+
 			</ul>
 		</div>
 	</div>
@@ -168,6 +164,7 @@
 	<div class="clear"></div>
 	</div>
 </div>
+</form>
 
 
 [% PROCESS footer.tmpl %]

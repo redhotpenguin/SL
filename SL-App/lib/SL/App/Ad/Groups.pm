@@ -248,8 +248,8 @@ sub dispatch_edit {
         account_id => $reg->account->account_id,
         ad_size_id => $req->param('ad_size_id'),
         name       => $req->param('name'),
-        active     => $req->param('active'),
-        is_default => $req->param('is_default'),
+        active     => $req->param('active') || 'f',
+        is_default => $req->param('is_default') || 'f',
     );
 
     if ( $req->param('zone_type') eq 'code' ) {
