@@ -77,28 +77,34 @@
 					<label for="banner" class="check_label">Image Link</label>
 				</div>
 				
-				<div class="grid_4" id="zone_type_code">
-					<input id="text" type="radio" name="zone_type" value="code" [% IF !ad_zone.image_href && !ad_zone.link_href %]checked[% END %]/>
-					<label for="banner" class="check_label">Invocation Code</label>
+				<div class="grid_4 omega" id="zone_type_code">
+					<input class="left" id="text" type="radio" name="zone_type" value="code" [% IF !ad_zone.image_href or !ad_zone.link_href %]checked="1"[% END %]/>
+					<label for="code" class="check_label left">Invocation Code</label>
+					<div class="clear"></div>
 				</div>
 				<div class="clear"></div>
 			</li>
-			
-    <li id="banner" class="form">
-			       <div class="grid_6 alpha omega suffix_4">
+		</ul>
+		
+		<ul class="form">
+			<li class="banner">
+		       <div class="grid_10 alpha omega ">
+	            <label for="image_href" class="[% IF errors.missing.image_href %]error[% END %]">Banner Image URL</label>
+				<input type="text" name="image_href" id="image_href" size="50" value="[% req.param('image_href') or ad_zone.image_href %]" />
+				<div class="clear"></div>
+				<label class="tip margin_b_20" for="image_href">Location of the Banner image, ex. yoursite.com/banner.gif</label>
+				</div>
+				<div class="clear"></div>
+			</li>
 
-		            <label for="image_href" class="[% IF errors.missing.image_href or errors.invalid.image_href %]error[% END %]">Banner Image Link</label>
-					<input type="text" name="image_href" size="30" value="[% req.param('image_href') or ad_zone.image_href %]" />
-					<div class="clear"></div>
-					<label class="tip" for="image_href">Location of the Banner image, ex. yoursite.com/banner.gif</label>
-		            
-        <label for="link_href" class="[% IF errors.missing.link_href or errors.invalid.link_href %]error[% END %]">Banner Destination</label>
+			
+    		<li class="banner">
+			     <div class="grid_10 alpha omega">
+        			<label for="link_href" class="[% IF errors.missing.link_href or errors.invalid.link_href %]error[% END %]">Banner Destination</label>
 					<input type="text" name="link_href" size="30" value="[% req.param('link_href') or ad_zone.link_href %]" />
 					<div class="clear"></div>
 					<label class="tip" for="link_href">The webpage displayed when the Banner is clicked.</label>
-
-		
-		
+				
 						[% IF ad_zone.image_href %]
 		                    [% IF req.param('code') or ad_zone.code %]
 						    <p>[% req.param('code') or ad_zone.code %]</p>
