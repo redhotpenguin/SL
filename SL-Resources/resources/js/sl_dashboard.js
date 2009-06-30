@@ -54,18 +54,18 @@ $(document).ready(function(){
 	//CODE FOR HIDING OR SHOWING BANNER IMAGE LINK OR INVOCATION CODE
 	 if ($("input[name='zone_type']:checked").val() == 'banner') {
     	$('#code').hide();
-    	$('#banner').show();
+    	$('.banner').show();
     } else if ($("input[name='zone_type']:checked").val() == 'code') {
-    	$('#banner').hide();
+    	$('.banner').hide();
     	$('#code').show();
     };
 	//Check again when value changes
 	$("input[name='zone_type']").change(function(){
     if ($("input[name='zone_type']:checked").val() == 'banner') {
     	$('#code').hide();
-    	$('#banner').show();
+    	$('.banner').show();
     } else if ($("input[name='zone_type']:checked").val() == 'code') {
-    	$('#banner').hide();
+    	$('.banner').hide();
     	$('#code').show();
     };
 	});

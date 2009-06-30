@@ -590,6 +590,12 @@ font-weight: normal;
 .form .jqTransformSelectWrapper li {
 margin-bottom: 0;
 }
+.check_label {
+font-weight: normal;
+font-size: 92%;
+line-height: 18px;
+margin-left: 5px;
+}
 .form .check_label {
 font-weight: normal;
 font-size: 92%;
@@ -608,11 +614,22 @@ display: none;
 /* BANNER PREVIEW
 ============================================= */
 #banner_preview {
-margin-top: 20px;
-border-top: 2px solid #EEE;
-padding: 10px 0px 0px 0px;
+margin-bottom: 20px;
+background-color: #EEE;
+border: 1px solid #CCC;
+text-align: center;
+padding: 10px;
 }
 #banner_preview h2 {
 font-size: 93%;
 margin-bottom: 5px;
 }
+#banner {
+margin: 0 auto;
+width: 728px;
+height: 90px;
+overflow: hidden;
+text-align: left;
+}
+
+
