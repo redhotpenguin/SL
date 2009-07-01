@@ -78,6 +78,7 @@ sub handler {
 
 
     # Grab any registered routers for this location
+    $r->log->debug("looking for routers with mac $macaddr") if DEBUG;
     my $router_ref =
       eval { SL::Model::Proxy::Router::Location->get_registered( \%args ) };
 
@@ -90,7 +91,7 @@ sub handler {
     unless ($router_ref) {
 
         # no routers at this ip, register this one
-        $r->log->error( "$$ registering router mac $macaddr at ip "
+        $r->log->error( "registering router mac $macaddr at ip "
               . $r->connection->remote_ip );
 
         $router_ref =

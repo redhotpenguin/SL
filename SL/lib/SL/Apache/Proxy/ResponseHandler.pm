@@ -258,7 +258,7 @@ sub handler {
     }
 
     $r->log->debug( "$$ Response headers from proxy request\n",
-        Data::Dumper::Dumper($response) )
+        Data::Dumper::Dumper($response->headers) )
       if DEBUG;
 
     # checkpoint make remote request
@@ -765,11 +765,13 @@ sub _generate_response {
     # grab an ad
     $TIMER->start('random_ad') if TIMING;
 
+
     my %ad_args = (
-        url        => $url,
-        router_id  => $r->pnotes('router_id'),
-        user       => $r->pnotes('hash_mac'),
-        ua         => $ua,
+
+        ip   => $r->connection->remote_ip,
+        url  => $url,
+        mac  => $r->pnotes('router_mac'),
+        user => $r->pnotes('hash_mac'),
     );
 
     if ($r->pnotes('device_guess')) {
