@@ -32,7 +32,7 @@
 
 		<!-- Errors -->
 		[% IF status == 'update_ok' %]<p class="error">Your ad zone has been updated.</p>[% END %]
-		[% IF errors.missing %]<p class="error">Please fill in the missing fields</p>[% END %]
+		[% IF errors.missing %]<p class="error">Please fill in the missing fields:</p>[% END %]
 		[% IF errors.invalid %]<p class="error">Some fields were invalid, please correct them</p>[% END %]
 		
 		<ul class="form row"> 
@@ -73,12 +73,12 @@
 			<li>
 				<label for="zone_type" class="block">Insert banner by:</label>
 				<div class="grid_2" id="zone_type_banner">
-					<input id="text" type="radio" name="zone_type" value="banner" [% IF ad_zone.image_href or ad_zone.link_href %]checked[% END %]/>
+					<input id="text" type="radio" name="zone_type" value="banner" [% IF (req.param('zone_type') == 'banner') or (ad_zone.image_href && ad_zone.link_href) %]checked="1"[% END %]/>
 					<label for="banner" class="check_label">Image Link</label>
 				</div>
 				
 				<div class="grid_4 omega" id="zone_type_code">
-					<input class="left" id="text" type="radio" name="zone_type" value="code" [% IF !ad_zone.image_href or !ad_zone.link_href %]checked="1"[% END %]/>
+					<input class="left" id="text" type="radio" name="zone_type" value="code" [% IF req.param('zone_type') == 'code' or (!req.param('zone_type') && ad_zone.code ) %]checked="1"[% END %]/>
 					<label for="code" class="check_label left">Invocation Code</label>
 					<div class="clear"></div>
 				</div>
@@ -126,10 +126,8 @@
 			</li>
 
 			<li>
-				[% IF ad_zone.ad_zone_id %]
-				<input type="hidden" name="id" value="[% ad_zone.ad_zone_id %]">
-				[% END %]			
-				<input type="submit" value="Save ad zone" />
+			<input type="hidden" name="id" value="[% ad_zone.ad_zone_id %]">
+
 			</li>
 		</ul>
 </div>
@@ -139,16 +137,16 @@
 	<div id="sc_top">
 		<div id="sc_bottom">
 			<h3>Advanced Options</h3>
-			<ul class="form">
+			<ul>
 				<li>
 	
 					<!-- active -->
 					<label for="active">Is this Ad Zone active?</label>
-					<input id="active" type="radio" name="active" value="t" [% IF req.param('active') == 't' or ad_zone.active %]checked[% END %]/>
+					<input type="radio" name="active" value="t" [% IF req.param('active') == 't' or ad_zone.active %]checked="1"[% END %]/>
 					<label for="t" class="check_label">Yes</label>	
 					<div class="clear"></div>
 							
-					<input id="active" type="radio" name="active" value="f" [% IF !req.param('active') && !ad_zone.active %]checked[% END %]/>
+					<input type="radio" name="active" value="f" [% IF req.param('active') =='f' %]checked="1"[% END %]/>
 					<label for="f" class="check_label">No</label>
 					<div class="clear"></div>
 					<label class="tip">To ensure consistency in reporting, ad zones cannot be deleted</label>
@@ -158,11 +156,11 @@
 				<li>
 					<!-- default -->
 					<label for="is_default">Is this a default Ad Zone?</label>
-					<input type="radio" name="is_default" value="t" [% IF ad_zone.is_default %]checked[% END %]>
+					<input type="radio" name="is_default" value="t" [% IF req.param('is_default') == 't' or ad_zone.is_default %]checked="1"[% END %]>
 					<label for="t" class="check_label">Yes</label>	
 					<div class="clear"></div>
 							
-					<input type="radio" name="is_default" value="f"  [% IF !ad_zone.is_default %]checked="1"[% END %] /> 
+					<input type="radio" name="is_default" value="f"  [% IF !req.param('is_default') && !ad_zone.is_default %]checked="1"[% END %] /> 
 					<label for="f" class="check_label">No</label>
 					<div class="clear"></div>
 					<label class="tip">When two routers share the same WAN ip, sometimes the specific router cannot be identified.<br />In that case, an ad zone marked as a default ad zone will be shown.</label>
@@ -175,6 +173,13 @@
 
 </div>
 
+<div>
+		<ul class="form">
+        <li>
+           <input type="submit" value="Save ad zone" />
+        </li>
+</ul>
+</div>
 </form>
 
 

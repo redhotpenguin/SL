@@ -170,6 +170,7 @@ sub dispatch_edit {
         my %tmpl_data = (
             ad_sizes => \@ad_sizes,
             ad_zone  => $ad_zone,
+            results => $args_ref->{results},
             errors   => $args_ref->{errors},
             req      => $req,
         );
@@ -185,7 +186,8 @@ sub dispatch_edit {
         $r->method_number(Apache2::Const::M_GET);
 
         # validate input
-        my @required = qw( name ad_size_id zone_type );
+        my @required = qw( name ad_size_id zone_type active is_default id );
+        my @optionals;
         my $constraints;
         if ( $req->param('zone_type') eq 'banner' ) {
 
@@ -195,13 +197,16 @@ sub dispatch_edit {
                 link_href  => $self->valid_link(),
             };
 
+            @optionals = qw( code );
+
         }
         elsif ( $req->param( 'zone_type' eq 'code' ) ) {
 
             push @required, 'code';
+            @optionals = qw( image_href link_href );
         }
 
-        my %profile = ( required => \@required, );
+        my %profile = ( required => \@required, optional => \@optionals );
         if ($constraints) {
             $profile{constraint_methods} = $constraints;
         }
@@ -212,11 +217,11 @@ sub dispatch_edit {
             my $errors = $self->SUPER::_results_to_errors($results);
 
             $r->log->debug( Dumper($results) ) if DEBUG;
-            $r->log->debug( Dumper($errors) ) if DEBUG;
 
             return $self->dispatch_edit(
                 $r,
                 {
+                    results => $results,
                     errors => $errors,
                     req    => $req
                 }
@@ -261,8 +266,6 @@ sub dispatch_edit {
     $ad_zone->bug_id( 1 );
     $ad_zone->mts( DateTime::Format::Pg->format_datetime( DateTime->now( time_zone => 'local')));
     $ad_zone->update;
-
-    $r->log->debug("ad zone is " . Dumper($ad_zone)) if DEBUG;
 
 
     # done with argument processing
