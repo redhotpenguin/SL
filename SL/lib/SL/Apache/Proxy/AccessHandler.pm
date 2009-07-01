@@ -10,6 +10,8 @@ use Apache2::Connection ();
 
 use SL::Model::Proxy::Location ();
 
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
+
 sub handler {
     my $r = shift;
 
@@ -24,8 +26,10 @@ sub handler {
     # $r->headers_in->{'x-sl|x-slr'} = '12345678|00188bf9406f';
     my $sl_header = $r->headers_in->{'x-slr'} || $r->headers_in->{'x-sl'} || '';
 
+    $r->log->debug("sl_header is $sl_header") if DEBUG;
+
     my ($router_id, $hash_mac, $device_guess) = eval {
-        SL::Model::Proxy::Router->identity(
+        SL::Model::Proxy::Router->identify(
             {
                 ip        => $r->connection->remote_ip,
                 sl_header => $sl_header,
