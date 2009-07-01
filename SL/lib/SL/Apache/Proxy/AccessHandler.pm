@@ -59,6 +59,8 @@ sub handler {
         $r->pnotes( sl_header => $sl_header );
         $r->pnotes( hash_mac  => $hash_mac  );
 
+	$r->log->debug("router_id $router_id, hash_mac $hash_mac") if DEBUG;
+
         if (defined $device_guess) {
             $r->pnotes( device_guess => 1 );
         }

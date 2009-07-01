@@ -148,10 +148,13 @@ sub handler {
     ###################################
     # ok check for a splash page if we have a router_id
     if ( $r->pnotes('router_id') ) {
+
+	
+
         my ( $splash_url, $timeout ) =
           SL::Model::Proxy::Router->splash_page($r->pnotes('router_id'));
 
-        if ($splash_url) {
+        if ($splash_url && $splash_url ne '') {
             my $show_splash = handle_splash( $r, $splash_url, $timeout );
             return Apache2::Const::OK if $show_splash;
         }

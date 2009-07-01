@@ -767,16 +767,19 @@ sub _generate_response {
 
 
     my %ad_args = (
-
-        ip   => $r->connection->remote_ip,
-        url  => $url,
-        mac  => $r->pnotes('router_mac'),
-        user => $r->pnotes('hash_mac'),
+        ip           => $r->connection->remote_ip,
+        url          => $url,
+        router_id    => $r->pnotes('router_id'),
+        user         => $r->pnotes('hash_mac'),
+	ua           => $ua,
+        device_guess => $r->pnotes('device_guess'),
     );
 
     if ($r->pnotes('device_guess')) {
         $ad_args{device_guess} = $r->pnotes('device_guess');
     }
+
+    $r->log->debug("ad args: " . Data::Dumper::Dumper(\%ad_args)) if DEBUG;
 
     my (
         $ad_zone_id, $ad_content_ref, $css_url_ref,
