@@ -101,12 +101,9 @@ BEGIN {
 }
 
 our $HEAD = <<HEAD;
+<script type="text/javascript" src="%s"></script>
 <link rel="stylesheet" type="text/css" href="%s" />%s
 HEAD
-
-our $JS = <<JS;
-<script type="text/javascript" src="%s"></script>
-JS
 
 sub container {
     my ( $css_url_ref, $js_url_ref, $head_html_ref, $decoded_content_ref, $ad_ref ) = @_;
@@ -121,7 +118,7 @@ sub container {
     }
 
     # build the head content
-    my $head = sprintf( "$HEAD", $$css_url_ref, $$head_html_ref );
+    my $head = sprintf("$HEAD", $$js_url_ref, $$css_url_ref, $$head_html_ref);
 
     # Insert the head content
     my $matched = $$decoded_content_ref =~ s{$head_regex}{$1$head$2};
@@ -136,8 +133,7 @@ sub container {
     warn( 'failed to insert ad content ' . $$ad_ref ) unless $matched;
 
     # insert the tail
-    my $js = sprintf( "$JS", $$js_url_ref );
-    $matched = $$decoded_content_ref =~ s{$end_body_match}{$1$tail$js$2};
+    $matched = $$decoded_content_ref =~ s{$end_body_match}{$1$tail$2};
     warn('failed to insert closing div') unless ( DEBUG && $matched );
 
     return 1;
@@ -149,6 +145,8 @@ sub container {
 # grabs the default persistents for an account
 sub retrieve_account_default_persistents {
     my ( $class, $account_id ) = @_;
+
+    warn("retrieving account default persistents") if DEBUG;
 
     my $ad_data = $class->connect->selectall_arrayref(<<SQL, { Slice => {}}, $account_id);
 SELECT
@@ -170,7 +168,9 @@ SQL
 sub retrieve_account_default_brandings {
     my ( $class, $account_id ) = @_;
 
-    my $ad_data = $class->connect->selectall_hashref(<<SQL, {}, $account_id);
+    warn("retrieving account default brandings") if DEBUG;
+
+    my $ad_data = $class->connect->selectall_arrayref(<<SQL, {Slice => {}}, $account_id);
 SELECT
 ad_zone.ad_zone_id,
 ad_zone.weight
@@ -188,10 +188,13 @@ SQL
 
 
 # returns the ad ids of the account zones
-sub account_default_zones {
+sub account_default_ad_zones {
     my ( $class, $account_id ) = @_;
 
+    require Carp && Carp::confess unless $account_id;
+
     my $persistents = $class->account_default_persistents( $account_id ) || return;
+
 
     my $brandings = $class->account_default_brandings( $account_id ) || return;
 
@@ -200,6 +203,10 @@ sub account_default_zones {
 
 sub account_default_persistents {
     my ($class, $account_id) = @_;
+
+    require Carp && Carp::confess unless $account_id;
+
+    warn("grabbing account default persistents") if DEBUG;
 
     # check memcached for account default persistents
     # adzone|$account_id|default_persistents = [ $persistent_zone_id_1 => $zone1_weight, .. ];
@@ -216,8 +223,7 @@ sub account_default_persistents {
         }
 
         # update the cache
-        $persistents = [ map { $_->[0] => $_->[1] } @{$persistents} ];
-        SL::Cache->memd->set("adzone|$account_id|default_persistents") = $persistents;
+        SL::Cache->memd->set("adzone|$account_id|default_persistents" => $persistents);
     }
 
     return $persistents;
@@ -227,6 +233,8 @@ sub account_default_persistents {
 # returns the ad ids of the account default branding zones
 sub account_default_brandings {
     my ($class, $account_id) = @_;
+
+    warn("grabbing account default brandings") if DEBUG;
 
     # grab the default branding images
     # adzone|$account_id|default_branding = [ $persistent_zone_id_1 => $zone1_weight, .. ];
@@ -244,8 +252,7 @@ sub account_default_brandings {
         }
 
         # update the cache
-        $brandings = [ map { $_->[0] => $_->[1] } @{$brandings} ];
-        SL::Cache->memd->set("adzone|$account_id|default_brandings") = $brandings;
+        SL::Cache->memd->set("adzone|$account_id|default_brandings" => $brandings);
     }
 
     return $brandings;
@@ -387,7 +394,8 @@ ad_zone.link_href,
 ad_zone.ad_size_id,
 ad_size.head_html,
 ad_size.js_url,
-ad_size.css_url
+ad_size.css_url,
+ad_size.template
 FROM ad_zone,ad_size
 WHERE ad_zone.ad_zone_id = ?
 AND ad_size.ad_size_id = ad_zone.ad_size_id
@@ -414,7 +422,8 @@ sub random {
     my $ua          = $args->{ua}         || warn("no ua passed")         && return;
 
 
-    my $device = SL::Cache->memd->get("router|$router_id");
+    my $device = SL::Model::Proxy::Router->get( $router_id ) ||
+	warn("no router for id $router_id") && return;
 
     my $account_id = $device->{account_id};
 
@@ -423,11 +432,13 @@ sub random {
     my ($persistents, $brandings);
     if ($device_guess) {
 
+	warn("grabbing device guess for account $account_id") if DEBUG;
         # grab ad ids based on the ip
         ($persistents, $brandings) = $class->account_default_ad_zones( $account_id );
 
     } else {
 
+	warn("grabbing ads specific to router $router_id") if DEBUG;
         # grab the ads specific to this device
         ($persistents, $brandings) = $class->router_ad_zones( $router_id, $account_id );
     }
@@ -450,7 +461,7 @@ sub random {
 
     my @brandings_list;
     foreach my $ad_zone ( @{$brandings} ) {
-        push @brandings_list, $ad_zone->{ad_zone_id} for 1..$brandings->{weight};
+        push @brandings_list, $ad_zone->{ad_zone_id} for 1..$ad_zone->{weight};
     }
 
     my $branding_id = $brandings_list[int(rand(scalar(@brandings_list)))];
@@ -516,18 +527,21 @@ sub process_ad_template {
         zone           => $persistent->{ad_zone_id},
         code           => $persistent->{code},
 
-        lan_ip         => $router->{lan_ip},
-
-        advertise_here => $account->{advertise_here},
-        aaa            => $account->{aaa},
+		     aaa => $account->{aaa},
+		     advertise_here => $account->{advertise_here},
+		     lan_ip => $router->{lan_ip},
     );
-
+=cut
+    $tmpl_vars{aaa} = $account->{aaa} if defined $account->{aaa};
+    $tmpl_vars{advertise_here} = $account->{advertise_here} if defined $account->{advertise_here};
+    $tmpl_vars{lan_ip} = $account->{lan_ip} if defined $account->{lan_ip};
+=cut
     warn( "tmpl vars: " . Data::Dumper::Dumper( \%tmpl_vars ) ) if DEBUG;
 
     # generate the ad
     my $output;
     $Tmpl->process( $persistent->{template}, \%tmpl_vars, \$output )
-      || (warn("template error") && return);
+      || (warn($Tmpl->error) && return);
 
     return \$output;
 }

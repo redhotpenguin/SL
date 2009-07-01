@@ -10,16 +10,18 @@ use SL::Config;
 our $Config           = SL::Config->new;
 our $Default_Hash_Mac = 'ffffffff';
 
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
+
 sub identify {
     my ( $class, $args ) = @_;
 
     my $ip        = $args->{ip}        || die 'no ip';
-    my $sl_header = $args->{sl_header} || die 'no sl_header';
+    my $sl_header = $args->{sl_header};
     my $device_guess;
 
-    # identify the mac address of the device or warn and return
+    # identify the mac address of the device or DIE
     my ( $hash_mac, $router_mac );
-    unless ( $sl_header eq '' ) {
+    if ( $sl_header ) {
 
         my ( $hash_mac, $router_mac ) = split( /\|/, $sl_header );
 
@@ -108,14 +110,6 @@ sub latest_mac_from_ip {
 
 
 
-
-use constant SELECT_ROUTER_ID => q{
-SELECT router_id, account_id, lan_ip
-FROM router
-WHERE
-macaddr = ?
-};
-
 sub get_router_id_from_mac {
     my ( $class, $macaddr ) = @_;
 
@@ -129,27 +123,21 @@ sub get_router_id_from_mac {
 
         # check the database
 
-        my $sth = $class->connect->prepare_cached(SELECT_ROUTER_ID);
-        $sth->bind_param( 1, $macaddr );
-        my $rv = $sth->execute;
-        unless ($rv) {
-            warn("could not execute SELECT_ROUTER_ID with mac $macaddr");
-            return;
-        }
-        my $router = $sth->fetchrow_arrayref;
-        $sth->finish;
+	warn("router mac $macaddr not in memcache, going to db") if DEBUG;
 
-        unless ($router) {
-            warn("could not find router for mac $macaddr");
-            return;
-        }
+        my $router = $class->connect->selectall_arrayref(<<SQL, { Slice => {}}, $macaddr)->[0];
+SELECT router_id, account_id, lan_ip, splash_href, splash_timeout,macaddr
+FROM router
+WHERE
+macaddr = ?
+SQL
+
+        return unless $router;
 
         # update the cache
-        $router_id = $router->[0];
-        SL::Cache->memd->set("router|$macaddr" => $router_id);
-        SL::Cache->memd->set("router|$router_id" => { account_id => $router->[1],
-                                                      mac        => $macaddr,
-                                                      lan_ip     => $router->[2] } );
+        $router_id = $router->{router_id};
+        SL::Cache->memd->set("router|$macaddr"   => $router_id);
+        SL::Cache->memd->set("router|$router_id" => $router);
     }
 
     # we've got the router id
@@ -157,11 +145,41 @@ sub get_router_id_from_mac {
 }
 
 
+sub get {
+    my ($class, $router_id) = @_;
 
+    require Carp && Carp::croak unless $router_id;
 
+    my $router = SL::Cache->memd->get("router|$router_id");
 
-use constant INSERT_ROUTER_SQL => q{
-};
+    unless ($router) {
+
+	$router = $class->retrieve( $router_id );
+
+	return unless $router;
+
+	# cache it
+	SL::Cache->memd->set("router|$router_id" => $router );
+        SL::Cache->memd->set("router|" . $router->{macaddr} => $router->{router_id});
+    }
+
+    return $router;
+}
+
+sub retrieve {
+    my ($class, $router_id) = @_;
+
+    require Carp && Carp::croak unless $router_id;
+
+    my $router = $class->connect->selectall_arrayref(<<SQL, { Slice => {}}, $router_id)->[0];
+SELECT router_id, account_id, lan_ip, splash_href, splash_timeout, macaddr
+FROM router
+WHERE
+router_id = ?
+SQL
+    
+    return (defined $router) ? $router : undef;
+}
 
 sub add_router_from_mac {
     my ( $class, $macaddr ) = @_;
@@ -215,28 +233,12 @@ RESET_EVENT_SQL
     return 1;
 }
 
-use constant SPLASH_PAGE_SQL => q{
-SELECT router.splash_href, router.splash_timeout
-FROM router
-WHERE router.macaddr = ?
-};
-
 sub splash_page {
-    my ( $class, $macaddr ) = @_;
+    my ($class, $router_id) = @_;
+    
+    my $router = SL::Cache->memd->set("router|$router_id") || return;
 
-    unless ($macaddr) {
-        require Carp && Carp::cluck("no macaddr passed");
-        return;
-    }
-
-    my $sth = $class->connect->prepare_cached(SPLASH_PAGE_SQL);
-    $sth->bind_param( 1, $macaddr );
-    $sth->execute or return;
-    my $ary_ref = $sth->fetchrow_arrayref;
-    $sth->finish;
-
-    return unless $ary_ref;
-    return ( $ary_ref->[0], $ary_ref->[1] );
+    return ( $router->{splash_href}, $router->{splash_timeout} );
 }
 
 1;
