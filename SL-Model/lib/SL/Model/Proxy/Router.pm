@@ -161,40 +161,24 @@ sub get_router_id_from_mac {
 
 
 use constant INSERT_ROUTER_SQL => q{
-INSERT INTO ROUTER
-(macaddr, device)
-VALUES
-(?,?)
 };
 
 sub add_router_from_mac {
     my ( $class, $macaddr ) = @_;
 
-    unless ($macaddr) {
-        require Carp && Carp::cluck("no maccaddr passed");
-        return;
-    }
+    die "no maccaddr passed" unless $macaddr;
+ 
+    $class->connect->do(<<SQL, {}, $macaddr, 'mr3201a') || die $DBI::errstr;
+INSERT INTO ROUTER
+(macaddr, device)
+VALUES
+(?,?)
+SQL
 
-    my $dbh = $class->connect;
-    unless ($dbh) {
-        require Carp && Carp::cluck("no dbh available");
-        return;
-    }
+    # grab the id of the new device
+    my $router_id = $class->get_router_id_from_mac($macaddr) ||
+       die "router add for macaddr $macaddr failed!";
 
-    my $sth = $dbh->prepare_cached(INSERT_ROUTER_SQL);
-    $sth->bind_param( 1, $macaddr );
-    $sth->bind_param( 2, 'mr3201a' );
-
-    my $rv = $sth->execute;
-    unless ($rv) {
-        require Carp
-          && Carp::cluck("could not insert router sql mac $macaddr");
-        return;
-    }
-    $sth->finish;
-
-    my $router_id = $class->get_router_id_from_mac($macaddr);
-    die "router add for macaddr $macaddr failed!" unless $router_id;
     return $router_id;
 }
 
