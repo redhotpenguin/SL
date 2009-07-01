@@ -301,42 +301,6 @@ sub ad_views {
     return ( $count, \@views );
 }
 
-sub mac__to__om_mac {
-	my $mac = shift or die 'no mac passed';
-	my $gateway = shift;
-
-	if (!$gateway) {
-		# replace 00 with 06
-		substr($mac,0,2,'06');
-		return $mac;
-	}
-
-	my $last_two = substr($ mac, length($mac) - 2, length($mac));
-	$last_two = sprintf('%02x', sprintf('%d', hex($last_two))-1);
-	substr($mac, length($mac) - 2, length($mac), $last_two);
-	substr($mac, 0, 2, '00');
-	return $mac;
-}
-
-sub om_mac__to__mac {
-	my $mac = shift or die 'no mac passed';
-	my $gateway = shift;
-
-	if (!$gateway) {
-		# replace 06 with 00
-		substr($mac,0,2,'00');
-		return $mac;
-	}
-
-	my $last_two = substr($mac, length($mac) - 2, length($mac));
-	$last_two = sprintf('%02x', sprintf('%d', hex($last_two))+1);
-	substr($mac, length($mac) - 2, length($mac), $last_two);
-	substr($mac, 0, 2, '06');
-	return $mac;
-}
-
-
-
 sub displaymac {
 	my $self = shift;
 

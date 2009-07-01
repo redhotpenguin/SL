@@ -22,6 +22,8 @@ my $host = shift or die "gimme a hostname yo\n\n";
 my $dsn = "dbi:Pg:dbname='$db'";
 my $dbh = DBI->connect( $dsn, 'phred', '', $db_options );
 
+use SL::Model::App;
+
 # get to work
 
 ##############################
@@ -33,43 +35,40 @@ $dbh->do("update ad_size set grouping='8' where ad_size_id=23");
 $dbh->do("update ad_size set grouping=9 where ad_size_id in (20,21)");
 
 # move all the bugs into ad zones
-my $bugs = $dbh->selectall_arrayref(<<SQL, { Slice => {} } );
-SELECT * FROM bug
-SQL
+my @bugs = SL::Model::App->resultset('Bug')->all;
 
-foreach my $bug ( @{$bugs} ) {
+foreach my $bug ( @bugs ) {
 
-    next if (($bug->ad_size_id == 22) or ($ad_size_id == 23));
+    next unless (($bug->ad_size_id == 22) or ($bug->ad_size_id == 23));
 
-    $dbh->do(<<SQL, {}, ($bug->{account_id}, 14, $bug->{image_href}, $bug->{link_href}));
+    warn("transforming bug for account " . $bug->account->name);
+
+    my $name = "Branding Image from bug id " . $bug->bug_id;
+    $dbh->do(<<SQL, {}, ($name,$bug->account_id, $bug->ad_size_id,14, $bug->image_href, $bug->link_href, 't'));
 INSERT INTO AD_ZONE
-(code,name,account_id,ad_size_id,reg_id,image_href,link_href)
+(code,name,account_id,ad_size_id,reg_id,image_href,link_href, is_default)
 VALUES
-( '', 'Branding Image',   ?,         22,         ?,     ?,         ? )
+( '', ?,   ?,         ?,         ?,     ?,         ?, ? )
 SQL
 
-
-    my $ad_zone_ids = $dbh->selectall_arrayref(<<SQL, {Slice => {}}, $bug->{bug_id} );
-SELECT ad_zone_id FROM ad_zone WHERE bug_id = ?
+    # get the ad zone id of the new bug => zone
+    my $ad_zone_id = $dbh->selectall_arrayref(<<SQL, {Slice => {}}, $name)->[0]->{ad_zone_id};
+SELECT ad_zone_id FROM ad_zone WHERE name  = ?
 SQL
 
-    my $bug_id = $dbh->selectrow_arrayref("SELECT ad_zone_id from ad_zone, ad_size where ad_zone.ad_size_id=ad_size.ad_size_id AND ad_size.grouping = 2")->[0];
-    foreach my $ad_zone_id (@{$ad_zone_ids}) {
-      $dbh->do("update ad_zone set is_default='t' where ad_zone_id = $bug_id");
+    warn("new ad zone for account bug, zone id $ad_zone_id");
 
-      my $radzones = $dbh->selectall_arrayref(<<SQL, {Slice => {}}, $ad_zone_id->{ad_zone_id});
-SELECT router_id from router__ad_zone where ad_zone_id = ?
+    my $routers = $dbh->selectall_arrayref(<<SQL, {Slice => {}}, $bug->account_id);
+SELECT router_id from router where account_id = ?
 SQL
-      foreach my $radzone ( @{$radzones}) {
 
-        $dbh->do(sprintf("insert into router__ad_zone (router_id, ad_zone_id) values ( %s, %s ) ", $radzone->{router_id},
-                         $radzone->{ad_zone_id}));
+    foreach my $router_id (@{$routers}) {
 
-      }
-
+        warn("new router ad zone for router $router_id, zone $ad_zone_id");
+        $dbh->do(sprintf("insert into router__ad_zone (router_id, ad_zone_id) values ( %s, %s ) ", $router_id->{router_id}, $ad_zone_id));
 
     }
 
-
-
 }
+
+warn("finished");
