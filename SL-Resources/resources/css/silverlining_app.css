@@ -72,6 +72,14 @@ display: block;
 overflow: hidden;
 text-indent: -3000px;
 }
+#button_add_splash {
+background: url(../images/buttons/applications/add_splash.png) top left no-repeat;
+height: 39px;
+width: 139px;
+display: block;
+overflow: hidden;
+text-indent: -3000px;
+}
 .large_button {
 display: block;
 margin-bottom: 20px;
@@ -385,11 +393,22 @@ color: #868686;
 font-style: italic;
 margin-bottom: 0;
 }
-#content #workspace .error {
+.error {
 color: #900;
 font-weight: bold;
 background-color: #ffefef;
 }
+.notice {
+color: #906c00;
+font-weight: bold;
+background-color: #fff8cc;
+}
+.success {
+color: #003300;
+font-weight: bold;
+background-color: #d9ffd1;
+}
+
 #workspace .row {
 border-top: 3px solid #EEE;
 padding: 10px 0px;
