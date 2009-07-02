@@ -31,7 +31,7 @@
 	<h2>'[% ad_zone.name %]' Banner</h2>
 
 		<!-- Errors -->
-		[% IF status == 'update_ok' %]<p class="error">Your ad zone has been updated.</p>[% END %]
+		[% IF status == 'update_ok' %]<p class="success">Your ad zone has been updated.</p>[% END %]
 		[% IF errors.missing %]<p class="error">Please fill in the missing fields:</p>[% END %]
 		[% IF errors.invalid %]<p class="error">Some fields were invalid, please correct them</p>[% END %]
 		
@@ -71,10 +71,10 @@
 		
 		<ul>
 			<li>
-				<label for="zone_type" class="block">Insert banner by:</label>
+				<label for="zone_type" class="label">Insert banner with:</label>
 				<div class="grid_2" id="zone_type_banner">
 					<input id="text" type="radio" name="zone_type" value="banner" [% IF (req.param('zone_type') == 'banner') or (ad_zone.image_href && ad_zone.link_href) %]checked="1"[% END %]/>
-					<label for="banner" class="check_label">Image Link</label>
+					<label for="banner" class="check_label">Image URL</label>
 				</div>
 				
 				<div class="grid_4 omega" id="zone_type_code">
@@ -126,8 +126,31 @@
 			</li>
 
 			<li>
-			<input type="hidden" name="id" value="[% ad_zone.ad_zone_id %]">
+				<label for="zone_type" class="label">Place banner at...</label>
+				<div class="grid_2 alpha">
+					<input id="text" type="radio" name="banner_placement" value="top" checked="checked" />
+					<label for="top" class="check_label">Top of page</label>
+				</div>
+				
+				<div class="grid_4 omega">
+					<input class="left" id="text" type="radio" name="banner_placement" value="bottom" />
+					<label for="bottom" class="check_label left">Bottom of page</label>
+					<div class="clear"></div>
+				</div>
+				<div class="clear"></div>
+			</li>
 
+			<li>
+				<div class="grid_10 alpha">
+					<input id="text" type="checkbox" name="floating" />
+					<label for="floating" class="check_label">Keep banner fixed in view (floating above webpage)</label>
+				</div>
+				<div class="clear"></div>
+			</li>
+
+
+			<li>
+				<input type="hidden" name="id" value="[% ad_zone.ad_zone_id %]">
 			</li>
 		</ul>
 </div>
@@ -137,7 +160,7 @@
 	<div id="sc_top">
 		<div id="sc_bottom">
 			<h3>Advanced Options</h3>
-			<ul>
+			<ul class="form">
 				<li>
 	
 					<!-- active -->
@@ -163,23 +186,23 @@
 					<input type="radio" name="is_default" value="f"  [% IF !req.param('is_default') && !ad_zone.is_default %]checked="1"[% END %] /> 
 					<label for="f" class="check_label">No</label>
 					<div class="clear"></div>
-					<label class="tip">When two routers share the same WAN ip, sometimes the specific router cannot be identified.<br />In that case, an ad zone marked as a default ad zone will be shown.</label>
-					<label class="tip">The default ad zone is also automatically assigned to a device that has no ad zones assigned.</label>
+					<p class="tip">When two routers share the same WAN ip, sometimes the specific router cannot be identified.<br />In that case, an ad zone marked as a default ad zone will be shown.</p>
+					<p class="tip">The default ad zone is also automatically assigned to a device that has no ad zones assigned.</p>
 				</li>
 
 			</ul>
 		</div>
 	</div>
-
 </div>
 
-<div>
-		<ul class="form">
-        <li>
-           <input type="submit" value="Save ad zone" />
-        </li>
-</ul>
+<div class="grid_16">
+	<ul class="form">
+		<li>
+		   <input type="submit" value="Save ad zone" />
+		</li>
+	</ul>
 </div>
+
 </form>
 
 
