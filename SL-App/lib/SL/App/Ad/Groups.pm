@@ -186,8 +186,8 @@ sub dispatch_edit {
         $r->method_number(Apache2::Const::M_GET);
 
         # validate input
-        my @required = qw( name ad_size_id zone_type active is_default id );
-        my @optionals;
+        my @required = qw( name ad_size_id zone_type active is_default id banner_placement );
+        my @optionals = qw( floating );
         my $constraints;
         if ( $req->param('zone_type') eq 'banner' ) {
 
@@ -197,13 +197,13 @@ sub dispatch_edit {
                 link_href  => $self->valid_link(),
             };
 
-            @optionals = qw( code );
+            push @optionals, ( qw( code ) );
 
         }
         elsif ( $req->param( 'zone_type' eq 'code' ) ) {
 
             push @required, 'code';
-            @optionals = qw( image_href link_href );
+            push @optionals, ( qw( image_href link_href ) );
         }
 
         my %profile = ( required => \@required, optional => \@optionals );
@@ -229,6 +229,28 @@ sub dispatch_edit {
         }
     }
 
+    # calculate the ad size
+    my $ad_size_id;
+    if ($req->param('banner_placement') eq 'bottom') {
+
+       # must be floating footer leaderboard, no static footer
+       $ad_size_id = 12;
+
+     } elsif ($req->param('banner_placement') eq 'top') {
+
+       if ($req->param('floating')) {
+
+         # floating leaderboard
+         $ad_size_id = 10;
+
+       } else {
+
+         # static leaderboard
+         $ad_size_id = 1;
+       }
+    }
+
+
     # remove this line and suffer the consequences
     my $code = $req->param('code');
 
@@ -238,7 +260,7 @@ sub dispatch_edit {
     my %args = (
         reg_id     => $reg->reg_id,
         account_id => $reg->account->account_id,
-        ad_size_id => $req->param('ad_size_id'),
+        ad_size_id => $ad_size_id,
         name       => $req->param('name'),
         active     => $req->param('active') || 'f',
         is_default => $req->param('is_default') || 'f',

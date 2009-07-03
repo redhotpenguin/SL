@@ -125,12 +125,12 @@
 			<li>
 				<label for="zone_type" class="label">Place banner at...</label>
 				<div class="grid_2 alpha">
-					<input id="text" type="radio" name="banner_placement" value="top" checked="checked" />
+					<input id="text" type="radio" name="banner_placement" value="top" [% IF (ad_zone.ad_size_id == 1) or (ad_zone.ad_size_id == 10) %]checked="checked"[% END %]/>
 					<label for="top" class="check_label">Top of page</label>
 				</div>
 				
 				<div class="grid_4 omega">
-					<input class="left" id="text" type="radio" name="banner_placement" value="bottom" />
+					<input class="left" id="text" type="radio" name="banner_placement" value="bottom" [% IF (ad_zone.ad_size_id == 12) %]checked="checked"[% END %]/>
 					<label for="bottom" class="check_label left">Bottom of page</label>
 					<div class="clear"></div>
 				</div>
@@ -139,7 +139,7 @@
 
 			<li>
 				<div class="grid_10 alpha">
-					<input id="text" type="checkbox" name="floating" />
+					<input id="text" type="checkbox" name="floating" [% IF (ad_zone.ad_size_id == 12) or (ad_zone.ad_size_id == 10) or (ad_zone.ad_size_id == 12) %]checked="checked"[% END %]/>
 					<label for="floating" class="check_label">Keep banner fixed in view (floating above webpage)</label>
 				</div>
 				<div class="clear"></div>
