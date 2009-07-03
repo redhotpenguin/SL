@@ -4,11 +4,13 @@
 <div class="grid_16">
 	<div id="breadcrumb">
 		<div id="breadcrumb_inner">
-			<ul>[% PROCESS ad/splash/nav.tmpl %]<li><strong> '[% ad_zone.name %]'</strong></li></ul>
+			<ul>[% PROCESS ad/splash/nav.tmpl %]<li>Edit <strong> '[% ad_zone.name %]'</strong> Splash Page Ad</li></ul>
 		</div>
 	</div>
 </div>
 <div class="clear"></div>
+
+
 
 <div id="main_content" class="grid_10 suffix_1">
 	<h2>[% ad_zone.name %]</h2>
@@ -35,6 +37,7 @@
 		<ul class="form">
 
 
+        [% PROCESS ad/banner.tmpl type="Splash Page Ad" %]
         [% PROCESS ad/code.tmpl type="Splash Page Ad" %]        
 
 		</ul>

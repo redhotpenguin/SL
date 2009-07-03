@@ -1,111 +1,69 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Edit Branding Image Ad Zone"  selected="adcenter" %]
+
 <div class="grid_16">
 	<div id="breadcrumb">
 		<div id="breadcrumb_inner">
-			<ul>[% PROCESS ad/bugs/nav.tmpl %]<li><strong>Edit '[% ad_zone.name %]'</strong></li></ul>
+			<ul>[% PROCESS ad/bugs/nav.tmpl %]<li>Edit <strong>'[% ad_zone.name %]'</strong> Branding Image</li></ul>
 		</div>
 	</div>
 </div>
 <div class="clear"></div>
 
-<div id="main_content" class="grid_16">
-	<h2>[% IF ad_zone.ad_zone_id %]Edit '[% ad_zone.name %]'[% END %]</h2>
-		<form class="form row" method="POST" action="[% base_uri %]/app/ad/bugs/edit">
+
+[% IF req.param('image_href') or ad_zone.image_href %]
+    <!-- BANNER PREVIEW -->
+	   <div class="grid_16">
+			<div id="banner_preview">
+	   		 <div id="banner"><img src="[% req.param('image_href') or ad_zone.image_href %]"></div>
+			<div class="clear"></div>
+			</div>
+		</div>	
+[% END %]
+
+
+<form class="form row" method="POST" action="[% base_uri %]/app/ad/bugs/edit">
+
+<div id="main_content" class="grid_10 suffix_1">
+	<h2>Edit '[% ad_zone.name %]' Branding Image</h2>
 
 		<!-- Errors -->
-		[% IF status == 'update_ok' %]<p class="error">Your ad zone has been updated.</p>[% END %]
-		
 		[% IF errors.missing %]<p class="error">Please fill in the missing fields</p>[% END %]
-		
 		[% IF errors.invalid %]<p class="error">Some fields were invalid, please correct them</p>[% END %]
-		<ul> 
 
-
+		<ul class="form row"> 
 			<li>
 				<!-- name -->
 				<div class="grid_6 alpha omega suffix_4">
 					<label for="name" class="[% IF errors.missing.name %]error[% END %]">Branding Image Name</label>
 					<input type="text" name="name" size="30" value='[% req.param('name') or ad_zone.name %]' />
-					<div class="clear"></div>
+				    <div class="clear"></div>
 				</div>
 				<div class="clear"></div>
 			</li>
 
 
-
-
-	<li>
-		<!-- banner entry -->
-		<div id="banner">
-	       <div class="grid_6 alpha omega suffix_4">
-            <label for="image_href" class="[% IF errors.missing.image_href %]error[% END %]">Branding Image Location</label>
-			<input type="text" name="image_href" size="30" value="[% req.param('image_href') or ad_zone.image_href %]" />
-			<label class="tip" for="image_href">Banner location, e.g. <a href="http://s1.slwifi.com/images/ads/sln/leaderboard_sponsored_by.gif">http://s1.slwifi.com/images/ads/sln/wide_skyscraper_sponsored_by.gif</a></label>
-			<label class="tip" for="image_href">Image should be 200 pixels wide by 90 pixels tall</label>
-
-            <br />
-
-
-            <label for="link_href" class="[% IF errors.missing.link_href %]error[% END %]">Branding Image Link</label>
-			<input type="text" name="link_href" size="30" value="[% req.param('link_href') or ad_zone.link_href %]" />
-			<label class="tip" for="link_href">Banner link, e.g. http://ads.slwifi.com/click/1j6ha56aa81gpa</label>
-
-
-            <div class="clear"></div>
-            <br />
-				[% IF req.param('image_href') or ad_zone.image_href %]
-                <img src="[% req.param('image_href') or ad_zone.image_href %]">
-                [% END %]
-          </div>
-        </div>
-		<div class="clear"></div>
-
-
-		<!-- end banner entry-->
-	</li>
+        [% PROCESS ad/banner.tmpl type="Branding" %]
 
 
 
 			<li>
-
-				<!-- active -->
-				<label for="active">Is this Branding Image active?</label>
-				<input type="radio" name="active" value="t" [% IF ad_zone.active %]checked="1"[% END %] />
-				<label for="t" class="check_label">Yes</label>	
-				<div class="clear"></div>
-						
-				<input type="radio" name="active" value="f" id="f" [% IF !ad_zone.active %]checked="1"[% END %] /> 
-				<label for="f" class="check_label">No</label>
-				<div class="clear"></div>
-				<label class="tip">To ensure consistency in reporting, branding images cannot be deleted</label>
-			</li>
-
-
-			<li>
-				<!-- default -->
-				<label for="is_default">Is this a default Branding Image?</label>
-				<input type="radio" name="is_default" value="t" [% IF ad_zone.is_default %]checked[% END %] />
-				<label for="t" class="check_label">Yes</label>	
-				<div class="clear"></div>
-						
-				<input type="radio" name="is_default" value="f"  [% IF !ad_zone.is_default or !ad_zone %]checked[% END %] /> 
-				<label for="f" class="check_label">No</label>
-				<div class="clear"></div>
-				<label class="tip">When two routers share the same WAN ip, sometimes the specific router cannot be identified.<br />In that case, a branding image marked as a default branding image will be shown.</label>
-				<label class="tip">The default branding image is also automatically assigned to a device that has no ad zones assigned.</label>
-			</li>
-
-
-
-			
-			<li>
-				[% IF ad_zone.ad_zone_id %]
-				<input type="hidden" name="id" value="[% ad_zone.ad_zone_id %]">
-				[% END %]			
-				<input type="submit" value="Save ad zone" />
+			<input type="hidden" name="id" value="[% ad_zone.ad_zone_id %]">
 			</li>
 		</ul>
-	</form>
 </div>
+
+
+[% PROCESS ad/advanced.tmpl type="Branding Image" %]
+
+
+<div class="grid_16">
+	<ul class="form">
+		<li>
+		   <input type="submit" value="Save Branding Image" />
+		</li>
+	</ul>
+</div>
+
+</form>
 
 [% PROCESS footer.tmpl %]

@@ -1,0 +1,23 @@
+ 
+			<li class="banner">
+		       <div class="grid_10 alpha omega ">
+	            <label for="image_href" class="[% IF errors.missing.image_href or errors.invalid.image_href %]error[% END %]">[% type %] Image URL</label>
+				<input type="text" name="image_href" id="image_href" size="30" value="[% req.param('image_href') or ad_zone.image_href %]" />
+				<div class="clear"></div>
+				<label class="tip margin_b_20" for="image_href">Location of the [% type %] image, ex. yoursite.com/banner.gif</label>
+				</div>
+				<div class="clear"></div>
+			</li>
+
+			
+    		<li class="banner">
+			     <div class="grid_10 alpha omega">
+        			<label for="link_href" class="[% IF errors.missing.link_href or errors.invalid.link_href %]error[% END %]">[% type %] Destination</label>
+					<input type="text" name="link_href" size="30" value="[% req.param('link_href') or ad_zone.link_href %]" />
+					<div class="clear"></div>
+					<label class="tip" for="link_href">The webpage displayed when the [% type %] is clicked.</label>
+				
+					</div>
+	
+				<div class="clear"></div>
+			</li>

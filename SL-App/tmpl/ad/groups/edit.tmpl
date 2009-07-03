@@ -1,5 +1,6 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Edit ad zone"  selected="adcenter" %]
-<form method="post" action="[% base_uri %]/app/ad/groups/edit">
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Edit Banner Ad"  selected="adcenter" %]
+
+
 <div class="grid_16">
 	<div id="breadcrumb">
 		<div id="breadcrumb_inner">
@@ -23,11 +24,12 @@
 [% END %]
 
 
+<form class="form row" method="POST" action="[% base_uri %]/app/ad/groups/edit">
+
 <div id="main_content" class="grid_10 suffix_1">
-	<h2>'[% ad_zone.name %]' Banner</h2>
+	<h2>Edit '[% ad_zone.name %]' Banner Ad</h2>
 
 		<!-- Errors -->
-		[% IF status == 'update_ok' %]<p class="success">Your ad zone has been updated.</p>[% END %]
 		[% IF errors.missing %]<p class="error">Please fill in the missing fields</p>[% END %]
 		[% IF errors.invalid %]<p class="error">Some fields were invalid, please correct them</p>[% END %]
 		
@@ -41,28 +43,6 @@
 				</div>
 				<div class="clear"></div>
 			</li>
-			
-			<li style="display:none;">
-				<!-- ad size -->
-				<label for="ad_size_id" class="[% IF errors.missing.ad_size_id %]error[% END %]">Ad Size</label>
-				<select name="ad_size_id" id="ad_size_id">
-					<option value="">Select ad zone size</option>
-					[% FOREACH ad_size = ad_sizes %]
-				    [% IF loop.prev.grouping != ad_size.grouping %]
-				    <option value=""></option>
-				    <option value="">--&nbsp; 
-				    [% END %]
-				    [% IF ad_size.grouping == 1 %]Persistent Leaderboard
-				    [% ELSIF ad_size.grouping == 8 %]Persistent Micro Bar
-				    [% ELSIF ad_size.grouping == 6 %]Persistent Full Banner[% END %]
-				    </option>
-					<option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size.ad_size_id == ad_size.ad_size_id %]selected="selected"[% END %]>[% ad_size.name %]</option>
-					[% END %]
-				</select>
-
-				<div class="clear"></div>
-
-			</li>	
 		</ul>
 		
 
@@ -72,6 +52,7 @@
 		<ul class="form">
 
 
+        [% PROCESS ad/banner.tmpl type="Banner" %]
         [% PROCESS ad/code.tmpl type="Banner" %]
 
 
