@@ -53,8 +53,8 @@ sub dispatch_add {
                 reg_id     => $reg->reg_id,
                 ad_size_id => 12, # Floating Footer Leaderboard
                 code       => '',
-                active     => 't',
-                is_default => 'f',
+                active     => 1,
+                is_default => 0,
                 image_href => ' ',
                 link_href => ' ',
             }
@@ -244,7 +244,7 @@ sub dispatch_edit {
 
        if ($req->param('floating')) {
 
-         # floating leaderboard
+         # floating top leaderboard
          $ad_size_id = 10;
 
        } else {
@@ -266,8 +266,8 @@ sub dispatch_edit {
         account_id => $reg->account->account_id,
         ad_size_id => $ad_size_id,
         name       => $req->param('name'),
-        active     => $req->param('active') || 'f',
-        is_default => $req->param('is_default') || 'f',
+        active     => $req->param('active'),
+        is_default => $req->param('is_default'),
     );
 
     if ( $req->param('zone_type') eq 'code' ) {
@@ -293,6 +293,7 @@ sub dispatch_edit {
     $ad_zone->mts( DateTime::Format::Pg->format_datetime( DateTime->now( time_zone => 'local')));
     $ad_zone->update;
 
+    $r->log->debug("updated ad zone: " . Data::Dumper::Dumper($ad_zone)) if DEBUG;
 
     # done with argument processing
     $r->pnotes('session')->{msg} = sprintf( "Ad Zone '%s' was updated", $ad_zone->name );

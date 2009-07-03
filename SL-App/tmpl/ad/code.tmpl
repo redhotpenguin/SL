@@ -2,7 +2,7 @@
 
 			<li class="banner">
 		       <div class="grid_10 alpha omega ">
-	            <label for="image_href" class="[% IF errors.missing.image_href %]error[% END %]">[% type %] Image URL</label>
+	            <label for="image_href" class="[% IF errors.missing.image_href or errors.invalid.image_href %]error[% END %]">[% type %] Image URL</label>
 				<input type="text" name="image_href" id="image_href" size="50" value="[% req.param('image_href') or ad_zone.image_href %]" />
 				<div class="clear"></div>
 				<label class="tip margin_b_20" for="image_href">Location of the [% type %] image, ex. yoursite.com/banner.gif</label>
@@ -30,7 +30,7 @@
 
 			<li id="code" >
 		       <div class="grid_10 alpha omega">
-				<label for="code" class="[% IF errors.missing.code %]error[% END %]">[% type %] Invocation Code (provided by your ad server)</label>
+				<label for="code" class="[% IF errors.missing.code or errors.invalid.code %]error[% END %]">[% type %] Invocation Code (provided by your ad server)</label>
 				<textarea name="code" rows="10" cols="75">[% IF !ad_zone.image_href %][% req.param('code') or ad_zone.code %][% END %]</textarea>
 				<label class="tip" for="code">For faster speed add your Ad Server IP address to the custom_skips.txt on your router</label>
 				<div class="clear"></div>	

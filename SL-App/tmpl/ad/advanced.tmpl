@@ -7,11 +7,11 @@
 	
 					<!-- active -->
 					<label for="active">Is this [% type %] active?</label>
-					<input type="radio" name="active" value="t" [% IF req.param('active') == 't' or ad_zone.active %]checked="1"[% END %]/>
+					<input type="radio" name="active" value="1" [% IF req.param('active') == 't' or ad_zone.active %]checked="1"[% END %]/>
 					<label for="t" class="check_label">Yes</label>	
 					<div class="clear"></div>
 							
-					<input type="radio" name="active" value="f" [% IF req.param('active') =='f' %]checked="1"[% END %]/>
+					<input type="radio" name="active" value="0" [% IF (!req.param('active') && !ad_zone.active) or (req.param('active') == 0) %]checked="1"[% END %]/>
 					<label for="f" class="check_label">No</label>
 					<div class="clear"></div>
 					<label class="tip">To ensure consistency in reporting, [% type %]s cannot be deleted.</label>
@@ -21,12 +21,12 @@
 				<li>
 					<!-- default -->
 					<label for="is_default">Is this a default [% type %]?</label>
-					<input type="radio" name="is_default" value="t" [% IF (req.param('is_default') == 't') or (ad_zone.is_default == 't') %]checked="1"[% END %]>
-					<label for="t" class="check_label">Yes</label>
+					<input type="radio" name="is_default" value="1" [% IF (req.param('is_default') == 1) or (ad_zone.is_default == 1) %]checked="1"[% END %]>
+					<label for="t" class="check_label">Yes[% ad_zone.is_default %]</label>
 					<div class="clear"></div>
 							
-					<input type="radio" name="is_default" value="f"  [% IF !req.param('is_default') && (ad_zone.is_default == 'f') %]checked="1"[% END %] /> 
-					<label for="f" class="check_label">No[% req.param('is_default') %]</label>
+					<input type="radio" name="is_default" value="0"  [% IF (!req.param('is_default') && !ad_zone.is_default) or (req.param('is_default') == 0) %]checked="1"[% END %] /> 
+					<label for="f" class="check_label">No</label>
 					<div class="clear"></div>
 					<p class="tip">When two routers share the same WAN ip, sometimes the specific router cannot be identified.<br />In that case, a [% type %] marked as a default [% type %] will be shown.</p>
 					<p class="tip">The default [% type %] is also automatically assigned to any router that has no [% type %]s assigned.</p>
