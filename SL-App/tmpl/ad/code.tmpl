@@ -1,0 +1,40 @@
+
+
+			<li class="banner">
+		       <div class="grid_10 alpha omega ">
+	            <label for="image_href" class="[% IF errors.missing.image_href %]error[% END %]">[% type %] Image URL</label>
+				<input type="text" name="image_href" id="image_href" size="50" value="[% req.param('image_href') or ad_zone.image_href %]" />
+				<div class="clear"></div>
+				<label class="tip margin_b_20" for="image_href">Location of the [% type %] image, ex. yoursite.com/banner.gif</label>
+				</div>
+				<div class="clear"></div>
+			</li>
+
+			
+    		<li class="banner">
+			     <div class="grid_10 alpha omega">
+        			<label for="link_href" class="[% IF errors.missing.link_href or errors.invalid.link_href %]error[% END %]">[% type %] Destination</label>
+					<input type="text" name="link_href" size="30" value="[% req.param('link_href') or ad_zone.link_href %]" />
+					<div class="clear"></div>
+					<label class="tip" for="link_href">The webpage displayed when the [% type %] is clicked.</label>
+				
+						[% IF ad_zone.image_href %]
+		                    [% IF req.param('code') or ad_zone.code %]
+						    <p>[% req.param('code') or ad_zone.code %]</p>
+						    [% END %]
+		                [% END %]
+					</div>
+	
+				<div class="clear"></div>
+			</li>
+
+			<li id="code" >
+		       <div class="grid_10 alpha omega">
+				<label for="code" class="[% IF errors.missing.code %]error[% END %]">[% type %] Invocation Code (provided by your ad server)</label>
+				<textarea name="code" rows="10" cols="75">[% IF !ad_zone.image_href %][% req.param('code') or ad_zone.code %][% END %]</textarea>
+				<label class="tip" for="code">For faster speed add your Ad Server IP address to the custom_skips.txt on your router</label>
+				<div class="clear"></div>	
+				</div>
+				<div class="clear"></div>
+			</li>
+
