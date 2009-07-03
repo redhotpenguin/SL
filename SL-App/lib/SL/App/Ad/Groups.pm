@@ -48,11 +48,15 @@ sub dispatch_add {
 
         my $ad_zone = SL::Model::App->resultset('AdZone')->create(
             {
-                name       => 'New Ad Zone',
+                name       => 'New Banner Ad',
                 account_id => $reg->account_id,
                 reg_id     => $reg->reg_id,
-                ad_size_id => 12,
+                ad_size_id => 12, # Floating Footer Leaderboard
                 code       => '',
+                active     => 't',
+                is_default => 'f',
+                image_href => ' ',
+                link_href => ' ',
             }
         );
         return Apache2::Const::NOT_FOUND unless $ad_zone;

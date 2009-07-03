@@ -35,7 +35,7 @@
 			<li>
 				<!-- name -->
 				<div class="grid_6 alpha omega suffix_4">
-					<label for="name" class="[% IF errors.missing.name %]error[% END %]">Ad Zone Name</label>
+					<label for="name" class="[% IF errors.missing.name %]error[% END %]">Banner Ad Name</label>
 					<input type="text" name="name" size="30" value='[% req.param('name') or ad_zone.name %]' />
 					<div class="clear"></div>
 				</div>
@@ -89,7 +89,7 @@
 		<ul class="form">
 
 
-        [% PROCESS ad/code.tmpl type="Banner Ad" %]
+        [% PROCESS ad/code.tmpl type="Banner" %]
 
 
 
@@ -124,7 +124,7 @@
 </div>
 
 
-[% PROCESS ad/advanced.tmpl type="Banner Ad" %]
+[% PROCESS ad/advanced.tmpl type="Banner" %]
 
 
 <div class="grid_16">
