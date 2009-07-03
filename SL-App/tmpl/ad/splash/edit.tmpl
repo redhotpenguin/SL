@@ -30,113 +30,26 @@
 		</ul>
 		
 		
-		
-		<ul>
-			<li>
-				<label for="zone_type" class="label">Insert Splash page ad with:</label>
-				<div class="grid_2" id="zone_type_banner">
-					<input id="text" type="radio" name="zone_type" value="banner" [% IF (req.param('zone_type') == 'banner') or (ad_zone.image_href && ad_zone.link_href) %]checked="1"[% END %]/>
-					<label for="banner" class="check_label">Image URL</label>
-					<div class="clear"></div>
-				</div>
-				
-				<div class="grid_4 omega" id="zone_type_code">
-					<input class="left" id="text" type="radio" name="zone_type" value="code" [% IF req.param('zone_type') == 'code' or (!req.param('zone_type') && ad_zone.code ) %]checked="1"[% END %]/>
-					<label for="code" class="check_label left">Invocation Code</label>
-					<div class="clear"></div>
-				</div>
-				<div class="clear"></div>
-			</li>
-		</ul>
-		
+        [% PROCESS ad/zone_type.tmpl type="Splash Page Ad" %]
+
 		<ul class="form">
-			<li class="banner">
-		       <div class="grid_10 alpha omega ">
-	            <label for="image_href" class="[% IF errors.missing.image_href %]error[% END %]">Splash Page Image URL</label>
-				<input type="text" name="image_href" id="image_href" size="50" value="[% req.param('image_href') or ad_zone.image_href %]" />
-				<div class="clear"></div>
-				<label class="tip margin_b_20" for="image_href">Location of the image, ex. yoursite.com/splash.gif</label>
-				</div>
-				<div class="clear"></div>
-			</li>
 
-			
-    		<li class="banner">
-			     <div class="grid_10 alpha omega">
-        			<label for="link_href" class="[% IF errors.missing.link_href or errors.invalid.link_href %]error[% END %]">Advertisement Destination</label>
-					<input type="text" name="link_href" size="30" value="[% req.param('link_href') or ad_zone.link_href %]" />
-					<div class="clear"></div>
-					<label class="tip" for="link_href">The webpage displayed when the image is clicked.</label>
-				
-						[% IF ad_zone.image_href %]
-		                    [% IF req.param('code') or ad_zone.code %]
-						    <p>[% req.param('code') or ad_zone.code %]</p>
-						    [% END %]
-		                [% END %]
-					</div>
-	
-				<div class="clear"></div>
-			</li>
 
-			<li id="code" >
-		       <div class="grid_10 alpha omega">
-				<label for="code" class="[% IF errors.missing.code %]error[% END %]">Splash Page Invocation Code (provided by your ad server)</label>
-				<textarea name="code" rows="10" cols="75">[% IF !ad_zone.image_href %][% req.param('code') or ad_zone.code %][% END %]</textarea>
-				<label class="tip" for="code">For faster speed add your Ad Server IP address to the custom_skips.txt on your router</label>
-				<div class="clear"></div>	
-				</div>
-				<div class="clear"></div>
-			</li>
-
+        [% PROCESS ad/code.tmpl type="Splash Page Ad" %]        
 
 		</ul>
 </div>
 
 
-<div id="secondary_content" class="grid_5">
-	<div id="sc_top">
-		<div id="sc_bottom">
-			<h3>Advanced Options</h3>
-			<ul class="form">
-				<li>
-					<!-- active -->
-					<label for="active">Is the Splash Page active?</label>
-					<input type="radio" name="active" value="t" [% IF ad_zone.active %]checked="1"[% END %] />
-					<label for="t" class="check_label">Yes</label>	
-					<div class="clear"></div>
-							
-					<input type="radio" name="active" value="f" [% IF !ad_zone.active %]checked[% END %] /> 
-					<label for="f" class="check_label">No</label>
-					<div class="clear"></div>
-					<label class="tip">To ensure consistency in reporting, ad zones cannot be deleted</label>
-				</li>
-	
-				<li>
-					<!-- default -->
-					<label for="is_default">Is this the Default Splash Page?</label>
-					<input type="radio" name="is_default" value="t" [% IF ad_zone.is_default %]checked="1"[% END %] />
-					<label for="t" class="check_label">Yes</label>	
-					<div class="clear"></div>
-							
-					<input type="radio" name="is_default" value="f"  [% IF !ad_zone.is_default or !ad_zone %]checked="1"[% END %] /> 
-					<label for="f" class="check_label">No</label>
-					<div class="clear"></div>
-					<label class="tip">When two routers share the same WAN ip, sometimes the specific router cannot be identified.<br />In that case, an ad zone marked as a default ad zone will be shown.</label>
-					<label class="tip">The default ad zone is also automatically assigned to a device that has no ad zones assigned.</label>
-				</li>
-
-			</ul>
-		</div>
-	</div>
-</div>
+[% PROCESS ad/advanced.tmpl type="Splash Page Ad" %]
 
 
 <div class="grid_16">
 	<ul class="form">
 		<li class="form">
-			[% IF ad_zone.ad_zone_id %]
+
 			<input type="hidden" name="id" value="[% ad_zone.ad_zone_id %]">
-			[% END %]			
+
 			<input type="submit" value="Save Splash Page" />
 		</li>
 	</ul>

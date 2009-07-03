@@ -65,25 +65,8 @@
 			</li>	
 		</ul>
 		
-		<ul>
-			<li>
-				<label for="zone_type" class="label">Insert banner with:</label>
-				<div class="grid_2" id="zone_type_banner">
-					<input id="text" type="radio" name="zone_type" value="banner" [% IF (req.param('zone_type') == 'banner') or (ad_zone.image_href && ad_zone.link_href) %]checked="1"[% END %]/>
-					<label for="banner" class="check_label">Image URL</label>
-					<div class="clear"></div>
-				</div>
-				
-				<div class="grid_4 omega" id="zone_type_code">
-					<input class="left" id="text" type="radio" name="zone_type" value="code" [% IF req.param('zone_type') == 'code' or (!req.param('zone_type') && ad_zone.code ) %]checked="1"[% END %]/>
-					<label for="code" class="check_label left">Invocation Code</label>
-					<div class="clear"></div>
-				</div>
-				<div class="clear"></div>
-			</li>
-		</ul>
 
-
+        [% PROCESS ad/zone_type.tmpl type="Banner" %]
 
 		
 		<ul class="form">

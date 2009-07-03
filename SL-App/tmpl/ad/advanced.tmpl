@@ -22,7 +22,7 @@
 					<!-- default -->
 					<label for="is_default">Is this a default [% type %]?</label>
 					<input type="radio" name="is_default" value="1" [% IF (req.param('is_default') == 1) or (ad_zone.is_default == 1) %]checked="1"[% END %]>
-					<label for="t" class="check_label">Yes[% ad_zone.is_default %]</label>
+					<label for="t" class="check_label">Yes</label>
 					<div class="clear"></div>
 							
 					<input type="radio" name="is_default" value="0"  [% IF (!req.param('is_default') && !ad_zone.is_default) or (req.param('is_default') == 0) %]checked="1"[% END %] /> 
