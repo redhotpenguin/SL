@@ -1,5 +1,5 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Edit Splash Page Ad"  selected="adcenter" %]
-<form method="POST" action="[% base_uri %]/app/ad/splash/edit">
+
 
 <div class="grid_16">
 	<div id="breadcrumb">
@@ -12,14 +12,19 @@
 
 
 
+
+<form method="POST" action="[% base_uri %]/app/ad/splash/edit">
+
 <div id="main_content" class="grid_10 suffix_1">
 	<h2>[% ad_zone.name %]</h2>
 	
 		<!-- Errors -->
-		[% IF status == 'update_ok' %]<p class="success">Your ad zone has been updated.</p>[% END %]
 		[% IF errors.missing %]<p class="error">Please fill in the missing fields</p>[% END %]
 		[% IF errors.invalid %]<p class="error">Some fields were invalid, please correct them</p>[% END %]
 		
+
+
+
 		<ul class="row form"> 
 			<li>
 				<div class="grid_6 alpha omega suffix_4">
@@ -31,17 +36,21 @@
 			</li>
 		</ul>
 		
-		
+
+
+		<ul><li>
         [% PROCESS ad/zone_type.tmpl type="Splash Page Ad" %]
+        </li></ul>
+
 
 		<ul class="form">
 
-
-        [% PROCESS ad/banner.tmpl type="Splash Page Ad" %]
-        [% PROCESS ad/code.tmpl type="Splash Page Ad" %]        
-
+            [% PROCESS ad/banner.tmpl type="Splash Page Ad" %]
+            [% PROCESS ad/code.tmpl type="Splash Page Ad" %]        
 		</ul>
+
 </div>
+
 
 
 [% PROCESS ad/advanced.tmpl type="Splash Page Ad" %]
@@ -49,10 +58,8 @@
 
 <div class="grid_16">
 	<ul class="form">
-		<li class="form">
-
+		<li>
 			<input type="hidden" name="id" value="[% ad_zone.ad_zone_id %]">
-
 			<input type="submit" value="Save Splash Page" />
 		</li>
 	</ul>

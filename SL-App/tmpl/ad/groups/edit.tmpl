@@ -1,6 +1,7 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Edit Banner Ad"  selected="adcenter" %]
 
 
+
 <div class="grid_16">
 	<div id="breadcrumb">
 		<div id="breadcrumb_inner">
@@ -12,49 +13,44 @@
 
 
 <!-- BANNER PREVIEW -->
-[% IF !ad_zone.image_href %]
-	[% IF req.param('code') or ad_zone.code %]
-	   <div class="grid_16">
-			<div id="banner_preview">
-	   		 <div id="banner">[% req.param('code') or ad_zone.code %]</div>
-			<div class="clear"></div>
-			</div>
-		</div>	
-	[% END %]
-[% END %]
+<div class="grid_16">
+	<div id="banner_preview">
+   		 <div id="banner">[% IF req.param('code') or ad_zone.code %][% re.param('code') or ad_zone.code %][% ELSE %]<a href="http://www.silverliningnetworks.com/?referer=dashboard_example"><img src="[% base_uri %]/resources/images/ads/sln/sl_leaderboard.gif"></a>[% END %]</div>
+		<div class="clear"></div>
+	</div>
+</div>	
 
-
-<form class="form row" method="POST" action="[% base_uri %]/app/ad/groups/edit">
+<form method="POST" action="[% base_uri %]/app/ad/groups/edit">
 
 <div id="main_content" class="grid_10 suffix_1">
+
+
 	<h2>Edit '[% ad_zone.name %]' Banner Ad</h2>
+
 
 		<!-- Errors -->
 		[% IF errors.missing %]<p class="error">Please fill in the missing fields</p>[% END %]
 		[% IF errors.invalid %]<p class="error">Some fields were invalid, please correct them</p>[% END %]
+
+
 		
 		<ul class="form row"> 
 			<li>
-				<!-- name -->
-				<div class="grid_6 alpha omega suffix_4">
-					<label for="name" class="[% IF errors.missing.name %]error[% END %]">Banner Ad Name</label>
-					<input type="text" name="name" size="30" value='[% req.param('name') or ad_zone.name %]' />
-					<div class="clear"></div>
-				</div>
-				<div class="clear"></div>
+            [% PROCESS ad/name.tmpl type="Banner" %]
 			</li>
 		</ul>
-		
 
-        [% PROCESS ad/zone_type.tmpl type="Banner" %]
+
+		<ul>
+			<li>
+            [% PROCESS ad/zone_type.tmpl type="Banner" %]
+		  </li>
+		</ul>
 
 		
 		<ul class="form">
-
-
-        [% PROCESS ad/banner.tmpl type="Banner" %]
-        [% PROCESS ad/code.tmpl type="Banner" %]
-
+            [% PROCESS ad/banner.tmpl type="Banner" %]
+            [% PROCESS ad/code.tmpl type="Banner" %]
 
 
 			<li>
@@ -72,6 +68,8 @@
 				<div class="clear"></div>
 			</li>
 
+
+
 			<li>
 				<div class="grid_10 alpha">
 					<input id="text" type="checkbox" name="floating" [% IF (ad_zone.ad_size_id == 12) or (ad_zone.ad_size_id == 10) or (ad_zone.ad_size_id == 12) %]checked="checked"[% END %]/>
@@ -80,12 +78,9 @@
 				<div class="clear"></div>
 			</li>
 
-
-			<li>
-				<input type="hidden" name="id" value="[% ad_zone.ad_zone_id %]">
-			</li>
 		</ul>
 </div>
+
 
 
 [% PROCESS ad/advanced.tmpl type="Banner" %]
@@ -94,7 +89,8 @@
 <div class="grid_16">
 	<ul class="form">
 		<li>
-		   <input type="submit" value="Save ad zone" />
+			<input type="hidden" name="id" value="[% ad_zone.ad_zone_id %]">
+		   <input type="submit" value="Save Banner Ad" />
 		</li>
 	</ul>
 </div>
