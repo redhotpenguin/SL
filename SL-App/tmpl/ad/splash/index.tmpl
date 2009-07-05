@@ -34,10 +34,11 @@
 	
 	<table class="large_table">
 	<tr>
-		<th>Ad Zone Name</th>
-<!--		<th>Views Yesterday</th>-->
+		<th>Splash Page Ad Name</th>
+        <th>Ad Size</th>
+	    <th>Views Yesterday</th>
 		<th>Last Modified</th>
-		<th>Active on</th>
+		<th>Active On</th>
 
 	</tr>
 
@@ -48,7 +49,10 @@
 			<a href="[% base_uri %]/app/ad/splash/edit/?id=[% ad_zone.ad_zone_id %]">
 			[% ad_zone.name %]</a></td>
 			
-			<!--<td class="smaller">69</td>-->
+			<td class="smaller">[% ad_zone.ad_size.name %]</td>
+
+			<td class="smaller">NA</td>
+
 			
 			<td class="smaller">[% ad_zone.mts %]</td>
 

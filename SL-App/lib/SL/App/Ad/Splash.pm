@@ -77,25 +77,14 @@ sub dispatch_add {
                 reg_id     => $reg->reg_id,
                 ad_size_id => 15, # IAB Medium Rectangle
                 code       => '',
+                active     => 1,
+                is_default => 0,
+                image_href => ' ',
+                link_href => ' ',
             }
         );
         return Apache2::Const::NOT_FOUND unless $ad_zone;
         $ad_zone->update;
-
-
-=cut
-        # fix this when dbix::class::row->copy is fixed
-        my ($ad_zone) = SL::Model::App->resultset('AdZone')->search(
-            {
-                'me.account_id' => $reg->account_id,
-                'me.active'     => 't',
-                'ad_size.grouping'   => 1,
-            },
-            { join => 'ad_size', order_by => 'me.mts asc', limit    => 1 }
-        );
-
-        my $clone = $ad_zone->copy( { name => 'New Ad Zone' } );
-=cut
 
         return $self->dispatch_edit( $r, { req => $req }, $ad_zone );
 
@@ -148,7 +137,7 @@ sub dispatch_edit {
 
         ##############################################################
         # validate input
-        my @required = qw( name zone_type );
+        my @required = qw( name zone_type ad_size_id is_default active );
         my $constraints;
         if ( $req->param('zone_type') eq 'banner' ) {
 
@@ -194,11 +183,13 @@ sub dispatch_edit {
     my %args = (
         reg_id     => $reg->reg_id,
         account_id => $reg->account->account_id,
-        ad_size_id => 15,  # IAB Med Rect
+        ad_size_id => $req->param('ad_size_id'),
         name       => $req->param('name'),
-        active     => $req->param('active') || 'f',
-        is_default => $req->param('is_default') || 'f',
+        active     => $req->param('active'),
+        is_default => $req->param('is_default'),
     );
+
+    $r->log->debug("splash args: " . Data::Dumper::Dumper(\%args)) if DEBUG;
 
     if ( $req->param('zone_type') eq 'code' ) {
 

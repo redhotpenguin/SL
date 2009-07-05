@@ -27,15 +27,27 @@
 
 		<ul class="row form"> 
 			<li>
-				<div class="grid_6 alpha omega suffix_4">
-					<label for="name" class="[% IF errors.missing.name %]error[% END %]">Splash Page Ad Name</label>
-					<input type="text" name="name" size="30" value='[% req.param('name') or ad_zone.name %]' />
-					<div class="clear"></div>
-				</div>
-				<div class="clear"></div>
+            [% PROCESS ad/name.tmpl type="Splash Page Ad" %]
 			</li>
 		</ul>
 		
+
+
+        <ul class="form">
+        <li>
+      <!-- ad size -->
+      <label for="ad_size_id" class="[% IF errors.invalid.ad_size_id or errors.missing.ad_size_id %]error[% END %]">Splash Page Ad Size</label>
+      <select name="ad_size_id" id="ad_size_id">
+         <option value="">Select a size for this ad</option>
+         [% FOREACH ad_size = ad_sizes %]
+         <option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size.ad_size_id == ad_size.ad_size_id %]selected="selected"[% END %]>[% ad_size.name %]</option>
+         [% END %]
+      </select>
+      <div class="clear"></div>
+     </li>   
+     </ul>
+
+
 
 
 		<ul><li>
@@ -49,12 +61,26 @@
             [% PROCESS ad/code.tmpl type="Splash Page Ad" %]        
 		</ul>
 
+
+        <ul>
+          <li>
+          <!-- SPLASH PREVIEW -->
+          <div class="grid_16">
+	        <div id="splash_preview">
+     		    <div id="splash">[% IF req.param('code') or ad_zone.code %][% re.param('code') or ad_zone.code %][% ELSE %]Sample IAB Medium Rectangle (300x250px):<br /><a href="http://www.silverliningnetworks.com/?referer=dashboard_example"><img src="[% base_uri %]/resources/images/ads/300x250.gif"></a>[% END %]</div>
+		        <div class="clear"></div>
+	         </div>
+          </div>	
+          </li>
+      </ul>
+
+
+
 </div>
 
 
 
 [% PROCESS ad/advanced.tmpl type="Splash Page Ad" %]
-
 
 <div class="grid_16">
 	<ul class="form">
