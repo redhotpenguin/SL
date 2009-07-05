@@ -72,7 +72,8 @@ sub dispatch_edit {
                 link_href  => $self->valid_link(),
             };
 
-        my %profile = ( required => \@required, constraint_methods => $constraints);
+        my %profile = ( required => \@required,
+                        constraint_methods => $constraints);
 
 
         my $results = Data::FormValidator->check( $req, \%profile );
@@ -97,7 +98,8 @@ sub dispatch_edit {
     }
     $bug->ad_size_id( LEADERBOARD_BUG_SIZE );
     $bug->bug_id( 1 );
-    $bug->mts( DateTime::Format::Pg->format_datetime( DateTime->now(time_zone => 'local')));
+    $bug->mts( DateTime::Format::Pg->format_datetime(
+                       DateTime->now(time_zone => 'local')));
     $bug->update;
 
 
@@ -114,7 +116,7 @@ sub dispatch_list {
     my @bugs = sort { $b->mts cmp $a->mts } $reg->get_branding_zones;
 
     # format the time
-    $_->mts( $self->sldatetime( $_->mts ) ) for @bugs;
+    $self->format_adzone_list(\@bugs);
 
     my %tmpl_data = (
         ad_zones => \@bugs,

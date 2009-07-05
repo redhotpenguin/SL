@@ -50,7 +50,7 @@
 				<div class="grid_6 alpha omega suffix_4">
 					<select name="account_id" id="account_id">
 					[% FOREACH account = accounts %]
-						<option value="[% account.account_id %]" [% IF reg.account.account == account.account_id %]selected="selected"[% END %]>[% account.name %]</option>
+						<option value="[% account.account_id %]" [% IF reg.account_id == account.account_id %]selected="selected"[% END %]>[% account.name %]</option>
 					[% END %]
 					</select>
 					<div class="clear"></div>				

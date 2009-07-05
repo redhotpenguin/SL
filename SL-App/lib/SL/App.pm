@@ -362,4 +362,20 @@ sub sldatetime {
 
 }
 
+
+sub format_adzone_list {
+    my ( $class, $ad_zones ) = @_;
+
+    foreach my $ad_zone ( @{$ad_zones} ) {
+        $ad_zone->mts( $class->sldatetime( $ad_zone->mts ) );
+
+        if ( length( $ad_zone->name ) > 22 ) {
+            $ad_zone->name( substr( $ad_zone->name, 0, 19 ) . '...' );
+        }
+    }
+
+    return 1;
+}
+
+
 1;

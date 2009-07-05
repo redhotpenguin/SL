@@ -21,13 +21,12 @@ use SL::Model;
 use SL::Model::App;    # works for now
 
 sub dispatch_index {
-    my ($self, $r) = @_;
+    my ( $self, $r ) = @_;
 
     my $output;
-    $tmpl->process('ad/index.tmpl', {}, \$output, $r) ||
-        return $self->error($r, $tmpl->error);
-    return $self->ok($r, $output);
+    $tmpl->process( 'ad/index.tmpl', {}, \$output, $r )
+      || return $self->error( $r, $tmpl->error );
+    return $self->ok( $r, $output );
 }
-
 
 1;
