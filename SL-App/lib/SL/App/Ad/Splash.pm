@@ -36,7 +36,16 @@ sub dispatch_index {
 
     #$r->log->debug( "ad zones: " . Dumper( \@ad_zones ) ) if DEBUG;
 
-    $_->mts( $self->sldatetime( $_->mts ) ) for @ad_zones;
+
+    foreach my $ad_zone (@ad_zones) {
+      $ad_zone->mts( $self->sldatetime( $ad_zone->mts ) );
+
+      if (length($ad_zone->name) > 22) {
+        $ad_zone->name( substr($ad_zone->name,0,19) . '...');
+     }
+    }
+
+
 
     my $link = $r->construct_url(
                 '/splash/'

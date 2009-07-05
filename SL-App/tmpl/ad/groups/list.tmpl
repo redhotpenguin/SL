@@ -33,7 +33,8 @@
 		<th>Ad Zone Name</th>
 		<th>Views Yesterday</th>
 		<th>Last Modified</th>
-		<th>Active on</th>
+		<th>Default Ad?</th>
+		<th>Active On</th>
 
 	</tr>
 	
@@ -46,6 +47,8 @@
 			<td class="smaller">NA</td>
 			
 			<td class="smaller">[% ad_zone.mts %]</td>
+
+			<td class="smaller">[% IF ad_zone.is_default == 1 %]Yes[% ELSE %]No[% END %]</td>
 
 			<td class="smaller">
 			[% IF ad_zone.router_count == 0 %]
