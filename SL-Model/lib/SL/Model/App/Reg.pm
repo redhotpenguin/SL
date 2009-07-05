@@ -325,7 +325,7 @@ sub get_branding_zones {
     my @ad_zones = SL::Model::App->resultset('AdZone')->search({
 					 active => 't',
                      account_id => $self->account->account_id,
-                     ad_size_id => 2, });
+                     ad_size_id => 22, });
 
     return unless scalar(@ad_zones) > 0;
 

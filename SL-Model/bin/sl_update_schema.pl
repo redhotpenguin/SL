@@ -39,21 +39,30 @@ my @bugs = SL::Model::App->resultset('Bug')->all;
 
 foreach my $bug ( @bugs ) {
 
-    next unless (($bug->ad_size_id == 22) or ($bug->ad_size_id == 23));
+    next unless (($bug->ad_size_id == 1) or ($bug->ad_size_id == 23));
 
     warn("transforming bug for account " . $bug->account->name);
 
+
+    # get the ad zone id of the new bug => zone
+    my $ad_size_id;
+    if ($bug->ad_size_id == 1) {
+      $ad_size_id = 22;
+    } else {
+      $ad_size_id = 23;
+    }
+
+
     my $name = "Branding Image from bug id " . $bug->bug_id;
-    $dbh->do(<<SQL, {}, ($name,$bug->account_id, $bug->ad_size_id,14, $bug->image_href, $bug->link_href, 't'));
+    $dbh->do(<<SQL, {}, ($name,$bug->account_id, $ad_size_id,14, $bug->image_href, $bug->link_href, 't'));
 INSERT INTO AD_ZONE
 (code,name,account_id,ad_size_id,reg_id,image_href,link_href, is_default)
 VALUES
 ( '', ?,   ?,         ?,         ?,     ?,         ?, ? )
 SQL
 
-    # get the ad zone id of the new bug => zone
-    my $ad_zone_id = $dbh->selectall_arrayref(<<SQL, {Slice => {}}, $name)->[0]->{ad_zone_id};
-SELECT ad_zone_id FROM ad_zone WHERE name  = ?
+    my $ad_zone_id = $dbh->selectall_arrayref(<<SQL, {Slice => {}}, $name,$bug->image_href, $bug->link_href)->[0]->{ad_zone_id};
+SELECT ad_zone_id FROM ad_zone WHERE name  = ? and image_href=? and link_href=?
 SQL
 
     warn("new ad zone for account bug, zone id $ad_zone_id");
