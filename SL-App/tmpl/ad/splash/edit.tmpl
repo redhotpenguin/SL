@@ -11,6 +11,14 @@
 <div class="clear"></div>
 
 
+<!-- BANNER PREVIEW -->
+<div class="grid_16">
+	<div id="splash_preview">
+   		 <div id="splash">[% IF req.param('code') or ad_zone.code %][% re.param('code') or ad_zone.code %][% ELSE %]<a href="http://www.silverliningnetworks.com/?referer=dashboard_example"><img src="[% base_uri %]/resources/images/ads/300x250.gif"></a>[% END %]</div>
+		<div class="clear"></div>
+	</div>
+</div>	
+
 
 
 <form method="POST" action="[% base_uri %]/app/ad/splash/edit">
@@ -32,7 +40,7 @@
 		</ul>
 		
 
-
+<!--
         <ul class="form">
         <li>
       <!-- ad size -->
@@ -47,7 +55,7 @@
      </li>   
      </ul>
 
-
+-->
 
 
 		<ul><li>
@@ -59,21 +67,16 @@
 
             [% PROCESS ad/banner.tmpl type="Splash Page Ad" %]
             [% PROCESS ad/code.tmpl type="Splash Page Ad" %]        
+
+
+            <li class="example">
+                <label class="text" for="sample">The Splash Page Ad must be 300 pixels wide by 250 pixels tall (IAB Medium Rectangle), example:</label>
+                <img src="[% base_uri %]/resources/images/ads/300x250.gif">
+            </li>
+
+
+
 		</ul>
-
-
-        <ul>
-          <li>
-          <!-- SPLASH PREVIEW -->
-          <div class="grid_16">
-	        <div id="splash_preview">
-     		    <div id="splash">[% IF req.param('code') or ad_zone.code %][% re.param('code') or ad_zone.code %][% ELSE %]Sample IAB Medium Rectangle (300x250px):<br /><a href="http://www.silverliningnetworks.com/?referer=dashboard_example"><img src="[% base_uri %]/resources/images/ads/300x250.gif"></a>[% END %]</div>
-		        <div class="clear"></div>
-	         </div>
-          </div>	
-          </li>
-      </ul>
-
 
 
 </div>
@@ -86,7 +89,7 @@
 	<ul class="form">
 		<li>
 			<input type="hidden" name="id" value="[% ad_zone.ad_zone_id %]">
-			<input type="submit" value="Save Splash Page" />
+			<input type="submit" value="Save Splash Page Ad" />
 		</li>
 	</ul>
 </div>

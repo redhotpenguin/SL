@@ -8,7 +8,7 @@
 				</div>
 				
 				<div class="grid_4 omega" id="zone_type_code">
-					<input class="left" id="text" type="radio" name="zone_type" value="code" [% IF req.param('zone_type') == 'code' or (!req.param('zone_type') && ad_zone.code ) %]checked="1"[% END %]/>
+					<input class="left" id="text" type="radio" name="zone_type" value="code" [% IF req.param('zone_type') == 'code' or (!req.param('zone_type') && ad_zone.code && !ad_zone.image_href ) %]checked="1"[% END %]/>
 		<label for="code" class="check_label left">Invocation Code</label>
 					<div class="clear"></div>
 				</div>

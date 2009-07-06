@@ -99,6 +99,7 @@ sub _results_to_errors {
     if ( $results->has_invalid ) {
         %{ $errors{invalid} } = map { $_ => 1 } $results->invalid;
     }
+
     return \%errors;
 }
 

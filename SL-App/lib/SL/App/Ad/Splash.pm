@@ -137,7 +137,7 @@ sub dispatch_edit {
 
         ##############################################################
         # validate input
-        my @required = qw( name zone_type ad_size_id is_default active );
+        my @required = qw( name zone_type is_default active );
         my $constraints;
         if ( $req->param('zone_type') eq 'banner' ) {
 
@@ -183,7 +183,6 @@ sub dispatch_edit {
     my %args = (
         reg_id     => $reg->reg_id,
         account_id => $reg->account->account_id,
-        ad_size_id => $req->param('ad_size_id'),
         name       => $req->param('name'),
         active     => $req->param('active'),
         is_default => $req->param('is_default'),
