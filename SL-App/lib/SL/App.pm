@@ -161,14 +161,15 @@ sub valid_branding_image {
 
         my ( $width, $height ) = Image::Size::imgsize( \$response->content );
 
-        return unless $height == 90;
-
-        return unless (($width == 200) or ($width == 120));
+        unless (($height == 90) && (($width == 200) or ($width == 120))) {
+            $dfv->{image_err} = { width => $width, height => $height};
+            return;
+        }
 
         $data->{width} = $width;
 
         return $width;
-      }
+    }
 }
 
 

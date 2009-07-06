@@ -55,6 +55,7 @@ sub dispatch_edit {
         my %tmpl_data = (
             ad_zone  => $bug,
             errors   => $args_ref->{errors},
+            image_err => $args_ref->{image_err},
             req      => $req,
         );
 
@@ -87,6 +88,7 @@ sub dispatch_edit {
             return $self->dispatch_edit(
                 $r,
                 {
+                    image_err => $results->{image_err},
                     errors => $errors,
                     req    => $req
                 }

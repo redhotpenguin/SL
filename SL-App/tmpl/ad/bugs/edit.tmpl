@@ -25,9 +25,9 @@
 	<h2>Edit '[% ad_zone.name %]' Branding Image</h2>
 
 		<!-- Errors -->
+        [% IF image_err %]<p class="error">The image must be 120 x 90 pixels, yours was [% image_err.width %] x [% image_err.height %] pixels</p>[% END %]
 		[% IF errors.missing %]<p class="error">Please fill in the missing fields</p>[% END %]
 		[% IF errors.invalid %]<p class="error">Some fields were invalid, please correct them</p>[% END %]
-
 
 		<ul class="form row"> 
 			<li>
