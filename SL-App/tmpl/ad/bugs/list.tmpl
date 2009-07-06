@@ -11,20 +11,28 @@
 
 
 <div id="main_content" class="grid_16">
-	<h2>Manage Branding Images</h2>
-	<p class="tip"> [% count %] Branding Images</p>
-	
-	<h3 class="row">Select a branding image below to edit</h3>
-	
 	[% IF msg %]<p class="error">[% msg %]</p>[% END %]
-	
+
+
+	<div class="grid_6 alpha">
+	    <h2>Manage Branding Images</h2>
+	   <p class="tip">You have [% count %] Branding Images</p>
+	</div>
+
+	<div class="grid_4 omega">
+		<a class="right" id="button_add_banner" href="[% base_uri %]/app/ad/bugs/add">Add a Branding Image</a>
+		<div class="clear"></div>
+	</div>
+	<div class="clear"></div>
+
+		<h3 class="row">Select a Branding Image below to edit</h3>
 	
 	<table class="basic_table">
 	<tr>
 		<th>Name</th>
 		<th>Active On</th>
 		<th>Last Modified By</th>
-		<th>Default Image</th>
+		<th>Default Image?</th>
 	</tr>
 	
 	[% FOREACH ad_zone = ad_zones %]
@@ -42,6 +50,7 @@
 			[% END %]
 			</td>
 			
+
 			<td>
 			<a href="mailto:[% ad_zone.reg.email %]">[% ad_zone.reg.email %]</a><br />[% ad_zone.mts %]
 			</td>

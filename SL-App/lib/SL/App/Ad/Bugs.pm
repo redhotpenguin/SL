@@ -49,6 +49,7 @@ sub dispatch_edit {
     return Apache2::Const::NOT_FOUND unless $bug;
 
     # get the bugs
+    my $width;
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
         my %tmpl_data = (
@@ -66,9 +67,9 @@ sub dispatch_edit {
         $r->method_number(Apache2::Const::M_GET);
 
         # validate input
-        my @required = qw( name image_href link_href);
+        my @required = qw( name image_href link_href active is_default id);
         my $constraints = {
-                image_href => $self->valid_link(),
+                image_href => $self->valid_branding_image(),
                 link_href  => $self->valid_link(),
             };
 
@@ -81,6 +82,8 @@ sub dispatch_edit {
         if ( $results->has_missing or $results->has_invalid ) {
             my $errors = $self->SUPER::_results_to_errors($results);
 
+            $r->log->debug("results are " . Data::Dumper::Dumper($results)) if DEBUG;
+
             return $self->dispatch_edit(
                 $r,
                 {
@@ -89,14 +92,27 @@ sub dispatch_edit {
                 }
             );
         }
+
+        $width = $results->{valid}->{width};
     }
 
+
+    if ( $width == 200 ) {
+
+        # SLN Button 1
+        $bug->ad_size_id(22);
+
+    }
+    elsif ( $width == 120 ) {
+
+        # IAB Button 1
+        $bug->ad_size_id(20);
+    }
 
     # add arguments
     foreach my $param qw( name link_href image_href active is_default ) {
         $bug->$param( $req->param($param) );
     }
-    $bug->ad_size_id( LEADERBOARD_BUG_SIZE );
     $bug->bug_id( 1 );
     $bug->mts( DateTime::Format::Pg->format_datetime(
                        DateTime->now(time_zone => 'local')));

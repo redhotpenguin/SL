@@ -150,6 +150,28 @@ sub check_retype {
       }
 }
 
+sub valid_branding_image {
+    return sub {
+        my $dfv            = shift;
+        my $image_href_val = $dfv->get_current_constraint_value;
+        my $data           = $dfv->get_filtered_data;
+        my $image_href     = $data->{image_href};
+
+        my $response = $Ua->get( URI->new($image_href) );
+
+        my ( $width, $height ) = Image::Size::imgsize( \$response->content );
+
+        return unless $height == 90;
+
+        return unless (($width == 200) or ($width == 120));
+
+        $data->{width} = $width;
+
+        return $width;
+      }
+}
+
+
 
 sub image_zone {
     return sub {
@@ -177,6 +199,8 @@ sub image_zone {
         return $image_href_val;
       }
 }
+
+
 sub valid_first {
 
     return sub {
