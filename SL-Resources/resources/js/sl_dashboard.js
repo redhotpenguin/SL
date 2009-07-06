@@ -47,12 +47,9 @@ $(document).ready(function(){
     $("#device").change(setDeviceForm);
     setDeviceForm();
 
-    //find all form with class jqtransform and apply the plugin
-    $(".form").jqTransform();	
-
 
 	//CODE FOR HIDING OR SHOWING BANNER IMAGE LINK OR INVOCATION CODE
-	 if ($("input[name='zone_type']:checked").val() == 'banner') {
+    if ($("input[name='zone_type']:checked").val() == 'banner') {
     	$('#code').hide();
     	$('.banner').show();
     } else if ($("input[name='zone_type']:checked").val() == 'code') {
@@ -69,6 +66,10 @@ $(document).ready(function(){
     	$('#code').show();
     };
 	});
+
+    //find all form with class jqtransform and apply the plugin
+    $(".form").jqTransform();	
+
 
 	
 });

@@ -398,6 +398,11 @@ color: #900;
 font-weight: bold;
 background-color: #ffefef;
 }
+.status {
+color: #c2f7d2;
+font-weight: bold;
+background-color: #ffefef;
+}
 .notice {
 color: #906c00;
 font-weight: bold;
@@ -651,4 +656,45 @@ overflow: hidden;
 text-align: left;
 }
 
+/* BRANDING PREVIEW
+============================================= */
+#branding_preview {
+margin-bottom: 20px;
+background-color: #EEE;
+border: 1px solid #CCC;
+text-align: center;
+padding: 10px;
+}
+#branding_preview h2 {
+font-size: 93%;
+margin-bottom: 5px;
+}
+#branding {
+margin: 0 auto;
+width: 200px;
+height: 90px;
+overflow: hidden;
+text-align: left;
+}
+
+/* SPLASH PREVIEW
+============================================= */
+#splash_preview {
+margin-bottom: 20px;
+background-color: #EEE;
+border: 1px solid #CCC;
+text-align: center;
+padding: 10px;
+}
+#splash_preview h2 {
+font-size: 93%;
+margin-bottom: 5px;
+}
+#splash {
+margin: 0 auto;
+width: 350px;
+height: 250px;
+overflow: hidden;
+text-align: left;
+}
 

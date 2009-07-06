@@ -14,6 +14,7 @@
 
 <!-- BANNER PREVIEW -->
 <div class="grid_16">
+   <label class="text" for="sample">Preview - Banner Ad must be 728 pixels wide by 90 pixels tall (IAB Leaderboard)</label>
 	<div id="banner_preview">
    		 <div id="banner">[% IF req.param('code') or ad_zone.code %][% re.param('code') or ad_zone.code %][% ELSE %]<a href="http://www.silverliningnetworks.com/?referer=dashboard_example"><img src="[% base_uri %]/resources/images/ads/sln/sl_leaderboard.gif"></a>[% END %]</div>
 		<div class="clear"></div>
@@ -77,11 +78,6 @@
 				</div>
 				<div class="clear"></div>
 			</li>
-
-            <li class="banner">
-                <label class="text" for="sample">The Banner Ad must be 728 pixels wide by 90 pixels tall (IAB Leaderboard), example:</label>
-                <img src="[% base_uri %]/resources/images/ads/sln/advertise_leaderboard.png">
-            </li>
 
 
 		</ul>

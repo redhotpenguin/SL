@@ -12,6 +12,7 @@
 
 <!-- BANNER PREVIEW -->
 <div class="grid_16">
+ <label class="text" for="sample">Preview - Branding Image must be 120 pixels wide by 90 pixels tall (IAB Button 1)</label>
     <div id="branding_preview">
 	<div id="branding">[% IF (req.param('image_href') != ' ') or (ad_zone.image_href != '') %]<a href="[% req.param('image_link') or ad_zone.image_link %]"><img src="[% req.param('image_href') or ad_zone.image_href %]"></a>[% ELSE %]<a href="http://www.silverliningnetworks.com/?referer=dashboard_example"><img src="[% base_uri %]/resources/images/ads/sln/120x90.gif"></a>[% END %]</div>
 	<div class="clear"></div>
@@ -38,10 +39,6 @@
 
             [% PROCESS ad/banner.tmpl type="Branding Image" %]
 
-            <li class="banner">
-            <label class="text" for="sample">The Branding Image must be 120 pixels wide by 90 pixels tall (IAB Button 1), example:</label>
-            <img src="[% base_uri %]/resources/images/ads/sln/120x90.gif">
-            </li>
 		</ul>
 </div>
 

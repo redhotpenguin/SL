@@ -13,6 +13,7 @@
 
 <!-- BANNER PREVIEW -->
 <div class="grid_16">
+     <label class="text" for="sample">Preview - Splash Page Ad must be 300 pixels wide by 250 pixels tall (IAB Medium Rectangle)</label>
 	<div id="splash_preview">
    		 <div id="splash">[% IF req.param('code') or ad_zone.code %][% re.param('code') or ad_zone.code %][% ELSE %]<a href="http://www.silverliningnetworks.com/?referer=dashboard_example"><img src="[% base_uri %]/resources/images/ads/300x250.gif"></a>[% END %]</div>
 		<div class="clear"></div>
@@ -40,7 +41,7 @@
 		</ul>
 		
 
-<!--
+[% IF gilgamesh %]
         <ul class="form">
         <li>
       <!-- ad size -->
@@ -55,7 +56,7 @@
      </li>   
      </ul>
 
--->
+[% END %]
 
 
 		<ul><li>
@@ -67,14 +68,6 @@
 
             [% PROCESS ad/banner.tmpl type="Splash Page Ad" %]
             [% PROCESS ad/code.tmpl type="Splash Page Ad" %]        
-
-
-            <li class="example">
-                <label class="text" for="sample">The Splash Page Ad must be 300 pixels wide by 250 pixels tall (IAB Medium Rectangle), example:</label>
-                <img src="[% base_uri %]/resources/images/ads/300x250.gif">
-            </li>
-
-
 
 		</ul>
 

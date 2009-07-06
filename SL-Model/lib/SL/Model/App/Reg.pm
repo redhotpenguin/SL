@@ -305,7 +305,7 @@ sub get_splash_sizes {
     my $self = shift;
 
     my @ad_sizes = SL::Model::App->resultset('AdSize')->search({
-                     grouping => 3,});
+                     ad_size_id => 15,});
 
     return unless scalar(@ad_sizes) > 0;
 
@@ -325,7 +325,7 @@ sub get_branding_zones {
     my @ad_zones = SL::Model::App->resultset('AdZone')->search({
 					 active => 't',
                      account_id => $self->account->account_id,
-                     ad_size_id => 22, });
+                     ad_size_id => { -in => [20,22], },});
 
     return unless scalar(@ad_zones) > 0;
 
@@ -341,7 +341,7 @@ sub get_branding_sizes {
     my $self = shift;
 
     my @ad_sizes = SL::Model::App->resultset('AdSize')->search({
-                     grouping => [2,9]});
+                     ad_size_id => { -in => [20,22], }, });
 
     return unless scalar(@ad_sizes) > 0;
 

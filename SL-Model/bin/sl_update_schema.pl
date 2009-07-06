@@ -39,14 +39,14 @@ my @bugs = SL::Model::App->resultset('Bug')->all;
 
 foreach my $bug ( @bugs ) {
 
-    next unless (($bug->ad_size_id == 1) or ($bug->ad_size_id == 23));
+    next unless (($bug->ad_size_id == 1) or ($bug->ad_size_id == 10) or ($bug->ad_size_id == 12) or ($bug->ad_size_id == 23));
 
     warn("transforming bug for account " . $bug->account->name);
 
 
     # get the ad zone id of the new bug => zone
     my $ad_size_id;
-    if ($bug->ad_size_id == 1) {
+    if ($bug->ad_size_id != 23) {
       $ad_size_id = 22;
     } else {
       $ad_size_id = 23;
