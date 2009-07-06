@@ -119,6 +119,7 @@ sub dispatch_edit {
           sort { $a->name cmp $b->name } $reg->get_splash_sizes;
 
         my %tmpl_data = (
+            image_err => $args_ref->{image_err},
             ad_sizes => \@ad_sizes,
             ad_zone  => $ad_zone,
             errors   => $args_ref->{errors},
@@ -143,7 +144,7 @@ sub dispatch_edit {
 
             push @required, qw( image_href link_href );
             $constraints = {
-                image_href => $self->valid_link(),
+                image_href => $self->valid_splash_ad(),
                 link_href  => $self->valid_link(),
             };
 
@@ -168,6 +169,7 @@ sub dispatch_edit {
             return $self->dispatch_edit(
                 $r,
                 {
+                    image_err => $results->{image_err},
                     errors => $errors,
                     req    => $req
                 }

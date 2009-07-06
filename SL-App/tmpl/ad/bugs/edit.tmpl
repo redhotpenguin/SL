@@ -14,7 +14,7 @@
 <div class="grid_16">
  <label class="text" for="sample">Preview - Branding Image must be 120 pixels wide by 90 pixels tall (IAB Button 1)</label>
     <div id="branding_preview">
-	<div id="branding">[% IF (req.param('image_href') != ' ') or (ad_zone.image_href != '') %]<a href="[% req.param('image_link') or ad_zone.image_link %]"><img src="[% req.param('image_href') or ad_zone.image_href %]"></a>[% ELSE %]<a href="http://www.silverliningnetworks.com/?referer=dashboard_example"><img src="[% base_uri %]/resources/images/ads/sln/120x90.gif"></a>[% END %]</div>
+	<div id="branding">[% IF !req.param('image_href') && (ad_zone.image_href != ' ') %]<a href="[% req.param('image_link') or ad_zone.image_link %]"><img src="[% req.param('image_href') or ad_zone.image_href %]"></a>[% ELSE %]<a href="http://www.silverliningnetworks.com/?referer=dashboard_example"><img src="[% base_uri %]/resources/images/ads/sln/120x90.gif"></a>[% END %]</div>
 	<div class="clear"></div>
 	</div>
 </div>	
@@ -26,7 +26,7 @@
 	<h2>Edit '[% ad_zone.name %]' Branding Image</h2>
 
 		<!-- Errors -->
-        [% IF image_err %]<p class="error">The image must be 120 x 90 pixels, yours was [% image_err.width %] x [% image_err.height %] pixels</p>[% END %]
+        [% IF image_err %]<p class="error">[% IF image_err.missing %]No image was found at [% req.param('image_href' ) %][% ELSE %]The image must be 120 pixels wide by 90 pixels tall, yours was [% image_err.width %] pixels wide by [% image_err.height %] pixels tall</p>[% END %][% END %]
 		[% IF errors.missing %]<p class="error">Please fill in the missing fields</p>[% END %]
 		[% IF errors.invalid %]<p class="error">Some fields were invalid, please correct them</p>[% END %]
 

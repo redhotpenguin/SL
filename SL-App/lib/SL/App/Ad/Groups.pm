@@ -168,11 +168,8 @@ sub dispatch_edit {
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
-        my @ad_sizes = sort { $a->grouping <=> $b->grouping }
-          sort { $a->name cmp $b->name } $reg->get_persistent_sizes;
-
         my %tmpl_data = (
-            ad_sizes => \@ad_sizes,
+            image_err => $args_ref->{image_err},
             ad_zone  => $ad_zone,
             results => $args_ref->{results},
             errors   => $args_ref->{errors},
@@ -190,14 +187,14 @@ sub dispatch_edit {
         $r->method_number(Apache2::Const::M_GET);
 
         # validate input
-        my @required = qw( name ad_size_id zone_type active is_default id banner_placement );
+        my @required = qw( name zone_type active is_default id banner_placement );
         my @optionals = qw( floating );
         my $constraints;
         if ( $req->param('zone_type') eq 'banner' ) {
 
             push @required, qw( image_href link_href );
             $constraints = {
-                image_href => $self->valid_link(),
+                image_href => $self->valid_banner_ad(),
                 link_href  => $self->valid_link(),
             };
 
@@ -226,6 +223,7 @@ sub dispatch_edit {
                 $r,
                 {
                     results => $results,
+                    image_err => $results->{image_err},
                     errors => $errors,
                     req    => $req
                 }

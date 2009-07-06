@@ -160,6 +160,13 @@ sub valid_branding_image {
 
         my $response = $Ua->get( URI->new($image_href) );
 
+
+        unless ($response->is_success) {
+            $dfv->{image_err} = { missing => 1 };
+            return;
+          }
+
+
         my ( $width, $height ) = Image::Size::imgsize( \$response->content );
 
         unless (($height == 90) && (($width == 200) or ($width == 120))) {
@@ -174,32 +181,60 @@ sub valid_branding_image {
 }
 
 
-
-sub image_zone {
+sub valid_splash_ad {
     return sub {
         my $dfv            = shift;
         my $image_href_val = $dfv->get_current_constraint_value;
         my $data           = $dfv->get_filtered_data;
         my $image_href     = $data->{image_href};
-        my $ad_size_id     = $data->{ad_size_id};
 
-        my ($ad_size) = SL::Model::App->resultset('AdSize')->search({
-            ad_size_id =>  $ad_size_id });
-
-        return unless $ad_size;
         my $response = $Ua->get( URI->new($image_href) );
+
+        unless ($response->is_success) {
+            $dfv->{image_err} = { missing => 1 };
+            return;
+          }
 
         my ( $width, $height ) = Image::Size::imgsize( \$response->content );
 
-        # image too big?
-        return unless $response->headers->header('content-length') < MAX_IMAGE_BYTES;
+        unless (($height == 250) && ($width == 300)) {
+            $dfv->{image_err} = { width => $width, height => $height};
+            return;
+        }
 
-        # check the image height
-        return unless $height == $ad_size->bug_height;
-        return unless $width == $ad_size->bug_width;
+        $data->{width} = $width;
 
-        return $image_href_val;
-      }
+        return $width;
+    }
+}
+
+
+
+sub valid_banner_ad {
+    return sub {
+        my $dfv            = shift;
+        my $image_href_val = $dfv->get_current_constraint_value;
+        my $data           = $dfv->get_filtered_data;
+        my $image_href     = $data->{image_href};
+
+        my $response = $Ua->get( URI->new($image_href) );
+
+        unless ($response->is_success) {
+            $dfv->{image_err} = { missing => 1 };
+            return;
+          }
+
+        my ( $width, $height ) = Image::Size::imgsize( \$response->content );
+
+        unless (($width == 728) && ($height == 90)) {
+            $dfv->{image_err} = { width => $width, height => $height};
+            return;
+        }
+
+        $data->{width} = $width;
+
+        return $width;
+    }
 }
 
 

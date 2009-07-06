@@ -19,32 +19,67 @@ use Data::Dumper;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
-use constant LEADERBOARD_BUG_SIZE => 2;
-
-our $TMPL = SL::App::Template->template();
+our $Tmpl = SL::App::Template->template();
 
 sub dispatch_index {
     my ( $self, $r ) = @_;
 
     my $output;
-    $TMPL->process( 'ad/bugs/index.tmpl', {}, \$output, $r )
-      || return $self->error( $r, $TMPL->error );
+    $Tmpl->process( 'ad/bugs/index.tmpl', {}, \$output, $r )
+      || return $self->error( $r, $Tmpl->error );
     return $self->ok( $r, $output );
 }
 
+sub dispatch_add {
+    my ( $self, $r ) = @_;
+
+    my $req = Apache2::Request->new($r);
+    my $reg = $r->pnotes( $r->user );
+
+    if ( $r->method_number == Apache2::Const::M_GET ) {
+
+        my $ad_zone = SL::Model::App->resultset('AdZone')->create(
+            {
+                name       => 'New Branding Image',
+                account_id => $reg->account_id,
+                reg_id     => $reg->reg_id,
+                ad_size_id => 20, # IAB Button 1
+                code       => '',
+                active     => 1,
+                is_default => 0,
+                image_href => ' ',
+                link_href => ' ',
+            }
+        );
+        return Apache2::Const::NOT_FOUND unless $ad_zone;
+        $ad_zone->update;
+
+
+        return $self->dispatch_edit( $r, { req => $req }, $ad_zone );
+
+    }
+
+}
+
+
+
 sub dispatch_edit {
-    my ( $self, $r, $args_ref ) = @_;
+    my ( $self, $r, $args_ref, $ad_zone_obj ) = @_;
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
 
     my $reg = $r->pnotes( $r->user );
 
-    my ($bug) = SL::Model::App->resultset('AdZone')->search(
-        {
-            account_id => $reg->account->account_id,
-            ad_zone_id => $req->param('id'),
-        }
-    );
+    my $bug;
+    if (my $id = $req->param('id')) {
+
+      $bug = $reg->get_ad_zone( $id );
+
+    } elsif ($ad_zone_obj) {
+
+      $bug = $ad_zone_obj;
+
+    }
 
     return Apache2::Const::NOT_FOUND unless $bug;
 
@@ -60,8 +95,8 @@ sub dispatch_edit {
         );
 
         my $output;
-        $TMPL->process( 'ad/bugs/edit.tmpl', \%tmpl_data, \$output, $r )
-          || return $self->error( $r, $TMPL->error );
+        $Tmpl->process( 'ad/bugs/edit.tmpl', \%tmpl_data, \$output, $r )
+          || return $self->error( $r, $Tmpl->error );
         return $self->ok( $r, $output );
     }
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
@@ -142,8 +177,8 @@ sub dispatch_list {
     );
 
     my $output;
-    $TMPL->process( 'ad/bugs/list.tmpl', \%tmpl_data, \$output, $r )
-      || return $self->error( $r, $TMPL->error );
+    $Tmpl->process( 'ad/bugs/list.tmpl', \%tmpl_data, \$output, $r )
+      || return $self->error( $r, $Tmpl->error );
     return $self->ok( $r, $output );
 }
 

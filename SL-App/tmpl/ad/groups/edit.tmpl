@@ -30,9 +30,9 @@
 
 
 		<!-- Errors -->
+        [% IF image_err %]<p class="error">[% IF image_err.missing %]No image was found at [% req.param('image_href' ) %][% ELSE %]The image must be 728 pixels wide by 90 pixels tall, yours was [% image_err.width %] pixels wide by [% image_err.height %] pixels tall</p>[% END %][% END %]
 		[% IF errors.missing %]<p class="error">Please fill in the missing fields</p>[% END %]
 		[% IF errors.invalid %]<p class="error">Some fields were invalid, please correct them</p>[% END %]
-
 
 		
 		<ul class="form row"> 
