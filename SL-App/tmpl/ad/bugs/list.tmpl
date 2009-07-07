@@ -10,7 +10,7 @@
 
 
 
-<div id="main_content" class="grid_16">
+<div id="main_content" class="grid_10 suffix_6">
 	[% IF msg %]<p class="error">[% msg %]</p>[% END %]
 
 
@@ -20,18 +20,18 @@
 	</div>
 
 	<div class="grid_4 omega">
-		<a class="right" id="button_add_banner" href="[% base_uri %]/app/ad/bugs/add">Add a Branding Image</a>
+		<a class="right" id="button_add_logo" href="[% base_uri %]/app/ad/bugs/add">Add a Branding Image</a>
 		<div class="clear"></div>
 	</div>
 	<div class="clear"></div>
 
 		<h3 class="row">Select a Branding Image below to edit</h3>
 	
-	<table class="basic_table">
+	<table class="large_table">
 	<tr>
 		<th>Name</th>
 		<th>Active On</th>
-		<th>Last Modified By</th>
+		<th>Last Edited</th>
 		<th>Default Image?</th>
 	</tr>
 	
@@ -50,10 +50,7 @@
 			[% END %]
 			</td>
 			
-
-			<td>
-			<a href="mailto:[% ad_zone.reg.email %]">[% ad_zone.reg.email %]</a><br />[% ad_zone.mts %]
-			</td>
+			<td>[% ad_zone.mts %]</td>
 
             <td>[% IF ad_zone.is_default %]Yes[% ELSE %]No[% END %]</td>
 
