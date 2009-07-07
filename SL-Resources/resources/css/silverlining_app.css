@@ -40,6 +40,7 @@ padding-top: 20px;
 padding-bottom: 20px;
 }
 
+
 /* LOGO
 ============================================= */
 #sl_logo {
@@ -515,6 +516,12 @@ font-weight: bold;
 #main_content .large_table td.smaller {
 font-size: 85%;
 }
+#main_content .large_table td.center, #main_content .large_table th.center  {
+text-align: center;
+}
+#main_content .large_table td.center a {
+margin: 0 auto;
+}
 
 /* SIDE CONTENT
 ============================================= */
@@ -548,6 +555,15 @@ list-style-type: none;
 list-style-type: none;
 }
 
+
+/* PREVIEW
+============================================= */
+.preview h3 {
+font-weight: bold;
+font-size: 85%;
+color: #666;
+margin-bottom: 3px;
+}
 
 /* TWIITER LIST
 ============================================= */
@@ -650,6 +666,37 @@ height: 90px;
 overflow: hidden;
 text-align: left;
 }
+
+
+/* TEXT BANNER PREVIEW
+============================================= */
+#text_banner_preview {
+margin-bottom: 20px;
+background-color: #EEE;
+border: 1px solid #c3e4f7;
+text-align: center;
+padding: 10px;
+position: relative;
+}
+#text_banner_preview strong {
+position: absolute;
+top: 2px;
+left: 5px;
+}
+#text_banner_preview p {
+background-color: #FFF;
+border: 1px solid #c3e4f7;
+padding: 10px;
+text-align: left;
+color: #444;
+font-size: 92%;
+padding-left: 80px; 
+background: #FFF url(../images/icons/application/Comment.png) 10px 0px no-repeat;
+height:44px;
+line-height: 20px;
+}
+
+
 
 /* BRANDING PREVIEW
 ============================================= */
