@@ -7,8 +7,16 @@
 	</div>
 </div>
 
+<!-- BANNER PREVIEW -->
+<div class="grid_16 preview">
+	<h3>Preview (Max 140 characters)</h3>
+	<div id="text_banner_preview">
+		<p>[% req.param('text_message') or reg.account.text_message %]</p>
+	</div>
+</div>	
+
 <div id="main_content" class="grid_10 suffix_1">
-	<h2 class="icon_textmsg">Text Entry Message Bar</h2>
+	<h2>Text Entry Message Bar</h2>
 	
 	<div class="row">
 	<form class="form" method="post" action="[% base_uri %]/app/ad/msg/index">

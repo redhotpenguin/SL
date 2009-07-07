@@ -32,7 +32,8 @@
 		<th>Name</th>
 		<th>Active On</th>
 		<th>Last Edited</th>
-		<th>Default Image?</th>
+		<th class="center">Default</th>
+		<th class="center">Remove</th>
 	</tr>
 	
 	[% FOREACH ad_zone = ad_zones %]
@@ -52,8 +53,9 @@
 			
 			<td>[% ad_zone.mts %]</td>
 
-            <td>[% IF ad_zone.is_default %]Yes[% ELSE %]No[% END %]</td>
-
+            <td class="center">[% IF ad_zone.is_default %]Yes[% ELSE %]No[% END %]</td>
+            
+			<td class="center"><a href="#" class="icon_delete">Delete</a></td>
 
 		</tr>
 	[% END %]

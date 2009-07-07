@@ -38,8 +38,8 @@
 	    <th>Views Yesterday</th>
 		<th>Last Modified</th>
 		<th>Active On</th>
-		<th>Default Ad?</th>
-
+		<th>Default</th>
+		<th>Remove</th>
 	</tr>
 
 	
@@ -64,8 +64,9 @@
 			devices
 			</td>
 			
-	        <td class="smaller">[% IF ad_zone.is_default == 1 %]Yes[% ELSE %]No[% END %]</td>
-
+	        <td class="smaller center">[% IF ad_zone.is_default == 1 %]Yes[% ELSE %]No[% END %]</td>
+	        
+			<td class="center"><a href="#" class="icon_delete">Delete</a></td>
 		</tr>
 	[% END %]
 	</table>

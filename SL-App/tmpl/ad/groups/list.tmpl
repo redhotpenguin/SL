@@ -32,9 +32,9 @@
 		<th>Ad Zone Name</th>
 		<th>Views Yesterday</th>
 		<th>Last Modified</th>
-		<th>Default Ad?</th>
+		<th>Default</th>
 		<th>Active On</th>
-
+		<th>Remove</th>
 	</tr>
 	
 	[% FOREACH ad_zone = ad_zones %]
@@ -47,7 +47,7 @@
 			
 			<td class="smaller">[% ad_zone.mts %]</td>
 
-			<td class="smaller">[% IF ad_zone.is_default == 1 %]Yes[% ELSE %]No[% END %]</td>
+			<td class="smaller center">[% IF ad_zone.is_default == 1 %]Yes[% ELSE %]No[% END %]</td>
 
 			<td class="smaller">
 			[% IF ad_zone.router_count == 0 %]
@@ -58,6 +58,8 @@
 			[% END %]
 			devices
 			</td>
+			
+			<td class="center"><a href="#" class="icon_delete">Delete</a></td>
 
 	[% END %]
 	</table>
