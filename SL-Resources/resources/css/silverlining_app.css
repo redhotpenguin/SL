@@ -56,29 +56,24 @@ right: -15px;
 
 /* BUTTONS
 ============================================= */
-#button_add_device {
-background: url(../images/buttons/applications/add_device.png) top left no-repeat;
+#button_add_splash, #button_add_device, #button_add_banner, #button_add_logo {
 height: 39px;
 width: 139px;
 display: block;
 overflow: hidden;
 text-indent: -3000px;
+}
+#button_add_device {
+background: url(../images/buttons/applications/add_device.png) top left no-repeat;
 }
 #button_add_banner {
 background: url(../images/buttons/applications/add_banner.png) top left no-repeat;
-height: 39px;
-width: 139px;
-display: block;
-overflow: hidden;
-text-indent: -3000px;
 }
 #button_add_splash {
 background: url(../images/buttons/applications/add_splash.png) top left no-repeat;
-height: 39px;
-width: 139px;
-display: block;
-overflow: hidden;
-text-indent: -3000px;
+}
+#button_add_logo {
+background: url(../images/buttons/applications/add_logo.png) top left no-repeat;
 }
 .large_button {
 display: block;
@@ -658,24 +653,26 @@ text-align: left;
 
 /* BRANDING PREVIEW
 ============================================= */
-#branding_preview {
-margin-bottom: 20px;
-background-color: #EEE;
-border: 1px solid #CCC;
-text-align: center;
+#branding {
 padding: 10px;
+border: 1px solid #CCC;
+background-color: #EEE;
+text-align: left;
+float: left;
 }
-#branding_preview h2 {
-font-size: 93%;
+#branding strong {
+font-size: 90%;
+font-weight: bold;
+color: #333;
+display: block;
 margin-bottom: 5px;
 }
-#branding {
-margin: 0 auto;
-width: 200px;
-height: 90px;
-overflow: hidden;
-text-align: left;
+#branding span {
+font-size: 77%;
+display: block;
+margin-top: 5px;
 }
+
 
 /* SPLASH PREVIEW
 ============================================= */
