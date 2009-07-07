@@ -19,7 +19,7 @@ use Data::Dumper;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
-our $TMPL = SL::App::Template->template();
+our $Tmpl = SL::App::Template->template();
 
 sub dispatch_index {
     my ( $self, $r, $args_ref ) = @_;
@@ -29,61 +29,66 @@ sub dispatch_index {
 
     my $twitter_id = $req->param('twitter_id');
 
+
+    #####################################################
     # make sure we have a twitter ad zone
-    my $tsize_id = 23;
-    my %args     = (
+    my %args = (
         name       => '_twitter_feed',
-        ad_size_id => $tsize_id,
-        account_id => $reg->account->account_id,
+        ad_size_id => 23,
+        account_id => $reg->account_id,
+        hidden     => 1,
     );
 
     my ($ad_zone) = SL::Model::App->resultset('AdZone')->search( \%args );
-
-    my $bug;
     unless ($ad_zone) {
 
-        my %bug_args = (
-            ad_size_id => $tsize_id,
-            account_id => $reg->account->account_id,
-        );
-
-        ($bug) = SL::Model::App->resultset('Bug')->search( \%bug_args );
-
-        unless ($bug) {
-
-            # create it
-            $bug = SL::Model::App->resultset('Bug')->create(
-                {
-                    %bug_args,
-                    image_href =>
-                      'http://s1.slwifi.com/images/ads/sln/micro_bug.gif',
-                    link_href => 'http://www.silverliningnetworks.com/',
-                }
-            );
-            $bug->update;
-        }
-
         # create it
-
         $ad_zone =
           SL::Model::App->resultset('AdZone')
-          ->create( { %args, code => '', hidden => 't' } );
-        $ad_zone->bug_id( $bug->bug_id );
-        $ad_zone->reg_id( $reg->reg_id );
+          ->create( { %args, reg_id => $reg->reg_id, code => '' } );
+
+        $ad_zone->update;
     }
+
+    ######################################################
+    # grab the branding image
+    my %bug_args = (
+        ad_size_id => 24,
+        account_id => $reg->account_id,
+    );
+
+    my ($bug) = SL::Model::App->resultset('Bug')->search( \%bug_args );
+
+    unless ($bug) {
+
+        # create it
+        $bug = SL::Model::App->resultset('Bug')->create(
+            {
+                %bug_args,
+                image_href =>
+                  'http://s1.slwifi.com/images/ads/sln/micro_bug.gif',
+                link_href => 'http://www.silverliningnetworks.com/',
+            }
+        );
+        $bug->update;
+    }
+
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
-        my %tmpl_data = (
+      my ($count) = $ad_zone->code =~ m/count\=(\d+)/s;
+
+      my %tmpl_data = (
+            count   => $count,
             ad_zone => $ad_zone,
             bug     => $bug,
-            errors => $args_ref->{errors},
-            req    => $req,
+            errors  => $args_ref->{errors},
+            req     => $req,
         );
 
         my $output;
-        $TMPL->process( 'ad/twitter/index.tmpl', \%tmpl_data, \$output, $r )
-          || return $self->error( $r, $TMPL->error );
+        $Tmpl->process( 'ad/twitter/index.tmpl', \%tmpl_data, \$output, $r )
+          || return $self->error( $r, $Tmpl->error );
         return $self->ok( $r, $output );
 
     }

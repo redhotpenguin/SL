@@ -53,14 +53,6 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 1,
   },
-  "bug_id",
-  {
-    data_type => "integer",
-    default_value => 1,
-    is_foreign_key => 1,
-    is_nullable => 0,
-    size => 4,
-  },
   "reg_id",
   {
     data_type => "integer",
@@ -121,7 +113,6 @@ __PACKAGE__->add_columns(
 );
 __PACKAGE__->set_primary_key("ad_zone_id");
 __PACKAGE__->belongs_to("reg", "SL::Model::App::Reg", { reg_id => "reg_id" });
-__PACKAGE__->belongs_to("bug", "SL::Model::App::Bug", { bug_id => "bug_id" });
 __PACKAGE__->belongs_to(
   "ad_size",
   "SL::Model::App::AdSize",

@@ -33,9 +33,15 @@ $dbh->do("alter table ad_zone add column link_href text");
 $dbh->do("alter table ad_zone add column weight integer default 1");
 $dbh->do("update ad_size set grouping='8' where ad_size_id=23");
 $dbh->do("update ad_size set grouping=9 where ad_size_id in (20,21)");
+$dbh->do("update ad_size set name='SLN Micro Banner (600x31)' where ad_size_id=23");
+$dbh->do("alter table ad_size drop column bug_height");
+$dbh->do("alter table ad_size drop column bug_width");
+$dbh->do("insert into ad_size (ad_size_id,name,css_url, grouping) values (24,'IAB Micro Bar (88x31)','',8)");
 
 # move all the bugs into ad zones
 my @bugs = SL::Model::App->resultset('Bug')->all;
+
+
 
 foreach my $bug ( @bugs ) {
 
@@ -49,7 +55,7 @@ foreach my $bug ( @bugs ) {
     if ($bug->ad_size_id != 23) {
       $ad_size_id = 22;
     } else {
-      $ad_size_id = 23;
+      $ad_size_id = 24;
     }
 
 
@@ -79,5 +85,7 @@ SQL
     }
 
 }
+
+$dbh->do("alter table ad_zone drop column bug_id");
 
 warn("finished");
