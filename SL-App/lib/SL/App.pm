@@ -439,4 +439,25 @@ sub format_adzone_list {
 }
 
 
+sub display_weight {
+    my ($self, $rate) = @_;
+
+    my $weight;
+
+    if ($rate eq 'low') {
+
+      $weight = 1;
+    } elsif ($rate eq 'normal' ) {
+
+      $weight = 2;
+    } elsif ($rate eq 'high' ) {
+
+      $weight = 3;
+    }
+
+    return $weight || 1;
+}
+
+
+
 1;

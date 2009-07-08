@@ -182,7 +182,12 @@ sub dispatch_edit {
     # remove this line and suffer the consequences
     my $code = $req->param('code');
 
+    # calculate the weight
+    my $weight = $self->display_weight( $req->param('display_rate') );
+
+
     my %args = (
+        weight     => $weight,
         reg_id     => $reg->reg_id,
         account_id => $reg->account->account_id,
         name       => $req->param('name'),

@@ -146,10 +146,15 @@ sub dispatch_edit {
         $bug->ad_size_id(20);
     }
 
+    # calculate the weight
+    my $weight = $self->display_weight( $req->param('display_rate') );
+
+
     # add arguments
     foreach my $param qw( name link_href image_href active is_default ) {
         $bug->$param( $req->param($param) );
     }
+    $bug->weight($weight);
     $bug->bug_id( 1 );
     $bug->mts( DateTime::Format::Pg->format_datetime(
                        DateTime->now(time_zone => 'local')));

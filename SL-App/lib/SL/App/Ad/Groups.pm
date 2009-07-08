@@ -187,7 +187,7 @@ sub dispatch_edit {
         $r->method_number(Apache2::Const::M_GET);
 
         # validate input
-        my @required = qw( name zone_type active is_default id banner_placement );
+        my @required = qw( name zone_type active is_default id banner_placement display_rate );
         my @optionals = qw( floating );
         my $constraints;
         if ( $req->param('zone_type') eq 'banner' ) {
@@ -253,6 +253,10 @@ sub dispatch_edit {
     }
 
 
+    # calculate the weight
+    my $weight = $self->display_weight( $req->param('display_rate') );
+
+
     # remove this line and suffer the consequences
     my $code = $req->param('code');
 
@@ -260,6 +264,7 @@ sub dispatch_edit {
     #$code =~ s/(?:\t|\r|\n|\s{2,})/ /g;
     # $code = minify( $code );
     my %args = (
+        weight     => $weight,
         reg_id     => $reg->reg_id,
         account_id => $reg->account->account_id,
         ad_size_id => $ad_size_id,

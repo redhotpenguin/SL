@@ -22,15 +22,15 @@
 					<p class="tip">This refers to how often this ad banner is displayed relative to your other ad banners.</p>
 
 					
-					<input type="radio" name="display_rate" value="high"/>
+					<input type="radio" name="display_rate" value="high"  [% IF (req.param('display_rate') == 'high') or (ad_zone.weight == 3) %]checked="checked"[% END %] />
 					<label for="high" class="check_label">High Display Rate</label>
 					<div class="clear"></div>
 							
-					<input type="radio" name="display_rate" value="normal" checked="checked" /> 
+					<input type="radio" name="display_rate" value="normal" [% IF !ad_zone.weight or ( req.param('display_rate') == 'normal') or (ad_zone.weight == 2) %]checked="checked"[% END %] /> 
 					<label for="normal" class="check_label">Normal Display Rate</label>
 					<div class="clear"></div>
 					
-					<input type="radio" name="display_rate" value="low" /> 
+					<input type="radio" name="display_rate" value="low" [% IF (req.param('display_rate') == 'low') or (ad_zone.weight == 1) %]checked="checked"[% END %]/> 
 					<label for="low" class="check_label">Low Display Rate</label>
 					<div class="clear"></div>
 				</li>
