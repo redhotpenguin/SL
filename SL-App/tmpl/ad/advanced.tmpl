@@ -45,8 +45,7 @@
 					<input type="radio" name="is_default" value="0"  [% IF (!req.param('is_default') && !ad_zone.is_default) or (req.param('is_default') == 0) %]checked="1"[% END %] /> 
 					<label for="f" class="check_label">No</label>
 					<div class="clear"></div>
-					<p class="tip">When two routers share the same WAN ip, sometimes the specific router cannot be identified.<br />In that case, a [% type %] marked as a default [% type %] will be shown.</p>
-					<p class="tip">The default [% type %] is also automatically assigned to any router that has no [% type %]s assigned.</p>
+					<p class="tip">In cases where the specific router cannot be identified, a [% type %] marked as a default [% type %] will be shown.</p>
 				</li>
 
 			</ul>
