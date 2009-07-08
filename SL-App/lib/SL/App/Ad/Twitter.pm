@@ -124,6 +124,7 @@ sub dispatch_index {
         my $code =
 qq{<div id="twitter_div"><span id="twitter_update_list"></span></div><script type="text/javascript" src="http://s2.slwifi.com/js/blogger.js"></script><script type="text/javascript" src="http://twitter.com/statuses/user_timeline/$twitter_id.json?callback=twitterCallback2&count=$count"></script>};
 
+        $ad_zone->reg_id($reg->reg_id);
         $ad_zone->code($code);
         $ad_zone->update;
 
@@ -159,6 +160,13 @@ qq{<div id="twitter_div"><span id="twitter_update_list"></span></div><script typ
                     {
                         router_id  => $router->router_id,
                         ad_zone_id => $ad_zone->ad_zone_id,
+                    }
+                );
+
+                SL::Model::App->resultset('RouterAdZone')->find_or_create(
+                    {
+                        router_id  => $router->router_id,
+                        ad_zone_id => $bug->ad_zone_id,
                     }
                 );
 

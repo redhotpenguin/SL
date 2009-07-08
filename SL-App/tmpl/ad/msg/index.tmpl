@@ -17,12 +17,19 @@
 
 <div id="main_content" class="grid_10 suffix_1">
 	<h2>Text Entry Message Bar</h2>
+
+	
+	[% IF msg %]
+		<p class="success">[% msg %]</p>
+	[% END %]
+
 	
 	<div class="row">
 	<form class="form" method="post" action="[% base_uri %]/app/ad/msg/index">
 	<!-- ERRORS -->
 	[% IF errors.missing %]<p class="error">Please enter a text message</p>[% END %]
-	[% IF errors.invalid %]<p class="error">Text message can be no greater than 140 characters</p>[% END %]
+	[% IF errors.invalid %]<p class="error">Text message can be no greater than 250 characters</p>[% END %]
+
 	
 	<ul> 
 		<li>
@@ -35,6 +42,18 @@
 			</div>
 			<div class="clear"></div>
 		</li>			
+
+
+
+      <li>
+      <label for="twitter_brand">Message Bar Branding Image[% IF reg.account.plan == 'free' %] (<a href="[% base_uri %]/billing/publisher/?plan=basic&email=[% reg.email %]">Paid account needed to change image)</a>[% END %]</label>
+       <a href="[% bug.link_href %]"><img src="[% bug.image_href %]"></a>
+
+[% IF reg.account.plan != 'free' %] 
+     [% PROCESS ad/banner.tmpl type="Message Bar Branding" ad_zone=bug %]
+       [% END %]
+         </li>
+
 		<li>
 			<input type="checkbox" name="sweep" id="sweep" />
 			<label class="check_label left" for="sweep">Activate the Message Bar on all devices </label>
