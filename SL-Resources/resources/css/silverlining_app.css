@@ -41,6 +41,12 @@ padding-bottom: 20px;
 }
 
 
+/* MARGINS & WHITESPACE
+============================================= */
+#wrapper .margin_b_20 {
+margin-bottom: 20px;
+}
+
 /* LOGO
 ============================================= */
 #sl_logo {
