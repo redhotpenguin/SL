@@ -12,6 +12,10 @@
 <div id="main_content" class="grid_10 suffix_1">	
 	<h2>Twitter Feed Message Bar</h2>
 
+	[% IF msg %]
+		<p class="success">[% msg %]</p>
+	[% END %]
+
 	<form class="form row" method="post" action="[% base_uri %]/app/ad/twitter/index">
 		<!-- ERRORS -->
 		[% IF errors.missing %]	<p class="error">Please input a Twitter User Name</p>[% END %]

@@ -127,6 +127,14 @@ qq{<div id="twitter_div"><span id="twitter_update_list"></span></div><script typ
         $ad_zone->code($code);
         $ad_zone->update;
 
+        # update the branding image if this is not a free account
+        if ($reg->account->plan ne 'free') {
+
+            $bug->image_href($req->param('image_href'));
+            $bug->link_href($req->param('link_href'));
+            $bug->update;
+        }
+
         if ( !$req->param('sweep') ) {
 
             $r->pnotes('session')->{msg} =
@@ -162,7 +170,7 @@ qq{<div id="twitter_div"><span id="twitter_update_list"></span></div><script typ
                 $twitter_id, scalar(@routers) );
         }
 
-        $r->headers_out->set( Location => $r->construct_url('/app/ad/index') );
+        $r->headers_out->set( Location => $r->headers_in->{'referer'} );
         return Apache2::Const::REDIRECT;
 
     }
