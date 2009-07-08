@@ -12,6 +12,8 @@ use Apache2::SubRequest ();
 
 use base 'SL::App';
 
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
+
 use SL::App::Template ();
 our $tmpl = SL::App::Template->template();
 
@@ -47,6 +49,8 @@ sub dispatch_deactivate {
     );
 
     return Apache2::Const::NOT_FOUND unless $ad_zone;
+
+    $r->log->debug("deleting ad zone $id") if DEBUG;
 
     $ad_zone->active(0);
     $ad_zone->update;
