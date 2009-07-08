@@ -2,9 +2,8 @@
 	<div id="sc_top">
 		<div id="sc_bottom">
 			<h3>Advanced Options</h3>
-			<ul class="form">
+			<ul class="form row">
 				<li>
-	
 					<!-- active -->
 					<label for="active">Is this [% type %] active?</label>
 					<input type="radio" name="active" value="1" [% IF req.param('active') == 't' or ad_zone.active %]checked="1"[% END %]/>
@@ -15,9 +14,27 @@
 					<label for="f" class="check_label">No</label>
 					<div class="clear"></div>
 					<label class="tip">To ensure consistency in reporting, [% type %]s cannot be deleted.</label>
+					<div class="clear"></div>
 				</li>
-	
-	
+				
+				<li class="margin_b_20">
+					<label for="is_default">Frequency for displaying banner</label>
+					<p class="tip">This refers to how often this ad banner is displayed relative to your other ad banners.</p>
+
+					
+					<input type="radio" name="display_rate" value="high"/>
+					<label for="high" class="check_label">High Display Rate</label>
+					<div class="clear"></div>
+							
+					<input type="radio" name="display_rate" value="normal" checked="checked" /> 
+					<label for="normal" class="check_label">Normal Display Rate</label>
+					<div class="clear"></div>
+					
+					<input type="radio" name="display_rate" value="low" /> 
+					<label for="low" class="check_label">Low Display Rate</label>
+					<div class="clear"></div>
+				</li>
+					
 				<li>
 					<!-- default -->
 					<label for="is_default">Is this a default [% type %]?</label>
