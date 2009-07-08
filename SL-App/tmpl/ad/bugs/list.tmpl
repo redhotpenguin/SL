@@ -55,8 +55,8 @@
 
             <td class="center">[% IF ad_zone.is_default %]Yes[% ELSE %]No[% END %]</td>
             
-			<td class="center"><a href="#" class="icon_delete">Delete</a></td>
-
+			<td class="center">
+            <a href="#" rel="ad/deactivate?id=[% ad_zone.ad_zone_id %]"  class="icon_delete confirm">Delete</a></td>
 		</tr>
 	[% END %]
 	</table>
@@ -64,3 +64,12 @@
 
 
 [% PROCESS footer.tmpl %]
+
+<div id='confirm' style='display:none'>
+	<a href='#' title='Close' class='modalCloseX simplemodal-close'>x</a>
+	<div class='header'><span>Confirm</span></div>
+	<p class='message'></p>
+	<div class='buttons'>
+		<div class='no simplemodal-close'>No</div><div class='yes'>Yes</div>
+	</div>
+</div>

@@ -29,4 +29,35 @@ sub dispatch_index {
     return $self->ok( $r, $output );
 }
 
+
+sub dispatch_deactivate {
+    my ( $class, $r, $args_ref ) = @_;
+
+    my $reg = $r->pnotes( $r->user );
+    my $req = Apache2::Request->new($r);
+
+    my $id = $req->param('id');
+
+    my ($ad_zone) = SL::Model::App->resultset('AdZone')->search(
+        {
+            account_id => $reg->account_id,
+            ad_zone_id  => $id,
+            active     => 't',
+        }
+    );
+
+    return Apache2::Const::NOT_FOUND unless $ad_zone;
+
+    $ad_zone->active(0);
+    $ad_zone->update;
+
+    $r->pnotes('session')->{msg} = sprintf( "Ad '%s' was deleted", $ad_zone->name );
+    $r->headers_out->set(
+        Location => $r->headers_in->{'referer'} );
+    return Apache2::Const::REDIRECT;
+}
+
+
+
+
 1;
