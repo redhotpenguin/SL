@@ -560,6 +560,14 @@ list-style-type: none;
 #secondary_content ul li {
 list-style-type: none;
 }
+#secondary_content ol {
+margin-left: 25px;
+list-style-type:decimal;
+}
+#secondary_content ol li {
+margin-bottom: 15px;
+line-height: 22px;
+}
 
 
 /* PREVIEW
