@@ -2,56 +2,39 @@
  
 <div class="grid_10 suffix_1" id="main_content">	
 
-	<h2>Welcome to Silver Lining Dashboard!</h2>
+	<h2>Welcome to your new account!</h2>
 	
 	<p>
-	This dashboard gives you control over each part of your Silver Lining 
-	Network.
+	Watch our short intro video to get familiar with your Silver Lining account. 
 	</p>
 	
-	<h3>Need a quick tutorial?</h3>
-	<p>Visit our <a href="http://support.silverliningnetworks.com/portal">Support site</a> to see easy to follow instructions and screencasts.</p>
+	<div class="margin_b_20">
+		<object width="580" height="363"><param name="allowfullscreen" value="true" /><param name="allowscriptaccess" value="always" /><param name="movie" value="http://vimeo.com/moogaloop.swf?clip_id=4173191&amp;server=vimeo.com&amp;show_title=0&amp;show_byline=0&amp;show_portrait=0&amp;color=00ADEF&amp;fullscreen=1" /><embed src="http://vimeo.com/moogaloop.swf?clip_id=4173191&amp;server=vimeo.com&amp;show_title=0&amp;show_byline=0&amp;show_portrait=0&amp;color=00ADEF&amp;fullscreen=1" type="application/x-shockwave-flash" allowfullscreen="true" allowscriptaccess="always" width="580" height="363"></embed></object>
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<h3>More Tips &amp; Tricks</h3>
+	<p>For the latest news, product updates, and tips <a href="http://blog.silverliningnetworks.com" target="_blank">visit our product blog</a>. or if you need further support and easy to follow instructions you can find information on our <a href="http://support.silverliningnetworks.com/portal">Support site</a>.</p>
 
-	<h3>Manage Message Bars</h3>
-	<p>
-	This section is where you control your message bars. 
-	Here you manage which message bars appear on which routers, and what appears in each 
-	message bar. <a href="[% base_uri %]/app/ad/index">Click here</a> to manage your message bars.
-	</p>
-	
-	
-	<h3>Manage Routers</h3>
-	<p>
-	In this section you can add or edit routers in your Silver Lining network. You will need
-	 to add at least one router in order to use Silver Lining on your network. 
-	 <a href="[% base_uri %]/app/router/list">Click here</a> to manage your routers.
-	</p>
-	
-	<h3>View Reports</h3>
-	<p>
-	Here is where you view reports for activity across your Silver Lining network. 
-	You can view reports of unique users and message bar impressions, each by different time periods. 
-	<a href="[% base_uri %]/app/report/index">Click here</a> to view reports.
-	</p>
-	
-	<h3>Manage Account</h3>
-	<p>
-	This section of the dashboard is where you edit information about 
-	your Silver Lining account. <a href="[% base_uri %]/app/settings/index">Click here</a> 
-	to update your login information or change your subscription plan.
-	</p>
 
 </div>
 
 <div id="secondary_content" class="grid_5">
 	<div id="sc_top">
 		<div id="sc_bottom">
-				<p><a href="[% base_uri %]/app/settings/account">Change Login Info</a></p>
-				[% IF reg.account.account_id == 1 or reg.account.account_id ==2 or reg.account.account_id == 21 %]
-				<p><a href="[% base_uri %]/app/settings/users">Users</a></p>
-				<p><a href="[% base_uri %]/app/settings/payment">Payment</a></p>
-				[% END %]
-
+				<h3>Get Started in 3 easy steps</h3>
+				<ol class="row">
+					<li><a href="[% base_uri %]/app/router/list">Add devices</a> - create a Silver Lining network with by adding one of your routers or servers.</li>
+					<li><a href="[% base_uri %]/app/router/list">Create Advertisements</a> - Add the Banners Ads, Text Message Ads, or Twitter Feeds you want displayed when people are surfing your wireless network.</li>
+					<li><a href="[% base_uri %]/app/router/list">Assign ads to your devices</a> - Once your finished creating Ads you'll need to assign them to a network device. Simply select one of the devices you've added and choose which adds you want to appear when people connect to this device. </li>
+				</ol>
 		</div>
 	</div>
 </div>
