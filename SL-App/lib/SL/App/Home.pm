@@ -32,11 +32,12 @@ sub dispatch_index {
 
     my $feed = XML::Feed->parse( URI->new(BLOG_URL) );
 
-    my %tmpl_data;
+    my %tmpl_data = (blog => BLOG_URL, );
     my @feed;
     if ($feed) {
 	foreach my $entry ($feed->entries) {
-		push @feed, { title => $entry->title, 'link' => $entry->link,
+		push @feed, { title => $entry->title,
+                      link => $entry->link,
 	date =>  $entry->issued->strftime("%a %b %e,%l:%m %p"),
 	content => $entry->content->body, };
 	}
