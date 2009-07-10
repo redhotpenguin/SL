@@ -13,9 +13,7 @@ use XML::Feed         ();
 use SL::App::Template ();
 our $tmpl = SL::App::Template->template();
 
-#use constant FORUM_URL => 'http://forums.silverliningnetworks.com/forums/5/posts.rss';
-use constant FORUM_URL => 'http://www.silverliningnetworks.com/blog/rss/';
-#use constant FORUM_URL => 'http://forums.silverliningnetworks.com/posts.rss';
+use constant BLOG_URL => 'http://blog.silverliningnetworks.com/rss.xml';
 
 =head1 METHODS
 
@@ -32,7 +30,7 @@ This method serves of the master ad control panel for now
 sub dispatch_index {
     my ( $self, $r ) = @_;
 
-    my $feed = XML::Feed->parse( URI->new(FORUM_URL) );
+    my $feed = XML::Feed->parse( URI->new(BLOG_URL) );
 
     my %tmpl_data;
     my @feed;
@@ -44,7 +42,7 @@ sub dispatch_index {
 	}
 	$tmpl_data{rss} = \@feed;
     } else {
-    	$r->log->error(sprintf("could not parse feed %s, %s", FORUM_URL,
+    	$r->log->error(sprintf("could not parse feed %s, %s", BLOG_URL,
 		XML::Feed->errstr));
     }
     my $output;
