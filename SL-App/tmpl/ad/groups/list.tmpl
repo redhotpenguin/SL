@@ -30,7 +30,7 @@
 	<table class="large_table">
 	<tr>
 		<th>Ad Zone Name</th>
-		<th>Views Yesterday</th>
+[% IF views %]		<th>Views Yesterday</th>[% END %]
 		<th>Last Modified</th>
 		<th>Default</th>
 		<th>Active On</th>
@@ -43,7 +43,7 @@
 			<a href="[% base_uri %]/app/ad/groups/edit/?id=[% ad_zone.ad_zone_id %]">
 			[% ad_zone.name %]</a></td>
 			
-			<td class="smaller">NA</td>
+[% IF views %]			<td class="smaller">NA</td>[% END %]
 			
 			<td class="smaller">[% ad_zone.mts %]</td>
 
