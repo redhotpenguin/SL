@@ -46,6 +46,10 @@ padding-bottom: 20px;
 #wrapper .margin_b_20 {
 margin-bottom: 20px;
 }
+#wrapper .margin_b_15 {
+margin-bottom: 15px;
+}
+
 
 /* LOGO
 ============================================= */
@@ -438,11 +442,11 @@ font-weight: bold;
 color: #444;
 }
 /*LISTS*/
-.bullet_list {
+#workspace .bullet_list {
 margin: 0px 0px 20px 25px;
 list-style-type: square;
 }
-.bullet_list li {
+#workspace .bullet_list li {
 margin-bottom: 10px;
 font-size: 88%;
 line-height: 18px;
@@ -529,10 +533,12 @@ text-align: center;
 margin: 0 auto;
 }
 
+
 /* SIDE CONTENT
 ============================================= */
 #secondary_content {
 background: url(../images/backgrounds/application/side_content.png) top center repeat-y;
+font-size: 85%;
 }
 #sc_top {
 background: url(../images/backgrounds/application/side_content_top.png) top center no-repeat;
@@ -548,7 +554,6 @@ margin-bottom: 10px;
 color: #444;
 }
 #secondary_content p {
-font-size:85%;
 color: #666;
 font-style: italic;
 line-height: 22px;
@@ -559,6 +564,7 @@ list-style-type: none;
 }
 #secondary_content ul li {
 list-style-type: none;
+margin-bottom: 10px;
 }
 #secondary_content ol {
 margin-left: 25px;
@@ -567,6 +573,13 @@ list-style-type:decimal;
 #secondary_content ol li {
 margin-bottom: 15px;
 line-height: 22px;
+}
+#registered_locations {
+height: 200px;
+overflow: auto;
+background-color: #FFF;
+margin-top: 10px;
+padding-top: 10px;
 }
 
 
@@ -578,7 +591,8 @@ font-size: 85%;
 color: #666;
 margin-bottom: 3px;
 }
-
+ 
+ 
 /* TWIITER LIST
 ============================================= */
 #secondary_content .twitter_header {
@@ -594,7 +608,6 @@ display: block;
 padding: 5px;
 background-color: #FFF;
 margin-bottom: 10px;
-font-size: 85%;
 font-style: italic;
 }
 #twitter_update_list li {
@@ -602,7 +615,6 @@ background-color: #FFF;
 padding: 5px;
 border: 1px solid #CCC;
 margin-bottom: 10px;
-font-size: 85%;
 line-height: 18px;
 color: #444;
 }
