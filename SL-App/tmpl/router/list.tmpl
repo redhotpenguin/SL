@@ -1,6 +1,9 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  View routers" selected="network" %]
 
 <div class="grid_10 suffix_1">
+	[% IF msg %]
+		<p class="success margin_b_20">[% msg %]</p>
+	[% END %]
 	
 	<div class="grid_6 alpha">
 		<h2>Network Devices</h2>
@@ -13,10 +16,7 @@
 	<div class="clear"></div>
 
 
-	<!-- ERROR MESSAGE -->
-	[% IF msg %]
-	<p class="error">[% msg %]</p>
-	[% END %]
+
 	
 	
 	[% IF !routers.0 %]
