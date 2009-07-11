@@ -209,6 +209,42 @@ use SL::Config       ();
 
 our $config = SL::Config->new();
 
+sub get_twitter_zone {
+  my $self = shift;
+
+  my ($ad_zone) =
+    SL::Model::App->resultset('AdZone')->search({
+                account_id => $self->account_id,
+                name => '_twitter_feed',
+                ad_size_id => 23,
+                active => 1,
+                hidden => 1, });
+
+    return unless $ad_zone;
+
+    $self->process_ad_zone($ad_zone);
+
+    return $ad_zone;
+}
+
+sub get_msg_zone {
+  my $self = shift;
+
+  my ($ad_zone) =
+    SL::Model::App->resultset('AdZone')->search({
+                account_id => $self->account_id,
+                name => '_message_bar',
+                ad_size_id => 23,
+                active => 1,
+                hidden => 1, });
+
+    return unless $ad_zone;
+
+    $self->process_ad_zone($ad_zone);
+
+    return $ad_zone;
+}
+
 sub get_ad_zone {
     my ( $self, $ad_zone_id ) = @_;
 
@@ -251,8 +287,7 @@ sub get_persistent_zones {
     my @ad_zones = SL::Model::App->resultset('AdZone')->search({
 					 active => 't',
                      account_id => $self->account->account_id,
-                     ad_size_id => { -in => [ map { $_->ad_size_id }
-                                          @ad_sizes  ], },});
+                     ad_size_id => { -in => [ qw( 1 10 12  ) ] }, });
 
     return unless scalar(@ad_zones) > 0;
 
@@ -389,7 +424,8 @@ sub get_routers {
     my ( $self, $ad_zone_id ) = @_;
 
     my @routers = SL::Model::App->resultset('Router')->search({
-        account_id => $self->account->account_id, active => 't' });
+        account_id => $self->account->account_id, active => 't' },
+       { -order_by => 'mts DESC' },);
 
     return unless scalar(@routers) > 0;
 
