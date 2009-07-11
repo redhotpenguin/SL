@@ -13,7 +13,7 @@
 </div>
 <div class="clear"></div>
 
-
+<form method="post" action="[% base_uri %]/app/router/edit">
 <div id="main_content" class="grid_9 suffix_2">
 
 [% IF !router && (reg.account_id.account_id !=2 ) %]
@@ -33,7 +33,6 @@
 
 
 
-	<form class="row" method="post" action="[% base_uri %]/app/router/edit">
 		[% IF errors.missing %]<p class="error">Please complete the missing fields</p>[% END %]
 		[% IF errors.invalid %]<p class="error">Some fields were invalid, please correct them</p>[% END %]
 
@@ -41,15 +40,14 @@
 
 
 		<input type="hidden" name="router_id" value="[% router.router_id %]"/>
-		<ul>
+		<ul style="margin-bottom:0;" class="row">
 			<li>
-				<div class="grid_8 alpha omega suffix_2 form_row">
 					<!-- device -->
 					<label for="device" class="label [% IF errors.missing.device %]error[% END %]">Device Type</label>
 					<select name="device" id="device">
 						<option value="" [% IF ! router.device and req.param('device') == '' %][% END %]>Select a device type</option>
-						<option value="mr3201a" [% IF req.param('device') == 'mr3201a' or router.device == 'mr3201a' %]SELECTED[% END %]>Open-Mesh.com 32MB (MR3201A, OM1P, PicoStation)</option>
-						[% IF router || reg.account_id.account_id == 2 %]<option value="wrt54gl" [% IF req.param('device') == 'wrt54gl' or router.device == 'wrt54gl' %]SELECTED[% END %]>Linksys WRT54GL</option>[% END %]
+						<option value="mr3201a" [% IF req.param('device') == 'mr3201a' or router.device == 'mr3201a' %]selected="selected" [% END %]>Open-Mesh.com 32MB (MR3201A, OM1P, PicoStation)</option>
+						[% IF router || reg.account_id.account_id == 2 %]<option value="wrt54gl" [% IF req.param('device') == 'wrt54gl' or router.device == 'wrt54gl' %]selected="selected" [% END %]>Linksys WRT54GL</option>[% END %]
 
 					</select>
 
@@ -58,13 +56,23 @@
 					<label for="device" class="tip">Silver Lining currently works with only the devices in the list above.</label>
 					<div class="clear"></div>
 					<label for="device" class="tip">Greyed out items are controlled from your <a href="http://www.open-mesh.com/dashboard.php">Open-Mesh.com dashboard</a></label>
-				</div>
+
 				<div class="clear"></div>
 			</li>	
 		</ul>		
 		
 		
 		<ul class="form"> 
+			<li>
+				<div class="grid_6 alpha omega suffix_4">
+					<!-- name -->
+					<label for="name" class="[% IF errors.missing.name %]error[% END %]">Name</label>
+					<input type="text" id="name" name="name" size="40" maxlength="50" value="[% req.param('name') or router.name %]"/>
+					<div class="clear"></div>
+					<label for="name" class="tip">50 character limit</label>
+				</div>
+				<div class="clear"></div>
+			</li>	
 
 			<li>
 				<div class="grid_6 alpha omega suffix_4">
@@ -77,53 +85,35 @@
 				<div class="clear"></div>
 			</li>	
 
-			<li>
-				<div class="grid_6 alpha omega suffix_4">
-					<!-- name -->
-					<label for="name" class="[% IF errors.missing.name %]error[% END %]">Name</label>
-					<input type="text" id="name" name="name" size="40" maxlength="50" value="[% req.param('name') or router.name %]"/>
-					<div class="clear"></div>
-					<label for="name" class="tip">50 character limit</label>
-				</div>
-				<div class="clear"></div>
-			</li>	
 
 			<li id="wrt54gl">
-				<div class="grid_8 alpha omega suffix_2">
+			<ul>
+				<li>
 					<!-- notes -->
 					<label for="notes">Notes</label>
 					<textarea id="notes" name="notes" rows="2" cols="50">[% req.param('notes') or router.notes %]</textarea>
 					<div class="clear"></div>
 					<label for="notes" class="tip">100 character limit</label>
-				</div>
-				<div class="clear"></div>				
+				</li>
+	
+				<li>
+					<!-- SSID -->
+					<label for="ssid" class="[% IF errors.missing.ssid %]error[% END %]">SSID</label>
+					<input type="text" id="ssid" name="ssid" size="25" maxlength="25" value='[% req.param('ssid') or router.ssid %]'/>
+					<div class="clear"></div>
+					<label for="ssid" class="tip">Allow up to five minutes to take effect</label>
+				</li>
+						
+				<li>
+					<!-- serial number -->
+					<label for="serial_number" class="[% IF errors.missing.serial_number or errors.invalid.serial_number %]error[% END %]">Serial number or service tag</label>
+					<input type="text" id="serial_number" name="serial_number" size="25" maxlength="25" value='[% req.param('serial_number') or router.serial_number %]'/>
+					<div class="clear"></div>
+					<label for="serial_number" class="tip">Optional, to determine router model compatibility, example CL7A0F318014</label>
+				</li>
 
 
-			
-				<div class="grid_6 alpha omega suffix_4 form_row">
-					<div id="ssid">
-						<!-- SSID -->
-						<label for="ssid" class="[% IF errors.missing.ssid %]error[% END %]">Allow up to five minutes to take effect</label>
-						<input type="text" id="ssid" name="ssid" size="25" maxlength="25" value='[% req.param('ssid') or router.ssid %]'/>
-						<div class="clear"></div>
-						<label for="ssid" class="tip">Allow up to five minutes to take effect</label>
-					</div>
-
-
-
-							
-					<div id="serial">
-						<!-- serial number -->
-						<label for="serial_number" class="[% IF errors.missing.serial_number or errors.invalid.serial_number %]error[% END %]">Serial number or service tag</label>
-						<input type="text" id="serial_number" name="serial_number" size="25" maxlength="25" value='[% req.param('serial_number') or router.serial_number %]'/>
-						<label for="serial_number" class="tip">Optional, to determine router model compatibility, example CL7A0F318014</label>
-					</div>
-				</div>
-				<div class="clear"></div>
-
-
-
-				<div class="grid_6 alpha omega suffix_4 form_row">
+				<li>
 					<!-- splash page -->
 					<label for="splash_href" class="[% IF errors.missing.splash_href or errors.invalid.splash_href %]error[% END %]">Splash page url</label>
 					<input type="text" id="splash_href" name="splash_href" size="45" maxlength="255" value='[% req.param('splash_href') or router.splash_href %]'/>
@@ -131,199 +121,185 @@
 					<label for="splash_href" class="tip">Example:  http://silverliningworks.typepad.com/network/</label>
 					<div class="clear"></div>
 					<label for="splash_href" class="tip">Available on Linksys WRT54GL and Linux server only</label>
-				</div>
-				<div class="clear"></div>
-
-
+				</li>
 	
-				<div class="grid_6 alpha omega suffix_4 form_row">
+				<li>
 					<!-- splash page timeout -->
 					<label for="splash_timeout" class="[% IF errors.missing.splash_timeout or errors.invalid.splash_timeout %]error[% END %]">Splash page timeout</label>
 					<input type="text" id="splash_timeout" name="splash_timeout" size="3" maxlength="3" value='[% req.param('splash_timeout') or router.splash_timeout or '20' %]'/>
 					<div class="clear"></div>
 					<label for="splash_timeout" class="tip">Number of inactive minutes before splash page is shown</label>
-				</div>
-				<div class="clear"></div>
+				</li>
+			</ul>
+				
 			</li>	
 
 
 
 
 			<li>
-				<div class="grid_10 alpha omega">
-					<!-- ad zones -->
-					<label for="zone_type">Select one of the following three options for display on this router</label>
-					[% IF msg_zone %]
-						<input id="text" type="radio" name="zone_type" value="msg" [% IF msg_zone.selected %]checked="1"[% END %]/>
-						<label for="msg" class="check_label">1 - Text Message Bar</label>
-					[% ELSE %]
-						<input id="text" type="radio" name="zone_type" value="msg" disabled="1" />
-						<label for="msg" class="check_label">1 - Configure your <a href="[% base_uri %]/app/ad/msg/index">Text Message Bar</a> to enable a Text Message in your message bar.</label>
+				<!-- ad zones -->
+				<label for="zone_type">Select one of the following three options for display on this router</label>
+				[% IF msg_zone %]
+					<input id="text" type="radio" name="zone_type" value="msg" [% IF msg_zone.selected %]checked="checked"[% END %]/>
+					<label for="msg" class="check_label">1 - Text Message Bar</label>
+				[% ELSE %]
+					<input id="text" type="radio" name="zone_type" value="msg" disabled="disabled" />
+					<label for="msg" class="check_label">1 - Setup your <a href="[% base_uri %]/app/ad/msg/index">Text Message Bar</a> (currently not enabled)</label>
+				[% END %]
+				<div class="clear"></div>			
+
+				<!-- twitter -->
+				[% IF twit_zone %]
+					<input id="twitter" type="radio" name="zone_type" value="twitter" [% IF twit_zone.selected %]checked="checked"[% END %] />
+					<label for="twitter" class="check_label">2 - Twitter Message Bar</label>
+				[% ELSE %]
+					<input id="twitter" type="radio" name="zone_type" value="twitter" disabled="disabled" />
+					<label for="twitter" class="check_label">2 - Setup your <a href="[% base_uri %]/app/ad/twitter/index">Twitter Feed</a> (currently not enabled)</label>
+				[% END %]
+
+
+				<input id="iab" type="radio" name="zone_type" value="iab" [% IF !twit_zone.selected and !msg_zone.selected %]checked="checked"[% END %]/>
+				<label for="iab" class="check_label">3 - Banner Ads (IAB)</label>
+				<div class="clear"></div>
+
+			    [% IF ad_zones %]
+			    <div class="grid_9 alpha omega prefix_1">
+					<label for="adzone">Select Banner Ads to display on this device:</label>
+					[% FOREACH ad_zone = ad_zones %]
+					[% IF loop.index % 2 == 0 %] [% END %]
+					    <div class="grid_4 alpha omega">
+					    	<input type="checkbox" name="ad_zone" value="[% ad_zone.ad_zone_id %]" [% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]checked="checked"[% END %] />
+					    	<label class="check_label"><a href="[% base_uri %]/app/ad/groups/edit?id=[% ad_zone.id %]">[% ad_zone.name %]</a></label>
+					    </div>
+					[% IF loop.index % 2 != 0 %]<div class="clear"></div>[% END %]
 					[% END %]
-					
-					
+				</div>
+				<div class="clear"></div>
+				[% ELSE %]
+			    	<p class="error">You have not created any ad zones, please <a href="/app/ad/groups/list">create a few</a> to serve ads on this router</p>
+				[% END %]
+			</li>
+			<li>
+                [% IF reg.account.plan == 'free' %]
+       				 <p class="notice">
+       				 	To brand your ad bar, you will need a paid account.  
+       				 	<a href="[% base_uri %]/billing/publisher/?plan=basic&email=[% reg.email %]">Click here</a> 
+       				 	to sign up for our Basic Plan.
+       				 </p>
+               [% ELSE %]
 
-					<!-- twitter -->
-					[% IF twit_zone %]
-						<input id="twitter" type="radio" name="zone_type" value="twitter" [% IF twit_zone.selected %]checked="1"[% END %] />
-						<label for="twitter" class="check_label">2 - Twitter Feed</label>
-					[% ELSE %]
-						<input id="twitter" type="radio" name="zone_type" value="twitter" disabled="1" />
-						<label for="twitter" class="check_label">2 - Configure your <a href="[% base_uri %]/app/ad/twitter/index">Twitter Feed</a> to enable Twitter in your message bar.</label>
-					[% END %]
-			
-
-			
-					<input id="iab" type="radio" name="zone_type" value="iab" [% IF !twit_zone.selected and !msg_zone.selected %]checked="1"[% END %]/>
-					<label for="iab" class="check_label">3 - Ad Server Ad Zones</label>
-
-
-
-				    [% IF ad_zones %]
-					<label for="adzone" class="check_label" style="margin-left:15px;">Persistent Ad Zones</label>
-					<table style="margin-left:30px;">
-
-						[% FOREACH ad_zone = ad_zones %]
-						[% IF loop.index % 2 == 0 %] <tr>[% END %]
-						    <td>
-						    	<input id="adzone" type="checkbox" name="ad_zone" value="[% ad_zone.ad_zone_id %]"[% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]CHECKED[% END %]><label class="check_label"><a href="[% base_uri %]/app/ad/groups/edit?id=[% ad_zone.id %]">[% ad_zone.name %]</a></label>
-						    </td>
-						[% IF loop.index % 2 != 0 %] </tr>[% END %]
-						[% END %]
-					</table>
-					
-					[% ELSE %]
-
-				    <p class="error">You have not created any ad zones, please <a href="/app/ad/groups/list">create a few</a> to serve ads on this router</p>
-					[% END %]
-
-
-                    [% IF reg.account.plan == 'free' %]
-
-            <label class="check_label" for="adzone" style="margin-left: 15px;">To brand your ad bar, you will need a paid account.  <a href="[% base_uri %]/billing/publisher/?plan=basic&email=[% reg.email %]">Click here</a> to sign up for our Basic Plan.</label>
-                   [% ELSE %]
-
-				    [% IF bzones %]
-					<label class="check_label" for="adzone" style="margin-left:15px;">Branding Image Ad Zones</label>
-					<table style="margin-left:30px;">
-
+			    [% IF bzones %]
+			    <div class="grid_9 alpha omega prefix_1">
+					<label for="adzone">Branding Images</label>
+					<label for="adzone" class="tip">Choose the logo/branding images you want to display (random rotation)</label>
 						[% FOREACH bzone = bzones %]
-						[% IF loop.index % 2 == 0 %] <tr>[% END %]
-						    <td>
-						    	<input id="adzone" type="checkbox" name="ad_zone" value="[% bzone.ad_zone_id %]"[% IF bzone.selected or (req.param('ad_zone_id') == bzone.ad_zone_id) %]CHECKED[% END %]><label class="check_label"><a href="[% base_uri %]/app/ad/groups/edit?id=[% bzone.id %]">[% bzone.name %]</a></label>
-						    </td>
-						[% IF loop.index % 2 != 0 %] </tr>[% END %]
+						[% IF loop.index % 2 == 0 %] [% END %]
+							<div class="grid_4 alpha omega">
+						    	<input type="checkbox" name="ad_zone" value="[% bzone.ad_zone_id %]"[% IF bzone.selected or (req.param('ad_zone_id') == bzone.ad_zone_id) %]checked="checked"[% END %] />
+						    	<label class="check_label"><a href="[% base_uri %]/app/ad/groups/edit?id=[% bzone.id %]">[% bzone.name %]</a></label>
+						    </div>
+						[% IF loop.index % 2 != 0 %] <div class="clear"></div>[% END %]
 						[% END %]
-					</table>
-					
+				</div>
+				<div class="clear"></div>
+				[% ELSE %]
+					<p class="error">You have not created any branding images, please <a href="/app/ad/groups/list">create a few</a></p>
+				[% END %]
+                [% END %]
 
-					[% ELSE %]
-
-						<p class="error">You have not created any branding images, please <a href="/app/ad/groups/list">create a few</a></p>
-					[% END %]
-                    [% END %]
-
-					<label for="adzone" class="tip">Click checkbox to add the ad zone to the router (random rotation)</label>
-
-                    
-					</div>
 				<div class="clear"></div>			
 			</li>
 
-
-
 			<li>
-				<div class="grid_10 alpha omega">
-					<!-- splash page -->
-
-				    [% IF szones %]
-					<label for="adzone">Assign a <a href="[% base_uri %]/ad/splash/index">splash page ad</a> to this device</label>
-
-					<table style="margin-left:30px;">
-
-						[% FOREACH szone = szones %]
-						[% IF loop.index % 2 == 0 %] <tr>[% END %]
-						    <td>
-						    	<input id="adzone" type="checkbox" name="ad_zone" value="[% szone.ad_zone_id %]"[% IF szone.selected or (req.param('ad_zone_id') == szone.ad_zone_id) %]CHECKED[% END %]><label class="check_label"><a href="[% base_uri %]/app/ad/groups/edit?id=[% szone.id %]">[% szone.name %]</a></label>
-						    </td>
-						[% IF loop.index % 2 != 0 %] </tr>[% END %]
-						[% END %]
-					</table>
+				<!-- splash page -->
+			    [% IF szones %]
+					<label for="adzone" class="main_label">Assign a <a href="[% base_uri %]/ad/splash/index">splash page ad</a> to this device</label>
+					<label for="ad_zone" class="tip">Click checkbox to add the splash page ad zone to the router (random rotation)</label>
 					
-
-					[% ELSE %]
-
-						<p class="error">You have not created any splash page ads, please <a href="/app/ad/groups/list">create a few</a></p>
+					[% FOREACH szone = szones %]
+					[% IF loop.index % 2 == 0 %] [% END %]
+					    <div class="grid_4 alpha omega">
+					    	<input type="checkbox" name="ad_zone"  value="[% szone.ad_zone_id %]"[% IF szone.selected or (req.param('ad_zone_id') == szone.ad_zone_id) %]checked="checked"[% END %] />
+					    	<label class="check_label"><a href="[% base_uri %]/app/ad/groups/edit?id=[% szone.id %]">[% szone.name %]</a></label>
+					    </div>
+					[% IF loop.index % 2 != 0 %]<div class="clear"></div>[% END %]
 					[% END %]
 
-					<label for="ad_zone" class="tip">Click checkbox to add the splash page ad zone to the router (random rotation)</label>
-                </div>
+				[% ELSE %]
+					<p class="error">You have not created any splash page ads, please <a href="/app/ad/groups/list">create a few</a></p>
+				[% END %]
 				<div class="clear"></div>			
             </li>
 
-
-
-			
-			<li>
-				<div class="grid_6 alpha omega suffix_4">
-		<!-- adbar -->
-					<label for="adserving">Ad Bar</label>
-					<div class="clear"></div>
-					<label for="adserving" class="tip">Turn the ad and messaging bar On or Off.  Takes 5-15 minutes to take effect.</label>
-					<input type="radio" name="adserving" value="t" [% IF router.adserving == 1 %]checked[% END %]/><label for="adserving" class="check_label">On</label>
-					<input type="radio" name="adserving" value="f" [% IF !router.adserving %] checked [% END %]/><label for="adserving" class="check_label">Off</label>
-					<div class="clear"></div>
-				</div>
-				<div class="clear"></div>
-			</li>	
-			
-
-
-			<li>
-				<div class="grid_6 alpha omega suffix_4">
-					<!-- active -->
-					<label for="active">Active</label>
-					<div class="clear"></div>
-					<label class="tip" for="active">Is this router active? (To ensure consistency in reporting, routers cannot be deleted, just hidden)</label>
-					<input type="radio" name="active" value="t" [% IF router.active ==1 %]checked[% END %]><label class="check_label">Yes</label>
-					<input type="radio" name="active" value="f" [% IF !router.active %] checked [% END %]><label class="check_label">No</label>
-					<div class="clear"></div>
-				</div>
-				<div class="clear"></div>
-			</li>	
-			
-			<li>
-				<input id="submit" type="Submit" value="Save router settings" size="50"/>
-			</li>
 		</ul>		
-	</form>
 
 [% END %]
-
-
 </div>
 
 
 
 <div id="secondary_content" class="grid_5">
 	<div id="sc_top">
-		<div id="sc_bottom">
+		<div id="sc_bottom" class="form">
+		
+			<h3>Advanced Options</h3>
+			<ul class="row">
+				<li>
+					<!-- adbar -->
+					<label for="adserving">Ad Bar</label>
+					<div class="clear"></div>
+					<p>Turn the ad and messaging bar On or Off.  Takes 5-15 minutes to take effect.</p>
+					<input type="radio" name="adserving" value="t" [% IF router.adserving == 1 %]checked="checked"[% END %]/><label for="adserving" class="check_label">On</label>
+					<input type="radio" name="adserving" value="f" [% IF !router.adserving %] checked="checked" [% END %]/><label for="adserving" class="check_label">Off</label>
+					<div class="clear"></div>
+				</li>	
+				
+	
+	
+				<li>
+					<!-- active -->
+					<label for="active">Active</label>
+					<div class="clear"></div>
+					<p>Is this router active? (To ensure consistency in reporting, routers cannot be deleted, just hidden)</p>
+					<input type="radio" name="active" value="t" [% IF router.active ==1 %]checked="checked"[% END %] /><label class="check_label">Yes</label>
+					<input type="radio" name="active" value="f" [% IF !router.active %] checked="checked" [% END %] /><label class="check_label">No</label>
+					<div class="clear"></div>
+				</li>	
+			</ul>				
+		
+		
 			[% IF locations != '' %]
 			
 			<p>This device has been registered at the following locations and times:</p>
-			
-			[% FOREACH location = locations %]
-			<ul class="bullet_list">
-			      <li>[% IF location.name %][% location.name %] - [% ELSE %][% END %]
-			          [% location.ip %] - [% location.mts %]</li>
-			</ul>
-			[% END %]
-			
+				<div id="registered_locations">
+				[% FOREACH location = locations %]
+					<ul class="bullet_list">
+					      <li>
+					      [% IF location.name %][% location.name %] - [% ELSE %][% END %]
+					          [% location.ip %] - [% location.mts %]
+					      </li>
+					</ul>
+				[% END %]
+				</div>
 			[% END %]
 	
 		</div>
 	</div>
 </div>
+<div class="clear"></div>
+
+
+<div class="grid_16 form">
+	<ul>
+		<li>
+			<input id="submit" type="submit" value="Save router settings" size="50"/>
+		</li>
+	</ul>
+</div>
+<div class="clear"></div>
+
+</form>
 
 
 [% PROCESS footer.tmpl %]
