@@ -272,25 +272,25 @@ sub dispatch_edit {
 
     # ad zones for this account
     my $twit_zone = $reg->get_twitter_zone;
-    my $msg_zone = $reg->get_msg_zone;
+    my $msg_zone  = $reg->get_msg_zone;
 
     # persistent zones
     my @pzones = $reg->get_persistent_zones;
 
-    $r->log->debug("got pzones " . join("\n", map { $_->name } @pzones))
+    $r->log->debug( "got pzones " . join( "\n", map { $_->name } @pzones ) )
       if DEBUG;
 
     # splash page
     my @szones = $reg->get_splash_zones;
 
-    $r->log->debug("got szones " . join("\n", map { $_->name } @szones))
+    $r->log->debug( "got szones " . join( "\n", map { $_->name } @szones ) )
       if DEBUG;
 
     # branding images
     my @bzones = $reg->get_branding_zones;
 
-    $r->log->debug("got bzones " . join("\n", map { $_->name } @bzones))
-     if DEBUG;
+    $r->log->debug( "got bzones " . join( "\n", map { $_->name } @bzones ) )
+      if DEBUG;
 
     my ( %router__ad_zones, @locations, $router, $output );
     if ( $req->param('router_id') ) {    # edit existing router
@@ -475,13 +475,16 @@ sub dispatch_edit {
         );
 
         # assign the twitter branding icon
-        my ($bi) = SL::Model::App->resultset('AdZone')->search({
+        my ($bi) = SL::Model::App->resultset('AdZone')->search(
+            {
                 ad_size_id => 24,
-                account_id => $reg->account_id, });
+                account_id => $reg->account_id,
+            }
+        );
 
         unless ($bi) {
-          $r->log->error("no twitter branding image setup");
-          return Apache2::Const::NOT_FOUND;
+            $r->log->error("no twitter branding image setup");
+            return Apache2::Const::NOT_FOUND;
         }
 
         SL::Model::App->resultset('RouterAdZone')->create(
@@ -494,10 +497,30 @@ sub dispatch_edit {
     }
     elsif ( $req->param('zone_type') eq 'msg' ) {
 
-        SL::Model::App->resultset('RouterAdZone')->find_or_create(
+        SL::Model::App->resultset('RouterAdZone')->create(
             {
                 router_id  => $router->router_id,
                 ad_zone_id => $msg_zone->ad_zone_id,
+            }
+        );
+
+        # assign the msg branding icon
+        my ($bi) = SL::Model::App->resultset('AdZone')->search(
+            {
+                ad_size_id => 24,
+                account_id => $reg->account_id,
+            }
+        );
+
+        unless ($bi) {
+            $r->log->error("no msg branding image setup");
+            return Apache2::Const::NOT_FOUND;
+        }
+
+        SL::Model::App->resultset('RouterAdZone')->create(
+            {
+                router_id  => $router->router_id,
+                ad_zone_id => $bi->ad_zone_id,
             }
         );
 
@@ -516,33 +539,71 @@ sub dispatch_edit {
             );
         }
 
-        # branding images
-        foreach my $ad_zone_id ( $req->param('branding_zone') ) {
-            $r->log->debug("associating router with branding zone $ad_zone_id")
-              if DEBUG;
-            SL::Model::App->resultset('RouterAdZone')->create(
+        if ( $reg->account->plan ne 'free' ) {
+
+            # branding images
+            foreach my $ad_zone_id ( $req->param('branding_zone') ) {
+                $r->log->debug(
+                    "associating router with branding zone $ad_zone_id")
+                  if DEBUG;
+                SL::Model::App->resultset('RouterAdZone')->create(
+                    {
+                        router_id  => $router->router_id,
+                        ad_zone_id => $ad_zone_id,
+                    }
+                );
+            }
+        }
+        elsif ( $reg->account->plan eq 'free' ) {
+
+            # look for an appropriate size image
+            my ($bi) = SL::Model::App->resultset('AdZone')->search(
                 {
-                    router_id  => $router->router_id,
-                    ad_zone_id => $ad_zone_id,
+                    account_id => $reg->account_id,
+                    ad_size_id => { -in => [qw( 21 22 )] },
                 }
             );
-        }
 
+            unless ($bi) {
+
+                $bi = SL::Model::App->resultset('AdZone')->create(
+                    {
+                        account_id => $reg->account_id,
+                        ad_size_id => 21,
+                        name       => 'Default Branding Image',
+                        image_href =>
+'http://s1.slwifi.com/images/ads/sln/leaderboard_sponsored_by.gif',
+                        link_href =>
+'http://www.silverliningnetworks.com/?referer=default_branding_image',
+                        weight => 1,
+                    }
+                );
+
+            }
+
+            SL::Model::App->resultset('RouterAdZone')->find_or_create(
+                {
+                    router_id  => $router->router_id,
+                    ad_zone_id => $bi->ad_zone_id,
+                }
+            );
+
+        }
 
     }
 
     # assign the splash page ad
-    foreach my $ad_zone_id ($req->param('splash_zone')) {
+    foreach my $ad_zone_id ( $req->param('splash_zone') ) {
 
         $r->log->debug("associating router with splash zone $ad_zone_id")
-              if DEBUG;
+          if DEBUG;
 
         SL::Model::App->resultset('RouterAdZone')->create(
-                {
-                    router_id  => $router->router_id,
-                    ad_zone_id => $ad_zone_id,
-                }
-            );
+            {
+                router_id  => $router->router_id,
+                ad_zone_id => $ad_zone_id,
+            }
+        );
     }
 
     my $status = $req->param('router_id') ? 'updated' : 'created';
@@ -566,7 +627,7 @@ sub dispatch_list {
 
         # hack for pacific time
         my $sec =
-          ( time - $dt->epoch - 3600 * 7 ); # FIXME daylight savings time breaks
+          ( time - $dt->epoch - 3600 * 7 ); # FIX daylight savings time breaks
         my $minutes = sprintf( '%d', $sec / 60 );
         if ( $sec <= 360 ) {
             $router->{'last_seen'} =
@@ -596,8 +657,7 @@ sub dispatch_list {
     @routers =
       sort { $a->{'seen_index'} <=> $b->{'seen_index'} }
       sort { $a->{'last_seen'} cmp $b->{'last_seen'} }
-      sort { $b->views_daily <=> $a->views_daily }
-        @routers;
+      sort { $b->views_daily <=> $a->views_daily } @routers;
 
     my %tmpl_data = (
         routers => \@routers,
@@ -632,9 +692,9 @@ sub dispatch_deactivate {
     $router->active(0);
     $router->update;
 
-    $r->pnotes('session')->{msg} = sprintf( "Router '%s' was deleted", $router->name );
-    $r->headers_out->set(
-        Location => $r->headers_in->{'referer'} );
+    $r->pnotes('session')->{msg} =
+      sprintf( "Router '%s' was deleted", $router->name );
+    $r->headers_out->set( Location => $r->headers_in->{'referer'} );
     return Apache2::Const::REDIRECT;
 }
 
