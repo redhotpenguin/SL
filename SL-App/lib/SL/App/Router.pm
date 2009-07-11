@@ -274,8 +274,6 @@ sub dispatch_edit {
     my $twit_zone = $reg->get_twitter_zone;
     my $msg_zone = $reg->get_msg_zone;
 
-#    my ($msg_zone)  = grep { $_->name eq '_message_bar' } @visible_ads;
-
     # persistent zones
     my @pzones = $reg->get_persistent_zones;
 
@@ -469,10 +467,27 @@ sub dispatch_edit {
     # handle twitter feed
     if ( $req->param('zone_type') eq 'twitter' ) {
 
-        SL::Model::App->resultset('RouterAdZone')->find_or_create(
+        SL::Model::App->resultset('RouterAdZone')->create(
             {
                 router_id  => $router->router_id,
                 ad_zone_id => $twit_zone->ad_zone_id,
+            }
+        );
+
+        # assign the twitter branding icon
+        my ($bi) = SL::Model::App->resultset('AdZone')->search({
+                ad_size_id => 24,
+                account_id => $reg->account_id, });
+
+        unless ($bi) {
+          $r->log->error("no twitter branding image setup");
+          return Apache2::Const::NOT_FOUND;
+        }
+
+        SL::Model::App->resultset('RouterAdZone')->create(
+            {
+                router_id  => $router->router_id,
+                ad_zone_id => $bi->ad_zone_id,
             }
         );
 
@@ -491,9 +506,9 @@ sub dispatch_edit {
 
         # for ad zones
         foreach my $ad_zone_id ( $req->param('ad_zone') ) {
-            $r->log->debug("$$ associating router with ad zone $ad_zone_id")
+            $r->log->debug("associating router with ad zone $ad_zone_id")
               if DEBUG;
-            SL::Model::App->resultset('RouterAdZone')->find_or_create(
+            SL::Model::App->resultset('RouterAdZone')->create(
                 {
                     router_id  => $router->router_id,
                     ad_zone_id => $ad_zone_id,
@@ -501,6 +516,33 @@ sub dispatch_edit {
             );
         }
 
+        # branding images
+        foreach my $ad_zone_id ( $req->param('branding_zone') ) {
+            $r->log->debug("associating router with branding zone $ad_zone_id")
+              if DEBUG;
+            SL::Model::App->resultset('RouterAdZone')->create(
+                {
+                    router_id  => $router->router_id,
+                    ad_zone_id => $ad_zone_id,
+                }
+            );
+        }
+
+
+    }
+
+    # assign the splash page ad
+    foreach my $ad_zone_id ($req->param('splash_zone')) {
+
+        $r->log->debug("associating router with splash zone $ad_zone_id")
+              if DEBUG;
+
+        SL::Model::App->resultset('RouterAdZone')->create(
+                {
+                    router_id  => $router->router_id,
+                    ad_zone_id => $ad_zone_id,
+                }
+            );
     }
 
     my $status = $req->param('router_id') ? 'updated' : 'created';
