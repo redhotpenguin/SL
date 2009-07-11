@@ -142,7 +142,7 @@
 				<label for="zone_type">Select one of the following three options for display on this router</label>
 				[% IF msg_zone %]
 					<input id="text" type="radio" name="zone_type" value="msg" [% IF msg_zone.selected %]checked="checked"[% END %]/>
-					<label for="msg" class="check_label">1 - Text Message Bar</label>
+					<label for="msg" class="check_label">1 - <a href="[% base_uri %]/app/ad/msg/index">Text Message Bar</a></label>
 				[% ELSE %]
 					<input id="text" type="radio" name="zone_type" value="msg" disabled="disabled" />
 					<label for="msg" class="check_label">1 - Setup your <a href="[% base_uri %]/app/ad/msg/index">Text Message Bar</a> (currently not enabled)</label>
@@ -152,7 +152,7 @@
 				<!-- twitter -->
 				[% IF twit_zone %]
 					<input id="twitter" type="radio" name="zone_type" value="twitter" [% IF twit_zone.selected %]checked="checked"[% END %] />
-					<label for="twitter" class="check_label">2 - Twitter Message Bar</label>
+					<label for="twitter" class="check_label">2 - <a href="[% base_uri %]/app/ad/twitter/index">Twitter Message Bar</a></label>
 				[% ELSE %]
 					<input id="twitter" type="radio" name="zone_type" value="twitter" disabled="disabled" />
 					<label for="twitter" class="check_label">2 - Setup your <a href="[% base_uri %]/app/ad/twitter/index">Twitter Feed</a> (currently not enabled)</label>
