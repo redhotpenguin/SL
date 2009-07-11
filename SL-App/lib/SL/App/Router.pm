@@ -271,29 +271,28 @@ sub dispatch_edit {
     my $reg = $r->pnotes( $r->user );
 
     # ad zones for this account
-    my @ad_zones = $reg->get_ad_zones;
+    my $twit_zone = $reg->get_twitter_zone;
+    my $msg_zone = $reg->get_msg_zone;
 
-    my @visible_ads = grep { !$_->hidden } @ad_zones;
-
-    #$r->log->debug("got zones " . join("\n", map { $_->name } @visible_ads));
-
-    my ($twit_zone) = grep { $_->name eq '_twitter_feed' } @visible_ads;
-    my ($msg_zone)  = grep { $_->name eq '_message_bar' } @visible_ads;
+#    my ($msg_zone)  = grep { $_->name eq '_message_bar' } @visible_ads;
 
     # persistent zones
-    my @pzones = grep { $_->ad_size->persistent == 1 } @visible_ads;
+    my @pzones = $reg->get_persistent_zones;
 
-    #$r->log->debug("got pzones " . join("\n", map { $_->name } @pzones));
+    $r->log->debug("got pzones " . join("\n", map { $_->name } @pzones))
+      if DEBUG;
 
     # splash page
-    my @szones = grep { $_->ad_size->grouping == 3 } @visible_ads;
+    my @szones = $reg->get_splash_zones;
 
-    #$r->log->debug("got szones " . join("\n", map { $_->name } @szones));
+    $r->log->debug("got szones " . join("\n", map { $_->name } @szones))
+      if DEBUG;
 
     # branding images
-    my @bzones = grep { $_->ad_size->grouping == 2 } @visible_ads;
+    my @bzones = $reg->get_branding_zones;
 
-    #$r->log->debug("got bzones " . join("\n", map { $_->name } @bzones));
+    $r->log->debug("got bzones " . join("\n", map { $_->name } @bzones))
+     if DEBUG;
 
     my ( %router__ad_zones, @locations, $router, $output );
     if ( $req->param('router_id') ) {    # edit existing router
@@ -553,9 +552,10 @@ sub dispatch_list {
     }
 
     @routers =
-      sort { $b->views_daily <=> $a->views_daily }
       sort { $a->{'seen_index'} <=> $b->{'seen_index'} }
-      sort { $a->{'last_seen'} cmp $b->{'last_seen'} } @routers;
+      sort { $a->{'last_seen'} cmp $b->{'last_seen'} }
+      sort { $b->views_daily <=> $a->views_daily }
+        @routers;
 
     my %tmpl_data = (
         routers => \@routers,

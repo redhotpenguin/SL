@@ -292,7 +292,6 @@ sub dispatch_edit {
 
     # add arguments
     $ad_zone->$_( $args{$_} ) for keys %args;
-    $ad_zone->bug_id( 1 );
     $ad_zone->mts( DateTime::Format::Pg->format_datetime( DateTime->now( time_zone => 'local')));
     $ad_zone->update;
 
