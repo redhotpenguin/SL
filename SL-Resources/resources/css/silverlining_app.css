@@ -768,3 +768,13 @@ overflow: hidden;
 text-align: left;
 }
 
+/* PREVIEW HOVER BOX FOR IMAGES
+============================================= */
+#preview{
+position:absolute;
+border:1px solid #ccc;
+background:#333;
+padding:5px;
+display:none;
+color:#fff;
+}
