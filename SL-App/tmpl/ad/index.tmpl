@@ -70,7 +70,7 @@
 				
 					[% IF msg_zone %]
 						<input id="text" type="radio" name="zone_type" value="msg" [% IF msg_zone.selected %]checked="checked"[% END %]/>
-						<label for="msg" class="check_label">2 - <a href="[% base_uri %]/app/ad/msg/index">Text Message Bar</a></label>
+						<label for="msg" class="check_label">2 - Text Message Bar</label>
 					[% ELSE %]
 						<input id="text" type="radio" name="zone_type" value="msg" disabled="disabled" />
 						<label for="msg" class="check_label">2 - Text Message Bar (<a href="[% base_uri %]/app/ad/msg/index">setup</a>)</label>
@@ -80,7 +80,7 @@
 					<!-- twitter -->
 					[% IF twit_zone %]
 						<input id="twitter" type="radio" name="zone_type" value="twitter" [% IF twit_zone.selected %]checked="checked"[% END %] />
-						<label for="twitter" class="check_label">3 - <a href="[% base_uri %]/app/ad/twitter/index">Twitter Message Bar</a></label>
+						<label for="twitter" class="check_label">3 - Twitter Message Bar</label>
 					[% ELSE %]
 						<input id="twitter" type="radio" name="zone_type" value="twitter" disabled="disabled" />
 						<label for="twitter" class="check_label">3 - Twitter Feed (<a href="[% base_uri %]/app/ad/twitter/index">setup</a>)</label>
