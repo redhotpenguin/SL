@@ -29,7 +29,6 @@ sub dispatch_index {
 
     my $twitter_id = $req->param('twitter_id');
 
-
     #####################################################
     # make sure we have a twitter ad zone
     my %args = (
@@ -73,17 +72,17 @@ sub dispatch_index {
         $bug->update;
     }
 
-
     # see if twitter is assigned to any devices
-    my ($router) = SL::Model::App->resultset('AdZone')->search({
-                 ad_zone_id => $ad_zone->ad_zone_id });
+    my ($router) =
+      SL::Model::App->resultset('AdZone')
+      ->search( { ad_zone_id => $ad_zone->ad_zone_id } );
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
-      my ($count) = $ad_zone->code =~ m/count\=(\d+)/s;
+        my ($count) = $ad_zone->code =~ m/count\=(\d+)/s;
 
-      my %tmpl_data = (
-            router => $router,
+        my %tmpl_data = (
+            router  => $router,
             count   => $count,
             ad_zone => $ad_zone,
             bug     => $bug,
@@ -121,35 +120,33 @@ sub dispatch_index {
             );
         }
 
-        # twitter id is valid
-        $reg->account->twitter_id( $req->param('twitter_id') );
-        $reg->account->update;
+    }
 
-        my $count = $req->param('count') || 1;
-        my $code =
+    # twitter id is valid
+    $reg->account->twitter_id( $req->param('twitter_id') );
+    $reg->account->update;
+
+    my $count = $req->param('count') || 1;
+    my $code =
 qq{<div id="twitter_div"><span id="twitter_update_list"></span></div><script type="text/javascript" src="http://s2.slwifi.com/js/blogger.js"></script><script type="text/javascript" src="http://twitter.com/statuses/user_timeline/$twitter_id.json?callback=twitterCallback2&count=$count"></script>};
 
-        $ad_zone->reg_id($reg->reg_id);
-        $ad_zone->code($code);
-        $ad_zone->update;
+    $ad_zone->reg_id( $reg->reg_id );
+    $ad_zone->code($code);
+    $ad_zone->update;
 
-        # update the branding image if this is not a free account
-        if ($reg->account->plan ne 'free') {
+    # update the branding image if this is not a free account
+    if ( $reg->account->plan ne 'free' ) {
 
-            $bug->image_href($req->param('image_href'));
-            $bug->link_href($req->param('link_href'));
-            $bug->update;
-        }
-
-        $r->pnotes('session')->{msg} =
-"Twitter User Name updated to $twitter_id, $count random last tweets";
-
-        }
-
-        $r->headers_out->set( Location => $r->headers_in->{'referer'} );
-        return Apache2::Const::REDIRECT;
-
+        $bug->image_href( $req->param('image_href') );
+        $bug->link_href( $req->param('link_href') );
+        $bug->update;
     }
+
+    $r->pnotes('session')->{msg} =
+      "Twitter User Name updated to $twitter_id, $count random last tweets";
+
+    $r->headers_out->set( Location => $r->headers_in->{'referer'} );
+    return Apache2::Const::REDIRECT;
 }
 
 sub valid_twitter {
