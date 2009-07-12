@@ -219,15 +219,24 @@ sub valid_banner_ad {
 
         my $response = $Ua->get( URI->new($image_href) );
 
+        warn("response is " . Data::Dumper::Dumper($response) ) if DEBUG;
+
         unless ($response->is_success) {
+
             $dfv->{image_err} = { missing => 1 };
+            warn("could not find image at $image_href") if DEBUG;
             return;
-          }
+        }
+
 
         my ( $width, $height ) = Image::Size::imgsize( \$response->content );
 
         unless (($width == 728) && ($height == 90)) {
+
             $dfv->{image_err} = { width => $width, height => $height};
+            warn(
+                 sprintf("image size width %s, height %s for url $image_href",
+                         $width, $height)) if DEBUG;
             return;
         }
 

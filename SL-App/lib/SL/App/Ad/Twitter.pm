@@ -57,12 +57,12 @@ sub dispatch_index {
         account_id => $reg->account_id,
     );
 
-    my ($bug) = SL::Model::App->resultset('Bug')->search( \%bug_args );
+    my ($bug) = SL::Model::App->resultset('AdZone')->search( \%bug_args );
 
     unless ($bug) {
 
         # create it
-        $bug = SL::Model::App->resultset('Bug')->create(
+        $bug = SL::Model::App->resultset('AdZone')->create(
             {
                 %bug_args,
                 image_href =>
@@ -74,11 +74,16 @@ sub dispatch_index {
     }
 
 
+    # see if twitter is assigned to any devices
+    my ($router) = SL::Model::App->resultset('AdZone')->search({
+                 ad_zone_id => $ad_zone->ad_zone_id });
+
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
       my ($count) = $ad_zone->code =~ m/count\=(\d+)/s;
 
       my %tmpl_data = (
+            router => $router,
             count   => $count,
             ad_zone => $ad_zone,
             bug     => $bug,
@@ -98,7 +103,7 @@ sub dispatch_index {
 
         my %profile = (
             required           => [qw( twitter_id )],
-            optional           => [qw( sweep )],
+            optional           => [qw( )],
             constraint_methods => { twitter_id => $self->valid_twitter(), }
         );
 
@@ -136,46 +141,9 @@ qq{<div id="twitter_div"><span id="twitter_update_list"></span></div><script typ
             $bug->update;
         }
 
-        if ( !$req->param('sweep') ) {
-
-            $r->pnotes('session')->{msg} =
+        $r->pnotes('session')->{msg} =
 "Twitter User Name updated to $twitter_id, $count random last tweets";
 
-        }
-        else {
-
-            # sweep
-
-            my @routers =
-              SL::Model::App->resultset('Router')
-              ->search(
-                { active => 't', account_id => $reg->account->account_id } );
-
-            foreach my $router (@routers) {
-
-                SL::Model::App->resultset('RouterAdZone')
-                  ->search( { router_id => $router->router_id } )->delete_all;
-
-                SL::Model::App->resultset('RouterAdZone')->find_or_create(
-                    {
-                        router_id  => $router->router_id,
-                        ad_zone_id => $ad_zone->ad_zone_id,
-                    }
-                );
-
-                SL::Model::App->resultset('RouterAdZone')->find_or_create(
-                    {
-                        router_id  => $router->router_id,
-                        ad_zone_id => $bug->ad_zone_id,
-                    }
-                );
-
-            }
-
-            $r->pnotes('session')->{msg} =
-              sprintf(
-                "Twitter User Name updated to %s, assigned to %d devices",
-                $twitter_id, scalar(@routers) );
         }
 
         $r->headers_out->set( Location => $r->headers_in->{'referer'} );

@@ -270,15 +270,25 @@ sub dispatch_edit {
     my $req = $args_ref->{req} || Apache2::Request->new($r);
     my $reg = $r->pnotes( $r->user );
 
-    # ad zones for this account
-    my $twit_zone = $reg->get_twitter_zone;
-    my $msg_zone  = $reg->get_msg_zone;
+    my $zone_type = $reg->account->zone_type;
 
-    # persistent zones
-    my @pzones = $reg->get_persistent_zones;
+    ##################################
+    # for banner ads only
+    my (@pzones, @bzones);
+    if ( $zone_type eq 'banner_ad' ) {
 
-    $r->log->debug( "got pzones " . join( "\n", map { $_->name } @pzones ) )
-      if DEBUG;
+        # persistent zones
+        @pzones = $reg->get_persistent_zones;
+        $r->log->debug( "pzones " . join( "\n", map { $_->name } @pzones ) )
+          if DEBUG;
+
+        # branding images
+        @bzones = $reg->get_branding_zones;
+
+        $r->log->debug( "bzones " . join( "\n", map { $_->name } @bzones ) )
+          if DEBUG;
+    }
+
 
     # splash page
     my @szones = $reg->get_splash_zones;
@@ -286,11 +296,6 @@ sub dispatch_edit {
     $r->log->debug( "got szones " . join( "\n", map { $_->name } @szones ) )
       if DEBUG;
 
-    # branding images
-    my @bzones = $reg->get_branding_zones;
-
-    $r->log->debug( "got bzones " . join( "\n", map { $_->name } @bzones ) )
-      if DEBUG;
 
     my ( %router__ad_zones, @locations, $router, $output );
     if ( $req->param('router_id') ) {    # edit existing router
@@ -313,7 +318,7 @@ sub dispatch_edit {
             return Apache2::Const::NOT_FOUND;
         }
 
-        # get the locations for the router
+         # get the locations for the router
         @locations =
           sort { $b->mts cmp $a->mts }
           map  { $_->location } $router->router__locations;
@@ -332,24 +337,11 @@ sub dispatch_edit {
 
         }
 
-        if ($twit_zone) {
-            if ( exists $router__ad_zones{ $twit_zone->ad_zone_id } ) {
-                $twit_zone->{selected} = 1;
-            }
-        }
-
-        if ($msg_zone) {
-            if ( exists $router__ad_zones{ $msg_zone->ad_zone_id } ) {
-                $msg_zone->{selected} = 1;
-            }
-        }
 
     }
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my %tmpl_data = (
-            twit_zone => $twit_zone,
-            msg_zone  => $msg_zone,
             ad_zones  => \@pzones,
             szones    => \@szones,
             bzones    => \@bzones,
@@ -437,7 +429,10 @@ sub dispatch_edit {
         $router->update;
     }
 
+
+    # macaddress
     $router->macaddr($macaddr);
+
 
     # create an ssid event if the ssid changed
     if ( $router->device eq 'wrt54gl' ) {
@@ -459,76 +454,18 @@ sub dispatch_edit {
 
     $router->update;
 
-    # and update the associated ad zones for this router
-    # first get rid of the old associations
-    SL::Model::App->resultset('RouterAdZone')
-      ->search( { router_id => $router->router_id } )->delete_all;
 
-    # handle twitter feed
-    if ( $req->param('zone_type') eq 'twitter' ) {
+    if ( $reg->account->zone_type eq 'banner_ad' ) {
 
-        SL::Model::App->resultset('RouterAdZone')->create(
-            {
-                router_id  => $router->router_id,
-                ad_zone_id => $twit_zone->ad_zone_id,
-            }
-        );
+        # and update the associated ad zones for this router
+        # first get rid of the old associations
+        SL::Model::App->resultset('RouterAdZone')
+          ->search( { router_id => $router->router_id } )->delete_all;
 
-        # assign the twitter branding icon
-        my ($bi) = SL::Model::App->resultset('AdZone')->search(
-            {
-                ad_size_id => 24,
-                account_id => $reg->account_id,
-            }
-        );
-
-        unless ($bi) {
-            $r->log->error("no twitter branding image setup");
-            return Apache2::Const::NOT_FOUND;
-        }
-
-        SL::Model::App->resultset('RouterAdZone')->create(
-            {
-                router_id  => $router->router_id,
-                ad_zone_id => $bi->ad_zone_id,
-            }
-        );
-
-    }
-    elsif ( $req->param('zone_type') eq 'msg' ) {
-
-        SL::Model::App->resultset('RouterAdZone')->create(
-            {
-                router_id  => $router->router_id,
-                ad_zone_id => $msg_zone->ad_zone_id,
-            }
-        );
-
-        # assign the msg branding icon
-        my ($bi) = SL::Model::App->resultset('AdZone')->search(
-            {
-                ad_size_id => 24,
-                account_id => $reg->account_id,
-            }
-        );
-
-        unless ($bi) {
-            $r->log->error("no msg branding image setup");
-            return Apache2::Const::NOT_FOUND;
-        }
-
-        SL::Model::App->resultset('RouterAdZone')->create(
-            {
-                router_id  => $router->router_id,
-                ad_zone_id => $bi->ad_zone_id,
-            }
-        );
-
-    }
-    elsif ( $req->param('zone_type') eq 'iab' ) {
 
         # for ad zones
         foreach my $ad_zone_id ( $req->param('ad_zone') ) {
+
             $r->log->debug("associating router with ad zone $ad_zone_id")
               if DEBUG;
             SL::Model::App->resultset('RouterAdZone')->create(
@@ -539,6 +476,7 @@ sub dispatch_edit {
             );
         }
 
+        # handle branding images
         if ( $reg->account->plan ne 'free' ) {
 
             # branding images
@@ -568,6 +506,7 @@ sub dispatch_edit {
 
                 $bi = SL::Model::App->resultset('AdZone')->create(
                     {
+                        reg_id     => $reg->reg_id,
                         account_id => $reg->account_id,
                         ad_size_id => 21,
                         name       => 'Default Branding Image',
@@ -581,7 +520,7 @@ sub dispatch_edit {
 
             }
 
-            SL::Model::App->resultset('RouterAdZone')->find_or_create(
+            SL::Model::App->resultset('RouterAdZone')->create(
                 {
                     router_id  => $router->router_id,
                     ad_zone_id => $bi->ad_zone_id,
@@ -591,6 +530,8 @@ sub dispatch_edit {
         }
 
     }
+
+
 
     # assign the splash page ad
     foreach my $ad_zone_id ( $req->param('splash_zone') ) {

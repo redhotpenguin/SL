@@ -55,8 +55,8 @@ sub dispatch_add {
                 code       => '',
                 active     => 1,
                 is_default => 0,
-                image_href => ' ',
-                link_href => ' ',
+                image_href => 'http://s1.slwifi.com/images/ads/sln/sl_leaderboard.gif',
+                link_href => 'http://www.silverliningnetworks.com/?referer=newad',
             }
         );
         return Apache2::Const::NOT_FOUND unless $ad_zone;
@@ -270,7 +270,6 @@ sub dispatch_edit {
         ad_size_id => $ad_size_id,
         name       => $req->param('name'),
         active     => $req->param('active'),
-        is_default => $req->param('is_default'),
     );
 
     if ( $req->param('zone_type') eq 'code' ) {
@@ -293,6 +292,40 @@ sub dispatch_edit {
     # add arguments
     $ad_zone->$_( $args{$_} ) for keys %args;
     $ad_zone->mts( DateTime::Format::Pg->format_datetime( DateTime->now( time_zone => 'local')));
+
+
+    ############################################
+    # handle default
+    my @default_zones = SL::Model::App->resultset('AdZone')->search({
+                    is_default => 1 });
+
+    if ($req->param('is_default') == 1) {
+
+      # null out the existing default zones
+      foreach my $dz ( @default_zones ) {
+
+        next if $dz->ad_zone_id == $ad_zone->ad_zone_id;
+
+        $dz->is_default(0);
+        $dz->update;
+      }
+
+      $ad_zone->is_default(1);
+
+    } elsif ($req->param('is_default') == 0) {
+
+      # mark this one as default UNLESS there are no existing defaults
+
+      if (@default_zones) {
+        $ad_zone->is_default(0);
+
+      } else {
+
+        $ad_zone->is_default(1);
+      }
+
+    }
+
     $ad_zone->update;
 
     $r->log->debug("updated ad zone: " . Data::Dumper::Dumper($ad_zone)) if DEBUG;

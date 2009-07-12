@@ -3,7 +3,7 @@
 	
 	<h2>Manage Account '[% reg.account.name %]'</h2>
 	<div class="row">
-	[% IF msg %]<p class="error">[% msg %]</p>[% END %]
+	[% IF msg %]<p class="success">[% msg %]</p>[% END %]
 
 
 	<p>Your current subscription rate: <strong>$[% IF reg.account.plan == 'enterprise' %]249 (Enterprise)[% ELSIF reg.account.plan == 'premium' %]99 (Premium)[% ELSIF reg.account.plan == 'plus' %]24 (Plus)[% ELSIF reg.account.plan == 'basic' %]10 (Basic)[% ELSIF reg.account.plan == 'free' %]0 (Free)[% END %]</strong></p>

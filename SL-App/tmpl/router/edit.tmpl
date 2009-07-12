@@ -148,16 +148,14 @@
 					<label for="twitter" class="check_label"><a href="[% base_uri %]/app/ad/msg/index">Twitter Feed</a> active for all devices</label>
 				[% ELSIF !reg.account.zone_type || (reg.account.zone_type == 'banner_ad' ) %]
 
-				<label for="banner_ad">Banner Ads active for this device:</label>
-				<div class="clear"></div>
 
 			    [% IF ad_zones %]
 					<label for="adzone">Select Banner Ads to display on this device:</label>
 					[% FOREACH ad_zone = ad_zones %]
 					[% IF loop.index % 2 == 0 %] [% END %]
 					    
-					    	<input type="checkbox" name="ad_zone" rel="[% ad_zone.image_href %]" value="[% ad_zone.ad_zone_id %]" [% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]checked="checked"[% END %] />
-					    	<label class="check_label"><a class="preview" href="[% base_uri %]/app/ad/groups/edit?id=[% ad_zone.id %]">[% ad_zone.name %]</a>[% IF ad_zone.is_default == 1 %] - <em>Default</em>[% END %]</label>
+					    	<input type="checkbox" name="ad_zone" value="[% ad_zone.ad_zone_id %]" [% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]checked="checked"[% END %] />
+					    	<label class="check_label"><a [% IF ad_zone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% ad_zone.image_href %]"[% END %] href="[% base_uri %]/app/ad/groups/edit?id=[% ad_zone.id %]">[% ad_zone.name %]</a>[% IF ad_zone.is_default == 1 %] - <em>Default</em>[% END %]</label>
 					   
 					[% IF loop.index % 2 != 0 %]<div class="clear"></div>[% END %]
 					[% END %]
@@ -182,8 +180,8 @@
 						[% FOREACH bzone = bzones %]
 						[% IF loop.index % 2 == 0 %] [% END %]
 							
-						    	<input type="checkbox" name="branding_zone" rel="[% bzone.image_href %]" value="[% bzone.ad_zone_id %]"[% IF bzone.selected or (req.param('ad_zone_id') == bzone.ad_zone_id) %]checked="checked"[% END %] />
-						    	<label class="check_label"><a class="preview" href="[% base_uri %]/app/ad/groups/edit?id=[% bzone.id %]">[% bzone.name %]</a>[% IF bzone.is_default == 1 %] - <em>Default</em>[% END %]</label>
+						    	<input type="checkbox" name="branding_zone" value="[% bzone.ad_zone_id %]"[% IF bzone.selected or (req.param('ad_zone_id') == bzone.ad_zone_id) %]checked="checked"[% END %] />
+						    	<label class="check_label"><a class="preview" title="[% ad_zone.link_href %]" rel="[% bzone.image_href %]" href="[% base_uri %]/app/ad/groups/edit?id=[% bzone.id %]">[% bzone.name %]</a>[% IF bzone.is_default == 1 %] - <em>Default</em>[% END %]</label>
 						    
 						[% IF loop.index % 2 != 0 %] <div class="clear"></div>[% END %]
 						[% END %]
@@ -209,8 +207,8 @@
 					[% FOREACH szone = szones %]
 					[% IF loop.index % 2 == 0 %] [% END %]
 					    <div class="grid_4 alpha omega">
-					    	<input rel="[% szone.image_href %]" type="checkbox" name="splash_zone"  value="[% szone.ad_zone_id %]"[% IF szone.selected or (req.param('ad_zone_id') == szone.ad_zone_id) %]checked="checked"[% END %] />
-					    	<label class="check_label"><a class="preview" href="[% base_uri %]/app/ad/groups/edit?id=[% szone.id %]">[% szone.name %]</a>[% IF szone.is_default == 1 %] - <em>Default</em>[% END %]</label>
+					    	<input type="checkbox" name="splash_zone"  value="[% szone.ad_zone_id %]"[% IF szone.selected or (req.param('ad_zone_id') == szone.ad_zone_id) %]checked="checked"[% END %] />
+					    	<label class="check_label"><a [% IF szone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% szone.image_href %]"[% END %]  href="[% base_uri %]/app/ad/groups/edit?id=[% szone.id %]">[% szone.name %]</a>[% IF szone.is_default == 1 %] - <em>Default</em>[% END %]</label>
 					    </div>
 					[% IF loop.index % 2 != 0 %]<div class="clear"></div>[% END %]
 					[% END %]
@@ -270,7 +268,7 @@
 <div class="grid_16 form">
 	<ul>
 		<li>
-			<input id="submit" type="submit" value="Save router settings" size="50"/>
+			<input id="submit" type="submit" value="Save Router Settings" size="50"/>
 		</li>
 	</ul>
 </div>

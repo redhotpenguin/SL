@@ -151,7 +151,7 @@ sub dispatch_account {
 
     }
 
-    my $account = $reg->account_id;
+    my $account = $reg->account;
     if ( $account->name ne $req->param('account') ) {
 
         # we need to update the account

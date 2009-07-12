@@ -39,7 +39,7 @@
 	[% FOREACH ad_zone = ad_zones %]
 		<tr>
 			<td>
-			<a href="[% base_uri %]/app/ad/bugs/edit/?id=[% ad_zone.ad_zone_id %]">
+			<a  [% IF ad_zone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% ad_zone.image_href %]"[% END %] href="[% base_uri %]/app/ad/bugs/edit/?id=[% ad_zone.ad_zone_id %]">
 			[% ad_zone.name %]</a></td>
 			
 			<td>

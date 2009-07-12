@@ -40,7 +40,7 @@
 	[% FOREACH ad_zone = ad_zones %]
 		<tr>
 			<td class="larger">
-			<a href="[% base_uri %]/app/ad/groups/edit/?id=[% ad_zone.ad_zone_id %]">
+			<a [% IF ad_zone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% ad_zone.image_href %]"[% END %] href="[% base_uri %]/app/ad/groups/edit/?id=[% ad_zone.ad_zone_id %]">
 			[% ad_zone.name %]</a></td>
 			
 [% IF views %]			<td class="smaller">NA</td>[% END %]
@@ -73,7 +73,7 @@
 		<div id="sc_bottom">
 		
 			<h3>Brand your Network</h3>
-			[% IF reg.account_id.plan == 'free' %]
+			[% IF reg.account.plan == 'free' %]
 			To brand your ad bar, you will need a paid account.  <a href="[% base_uri %]/billing/publisher/?plan=basic&email=[% reg.email %]">Click here</a> to sign up for our Basic Plan.
 			
 			[% ELSE %]

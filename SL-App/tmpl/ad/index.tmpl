@@ -53,7 +53,7 @@
 
 </div>
 
-
+<form method="POST" action="[% base_uri %]/app/ad/index">
 <div id="secondary_content" class="grid_5">
 	<div id="sc_top">
 		<div id="sc_bottom" class="form">
@@ -64,30 +64,21 @@
 					<!-- ad zones -->
 					<label for="zone_type" class="tip">Select one of the following three options for display on this router</label>
 				
-					<input id="iab" type="radio" name="zone_type" value="iab" [% IF !twit_zone.selected and !msg_zone.selected %]checked="checked"[% END %]/>
+					<input id="banner_ad" type="radio" name="zone_type" value="banner_ad" [% IF !reg.account.zone_type || (reg.account.zone_type == 'banner_ad') %]checked="checked"[% END %]/>
 					<label for="iab" class="check_label">1 - Banner Ads </label>
 					<div class="clear"></div>				
+
 				
-					[% IF msg_zone %]
-						<input id="text" type="radio" name="zone_type" value="msg" [% IF msg_zone.selected %]checked="checked"[% END %]/>
+					<input id="text" type="radio" name="zone_type" value="msg" [% IF reg.account.zone_type == 'msg' %]checked="checked"[% END %]/>
 						<label for="msg" class="check_label">2 - Text Message Bar</label>
-					[% ELSE %]
-						<input id="text" type="radio" name="zone_type" value="msg" disabled="disabled" />
-						<label for="msg" class="check_label">2 - Text Message Bar (<a href="[% base_uri %]/app/ad/msg/index">setup</a>)</label>
-					[% END %]
+
 					<div class="clear"></div>			
 	
 					<!-- twitter -->
-					[% IF twit_zone %]
-						<input id="twitter" type="radio" name="zone_type" value="twitter" [% IF twit_zone.selected %]checked="checked"[% END %] />
+						<input id="twitter" type="radio" name="zone_type" value="twitter" [% IF reg.account.zone_type == 'twitter' %]checked="checked"[% END %] />
 						<label for="twitter" class="check_label">3 - Twitter Message Bar</label>
-					[% ELSE %]
-						<input id="twitter" type="radio" name="zone_type" value="twitter" disabled="disabled" />
-						<label for="twitter" class="check_label">3 - Twitter Feed (<a href="[% base_uri %]/app/ad/twitter/index">setup</a>)</label>
-					[% END %]
 					<div class="clear"></div>
 	
-
 				</li>
 				<li>
 					<input id="submit" type="submit" value="Save Ad Settings" size="50"/>
@@ -98,7 +89,7 @@
 		</div>
 	</div>
 </div>
-
+</form>
 
 
 

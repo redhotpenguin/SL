@@ -37,15 +37,15 @@
 					
 				<li>
 					<!-- default -->
-					<label for="is_default">Is this a default [% type %]?</label>
+					<label for="is_default">Is this the default [% type %]?</label>
 					<input type="radio" name="is_default" value="1" [% IF (req.param('is_default') == 1) or (ad_zone.is_default == 1) %]checked="1"[% END %]>
-					<label for="t" class="check_label">Yes</label>
+					<label for="t" class="check_label">Yes[% IF (type == 'Banner Ad') %] - <strong>Overrides all Text Message and Twitter Feed Assignments</strong>[% END %]</label>
 					<div class="clear"></div>
 							
 					<input type="radio" name="is_default" value="0"  [% IF (!req.param('is_default') && !ad_zone.is_default) or (req.param('is_default') == 0) %]checked="1"[% END %] /> 
 					<label for="f" class="check_label">No</label>
 					<div class="clear"></div>
-					<p class="tip">In cases where the specific router cannot be identified, a [% type %] marked as a default [% type %] will be shown.</p>
+					<p class="tip">In cases where the specific router cannot be identified, the default [% type %] will be shown.</p>
 				</li>
 
 			</ul>
