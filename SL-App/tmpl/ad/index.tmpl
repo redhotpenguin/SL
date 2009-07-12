@@ -63,28 +63,31 @@
 				<li>
 					<!-- ad zones -->
 					<label for="zone_type" class="tip">Select one of the following three options for display on this router</label>
+				
+					<input id="iab" type="radio" name="zone_type" value="iab" [% IF !twit_zone.selected and !msg_zone.selected %]checked="checked"[% END %]/>
+					<label for="iab" class="check_label">1 - <a href="[% base_uri %]/app/ad/groups/list">Banner Ads</a> </label>
+					<div class="clear"></div>				
+				
 					[% IF msg_zone %]
 						<input id="text" type="radio" name="zone_type" value="msg" [% IF msg_zone.selected %]checked="checked"[% END %]/>
-						<label for="msg" class="check_label">1 - <a href="[% base_uri %]/app/ad/msg/index">Text Message Bar</a></label>
+						<label for="msg" class="check_label">2 - <a href="[% base_uri %]/app/ad/msg/index">Text Message Bar</a></label>
 					[% ELSE %]
 						<input id="text" type="radio" name="zone_type" value="msg" disabled="disabled" />
-						<label for="msg" class="check_label">1 - Text Message Bar (<a href="[% base_uri %]/app/ad/msg/index">activate</a>)</label>
+						<label for="msg" class="check_label">3 - Text Message Bar (<a href="[% base_uri %]/app/ad/msg/index">setup</a>)</label>
 					[% END %]
 					<div class="clear"></div>			
 	
 					<!-- twitter -->
 					[% IF twit_zone %]
 						<input id="twitter" type="radio" name="zone_type" value="twitter" [% IF twit_zone.selected %]checked="checked"[% END %] />
-						<label for="twitter" class="check_label">2 - <a href="[% base_uri %]/app/ad/twitter/index">Twitter Message Bar</a></label>
+						<label for="twitter" class="check_label">3 - <a href="[% base_uri %]/app/ad/twitter/index">Twitter Message Bar</a></label>
 					[% ELSE %]
 						<input id="twitter" type="radio" name="zone_type" value="twitter" disabled="disabled" />
-						<label for="twitter" class="check_label">2 - Twitter Feed (<a href="[% base_uri %]/app/ad/twitter/index">activate</a>)</label>
+						<label for="twitter" class="check_label">3 - Twitter Feed (<a href="[% base_uri %]/app/ad/twitter/index">setup</a>)</label>
 					[% END %]
 					<div class="clear"></div>
 	
-					<input id="iab" type="radio" name="zone_type" value="iab" [% IF !twit_zone.selected and !msg_zone.selected %]checked="checked"[% END %]/>
-					<label for="iab" class="check_label">3 - Banner Ads (IAB)</label>
-					<div class="clear"></div>
+
 				</li>
 				<li>
 					<input id="submit" type="submit" value="Save Ad Settings" size="50"/>
