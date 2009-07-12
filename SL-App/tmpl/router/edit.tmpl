@@ -138,29 +138,17 @@
 
 
 			<li>
+
+                <label for="zone"></label>
+
 				<!-- ad zones -->
-				<label for="zone_type">Select one of the following three options for display on this router</label>
-				[% IF msg_zone %]
-					<input id="text" type="radio" name="zone_type" value="msg" [% IF msg_zone.selected %]checked="checked"[% END %]/>
-					<label for="msg" class="check_label">1 - <a href="[% base_uri %]/app/ad/msg/index">Text Message Bar</a></label>
-				[% ELSE %]
-					<input id="text" type="radio" name="zone_type" value="msg" disabled="disabled" />
-					<label for="msg" class="check_label">1 - Setup your <a href="[% base_uri %]/app/ad/msg/index">Text Message Bar</a> (currently not enabled)</label>
-				[% END %]
-				<div class="clear"></div>			
+				[% IF reg.account.zone_type == 'text_message' %]
+                    <label for="msg" class="check_label"><a href="[% base_uri %]/app/ad/msg/index">Text Message Bar</a> active for all devices</label>
+				[% ELSIF reg.account.zone_type == 'twitter_feed' %]
+					<label for="twitter" class="check_label"><a href="[% base_uri %]/app/ad/msg/index">Twitter Feed</a> active for all devices</label>
+				[% ELSIF !reg.account.zone_type || (reg.account.zone_type == 'banner_ad' ) %]
 
-				<!-- twitter -->
-				[% IF twit_zone %]
-					<input id="twitter" type="radio" name="zone_type" value="twitter" [% IF twit_zone.selected %]checked="checked"[% END %] />
-					<label for="twitter" class="check_label">2 - <a href="[% base_uri %]/app/ad/twitter/index">Twitter Message Bar</a></label>
-				[% ELSE %]
-					<input id="twitter" type="radio" name="zone_type" value="twitter" disabled="disabled" />
-					<label for="twitter" class="check_label">2 - Setup your <a href="[% base_uri %]/app/ad/twitter/index">Twitter Feed</a> (currently not enabled)</label>
-				[% END %]
-
-
-				<input id="iab" type="radio" name="zone_type" value="iab" [% IF !twit_zone.selected and !msg_zone.selected %]checked="checked"[% END %]/>
-				<label for="iab" class="check_label">3 - Banner Ads (IAB)</label>
+				<label for="banner_ad" class="check_label">Banner Ads active for this device:</label>
 				<div class="clear"></div>
 
 			    [% IF ad_zones %]
@@ -169,12 +157,13 @@
 					[% FOREACH ad_zone = ad_zones %]
 					[% IF loop.index % 2 == 0 %] [% END %]
 					    <div class="grid_4 alpha omega">
-					    	<input type="checkbox" name="ad_zone" value="[% ad_zone.ad_zone_id %]" [% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]checked="checked"[% END %] />
-					    	<label class="check_label"><a href="[% base_uri %]/app/ad/groups/edit?id=[% ad_zone.id %]">[% ad_zone.name %]</a></label>
+					    	<input type="checkbox" name="ad_zone" rel="[% ad_zone.image_href %]" value="[% ad_zone.ad_zone_id %]" [% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]checked="checked"[% END %] />
+					    	<label class="check_label"><a href="[% base_uri %]/app/ad/groups/edit?id=[% ad_zone.id %]">[% ad_zone.name %]</a>[% IF ad_zone.is_default == 1 %] - <em>Default</em>[% END %]</label>
 					    </div>
 					[% IF loop.index % 2 != 0 %]<div class="clear"></div>[% END %]
 					[% END %]
 				</div>
+
 				<div class="clear"></div>
 				[% ELSE %]
 			    	<p class="error">You have not created any ad zones, please <a href="/app/ad/groups/list">create a few</a> to serve ads on this router</p>
@@ -196,8 +185,8 @@
 						[% FOREACH bzone = bzones %]
 						[% IF loop.index % 2 == 0 %] [% END %]
 							<div class="grid_4 alpha omega">
-						    	<input type="checkbox" name="branding_zone" value="[% bzone.ad_zone_id %]"[% IF bzone.selected or (req.param('ad_zone_id') == bzone.ad_zone_id) %]checked="checked"[% END %] />
-						    	<label class="check_label"><a href="[% base_uri %]/app/ad/groups/edit?id=[% bzone.id %]">[% bzone.name %]</a></label>
+						    	<input type="checkbox" name="branding_zone" rel="[% bzone.image_href %]" value="[% bzone.ad_zone_id %]"[% IF bzone.selected or (req.param('ad_zone_id') == bzone.ad_zone_id) %]checked="checked"[% END %] />
+						    	<label class="check_label"><a href="[% base_uri %]/app/ad/groups/edit?id=[% bzone.id %]">[% bzone.name %]</a>[% IF bzone.is_default == 1 %] - <em>Default</em>[% END %]</label>
 						    </div>
 						[% IF loop.index % 2 != 0 %] <div class="clear"></div>[% END %]
 						[% END %]
@@ -208,8 +197,11 @@
 				[% END %]
                 [% END %]
 
+                [% END %]
+
 				<div class="clear"></div>			
 			</li>
+            
 
 			<li>
 				<!-- splash page -->
@@ -220,8 +212,8 @@
 					[% FOREACH szone = szones %]
 					[% IF loop.index % 2 == 0 %] [% END %]
 					    <div class="grid_4 alpha omega">
-					    	<input type="checkbox" name="splash_zone"  value="[% szone.ad_zone_id %]"[% IF szone.selected or (req.param('ad_zone_id') == szone.ad_zone_id) %]checked="checked"[% END %] />
-					    	<label class="check_label"><a href="[% base_uri %]/app/ad/groups/edit?id=[% szone.id %]">[% szone.name %]</a></label>
+					    	<input rel="[% szone.image_href %]" type="checkbox" name="splash_zone"  value="[% szone.ad_zone_id %]"[% IF szone.selected or (req.param('ad_zone_id') == szone.ad_zone_id) %]checked="checked"[% END %] />
+					    	<label class="check_label"><a href="[% base_uri %]/app/ad/groups/edit?id=[% szone.id %]">[% szone.name %]</a>[% IF szone.is_default == 1 %] - <em>Default</em>[% END %]</label>
 					    </div>
 					[% IF loop.index % 2 != 0 %]<div class="clear"></div>[% END %]
 					[% END %]
@@ -269,20 +261,8 @@
 			</ul>				
 		
 		
-			[% IF locations != '' %]
 			
-			<p>This device has been registered at the following locations and times:</p>
-				<div id="registered_locations">
-				[% FOREACH location = locations %]
-					<ul class="bullet_list">
-					      <li>
-					      [% IF location.name %][% location.name %] - [% ELSE %][% END %]
-					          [% location.ip %] - [% location.mts %]
-					      </li>
-					</ul>
-				[% END %]
-				</div>
-			[% END %]
+			<label for="wan_ip">Registered at IP <p>[% router.wan_ip || '0.0.0.0' %]</p></label>
 	
 		</div>
 	</div>
