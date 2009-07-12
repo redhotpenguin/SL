@@ -127,7 +127,7 @@ sub dispatch_index {
             }
 
             $r->pnotes('session')->{msg} =
-              sprintf( "Twitter Zone Assigned to %d devices",
+              sprintf( "Twitter Zone assigned to %d devices",
                 scalar(@routers) );
 
             $r->headers_out->set(
@@ -266,7 +266,7 @@ sub dispatch_index {
 
 
             $r->pnotes('session')->{msg} =
-              sprintf( "Banner Ads Assigned to %d devices",
+              sprintf( "Banner Ads assigned to %d devices",
                 scalar(@routers) );
 
             $r->headers_out->set(
