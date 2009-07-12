@@ -157,7 +157,7 @@
 					[% IF loop.index % 2 == 0 %] [% END %]
 					    
 					    	<input type="checkbox" name="ad_zone" rel="[% ad_zone.image_href %]" value="[% ad_zone.ad_zone_id %]" [% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]checked="checked"[% END %] />
-					    	<label class="check_label"><a href="[% base_uri %]/app/ad/groups/edit?id=[% ad_zone.id %]">[% ad_zone.name %]</a>[% IF ad_zone.is_default == 1 %] - <em>Default</em>[% END %]</label>
+					    	<label class="check_label"><a class="preview" href="[% base_uri %]/app/ad/groups/edit?id=[% ad_zone.id %]">[% ad_zone.name %]</a>[% IF ad_zone.is_default == 1 %] - <em>Default</em>[% END %]</label>
 					   
 					[% IF loop.index % 2 != 0 %]<div class="clear"></div>[% END %]
 					[% END %]
@@ -183,7 +183,7 @@
 						[% IF loop.index % 2 == 0 %] [% END %]
 							
 						    	<input type="checkbox" name="branding_zone" rel="[% bzone.image_href %]" value="[% bzone.ad_zone_id %]"[% IF bzone.selected or (req.param('ad_zone_id') == bzone.ad_zone_id) %]checked="checked"[% END %] />
-						    	<label class="check_label"><a href="[% base_uri %]/app/ad/groups/edit?id=[% bzone.id %]">[% bzone.name %]</a>[% IF bzone.is_default == 1 %] - <em>Default</em>[% END %]</label>
+						    	<label class="check_label"><a class="preview" href="[% base_uri %]/app/ad/groups/edit?id=[% bzone.id %]">[% bzone.name %]</a>[% IF bzone.is_default == 1 %] - <em>Default</em>[% END %]</label>
 						    
 						[% IF loop.index % 2 != 0 %] <div class="clear"></div>[% END %]
 						[% END %]
@@ -210,7 +210,7 @@
 					[% IF loop.index % 2 == 0 %] [% END %]
 					    <div class="grid_4 alpha omega">
 					    	<input rel="[% szone.image_href %]" type="checkbox" name="splash_zone"  value="[% szone.ad_zone_id %]"[% IF szone.selected or (req.param('ad_zone_id') == szone.ad_zone_id) %]checked="checked"[% END %] />
-					    	<label class="check_label"><a href="[% base_uri %]/app/ad/groups/edit?id=[% szone.id %]">[% szone.name %]</a>[% IF szone.is_default == 1 %] - <em>Default</em>[% END %]</label>
+					    	<label class="check_label"><a class="preview" href="[% base_uri %]/app/ad/groups/edit?id=[% szone.id %]">[% szone.name %]</a>[% IF szone.is_default == 1 %] - <em>Default</em>[% END %]</label>
 					    </div>
 					[% IF loop.index % 2 != 0 %]<div class="clear"></div>[% END %]
 					[% END %]
