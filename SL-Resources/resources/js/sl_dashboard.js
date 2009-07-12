@@ -9,17 +9,17 @@ this.imagePreview = function(){
 		
 	/* END CONFIG */
 	$("a.preview").hover(function(e){
-		this.t = this.rel;
-		this.rel = "";	
+		this.t = this.title;
+		this.title = "";	
 		var c = (this.t != "") ? "<br/>" + this.t : "";
-		$("body").append("<p id='preview'><img src='"+ this.href +"' alt='Image preview' />"+ c +"</p>");								 
+		$("body").append("<p id='preview'><img src='"+ this.rel +"' alt='Image preview' />"+ c +"</p>");								 
 		$("#preview")
 			.css("top",(e.pageY - xOffset) + "px")
 			.css("left",(e.pageX + yOffset) + "px")
 			.fadeIn("fast");						
     },
 	function(){
-		this.rel = this.t;	
+		this.title = this.t;	
 		$("#preview").remove();
     });	
 	$("a.preview").mousemove(function(e){
@@ -102,7 +102,7 @@ $(document).ready(function(){
     //find all form with class jqtransform and apply the plugin
     $(".form").jqTransform();	
 
-	//Hover image function 
+	//Hover image 
 	imagePreview();
 
 	
