@@ -155,10 +155,10 @@
 					<label for="adzone">Select Banner Ads to display on this device:</label>
 					[% FOREACH ad_zone = ad_zones %]
 					[% IF loop.index % 2 == 0 %] [% END %]
-					    <div class="grid_5 alpha omega">
+					    
 					    	<input type="checkbox" name="ad_zone" rel="[% ad_zone.image_href %]" value="[% ad_zone.ad_zone_id %]" [% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]checked="checked"[% END %] />
 					    	<label class="check_label"><a href="[% base_uri %]/app/ad/groups/edit?id=[% ad_zone.id %]">[% ad_zone.name %]</a>[% IF ad_zone.is_default == 1 %] - <em>Default</em>[% END %]</label>
-					    </div>
+					   
 					[% IF loop.index % 2 != 0 %]<div class="clear"></div>[% END %]
 					[% END %]
 
@@ -181,10 +181,10 @@
 					<label for="adzone" class="tip">Choose the logo/branding images you want to display (random rotation)</label>
 						[% FOREACH bzone = bzones %]
 						[% IF loop.index % 2 == 0 %] [% END %]
-							<div class="grid_5 alpha omega">
+							
 						    	<input type="checkbox" name="branding_zone" rel="[% bzone.image_href %]" value="[% bzone.ad_zone_id %]"[% IF bzone.selected or (req.param('ad_zone_id') == bzone.ad_zone_id) %]checked="checked"[% END %] />
 						    	<label class="check_label"><a href="[% base_uri %]/app/ad/groups/edit?id=[% bzone.id %]">[% bzone.name %]</a>[% IF bzone.is_default == 1 %] - <em>Default</em>[% END %]</label>
-						    </div>
+						    
 						[% IF loop.index % 2 != 0 %] <div class="clear"></div>[% END %]
 						[% END %]
 
