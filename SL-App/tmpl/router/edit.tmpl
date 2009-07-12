@@ -65,10 +65,12 @@
 			<li>
 				<div class="grid_6 alpha omega suffix_4">
 					<!-- name -->
-					<label for="name" class="[% IF errors.missing.name %]error[% END %]">Name</label>
-					<input type="text" id="name" name="name" size="40" maxlength="50" value="[% req.param('name') or router.name %]"/>
+					<label for="name" class="[% IF errors.missing.name %]error[% END %]">Name:</label>
+					[% IF (req.param('device') && (req.param('device') != 'mr3201a') or (router.device != 'mr3201a' ))  %]<input type="text" id="name" name="name" size="40" maxlength="50" value="[% req.param('name') or router.name %]"/>
 					<div class="clear"></div>
 					<label for="name" class="tip">50 character limit</label>
+[% ELSE %][% req.param('name') or router.name %]<input type="hidden" name="name" value="[% req.param('name') or router.name %]">[% END %]
+
 				</div>
 				<div class="clear"></div>
 			</li>	
@@ -77,12 +79,14 @@
 				<div class="grid_6 alpha omega suffix_4">
 					<!-- macaddr -->
 					<label for="macaddr" class="[% IF errors.missing.macaddr or errors.invalid.macaddr %]error[% END %]">Mac address</label>
-					<input type="text" name="macaddr" id="macaddr" size="17" maxlength="17" value='[% req.param('macaddr') or router.displaymac %]'/>
+[% IF (req.param('device') && (req.param('device') != 'mr3201a') or (router.device != 'mr3201a' ))  %]<input type="text" name="macaddr" id="macaddr" size="17" maxlength="17" value="[% req.param('macaddr') or router.displaymac %]"/>
 					<div class="clear"></div>
 					<label for="macaddr" class="tip">Example:  00:12:cf:43:38:bd</label>
+
+[% ELSE %][% req.param('macaddr') or router.macaddr %]<input type="hidden" name="macaddr" value="[% req.param('macaddr') or router.macaddr %]">[% END %]
 				</div>
 				<div class="clear"></div>
-			</li>	
+			</li>
 
 
 			<li id="wrt54gl">
@@ -220,7 +224,6 @@
 
 		</ul>		
 
-[% END %]
 </div>
 
 
@@ -260,6 +263,9 @@
 	
 		</div>
 	</div>
+
+[% END %]
+
 </div>
 <div class="clear"></div>
 
