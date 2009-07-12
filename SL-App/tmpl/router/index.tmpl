@@ -1,0 +1,41 @@
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage ads" selected="network" %]
+
+<div id="main_content" class="grid_10 suffix_6">	
+	<h2>My Network</h2>
+	
+	[% IF msg %]
+		<p class="success">[% msg %]</p>
+	[% END %]
+	<div class="row">
+		<p>This is where you manage your network devices, or routers.  You can view a list of your routers.  You can also assign either a Twitter Feed or Text Message Bar to your network.  And you can target Banner Ads by individual devices.
+		</p>
+	</div>
+
+	<!-- ROUTER LIST -->
+	<div class="grid_5 alpha">
+		<!-- Router List -->
+		<a class="large_button" href="[% base_uri %]/app/router/list">
+			<img alt="Router List" src="[% base_uri %]/resources/images/icons/application/server.png" />
+			<strong>Router List</strong> 
+			<span>Manage your network devices</span>
+		</a>
+	</div>
+	<div class="grid_5 omega">
+
+		<!-- CHOOSE ADS -->
+		<a class="large_button" href="[% base_uri %]/app/router/ads">
+			<img alt="Select Ad or Message Bar" src="[% base_uri %]/resources/images/icons/application/splash.png" />
+			<strong>Persistent Ad Placement</strong>
+			<span>Choose from Twitter Feed, Text Message, or targeted Banner Ad</span>
+		</a>
+	</div>
+	<div class="clear"></div>
+
+
+</div>
+
+
+
+
+
+[% PROCESS footer.tmpl %]
