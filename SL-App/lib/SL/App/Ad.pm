@@ -102,6 +102,7 @@ sub dispatch_index {
             $bug->is_default(1);
             $bug->update;
 
+            $self->no_defaults_except($ad_zone, $bug);
 
             my @routers =
               SL::Model::App->resultset('Router')
@@ -190,6 +191,7 @@ sub dispatch_index {
             $bug->is_default(1);
             $bug->update;
 
+            $self->no_defaults_except($ad_zone, $bug);
 
             my @routers =
               SL::Model::App->resultset('Router')
@@ -251,6 +253,7 @@ sub dispatch_index {
             $bug->is_default(1);
             $bug->update;
 
+            $self->no_defaults_except($ad_zone, $bug);
 
             my @routers =
               SL::Model::App->resultset('Router')
@@ -289,6 +292,25 @@ sub dispatch_index {
 
           }
     }
+}
+
+sub no_defaults_except {
+    my ($class, $ad_zone, $bug ) = @_;
+
+    # handle defaults
+    my @default_zones =
+    SL::Model::App->resultset('AdZone')->search( { is_default => 1 } );
+
+    # null out the existing default zones
+    foreach my $dz (@default_zones) {
+
+        next if $dz->ad_zone_id == $ad_zone->ad_zone_id;
+        next if $dz->ad_zone_id == $bug->ad_zone_id;
+        $dz->is_default(0);
+        $dz->update;
+    }
+
+    return 1;
 }
 
 sub dispatch_deactivate {
