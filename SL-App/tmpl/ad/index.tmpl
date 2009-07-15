@@ -7,7 +7,7 @@
 		<p class="success">[% msg %]</p>
 	[% END %]
 	<div class="row">
-		<p>This is where you manage the targeting of ads and messages on your Silver Lining routers.  Click on the links below to edit message bars or ad zones.While you can edit all of these items in this section, you will only be able to choose one of the three ad types for any given router (Twitter Feed, Text Entry, or Ad Invocation Code)
+		<p>This is where you manage the targeting of ads and messages on your Silver Lining routers.  Click on the links below to edit message bars or ad zones.  While you can edit all of these items in this section, you will only be able to choose one of the three ad types for any given router (Twitter Feed, Text Entry, or Ad Invocation Code)
 		</p>
 	</div>
 
@@ -64,18 +64,18 @@
 					<!-- ad zones -->
 					<label for="zone_type" class="tip">Select one of the following three options for display on this router</label>
 				
-					<input id="banner_ad" type="radio" name="zone_type" value="banner_ad" [% IF !reg.account.zone_type || (reg.account.zone_type == 'banner_ad') %]checked="checked"[% END %]/>
+					<input id="banner_ad" type="radio" name="zone_type" value="banner_ad" [% IF !reg.account.zone_type || (reg.account.zone_type == 'banner_ad') %]checked="checked"[% END %] rel="banner_ad"  class="confirm_zone"  />
 					<label for="iab" class="check_label">1 - Banner Ads </label>
 					<div class="clear"></div>				
 
 				
-					<input id="text" type="radio" name="zone_type" value="msg" [% IF reg.account.zone_type == 'msg' %]checked="checked"[% END %]/>
+					<input id="text" type="radio" name="zone_type" value="msg" [% IF reg.account.zone_type == 'msg' %]checked="checked"[% END %]  rel="msg"  class="confirm_zone"/>
 						<label for="msg" class="check_label">2 - Text Message Bar</label>
 
 					<div class="clear"></div>			
 	
 					<!-- twitter -->
-						<input id="twitter" type="radio" name="zone_type" value="twitter" [% IF reg.account.zone_type == 'twitter' %]checked="checked"[% END %] />
+						<input id="twitter" type="radio" name="zone_type" value="twitter" [% IF reg.account.zone_type == 'twitter' %]checked="checked"[% END %]  rel="twitter" class="confirm_zone" />
 						<label for="twitter" class="check_label">3 - Twitter Message Bar</label>
 					<div class="clear"></div>
 	
@@ -84,6 +84,8 @@
 					<input id="submit" type="submit" value="Save Ad Settings" size="50"/>
 					<div class="clear"></div>
 				</li>				
+
+                <li><strong>Changing the zone type will reset assignments!</li>
 			</ul>			
 
 		</div>

@@ -72,9 +72,9 @@ sub dispatch_index {
                 $ad_zone =
                   SL::Model::App->resultset('AdZone')
                   ->create( { %args, reg_id => $reg->reg_id, code => '' } );
-
-                $ad_zone->update;
             }
+            $ad_zone->is_default(1);
+            $ad_zone->update;
 
             ######################################################
             # grab the branding image
@@ -97,8 +97,11 @@ sub dispatch_index {
                         link_href => 'http://www.silverliningnetworks.com/',
                     }
                 );
-                $bug->update;
             }
+
+            $bug->is_default(1);
+            $bug->update;
+
 
             my @routers =
               SL::Model::App->resultset('Router')
@@ -156,9 +159,11 @@ sub dispatch_index {
                 $ad_zone =
                   SL::Model::App->resultset('AdZone')
                   ->create( { %args, reg_id => $reg->reg_id, code => '' } );
-
-                $ad_zone->update;
             }
+
+            $ad_zone->is_default(1);
+            $ad_zone->update;
+
 
             ######################################################
             # grab the branding image
@@ -181,8 +186,10 @@ sub dispatch_index {
                         link_href => 'http://www.silverliningnetworks.com/',
                     }
                 );
-                $bug->update;
             }
+            $bug->is_default(1);
+            $bug->update;
+
 
             my @routers =
               SL::Model::App->resultset('Router')
@@ -223,12 +230,15 @@ sub dispatch_index {
 
 
             #####################################################
+            # grab a random zone and assign it
             my ($ad_zone) =
               SL::Model::App->resultset('AdZone')->search({
                 ad_size_id => { -in => [ qw( 1 10 12  ) ] },
                 account_id => $reg->account_id,
                 active => 't',
             });
+            $ad_zone->is_default(1);
+            $ad_zone->update;
 
             my %bug_args = (
                 ad_size_id => { -in => [ qw( 20 22 ) ]},
@@ -237,6 +247,10 @@ sub dispatch_index {
 
             my ($bug) =
               SL::Model::App->resultset('AdZone')->search( \%bug_args );
+
+            $bug->is_default(1);
+            $bug->update;
+
 
             my @routers =
               SL::Model::App->resultset('Router')
