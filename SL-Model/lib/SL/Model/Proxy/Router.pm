@@ -56,7 +56,7 @@ sub identify {
         return;
     }
 
-    return ($router_id, $hash_mac, $device_guess);
+    return ($router_id, $hash_mac, $device_guess, $router_mac);
 }
 
 
@@ -126,13 +126,17 @@ sub get_router_id_from_mac {
 	warn("router mac $macaddr not in memcache, going to db") if DEBUG;
 
         my $router = $class->connect->selectall_arrayref(<<SQL, { Slice => {}}, $macaddr)->[0];
-SELECT router_id, account_id, lan_ip, splash_href, splash_timeout,macaddr
+SELECT router_id, account_id, lan_ip, wan_ip, splash_href, splash_timeout,macaddr
 FROM router
 WHERE
 macaddr = ?
 SQL
 
         return unless $router;
+
+	warn(sprintf("found router id %d, account %d, wan_ip %s, mac %s",
+		     $router->{router_id}, $router->{account_id},
+		     $router->{wan_ip}, $macaddr)) if DEBUG;
 
         # update the cache
         $router_id = $router->{router_id};

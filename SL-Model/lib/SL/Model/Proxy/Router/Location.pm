@@ -47,9 +47,9 @@ SQL
     warn("found router for ip $ip, mac $macaddr, " . $ary->[0]) if DEBUG;
 
     # update last seen
-    $class->connect->do(<<SQL, {}, $ary->[0]) || die $DBI::errstr;
+    $class->connect->do(<<SQL, {}, $ip, $ary->[0]) || die $DBI::errstr;
 UPDATE router SET
-last_ping = now(), active = 't'
+last_ping = now(), wan_ip = ?
 WHERE router_id = ?
 SQL
 
