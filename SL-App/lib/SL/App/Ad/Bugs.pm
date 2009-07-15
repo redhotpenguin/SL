@@ -155,7 +155,6 @@ sub dispatch_edit {
         $bug->$param( $req->param($param) );
     }
     $bug->weight($weight);
-    $bug->bug_id( 1 );
     $bug->mts( DateTime::Format::Pg->format_datetime(
                        DateTime->now(time_zone => 'local')));
     $bug->update;

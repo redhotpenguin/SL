@@ -184,7 +184,7 @@
 						[% IF loop.index % 2 == 0 %] [% END %]
 							
 						    	<input type="checkbox" name="branding_zone" value="[% bzone.ad_zone_id %]"[% IF bzone.selected or (req.param('ad_zone_id') == bzone.ad_zone_id) %]checked="checked"[% END %] />
-						    	<label class="check_label"><a class="preview" title="[% ad_zone.link_href %]" rel="[% bzone.image_href %]" href="[% base_uri %]/app/ad/groups/edit?id=[% bzone.id %]">[% bzone.name %]</a>[% IF bzone.is_default == 1 %] - <em>Default</em>[% END %]</label>
+						    	<label class="check_label"><a class="preview" title="[% bzone.link_href %]" rel="[% bzone.image_href %]" href="[% base_uri %]/app/ad/bugs/edit?id=[% bzone.id %]">[% bzone.name %]</a>[% IF bzone.is_default == 1 %] - <em>Default</em>[% END %]</label>
 						    
 						[% IF loop.index % 2 != 0 %] <div class="clear"></div>[% END %]
 						[% END %]
