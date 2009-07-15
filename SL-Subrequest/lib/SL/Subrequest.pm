@@ -3,7 +3,7 @@ package SL::Subrequest;
 use strict;
 use warnings;
 
-our $VERSION = 0.05;
+our $VERSION = 0.06;
 
 use String::Strip    ();
 use HTML::TokeParser ();
@@ -15,6 +15,7 @@ use base 'SL::Cache';
 use SL::Static ();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
+use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 
 =head1 NAME
 
@@ -187,8 +188,8 @@ sub replace_subrequests {
         $replacement_url->port($port);
         $replacement_url = $replacement_url->canonical->as_string;
 
-        print STDERR "=> orig url is $orig_url\n" if DEBUG;
-        print STDERR "==> replacement url is $replacement_url\n\n" if DEBUG;
+        print STDERR "=> orig url is $orig_url\n" if VERBOSE_DEBUG;
+        print STDERR "==> new url $replacement_url\n\n" if VERBOSE_DEBUG;
 
         # run the substitution, match surrounding quotes to handle
         # mixed and absolute urls
@@ -202,7 +203,7 @@ sub replace_subrequests {
               s/(\=\s?['"]?\s{0,3}?)\Q$orig_url\E/$1$replacement_url/sg;
             $replaced += $matched;
 
-            if (DEBUG) {
+            if (VERBOSE_DEBUG) {
                 warn("did not replace $orig_url with $replacement_url ok")
                   unless $matched;
                 warn("replaced $matched urls for $replacement_url");
