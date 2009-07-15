@@ -15,7 +15,7 @@
 
 
 	<div class="grid_6 alpha">
-		<h2>Banner Advertisements</h2>
+	<h2>Banner Advertisements [% IF reg.account.zone_type == 'banner_ad' %]<span class="success">On</span>[% ELSE %]<span class="error">Off</span>[% END %]</h2>
 		<p class="tip">You have <strong>[% count %]</strong> banner advertisements</p>
 	</div>
 	<div class="grid_4 omega">

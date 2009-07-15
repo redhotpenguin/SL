@@ -10,7 +10,7 @@
 
 
 <div id="main_content" class="grid_10 suffix_1">	
-	<h2>Twitter Feed Message Bar is: [% IF reg.account.zone_type == 'twitter' %]<span class="success">On</span>[% ELSE %]<span class="error">Off</span>[% END %]</h2>
+	<h2>Twitter Feed Message Bar [% IF reg.account.zone_type == 'twitter' %]<span class="success">On</span>[% ELSE %]<span class="error">Off</span>[% END %]</h2>
 
 	[% IF msg %]
 		<p class="success">[% msg %]</p>

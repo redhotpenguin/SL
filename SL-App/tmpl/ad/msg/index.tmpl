@@ -16,7 +16,7 @@
 </div>	
 
 <div id="main_content" class="grid_10 suffix_1">
-	<h2>Text Entry Message Bar</h2>
+	<h2>Text Entry Message Bar [% IF reg.account.zone_type == 'msg' %]<span class="success">On</span>[% ELSE %]<span class="error">Off</span>[% END %]</h2>
 
 	
 	[% IF msg %]
