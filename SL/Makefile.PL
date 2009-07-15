@@ -19,7 +19,7 @@ WriteMakefile(
         'SL::BrowserUtil'    => 0.02,
         'SL::Cache'          => 0.21,
         'SL::RateLimit'      => 0.01,
-        'SL::Subrequest'     => 0.02,
+        'SL::Subrequest'     => 0.06,
         'SL::Config'         => 0.15,
         'SL::HTTP::Client'   => 0.02,
         'SL::Static'         => 0.12,

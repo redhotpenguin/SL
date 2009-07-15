@@ -81,7 +81,7 @@ sub handler {
 
     $r->log->error(
         sprintf(
-            "$$ Error logging view ad_id %d", @{ $r->pnotes('log_data') }
+            "Error logging view ad_id %d", @{ $r->pnotes('log_data') }
         )
     ) unless $logged;
 

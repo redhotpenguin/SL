@@ -212,8 +212,8 @@ sub _build_request_headers {
     }
     else {
         $r->log->debug(
-            "$$ client supports compression " . $headers{'Accept-Encoding'} )
-          if DEBUG;
+            "client supports compression " . $headers{'Accept-Encoding'} )
+          if VERBOSE_DEBUG;
         $r->pnotes(
             client_supports_compression => $headers{'Accept-Encoding'} );
     }
@@ -448,13 +448,14 @@ sub _translate_cookie_and_auth_headers {
         my @headers = $res->header($header_type);
         foreach my $header (@headers) {
             $r->log->debug("setting header $header_type value $header")
-              if DEBUG;
+              if VERBOSE_DEBUG;
             $r->err_headers_out->add( $header_type => $header );
         }
 
         # and remove it from the response headers
         my $removed = $res->headers->remove_header($header_type);
-        $r->log->debug("$$ translated $removed $header_type headers") if DEBUG;
+        $r->log->debug("$$ translated $removed $header_type headers")
+	    if VERBOSE_DEBUG;
     }
 
     return 1;
@@ -500,13 +501,14 @@ sub _set_response_headers {
 
         $r->log->debug( "$$ client supports compression: "
               . $r->pnotes('client_supports_compression') )
-          if DEBUG;
+          if VERBOSE_DEBUG;
 
         my @h =
           map { $_->[0] }
           HTTP::Headers::Util::split_header_words(
             $r->pnotes('client_supports_compression') );
-        $r->log->debug( "$$ header words are " . join( ',', @h ) ) if DEBUG;
+        $r->log->debug( "$$ header words are " . join( ',', @h ) )
+	    if VERBOSE_DEBUG;
 
         # use the first acceptable compression, ordered by
         if ( grep { $_ eq 'x-bzip2' } @h ) {
@@ -590,7 +592,7 @@ sub _translate_remaining_headers {
         }
 
         $r->log->debug( "Setting header key $key, value " . $headers->{$key} )
-          if DEBUG;
+          if VERBOSE_DEBUG;
         $r->headers_out->set( $key => $headers->{$key} );
     }
 
@@ -615,7 +617,7 @@ sub twohundred {
     $TIMER->start('rate_limiter') if TIMING;
     my $user_id = join( '|', $r->pnotes('hash_mac'), $r->pnotes('ua') );
     my $is_toofast = $RATE_LIMIT->check_violation($user_id) || 0;
-    $r->log->debug("$$ ===> $url check_violation: $is_toofast") if DEBUG;
+    $r->log->debug("===> $url check_violation: $is_toofast") if VERBOSE_DEBUG;
     $r->log->info(
         sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
       if TIMING;

@@ -65,7 +65,7 @@ if (TIMING) {
 sub handler {
     my $r = shift;
 
-    $r->log->debug( "$$ " . __PACKAGE__ ) if DEBUG;
+    $r->log->debug( "$$ " . __PACKAGE__ ) if VERBOSE_DEBUG;
 
     my $url = $r->construct_url( $r->unparsed_uri );
     $r->pnotes( 'url' => $url );
@@ -82,10 +82,10 @@ sub handler {
 
     #########################
     # our secret namespace
-    $r->log->debug( "$$ checking for secret ping with " . $r->unparsed_uri )
-      if DEBUG;
+    $r->log->debug( "checking for secret ping with " . $r->unparsed_uri )
+      if VERBOSE_DEBUG;
     if ( substr( $r->unparsed_uri, 0, 10 ) eq '/sl_secret' ) {
-        $r->log->debug("$$ request url $url in secret namespace") if DEBUG;
+        $r->log->debug("url $url in secret namespace") if VERBOSE_DEBUG;
         return Apache2::Const::OK;
     }
 
@@ -181,7 +181,6 @@ sub handler {
 
 	    return &proxy_request($r)
 	}
-	$r->log->debug("$$ EndTranshandler") if DEBUG;
 
     $r->log->info(
         sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
@@ -285,6 +284,7 @@ sub perlbal {
 
     if ( $r->headers_in->{Cookie} ) {
 
+	$r->log->debug("cookies present, mod_proxy") if DEBUG;
         # sorry perlbal doesn't reproxy requests with cookies
         return mod_proxy($r);
     }

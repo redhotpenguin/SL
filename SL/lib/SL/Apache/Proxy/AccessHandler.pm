@@ -25,10 +25,12 @@ sub handler {
     # figure out which device this is
     # $r->headers_in->{'x-sl|x-slr'} = '12345678|00188bf9406f';
     my $sl_header = $r->headers_in->{'x-slr'} || $r->headers_in->{'x-sl'} || '';
+    delete $r->headers_in->{'x-slr'};
+    delete $r->headers_in->{'x-sl'};
 
     $r->log->debug("sl_header is $sl_header") if DEBUG;
 
-    my ($router_id, $hash_mac, $device_guess) = eval {
+    my ($router_id, $hash_mac, $device_guess, $router_mac) = eval {
         SL::Model::Proxy::Router->identify(
             {
                 ip        => $r->connection->remote_ip,
@@ -58,8 +60,9 @@ sub handler {
         $r->pnotes( router_id => $router_id );
         $r->pnotes( sl_header => $sl_header );
         $r->pnotes( hash_mac  => $hash_mac  );
+	$r->pnotes( router_mac => $router_mac );
 
-	$r->log->debug("router_id $router_id, hash_mac $hash_mac") if DEBUG;
+	$r->log->debug("router_id $router_id, router_mac $router_mac, hash_mac $hash_mac") if DEBUG;
 
         if (defined $device_guess) {
             $r->pnotes( device_guess => 1 );
