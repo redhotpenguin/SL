@@ -23,7 +23,7 @@ sub identify {
     my ( $hash_mac, $router_mac );
     if ( $sl_header ) {
 
-        my ( $hash_mac, $router_mac ) = split( /\|/, $sl_header );
+        ( $hash_mac, $router_mac ) = split( /\|/, $sl_header );
 
         # the leading zero is omitted on some sl_headers
         if ( length($hash_mac) == 7 ) {
@@ -48,6 +48,8 @@ sub identify {
         # no sl_header, set the default hash mac
         $hash_mac = $Default_Hash_Mac;
     }
+
+    warn("got router mac $router_mac, hash_mac $hash_mac") if DEBUG;
 
     # now that we have the mac address, grab the device
     my $router_id = $class->get_router_id_from_mac($router_mac);

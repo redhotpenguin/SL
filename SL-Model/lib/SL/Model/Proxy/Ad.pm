@@ -19,12 +19,6 @@ This serves ads, ya see?
 
 =cut
 
-use constant AD_ZONE_ID        => 0;
-use constant AD_ZONE_CODE      => 1;
-use constant AD_ZONE_WEIGHT    => 2;
-use constant AD_ZONE_DEFAULT   => 3;
-use constant AD_ZONE_AD_SIZE   => 4;
-
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 our ($Config, $Tmpl,$Leaderboard);
@@ -146,21 +140,26 @@ sub container {
 sub retrieve_account_default_persistents {
     my ( $class, $account_id ) = @_;
 
-    warn("retrieving account default persistents") if DEBUG;
 
     my $ad_data = $class->connect->selectall_arrayref(<<SQL, { Slice => {}}, $account_id);
 SELECT
 ad_zone.ad_zone_id,
 ad_zone.weight
-FROM ad_zone,ad_size
-WHERE ad_zone.account_id = ?
+FROM ad_zone
+WHERE ad_zone.account_id  = ?
 AND ad_zone.is_default = 't'
 AND ad_zone.active = 't'
-AND ad_zone.ad_size_id = ad_size.ad_size_id
-AND ad_size.grouping = 1
+AND ad_zone.ad_size_id IN (1,10,12,23)
 SQL
 
-    return unless $ad_data;
+
+    unless ($ad_data->[0]) {
+	warn("no account default persistents, account $account_id!") if DEBUG;
+	return;
+    }
+
+    warn("got account default persistent " . Data::Dumper::Dumper($ad_data)) if DEBUG;
+
     return $ad_data;
 }
 
@@ -168,21 +167,24 @@ SQL
 sub retrieve_account_default_brandings {
     my ( $class, $account_id ) = @_;
 
-    warn("retrieving account default brandings") if DEBUG;
-
     my $ad_data = $class->connect->selectall_arrayref(<<SQL, {Slice => {}}, $account_id);
 SELECT
 ad_zone.ad_zone_id,
 ad_zone.weight
-FROM ad_zone,ad_size
+FROM ad_zone
 WHERE ad_zone.account_id = ?
 AND ad_zone.is_default = 't'
 AND ad_zone.active = 't'
-AND ad_zone.ad_size_id = ad_size.ad_size_id
-AND ad_size.grouping = 2
+AND ad_zone.ad_size_id IN (20,22,24)
 SQL
 
-    return unless $ad_data;
+    unless ($ad_data->[0]) {
+	warn("no default brandings for account $account_id!") if DEBUG;
+	return;
+    }
+
+    warn("got account default branding " . Data::Dumper::Dumper($ad_data)) if DEBUG;
+
     return $ad_data;
 }
 
@@ -217,10 +219,7 @@ sub account_default_persistents {
         # go to the database
         $persistents = $class->retrieve_account_default_persistents( $account_id );
 
-        unless ($persistents) {
-            warn("no default persistents for account $account_id") if DEBUG;
-            return;
-        }
+	return unless $persistents;
 
         # update the cache
         SL::Cache->memd->set("adzone|$account_id|default_persistents" => $persistents);
@@ -245,11 +244,7 @@ sub account_default_brandings {
         # go to the database
         $brandings = $class->retrieve_account_default_brandings( $account_id );
 
-        unless ($brandings) {
-
-            warn("no default brandings for account $account_id") if DEBUG;
-            return;
-        }
+	return unless $brandings;
 
         # update the cache
         SL::Cache->memd->set("adzone|$account_id|default_brandings" => $brandings);
@@ -269,16 +264,20 @@ sub retrieve_router_persistents {
 SELECT
 ad_zone.ad_zone_id,
 ad_zone.weight
-FROM ad_zone,router,ad_size,router__ad_zone
-WHERE router.router_id = ?
+FROM ad_zone,router__ad_zone
+WHERE router__ad_zone.router_id = ?
 AND ad_zone.active = 't'
-AND ad_size.grouping = 1
-AND ad_zone.ad_size_id = ad_size.ad_size_id
+AND ad_zone.ad_size_id IN (1,10,12,23)
 AND router__ad_zone.ad_zone_id = ad_zone.ad_zone_id
-AND router__ad_zone.router_id = router.router_id
 SQL
 
-    return unless $ad_data;
+    unless ($ad_data->[0]) {
+	warn("no persistent ads for router $router_id!") if DEBUG;
+	return;
+    }
+
+    warn("got router persistent " . Data::Dumper::Dumper($ad_data)) if DEBUG;
+
     return $ad_data;
 }
 
@@ -290,16 +289,21 @@ sub retrieve_router_brandings {
 SELECT
 ad_zone.ad_zone_id,
 ad_zone.weight
-FROM ad_zone,router,router__ad_zone,ad_size
-WHERE router.router_id = ?
+FROM ad_zone,router__ad_zone
+WHERE router__ad_zone.router_id = ?
 AND ad_zone.active = 't'
-AND ad_size.grouping = 2
-AND ad_zone.ad_zone_id = ad_size.ad_size_id
+AND ad_zone.ad_size_id IN ( 20,22,24 )
 AND router__ad_zone.ad_zone_id = ad_zone.ad_zone_id
-AND router__ad_zone.router_id = router.router_id
 SQL
 
-    return unless $ad_data;
+
+    unless ($ad_data->[0]) {
+	warn("no retrieve router brandings for router $router_id") if DEBUG;
+	return;
+    }
+
+    warn("got router branding " . Data::Dumper::Dumper($ad_data)) if DEBUG;
+
     return $ad_data;
 }
 
@@ -443,7 +447,7 @@ sub random {
         ($persistents, $brandings) = $class->router_ad_zones( $router_id, $account_id );
     }
 
-    unless (@{$persistents} && @{$brandings}) {
+    unless ($persistents && $brandings) {
 
         warn("no ads for router $router_id, account $account_id") if DEBUG;
         return;
