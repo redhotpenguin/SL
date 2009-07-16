@@ -81,7 +81,7 @@
 	
 				</li>
 				<li>
-					<input id="submit" type="submit" value="Save Ad Settings" size="50"/>
+					<input class="confirm_settings" id="submit" type="submit" value="Save Ad Settings" size="50"/>
 					<div class="clear"></div>
 				</li>				
 
@@ -96,3 +96,11 @@
 
 
 [% PROCESS footer.tmpl %]
+<div id='confirm' style='display:none'>
+	<a href='#' title='Close' class='modalCloseX simplemodal-close'>x</a>
+	<div class='header'><span>Confirm</span></div>
+	<p class='message'></p>
+	<div class='buttons'>
+		<div class='no simplemodal-close'>No</div><div class='yes'>Yes</div>
+	</div>
+</div>
