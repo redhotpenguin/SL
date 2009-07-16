@@ -47,7 +47,7 @@
 					<select name="device" id="device">
 						<option value="" [% IF ! router.device and req.param('device') == '' %][% END %]>Select a device type</option>
 						<option value="mr3201a" [% IF req.param('device') == 'mr3201a' or router.device == 'mr3201a' %]selected="selected" [% END %]>MR3201A, OM1P, EOC-1650</option>
-						[% IF router || reg.account_id.account_id == 2 %]<option value="wrt54gl" [% IF req.param('device') == 'wrt54gl' or router.device == 'wrt54gl' %]selected="selected" [% END %]>Linksys WRT54GL</option>[% END %]
+						[% IF (router && router.device == 'wrt54gl') || reg.account_id.account_id == 2 %]<option value="wrt54gl" [% IF req.param('device') == 'wrt54gl' or router.device == 'wrt54gl' %]selected="selected" [% END %]>Linksys WRT54GL</option>[% END %]
 
 					</select>
 
@@ -152,7 +152,7 @@
 				[% ELSIF !reg.account.zone_type || (reg.account.zone_type == 'banner_ad' ) %]
 
 
-			    [% IF ad_zones %]
+			    [% IF ad_zones.0 %]
 					<label for="adzone">Select Banner Ads to display on this device:</label>
 					[% FOREACH ad_zone = ad_zones %]
 					[% IF loop.index % 2 == 0 %] [% END %]
@@ -177,7 +177,7 @@
        				 </p>
                [% ELSE %]
 
-			    [% IF bzones %]
+			    [% IF bzones.0 %]
 					<label for="adzone">Branding Images</label>
 					<label for="adzone" class="tip">Choose the logo/branding images you want to display (random rotation)</label>
 						[% FOREACH bzone = bzones %]
@@ -203,7 +203,7 @@
 
 			<li>
 				<!-- splash page -->
-			    [% IF szones %]
+			    [% IF szones.0 %]
 					<label for="adzone" class="main_label">Assign a <a href="[% base_uri %]/ad/splash/index">splash page ad</a> to this device</label>
 					<label for="ad_zone" class="tip">Click checkbox to add the splash page ad zone to the router (random rotation)</label>
 					
@@ -217,7 +217,7 @@
 					[% END %]
 
 				[% ELSE %]
-					<p class="error">You have not created any splash page ads, please <a href="/app/ad/groups/list">create a few</a></p>
+					<p class="success">You have not created any <a href="/app/ad/groups/list">splash page ads.</a></p>
 				[% END %]
 				<div class="clear"></div>			
             </li>
