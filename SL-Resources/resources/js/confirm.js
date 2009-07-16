@@ -12,6 +12,7 @@
  *
  */
 
+//Confirm Delete
 $(document).ready(function () {
 	$('.confirm').click(function (e) {
 		e.preventDefault();
@@ -21,6 +22,21 @@ $(document).ready(function () {
 		// example of calling the confirm function
 		// you must use a callback function to perform the "yes" action
 		confirm("Are you sure you want to remove this item?", function () {
+			window.location.href = '/app/' + path;
+		});
+	});
+});
+
+//CONFIRM AD CENTER SETTINGS
+$(document).ready(function () {
+	$('.confirm_settings').click(function (e) {
+		e.preventDefault();
+		
+		var path = $(this).attr('rel');
+
+		// example of calling the confirm function
+		// you must use a callback function to perform the "yes" action
+		confirm("Are you sure you want to apply these settings to all devices on your network?", function () {
 			window.location.href = '/app/' + path;
 		});
 	});
