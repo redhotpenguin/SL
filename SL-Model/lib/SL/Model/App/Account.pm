@@ -23,6 +23,13 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => undef,
   },
+  "zone_type",
+  {
+    data_type => "text",
+    default_value => 'banner_ad',
+    is_nullable => 0,
+    size => undef,
+  },
   "premium",
   {
     data_type => "boolean",

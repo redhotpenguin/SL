@@ -38,6 +38,32 @@ $dbh->do("alter table ad_size drop column bug_height");
 $dbh->do("alter table ad_size drop column bug_width");
 $dbh->do("insert into ad_size (ad_size_id,name,css_url, grouping) values (24,'IAB Micro Bar (88x31)','',8)");
 
+$dbh->do("alter table account add column zone_type  text default 'banner_ad' not null");
+
+# grab any networks that have message bars assigned
+my @ad_zones = SL::Model::App->resultset('AdZone')->search({ name => '_twitter_feed' });
+
+my @razes = SL::Model::App->resultset('RouterAdZone')->search({ ad_zone_id => { -in => [ map { $_->ad_zone_id } @ad_zones ] }});
+
+foreach my $raze (@razes) {
+
+   $raze->account->zone_type('twitter_feed');
+   $raze->account->update;
+}
+
+# grab any networks that have twitter feeds assigned
+@ad_zones = SL::Model::App->resultset('AdZone')->search({ name => '_message_bar' });
+
+@razes = SL::Model::App->resultset('RouterAdZone')->search({ ad_zone_id => { -in => [ map { $_->ad_zone_id } @ad_zones ] }});
+
+foreach my $raze (@razes) {
+
+   $raze->account->zone_type('message_bar');
+   $raze->account->update;
+}
+
+
+
 # move all the bugs into ad zones
 my @bugs = SL::Model::App->resultset('Bug')->all;
 
@@ -87,5 +113,47 @@ SQL
 }
 
 $dbh->do("alter table ad_zone drop column bug_id");
+
+my @accounts = SL::Model::App->resultset('Account')->all;
+
+foreach my $account (@accounts) {
+
+  my @banners = SL::Model::App->resultset('AdZone')->search({
+                     account_id => $account->account_id,
+                     ad_size_id => { -in => [ qw( 1 10 12 23 ) ] },
+                     active => 't', });
+  my $default = 0;
+  foreach my $banner ( @banners ) {
+    if ($banner->is_default == 1) {
+      $default = 1;
+      last;
+    }
+  }
+
+  unless ($default == 1) {
+    $banners[0]->is_default(1);
+    $banners[0]->update;
+  }
+
+
+  my @brands = SL::Model::App->resultset('AdZone')->search({
+                     account_id => $account->account_id,
+                     ad_size_id => { -in => [ qw( 24 20 22 ) ] },
+                     active => 't', });
+  $default = 0;
+  foreach my $banner ( @brands ) {
+    if ($banner->is_default == 1) {
+      $default = 1;
+      last;
+    }
+  }
+
+  unless ($default == 1) {
+    $brands[0]->is_default(1);
+    $brands[0]->update;
+  }
+
+}
+
 
 warn("finished");
