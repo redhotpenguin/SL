@@ -46,7 +46,7 @@
 					<label for="device" class="label [% IF errors.missing.device %]error[% END %]">Device Type</label>
 					<select name="device" id="device">
 						<option value="" [% IF ! router.device and req.param('device') == '' %][% END %]>Select a device type</option>
-						<option value="mr3201a" [% IF req.param('device') == 'mr3201a' or router.device == 'mr3201a' %]selected="selected" [% END %]>MR3201A, OM1P, ENG1650</option>
+						<option value="mr3201a" [% IF req.param('device') == 'mr3201a' or router.device == 'mr3201a' %]selected="selected" [% END %]>MR3201A, OM1P, EOC-1650</option>
 						[% IF router || reg.account_id.account_id == 2 %]<option value="wrt54gl" [% IF req.param('device') == 'wrt54gl' or router.device == 'wrt54gl' %]selected="selected" [% END %]>Linksys WRT54GL</option>[% END %]
 
 					</select>
