@@ -31,6 +31,7 @@ ModPerl::MM::WriteMakefile(
         'SL::Config'                 => 0.14,
         'SL::Model'                  => 0.20,
         'SL::Payment'                => 0.05,
+        'String::Strip'              => 0,
     },
     EXE_FILES => [qw( bin/sl_app )],
     ABSTRACT  => 'The Silver Lining web application',

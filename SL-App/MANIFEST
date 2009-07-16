@@ -10,15 +10,9 @@ Makefile.PL
 MANIFEST
 htdocs/css/app.css
 t/01.t
-src/Crypt-CBC-2.22.tar.gz
-src/Data-FormValidator-4.50.tar.gz
-src/Template-Toolkit-2.14.tar.gz
 tmpl/ad/bugs/edit.tmpl
 tmpl/ad/bugs/list.tmpl
 tmpl/ad/bugs/nav.tmpl
-tmpl/ad/groups/ads/edit.tmpl
-tmpl/ad/groups/ads/list.tmpl
-tmpl/ad/groups/ads/nav.tmpl
 tmpl/ad/groups/edit.tmpl
 tmpl/ad/groups/list.tmpl
 tmpl/ad/groups/nav.tmpl
@@ -33,7 +27,6 @@ tmpl/forgot_email.tmpl
 tmpl/forgot_reset.tmpl
 tmpl/header.tmpl
 tmpl/home.tmpl
-tmpl/index.tmpl
 tmpl/left.tmpl
 tmpl/login.tmpl
 tmpl/logout.tmpl
@@ -47,13 +40,11 @@ tmpl/settings/index.tmpl
 tmpl/settings/nav.tmpl
 tmpl/signup.tmpl
 lib/SL/App/Ad/Bugs.pm
-lib/SL/App/Ad/Groups/Ads.pm
 lib/SL/App/Ad/Groups.pm
 lib/SL/App/Ad.pm
 lib/SL/App/Blacklist.pm
 lib/SL/App/CookieAuth.pm
 lib/SL/App/Home.pm
-lib/SL/App/Logon.pm
 lib/SL/App/Report.pm
 lib/SL/App/Router.pm
 lib/SL/App/Settings.pm

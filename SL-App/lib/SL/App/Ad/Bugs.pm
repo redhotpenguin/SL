@@ -150,6 +150,11 @@ sub dispatch_edit {
     my $weight = $self->display_weight( $req->param('display_rate') );
 
 
+    my $image_href = $req->param('image_href');
+    my $link_href = $req->param('link_href');
+    String::Strip::StripLTSpace($link_href);
+    String::Strip::StripLTSpace($image_href);
+
     # add arguments
     foreach my $param qw( name link_href image_href active is_default ) {
         $bug->$param( $req->param($param) );

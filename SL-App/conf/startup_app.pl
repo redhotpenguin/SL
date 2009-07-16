@@ -86,6 +86,7 @@ use Crypt::CBC                  ();
 use Crypt::DES                  ();
 use XML::Feed                   ();
 use XML::LibXML                 ();
+use String::Strip               ();
 use CGI ();
 CGI->compile(':all');
 

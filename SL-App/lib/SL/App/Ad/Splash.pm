@@ -210,8 +210,12 @@ sub dispatch_edit {
         # create a simple link
         $args{'image_href'} = $req->param('image_href');
         $args{'link_href'}  = $req->param('link_href');
-        $args{'code'}       = sprintf( '<a href="%s"><img src="%s"></a>',
-            $args{'link_href'}, $args{'image_href'} );
+        String::Strip::StripLTSpace($args{'link_href'});
+        String::Strip::StripLTSpace($args{'image_href'});
+
+        $args{'code'}       = '';
+#sprintf( '<a href="%s"><img src="%s"></a>',
+ #           $args{'link_href'}, $args{'image_href'} );
     }
 
 
@@ -233,7 +237,7 @@ $r->log->error("ad sizes: " . Dumper($ad_zone));
 
 
 
-
+# this serves the splash page
 
 sub dispatch_splash {
     my ($class, $r) = @_;
@@ -241,46 +245,102 @@ sub dispatch_splash {
     my $path = $r->path_info;
     $path = substr($path, 1, length($path)-1);
 
-    $r->log->debug("md5sum is " . $path) if DEBUG;
-
-    # you might think I'm crazy
-    # but I'm just lazy
-    # and this may be faster than a database search for i < 10001
-    my $i = 1;
-    while ($i <= 10000) {
-      last unless Digest::MD5::md5_hex(SALT+$i) eq $path;
-    }
-
-    $r->log->debug("account is is $i") if DEBUG;
-
     my $ip = $r->connection->remote_ip;
 
-    my ($loc) = SL::Model::App->resultset('Location')->search({ ip => $ip });
-    unless ($loc) {
-      $r->log->error("no registered location for ip $ip");
+    $r->log->debug("md5sum is " . $path) if DEBUG;
+    $r->log->debug("remote ip: $ip") if DEBUG;
+
+    my $slr_header = $r->headers_in->{'x-slr'};
+
+    my @ad_zones;
+    unless ($slr_header) {
+
+      my ($router) = SL::Model::App->resultset('Router')->search({
+                           active => 't',
+                           wan_ip => $ip, },
+                           { order_by => 'mts DESC' }, );
+
+      unless ($router) {
+
+        $r->log->error("no device registered at ip $ip");
+        return Apache2::Const::NOT_FOUND;
+      }
+
+      # grab the default medium rectangles
+      @ad_zones = SL::Model::App->resultset('AdZone')->search({
+                         account_id => $router->account_id,
+                         is_default => 't',
+                         ad_size_id => 15, });
+
+    } else {
+
+      # get the specific device
+      my ( $hash_mac, $router_mac ) = split( /\|/, $slr_header );
+
+        # the leading zero is omitted on some sl_headers
+        if ( length($hash_mac) == 7 ) {
+            $hash_mac = '0' . $hash_mac;
+        }
+
+        die("Found invalid sl_header $slr_header")
+          unless ( ( length($hash_mac) == 8 )
+            && ( length($router_mac) == 12 ) );
+
+      my ($router) = SL::Model::App->resultset('Router')->search({
+                          active => 't',
+                          macaddr => $router_mac, });
+
+      # grab the default medium rectangles
+      @ad_zones = SL::Model::App->resultset('AdZone')->search({
+                         'ad_zone.account_id' => $router->account_id,
+                         'ad_zone.default' => 't',
+                         'router__ad_zone.router_id' => $router->router_id,
+                          { -join => [ qw( router__ad_zone ) ] },});
+
+      unless (@ad_zones) {
+
+        # grab the default medium rectangles
+        @ad_zones = SL::Model::App->resultset('AdZone')->search({
+                         account_id => $router->account_id,
+                         is_default => 't',
+                         ad_size_id => 15, });
+
+      }
+    }
+
+
+    unless (@ad_zones) {
+
+      $r->log->debug("no ad zones found for " . $r->as_string) if DEBUG;
       return Apache2::Const::NOT_FOUND;
     }
 
-    my ($router) =
-          sort { $b->mts cmp $a->mts }
-          map { $_->router } $loc->router__locations;
 
-    unless ($router) {
-      $r->log->error("no registered router for ip $ip");
-      return Apache2::Const::NOT_FOUND;
-    }
+    my $rand = $ad_zones[int(rand(scalar(@ad_zones)-1))];
 
-    $r->log->debug("router is $router") if DEBUG;
+    my $output;
+    if (defined $rand->code && ($rand->code ne '')) {
 
-    # yay we have a router, get a random splash ad
-    my @adzones = SL::Model::App->resultset('AdZone')->search(
-            { 'router__ad_zones.router_id' => $router->router_id,
-             'ad_size.grouping' => 3 },
-            { join => [ qw( ad_size router__ad_zones ) ] },);
+        $output = $rand->code;
 
-    my $rand = $adzones[int(rand(scalar(@adzones)-1))];
+      } elsif ((defined $rand->image_href && ($rand->image_href ne '')) &&
+               (defined $rand->link_href && ($rand->link_href ne ''))) {
 
-    my $output  = (defined $rand) ? $rand->code  : '';
+        my $out_tmpl = <<TMPL;
+var SL_%x = '';
+SL_%x += "<"+"a href=\\'%s\\' target=\\'_blank\\'><"+"img src=\\'%s\\' width=\\'%d\\' height=\\'%d\\' alt=\\'%s\\' title=\\'%s\\' border=\\'0\\' /><"+"/a>\\n";
+document.write(SL_%x);
+TMPL
+        my $id = int(rand(2**32));
+        $output = sprintf($out_tmpl, $id, $id, $rand->link_href,
+                          'http://s1.slwifi.com/images/ads/300.gif',
+                          300, 250, $rand->name, $rand->name, $id);
+
+      } else {
+        $r->log->error("invalid splash zone " . $rand->ad_zone_id);
+        return Apache2::Const::SERVER_ERROR;
+      }
+
     $r->content_type('text/javascript');
     return $class->ok($r, $output);
 }

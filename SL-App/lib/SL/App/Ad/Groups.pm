@@ -285,6 +285,8 @@ sub dispatch_edit {
         # create a simple link
         $args{'image_href'} = $req->param('image_href');
         $args{'link_href'}  = $req->param('link_href');
+        String::Strip::StripLTSpace($args{'link_href'});
+        String::Strip::StripLTSpace($args{'image_href'});
         $args{'code'}       = sprintf( '<a href="%s"><img src="%s"></a>',
             $args{'link_href'}, $args{'image_href'} );
     }
@@ -297,6 +299,7 @@ sub dispatch_edit {
     ############################################
     # handle default
     my @default_zones = SL::Model::App->resultset('AdZone')->search({
+                     ad_size_id => { -in => [ qw( 1 10 12 23 ) ] },
                     is_default => 1 });
 
     if ($req->param('is_default') == 1) {
