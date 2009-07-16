@@ -7,7 +7,7 @@
 		<p class="success">[% msg %]</p>
 	[% END %]
 	<div class="row">
-		<p>This is where you manage the targeting of ads and messages on your Silver Lining routers.  Click on the links below to edit message bars or ad zones.  While you can edit all of these items in this section, you will only be able to choose one of the three ad types for any given router (Twitter Feed, Text Entry, or Ad Invocation Code)
+		<p>This is where you manage the targeting of ads and messages on your Silver Lining routers.  Click on the links below to edit message bars or ad zones.  While you can edit all of these items in this section, you will only be able to choose one of the three ad types for any given router (Twitter Feed, Text Message, or Banner Ad)
 		</p>
 	</div>
 
@@ -36,7 +36,7 @@
 		<!-- TWITTER -->
 		<a class="large_button" href="[% base_uri %]/app/ad/twitter/index">
 			<img alt="Twitter" src="[% base_uri %]/resources/images/icons/application/Twitter.png" />
-			<strong>Twitter Message Bar</strong>
+			<strong>Twitter Feed</strong>
 			<span>Use twitter in your ad bar</span>
 		</a> 
 		
@@ -76,12 +76,12 @@
 	
 					<!-- twitter -->
 						<input id="twitter" type="radio" name="zone_type" value="twitter" [% IF reg.account.zone_type == 'twitter' %]checked="checked"[% END %]  rel="twitter" class="confirm_zone" />
-						<label for="twitter" class="check_label">3 - Twitter Message Bar</label>
+						<label for="twitter" class="check_label">3 - Twitter Feed</label>
 					<div class="clear"></div>
 	
 				</li>
 				<li>
-					<input class="confirm_settings" id="submit" type="submit" value="Save Ad Settings" size="50"/>
+					<input id="submit" type="submit" value="Save Ad Settings" size="50"/>
 					<div class="clear"></div>
 				</li>				
 
