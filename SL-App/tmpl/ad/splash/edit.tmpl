@@ -53,12 +53,18 @@
          <option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size.ad_size_id == ad_size.ad_size_id %]selected="selected"[% END %]>[% ad_size.name %]</option>
          [% END %]
       </select>
+
       <div class="clear"></div>
      </li>   
      </ul>
 
 [% END %]
 
+		<ul class="form">
+        <li>
+        <label for="open_mesh">Open-Mesh.com users must use images hosted on their splash page</label>
+      <div class="clear"></div>
+        </li></ul>
 
 		<ul><li>
         [% PROCESS ad/zone_type.tmpl type="Splash Page Ad" %]
