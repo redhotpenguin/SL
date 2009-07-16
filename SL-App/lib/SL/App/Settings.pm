@@ -168,7 +168,9 @@ sub dispatch_account {
             $Config->sl_data_root,,
             substr( $newbase, 0, length($newbase) - 7 ) );
 
-        system("mv $old_report_base $new_report_base") == 0 or die $!;
+        if (-d $old_report_base) {
+          system("mv $old_report_base $new_report_base") == 0 or die $!;
+        }
     }
 
     # update the password
