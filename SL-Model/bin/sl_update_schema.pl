@@ -22,7 +22,6 @@ my $host = shift or die "gimme a hostname yo\n\n";
 my $dsn = "dbi:Pg:dbname='$db'";
 my $dbh = DBI->connect( $dsn, 'phred', '', $db_options );
 
-use SL::Model::App;
 
 # get to work
 
@@ -40,6 +39,7 @@ $dbh->do("insert into ad_size (ad_size_id,name,css_url, grouping) values (24,'IA
 
 $dbh->do("alter table account add column zone_type  text default 'banner_ad' not null");
 
+require SL::Model::App;
 # grab any networks that have message bars assigned
 my @ad_zones = SL::Model::App->resultset('AdZone')->search({ name => '_twitter_feed' });
 
@@ -47,8 +47,7 @@ my @razes = SL::Model::App->resultset('RouterAdZone')->search({ ad_zone_id => { 
 
 foreach my $raze (@razes) {
 
-   $raze->account->zone_type('twitter_feed');
-   $raze->account->update;
+   $dbh->do("update account set zone_type='twitter' where account_id=" . $raze->router->account_id);
 }
 
 # grab any networks that have twitter feeds assigned
@@ -58,8 +57,7 @@ foreach my $raze (@razes) {
 
 foreach my $raze (@razes) {
 
-   $raze->account->zone_type('message_bar');
-   $raze->account->update;
+   $dbh->do("update account set zone_type='msg' where account_id=" . $raze->router->account_id);
 }
 
 
@@ -119,9 +117,13 @@ my @accounts = SL::Model::App->resultset('Account')->all;
 foreach my $account (@accounts) {
 
   my @banners = SL::Model::App->resultset('AdZone')->search({
-                     account_id => $account->account_id,
-                     ad_size_id => { -in => [ qw( 1 10 12 23 ) ] },
-                     active => 't', });
+                     'ad_zone.account_id' => $account->account_id,
+                     'ad_zone.ad_size_id' => { -in => [ qw( 1 10 12 23 ) ] },
+                     'ad_zone.active' => 't',
+		 },
+		    { -join => [ qw( router__ad_zone ) ]},
+);
+
   my $default = 0;
   foreach my $banner ( @banners ) {
     if ($banner->is_default == 1) {
@@ -137,9 +139,12 @@ foreach my $account (@accounts) {
 
 
   my @brands = SL::Model::App->resultset('AdZone')->search({
-                     account_id => $account->account_id,
-                     ad_size_id => { -in => [ qw( 24 20 22 ) ] },
-                     active => 't', });
+                     'ad_zone.account_id' => $account->account_id,
+                     'ad_zone.ad_size_id' => { -in => [ qw( 24 20 22 ) ] },
+                     'ad_zone.active' => 't',
+		    { -join => [ qw( router__ad_zone ) ]},
+ });
+  
   $default = 0;
   foreach my $banner ( @brands ) {
     if ($banner->is_default == 1) {
