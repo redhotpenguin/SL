@@ -420,14 +420,15 @@ SQL
 sub random {
     my ( $class, $args ) = @_;
 
-    my $url         = $args->{url}        || warn("no url passed")        && return;
-    my $router_id   = $args->{router_id}  || warn("no router_id passed")  && return;
-    my $user        = $args->{user}       || warn("no user passed")       && return;
-    my $ua          = $args->{ua}         || warn("no ua passed")         && return;
+    my $url       = $args->{url}       || warn("no url passed")  && return;
+    my $router_id = $args->{router_id} || warn("no router_id")   && return;
+    my $user      = $args->{user}      || warn("no user passed") && return;
+    my $ua        = $args->{ua}        || warn("no ua passed")   && return;
+    my $ip        = $args->{ip}        || warn("no ip passed")   && return;
 
 
     my $device = SL::Model::Proxy::Router->get( $router_id ) ||
-	warn("no router for id $router_id") && return;
+      warn("no router for id $router_id") && return;
 
     my $account_id = $device->{account_id};
 
@@ -436,15 +437,17 @@ sub random {
     my ($persistents, $brandings);
     if ($device_guess) {
 
-	warn("grabbing device guess for account $account_id") if DEBUG;
+       warn("grabbing device guess for account $account_id") if DEBUG;
         # grab ad ids based on the ip
-        ($persistents, $brandings) = $class->account_default_ad_zones( $account_id );
+        ($persistents, $brandings) =
+            $class->account_default_ad_zones( $account_id );
 
     } else {
 
-	warn("grabbing ads specific to router $router_id") if DEBUG;
+      warn("grabbing ads specific to router $router_id") if DEBUG;
         # grab the ads specific to this device
-        ($persistents, $brandings) = $class->router_ad_zones( $router_id, $account_id );
+        ($persistents, $brandings) =
+            $class->router_ad_zones( $router_id, $account_id );
     }
 
     unless ($persistents && $brandings) {
