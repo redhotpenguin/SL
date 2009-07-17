@@ -30,7 +30,7 @@
 	<table class="large_table">
 	<tr>
 		<th>Name</th>
-		<th>Active On</th>
+<!--		<th>Active On</th>-->
 		<th>Last Edited</th>
 		<th class="center">Default</th>
 		<th class="center">Remove</th>
@@ -42,6 +42,7 @@
 			<a  [% IF ad_zone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% ad_zone.image_href %]"[% END %] href="[% base_uri %]/app/ad/bugs/edit/?id=[% ad_zone.ad_zone_id %]">
 			[% ad_zone.name %]</a></td>
 			
+			<!--
 			<td>
 			[% IF ad_zone.router_count == 0 %]
 			    [% ad_zone.router_count %]
@@ -49,7 +50,7 @@
 			<a href="[% base_uri %]/app/router/list?ad_zone_id=[% ad_zone.ad_zone_id %]">
 			[% ad_zone.router_count %]</a>
 			[% END %]
-			</td>
+			</td>-->
 			
 			<td>[% ad_zone.mts %]</td>
 
