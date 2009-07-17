@@ -111,13 +111,20 @@ sub dispatch_omsync {
             );
         }
 
+
         # parse the router xml
         my $parser = XML::LibXML->new;
-        my $doc    = eval { $parser->parse_string( $response->decoded_content ); };
+        my $doc    = eval { $parser->parse_string(
+                            $response->decoded_content ); };
         if ($@) {
 
-          $r->log->error("open-mesh.com call network error for net " . $req->param('network'));
-          return $class->dispatch_omsync($r, { errors => { sync => 1 }, req => $req } );
+          $r->log->error("open-mesh.com call network error for net " .
+                         $req->param('network'));
+
+          $r->log->error("response: " . $response->decoded_content);
+
+          return $class->dispatch_omsync($r, { errors => { sync => 1 },
+                                               req => $req } );
         }
 
         my @nodes = $doc->getElementsByTagName('node');
