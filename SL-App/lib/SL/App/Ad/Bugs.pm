@@ -165,6 +165,46 @@ sub dispatch_edit {
     $bug->update;
 
 
+
+
+    ############################################
+    # handle default
+    my @default_zones = SL::Model::App->resultset('AdZone')->search({
+                     ad_size_id => { -in => [ qw( 20 22 ) ] },
+                    is_default => 1 });
+
+    if ($req->param('is_default') == 1) {
+
+      # null out the existing default zones
+      foreach my $dz ( @default_zones ) {
+
+        next if $dz->ad_zone_id == $bug->ad_zone_id;
+
+        $dz->is_default(0);
+        $dz->update;
+      }
+
+      $bug->is_default(1);
+
+    } elsif ($req->param('is_default') == 0) {
+
+      # mark this one as default UNLESS there are no existing defaults
+
+      if (@default_zones) {
+        $bug->is_default(0);
+
+      } else {
+
+        $bug->is_default(1);
+      }
+
+    }
+
+    $bug->update;
+
+
+
+
     $r->pnotes('session')->{msg} = sprintf("Branding Image '%s' updated successfully", $bug->name);
     $r->headers_out->set( Location => $r->construct_url('/app/ad/bugs/list') );
     return Apache2::Const::REDIRECT;

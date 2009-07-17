@@ -35,7 +35,7 @@ sub handler {
         return Apache2::Const::NOT_FOUND;
     }
 
-    my $router = $router__location->router_id;
+    my $router = $router__location->router;
 
     unless ($router
         && $router->lan_ip

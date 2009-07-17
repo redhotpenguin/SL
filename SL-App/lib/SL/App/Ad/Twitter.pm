@@ -41,7 +41,6 @@ sub dispatch_index {
     my ($ad_zone) = SL::Model::App->resultset('AdZone')->search( \%args );
     unless ($ad_zone) {
 
-        # create it
         $ad_zone =
           SL::Model::App->resultset('AdZone')
           ->create( { %args, reg_id => $reg->reg_id, code => '' } );

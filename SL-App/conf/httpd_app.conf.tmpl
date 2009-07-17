@@ -69,7 +69,7 @@ PerlLoadModule Apache2::Dispatch
 
 ## the public facing page
 ## FIXME - apache dispatch bug
-<Location [% cfg.sl_app_base_uri %]/>
+<Location />
 	SetHandler modperl
 
     # dispatch directives
@@ -81,21 +81,21 @@ PerlLoadModule Apache2::Dispatch
 	PerlResponseHandler Apache2::Dispatch
 </Location>
 
-<Location [% cfg.sl_app_base_uri %]/css>
+<Location /css>
     SetHandler default-handler
 </Location>
 
-<Location [% cfg.sl_app_base_uri %]/img>
+<Location /img>
     SetHandler default-handler
 </Location>
 
-<Location [% cfg.sl_app_base_uri %]/resources>
+<Location /resources>
     SetHandler default-handler
 </Location>
 
 
 ## the user application, need to be logged in
-<Location  [% cfg.sl_app_base_uri %]/app>
+<Location  /app>
 	AuthType SL::App::CookieAuth
 	AuthName [% cfg.sl_app_cookie_name %]
 	SetHandler modperl
@@ -108,32 +108,32 @@ PerlLoadModule Apache2::Dispatch
 
 ## method handlers for authentication and signup
 
-<Location [% cfg.sl_app_base_uri %]/login>
+<Location /login>
 	SetHandler modperl
 	PerlResponseHandler SL::App::CookieAuth->login
 </Location>
 
-<Location [% cfg.sl_app_base_uri %]/logout>
+<Location /logout>
 	SetHandler modperl
 	PerlResponseHandler SL::App::CookieAuth->logout
 </Location>
 
-<Location [% cfg.sl_app_base_uri %]/forgot>
+<Location /forgot>
 	SetHandler modperl
 	PerlResponseHandler SL::App::CookieAuth->forgot
 </Location>
 
-<Location [% cfg.sl_app_base_uri %]/signup>
+<Location /signup>
 	SetHandler modperl
 	PerlResponseHandler SL::App::CookieAuth->signup
 </Location>
 
-<Location [% cfg.sl_app_base_uri %]/forgot/reset>
+<Location /forgot/reset>
     SetHandler modperl
     PerlResponseHandler SL::App::CookieAuth->forgot_reset
 </Location>
 
-<Location [% cfg.sl_app_base_uri %]/splash>
+<Location /splash>
     SetHandler modperl
     PerlResponseHandler SL::App::Ad::Splash->dispatch_splash
 </Location>
@@ -141,48 +141,48 @@ PerlLoadModule Apache2::Dispatch
 
 ## captive portal handler
 
-<Location [% cfg.sl_app_base_uri %]/auth>
+<Location /auth>
     SetHandler modperl
 	PerlFixupHandler SL::App::CPAuthHandler
     PerlResponseHandler SL::App::CP->auth
 </Location>
 
-<Location [% cfg.sl_app_base_uri %]/auth/free>
+<Location /auth/free>
     SetHandler modperl
     PerlResponseHandler SL::App::CP->free
 </Location>
 
-<Location [% cfg.sl_app_base_uri %]/auth/paid>
+<Location /auth/paid>
     SetHandler modperl
     PerlResponseHandler SL::App::CP->paid
 </Location>
 
-<Location [% cfg.sl_app_base_uri %]/auth/token>
+<Location /auth/token>
     SetHandler modperl
     PerlResponseHandler SL::App::CP->token
 </Location>
 
-<Location [% cfg.sl_app_base_uri %]/auth/post>
+<Location /auth/post>
     SetHandler modperl
     PerlResponseHandler SL::App::CP->post
 </Location>
 
-<Location [% cfg.sl_app_base_uri %]/auth/check>
+<Location /auth/check>
     SetHandler modperl
     PerlResponseHandler SL::App::CP->check
 </Location>
 
-<Location [% cfg.sl_app_base_uri %]/auth/paypal_notify>
+<Location /auth/paypal_notify>
     SetHandler modperl
     PerlResponseHandler SL::App::CP->paypal_notify
 </Location>
 
-<Location [% cfg.sl_app_base_uri %]/auth/paypal_return>
+<Location /auth/paypal_return>
     SetHandler modperl
     PerlResponseHandler SL::App::CP->paypal_return
 </Location>
 
-<Location [% cfg.sl_app_base_uri %]/billing>
+<Location /billing>
 	SetHandler modperl
 
     # dispatch directives

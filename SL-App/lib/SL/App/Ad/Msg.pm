@@ -181,7 +181,6 @@ sub valid_msg {
         my $val = $dfv->get_current_constraint_value;
 
         return if length($val) > 300;
-
         return $val;
       }
 }
