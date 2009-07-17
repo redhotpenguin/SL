@@ -26,8 +26,10 @@
 	[% IF errors.invalid %]
 		<p class="error">Network and/or password invalid</p>
 	[% END %]
-	
-	
+	[% IF errors.sync %]
+		<p class="error">Connection failure to <a href="http://www.open-mesh/">http://www.open-mesh.com/</a></p>
+	[% END %]
+ 
 	<form class="form" method="post" action="[% base_uri %]/app/router/omsync">
 		
 		<ul> 

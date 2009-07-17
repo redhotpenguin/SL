@@ -266,6 +266,8 @@ sub dispatch_splash {
         return Apache2::Const::NOT_FOUND;
       }
 
+      $r->log->debug("found router " . $router->name) if DEBUG;
+
       # grab the default medium rectangles
       @ad_zones = SL::Model::App->resultset('AdZone')->search({
                          account_id => $router->account_id,
@@ -311,7 +313,7 @@ sub dispatch_splash {
 
     unless (@ad_zones) {
 
-      $r->log->debug("no ad zones found for " . $r->as_string) if DEBUG;
+      $r->log->debug("no zones for ip " . $r->connection->remote_ip) if DEBUG;
       return Apache2::Const::NOT_FOUND;
     }
 
