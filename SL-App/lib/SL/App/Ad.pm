@@ -299,7 +299,8 @@ sub no_defaults_except {
 
     # handle defaults
     my @default_zones =
-    SL::Model::App->resultset('AdZone')->search( { is_default => 1 } );
+    SL::Model::App->resultset('AdZone')->search( { is_default => 1,
+						 account_id => $ad_zone->account_id} );
 
     # null out the existing default zones
     foreach my $dz (@default_zones) {
