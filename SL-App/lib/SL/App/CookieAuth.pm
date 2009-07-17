@@ -457,7 +457,7 @@ sub forgot {
             }
 
             # update the password
-            my $reg = $forgot->reg_id;
+            my $reg = $forgot->reg;
             $reg->password_md5(
                 Digest::MD5::md5_hex( $req->param('password') ) );
             $reg->update;
