@@ -299,6 +299,7 @@ sub dispatch_edit {
     ############################################
     # handle default
     my @default_zones = SL::Model::App->resultset('AdZone')->search({
+	            account_id => $reg->account_id,
                      ad_size_id => { -in => [ qw( 1 10 12 ) ] },
                     is_default => 1 });
 
