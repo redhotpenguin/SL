@@ -27,20 +27,8 @@ $(document).ready(function () {
 	});
 });
 
-//CONFIRM AD CENTER SETTINGS
-$(document).ready(function () {
-	$('.confirm_settings').click(function (e) {
-		e.preventDefault();
-		
-		var path = $(this).attr('rel');
 
-		// example of calling the confirm function
-		// you must use a callback function to perform the "yes" action
-		confirm("Are you sure you want to apply these settings to all devices on your network?", function () {
-			window.location.href = '/app/' + path;
-		});
-	});
-});
+
 
 function confirm(message, callback) {
 	$('#confirm').modal({
