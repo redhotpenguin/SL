@@ -45,6 +45,7 @@ foreach my $account (@accounts) {
 
     my @banners = SL::Model::App->resultset('AdZone')->search(
         {
+    	account_id => $account->account_id,
             ad_size_id => { -in => [qw( 1 10 12 23 )] },
             ad_zone_id => { -in => [ map { $_->ad_zone_id } @razes ] }
         }
@@ -83,7 +84,8 @@ foreach my $account (@accounts) {
 
     my @brands = SL::Model::App->resultset('AdZone')->search(
         {
-            ad_size_id => { -in => $zones },
+    	account_id => $account->account_id,
+    	ad_size_id => { -in => $zones },
             ad_zone_id => { -in => [ map { $_->ad_zone_id } @razes ] }
         }
     );

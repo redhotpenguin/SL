@@ -19,7 +19,8 @@ my $sql_root = "$Bin/../sql/table";
 my $db = shift or die "gimme a database name yo\n";
 my $host = shift or die "gimme a hostname yo\n\n";
 
-my $dsn = "dbi:Pg:dbname='$db'";
+my $dsn = "dbi:Pg:dbname='$db';host='$host'";
+
 my $dbh = DBI->connect( $dsn, 'phred', '', $db_options );
 
 
