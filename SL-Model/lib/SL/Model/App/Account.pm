@@ -171,12 +171,16 @@ sub update_example_ad_zones {
     $self->zone_type('banner_ad');
     $self->update;
 
+    my $image_href = 'http://s1.slwifi.com/images/ads/sln/advertise_leaderboard.png';
+    my $link_href = 'http://www.silverliningnetworks.com/advertise_here';
+
     my $adhere = SL::Model::App->resultset('AdZone')->create({
 	account_id => $self->account_id,
 	ad_size_id => 12,
-	image_href => 'http://s1.slwifi.com/images/ads/sln/advertise_leaderboard.png',
-	link_href => 'http://www.silverliningnetworks.com/advertise_here',
-	code => '',
+	image_href => $image_href,
+	link_href =>  $link_href,
+	code => sprintf( '<a href="%s"><img src="%s"></a>',
+            $link_href, $image_href ),
 	weight => 2,
 	name => 'Example Banner Ad',
 	is_default => 't',
