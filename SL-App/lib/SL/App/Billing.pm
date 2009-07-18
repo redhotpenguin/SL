@@ -269,7 +269,7 @@ sub dispatch_publisher {
                     $req->param('email') )
             );
 
-            $account = $reg->account_id;
+            $account = $reg->account;
         }
 
         $account->plan( $req->param('plan') );
