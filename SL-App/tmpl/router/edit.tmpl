@@ -48,13 +48,13 @@
 						<option value="" [% IF ! router.device and req.param('device') == '' %][% END %]>Select a device type</option>
 						<option value="mr3201a" [% IF req.param('device') == 'mr3201a' or router.device == 'mr3201a' %]selected="selected" [% END %]>MR3201A, OM1P, EOC-1650</option>
 						[% IF (router && router.device == 'wrt54gl') || reg.account_id.account_id == 2 %]<option value="wrt54gl" [% IF req.param('device') == 'wrt54gl' or router.device == 'wrt54gl' %]selected="selected" [% END %]>Linksys WRT54GL</option>[% END %]
-						[% IF router || reg.account_id.account_id == 21 %]<option value="linuxbox" [% IF req.param('device') == 'linuxbox' or router.device == 'linuxbox' %]SELECTED[% END %]>Linux Server</option>[% END %]
+						[% IF (router && router.device == 'linuxbox') || reg.account_id.account_id == 21 %]<option value="linuxbox" [% IF req.param('device') == 'linuxbox' or router.device == 'linuxbox' %]SELECTED[% END %]>Linux Server</option>[% END %]
 
 					</select>
 
 						<!-- value="linuxbox" [% IF req.param('device') == 'linuxbox' or router.device =='linuxbox' %]SELECTED[% END %]>Centos 5.2 Linux Server</option>-->
 					<div class="clear"></div>
-					<label for="device" class="tip">Silver Lining currently works with only the devices in the list above.</label>
+					<label for="device" class="tip">Silver Lining currently works with only the devices in the list above and Picostation2 devices.</label><br /><label for="device" class="tip">Please use the Support tab to add Picostation2 based devices such as the Pico2-HP.</label>
 					<div class="clear"></div>
  
 				<div class="clear"></div>
