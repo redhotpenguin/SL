@@ -68,10 +68,15 @@ sub dispatch_index {
 
             unless ($ad_zone) {
 
+		my $count = 5;
+		my $twitter_id = $reg->account->twitter_id;
+		my $code =
+qq{<div id="twitter_div"><span id="twitter_update_list"></span></div><script type="text/javascript" src="http://s2.slwifi.com/js/blogger.js"></script><script type="text/javascript" src="http://twitter.com/statuses/user_timeline/$twitter_id.json?callback=twitterCallback2&count=$count"></script>};
+
                 # create it
                 $ad_zone =
                   SL::Model::App->resultset('AdZone')
-                  ->create( { %args, reg_id => $reg->reg_id, code => '' } );
+                  ->create( { %args, reg_id => $reg->reg_id, code => $code } );
             }
             $ad_zone->is_default(1);
             $ad_zone->update;
@@ -163,7 +168,7 @@ sub dispatch_index {
                 # create it
                 $ad_zone =
                   SL::Model::App->resultset('AdZone')
-                  ->create( { %args, reg_id => $reg->reg_id, code => '' } );
+                  ->create( { %args, reg_id => $reg->reg_id, code => 'This is the Silver Lining Networks default text message' } );
             }
 
             $ad_zone->is_default(1);
