@@ -39,7 +39,7 @@
 		<p id="branding">
 			<strong>Preview:</strong>
 		[% IF !req.param('image_href') && (ad_zone.image_href != ' ') %]
-			<a href="[% req.param('image_link') or ad_zone.image_link %]">
+			<a href="[% req.param('image_href') or ad_zone.image_href %]">
 				<img src="[% req.param('image_href') or ad_zone.image_href %]">
 			</a>
 		[% ELSE %]
