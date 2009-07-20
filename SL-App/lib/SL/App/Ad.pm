@@ -91,6 +91,10 @@ sub dispatch_index {
                 # create it
                 $bug = SL::Model::App->resultset('AdZone')->create(
                     {
+			
+			code => '',
+			reg_id => $reg->reg_id,
+			name => '_twitter_branding_image',
                         %bug_args,
                         image_href =>
                           'http://s1.slwifi.com/images/ads/sln/micro_bug.gif',
