@@ -187,7 +187,8 @@ sub dispatch_edit {
 
       $bug->is_default(1);
 
-    } elsif ($req->param('is_default') == 0) {
+    } elsif (($req->param('is_default') == 0) or
+	     (!$req->param('is_default'))) {
 
       # mark this one as default UNLESS there are no existing defaults
 
@@ -215,6 +216,13 @@ sub dispatch_list {
     my ( $self, $r, $args_ref ) = @_;
 
     my $reg = $r->pnotes( $r->user );
+
+    if ($reg->account->plan eq 'free') {
+
+	$r->headers_out->set(
+	    Location => $r->construct_url('/billing/publisher/?plan=plus&email=' . $reg->email) );
+	return Apache2::Const::REDIRECT;
+    }
 
     my @bugs = sort { $b->mts cmp $a->mts } $reg->get_branding_zones;
 
