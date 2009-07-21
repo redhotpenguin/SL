@@ -288,12 +288,13 @@ sub dispatch_splash {
     my $slr_header = $r->headers_in->{'x-slr'};
 
     my @ad_zones;
+    my $router;
     unless ($slr_header) {
 
-      my ($router) = SL::Model::App->resultset('Router')->search({
-                           active => 't',
+      ($router) = SL::Model::App->resultset('Router')->search({
+                           active => 1,
                            wan_ip => $ip, },
-                           { order_by => 'mts DESC' }, );
+                           { order_by => 'last_ping DESC' }, );
 
       unless ($router) {
 
@@ -301,59 +302,69 @@ sub dispatch_splash {
         return Apache2::Const::NOT_FOUND;
       }
 
-      $r->log->debug("found router " . $router->name) if DEBUG;
+      $r->log->debug("found router " . Dumper($router)) if DEBUG;
 
-      # grab the default medium rectangles
+      # grab the medium rectangles
       @ad_zones = SL::Model::App->resultset('AdZone')->search({
-                         account_id => $router->account_id,
-                         is_default => 't',
-                         ad_size_id => 15, });
+	                 'me.ad_size_id' => 15,
+                         'me.account_id' => $router->account_id,
+			 'me.active'     => 1,
+                         'router__ad_zones.router_id' => $router->router_id,},
+                          { join =>'router__ad_zones' });
+
 
     } else {
 
       # get the specific device
       my ( $hash_mac, $router_mac ) = split( /\|/, $slr_header );
 
-        # the leading zero is omitted on some sl_headers
-        if ( length($hash_mac) == 7 ) {
+      # the leading zero is omitted on some sl_headers
+      if ( length($hash_mac) == 7 ) {
             $hash_mac = '0' . $hash_mac;
-        }
+      }
 
-        die("Found invalid sl_header $slr_header")
+      die("Found invalid sl_header $slr_header")
           unless ( ( length($hash_mac) == 8 )
             && ( length($router_mac) == 12 ) );
 
-      my ($router) = SL::Model::App->resultset('Router')->search({
+      ($router) = SL::Model::App->resultset('Router')->search({
                           active => 't',
                           macaddr => $router_mac, });
 
+      unless ($router) {
+	  $r->log->error("no router found for header $slr_header");
+	  return Apache2::Const::NOT_FOUND;
+      }
+
       # grab the default medium rectangles
       @ad_zones = SL::Model::App->resultset('AdZone')->search({
-                         'ad_zone.account_id' => $router->account_id,
-                         'ad_zone.default' => 't',
-                         'router__ad_zone.router_id' => $router->router_id,
-                          { -join => [ qw( router__ad_zone ) ] },});
+                         'me.account_id' => $router->account_id,
+			 'me.active'     => 1,
+                         'router__ad_zones.router_id' => $router->router_id,},
+                          { join =>'router__ad_zones' });
 
-      unless (@ad_zones) {
-
-        # grab the default medium rectangles
-        @ad_zones = SL::Model::App->resultset('AdZone')->search({
-                         account_id => $router->account_id,
-                         is_default => 't',
-                         ad_size_id => 15, });
-
-      }
     }
 
 
     unless (@ad_zones) {
+        # grab the default medium rectangles
+        @ad_zones = SL::Model::App->resultset('AdZone')->search({
+                         account_id => $router->account_id,
+			 active => 1,
+			 is_default => 't',
+                         ad_size_id => 15, });
 
-      $r->log->debug("no zones for ip " . $r->connection->remote_ip) if DEBUG;
-      return Apache2::Const::NOT_FOUND;
+
+	if (@ad_zones == 0) {
+	    $r->log->debug("no zones " . $r->connection->remote_ip) if DEBUG;
+	    return Apache2::Const::NOT_FOUND;
+	}
     }
 
-
-    my $rand = $ad_zones[int(rand(scalar(@ad_zones)-1))];
+    my $idx = int(rand(scalar(@ad_zones)));
+    my $rand = $ad_zones[$idx];
+    $r->log->debug("rand is $idx") if DEBUG;
+    $r->log->debug(Dumper(\@ad_zones)) if DEBUG;
 
     my $output;
     if (defined $rand->code && ($rand->code ne '')) {
@@ -366,9 +377,9 @@ sub dispatch_splash {
         my $image_href = $rand->image_href;
 	if ($image_href =~ m{mesh\.com\/users\/\w+\/}) {
 
-	    $r->log->debug("munging om image $image_href");
+	    $r->log->debug("munging om image $image_href") if DEBUG;
 	    $image_href =~ s/^(.*?\.com\/)(users\/[^\/]+)(\/.*)$/$3/;
-	    $r->log->debug("munged image link $image_href");
+	    $r->log->debug("munged image link $image_href") if DEBUG;
 	}
 
         my $out_tmpl = <<TMPL;

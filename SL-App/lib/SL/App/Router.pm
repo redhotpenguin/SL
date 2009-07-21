@@ -375,7 +375,7 @@ sub dispatch_edit {
 
         my @required = qw( device macaddr );
 
-        if ( $req->param('device') ne 'mr3201a' ) {
+        if ( defined $req->param('device') && ($req->param('device') ne 'mr3201a' )) {
             push @required, 'name';
         }
 
