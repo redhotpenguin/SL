@@ -192,7 +192,6 @@ sub dispatch_edit {
         account_id => $reg->account->account_id,
         name       => $req->param('name'),
         active     => $req->param('active'),
-        is_default => $req->param('is_default'),
     );
 
     $r->log->debug("splash args: " . Data::Dumper::Dumper(\%args)) if DEBUG;
@@ -218,6 +217,42 @@ sub dispatch_edit {
  #           $args{'link_href'}, $args{'image_href'} );
     }
 
+
+
+    ############################################
+    # handle default
+    my @default_zones = SL::Model::App->resultset('AdZone')->search({
+	account_id => $reg->account_id,
+                     ad_size_id => { -in => [ qw( 15 ) ] },
+                    is_default => 1 });
+
+    if ($req->param('is_default') == 1) {
+
+      # null out the existing default zones
+      foreach my $dz ( @default_zones ) {
+
+        next if $dz->ad_zone_id == $ad_zone->ad_zone_id;
+
+        $dz->is_default(0);
+        $dz->update;
+      }
+
+      $ad_zone->is_default(1);
+
+    } elsif (($req->param('is_default') == 0) or
+	     (!$req->param('is_default'))) {
+
+      # mark this one as default UNLESS there are no existing defaults
+
+      if (@default_zones) {
+        $ad_zone->is_default(0);
+
+      } else {
+
+        $ad_zone->is_default(1);
+      }
+
+    }
 
     # add arguments
     $ad_zone->$_( $args{$_} ) for keys %args;
