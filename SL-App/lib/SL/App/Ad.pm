@@ -341,10 +341,45 @@ sub dispatch_deactivate {
 
     return Apache2::Const::NOT_FOUND unless $ad_zone;
 
-    $r->log->debug("deleting ad zone $id") if DEBUG;
+    my $is_default = $ad_zone->is_default;
 
+    $r->log->debug("deleting ad zone $id") if DEBUG;
+    $ad_zone->is_default(0);
     $ad_zone->active(0);
     $ad_zone->update;
+    
+
+    # if this ad zone is default replace it with a new default
+    if ($is_default == 1)  {
+
+	my @ad_sizes;
+	if ($ad_zone->ad_size_id =~ m/(?:1|10|12)/) {
+
+	    @ad_sizes = qw( 1 10 12 );
+
+	} elsif ($ad_zone->ad_size_id =~ m/(?:20|22)/) {
+
+	    @ad_sizes = qw( 20 22 );
+
+	} elsif ($ad_zone->ad_size_id == 15) {
+
+	    @ad_sizes = qw( 15 );
+	    
+	}
+
+	    my @others =  SL::Model::App->resultset('AdZone')->search({
+		account_id => $ad_zone->account_id,
+		ad_size_id => { -in => [ @ad_sizes ] },
+		active => 't',
+		is_default => 0 });
+		
+	    if (@others > 0) {
+		my $rand = $others[int(rand(scalar(@others)-1))];
+		$rand->is_default(1);
+		$rand->update;
+	    }
+    }
+
 
     $r->pnotes('session')->{msg} =
       sprintf( "Ad '%s' was deleted", $ad_zone->name );
