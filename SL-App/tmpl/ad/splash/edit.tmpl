@@ -15,7 +15,7 @@
 <div class="grid_16 preview">
      <h3>Preview - Splash Page Ad must be 300 pixels wide by 250 pixels tall (IAB Medium Rectangle)</h3>
 	<div id="splash_preview">
-   		 <div id="splash">[% IF req.param('code') or ad_zone.code %][% re.param('code') or ad_zone.code %][% ELSE %]<a href="http://www.silverliningnetworks.com/?referer=dashboard_example"><img src="[% base_uri %]/resources/images/ads/300x250.gif"></a>[% END %]</div>
+   		 <div id="splash">[% IF req.param('image_href') or (ad_zone.image_href != '') %][% IF (req.param('link_href') != '') or (ad_zone.image_href !='' ) %]<a href="[% req.param('link_href') || ad_zone.link_href %]">[% END %]<img src="[% req.param('image_href') || ad_zone.image_href %]">[% IF (req.param('link_href') != '') or (ad_zone.image_href != '' ) %]</a>[% END %][% ELSIF req.param('code') or ad_zone.code %][% re.param('code') or ad_zone.code %][% ELSE %]<a href="http://www.silverliningnetworks.com/?referer=dashboard_example"><img src="[% base_uri %]/resources/images/ads/300x250.gif"></a>[% END %]</div>
 		<div class="clear"></div>
 	</div>
 </div>	

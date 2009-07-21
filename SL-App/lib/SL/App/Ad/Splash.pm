@@ -79,8 +79,8 @@ sub dispatch_add {
                 code       => '',
                 active     => 1,
                 is_default => 0,
-                image_href => ' ',
-                link_href => ' ',
+                image_href => 'http://www.open-mesh.com/users/rhp/images/sl_advertise.png',
+                link_href => 'http://www.silverliningnetworks.com/advertise_here',
             }
         );
         return Apache2::Const::NOT_FOUND unless $ad_zone;
