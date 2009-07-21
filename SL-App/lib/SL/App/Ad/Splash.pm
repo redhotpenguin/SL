@@ -38,10 +38,10 @@ sub dispatch_index {
 
     $self->format_adzone_list(\@ad_zones);
 
-    my $link = $r->construct_url(
+    my $link = 'https://app.silverliningnetworks.com/sl' . 
                 '/splash/'
                   . Digest::MD5::md5_hex(
-                    SALT + $r->pnotes( $r->user )->account->account_id));
+                    SALT + $r->pnotes( $r->user )->account->account_id);
 
 
     my %tmpl_data = (
@@ -363,6 +363,14 @@ sub dispatch_splash {
       } elsif ((defined $rand->image_href && ($rand->image_href ne '')) &&
                (defined $rand->link_href && ($rand->link_href ne ''))) {
 
+        my $image_href = $rand->image_href;
+	if ($image_href =~ m{mesh\.com\/users\/\w+\/}) {
+
+	    $r->log->debug("munging om image $image_href");
+	    $image_href =~ s/^(.*?\.com\/)(users\/[^\/]+)(\/.*)$/$3/;
+	    $r->log->debug("munged image link $image_href");
+	}
+
         my $out_tmpl = <<TMPL;
 var SL_%x = '';
 SL_%x += "<"+"a href=\\'%s\\' target=\\'_blank\\'><"+"img src=\\'%s\\' width=\\'%d\\' height=\\'%d\\' alt=\\'%s\\' title=\\'%s\\' border=\\'0\\' /><"+"/a>\\n";
@@ -370,7 +378,7 @@ document.write(SL_%x);
 TMPL
         my $id = int(rand(2**32));
         $output = sprintf($out_tmpl, $id, $id, $rand->link_href,
-                          'http://s1.slwifi.com/images/ads/300.gif',
+                          $image_href,
                           300, 250, $rand->name, $rand->name, $id);
 
       } else {
