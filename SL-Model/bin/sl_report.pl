@@ -54,7 +54,15 @@ foreach my $day (@DAYS) {
     # breakdown by routers
     if ($ROUTERS) {
         foreach my $router (@routers) {
-            print STDERR sprintf(
+   
+   		my $last_ping = DateTime::Format::Pg->parse_datetime($router->last_ping);
+		my $last_report = DateTime->now->subtract(days => $day);
+		my $name = $router->name || $router->macaddr;
+		if (DateTime->compare($last_ping, $last_report) < 0) {
+			warn("router " . $name . " not in current reporting period") if DEBUG;
+			next;
+		}
+   		print STDERR sprintf(
                 "==> processing router id %d, name '%s', mac %s\n",
                 $router->id,
                 $router->name    || 'unknown',
@@ -68,7 +76,7 @@ foreach my $day (@DAYS) {
             if (  $router_views_count > 0 )
             {
                 push @{ $results{$day}{routers} },
-                  [ $router->name || $router->macaddr, $router_views_count, $router->account_id->name ];
+                  [ $name, $router_views_count, $router->account->name ];
 
             }
 
