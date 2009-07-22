@@ -287,7 +287,7 @@ sub dispatch_edit {
         $args{'link_href'}  = $req->param('link_href');
         String::Strip::StripLTSpace($args{'link_href'});
         String::Strip::StripLTSpace($args{'image_href'});
-        $args{'code'}       = sprintf( '<a href="%s"><img src="%s"></a>',
+        $args{'code'}       = sprintf( '<a href="%s"><img border="0" src="%s"></a>',
             $args{'link_href'}, $args{'image_href'} );
     }
 

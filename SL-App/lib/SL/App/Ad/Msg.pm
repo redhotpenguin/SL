@@ -63,6 +63,7 @@ sub dispatch_index {
         $bug = SL::Model::App->resultset('Bug')->create(
             {
                 %bug_args,
+		code => '',
                 image_href =>
                   'http://s1.slwifi.com/images/ads/sln/micro_bug.gif',
                 link_href => 'http://www.silverliningnetworks.com/',
