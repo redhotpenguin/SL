@@ -128,7 +128,7 @@ sub container {
 
     # insert the tail
     $matched = $$decoded_content_ref =~ s{$end_body_match}{$1$tail$2};
-    warn('failed to insert closing div') unless ( DEBUG && $matched );
+    warn('failed to insert closing div') if ( DEBUG && !$matched );
 
     return 1;
 }
@@ -410,7 +410,34 @@ SQL
 }
 
 
+sub get_account {
+    my ($class, $account_id) = @_;
 
+    my $account = $class->connect->selectrow_hashref(<<SQL, {}, $account_id);
+SELECT
+aaa,advertise_here
+FROM account
+WHERE account_id = ?
+SQL
+
+	return unless $account;
+	return $account;
+}
+
+
+sub get_router {
+    my ($class, $router_id) = @_;
+
+    my $router = $class->connect->selectrow_hashref(<<SQL, {}, $router_id);
+SELECT
+lan_ip
+FROM router
+WHERE router_id = ?
+SQL
+
+	return unless $router;
+	return $router;
+}
 
 
 
@@ -480,8 +507,14 @@ sub random {
     # account|$account_id            = { advertise_here => $a, aaa => $b };
 
     # process the template
-    my $account = SL::Cache->memd->get("account|$account_id");
-    my $router  = SL::Cache->memd->get("router|$router_id");
+	my $account = $class->get_account($account_id);
+#	my $account = SL::Cache->memd->get("account|$account_id");
+	my $router;
+	if (defined ($account->{aaa})) {
+		# grab the lan ip
+		$router = $class->get_router($router_id);
+	}
+	#my $router  = SL::Cache->memd->get("router|$router_id");
     my $output_ref = $class->process_ad_template($persistent, $branding, $router, $account, $ua);
 
     # return the id, string output ref, and css url
