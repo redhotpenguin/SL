@@ -3,7 +3,7 @@ package SL::Subrequest;
 use strict;
 use warnings;
 
-our $VERSION = 0.06;
+our $VERSION = 0.07;
 
 use String::Strip    ();
 use HTML::TokeParser ();
@@ -151,7 +151,7 @@ sub collect_subrequests {
     my %unique;
     my @jses = map { [ $_ . '/', $_ . '/', '_script' ] }
       grep ( !$unique{$_}++, @script_urls );
-    $DB::single = 1;
+#    $DB::single = 1;
     my @return_jses;
     foreach my $js (@jses) {
 
@@ -266,6 +266,11 @@ sub _normalize_url {
         return "";
     }
     elsif ($base_url) {
+
+        if (substr($url,0,2) eq './') {
+
+          $base_url = 'http://' . URI->new($base_url)->host;
+        }
 
         # base the new URL on the base
         $canonical_url =

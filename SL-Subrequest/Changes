@@ -1,5 +1,8 @@
 Revision history for Perl extension SL::Subrequest.
 
+0.07  Wed Jul 21 00:30:00 2009
+    - fix bug with apple startpage
+
 0.03  Tue Jan 05 11:36:00 2009
     - only replace http:// subrequests
 
