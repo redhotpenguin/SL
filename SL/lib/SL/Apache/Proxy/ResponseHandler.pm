@@ -773,7 +773,7 @@ sub _generate_response {
         url          => $url,
         router_id    => $r->pnotes('router_id'),
         user         => $r->pnotes('hash_mac'),
-	ua           => $ua,
+        ua           => $ua,
         device_guess => $r->pnotes('device_guess'),
     );
 
