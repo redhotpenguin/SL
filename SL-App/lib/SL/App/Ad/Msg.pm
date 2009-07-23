@@ -55,12 +55,12 @@ sub dispatch_index {
         account_id => $reg->account_id,
     );
 
-    my ($bug) = SL::Model::App->resultset('Bug')->search( \%bug_args );
+    my ($bug) = SL::Model::App->resultset('AdZone')->search( \%bug_args );
 
     unless ($bug) {
 
         # create it
-        $bug = SL::Model::App->resultset('Bug')->create(
+        $bug = SL::Model::App->resultset('AdZone')->create(
             {
                 %bug_args,
 		code => '',
