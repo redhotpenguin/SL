@@ -63,6 +63,7 @@ sub dispatch_index {
         $bug = SL::Model::App->resultset('AdZone')->create(
             {
                 %bug_args,
+		name => '_msg_bug',
 		code => '',
                 image_href =>
                   'http://s1.slwifi.com/images/ads/sln/micro_bug.gif',
