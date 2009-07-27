@@ -6,17 +6,23 @@ use warnings;
 use Net::DNS;
 
 use constant NAMESERVER => '208.67.222.222';
+use constant DEBUG      => $ENV{SL_DEBUG} || 0;
 
+our $VERSION = '0.01';
 our $resolver;
 
 BEGIN {
-    $resolver = Net::DNS::Resolver->new;
+
+  $resolver = Net::DNS::Resolver->new;
 }
 
 sub resolve {
     my ( $class, $hostname, $nameserver ) = @_;
 
-    $nameserver ||= NAMESERVER;
+    unless ($nameserver) {
+        warn("using default nameserver " . NAMESERVER) if DEBUG;
+        $nameserver = NAMESERVER;
+    }
 
     $resolver->nameserver($nameserver);
 
