@@ -319,11 +319,11 @@ sub perlbal {
     my $hostname = $r->hostname;
 
     # don't resolve ip addresses
-    unless ( $hostname =~ m/\d+\.\d+\.\d+\.\d+/ ) {
+    unless ( $hostname && ($hostname =~ m/\d+\.\d+\.\d+\.\d+/ )) {
 
         my $router = $r->pnotes('router');
         my $ip = eval { SL::DNS->resolve($hostname, $router->{dnsone}); };
-        if ($@) {
+        if ($@ or !$ip) {
             $r->log->error( "$$ DNS query failed for host $hostname: $@");
             return mod_proxy($r);
         }

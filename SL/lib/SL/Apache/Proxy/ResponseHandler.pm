@@ -453,7 +453,7 @@ sub _non_html_two_hundred {
 
     my $url = $r->construct_url( $r->unparsed_uri );
 
-    if ( length( $response->decoded_content ) < MAX_NONHTML ) {
+    if ( $response->decoded_content && (length( $response->decoded_content ) < MAX_NONHTML )) {
 
         $r->log->debug("$$ sending response directly ") if DEBUG;
 
