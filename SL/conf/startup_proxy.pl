@@ -59,6 +59,7 @@ use SL::RateLimit    ();
 use SL::HTTP::Client ();
 use SL::BrowserUtil  ();
 use SL::User         ();
+use SL::DNS          ();
 
 use Digest::MD5 ();
 use DBI         ();
@@ -76,7 +77,6 @@ use Compress::Bzip2     ();
 use Crypt::Blowfish_PP  ();
 use HTTP::Headers::Util ();
 use Cache::Memcached    ();
-use Net::DNS            ();
 
 BEGIN {
 

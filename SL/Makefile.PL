@@ -25,6 +25,7 @@ WriteMakefile(
         'SL::Static'         => 0.12,
         'SL::Model'          => 0.14,
         'SL::User'           => 0.02,
+        'SL::DNS'            => 0.01,
         'RHP::Timer'         => 0.1,
     },
     EXE_FILES => [qw( bin/sl_proxy bin/sl_perlbal_watch )],

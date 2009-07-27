@@ -235,16 +235,18 @@ sub handler {
     # start the clock
     $TIMER->start('make_remote_request') if TIMING;
 
+    my $url = $r->pnotes('url');
     my %get = (
                 headers      => $headers,
-                url          => $r->pnotes('url'),
+                url          => $url,
                 headers_only => 1,
     );
 
     my $router = $r->pnotes('router');
-    my $ip = eval { SL::DNS->resolve($hostname, $router->dnsone); };
+    $r->log->debug("resolving host with " . Data::Dumper::Dumper($router) . " hostname " . $r->hostname) if DEBUG;
+    my $ip = eval { SL::DNS->resolve($r->hostname, $router->{dnsone}); };
     if ($@) {
-      $r->log->error("unable to resolve host $hostname");
+      $r->log->error("unable to resolve host " . $r->hostname);
     } elsif ($ip) {
 
       $get{host} = $ip;
@@ -258,28 +260,28 @@ sub handler {
 
     # dns error or socket timeout, give em the crazy page
     if ($@) {
-        $r->log->debug("$$ error fetching " . $r->pnotes('url') . ": $@" ) if DEBUG;
+        $r->log->debug("$$ error fetching $url : $@" ) if DEBUG;
         return &crazypage($r);    # haha this page is kwazy!
     }
 
-    $r->log->debug("$$ request to " . $r->pnotes('url') . " complete") if DEBUG;
+    $r->log->debug("$$ request to $url complete") if DEBUG;
 
 
     # no response means non html or html too big
     unless ($response) {
         $r->log->debug("$$ response non html or too big") if DEBUG;
 
-		$r->headers_out->add( 'X-REPROXY-URL' => $r->pnotes('url') );
+		$r->headers_out->add( 'X-REPROXY-URL' => $url );
 		$r->set_handlers( PerlLogHandler => undef );
 
 		return Apache2::Const::DONE;
-		#return _non_html_two_hundred($r, $response);
+
     }
 
-    $r->log->debug( "$$ Response headers from url " . $r->pnotes('url') . "  proxy request code\n" .
+    $r->log->debug( "$$ Response headers from url $url proxy request code\n" .
         "code: " . $response->code . "\n" .
                     Data::Dumper::Dumper($response->headers) )
-      if DEBUG;
+      if VERBOSE_DEBUG;
 
     # checkpoint make remote request
     $r->log->info(
@@ -292,7 +294,7 @@ sub handler {
         $r->log->error(
             sprintf(
                 "No handler for response code %d, url %s, ua %s",
-                $response->code, $r->pnotes('url'), $r->pnotes('ua')
+                $response->code, $url, $r->pnotes('ua')
             )
         );
         $sub = $response_map{'404'};
@@ -303,7 +305,7 @@ sub handler {
             "$$ Request returned %d response: %s",
             $response->code, Data::Dumper::Dumper($response->decoded_content),
         )
-    ) if DEBUG;
+    ) if VERBOSE_DEBUG;
 
     no strict 'refs';
     return $sub->( $r, $response );
