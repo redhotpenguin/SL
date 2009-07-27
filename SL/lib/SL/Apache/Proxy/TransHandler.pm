@@ -29,7 +29,7 @@ use SL::Subrequest  ();
 use SL::Static      ();
 
 use Apache2::Const -compile =>
-  qw( OK SERVER_ERROR NOT_FOUND DECLINED CONN_KEEPALIVE DONE M_GET );
+  qw( OK SERVER_ERROR NOT_FOUND DECLINED CONN_KEEPALIVE DONE M_GET REDIRECT );
 use Apache2::Connection  ();
 use Apache2::RequestRec  ();
 use Apache2::RequestUtil ();
@@ -74,7 +74,7 @@ sub handler {
     # user agent and referer
     if ( $r->pnotes('ua') eq 'none' ) {
         $r->log->debug("$$ no user agent, mod_proxy") if DEBUG;
-        return &mod_proxy($r);
+        return &perlbal($r);
     }
 
     my $referer = $r->headers_in->{'referer'} || 'no_referer';
@@ -95,7 +95,7 @@ sub handler {
     if ( !$browser_name ) {
         $r->log->debug( "$$ not a browser: " . $r->as_string ) if DEBUG;
         $r->pnotes( 'not_a_browser' => 1 );
-        return &mod_proxy($r);
+        return &perlbal($r);
 
     }
     elsif ($browser_name) {
@@ -116,21 +116,22 @@ sub handler {
     my $hostname;
     unless ( $hostname = $r->headers_in->{'Host'} ) {
         $r->log->debug("$$ no host header, mod_proxy") if DEBUG;
-        return &mod_proxy($r);
+        return &perlbal($r);
     }
 
     ####################################
     # serving ads on hosts that are ip numbers causes problems
     if ( $hostname =~ m/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/ ) {
         $r->log->debug("$$ hostname is ip addr $hostname, perlbal") if DEBUG;
-        return &perlbal($r);
+        return &redirect($r);
     }
 
     ###################################
     ## Static content
     if ( SL::Static->is_static_content( { url => $url } ) ) {
-        $r->log->debug("$$ Url $url static content ext, perlbal") if DEBUG;
-        return &perlbal($r);
+        $r->log->debug("$$ Url $url static content ext, port redir") if DEBUG;
+
+        return &redirect($r);
     }
 
     #############################################
@@ -142,14 +143,12 @@ sub handler {
     my $dbh = SL::Model->connect();
     unless ($dbh) {
         $r->log->error("$$ Database has gone away, sending to mod_proxy");
-        return &mod_proxy($r);
+        return &perlbal($r);
     }
 
     ###################################
     # ok check for a splash page if we have a router_id
     if ( $r->pnotes('router_id') ) {
-
-	
 
         my ( $splash_url, $timeout ) =
           SL::Model::Proxy::Router->splash_page($r->pnotes('router_id'));
@@ -179,7 +178,7 @@ sub handler {
     ## Check the cache for a static content match
 	if ((($url ne $Google) and ($url ne $Yahoo) and ($url ne $Youtube) ) && $Cache->is_known_not_html($url)) {
 
-	    return &proxy_request($r)
+	    return &redirect($r)
 	}
 
     $r->log->info(
@@ -231,6 +230,8 @@ sub url_blacklisted {
 sub proxy_request {
     my $r = shift;
 
+    return &redirect($r);
+
     return &perlbal($r);
 }
 
@@ -276,6 +277,28 @@ sub mod_proxy {
 
     return Apache2::Const::DECLINED;
 }
+
+sub redirect {
+    my ( $r, $uri ) = @_;
+
+    die("oops called proxy redirect without \$r") unless ($r);
+
+    my $newurl = URI->new( $r->pnotes('url') );
+    $newurl->port(8135);
+
+    $r->log->debug( "$$ new url is " . $newurl->as_string ) if DEBUG;
+
+    $r->headers_out->set( Location => $newurl->as_string );
+    $r->server->add_version_component('sl');
+    $r->no_cache(1);
+
+    $r->set_handlers( PerlResponseHandler => undef );
+    $r->set_handlers( PerlLogHandler      => undef );
+
+    return Apache2::Const::REDIRECT;
+}
+
+
 
 sub perlbal {
     my $r = shift;

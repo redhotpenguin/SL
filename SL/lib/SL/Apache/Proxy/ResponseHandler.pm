@@ -66,6 +66,7 @@ use constant DEBUG         => $ENV{SL_DEBUG}            || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG}    || 0;
 use constant TIMING        => $ENV{SL_TIMING}           || 0;
 use constant REPLACE_PORT  => 8135;
+use constant MAX_NONHTML   => 200 * 1024; # 50k
 
 # unencoded http responses must be this big to get an ad
 use constant MIN_CONTENT_LENGTH => $Config->sl_min_content_length || 2500;
@@ -212,7 +213,7 @@ sub _build_request_headers {
     }
     else {
         $r->log->debug(
-            "client supports compression " . $headers{'Accept-Encoding'} )
+            "$$ client supports compression " . $headers{'Accept-Encoding'} )
           if VERBOSE_DEBUG;
         $r->pnotes(
             client_supports_compression => $headers{'Accept-Encoding'} );
@@ -245,11 +246,15 @@ sub handler {
         );
     };
 
+
     # dns error or socket timeout, give em the crazy page
     if ($@) {
-        $r->log->debug("error fetching " . $r->pnotes('url') . ": $@" ) if DEBUG;
+        $r->log->debug("$$ error fetching " . $r->pnotes('url') . ": $@" ) if DEBUG;
         return &crazypage($r);    # haha this page is kwazy!
     }
+
+    $r->log->debug("$$ request to " . $r->pnotes('url') . " complete") if DEBUG;
+
 
     # no response means non html or html too big
     unless ($response) {
@@ -257,8 +262,9 @@ sub handler {
         return _non_html_two_hundred($r);
     }
 
-    $r->log->debug( "$$ Response headers from proxy request\n",
-        Data::Dumper::Dumper($response->headers) )
+    $r->log->debug( "$$ Response headers from url " . $r->pnotes('url') . "  proxy request code\n" .
+        "code: " . $response->code . "\n" .
+                    Data::Dumper::Dumper($response->headers) )
       if DEBUG;
 
     # checkpoint make remote request
@@ -281,9 +287,9 @@ sub handler {
     $r->log->debug(
         sprintf(
             "$$ Request returned %d response: %s",
-            $response->code, $response->as_string
+            $response->code, Data::Dumper::Dumper($response->decoded_content),
         )
-    ) if VERBOSE_DEBUG;
+    ) if DEBUG;
 
     no strict 'refs';
     return $sub->( $r, $response );
@@ -425,11 +431,44 @@ sub threeohfour {
 }
 
 sub _non_html_two_hundred {
-    my $r = shift;
+    my ( $r, $response ) = @_;
+
+    $r->log->debug("$$ non html 200, length " . length($response->decoded_content)) if DEBUG;
 
     my $url = $r->construct_url( $r->unparsed_uri );
 
-    # send to perlbal to reproxy
+    if ( length( $response->decoded_content ) < MAX_NONHTML ) {
+
+        $r->log->debug("$$ sending response directly ") if DEBUG;
+
+        my $response_content_ref = \$response->decoded_content;
+
+        # set the status line
+        $r->status_line( $response->status_line );
+        $r->log->debug( "$$ status line is " . $response->status_line )
+          if DEBUG;
+
+        # set the response headers
+        my $set_ok =
+          _set_response_headers( $r, $response, $response_content_ref );
+
+        if (VERBOSE_DEBUG) {
+            $r->log->debug( "$$ Reponse headers to client " . $r->as_string );
+#            $r->log->debug( "$$ Response content: " . $$response_content_ref );
+        }
+
+        # rflush() flushes the headers to the client
+        # thanks to gozer's mod_perl for speed presentation
+        $r->rflush();
+
+        my $bytes_sent = $r->print($$response_content_ref);
+        $r->log->debug("$$ bytes sent: $bytes_sent") if DEBUG;
+
+        return Apache2::Const::OK;
+
+    }
+
+    # else send to perlbal to reproxy
     $r->headers_out->add( 'X-REPROXY-URL' => $url );
     $r->set_handlers( PerlLogHandler => undef );
 
@@ -447,7 +486,7 @@ sub _translate_cookie_and_auth_headers {
 
         my @headers = $res->header($header_type);
         foreach my $header (@headers) {
-            $r->log->debug("setting header $header_type value $header")
+            $r->log->debug("$$ setting header $header_type value $header")
               if VERBOSE_DEBUG;
             $r->err_headers_out->add( $header_type => $header );
         }
@@ -474,7 +513,7 @@ sub _set_response_headers {
     # Create a hash with the HTTP::Response HTTP::Headers attributes
     $res->scan( sub { $headers{ $_[0] } = $_[1]; } );
     $r->log->debug(
-        sprintf( "not cookie/auth headers: %s",
+        sprintf( "$$ not cookie/auth headers: %s",
             Data::Dumper::Dumper( \%headers ) )
     ) if DEBUG;
 
@@ -591,7 +630,7 @@ sub _translate_remaining_headers {
             $headers->{$key} =~ s/\n/ /g;
         }
 
-        $r->log->debug( "Setting header key $key, value " . $headers->{$key} )
+        $r->log->debug( "$$ Setting header key $key, value " . $headers->{$key} )
           if VERBOSE_DEBUG;
         $r->headers_out->set( $key => $headers->{$key} );
     }
@@ -604,7 +643,7 @@ sub twohundred {
 
     my $url = $r->pnotes('url');
 
-    return _non_html_two_hundred($r) if !$response->is_html;
+    return _non_html_two_hundred($r, $response) if !$response->is_html;
 
     # Cache the content_type, some misnomers in this section re: html
     $Cache->add_known_html( $url => $response->content_type );
@@ -617,7 +656,7 @@ sub twohundred {
     $TIMER->start('rate_limiter') if TIMING;
     my $user_id = join( '|', $r->pnotes('hash_mac'), $r->pnotes('ua') );
     my $is_toofast = $RATE_LIMIT->check_violation($user_id) || 0;
-    $r->log->debug("===> $url check_violation: $is_toofast") if VERBOSE_DEBUG;
+    $r->log->debug("$$ ===> $url check_violation: $is_toofast") if VERBOSE_DEBUG;
     $r->log->info(
         sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
       if TIMING;
@@ -707,7 +746,7 @@ sub twohundred {
     $TIMER->start('print_response') if TIMING;
 
     my $bytes_sent = $r->print($$response_content_ref);
-    $r->log->debug("bytes sent: $bytes_sent") if DEBUG;
+    $r->log->debug("$$ bytes sent: $bytes_sent") if DEBUG;
 
     # checkpoint
     $r->log->info(
@@ -781,7 +820,7 @@ sub _generate_response {
         $ad_args{device_guess} = $r->pnotes('device_guess');
     }
 
-    $r->log->debug("ad args: " . Data::Dumper::Dumper(\%ad_args)) if DEBUG;
+    $r->log->debug("$$ ad args: " . Data::Dumper::Dumper(\%ad_args)) if DEBUG;
 
     my (
         $ad_zone_id, $ad_content_ref, $css_url_ref,
@@ -793,7 +832,7 @@ sub _generate_response {
         sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
       if TIMING;
 
-    $r->log->debug("Ad content is \n$$ad_content_ref\n") if VERBOSE_DEBUG;
+    $r->log->debug("$$ Ad content is \n$$ad_content_ref\n") if VERBOSE_DEBUG;
 
     unless ($ad_content_ref) {
         $r->log->error("$$ Hmm, we didn't get an ad for url $url");
@@ -816,7 +855,7 @@ sub _generate_response {
     unless ($ok) {
 
         # TODO - mark url to be skipped next time
-        $r->log->debug("could not insert adzone $ad_zone_id into url $url") if DEBUG;
+        $r->log->debug("$$ could not insert adzone $ad_zone_id into url $url") if DEBUG;
         return;
     }
 
