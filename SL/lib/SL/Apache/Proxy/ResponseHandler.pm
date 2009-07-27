@@ -259,7 +259,12 @@ sub handler {
     # no response means non html or html too big
     unless ($response) {
         $r->log->debug("$$ response non html or too big") if DEBUG;
-        return _non_html_two_hundred($r);
+ 
+		$r->headers_out->add( 'X-REPROXY-URL' => $r->pnotes('url') );
+		$r->set_handlers( PerlLogHandler => undef );
+
+		return Apache2::Const::DONE;
+		#return _non_html_two_hundred($r, $response);
     }
 
     $r->log->debug( "$$ Response headers from url " . $r->pnotes('url') . "  proxy request code\n" .
