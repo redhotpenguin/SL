@@ -30,7 +30,7 @@ sub handler {
 
     $r->log->debug("sl_header is $sl_header") if DEBUG;
 
-    my ($router_id, $hash_mac, $device_guess, $router_mac) = eval {
+    my ($router_id, $hash_mac, $device_guess, $router_mac, $router) = eval {
         SL::Model::Proxy::Router->identify(
             {
                 ip        => $r->connection->remote_ip,
@@ -60,7 +60,8 @@ sub handler {
         $r->pnotes( router_id => $router_id );
         $r->pnotes( sl_header => $sl_header );
         $r->pnotes( hash_mac  => $hash_mac  );
-	$r->pnotes( router_mac => $router_mac );
+  	    $r->pnotes( router_mac => $router_mac );
+        $r->pnotes( router     => $router );
 
 	$r->log->debug("router_id $router_id, router_mac $router_mac, hash_mac $hash_mac") if DEBUG;
 

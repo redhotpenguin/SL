@@ -52,13 +52,13 @@ sub identify {
     warn("got router mac $router_mac, hash_mac $hash_mac") if DEBUG;
 
     # now that we have the mac address, grab the device
-    my $router_id = $class->get_router_id_from_mac($router_mac);
+    my ($router_id, $router) = $class->get_router_id_from_mac($router_mac);
     unless ($router_id) {
         warn("no router found for mac $router_mac");
         return;
     }
 
-    return ($router_id, $hash_mac, $device_guess, $router_mac);
+    return ($router_id, $hash_mac, $device_guess, $router_mac, $router);
 }
 
 
@@ -120,18 +120,22 @@ sub get_router_id_from_mac {
     # see if this device is in the cache
     # router|$device_mac             = $device_id;
     my $router_id = SL::Cache->memd->get("router|$macaddr");
-
+    my $router;
     unless ($router_id) {
 
         # check the database
 
 	warn("router mac $macaddr not in memcache, going to db") if DEBUG;
 
-        my $router = $class->connect->selectall_arrayref(<<SQL, { Slice => {}}, $macaddr)->[0];
-SELECT router_id, account_id, lan_ip, wan_ip, splash_href, splash_timeout,macaddr
-FROM router
+        $router = $class->connect->selectall_arrayref(<<SQL, { Slice => {}}, $macaddr)->[0];
+SELECT router.router_id, router.account_id, router.lan_ip, 
+router.wan_ip, router.splash_href, router.splash_timeout,router.macaddr,
+account.dnsone,account.dnstwo
+FROM router, account
 WHERE
 macaddr = ?
+AND
+router.account_id = account.account_id
 SQL
 
         return unless $router;
@@ -147,7 +151,7 @@ SQL
     }
 
     # we've got the router id
-    return $router_id;
+    return ($router_id, $router);
 }
 
 
@@ -200,7 +204,7 @@ VALUES
 SQL
 
     # grab the id of the new device
-    my $router_id = $class->get_router_id_from_mac($macaddr) ||
+    my ($router_id, $router) = $class->get_router_id_from_mac($macaddr) ||
        die "router add for macaddr $macaddr failed!";
 
     return $router_id;

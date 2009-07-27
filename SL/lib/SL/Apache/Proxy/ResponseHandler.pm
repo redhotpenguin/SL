@@ -235,15 +235,24 @@ sub handler {
     # start the clock
     $TIMER->start('make_remote_request') if TIMING;
 
-    # Make the request to the remote server
-    my $response = eval {
-        SL::HTTP::Client->get(
-            {
+    my %get = (
                 headers      => $headers,
                 url          => $r->pnotes('url'),
                 headers_only => 1,
-            }
-        );
+    );
+
+    my $router = $r->pnotes('router');
+    my $ip = eval { SL::DNS->resolve($hostname, $router->dnsone); };
+    if ($@) {
+      $r->log->error("unable to resolve host $hostname");
+    } elsif ($ip) {
+
+      $get{host} = $ip;
+    }
+
+    # Make the request to the remote server
+    my $response = eval {
+        SL::HTTP::Client->get(\%get);
     };
 
 
@@ -259,7 +268,7 @@ sub handler {
     # no response means non html or html too big
     unless ($response) {
         $r->log->debug("$$ response non html or too big") if DEBUG;
- 
+
 		$r->headers_out->add( 'X-REPROXY-URL' => $r->pnotes('url') );
 		$r->set_handlers( PerlLogHandler => undef );
 

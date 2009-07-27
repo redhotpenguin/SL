@@ -320,18 +320,11 @@ sub perlbal {
 
     # don't resolve ip addresses
     unless ( $hostname =~ m/\d+\.\d+\.\d+\.\d+/ ) {
-        my $ip;
-        my $query = $resolver->query($hostname);
-        if ($query) {
-            foreach my $rr ( $query->answer ) {
-                next unless $rr->type eq "A";
-                $ip = $rr->address;
-                last;
-            }
-        }
-        else {
-            $r->log->error( "$$ DNS query failed for host $hostname: ",
-                $resolver->errorstring );
+
+        my $router = $r->pnotes('router');
+        my $ip = eval { SL::DNS->resolve($hostname, $router->{dnsone}); };
+        if ($@) {
+            $r->log->error( "$$ DNS query failed for host $hostname: $@");
             return mod_proxy($r);
         }
 
