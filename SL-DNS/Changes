@@ -1,0 +1,6 @@
+Revision history for Perl extension SL-DNS.
+
+0.01  Sun Jul 26 23:23:03 2009
+	- original version; created by h2xs 1.23 with options
+		-X SL-DNS
+
