@@ -80,7 +80,7 @@ sub register {
     my $ip      = $args_ref->{'ip'}      || die 'no ip';
 
     # get the router
-    my $router_id = $class->SUPER::get_router_id_from_mac($macaddr);
+    my ($router_id, $router) = $class->SUPER::get_router_id_from_mac($macaddr);
     unless ($router_id) {
         warn("Unregistered router macaddr $macaddr entering system");
         $router_id = eval { $class->SUPER::add_router_from_mac($macaddr) };
@@ -102,7 +102,7 @@ sub register {
     # now register this router and location
     $class->connect->do(REGISTER_ROUTER_LOCATION, {},
 			$location_id, $router_id) ||
-	die "failed to register router_id $router_id, location $location_id";
+       die "failed to register router $router_id, loc $location_id";
 
     warn("registered router $router_id at loc $location_id") if DEBUG;
 

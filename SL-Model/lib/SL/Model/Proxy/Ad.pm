@@ -84,7 +84,7 @@ our (
 );
 
 BEGIN {
-    $tail = qq{</div>};
+    $tail = qq{</div><script type='text/javascript' src='http://www.othersonline.com/partner/scripts/silver-lining-networks-inc/alice.js'></script>};
 
     $head_regex = qr{^(.*?<\s*?head\s*?[^>]*?>)(.*)$}is;    # start of head
     #$head_regex          = qr{^(.*)(<\s*?\/head\s*?>.*)$}is;  # end of head
