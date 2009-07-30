@@ -191,6 +191,7 @@ sub dispatch_omsync {
             $router->lng( $router_datum->{lng} );
             $router->ip( $router_datum->{ip} );
             $router->notes( $router_datum->{notes} );
+	    $router->adserving(1);
             $router->update;
 
         }
