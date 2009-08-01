@@ -211,15 +211,19 @@ static int sl_help (struct sk_buff *skb,
     return ret;
 }
 
+static const struct nf_conntrack_expect_policy sl_exp_policy = {
+	.max_expected	= 0,
+	.timeout        = 60,
+};
+
 static struct nf_conntrack_helper sl_helper __read_mostly = {
 		.name                     = "sl",
-		.max_expected             = 0,
-		.timeout                  = 60,
 		.tuple.src.l3num          = AF_INET,
 		.tuple.dst.protonum       = IPPROTO_TCP,
 		.tuple.src.u.tcp.port     = __constant_htons(SL_PORT),
 		.me                       = THIS_MODULE,
 		.help                     = sl_help,
+		.expect_policy            = &sl_exp_policy,
 };
   
 
