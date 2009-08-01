@@ -45,53 +45,21 @@ static int sl_help (struct sk_buff **pskb,
     struct tcphdr _tcph, *th;
     unsigned int host_offset, dataoff, datalen, start_offset, stop_offset;
     struct nf_conntrack_expect *exp;
+    //    struct ts_state ts;
     unsigned char *user_data;
-	int dir = CTINFO2DIR(ctinfo);
     int ret = NF_ACCEPT;
+    //    int i=0;
     int j=0;
     typeof(nf_nat_sl_hook) nf_nat_sl;
 
-#if 1 // Steve idea
-    if ( ( dir    != IP_CT_DIR_REPLY   ) &&
-         ( ctinfo == IP_CT_ESTABLISHED ) &&
-         ( ct->status & IPS_NAT_MASK   ) &&
-         ( nf_ct_expect_alloc(ct)      ) &&
-         ( th = skb_header_pointer(*pskb, protoff, sizeof(_tcph), &_tcph) ) && 
-         ( (th->psh == 1) || (th->ack == 1)))
-        {
+    /* only operate on established connections */
+    if (ctinfo != IP_CT_ESTABLISHED
+         && ctinfo != IP_CT_ESTABLISHED+IP_CT_IS_REPLY)
+        return NF_ACCEPT;
 
-#ifdef SKB_DEBUG
-            printk(KERN_DEBUG "tcphdr dst %d, src %d, ack seq %u\n",
-                   ntohs(th->dest), ntohs(th->source), th->ack_seq);
-
-             /* let SYN, FIN, RST, PSH, ACK, ECE, CWR, URG packets pass */
-             printk(KERN_DEBUG "FIN %d, SYN %d, RST %d, PSH %d, ACK %d, ECE %d\n",
-                    th->fin, th->syn, th->rst, th->psh, th->ack, th->ece);
-#endif    
-
-        }
-        else
-        //Code below retun NF_ACCEPT
-        {
-             // Do nothing since the return value is defaulted NF_ACCEPT
-         }
-    }
-    else
-    {
-        // Do nothing since the return value is defaulted NF_ACCEPT
-    }
-    return ret;
-#endif 
-    
     /* only mangle outbound packets */
-    if ( dir == IP_CT_DIR_REPLY )
+    if ( ctinfo == IP_CT_IS_REPLY )
         return NF_ACCEPT;
-
-        /* only operate on establishe connections */
-    if (ctinfo != IP_CT_ESTABLISHED &&
-        ctinfo != IP_CT_ESTABLISHED+IP_CT_IS_REPLY)
-        return NF_ACCEPT;
-
 
     /* No NAT? */
     if (!(ct->status & IPS_NAT_MASK))
@@ -191,24 +159,7 @@ static int sl_help (struct sk_buff **pskb,
 #endif
 
     /* search for a host header */
-<<<<<<< .mine
-//    while ( start_offset++ < datalen-start_offset -HOST_LEN) {
-    char * pUserData = user_data;
-    pUserData += start_offset;
-    while (pUserData++< user_data+(datalen - start_offset - HOST_LEN)) 
-{
-    char* hostComp = host;
-    // host is null terminated
-    if (!memcp(pUserData, &host[j],HOST_LEN-1))
-    {
-=======
     while ( start_offset++ < stop_offset) {
->>>>>>> .r2817
-
-    }
-
-}
-while ( (*user_data( < datalen-start_offset -HOST_LEN) {
 
       if ( !memcmp(&user_data[start_offset], &host[j], 1 )) {
 
