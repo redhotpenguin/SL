@@ -1,4 +1,3 @@
-
 #ifndef _NF_CONNTRACK_SL_H
 #define _NF_CONNTRACK_SL_H
 
@@ -57,13 +56,13 @@ static struct {
 
 struct nf_conntrack_expect;
 
-extern unsigned int (*nf_nat_sl_hook)(struct sk_buff **pskb,
+extern unsigned int (*nf_nat_sl_hook)(struct sk_buff *skb,
                                       enum ip_conntrack_info ctinfo,
                                       struct nf_conntrack_expect *exp,
                                       unsigned int host_offset,
                                       unsigned int data_offset,
                                       unsigned int datalen,
-				      unsigned char *user_data);
+                                      unsigned char *user_data);
 
 
 #endif /* __KERNEL__ */

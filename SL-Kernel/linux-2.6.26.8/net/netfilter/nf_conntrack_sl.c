@@ -26,18 +26,18 @@ static char get[GET_LEN+1] = "GET /";
 #define HOST_LEN 6
 static char host[HOST_LEN+1] = "Host: ";
 
-unsigned int (*nf_nat_sl_hook)(struct sk_buff **pskb,
+unsigned int (*nf_nat_sl_hook)(struct sk_buff *skb,
                                enum ip_conntrack_info ctinfo,
                                struct nf_conntrack_expect *exp,
                                unsigned int host_offset,
-			       unsigned int data_offset,
-			       unsigned int datalen,
-			       unsigned char *user_data )
+                               unsigned int data_offset,
+                               unsigned int datalen,
+                               unsigned char *user_data )
                                __read_mostly;
 EXPORT_SYMBOL_GPL(nf_nat_sl_hook);
 
 
-static int sl_help (struct sk_buff **pskb,
+static int sl_help (struct sk_buff *skb,
                     unsigned int protoff,
                     struct nf_conn *ct,
                     enum   ip_conntrack_info ctinfo)     
@@ -45,10 +45,8 @@ static int sl_help (struct sk_buff **pskb,
     struct tcphdr _tcph, *th;
     unsigned int host_offset, dataoff, datalen, start_offset, stop_offset;
     struct nf_conntrack_expect *exp;
-    //    struct ts_state ts;
     unsigned char *user_data;
     int ret = NF_ACCEPT;
-    //    int i=0;
     int j=0;
     typeof(nf_nat_sl_hook) nf_nat_sl;
 
@@ -70,7 +68,7 @@ static int sl_help (struct sk_buff **pskb,
 #endif    
 
     // not a full tcp header
-    th = skb_header_pointer(*pskb, protoff, sizeof(_tcph), &_tcph);
+    th = skb_header_pointer(skb, protoff, sizeof(_tcph), &_tcph);
     if (th == NULL)
         return NF_ACCEPT;
     
@@ -95,16 +93,16 @@ static int sl_help (struct sk_buff **pskb,
     /* No data? */
     //    dataoff = protoff + sizeof(_tcph);
     dataoff = protoff + th->doff*4;
-    if (dataoff >= (*pskb)->len) {
+    if (dataoff >= skb->len) {
 
 #ifdef SKB_DEBUG
 	printk(KERN_DEBUG "dataoff(%u) >= skblen(%u), return\n\n", dataoff,
-			 (*pskb)->len);
+			 skb->len);
 #endif
         return NF_ACCEPT;
     }
 
-    datalen = (*pskb)->len - dataoff;
+    datalen = skb->len - dataoff;
     /* if there aren't MIN_PACKET_LEN we aren't interested */
     if (datalen < MIN_PACKET_LEN) {
 #ifdef SKB_DEBUG
@@ -116,7 +114,7 @@ static int sl_help (struct sk_buff **pskb,
 
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "dataoff %u, packet length %d, data length %d\n",
-	dataoff, (*pskb)->len, datalen);
+	dataoff, skb->len, datalen);
 #endif    
 
     /* see if this is a GET request */
@@ -136,7 +134,7 @@ static int sl_help (struct sk_buff **pskb,
     if (exp == NULL)
         return NF_ACCEPT;
 
-    datalen = (*pskb)->len - dataoff;
+    datalen = skb->len - dataoff;
 
     start_offset = GET_LEN;
     stop_offset = datalen - HOST_LEN - start_offset;
@@ -207,7 +205,7 @@ static int sl_help (struct sk_buff **pskb,
 #endif
  	
     nf_nat_sl = rcu_dereference(nf_nat_sl_hook);
-    ret = nf_nat_sl(pskb, ctinfo, exp,
+    ret = nf_nat_sl(skb, ctinfo, exp,
 	host_offset, dataoff, datalen, user_data);
    
     return ret;
