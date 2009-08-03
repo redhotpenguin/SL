@@ -40,14 +40,14 @@ static char xslr[XSLR_LEN+1] = "X-SLR";
 
 /* removes :8135 from the host name */
 
-static int sl_remove_port(struct sk_buff **pskb,
-		          struct nf_conn *ct,
-                	  enum   ip_conntrack_info ctinfo,
-                	  unsigned int host_offset,
-                	  unsigned int dataoff,
-                	  unsigned int datalen,
-			  unsigned int end_of_host,
-			  unsigned char *user_data)
+static int sl_remove_port(struct sk_buff *skb,
+                          struct nf_conn *ct,
+                          enum   ip_conntrack_info ctinfo,
+                          unsigned int host_offset,
+                          unsigned int dataoff,
+                          unsigned int datalen,
+                          unsigned int end_of_host,
+                          unsigned char *user_data)
 {
     
     if (strncmp(search[PORT].string, 
@@ -69,7 +69,7 @@ static int sl_remove_port(struct sk_buff **pskb,
 #endif
 
     /* remove the port */
-    if (!nf_nat_mangle_tcp_packet(pskb, ct, ctinfo,
+    if (!nf_nat_mangle_tcp_packet(skb, ct, ctinfo,
         end_of_host-search[PORT].len+search[NEWLINE].len,
         search[PORT].len-(search[NEWLINE].len*2), // subtract \r\n
 	NULL,
@@ -90,7 +90,7 @@ static int sl_remove_port(struct sk_buff **pskb,
 }
 
 
-static unsigned int add_sl_header(struct sk_buff **pskb,
+static unsigned int add_sl_header(struct sk_buff *skb,
                                   struct nf_conn *ct, 
                                   enum ip_conntrack_info ctinfo,
 				  unsigned int host_offset, 
@@ -102,13 +102,13 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
        
     unsigned int jhashed, slheader_len;
     char src_string[MACADDR_SIZE], slheader[SL_HEADER_LEN];
-    struct ethhdr *bigmac = eth_hdr(*pskb);
+    struct ethhdr *bigmac = eth_hdr(skb);
 
     /* first make sure there is room */
-    if ( (*pskb)->len >= ( MAX_PACKET_LEN - SL_HEADER_LEN ) ) {
+    if ( skb->len >= ( MAX_PACKET_LEN - SL_HEADER_LEN ) ) {
 
 #ifdef SL_DEBUG
-        printk(KERN_DEBUG "packet too large for sl_header, length: %d\n", (*pskb)->len);
+        printk(KERN_DEBUG "packet too large for sl_header, length: %d\n", (skb->len);
 #endif
         return 0;
     }
@@ -166,7 +166,7 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
 
     /********************************************/
     /* insert the slheader into the http headers */
-    if (!nf_nat_mangle_tcp_packet( pskb,
+    if (!nf_nat_mangle_tcp_packet( skb,
                                    ct, 
                                    ctinfo,
                                    end_of_host + search[NEWLINE].len,
@@ -189,7 +189,7 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
 
 /* So, this packet has hit the connection tracking matching code.
    Mangle it, and change the expectation to match the new version. */
-static unsigned int nf_nat_sl(struct sk_buff **pskb,
+static unsigned int nf_nat_sl(struct sk_buff *skb,
                               enum ip_conntrack_info ctinfo,
                               struct nf_conntrack_expect *exp,
                               unsigned int host_offset,
@@ -198,7 +198,7 @@ static unsigned int nf_nat_sl(struct sk_buff **pskb,
 			      unsigned char *user_data)
 {
     struct nf_conn *ct = exp->master;
-    struct iphdr *iph = ip_hdr(*pskb);
+    struct iphdr *iph = ip_hdr(skb);
     unsigned int port_status = 0;
     unsigned int end_of_host;
     char dest_ip[16] = "127.127.127.127";
@@ -240,7 +240,7 @@ static unsigned int nf_nat_sl(struct sk_buff **pskb,
 #endif
 
       /* look for a port rewrite and remove it if exists */
-      port_status = sl_remove_port(pskb, ct, ctinfo, 
+      port_status = sl_remove_port(skb, ct, ctinfo, 
  		       host_offset, dataoff, datalen,
   		       end_of_host, user_data );
 
@@ -258,7 +258,7 @@ static unsigned int nf_nat_sl(struct sk_buff **pskb,
 #endif
 
     /* attempt to insert the X-SLR header, since this is sl destined */
-    if (!add_sl_header(pskb, 
+    if (!add_sl_header(skb, 
                        ct, 
                        ctinfo, 
                        host_offset, 
@@ -285,7 +285,7 @@ static void nf_nat_sl_fini(void)
 
 static int __init nf_nat_sl_init(void)
 {
-	BUG_ON(rcu_dereference(nf_nat_sl_hook));
+	BUG_ON(nf_nat_sl_hook != NULL);
 	rcu_assign_pointer(nf_nat_sl_hook, nf_nat_sl);
 
 #ifdef SL_DEBUG
