@@ -33,7 +33,7 @@ obj-$(CONFIG_IP_NF_FTP) += ip_conntrack_ftp.o
 obj-$(CONFIG_IP_NF_IRC) += ip_conntrack_irc.o
 obj-$(CONFIG_IP_NF_SIP) += ip_conntrack_sip.o
 obj-$(CONFIG_IP_NF_NETBIOS_NS) += ip_conntrack_netbios_ns.o
-obj-$(CONFIG_NF_NAT_SL) += nf_nat_sl.o
+obj-$(CONFIG_IP_NAT_SL) += ip_nat_sl.o
 
 # NAT helpers 
 obj-$(CONFIG_IP_NF_NAT_H323) += ip_nat_h323.o

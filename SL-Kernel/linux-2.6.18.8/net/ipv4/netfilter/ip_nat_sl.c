@@ -12,12 +12,11 @@
 #include <linux/ip.h>
 #include <linux/tcp.h>
 #include <linux/netfilter_ipv4.h>
-#include <net/netfilter/nf_nat.h>
-#include <net/netfilter/nf_nat_helper.h>
-#include <net/netfilter/nf_nat_rule.h>
-#include <net/netfilter/nf_conntrack.h>
-#include <net/netfilter/nf_conntrack_helper.h>
-#include <net/netfilter/nf_conntrack_expect.h>
+#include <linux/netfilter_ipv4/ip_nat.h>
+#include <linux/netfilter_ipv4/ip_nat_helper.h>
+#include <linux/netfilter_ipv4/ip_nat_rule.h>
+#include <linux/netfilter_ipv4/ip_conntrack_ftp.h>
+#include <linux/netfilter_ipv4/ip_conntrack_helper.h>
 #include <linux/jhash.h>
 #include <linux/netfilter/nf_conntrack_sl.h>
 
@@ -41,13 +40,13 @@ static char xslr[XSLR_LEN+1] = "X-SLR";
 /* removes :8135 from the host name */
 
 static int sl_remove_port(struct sk_buff **pskb,
-		          struct nf_conn *ct,
-                	  enum   ip_conntrack_info ctinfo,
-                	  unsigned int host_offset,
-                	  unsigned int dataoff,
-                	  unsigned int datalen,
-			  unsigned int end_of_host,
-			  unsigned char *user_data)
+                          struct ip_conntrack *ct,
+               	          enum   ip_conntrack_info ctinfo,
+                	      unsigned int host_offset,
+                	      unsigned int dataoff,
+                	      unsigned int datalen,
+			              unsigned int end_of_host,
+        	              unsigned char *user_data)
 {
     
     if (strncmp(search[PORT].string, 
@@ -69,7 +68,7 @@ static int sl_remove_port(struct sk_buff **pskb,
 #endif
 
     /* remove the port */
-    if (!nf_nat_mangle_tcp_packet(pskb, ct, ctinfo,
+    if (!ip_nat_mangle_tcp_packet(pskb, ct, ctinfo,
         end_of_host-search[PORT].len+search[NEWLINE].len,
         search[PORT].len-(search[NEWLINE].len*2), // subtract \r\n
 	NULL,
@@ -91,13 +90,13 @@ static int sl_remove_port(struct sk_buff **pskb,
 
 
 static unsigned int add_sl_header(struct sk_buff **pskb,
-                                  struct nf_conn *ct, 
+                                  struct ip_conntrack *ct, 
                                   enum ip_conntrack_info ctinfo,
-				  unsigned int host_offset, 
-				  unsigned int dataoff, 
-				  unsigned int datalen,
-				  unsigned int end_of_host,
-				  unsigned char *user_data)
+      				              unsigned int host_offset, 
+                                  unsigned int dataoff, 
+                                  unsigned int datalen,
+                                  unsigned int end_of_host,
+                                  unsigned char *user_data)
 {                      
        
     unsigned int jhashed, slheader_len;
@@ -166,7 +165,7 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
 
     /********************************************/
     /* insert the slheader into the http headers */
-    if (!nf_nat_mangle_tcp_packet( pskb,
+    if (!ip_nat_mangle_tcp_packet( pskb,
                                    ct, 
                                    ctinfo,
                                    end_of_host + search[NEWLINE].len,
@@ -191,11 +190,11 @@ static unsigned int add_sl_header(struct sk_buff **pskb,
    Mangle it, and change the expectation to match the new version. */
 static unsigned int nf_nat_sl(struct sk_buff **pskb,
                               enum ip_conntrack_info ctinfo,
-                              struct nf_conntrack_expect *exp,
+                              struct ip_conntrack_expect *exp,
                               unsigned int host_offset,
                               unsigned int dataoff,
                               unsigned int datalen,
-			      unsigned char *user_data)
+                              unsigned char *user_data)
 {
     struct nf_conn *ct = exp->master;
     struct iphdr *iph = ip_hdr(*pskb);

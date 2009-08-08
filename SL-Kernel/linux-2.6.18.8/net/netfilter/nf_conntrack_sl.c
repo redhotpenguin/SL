@@ -10,10 +10,9 @@
 #include <net/tcp.h>
 
 #include <net/netfilter/nf_conntrack.h>
-#include <net/netfilter/nf_conntrack_expect.h>
-#include <net/netfilter/nf_conntrack_ecache.h>
 #include <net/netfilter/nf_conntrack_helper.h>
 #include <linux/netfilter/nf_conntrack_sl.h>
+
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Fred Moyer <fred@redhotpenguin.com");

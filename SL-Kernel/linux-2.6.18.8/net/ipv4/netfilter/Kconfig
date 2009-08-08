@@ -166,7 +166,7 @@ config IP_NF_AMANDA
 
 	  To compile it as a module, choose M here.  If unsure, say Y.
 
-config NF_NAT_SL
+config IP_NAT_SL
 	tristate
 	default m
 
