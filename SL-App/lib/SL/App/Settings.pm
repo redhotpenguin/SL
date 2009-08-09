@@ -79,7 +79,7 @@ sub dispatch_market {
         $r->pnotes('session')->{msg} = "Ad Marketplace Enabled";
         $reg->account->advertise_here( $Config->sl_advertise_here
               . '?network='
-              . $reg->account->account_id );
+              . $reg->account_id );
     }
     else {
         $r->log->debug("setting marketplace to off") if DEBUG;

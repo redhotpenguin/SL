@@ -16,7 +16,7 @@
 <form method="post" action="[% base_uri %]/app/router/edit">
 <div id="main_content" class="grid_9 suffix_2">
 
-[% IF !router && (reg.account_id.account_id !=2 ) %]
+[% IF !router && (reg.account.account_id !=2 ) %]
 	<!-- IF TRYING TO ADD A NEW ROUTER -->
 	<h3>Existing Customers</h3>
 	<p>Learn about our brand new Silver Lining Repeaters. Our <a href="http://www.silverliningnetworks.com/store/">new repeaters are plug and play</a> and work out of the box!</p>
@@ -47,7 +47,7 @@
 					<select name="device" id="device">
 						<option value="" [% IF ! router.device and req.param('device') == '' %][% END %]>Select a device type</option>
 						<option value="mr3201a" [% IF req.param('device') == 'mr3201a' or router.device == 'mr3201a' %]selected="selected" [% END %]>MR3201A, OM1P, EOC-1650</option>
-						[% IF (router && router.device == 'wrt54gl') || reg.account_id.account_id == 2 %]<option value="wrt54gl" [% IF req.param('device') == 'wrt54gl' or router.device == 'wrt54gl' %]selected="selected" [% END %]>Linksys WRT54GL</option>[% END %]
+						[% IF (router && router.device == 'wrt54gl') || reg.account.account_id == 2 %]<option value="wrt54gl" [% IF req.param('device') == 'wrt54gl' or router.device == 'wrt54gl' %]selected="selected" [% END %]>Linksys WRT54GL</option>[% END %]
 						[% IF (router && router.device == 'linuxbox') || reg.account_id.account_id == 21 %]<option value="linuxbox" [% IF req.param('device') == 'linuxbox' or router.device == 'linuxbox' %]SELECTED[% END %]>Linux Server</option>[% END %]
 
 					</select>
