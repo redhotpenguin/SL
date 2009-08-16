@@ -16,7 +16,7 @@
 #include <linux/netfilter/nf_conntrack_sl.h>
 
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Fred Moyer <fred@redhotpenguin.com");
+MODULE_AUTHOR("Fred Moyer <fred@silverliningnetworks.com");
 MODULE_DESCRIPTION("sl connection tracking helper");
 
 // GET

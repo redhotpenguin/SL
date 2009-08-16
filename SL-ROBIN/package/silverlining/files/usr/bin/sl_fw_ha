@@ -14,16 +14,13 @@ our $RMMOD       = '/sbin/rmmod';
 our $INSMOD      = '/sbin/insmod';
 our $LSMOD       = '/sbin/lsmod';
 our $IPTABLES    = '/usr/sbin/iptables';
-our $VERSION     = '021';
+our $VERSION     = '022';
 our $SLEEP       = 300;
 our $LIMIT       = 10000;
 $|++;
 
-# remove the leading r
-our $ROBIN_VERSION = `cat /etc/robin_version`;
-
 # figure out if we are a gateway or repeater
-my $role = `uci get node.general.role`;
+my $role = `$UCI get node.general.role`;
 my $type = ( $role == 1 ) ? 'gateway' : 'client';
 
 # based on that, figure out what interface to route traffic through
@@ -32,108 +29,64 @@ my $int = ( $role == 1 ) ? 'ath1' : 'br-lan';
 my $d = shift;
 
 # grab the mac address
-my $ifconfig = `ifconfig`;
-my ($macaddr) = $ifconfig =~ m/eth0.*?(\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2})/g;
-print "Macaddr is $macaddr\n" if $DEBUG;
+my $board = `$UCI get node.general.board`;
 
+my $macaddr;
+if ( $board eq 'UBNT' ) {
 
-# daemonize option
-if ($d eq '-d') {
-	
-    if ($pid = fork) { exit 0; }
-    $SIG{'HUP'} = 'IGNORE';
-
-    ## Change working directory
-    chdir "/tmp";
-        
-    ## Clear file creation mask
-    umask 0;
-
-    ## Close open file descriptors
-    close(STDIN);
-    close(STDOUT);
-    close(STDERR);
-                
-    ## Reopen stderr, stdout, stdin to /dev/null
-    open(STDIN,  "+>/dev/null");
-    open(STDOUT, "+>&STDIN");
-    open(STDERR, "+>&STDIN");
-
-    print "$0 sleeping $SLEEP seconds, then starting\n" if $DEBUG;
-    sleep $SLEEP;
-} else {
-
-    # prevent problems
-    undef $d;
-}
- 
-# go into a loop and hopefully keep going
-# would like to have this cron based but ROBIN overwrites crontabs
-my $i = 0;
-while (1) {
-
-    if ($i++ >= $LIMIT) {
-        # reboot once ever $LIMIT to prevent memory leaks
-        `/bin/busybox reboot`;
-    }
-
-    ####################################################
-    # no config is fa non starter
-    my $config_proxy = get_config_proxy($CONFIG_FILE);
-
-    unless ($config_proxy) {
-
-        print STDERR "no sln config_proxy exists\n";
-
-	# this is a bad piece of cut/paste code but works for now
-	# not a whole lot can be done to abstract it because
-	# of variable error conditions
-	if ($d) {
-            sleep_cycle();
-            next;
-	} else {
-	    exit(1);
-  	}
-    }
-
-    print "Using proxy $config_proxy\n" if $DEBUG;
-
-    # ping the proxy
-    if ( ping_ok($config_proxy, $macaddr) ) {
-
-        print "ping was ok, sln state on\n" if $DEBUG;
-        start_sln($config_proxy, $macaddr);
-
-	if ($d) {
-            sleep_cycle();
-            next;
-	} else {
-	    exit(0);
-  	}
-    
-    } else {
-
-        print STDERR "No available proxies, disabling silver lining\n";
-        stop_sln($config_proxy);
-
-	if ($d) {
-            sleep_cycle();
-            next;
-	} else {
-	    exit(1);
-  	}
-
-    }
+    $macaddr = `$UCI get node.general.wlanMAC`;
 
 }
+else {
 
-###########################
+    $macaddr = `$UCI get node.general.myMAC`;
+}
 
-sub sleep_cycle {
+print "Board isi $board, Macaddr is $macaddr\n" if $DEBUG;
 
-    print "sleeping $SLEEP seconds\n\n" if $DEBUG;
-    sleep $SLEEP;
-    return 1;
+####################################################
+# no config is fa non starter
+my $config_proxy = get_config_proxy($CONFIG_FILE);
+
+unless ($config_proxy) {
+
+    print STDERR "no sln config_proxy exists\n";
+    exit(1);
+}
+
+print "Using proxy $config_proxy\n" if $DEBUG;
+
+# ping the proxy
+if ( my $slug = ping_ok( $config_proxy, $macaddr ) ) {
+
+    print "ping was ok, sln state on\n" if $DEBUG;
+
+    if ( $ct =~ m/Ad Serving On/ ) {
+        start_sln( $config_proxy, $macaddr );
+    } elsif ($ct =~ m/Ad Serving Off/ ) {
+        stop_sln( $config_proxy, $macaddr );
+    }
+   
+    # custom skips refresh
+    if ( my ($skips) = $ct =~ m/CustomSkips\s(http\w+)/) {
+
+        my $get = `wget -O /etc/sl/custom_skips.txt $skips`;
+        print "custom_skips refetched, $get" if $DEBUG;
+
+        # hup the service
+        stop_sln;
+        sleep 1;
+        start_sln;
+    }
+
+    exit(0);
+
+}
+else {
+
+    print STDERR "No available proxies, disabling silver lining\n";
+    stop_sln($config_proxy);
+    exit(1);
 }
 
 sub get_config_proxy {
@@ -184,9 +137,9 @@ sub restore_config_file {
 
     # config file got truncated somehow
     my $file = 'sl.conf';
-    my $url = "http://fw.slwifi.com/conf/$file";
+    my $url  = "http://fw.slwifi.com/conf/$file";
     chdir('/tmp');
-    unlink($file)               if -e $file;
+    unlink($file) if -e $file;
     print "grabbing url $url\n" if $DEBUG;
     my $grab = `/usr/bin/wget $url`;
     unless ( -e $file ) {
@@ -201,69 +154,69 @@ sub restore_config_file {
 }
 
 sub stop_sln {
-	my $proxy = shift;
+    my $proxy = shift;
 
-	return unless _check_sln();
+    return unless _check_sln();
 
-	print "sln active, de-activating\n" if $DEBUG;
+    print "sln active, de-activating\n" if $DEBUG;
 
-	my $teardown = _teardown_sln($proxy);
+    my $teardown = _teardown_sln($proxy);
 
-	print "teardown sln $teardown\n" if $DEBUG;
+    print "teardown sln $teardown\n" if $DEBUG;
 
-	# remove kernel modules
-	`rmmod nf_nat_sl`;
-	`rmmod nf_conntrack_sl`;
+    # remove kernel modules
+    `rmmod nf_nat_sl`;
+    `rmmod nf_conntrack_sl`;
 
-	return 1;
+    return 1;
 }
 
 sub start_sln {
-	my ($proxy, $macaddr) = @_;
+    my ( $proxy, $macaddr ) = @_;
 
-	# see if sln is active
-	return 1 if _check_sln();
+    # see if sln is active
+    return 1 if _check_sln();
 
-	print "sln inactive, activating\n" if $DEBUG;
+    print "sln inactive, activating\n" if $DEBUG;
 
-	# first make sure the base nodogsplash rules are in effect
-	return unless _nodog_active();
+    # first make sure the base nodogsplash rules are in effect
+    return unless _nodog_active();
 
-	# load the kernel modules
-	$macaddr =~ s/\://g;
-	$macaddr = lc($macaddr);
-	my $load_cmd = "$INSMOD nf_nat_sl sl_device=$macaddr sl_proxy=$proxy";
-	`$INSMOD nf_conntrack_sl`;
-	`$load_cmd`;
+    # load the kernel modules
+    $macaddr =~ s/\://g;
+    $macaddr = lc($macaddr);
+    my $load_cmd = "$INSMOD nf_nat_sl sl_device=$macaddr sl_proxy=$proxy";
+    `$INSMOD nf_conntrack_sl`;
+    `$load_cmd`;
 
-	my $base_setup = _setup_sln_base($proxy);
-	my $skips_setup = _setup_sln_skips($proxy);
-	print "base_setup $base_setup, skips setup $skips_setup\n" if $DEBUG;
+    my $base_setup  = _setup_sln_base($proxy);
+    my $skips_setup = _setup_sln_skips($proxy);
+    print "base_setup $base_setup, skips setup $skips_setup\n" if $DEBUG;
 
-	return 1;
+    return 1;
 }
 
 sub _nodog_active {
 
-       return grep { /^ndsOUT/ } (`iptables -t nat -n -L`);
+    return grep { /^ndsOUT/ } (`iptables -t nat -n -L`);
 }
 
 # checks to see if sln firewall enabled
 sub _check_sln {
 
-	# cheap way, look for the target
-        my $sln_is_active = grep { /^ndsSLN/ } (`iptables -t nat -n -L`);
+    # cheap way, look for the target
+    my $sln_is_active = grep { /^ndsSLN/ } (`iptables -t nat -n -L`);
 
-	print "sln is active? $sln_is_active\n" if $DEBUG;
+    print "sln is active? $sln_is_active\n" if $DEBUG;
 
-	return $sln_is_active;
+    return $sln_is_active;
 }
 
 # sets up the base firewall rules
 sub _setup_sln_base {
-	my $proxy = shift;
+    my $proxy = shift;
 
-	my $base = <<BASE;
+    my $base = <<BASE;
 $IPTABLES -t nat -N ndsSLN
 $IPTABLES -t nat -I ndsSLN 1 -i $int -p tcp -m tcp --dport 8135 -j DNAT --to :80
 $IPTABLES -t nat -I ndsSLN 2 -i $int -p tcp -m tcp --dport 80 -j DNAT --to-destination $proxy
@@ -272,104 +225,105 @@ $IPTABLES -t nat -D ndsOUT -m mark --mark 0x100 -j ACCEPT
 $IPTABLES -t nat -I ndsOUT -m mark --mark 0x100 -j ndsSLN
 BASE
 
-	foreach my $rule (split("\n", $base)) {
-		`$rule`;
-	}
+    foreach my $rule ( split( "\n", $base ) ) {
+        `$rule`;
+    }
 
-	return 1;
+    return 1;
 }
 
 sub _teardown_sln {
-	my $proxy = shift;
+    my $proxy = shift;
 
-	my $base = <<BASE;
+    my $base = <<BASE;
 $IPTABLES -t nat -D ndsOUT -m mark --mark 0x100 -j ndsSLN
 $IPTABLES -t nat -I ndsOUT -m mark --mark 0x100 -j ACCEPT
 $IPTABLES -t nat -F ndsSLN
 $IPTABLES -t nat -X ndsSLN
 BASE
 
-	foreach my $rule (split("\n", $base)) {
-		`$rule`;
-	}
+    foreach my $rule ( split( "\n", $base ) ) {
+        `$rule`;
+    }
 
-	return 1;
+    return 1;
 }
 
 sub _setup_sln_skips {
 
-	my $fh;
-	open($fh, '<', '/etc/sl/skips.txt');
-	while(my $line = <$fh>) {
-		chomp($line);
-		`$IPTABLES -t nat -I ndsSLN 2 --dst $line -m tcp -p tcp -j ACCEPT`;
-	}
-	close($fh);
+    my $fh;
+    open( $fh, '<', '/etc/sl/skips.txt' );
+    while ( my $line = <$fh> ) {
+        chomp($line);
+        `$IPTABLES -t nat -I ndsSLN 2 --dst $line -m tcp -p tcp -j ACCEPT`;
+    }
+    close($fh);
 
-	# local hosts added by user
-	if (-e '/etc/sl/custom_skips.txt') {
-	
-		open($fh, '<', '/etc/sl/custom_skips.txt');
-		while(my $line = <$fh>) {
-			chomp($line);
-			`$IPTABLES -t nat -I ndsSLN 2 --dst $line -m tcp -p tcp -j ACCEPT`;
-		}
-		close($fh);
-	}
+    # local hosts added by user
+    if ( -e '/etc/sl/custom_skips.txt' ) {
 
-	return 1;
+        open( $fh, '<', '/etc/sl/custom_skips.txt' );
+        while ( my $line = <$fh> ) {
+            chomp($line);
+            `$IPTABLES -t nat -I ndsSLN 2 --dst $line -m tcp -p tcp -j ACCEPT`;
+        }
+        close($fh);
+    }
+
+    return 1;
 }
 
 sub ping_ok {
-    my ($proxy, $macaddr) = @_;
+    my ( $proxy, $macaddr ) = @_;
 
     # escape the macaddress
     my $escaped = $macaddr;
     $escaped =~ s/:/%3A/g;
 
     my $slug = "$macaddr\_$VERSION";
-    my $loc = "http://$proxy/sl_secret_ping_button/$slug";
-    my $cmd = "wget $loc  2>&1";
+    my $loc  = "http://$proxy/sl_secret_ping_button/$slug";
+    my $cmd  = "wget $loc  2>&1";
     print "Making request $cmd\n" if $DEBUG;
     my $ping = `$cmd`;
-    print "ping result: _$ping\_\n" if $DEBUG;
+    print "ping result: _$ping\_\n"  if $DEBUG;
     print "looking for file $slug\n" if $DEBUG;
-    if
-	(  (! -e $slug)
-	or   ( $ping eq '' )
+    if (   ( !-e $slug )
+        or ( $ping eq '' )
         or ( $ping =~ m/error 50/i )
         or ( $ping =~ m/connection refused/i )
         or ( $ping =~ m/error/i )
         or ( $ping =~ m/unable to connect/i )
-        or ($ping =~ m/no response from server/i ) )
+        or ( $ping =~ m/no response from server/i ) )
     {
 
         print STDERR "Proxy $proxy returned ping error:\n  $ping\n";
         return;
 
-    } elsif (-e $slug) {
+    }
+    elsif ( -e $slug ) {
 
-    	print "ping ok, file $macaddr exists\n" if $DEBUG;
+        print "ping ok, file $macaddr exists\n" if $DEBUG;
 
-	my $fh;
-	open($fh, '<', $slug) or die $!;
-	my $ct = do { local $/; <$fh> };
-	close($fh) or die $!;
+        my $fh;
+        open( $fh, '<', $slug ) or die $!;
+        my $ct = do { local $/; <$fh> };
+        close($fh) or die $!;
 
-    	unlink($slug) or print STDERR "could not remove ping file $slug\n";
+        unlink($slug) or print STDERR "could not remove ping file $slug\n";
 
-	chomp($ct);
-	print("slug package is $ct\n") if $DEBUG;
-	if ($ct eq 'Ad Serving On') {
+        chomp($ct);
+        print("slug package is $ct\n") if $DEBUG;
+        if ( length($ct) > 0 ) {
 
-	    print "Ping returned ok: $ping\n" if $DEBUG;
-            return 1;
+            print "Ping returned ok: $ping\n" if $DEBUG;
+            return $ct;
 
-	} else {
+        }
+        else {
 
-	    print("slug missing, stop energizers\n") if $DEBUG;
-	    return;
-	}
+            print("slug missing, stop energizers\n") if $DEBUG;
+            return;
+        }
     }
 }
 
