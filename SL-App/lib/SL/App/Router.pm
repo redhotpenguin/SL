@@ -460,6 +460,7 @@ sub dispatch_edit {
           serial_number ssid splash_timeout ) {
             $router->$param( $req->param($param) );
           };
+	$router->active(1);
     }
 
     # active?  adserving?

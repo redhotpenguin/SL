@@ -346,7 +346,7 @@ sub dispatch_advertiser {
         my %payment_profile = (
             required => [
                 qw( first_name last_name card_type card_number cvv2
-                  month year street city zip state email plan )
+                  month year street city zip state email plan country)
             ],
             constraint_methods => {
                 email       => email(),
@@ -398,7 +398,8 @@ sub dispatch_advertiser {
             state      => $req->param('state'),
             referer    => $r->headers_in->{'referer'},
             amount     => $req->param('plan'),
-        );
+            country    => $req->param('country'),
+	);
 
         if ( $req->param('special') ) {
             $payment_args{special} = $req->param('special');
@@ -427,8 +428,8 @@ sub dispatch_advertiser {
 
         if ( $payment->error_message ) {
 
-            $r->log->error( sprintf("advertiser %s payment error %s"),
-                $req->param('email'), $payment->error_message );
+            $r->log->error( sprintf("advertiser %s payment error %s",
+                $req->param('email'), $payment->error_message ));
 
             return $class->dispatch_advertiser(
                 $r,
