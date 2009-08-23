@@ -2,6 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 
+
   <!-- META -->
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />  
   <meta name="description" content=""/> 
@@ -29,6 +30,9 @@
   <script type="text/javascript" src="[% base_uri %]/resources/js/confirm.js"></script>
   <script type="text/javascript" src="[% base_uri %]/resources/js/jquery.jqtransform.min.js"></script>
   <title>[% title %]</title>	
+
+[% IF header %][% header %][% END %]
+
 
 </head>
 <body [% IF load %]onload="[% load %]"[% END %]>

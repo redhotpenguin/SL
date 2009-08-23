@@ -18,6 +18,7 @@ use base 'SL::App';
 use SL::Model;
 use SL::Model::App;    # works for now
 use SL::App::Template ();
+use SL::Map;
 
 our $Tmpl = SL::App::Template->template();
 
@@ -25,11 +26,14 @@ use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 use Data::Dumper;
 
+
 sub dispatch_index {
     my ( $class, $r ) = @_;
 
+    my $reg = $r->pnotes( $r->user );
+    my ($head, $map) = SL::Map->map({ account => $reg->account });
     my $output;
-    $Tmpl->process( 'router/index.tmpl', {}, \$output, $r )
+    $Tmpl->process( 'router/index.tmpl', {head => $head, map => $map}, \$output, $r )
       || return $class->error( $r, "Template error: " . $Tmpl->error );
     return $class->ok( $r, $output );
 }
