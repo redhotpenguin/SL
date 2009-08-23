@@ -386,6 +386,41 @@ float: left;
 }
 
 
+/* TERTIARY NAV
+============================================= */
+#tertiary_nav {
+border-bottom: 3px solid #EEE;
+}
+#tertiary_nav h2 {
+float: left;
+}
+#tertiary_nav ul {
+float: right;
+mar
+}
+#tertiary_nav ul li{
+float: right;
+font-size: 107%;
+margin-left: 25px;
+}
+#tertiary_nav ul li.selected {
+float: right;
+font-size: 107%;
+margin-left: 25px;
+background: url(../images/backgrounds/application/nav_arrow.png) center bottom  no-repeat;
+}
+#tertiary_nav ul li a {
+color: #666;
+text-decoration: none;
+padding: 10px;
+display: block;
+float: right;
+}
+#tertiary_nav ul li.selected a {
+color: #333;
+font-weight: bold;
+}
+
 /* ALL CONTENT (main content + secondary content)
 ============================================= */
 #workspace h2 {
