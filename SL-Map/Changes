@@ -1,0 +1,6 @@
+Revision history for Perl extension SL-Map.
+
+0.01  Sat Aug 22 18:42:24 2009
+	- original version; created by h2xs 1.23 with options
+		-X SL-Map
+
