@@ -1,12 +1,16 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  View routers" selected="network" %]
 
+<div class="grid_16 margin_b_20">
+	[% PROCESS router/tertiarynav.tmpl active="devices" %]
+</div>
+<div class="clear"></div>
+
 <div class="grid_10 suffix_1">
 	[% IF msg %]
 		<p class="success margin_b_20">[% msg %]</p>
 	[% END %]
-	
+		
 	<div class="grid_6 alpha">
-		<h2>Network Devices</h2>
 		<p class="tip">You have a total of <strong>[% count %]</strong> devices on your network</p>
 	</div>
 	<div class="grid_4 omega">
