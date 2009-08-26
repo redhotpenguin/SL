@@ -26,33 +26,16 @@
         <label for="city">[% IF errors.missing.city or errors.invalid.city %]<font color="red">[% END %]City[% IF errors.missing.city or errors.invalid.city %]</font>[% END %]</label>
     </span>
 
-[% END %]
-
+<!--
 	<span class="half">
         <input type="text" id="city" name="state" value="[% IF req.param('state') %][% req.param('state') %][% ELSE %]ex. New York[% END %]" />
         <label for="state">[% IF errors.missing.state or errors.invalid.state %]<font color="red">[% END %]State / Province / Region[% IF errors.missing.state or errors.invalid.state %]</font>[% END %]</label>
     </span>
-    <div class="clear"></div>
-</dd>
-
-[% IF ziponly %]
-<dd><label for="zip">[% IF errors.missing.zip or errors.invalid.zip %]<font color="red">[% END %]Zip Code[% IF errors.missing.zip or errors.invalid.zip %]</font>[% END %]</label></dt>
-<dd>
-[% END %]
-
-<dd class="large_margin">
-	<span class="half">
-        <input type="text" id="zip" name="zip" value="[% IF req.param('zip') %][% req.param('zip') %][% ELSE %]#####[% END %]" />
-        <label for="zip">[% IF errors.missing.zip or errors.invalid.zip %]<font color="red">[% END %]Postal / Zip Code[% IF errors.missing.zip or errors.invalid.zip %]</font>[% END %]</label>
-    </span>
-
-
-[% IF !ziponly %]
-<!-- STATE
-<dd class="large_margin">
+-->
 	<span class="half">
 		<select id="state" name="state">
-		<option value="">State</option>
+		<option value="">State / Province</option>
+		    <option value="">---States---</option>
 		    <option value="AL" [% IF req.param('state') == 'AL' %]SELECTED[% END %]>Alabama</option>
 		    <option value="AK" [% IF req.param('state') == 'AK' %]SELECTED[% END %]>Alaska</option>
 		    <option value="AZ" [% IF req.param('state') == 'AZ' %]SELECTED[% END %]>Arizona</option>
@@ -104,6 +87,7 @@
 		    <option value="WV" [% IF req.param('state') == 'WV' %]SELECTED[% END %]>West Virginia</option>
 		    <option value="WI" [% IF req.param('state') == 'WI' %]SELECTED[% END %]>Wisconsin</option>
 		    <option value="WY" [% IF req.param('state') == 'WY' %]SELECTED[% END %]>Wyoming</option>
+		    <option value="">---Provinces---</option>
 		    <option value="ON" [% IF req.param('state') == 'ON' %]SELECTED[% END %]>Ontario</option>
 		    <option value="QC" [% IF req.param('state') == 'QC' %]SELECTED[% END %]>Quebec</option>
 		    <option value="NS" [% IF req.param('state') == 'NS' %]SELECTED[% END %]>Nova Scotia</option>
@@ -115,14 +99,33 @@
 		    <option value="AB" [% IF req.param('state') == 'AB' %]SELECTED[% END %]>Alberta</option>
 		    <option value="NL" [% IF req.param('state') == 'NL' %]SELECTED[% END %]>Newfoundland and Labrador</option>
 			</select>
-			<label for="state">[% IF errors.missing.state or errors.invalid.state %]<font color="red">[% END %]State[% IF errors.missing.state or errors.invalid.state %]</font>[% END %]</label>
+			<label for="state">[% IF errors.missing.state or errors.invalid.state %]<font color="red">[% END %]State / Province[% IF errors.missing.state or errors.invalid.state %]</font>[% END %]</label>
 	</span>
+
+    <div class="clear"></div>
+</dd>
+
+[% END %]
+
+
+<dd class="large_margin">
+	<span class="half">
+        <input type="text" id="zip" name="zip" value="[% IF req.param('zip') %][% req.param('zip') %][% ELSE %]#####[% END %]" />
+<label for="zip">[% IF errors.missing.zip or errors.invalid.zip %]<font color="red">[% END %]Postal / Zip Code[% IF errors.missing.zip or errors.invalid.zip %]</font>[% END %]</label>
+    </span>
+
+
 <div class="clear"></div>
 </dd>
---> 
+
+
+[% IF !ziponly %]
+<div class="clear"></div>
+</dd>
 
 <!-- COUNTRY -->
-	<span class="half">
+<dd class="wide_margin">
+<span class="half">
 	<select id="country" name="country">
 		<option value="">Country</option>
 	    <option value="US" [% IF req.param('country') == '' || req.param('country') == 'US' %]SELECTED[% END %]>United States</option>

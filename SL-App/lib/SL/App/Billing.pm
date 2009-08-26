@@ -94,7 +94,7 @@ sub dispatch_publisher {
                     { fields => [ 'password', 'retype' ] }
                 ),
     		state       => state_or_province(),
-    		email       => email(),
+		email       => email(),
                 zip         => zip_or_postcode(),
                 first_name  => $class->valid_first,
                 last_name   => $class->valid_last,

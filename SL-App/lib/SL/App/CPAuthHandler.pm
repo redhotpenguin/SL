@@ -3,12 +3,15 @@ package SL::App::CPAuthHandler;
 use strict;
 use warnings;
 
-use Apache2::Const -compile => qw(  NOT_FOUND OK );
+use Apache2::Const -compile => qw(  NOT_FOUND OK SERVER_ERROR );
 use Apache2::RequestRec  ();
 use Apache2::RequestUtil ();
 use Apache2::Connection  ();
 
 use SL::Model::App ();
+
+use Data::Dumper;
+
 
 sub handler {
     my $r = shift;
@@ -43,7 +46,8 @@ sub handler {
         && $router->wan_ip
             && $router->account->aaa_email_cc) {
 
-        $r->log->error( sprintf( "rtr %s not setup", $router->router_id ) );
+        $r->log->error( sprintf( "rtr %s not setup %s", $router->router_id,
+		Dumper($router)) );
         return Apache2::Const::SERVER_ERROR;
     }
 
