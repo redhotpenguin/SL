@@ -22,6 +22,7 @@ use SL::App::Template ();
 use Data::Dumper;
 
 my $Ua = LWP::UserAgent->new;
+$Ua->agent('Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en-US; rv:1.9.1.2) Gecko/20090729 Firefox/3.5.2');
 $Ua->timeout(10);    # needs to respond somewhat quickly
 our $Tmpl = SL::App::Template->template();
 
@@ -162,7 +163,8 @@ sub valid_branding_image {
 
 
         unless ($response->is_success) {
-            $dfv->{image_err} = { missing => 1 };
+
+	    $dfv->{image_err} = { missing => 1 };
             return;
           }
 
