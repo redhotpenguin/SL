@@ -22,7 +22,7 @@ $(document).ready(function () {
 		// example of calling the confirm function
 		// you must use a callback function to perform the "yes" action
 		confirm("Are you sure you want to remove this item?", function () {
-			window.location.href = '/app/' + path;
+			window.location.href = path;
 		});
 	});
 });
