@@ -17,7 +17,7 @@
 [% END %]</strong>plan.</li>
 
 [% IF req.param('plan') == 'month' %]
-<li class="clear">Your monthly subscription to the WiFi network may be cancelled at any time by contacting Silver Lining Networks at the phone number or email address listed below.</li>
+<li class="clear">Your <strong>recurring monthly subscription</strong> to the WiFi network may be cancelled at any time by contacting Silver Lining Networks at the phone number or email address listed below.</li>
 [% END %]
 
 [% PROCESS billing/authorize.tmpl %]

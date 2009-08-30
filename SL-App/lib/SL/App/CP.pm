@@ -501,8 +501,23 @@ sub paid {
                 street => $req->param('street'),
                 city   => $req->param('city'),
                 state  => $req->param('state'),
+		country => $req->param('country'),
+
                 amount     => substr(SL::Payment->plan($plan)->{cost}, 1),
             );
+
+            # just a hack until arb is working
+            my $num = $req->param('card_number');
+            $num = substr( $num, length($num) - 4, length($num) );
+            $r->log->error(
+                sprintf(
+"making AAA recurring payment  cvv %s, month %s, year %s, email %s, card %s",
+                    $req->param('cvv2'), $req->param('month'),
+                    $req->param('year'), $req->param('email'),
+                    $num
+                )
+            );
+
 
             $payment =
               eval { SL::Payment->recurring( { %payment_args, %addr } ) };

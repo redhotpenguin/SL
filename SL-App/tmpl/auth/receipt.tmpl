@@ -13,10 +13,10 @@ Description: [% IF !ziponly %]Monthly [% network_name %] WiFi Internet Access [%
 Date: [% date %]
 Order Number: [% code %]
 Provider: [% network_name %]
-Total Cost: [% amount %]
+Total Cost: [% IF !ziponly %]$[% END %][% amount %]
 -------------------------------------------------------------------------
 [% IF !ziponly %]
-Your credit card will be charged [% amount %] once a month until you
+Your credit card will be charged $[% amount %] once a month until you
 cancel your subscription.
 [% END %]
 
