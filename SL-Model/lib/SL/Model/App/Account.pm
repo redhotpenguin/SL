@@ -30,6 +30,34 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => undef,
   },
+  "map_center",
+  {
+    data_type => "text",
+    default_value => '94109',
+    is_nullable => 0,
+    size => undef,
+  },
+  "map_zoom",
+  {
+    data_type => "integer",
+    default_value => 10,
+    is_nullable => 0,
+    size => 4,
+  },
+  "users_lastmonth",
+  {
+    data_type => "integer",
+    default_value => 0,
+    is_nullable => 0,
+    size => 4,
+  },
+  "megabytes_lastmonth",
+  {
+    data_type => "integer",
+    default_value => 0,
+    is_nullable => 0,
+    size => 4,
+  },
   "premium",
   {
     data_type => "boolean",
@@ -101,18 +129,8 @@ __PACKAGE__->has_many(
   { "foreign.account_id" => "self.account_id" },
 );
 __PACKAGE__->has_many(
-  "bugs",
-  "SL::Model::App::Bug",
-  { "foreign.account_id" => "self.account_id" },
-);
-__PACKAGE__->has_many(
   "payments",
   "SL::Model::App::Payment",
-  { "foreign.account_id" => "self.account_id" },
-);
-__PACKAGE__->has_many(
-  "paypal_attempts",
-  "SL::Model::App::PaypalAttempt",
   { "foreign.account_id" => "self.account_id" },
 );
 __PACKAGE__->has_many(
@@ -200,7 +218,7 @@ sub update_example_ad_zones {
 	is_default => 't',
 	reg_id => 14,
     });
-    $bughere->update;	
+    $bughere->update;
 
 
     my $splash = SL::Model::App->resultset('AdZone')->create({
@@ -321,6 +339,20 @@ sub users_unique {
     my $users_hashref = $self->users_count( $start, $end, $routers_aryref);
 
     return $users_hashref->{total};
+}
+
+
+sub get_routers {
+  my $self = shift;
+
+  my @routers = SL::Model::App->resultset('Router')->search({
+        account_id => $self->account_id,
+        active => 't' },
+       { -order_by => 'mts DESC' },);
+
+  return unless scalar(@routers) > 0;
+
+  return \@routers;
 }
 
 1;

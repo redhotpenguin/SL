@@ -74,11 +74,6 @@ __PACKAGE__->has_many(
   "SL::Model::App::AdZone",
   { "foreign.ad_size_id" => "self.ad_size_id" },
 );
-__PACKAGE__->has_many(
-  "bugs",
-  "SL::Model::App::Bug",
-  { "foreign.ad_size_id" => "self.ad_size_id" },
-);
 
 
 # Created by DBIx::Class::Schema::Loader v0.04999_07 @ 2009-06-14 16:15:26

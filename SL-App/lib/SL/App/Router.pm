@@ -31,9 +31,20 @@ sub dispatch_index {
     my ( $class, $r ) = @_;
 
     my $reg = $r->pnotes( $r->user );
-    my ($head, $map) = SL::Map->map({ account => $reg->account });
+    my %tmpl_data = ( account => $reg->account );
+    my ($head, $map) = eval { SL::Map->map({ account     => $reg->account,
+                                             server_root => $r->construct_url('')}) };
+    if ($@ or (!$head && !$map)) {
+      # handle map errors
+      $r->log->error("Error generating map: $@");
+      $tmpl_data{map_error} = 1;
+    } else {
+      %tmpl_data = ( head => $head, map => $map, %tmpl_data );
+    }
+
+
     my $output;
-    $Tmpl->process( 'router/index.tmpl', {head => $head, map => $map}, \$output, $r )
+    $Tmpl->process( 'router/index.tmpl', \%tmpl_data, \$output, $r )
       || return $class->error( $r, "Template error: " . $Tmpl->error );
     return $class->ok( $r, $output );
 }
