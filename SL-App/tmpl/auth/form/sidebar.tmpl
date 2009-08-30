@@ -13,12 +13,9 @@
 [% IF req.param('plan') == 'one' %]1 hour ($2)
 [% ELSIF req.param('plan') == 'four' %]4 hours ($3)
 [% ELSIF req.param('plan') == 'day' %]24 hours ($5)
-[% ELSIF req.param('plan') == 'month' %]monthly ($15/month)
+[% ELSIF req.param('plan') == 'month' %]recurring monthly ($15/month)
 [% END %]</strong>plan.</li>
 
-[% IF req.param('plan') == 'month' %]
-<li class="clear">Your <strong>recurring monthly subscription</strong> to the WiFi network may be cancelled at any time by contacting Silver Lining Networks at the phone number or email address listed below.</li>
-[% END %]
 
 [% PROCESS billing/authorize.tmpl %]
 
