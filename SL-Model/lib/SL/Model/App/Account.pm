@@ -40,7 +40,7 @@ __PACKAGE__->add_columns(
   "map_zoom",
   {
     data_type => "integer",
-    default_value => 10,
+    default_value => 15,
     is_nullable => 0,
     size => 4,
   },

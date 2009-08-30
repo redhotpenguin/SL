@@ -32,8 +32,10 @@ sub dispatch_index {
 
     my $reg = $r->pnotes( $r->user );
     my %tmpl_data = ( account => $reg->account );
-    my ($head, $map) = eval { SL::Map->map({ account     => $reg->account,
-                                             server_root => $r->construct_url('')}) };
+    my ($head, $map, $total, $trouble, $inactive ) =
+      eval { SL::Map->map({ account     => $reg->account,
+                            server_root => $r->construct_url('')}) };
+
     if ($@ or (!$head && !$map)) {
       # handle map errors
       $r->log->error("Error generating map: $@");
@@ -42,6 +44,10 @@ sub dispatch_index {
       %tmpl_data = ( head => $head, map => $map, %tmpl_data );
     }
 
+    %tmpl_data = ( active_nodes => $total,
+                   problem_nodes => $trouble,
+                   inactive_nodes => $inactive,
+                   %tmpl_data);
 
     my $output;
     $Tmpl->process( 'router/index.tmpl', \%tmpl_data, \$output, $r )

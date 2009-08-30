@@ -32,7 +32,7 @@ use SL::Model::App;
 $dbh->do("drop table bug");
 $dbh->do("drop table paypal_attempt");
 $dbh->do("alter table account add column map_center text not null default 94109");
-$dbh->do("alter table account add column map_zoom integer not null default 10");
+$dbh->do("alter table account add column map_zoom integer not null default 15");
 $dbh->do("alter table account add column users_lastmonth integer not null default 0");
 $dbh->do("alter table account add column megabytes_lastmonth integer not null default 0");
 $dbh->do("alter table router add column users_daily integer not null default 0");

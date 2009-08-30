@@ -256,11 +256,16 @@
 					<input type="radio" name="active" value="f" [% IF !router.active %] checked="checked" [% END %] /><label class="check_label">No</label>
 					<div class="clear"></div>
 				</li>	
-			</ul>				
 		
 		
-			
+			<li>
 			<label for="wan_ip">Registered at IP <p>[% router.wan_ip || '0.0.0.0' %]</p></label>
+            </li>
+
+            <li>
+			<label for="lat_lng">Latitude / Longitude <p>[% IF router.lat %][% router.lat %] / [% router.lng %][% ELSE %]Location Not Set[% END %]</p></label>
+            </li>
+			</ul>				
 	
 		</div>
 	</div>

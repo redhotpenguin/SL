@@ -27,7 +27,7 @@ our $Apikey =
 
 
 
-warn("apikey is $Apikey") if DEBUG;
+# warn("apikey is $Apikey") if DEBUG;
 
 sub map {
     my ( $class, $args ) = @_;
@@ -61,9 +61,11 @@ sub map {
         )
     ) if DEBUG;
 
-
     # add router icons
     my $shadow = $icon_base . 'shadow_small_repeater.png';
+
+=cut
+
     foreach my $type (qw( active alerting trouble inactive )) {
         foreach my $idx ( 0 .. 10 ) {
             foreach my $icon ( "$idx\_$type", "$idx\_gateway\_$type" ) {
@@ -81,11 +83,14 @@ sub map {
             }
         }
     }
+=cut
 
     # now put the devices on the map
     my $now = DateTime->now;
     $now->set_time_zone('local');
     my @misconfigured;
+    my %icons_added;
+    my ($total_nodes, $problem_nodes, $inactive_nodes) = (0,0,0);
     foreach my $router (@$routers) {
 
         # improperly configured devices
@@ -114,23 +119,43 @@ HTML
         }
         elsif ( DateTime->compare( $dt->add( hours => 1 ), $now ) == 1 ) {
             $type = 'alerting';
-
+            $problem_nodes++;
         }
         elsif ( DateTime->compare( $dt->add( hours => 24 ), $now ) == 1 ) {
             $type = 'trouble';
-
+            $problem_nodes++;
         }
         else {
 
             $type = 'inactive';
-
+            $inactive_nodes++;
         }
 
         my $icon = ($router->users_daily > 10) ? 10 : $router->users_daily;
         if ($router->gateway) {
-          $icon .= '_gateway';
+
+            # gateways
+            $icon .= '_gateway';
         }
-        $icon .= "_$type"; #\.png";
+
+        # add the type (inactive, etc)
+        $icon .= "_$type";
+
+        unless ($icons_added{$icon}) {
+
+            my %icon_args = (
+                    shadow             => $shadow,
+                    shadow_size        => [ 20, 20 ],
+                    icon_anchor        => [ 0, 0 ],
+                    info_window_anchor => [ 0, 0 ],
+                    name               => $icon,
+                    image              => $icon_base . $icon . '.png',
+                    image_size         => [ 20, 20 ]
+            );
+
+            warn(sprintf("adding icon args %s", Dumper(\%icon_args))) if DEBUG;
+            $map->add_icon(%icon_args);
+        }
 
         my %marker_args = (
             point => [ $router->lng, $router->lat ],
@@ -142,6 +167,9 @@ HTML
 
         warn(sprintf("placed router %d with args %s",
                      $router->router_id, Dumper(\%marker_args))) if DEBUG;
+
+            $total_nodes++;
+
     }
 
     if (@misconfigured) {
@@ -158,5 +186,7 @@ HTML
     warn("map head: $head") if VERBOSE_DEBUG;
     warn("map stuff: $stuff") if VERBOSE_DEBUG;
 
-    return ( $head, $stuff );
+    return ( $head, $stuff, $total_nodes, $problem_nodes, $inactive_nodes  );
 }
+
+1;

@@ -8,8 +8,9 @@
     
 	<div class="grid_6 alpha">
 		 <ul>
-		     <li>There are [% total_nodes || 0 %] routers in this network</li>
+		     <li>There are [% active_nodes || 0 %] routers in this network</li>
 		     <li>[% problem_nodes || 0 %] routers have had recent problems</li>
+		     <li>[% inactive_nodes || 0 %] routers are inactive</li>
 		     <li>[% account.users_lastmonth %] users transferred [% account.megabytes_lastmonth %] megabytes in the last 30 days</li>
 		 </ul>
 	</div>
