@@ -48,6 +48,8 @@ $UA->timeout(60);
 our $Paid_mark = '0x400';
 our $Ads_mark  = '0x500';
 
+our $Zendesk_ip = '65.74.185.41';
+our $Googleajax_ip = '74.125.19.95';
 
 sub init_firewall {
     my $class = shift;
@@ -101,6 +103,10 @@ slNET -p tcp -m tcp --dport 53 -j ACCEPT
 slNET -p udp -m udp --dport 53 -j ACCEPT
 slNET -d $Auth_ip -p tcp -m tcp --dport 443 -j ACCEPT
 slNET -d $Verify_authorize_net_ip -p tcp -m tcp --dport 443 -j ACCEPT
+slNET -d $Zendesk_ip -p tcp -m tcp --dport 80 -j ACCEPT
+slNET -d $Zendesk_ip -p tcp -m tcp --dport 443 -j ACCEPT
+slNET -d $Googleajax_ip -p tcp -m tcp --dport 80 -j ACCEPT
+slNET -d $Googleajax_ip -p tcp -m tcp --dport 443 -j ACCEPT
 slNET -d 69.42.24.27 -p tcp -m tcp --dport 80 -j ACCEPT
 slNET -d 69.42.25.1 -p tcp -m tcp --dport 80 -j ACCEPT
 slNET -d 69.42.24.3 -p tcp -m tcp --dport 80 -j ACCEPT

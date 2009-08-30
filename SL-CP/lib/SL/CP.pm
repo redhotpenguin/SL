@@ -52,6 +52,8 @@ sub handler {
 
     my $dest_url = $r->construct_url( $r->unparsed_uri );
 
+=cut
+
     my $c = $r->connection;
     if (my $attempts = $c->pnotes($c->remote_ip)) {
 	my $count = $attempts->{count};
@@ -108,6 +110,8 @@ sub handler {
 	  $r->log->debug("setting new limit check for ip $ip, count 1, time " . time()) if DEBUG;
   	  $c->pnotes($c->remote_ip => \%attempts);
    }
+
+=cut
 
     # check to see if this mac has been paid for
     my $paid_code = eval { SL::CP::IPTables->check_for_paid_mac( $mac, $ip ); };
