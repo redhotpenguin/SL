@@ -161,10 +161,11 @@ sub recurring {
 
     ########################################
     # make a new payment first
+    my $mac = $args->{mac} || 'FF:FF:FF:FF:FF:FF';
     my $payment = SL::Model::App->resultset('Payment')->create(
         {
             account_id => $args->{account_id},
-            mac        => 'FF:FF:FF:FF:FF:FF',
+            mac        => $mac,
             amount     => '$' . $args->{amount},
             stop       => DateTime::Format::Pg->format_datetime(
                              DateTime->now( time_zone => 'local' )->add(months => 60)),
