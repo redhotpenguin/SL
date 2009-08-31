@@ -16,10 +16,37 @@
 	</div>
 
 
+
     <div class="grid_10 omega">
+
+<!-- amxy script-->
+<script type="text/javascript" src="[% base_uri %]/resources/amxy/swfobject.js"></script>
+        <div id="flashcontent">
+                <strong>You need to upgrade your Flash Player</strong>
+        </div>
+
+        <script type="text/javascript">
+                // <![CDATA[            
+                var so = new SWFObject("[% base_uri %]/resources/amxy/amxy.swf","amxy", "700px", "400px", "4", "#FFFFFF");
+                so.addVariable("path", "[% base_uri %]/resources/amxy/");
+                so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/amxy/amxy_settings.xml"));
+                so.addVariable("data_file", encodeURIComponent("[% base_uri %]/resources/amxy/amxy_data.xml"))
+;
+                so.write("flashcontent");
+                // ]]>
+        </script>
+<!-- end of amxy script -->
+
+</div>
+
+<!--
+    <div class="grid_10 omega">
+
+
 		<img src="[% base_uri %]/resources/images/graphs/mrtg.png">
 	</div>
-	<div class="clear"></div>
+-->	
+<div class="clear"></div>
 
 
       [% IF map_error %]

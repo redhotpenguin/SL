@@ -36,6 +36,7 @@ $dbh->do("alter table account add column map_zoom integer not null default 15");
 $dbh->do("alter table account add column users_lastmonth integer not null default 0");
 $dbh->do("alter table account add column megabytes_lastmonth integer not null default 0");
 $dbh->do("alter table router add column users_daily integer not null default 0");
+$dbh->do("alter table router add column traffic_daily integer not null default 0");
 
 
 warn("finished");

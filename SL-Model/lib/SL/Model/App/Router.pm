@@ -136,6 +136,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
   "users_daily",
   { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  "traffic_daily",
+  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
   "account_id",
   {
     data_type => "integer",

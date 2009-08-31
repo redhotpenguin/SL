@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chart>
+	<graphs>
+	  <graph gid="0" title="Megabytes Downloaded">
+			<point x="00:00" y="155"></point>
+			<point x="00:15" y="155"></point>
+			<point x="00:30" y="155"></point>
+			<point x="00:45" y="155"></point>
+			<point x="01:00" y="500"></point>
+			<point x="02:00" y="300"></point>
+			<point x="03" y="300"></point>
+			<point x="04" y="155"></point>
+			<point x="05" y="300"></point>
+			<point x="06" y="300"></point>
+			<point x="07" y="300"></point>
+			<point x="08" y="155"></point>
+			<point x="09" y="300"></point>
+			<point x="10" y="300"></point>
+			<point x="11" y="300"></point>
+			<point x="12" y="155"></point>
+			<point x="13" y="300"></point>
+			<point x="14" y="300"></point>
+			<point x="15" y="300"></point>
+			<point x="16" y="300"></point>
+			<point x="17" y="300"></point>
+			<point x="18" y="155"></point>
+			<point x="19" y="300"></point>
+			<point x="20" y="300"></point>
+			<point x="21" y="300"></point>
+			<point x="22" y="155"></point>
+			<point x="23" y="300"></point>
+			<point x="24" y="300"></point>
+		</graph>		
+	  <graph gid="1" title="Megabytes Uploaded">
+			<point x="00" y="15"></point>
+			<point x="01" y="30"></point>
+			<point x="02" y="30"></point>
+			<point x="03" y="30"></point>
+			<point x="04" y="15"></point>
+			<point x="05" y="30"></point>
+			<point x="06" y="30"></point>
+			<point x="07" y="30"></point>
+			<point x="08" y="15"></point>
+			<point x="09" y="30"></point>
+			<point x="10" y="30"></point>
+			<point x="11" y="30"></point>
+			<point x="12" y="15"></point>
+			<point x="13" y="30"></point>
+			<point x="14" y="30"></point>
+			<point x="15" y="30"></point>
+			<point x="16" y="30"></point>
+			<point x="17" y="30"></point>
+			<point x="18" y="15"></point>
+			<point x="19" y="30"></point>
+			<point x="20" y="30"></point>
+			<point x="21" y="30"></point>
+			<point x="22" y="15"></point>
+			<point x="23" y="30"></point>
+			<point x="24" y="30"></point>
+		</graph>		
+
+
+
+
+	</graphs>
+</chart>

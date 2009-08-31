@@ -100,13 +100,24 @@ sub map {
         }
 
 
+        # FIXME - replace this with a template
         my $name = $router->name || 'noname';
         my $html = <<'HTML';
-<a href="/%s/app/router/edit/?router_id=%d">%s</a>
+<strong>Device:</strong>  <a href="/%s/app/router/edit/?router_id=%d">%s</a><br /><strong>Users Last 24 hours:</strong>  %s<br /><strong>Traffic Last 24 hours:</strong>  %s<br /><strong>Last Seen:</strong>  %s<br />WAN IP:  %s<br /><strong>LAN IP:</strong>  %s<br /><strong>Mac Address:</strong>  %s<br /><strong>Device IP:</strong>  %s
 HTML
 
         $html =
-          sprintf( $html, $Config->sl_app_base_uri, $router->router_id, $name );
+          sprintf( $html,
+                   $Config->sl_app_base_uri,
+                   $router->router_id,
+                   $name,
+                   $router->users_daily,
+                   $router->traffic_daily,
+                   $router->wan_ip,
+                   $router->lan_ip,
+                   $router->macaddr,
+                   $router->ip,);
+
         chomp($html);
 
         my $dt = DateTime::Format::Pg->parse_datetime( $router->last_ping );
