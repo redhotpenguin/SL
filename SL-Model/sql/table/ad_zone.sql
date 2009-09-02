@@ -25,9 +25,15 @@ CREATE TABLE ad_zone (
     account_id integer NOT NULL,
     ad_size_id integer NOT NULL,
     active boolean DEFAULT true NOT NULL,
-    bug_id integer DEFAULT 1 NOT NULL,
     reg_id integer DEFAULT 1 NOT NULL,
-    code_double text DEFAULT ''::text NOT NULL
+    code_double text,
+    public boolean DEFAULT false NOT NULL,
+    mts timestamp without time zone DEFAULT now(),
+    hidden boolean DEFAULT false NOT NULL,
+    is_default boolean DEFAULT false NOT NULL,
+    image_href text,
+    link_href text,
+    weight integer DEFAULT 1
 );
 
 
@@ -66,38 +72,6 @@ ALTER TABLE ad_zone ALTER COLUMN ad_zone_id SET DEFAULT nextval('ad_zone_ad_zone
 
 ALTER TABLE ONLY ad_zone
     ADD CONSTRAINT ad_zone_pkey PRIMARY KEY (ad_zone_id);
-
-
---
--- Name: account_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
---
-
-ALTER TABLE ONLY ad_zone
-    ADD CONSTRAINT account_id_fkey FOREIGN KEY (account_id) REFERENCES account(account_id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
--- Name: ad_size_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
---
-
-ALTER TABLE ONLY ad_zone
-    ADD CONSTRAINT ad_size_id_fkey FOREIGN KEY (ad_size_id) REFERENCES ad_size(ad_size_id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
--- Name: ad_zone_bug_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
---
-
-ALTER TABLE ONLY ad_zone
-    ADD CONSTRAINT ad_zone_bug_id_fkey FOREIGN KEY (bug_id) REFERENCES bug(bug_id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
--- Name: ad_zone_reg_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phred
---
-
-ALTER TABLE ONLY ad_zone
-    ADD CONSTRAINT ad_zone_reg_id_fkey FOREIGN KEY (reg_id) REFERENCES reg(reg_id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --

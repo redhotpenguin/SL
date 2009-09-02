@@ -22,8 +22,12 @@ CREATE TABLE ad_size (
     ad_size_id integer NOT NULL,
     name text,
     css_url text NOT NULL,
-    bug_height integer,
-    bug_width integer
+    template text DEFAULT ''::text NOT NULL,
+    grouping integer DEFAULT 1 NOT NULL,
+    js_url text DEFAULT ''::text NOT NULL,
+    head_html text,
+    persistent boolean DEFAULT true NOT NULL,
+    hidden boolean DEFAULT false NOT NULL
 );
 
 
