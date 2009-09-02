@@ -53,7 +53,7 @@ else {
 }
 
 foreach my $user (@users) {
-    my $dir = $user->account_id->report_dir_base;
+    my $dir = $user->account->report_dir_base;
     opendir( DIR, $dir ) || die "could not open $dir: $!";
     my $has_pngs = () = grep { $_ =~ m/\.png$/ } readdir(DIR);
     closedir(DIR);
