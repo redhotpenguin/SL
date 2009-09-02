@@ -93,6 +93,11 @@ PerlLoadModule Apache2::Dispatch
     SetHandler default-handler
 </Location>
 
+<Location /checkin>
+    SetHandler modperl
+    PerlResponseHandler SL::App::Checkin
+</Location>
+
 
 ## the user application, need to be logged in
 <Location  /app>

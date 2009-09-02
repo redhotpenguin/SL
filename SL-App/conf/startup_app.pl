@@ -83,6 +83,8 @@ use SL::Model::App::Router          ();
 use SL::Model::App::AdZone          ();
 use SL::Model::App::Location        ();
 use SL::Model::App::AdSize          ();
+use SL::Model::App::Checkin         ();
+use SL::Model::App::Usertrack       ();
 use SL::Model::App::Usr             ();
 
 use Apache::Session::DB_File ();
