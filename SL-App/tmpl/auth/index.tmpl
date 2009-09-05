@@ -6,19 +6,74 @@
   <link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/triple_a.css" />
   <!--[if IE 6]><link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/triple_a_ie6.css" /><![endif]--> 
   <title>Choose a WiFi Option to connect to the Internet - Silver Lining Networks</title>
-</head>
-<body>
 
+<script language="javascript1.1">
+
+start = (new Date()).getTime();
+
+
+function computeConnectionSpeed( ) {
+
+    imageObj = new Image();
+    imageObj.src="http://s.slwifi.com/foo.gif";
+
+    end = (new Date()).getTime();
+
+    connectionSpeed = 0;
+    fileSize = 1048576;
+
+    connectSpeed = (Math.floor((((fileSize/1024) / ((end - start) / 1000)))));
+//    alert("connection speed is " + connectSpeed + " kilobytes per second (Kb/s), start " + start + ", stop " + end);
+
+
+      if (connectSpeed < 50) {
+
+          document.getElementById('section_none').style.display="block";
+          document.getElementById('section_all').style.display="none";
+
+      } else  {
+      div = document.getElementById('speed');
+      div.innerHTML = "<br />You're connected to the airCloud WiFi Network.<br />Your connection speed is <strong>" + connectSpeed + " Kb/s</strong>";
+          document.getElementById('section_all').style.display="block";
+          document.getElementById('testing').style.display="none";
+      }
+
+
+      return 1;
+}
+
+</script>
+</head>
+
+
+<body onload="computeConnectionSpeed();">
+
+
+<div id="connect" style="margin-left: 20px">
+				<div id="testing" style="display:block;"><p><strong>Testing your speed to the internet...</strong></p></div>
+				<p><div id="speed"></div></p>
+</div>
+				<hr />
+
+<div id="section_none" style="display: none;">
+<p>Your connection speed is <strong>less than 50Kb/s</strong>, so you are probably out of usable range of the WiFi network.  Visit <a href="http://www.aircloud.com/public/">http://www.aircloud.com/public/</a> for a list of nearby access points.</p>
+</div>
+
+<div id="section_all" style="display: none;">
 
 	<div id="section_one">
 		<div class="center">
 			<!-- CHOOSE WIFI COPY ************************ --> 
 			<div class="two_thirds left padding_top">
+
+
+
 				<h2 class="choose_wifi">Choose a WiFi option</h2>
 				[% IF req.param('expired') %]<p><strong><font color="red">Your existing plan has expired, please select a new plan.</font></strong></p>[% END %]
 				[% IF req.param('upgrade') %]<p><strong><font color="red">Thank you for upgrading, please select a new plan.</font></strong></p>[% END %]
+
 				<p>
-				<strong>You're connected to a wireless network.</strong>  
+				
 				To get started choose a WiFi option that works best 
 				for you. We use the revenue from Ads on our free WiFi to pay for the internet so you don't
 				 have to. Thanks for understanding. However, if you really don't like Ads, choose one of our   simple pay-per-use options and surf Ad Free. Thanks!</p>
@@ -103,6 +158,8 @@
 	</div>
 
 [% PROCESS zendesk.tmpl %]
+
+</div>
 
 </body>
 </html>
