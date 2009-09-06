@@ -1,6 +1,6 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Reporting" selected="stats" %]
 
-<div id="main_content" class="grid_11">
+<div id="main_content" class="grid_10 suffix_1">
 	<h2>View Reports</h2>
 	
 	<h3 class="row">Select a type of report</h3>
@@ -27,6 +27,16 @@
 	[% END %]
 	</p>
 	
+	
+	
+	
+	<h3>Viewing [% types.$type %] report for the last [% temporals.$temporal %]</h3>
+	
+	[% IF report_uri %]
+	<img width="600" src="[% report_uri %]" />
+	[% ELSE %]
+	<p><strong>No report is available for this reporting period yet.</strong></p>
+	[% END %]
 </div>
 
 <div id="secondary_content" class="grid_5">
@@ -60,272 +70,6 @@
 		</div>
 	</div>
 </div>
-<div class="clear"></div>
 
-<div class="grid_16">
-	<h3>Viewing [% types.$type %] report for the last [% temporals.$temporal %]</h3>
-	
-	<!-- FLOT GRAPH -->
-	<div id="plotarea">
-		<table>
-			<caption>Viewing [% types.$type %] report for the last [% temporals.$temporal %]</caption>
-			<tr>
-				<td></td>
-				<th scope="col">1</th>
-				<th scope="col">2</th>
-				<th scope="col">3</th>
-				<th scope="col">4</th>
-				<th scope="col">5</th>
-				<th scope="col">6</th>
-				<th scope="col">7</th>
-				<th scope="col">8</th>
-				<th scope="col">9</th>
-				<th scope="col">10</th>
-				<th scope="col">11</th>
-				<th scope="col">12</th>
-				<th scope="col">13</th>
-				<th scope="col">14</th>
-				<th scope="col">15</th>
-				<th scope="col">16</th>
-				<th scope="col">17</th>
-				<th scope="col">18</th>
-				<th scope="col">19</th>
-				<th scope="col">20</th>
-				<th scope="col">21</th>
-				<th scope="col">22</th>
-				<th scope="col">23</th>
-				<th scope="col">24</th>
-			</tr>
-			<tr>
-				<th scope="row">5,000</th>
-				<td>10,882</td>
-				<td>10,383</td>
-				<td>10,020</td>
-				<td>9,762</td>
-				<td>9,213</td>
-				<td>8,720</td>
-				<td>10,882</td>
-				<td>10,383</td>
-				<td>10,020</td>
-				<td>9,762</td>
-				<td>9,213</td>
-				<td>8,720</td>
-				<td>10,882</td>
-				<td>10,383</td>
-				<td>10,020</td>
-				<td>9,762</td>
-				<td>9,213</td>
-				<td>8,720</td>
-				<td>10,882</td>
-				<td>10,383</td>
-				<td>10,020</td>
-				<td>9,762</td>
-				<td>9,213</td>
-				<td>8,720</td>
-			</tr>
-			<tr>
-				<th scope="row">4,000</th>
-				<td>10,970</td>
-				<td>9,040</td>
-				<td>8,303</td>
-				<td>8,234</td>
-				<td>8,901</td>
-				<td>8,889</td>
-				<td>10,970</td>
-				<td>9,040</td>
-				<td>8,303</td>
-				<td>8,234</td>
-				<td>8,901</td>
-				<td>8,889</td>
-				<td>10,970</td>
-				<td>9,040</td>
-				<td>8,303</td>
-				<td>8,234</td>
-				<td>8,901</td>
-				<td>8,889</td>
-				<td>10,970</td>
-				<td>9,040</td>
-				<td>8,303</td>
-				<td>8,234</td>
-				<td>8,901</td>
-				<td>8,889</td>
-			</tr>
-			<tr>
-				<th scope="row">3,000</th>
-				<td>1,765</td>
-				<td>1,564</td>
-				<td>1,430</td>
-				<td>1,438</td>
-				<td>1,460</td>
-				<td>1,423</td>
-				<td>1,765</td>
-				<td>1,564</td>
-				<td>1,430</td>
-				<td>1,438</td>
-				<td>1,460</td>
-				<td>1,423</td>
-				<td>1,765</td>
-				<td>1,564</td>
-				<td>1,430</td>
-				<td>1,438</td>
-				<td>1,460</td>
-				<td>1,423</td>
-				<td>1,765</td>
-				<td>1,564</td>
-				<td>1,430</td>
-				<td>1,438</td>
-				<td>1,460</td>
-				<td>1,423</td>
-			</tr>
-			<tr>
-				<th scope="row">2,000</th>
-				<td>1,575</td>
-				<td>1,434</td>
-				<td>1,345</td>
-				<td>1,252</td>
-				<td>1,158</td>
-				<td>1,148</td>
-				<td>1,575</td>
-				<td>1,434</td>
-				<td>1,345</td>
-				<td>1,252</td>
-				<td>1,158</td>
-				<td>1,148</td>
-				<td>1,575</td>
-				<td>1,434</td>
-				<td>1,345</td>
-				<td>1,252</td>
-				<td>1,158</td>
-				<td>1,148</td>
-				<td>1,575</td>
-				<td>1,434</td>
-				<td>1,345</td>
-				<td>1,252</td>
-				<td>1,158</td>
-				<td>1,148</td>
-			</tr>
-			<tr>
-				<th scope="row">1,000</th>
-				<td>599</td>
-				<td>510</td>
-				<td>479</td>
-				<td>457</td>
-				<td>447</td>
-				<td>414</td>
-				<td>599</td>
-				<td>510</td>
-				<td>479</td>
-				<td>457</td>
-				<td>447</td>
-				<td>414</td>
-				<td>599</td>
-				<td>510</td>
-				<td>479</td>
-				<td>457</td>
-				<td>447</td>
-				<td>414</td>
-				<td>599</td>
-				<td>510</td>
-				<td>479</td>
-				<td>457</td>
-				<td>447</td>
-				<td>414</td>
-			</tr>
-		</table>
-	</div>	
-	
-	<!-- OLD REPORT CODE -->
-	[% IF report_uri %]
-	<img width="600" src="[% report_uri %]" />
-	[% ELSE %]
-	<p><strong>No report is available for this reporting period yet.</strong></p>
-	[% END %]
-</div>
-<div class="clear"></div>
-
-<!-- JAVASCRIPT FOR FLOT GRAPHING -->
-<script src="[% base_uri %]/resources/js/jquery.flot.pack.js" language="javascript" type="text/javascript"></script>
-<!--[if IE]><script language="javascript" type="text/javascript" src="[% base_uri %]/resources/js/excanvas.pack.js"></script><![endif]-->
-<script language="javascript" type="text/javascript">
-$(function () {
-	var data = [
-		{
-			label: "Gold Rush",
-			data: [[1, 3],
-				[2, 10020],
-				[3, 9762],
-				[4, 9213],
-				[5, 8720],
-				[6, 8720],
-				[7, 8720],
-				[8, 8720],
-				[9, 8720],
-				[10, 8720],
-				[11, 8720],
-				[12, 3],
-				[13, 2342],
-				[14, 3453],
-				[15, 221],
-				[16, 1232], 
-				[17, 1233],
-				[18, 3231],
-				[19, 2112],
-				[20, 3111],
-				[21, 1213],
-				[22, 1233],
-				[23, 1332],
-				[24, 4222]]
-		},
-		
-		{
-			label: "Silver Lining",
-			data: [[1, 443],
-				[2, 3455],
-				[3, 555],
-				[4, 3433],
-				[5, 3433], 
-				[6, 3334],
-				[7, 4322],
-				[8, 8720],
-				[9, 8720],
-				[10, 8720],
-				[11, 8720],
-				[12, 234],
-				[13, 3455],
-				[14, 555],
-				[15, 3433],
-				[16, 3433], 
-				[17, 3334],
-				[18, 4322],
-				[19, 8720],
-				[20, 8720],
-				[21, 8720],
-				[22, 8720],
-				[23, 234],
-				[24, 2332]]
-		}
-	];
-	
-	var options = {
-		legend: {
-			show: true,
-			margin: 10,
-			backgroundOpacity: 0.5
-		},
-		points: {
-			show: true,
-			radius: 3
-		},
-		lines: {
-			show: true
-		}
-	};
-	
-	var plotarea = $("#plotarea");
-	plotarea.css("height", "500px");
-	plotarea.css("width", "940px");
-	$.plot( plotarea , data, options );
-});
-</script>
 
 [% PROCESS footer.tmpl %]
