@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use SL::Model::App;
+use SL::App::Template;
 use HTML::GoogleMaps;
 use Data::Dumper;
 
@@ -15,6 +16,8 @@ our $VERSION = 0.01;
 use SL::Config;
 
 our $Config = SL::Config->new;
+
+our $Tmpl = SL::App::Template->template();
 
 # production key, add on rollout
 #our $Apikey =
@@ -64,27 +67,6 @@ sub map {
     # add router icons
     my $shadow = $icon_base . 'shadow_small_repeater.png';
 
-=cut
-
-    foreach my $type (qw( active alerting trouble inactive )) {
-        foreach my $idx ( 0 .. 10 ) {
-            foreach my $icon ( "$idx\_$type", "$idx\_gateway\_$type" ) {
-
-                $map->add_icon(
-                    shadow             => $shadow,
-                    shadow_size        => [ 20, 20 ],
-                    icon_anchor        => [ 0, 0 ],
-                    info_window_anchor => [ 0, 0 ],
-                    name               => $icon,
-                    image              => $icon_base . $icon . '.png',
-                    image_size         => [ 20, 20 ]
-                );
-
-            }
-        }
-    }
-=cut
-
     # now put the devices on the map
     my $now = DateTime->now;
     $now->set_time_zone('local');
@@ -100,25 +82,13 @@ sub map {
         }
 
 
-        # FIXME - replace this with a template
-        my $name = $router->name || 'noname';
-        my $html = <<'HTML';
-<strong>Device:</strong>  <a href="/%s/app/router/edit/?router_id=%d">%s</a><br /><strong>Users Last 24 hours:</strong>  %s<br /><strong>Traffic Last 24 hours:</strong>  %s<br /><strong>Last Seen:</strong>  %s<br />WAN IP:  %s<br /><strong>LAN IP:</strong>  %s<br /><strong>Mac Address:</strong>  %s<br /><strong>Device IP:</strong>  %s
-HTML
+    my %tmpl_data = (
+                      router => $router, );
 
-        $html =
-          sprintf( $html,
-                   $Config->sl_app_base_uri,
-                   $router->router_id,
-                   $name,
-                   $router->users_daily,
-                   $router->traffic_daily,
-                   $router->wan_ip,
-                   $router->lan_ip,
-                   $router->macaddr,
-                   $router->ip,);
+    my $output;
+    $Tmpl->process( 'map/info.tmpl', \%tmpl_data, \$output );
 
-        chomp($html);
+        $output =~ s/\n//g;
 
         my $dt = DateTime::Format::Pg->parse_datetime( $router->last_ping );
 
@@ -170,7 +140,7 @@ HTML
 
         my %marker_args = (
             point => [ $router->lng, $router->lat ],
-            html  => $html,
+            html  => $output,
             icon  => $icon,
          );
 
