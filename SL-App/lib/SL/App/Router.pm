@@ -44,9 +44,15 @@ sub dispatch_index {
       %tmpl_data = ( head => $head, map => $map, %tmpl_data );
     }
 
+    my $filename =
+          join ( '/', $account->sl_app_base_uri,
+                 $account->report_dir_base,
+                 "network_overview.csv" );
+
     %tmpl_data = ( active_nodes => $total,
                    problem_nodes => $trouble,
                    inactive_nodes => $inactive,
+                   network_overview => $filename,
                    %tmpl_data);
 
     my $output;
