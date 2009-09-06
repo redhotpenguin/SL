@@ -20,6 +20,10 @@ use SL::Model::App;    # works for now
 use SL::App::Template ();
 use SL::Map;
 
+use SL::Config;
+
+our $Config = SL::Config->new;
+
 our $Tmpl = SL::App::Template->template();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
@@ -44,8 +48,9 @@ sub dispatch_index {
       %tmpl_data = ( head => $head, map => $map, %tmpl_data );
     }
 
+    my $account = $reg->account;
     my $filename =
-          join ( '/', $account->sl_app_base_uri,
+          join ( '/', $Config->sl_app_base_uri,
                  $account->report_dir_base,
                  "network_overview.csv" );
 
