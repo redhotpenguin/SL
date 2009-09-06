@@ -29,7 +29,7 @@
                 var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","traffic", "750px", "250px", "4", "#FFFFFF");
                 so.addVariable("path", "[% base_uri %]/resources/chart/line/");
                 so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/amline_settings.xml"));
-                so.addVariable("data_file", encodeURIComponent("[% data_uri %]"));
+                so.addVariable("data_file", encodeURIComponent("[% base_uri %]/resources/chart/line/amline_data.txt"));
                 so.write("flashcontent");
                 // ]]>
         </script>
