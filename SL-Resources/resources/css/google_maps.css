@@ -1,0 +1,54 @@
+/* HEADER
+============================================= */
+#main_content .google_bubble .gbub_header {
+padding:0px 0px 10px 0px; 
+border-bottom: 5px solid #333;
+margin-top: -10px;
+}
+#main_content .google_bubble .gbub_header h1 {
+font-size: 132%;
+font-weight: bold;
+color: #444;
+float: left;
+}
+#main_content .google_bubble .gbub_header h1 a {
+color: #444;
+text-decoration: none;
+}
+#main_content .google_bubble .gbub_header p {
+font-size: 85%;
+color: #999;
+float: right;
+margin: 0px 20px 0px 0px
+}
+
+
+/* NAVIGATION
+============================================= */
+#main_content .google_bubble .gbub_navigation ul {
+float: left;
+}
+#main_content .google_bubble .gbub_navigation li {
+float: left;
+margin-right: 10px;
+}
+
+
+/* OVERVIEW SECTION
+============================================= */
+#main_content .google_bubble #gbub_overview ul {
+margin: 10px 0px;
+}
+#main_content .google_bubble  #gbub_overview li {
+padding: 10px;
+border-bottom: 1px solid #EEE;
+}
+
+
+/* FOOTER
+============================================= */
+#main_content .google_bubble .gbub_footer p{
+text-align: right;
+font-size: 85%;
+color: #999;	
+}
