@@ -1,1 +1,32 @@
-<strong>Device:</strong>  <a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">[% router.name %]</a><br /><strong>Users Last 24 hours:</strong>  [% router.users_daily %]<br /><strong>Traffic Last 24 hours:</strong> [% router.traffic_daily %]<br /><strong>Last Seen:</strong>  [% router.last_seen %]<br />WAN IP:  [% router.wan_ip %]<br /><strong>LAN IP:</strong>  [% router.lan_ip %]<br /><strong>Mac Address:</strong>  [% router.mac %]<br /><strong>Device IP:</strong>  [% router.ip %]
+<link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/google_maps.css" />
+<script type="text/javascript" src="[% base_uri %]/resources/js/mootools.js"></script>
+<script type="text/javascript" src="[% base_uri %]/resources/js/google_maps.js"></script>
+
+<div class="google_bubble">
+	<div class="header">
+		<h1><a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">[% router.name %]</a></h1>
+		<p>[% router.last_seen %]</p>
+	</div>
+	<div class="navigation">
+		<ul>
+			<li id="overview_button">Overview</li>
+			<li id="neighbors_button">Neighbors</li>
+		</ul>
+		<div class="clear"></div>
+	</div>
+	<div id="overview">
+		<ul>
+			<li>Current Users: [% router.users_daily %]</li>
+			<li>Users last 30 days: </li>
+			<li>Data Transfer (30 days): </li>
+			<li>Hops to Gateway: </li>
+			<li>Uptime: 100 days, 5 hours, 55 minutes</li>
+		</ul>
+	</div>
+	<div class="footer">
+		<p>Mac Address: [% router.mac %] | Device IP:[% router.ip %] | LAN IP:  [% router.lan_ip %]</p>
+	</div>
+</div>
+
+[% # router.traffic_daily %]
+[% # router.wan_ip %]
