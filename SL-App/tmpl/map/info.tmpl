@@ -1,17 +1,21 @@
 [% IF 1 %]
 <div class="google_bubble">
-	<div class="header">
+
+	<div class="gbub_header">
 		<h1><a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">[% router.name %]</a></h1>
-		<p>[% router.last_seen %]</p>
+		<p>(last seen [% router.last_seen %])</p>
+		<div class="clear"></div>
 	</div>
-	<div class="navigation">
+	
+	<div class="gbub_navigation">
 		<ul>
-			<li id="overview_button">Overview</li>
-			<li id="neighbors_button">Neighbors</li>
+			<li id="gbub_overview_button">Overview</li>
+			<li id="gbub_neighbors_button">Neighbors</li>
 		</ul>
 		<div class="clear"></div>
 	</div>
-	<div id="overview">
+	
+	<div id="gbub_overview">
 		<ul>
 			<li>Current Users: [% router.users_daily %]</li>
 			<li>Users last 30 days: </li>
@@ -20,8 +24,14 @@
 			<li>Uptime: 100 days, 5 hours, 55 minutes</li>
 		</ul>
 	</div>
-	<div class="footer">
+	
+	<div id="gbub_neighbors">
+		<!-- Fred put your code here :) -->
+	</div>
+	
+	<div class="gbub_footer">
 		<p>Mac Address: [% router.mac %] | Device IP:[% router.ip %] | LAN IP:  [% router.lan_ip %]</p>
 	</div>
+	
 </div>
 [% END %]
