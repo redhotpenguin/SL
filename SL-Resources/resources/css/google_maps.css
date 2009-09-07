@@ -67,20 +67,23 @@ border-bottom: 1px solid #EEE;
 color: #333;
 font-size: 95%;
 }
+#main_content .google_bubble #gbub_overview li strong {
+font-weight: bold;
+}
 #gbub_overview .mini_icon_user {
 background: url(../images/icons/minicon/person.png) left center no-repeat;
 }
 #gbub_overview .mini_icon_calendar {
 background: url(../images/icons/minicon/calendar.png) left center no-repeat;
 }
-#gbub_overview .mini_icon_data {
-background: url(../images/icons/minicon/download.png) left center no-repeat;
+#gbub_overview .mini_icon_performance {
+background: url(../images/icons/minicon/line_graph.png) left center no-repeat;
 }
 #gbub_overview .mini_icon_hops {
 background: url(../images/icons/minicon/server.png) left center no-repeat;
 }
 #gbub_overview .mini_icon_graph {
-background: url(../images/icons/minicon/stats.png) left center no-repeat;
+background: url(../images/icons/minicon/chart.png) left center no-repeat;
 }
 
 /* NEIGHBOR SECTION
