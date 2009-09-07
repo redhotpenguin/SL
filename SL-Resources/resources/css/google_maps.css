@@ -1,12 +1,18 @@
+/* GENERAL
+============================================= */
+.gmnoprint {
+opacity: .94;
+}
+
 /* HEADER
 ============================================= */
 #main_content .google_bubble .gbub_header {
+background: url(../images/backgrounds/google_bubble/border.png) bottom left repeat-x;
 padding:0px 0px 10px 0px; 
-border-bottom: 5px solid #333;
 margin-top: -10px;
 }
 #main_content .google_bubble .gbub_header h1 {
-font-size: 132%;
+font-size: 152%;
 font-weight: bold;
 color: #444;
 float: left;
@@ -18,32 +24,70 @@ text-decoration: none;
 #main_content .google_bubble .gbub_header p {
 font-size: 85%;
 color: #999;
-float: right;
-margin: 0px 20px 0px 0px
+float: left;
+margin: 4px 20px 0px 10px
 }
 
 
 /* NAVIGATION
 ============================================= */
-#main_content .google_bubble .gbub_navigation ul {
+#main_content .google_bubble #gbub_navigation {
+padding: 5px 0px;
+}
+#main_content .google_bubble #gbub_navigation ul {
 float: left;
 }
-#main_content .google_bubble .gbub_navigation li {
+#main_content .google_bubble #gbub_navigation li {
+background: url(../images/buttons/google_bubble/button.png) top center no-repeat;
+width: 102px;
+height: 30px;
+overflow: hidden;
+color: #666;
+text-align: center;
+line-height: 30px;
+font-size: 92%;
+font-weight: bold;
 float: left;
 margin-right: 10px;
+}
+#main_content .google_bubble #gbub_navigation li.selected {
+background: url(../images/buttons/google_bubble/selected_button.png) top center no-repeat;
+color: #FFF;
 }
 
 
 /* OVERVIEW SECTION
 ============================================= */
 #main_content .google_bubble #gbub_overview ul {
-margin: 10px 0px;
+margin:0px;
 }
 #main_content .google_bubble  #gbub_overview li {
-padding: 10px;
+padding: 10px 10px 10px 24px;
 border-bottom: 1px solid #EEE;
+color: #333;
+font-size: 95%;
+}
+#gbub_overview .mini_icon_user {
+background: url(../images/icons/minicon/person.png) left center no-repeat;
+}
+#gbub_overview .mini_icon_calendar {
+background: url(../images/icons/minicon/calendar.png) left center no-repeat;
+}
+#gbub_overview .mini_icon_data {
+background: url(../images/icons/minicon/download.png) left center no-repeat;
+}
+#gbub_overview .mini_icon_hops {
+background: url(../images/icons/minicon/server.png) left center no-repeat;
+}
+#gbub_overview .mini_icon_graph {
+background: url(../images/icons/minicon/stats.png) left center no-repeat;
 }
 
+/* NEIGHBOR SECTION
+============================================= */
+#gbub_neighbors {
+display: none;
+}
 
 /* FOOTER
 ============================================= */
@@ -51,4 +95,9 @@ border-bottom: 1px solid #EEE;
 text-align: right;
 font-size: 85%;
 color: #999;	
+margin: 0px;
+position: absolute; 
+bottom: 0;
+right: 0;
 }
+
