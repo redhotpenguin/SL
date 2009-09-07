@@ -206,12 +206,30 @@ line-height: 16px;
 background: url(../images/icons/application/sync.png) top left no-repeat;
 padding-left: 22px;
 }
-.icon_textmsg {
+#main_content .icon_textmsg {
 padding-left: 70px; 
 background: url(../images/icons/application/Comment_edit.png) top left no-repeat;
 height: 64px;
 line-height: 60px;
 }
+#main_content .icon_node {
+background: url(../images/icons/application/repeater_on.png)  left center no-repeat;
+padding-left: 45px; 
+}
+#main_content .node_inactive {
+background: url(../images/icons/application/repeater.png)  left center no-repeat;
+padding-left: 45px; 
+}
+#main_content .node_trouble {
+background: url(../images/icons/application/repeater_off.png) left center no-repeat;
+padding-left: 45px; 
+}
+#main_content .icon_users {
+background: url(../images/icons/users.png) left center no-repeat;
+padding-left: 45px; 
+}
+
+
 
 /* LOGIN NAV
 ============================================= */
@@ -625,7 +643,20 @@ font-size: 85%;
 color: #666;
 margin-bottom: 3px;
 }
- 
+
+
+/* SIMPLE LIST
+============================================= */
+.simple_list li {
+padding: 12px 10px;
+border-bottom: 1px solid #EEE;
+color: #333;
+font-size: 95%;
+}
+.simple_list li strong {
+font-weight: bold;
+}
+
  
 /* TWIITER LIST
 ============================================= */
@@ -811,4 +842,11 @@ background:#333;
 padding:5px;
 display:none;
 color:#fff;
+}
+
+
+/* GOOGLE MAP
+============================================= */
+#map {
+margin-top: 20px;
 }

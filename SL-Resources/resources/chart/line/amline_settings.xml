@@ -1,7 +1,7 @@
 <settings> 
   <data_type>CSV</data_type>                                   
-  <font>Tahoma</font>                                          
-  <text_size>11</text_size>                                    
+  <font>Arial</font>                                          
+  <text_size>9</text_size>                                    
   <thousands_separator>,</thousands_separator>
   <csv_separator>,</csv_separator>
   <plot_area>
@@ -12,13 +12,13 @@
 
   <grid>
     <x>                                                      
-      <alpha>10</alpha>
+      <alpha>5</alpha>
     </x>
     <y_left>      
-      <alpha>15</alpha>
+      <alpha>5</alpha>
     </y_left>
     <y_right>      
-      <alpha>30</alpha>
+      <alpha>5</alpha>
     </y_right>    
   </grid>
   
@@ -26,8 +26,8 @@
     <x>                    
       <skip_first>false</skip_first>
       <skip_last>false</skip_last>  
-      <color>999999</color>        
-      <text_size>10</text_size>
+      <color>#666666</color>        
+      <text_size>9</text_size>
       <rotate>90</rotate>
       <frequency>1</frequency>
     </x>
@@ -38,7 +38,7 @@
   
   <axes>                           
     <x>                            
-      <color>E7E7E7</color>       
+      <color>#666666</color>       
       <alpha>100</alpha>   
       <width>1</width>     
     </x>
@@ -53,7 +53,7 @@
   <indicator>
     <color>D84B3C</color>
     <selection_color>D84B3C</selection_color>
-    <line_alpha>50</line_alpha>
+    <line_alpha>100</line_alpha>
     <x_balloon_text_color>000000</x_balloon_text_color> 
   </indicator>
   
@@ -66,37 +66,36 @@
   <graphs>             
     <graph gid="1">
       <axis>left</axis>
-      <title>Megabytes Downloaded</title>
-      <color>#FAC314</color>   
-      <balloon_text_color>000000</balloon_text_color>
+      <title>MB Downloaded</title>
+      <color>#9ce4ff</color>   
+      <balloon_text_color>#333333</balloon_text_color>
       <balloon_text>
         <![CDATA[{value} MB downloaded]]>
       </balloon_text>
-      <fill_alpha>50</fill_alpha>
+      <fill_alpha>80</fill_alpha>
     </graph>
     
     <graph gid="2">
       <axis>left</axis>
-      <title>Megabytes Uploaded</title>              
-      <color>#D84B3C</color>
-      <balloon_text_color>000000</balloon_text_color>                     
+      <title>MB Uploaded</title>              
+      <color>#f36f6f</color>
+      <balloon_text_color>#333333</balloon_text_color>                     
       <balloon_text>
         <![CDATA[{value} MB uploaded]]>
       </balloon_text>
-      <fill_alpha>50</fill_alpha>
+      <fill_alpha>100</fill_alpha>
     </graph>
 
     <graph gid="3">
       <axis>right</axis>
       <title>Unique Users</title>              
-      <color>#D84B3C</color>
-      <balloon_text_color>000000</balloon_text_color>                     
+      <color>#ffce1c</color>
+      <balloon_text_color>#333333</balloon_text_color>                     
       <balloon_text>
         <![CDATA[{value} users]]>
       </balloon_text>
-      <fill_alpha>50</fill_alpha>
+      <fill_alpha>20</fill_alpha>
     </graph>    
-
 
   </graphs>  
 </settings>
