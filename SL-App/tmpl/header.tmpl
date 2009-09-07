@@ -33,6 +33,12 @@
 
 [% IF header %][% header %][% END %]
 
+[% IF gmap %]
+<link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/google_maps.css" />
+<script type="text/javascript" src="[% base_uri %]/resources/js/mootools.js"></script>
+<script type="text/javascript" src="[% base_uri %]/resources/js/google_maps.js"></script>
+[% END %]
+
 
 </head>
 <body [% IF load %]onload="[% load %]"[% END %]>

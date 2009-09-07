@@ -1,7 +1,4 @@
-<link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/google_maps.css" />
-<script type="text/javascript" src="[% base_uri %]/resources/js/mootools.js"></script>
-<script type="text/javascript" src="[% base_uri %]/resources/js/google_maps.js"></script>
-
+[% IF 1 %]
 <div class="google_bubble">
 	<div class="header">
 		<h1><a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">[% router.name %]</a></h1>
@@ -27,6 +24,4 @@
 		<p>Mac Address: [% router.mac %] | Device IP:[% router.ip %] | LAN IP:  [% router.lan_ip %]</p>
 	</div>
 </div>
-
-[% # router.traffic_daily %]
-[% # router.wan_ip %]
+[% END %]
