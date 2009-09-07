@@ -1,66 +1,45 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage Routers" selected="network" header=head load="html_googlemaps_initialize()" gmap=1 %]
 
 <div id="main_content" class="grid_16">	
-
-
 	[% PROCESS router/tertiarynav.tmpl active="overview" %]
-
-    
+	
 	<div class="grid_6 alpha">
-		 <ul>
-		     <li>There are [% active_nodes || 0 %] routers in this network</li>
-		     <li>[% problem_nodes || 0 %] routers have had recent problems</li>
-		     <li>[% inactive_nodes || 0 %] routers are inactive</li>
-		     <li>[% account.users_lastmonth %] users transferred [% account.megabytes_lastmonth %] megabytes in the last 30 days</li>
+		 <ul class="simple_list">
+		     <li class="icon_node"><strong>[% active_nodes || 0 %] total routers </strong> in this network</li>
+		     <li class="node_trouble"><strong>[% problem_nodes || 0 %] recent problems</strong> with routers</li>
+		     <li class="node_inactive"><strong>[% inactive_nodes || 0 %] inactive routers</strong> on this network </li>
+		     <li class="icon_users"><strong>[% account.users_lastmonth %] users</strong> transferred <strong>[% account.megabytes_lastmonth %] megabytes</strong> (30 days)</li>
 		 </ul>
 	</div>
-
-
-
-	<div class="alpha omega grid_16">
-<!-- amxy script-->
-<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
-        <div id="flashcontent">
-                <strong>You need to upgrade your Flash Player</strong>
-        </div>
-
-        <script type="text/javascript">
-                // <![CDATA[            
-                var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","traffic", "750px", "250px", "4", "#FFFFFF");
-                so.addVariable("path", "[% base_uri %]/resources/chart/line/");
-                so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/amline_settings.xml"));
-                so.addVariable("data_file", encodeURIComponent("[% base_uri %]/resources/chart/line/amline_data.txt"));
-                so.write("flashcontent");
-                // ]]>
-        </script>
-<!-- end of amxy script -->
-
-</div>
-
-<div class="clear"></div>
-
-      [% IF map_error %]
-	  <div class="grid_6 alpha">
-
-      <h3><span class="error">Mapping services are currently unavailable</span></h3>
 	
-      </div>
-      [% ELSE %]
-
-
-	<div id="map" class="alpha omega grid_16">
-	
-    [% map %]
-			
+	<div class="grid_10 omega">
+		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
+	    <div id="flashcontent">
+	        <strong>You need to upgrade your Flash Player</strong>
+	    </div>
+	    <script type="text/javascript">
+	            // <![CDATA[            
+	            var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","traffic", "580px", "250px", "4", "#FFFFFF");
+	            so.addVariable("path", "[% base_uri %]/resources/chart/line/");
+	            so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/amline_settings.xml"));
+	            so.addVariable("data_file", encodeURIComponent("[% base_uri %]/resources/chart/line/amline_data.txt"));
+	            so.write("flashcontent");
+	            // ]]>
+	    </script>
 	</div>
-    [% END %]
-
 	<div class="clear"></div>
 	
+	[% IF map_error %]
+		<div class="grid_6 alpha">
+			<h3><span class="error">Mapping services are currently unavailable</span></h3>
+		</div>
+	[% ELSE %]
+		<div id="map" class="alpha omega grid_16">
+			[% map %]
+		</div>
+	[% END %]
+
+	<div class="clear"></div>
 </div>
-
-
-
-
 
 [% PROCESS footer.tmpl %]
