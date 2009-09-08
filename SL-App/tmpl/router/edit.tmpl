@@ -6,7 +6,7 @@
 			<ul>
 				[% PROCESS router/nav.tmpl %] 
 
-				<li><strong>[% UNLESS router.router_id  %]New router[% ELSE %]Edit router '[% router.name %]'[% END %]</strong></li>
+				<li><strong>[% UNLESS router.router_id  %]New router[% ELSE %]Edit router '[% router.name or router.macaddr %]'[% END %]</strong></li>
 			</ul>
 		</div>
 	</div>
@@ -29,7 +29,7 @@
 
 [% ELSE %]
 	<!-- IF TRYING TO EDIT AN EXISTING ROUTER -->
-	<h2>[% IF router.name %][% router.name %][% ELSE %]Add New Router[% END %]</h2>
+	<h2>[% IF router.router_id %][% router.name or router.macaddr %][% ELSE %]Add New Router[% END %]</h2>
 
 
 
@@ -63,23 +63,27 @@
 		
 		
 		<ul class="form"> 
+
+
 			<li>
 				<div class="grid_6 alpha omega suffix_4">
 					<!-- name -->
 					<label for="name" class="[% IF errors.missing.name %]error[% END %]">Name:</label>
-					[% IF (req.param('device') && (req.param('device') != 'mr3201a') or (router.device != 'mr3201a' ))  %]<input type="text" id="name" name="name" size="40" maxlength="50" value="[% req.param('name') or router.name %]"/>
+
+                    <input type="text" id="router_name" name="name" size="40" maxlength="50" value="[% req.param('name') or router.name %]"/>
 					<div class="clear"></div>
 					<label for="name" class="tip">50 character limit</label>
-[% ELSE %][% req.param('name') or router.name %]<input type="hidden" name="name" value="[% req.param('name') or router.name %]">[% END %]
 
 				</div>
 				<div class="clear"></div>
 			</li>	
 
+
+
 			<li>
 				<div class="grid_6 alpha omega suffix_4">
 					<!-- macaddr -->
-					<label for="macaddr" class="[% IF errors.missing.macaddr or errors.invalid.macaddr %]error[% END %]">Mac address</label>
+					<label for="macaddr" class="[% IF errors.missing.macaddr or errors.invalid.macaddr %]error[% END %]">Mac address:</label>
 [% IF (req.param('device') && (req.param('device') != 'mr3201a') or (router.device != 'mr3201a' ))  %]<input type="text" name="macaddr" id="macaddr" size="17" maxlength="17" value="[% req.param('macaddr') or router.displaymac %]"/>
 					<div class="clear"></div>
 					<label for="macaddr" class="tip">Example:  00:12:cf:43:38:bd</label>
@@ -146,11 +150,16 @@
                 <label for="zone"></label>
 
 				<!-- ad zones -->
-				[% IF reg.account.zone_type == 'text_message' %]
+				[% IF reg.account.zone_type == 'msg' %]
                     <label for="msg" class="check_label"><a href="[% base_uri %]/app/ad/msg/index">Text Message Bar</a> active for all devices</label>
-				[% ELSIF reg.account.zone_type == 'twitter_feed' %]
+				[% ELSIF reg.account.zone_type == 'twitter' %]
+
+
 					<label for="twitter" class="check_label"><a href="[% base_uri %]/app/ad/msg/index">Twitter Feed</a> active for all devices</label>
+
+
 				[% ELSIF !reg.account.zone_type || (reg.account.zone_type == 'banner_ad' ) %]
+
 
 
 			    [% IF ad_zones.0 %]
@@ -200,7 +209,7 @@
 
 				<div class="clear"></div>			
 			</li>
-            
+
 
 			<li>
 				<!-- splash page -->

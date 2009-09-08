@@ -406,11 +406,7 @@ sub dispatch_edit {
         # reset method to get for redirect
         $r->method_number(Apache2::Const::M_GET);
 
-        my @required = qw( device macaddr );
-
-        if ( defined $req->param('device') && ($req->param('device') ne 'mr3201a' )) {
-            push @required, 'name';
-        }
+        my @required = qw( device macaddr name );
 
         my %router_profile = (
             required => \@required,
@@ -478,6 +474,7 @@ sub dispatch_edit {
     # macaddress
     $router->macaddr($macaddr);
 
+    $router->name($req->param('name'));
 
     # create an ssid event if the ssid changed
     if ( $router->device eq 'wrt54gl' ) {

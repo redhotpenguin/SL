@@ -34,7 +34,7 @@
 					</div>
 					
 					<div class="grid_8">
-						<h3><a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">[% router.name or 'unnamed' %]</a></h3>
+						<h3><a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">[% router.name or router.macaddr %]</a></h3>
 						<p>
 							<strong>[% router.device %]</strong>, 
 							MAC: [% router.macaddr %], 
