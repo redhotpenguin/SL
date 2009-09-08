@@ -10,4 +10,4 @@ CREATE TABLE checkin (
 
 
 ALTER TABLE ONLY checkin
-    ADD CONSTRAINT router_id_fkey FOREIGN KEY (router_id) REFERENCES router(router_id) ON UPDATE CASCADE ON DELETE CASCADE;
+    ADD CONSTRAINT checkin__router_id_fkey FOREIGN KEY (router_id) REFERENCES router(router_id) ON UPDATE CASCADE ON DELETE CASCADE;

@@ -135,7 +135,13 @@ __PACKAGE__->add_columns(
   "views_daily",
   { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
   "account_id",
-  { data_type => "integer", default_value => 1, is_nullable => 0, size => 4 },
+  {
+    data_type => "integer",
+    default_value => 1,
+    is_foreign_key => 1,
+    is_nullable => 0,
+    size => 4,
+  },
   "wan_ip",
   {
     data_type => "inet",
@@ -263,13 +269,23 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("router_id");
 __PACKAGE__->add_unique_constraint("madaddr_uniq", ["macaddr"]);
 __PACKAGE__->has_many(
-  "checkin_router_ids",
+  "checkins",
   "SL::Model::App::Checkin",
   { "foreign.router_id" => "self.router_id" },
 );
+__PACKAGE__->belongs_to(
+  "account",
+  "SL::Model::App::Account",
+  { account_id => "account_id" },
+);
 __PACKAGE__->has_many(
-  "checkin_router_ids",
-  "SL::Model::App::Checkin",
+  "router__ad_zones",
+  "SL::Model::App::RouterAdZone",
+  { "foreign.router_id" => "self.router_id" },
+);
+__PACKAGE__->has_many(
+  "router__locations",
+  "SL::Model::App::RouterLocation",
   { "foreign.router_id" => "self.router_id" },
 );
 __PACKAGE__->has_many(
@@ -279,8 +295,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04999_08 @ 2009-09-07 22:57:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:eljln7LuAYSaWur0lCbUKA
+# Created by DBIx::Class::Schema::Loader v0.04999_08 @ 2009-09-08 12:15:55
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GNStZZaVIgf3QYdZdeFKDA
 # These lines were loaded from '/home/phred/dev/perl/lib/site_perl/5.8.9/SL/Model/App/Router.pm' found in @INC.
 # They are now part of the custom portion of this file
 # for you to hand-edit.  If you do not either delete
