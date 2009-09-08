@@ -5,7 +5,7 @@ use warnings;
 
 use base 'DBIx::Class';
 
-__PACKAGE__->load_components("InflateColumn::DateTime", "Core");
+__PACKAGE__->load_components("Core");
 __PACKAGE__->table("router");
 __PACKAGE__->add_columns(
   "router_id",
@@ -134,18 +134,8 @@ __PACKAGE__->add_columns(
   },
   "views_daily",
   { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
-  "users_daily",
-  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
-  "traffic_daily",
-  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
   "account_id",
-  {
-    data_type => "integer",
-    default_value => 1,
-    is_foreign_key => 1,
-    is_nullable => 0,
-    size => 4,
-  },
+  { data_type => "integer", default_value => 1, is_nullable => 0, size => 4 },
   "wan_ip",
   {
     data_type => "inet",
@@ -216,34 +206,82 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => undef,
   },
+  "users_daily",
+  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  "traffic_daily",
+  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  "memfree",
+  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  "clients",
+  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  "hops",
+  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  "kbup",
+  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  "kbdown",
+  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  "neighbors",
+  {
+    data_type => "text",
+    default_value => "''::text",
+    is_nullable => 0,
+    size => undef,
+  },
+  "gateway_quality",
+  {
+    data_type => "text",
+    default_value => "''::text",
+    is_nullable => 0,
+    size => undef,
+  },
+  "routes",
+  {
+    data_type => "text",
+    default_value => "''::text",
+    is_nullable => 0,
+    size => undef,
+  },
+  "load",
+  {
+    data_type => "text",
+    default_value => "''::text",
+    is_nullable => 0,
+    size => undef,
+  },
+  "download_last",
+  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  "download_average",
+  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  "mesh_ip",
+  {
+    data_type => "inet",
+    default_value => undef,
+    is_nullable => 1,
+    size => undef,
+  },
 );
 __PACKAGE__->set_primary_key("router_id");
 __PACKAGE__->add_unique_constraint("madaddr_uniq", ["macaddr"]);
-__PACKAGE__->belongs_to(
-  "account",
-  "SL::Model::App::Account",
-  { account_id => "account_id" },
-);
 __PACKAGE__->has_many(
-  "router__ad_zones",
-  "SL::Model::App::RouterAdZone",
+  "checkin_router_ids",
+  "SL::Model::App::Checkin",
   { "foreign.router_id" => "self.router_id" },
 );
 __PACKAGE__->has_many(
-  "router__locations",
-  "SL::Model::App::RouterLocation",
+  "checkin_router_ids",
+  "SL::Model::App::Checkin",
   { "foreign.router_id" => "self.router_id" },
 );
 __PACKAGE__->has_many(
-  "views",
-  "SL::Model::App::View",
+  "usertracks",
+  "SL::Model::App::Usertrack",
   { "foreign.router_id" => "self.router_id" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04999_07 @ 2009-06-14 16:15:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:guzqf7AkYvQDdIY1ok26rw
-# These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Router.pm' found in @INC.
+# Created by DBIx::Class::Schema::Loader v0.04999_08 @ 2009-09-07 22:57:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:eljln7LuAYSaWur0lCbUKA
+# These lines were loaded from '/home/phred/dev/perl/lib/site_perl/5.8.9/SL/Model/App/Router.pm' found in @INC.
 # They are now part of the custom portion of this file
 # for you to hand-edit.  If you do not either delete
 # this section or remove that file from @INC, this section
