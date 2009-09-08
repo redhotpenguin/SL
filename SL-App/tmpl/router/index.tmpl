@@ -1,4 +1,4 @@
-[% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage Routers" selected="network" header=head load="html_googlemaps_initialize()" gmap=1 %]
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Manage Routers" selected="network" header=head load="html_googlemaps_initialize()" gmap=1 refresh=800 %]
 
 <div id="main_content" class="grid_16">	
 	[% PROCESS router/tertiarynav.tmpl active="overview" %]
@@ -22,7 +22,7 @@
 	            var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","traffic", "580px", "250px", "4", "#FFFFFF");
 	            so.addVariable("path", "[% base_uri %]/resources/chart/line/");
 	            so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/amline_settings.xml"));
-	            so.addVariable("data_file", encodeURIComponent("[% base_uri %]/resources/chart/line/amline_data.txt"));
+	            so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/network_overview.csv"));
 	            so.write("flashcontent");
 	            // ]]>
 	    </script>

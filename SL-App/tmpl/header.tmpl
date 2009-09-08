@@ -7,7 +7,11 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />  
   <meta name="description" content=""/> 
   <meta name="keywords" content="" /> 
-  
+
+  [% IF refresh %]
+  <meta http-equiv="refresh" content="[% refresh %]" />
+  [% END %]
+
   <!-- FAVICON -->
   <link rel="shortcut icon" href="[% base_uri %]/resources/images/logos/dashboard_favicon.ico" />
   

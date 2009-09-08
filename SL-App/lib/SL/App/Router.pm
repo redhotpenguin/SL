@@ -60,7 +60,8 @@ sub dispatch_index {
                  $account->report_dir_base,
                  "network_overview.csv" );
 
-    %tmpl_data = ( active_nodes => $total,
+    %tmpl_data = (
+                  active_nodes => $total,
                    problem_nodes => $trouble,
                    inactive_nodes => $inactive,
                    network_overview => $filename,
