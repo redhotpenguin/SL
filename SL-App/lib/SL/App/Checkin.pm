@@ -17,9 +17,16 @@ use constant DEBUG => $ENV{SL_DEBUG} || 0;
 sub handler {
     my $r = shift;
 
-    # we get checkin string with unescaped + signs, so use args
-    my %args = map { split(/\=/, $_)  } split(/\&/, $r->args);
 
+    # we get checkin string with unescaped + signs, so use args
+    my %args;
+    my @pairs = split(/\&/, $r->args);
+    foreach my $pair (@pairs) {
+
+      my ($key, $value) = split(/\=/, $pair);
+      $args{$key} = $value || '';
+    }
+    $r->log->debug("args string: " . $r->args);
     $r->log->debug("args: " . Dumper(\%args));
 
     my $ip = $r->connection->remote_ip;
@@ -49,6 +56,9 @@ sub handler {
         $router->wan_ip($ip);
     }
 
+    # update the latest seen users
+    $router->clients($args{users});
+
     $router->update;
 
     # log the router entry
@@ -60,7 +70,7 @@ sub handler {
           kbdown    => $args{kbdown},
     });
 
-    $r->log->debug("new checkin entry for device " . $router->router_id) if DEBUG;
+    $r->log->debug("new checkin entry for " . $router->router_id) if DEBUG;
 
     my $top_users = $args{top_users};
     $r->log->debug("processing user string $top_users") if DEBUG;

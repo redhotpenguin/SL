@@ -1,4 +1,3 @@
-[% IF 1 %]
 <div class="google_bubble">
 
 	<div class="gbub_header">
@@ -17,7 +16,7 @@
 	--> 
 	<div id="gbub_overview">
 		<ul>
-			<li class="mini_icon_user"><strong>[% router.users_daily %] users</strong> and <strong>2 megabytes</strong> (last 24 hrs)</li>
+			<li class="mini_icon_user"><strong>[% router.users_daily %] users</strong> and <strong>[% router.traffic_daily %] kilobytes</strong> (last 24 hrs)</li>
 			<li class="mini_icon_calendar"><strong>100 users</strong> and <strong>30 megabytes </strong> (last 30 days)</li>
 			<li class="mini_icon_graph"><strong>99% uptime</strong>,  <strong>failed 5 checkins </strong> (last 24 hrs)</li>
 			<li class="mini_icon_performance"><strong>5 ms ping</strong> and  <strong class="error">8 MBps</strong> to gateway</li>
@@ -59,8 +58,7 @@
 	</div>
 	
 	<div class="gbub_footer">
-		<p>Mac Address: [% router.mac %] | Device IP:[% router.ip %] | LAN IP:  [% router.lan_ip %]</p>
+		<p>Mac Address: [% router.mac %] | Device IP:[% router.ip %] | WAN IP:  [% router.wan_ip %]</p>
 	</div>
 	
 </div>
-[% END %]
