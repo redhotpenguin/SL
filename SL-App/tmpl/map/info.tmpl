@@ -2,7 +2,7 @@
 
 	<div class="gbub_header">
 		<h1><a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">[% router.name %]</a></h1>
-		<p>(last seen [% router.last_seen %])</p>
+		<p>(last seen [% router.last_seen_html %])</p>
 		<div class="clear"></div>
 	</div>
 	<!--
@@ -58,7 +58,7 @@
 	</div>
 	
 	<div class="gbub_footer">
-		<p>Mac Address: [% router.macaddr %] | Device IP: [% router.ip %]</p>
+		<p>Type: <strong>[% router.board %]</strong> | Mac: <strong>[% router.macaddr %]</strong> | IP: <strong>[% router.ip %]</strong></p>
 	</div>
 	
 </div>

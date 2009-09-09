@@ -359,17 +359,46 @@ sub ad_views {
     return ( $count, \@views );
 }
 
-sub displaymac {
-	my $self = shift;
+sub board {
+    my $self = shift;
 
-	return $self->macaddr;
-	my $mac = $self->macaddr;
-	if (substr(uc($mac), 0, 9) eq '06:12:CF:') {
-		# translate
-		$mac = mac__to__om_mac($mac, $self->gateway);
-	}
-	return $mac;
+    my $board;
+
+    if ($self->device eq 'mr3201a') {
+
+      my $mac = $self->macaddr;
+
+      if (lc(substr($mac, 0, 8)) eq '00:18:0a') {
+
+        $board = 'Meraki';
+
+      } elsif (lc(substr($mac, 0, 8)) eq '00:19:3b') {
+
+        $board = 'Ubiquiti';
+
+      } elsif (lc(substr($mac, 0, 8)) eq '00:18:84') {
+
+        $board = 'Fon';
+
+      } elsif (lc(substr($mac, 0, 8)) eq '00:02:6f') {
+
+        $board = 'Willboard';
+
+      } elsif (lc(substr($mac, 0, 8)) eq '00:12:cf') {
+
+        $board = 'Accton';
+
+      } else {
+        $board = 'Unknown';
+      }
+
+    } else {
+      $board = $self->device;
+    }
+
+     return $board;
 }
+
 
 sub views_count {
     my ( $self, $start, $end) = @_;
@@ -399,6 +428,46 @@ sub users_count {
     my $ary_ref = $self->run_query( $users_sql, $start, $end, $self->router_id );
 
     return $ary_ref->[0]->[0];
+}
+
+
+
+sub last_seen_html {
+
+    my $self = shift;
+
+    my $dt = DateTime::Format::Pg->parse_datetime( $self->last_ping );
+
+    # hack for pacific time
+    my $sec =
+      ( time - $dt->epoch - 3600 * 7 );    # FIX daylight savings time breaks
+
+    my $minutes = sprintf( '%d', $sec / 60 );
+
+    if ( $sec <= 360 ) {
+        $self->{'last_seen'} = qq{<font color="green"><b>$sec sec</b></font>};
+        $self->{'seen_index'} = 1;
+    }
+    elsif ( ( $sec > 360 ) && ( $minutes <= 60 ) ) {
+        $self->{'last_seen'} =
+          qq{<font color="red"><b>$minutes min</b></font>};
+        $self->{'seen_index'} = 2;
+    }
+    elsif ( ( $minutes > 60 ) && ( $minutes < 1440 ) ) {
+        my $hours = sprintf( '%d', $minutes / 60 );
+        $self->{'last_seen'} =
+          qq{<font color="orange"><b>$hours hours</b></font>};
+        $self->{'seen_index'} = 3;
+    }
+    else {
+        $self->{'last_seen'} =
+            '<font color="black">'
+          . sprintf( '%d', $minutes / 1440 ) . ' days'
+          . '</font>';
+        $self->{'seen_index'} = 4;
+    }
+
+    return $self->{'last_seen'};
 }
 
 

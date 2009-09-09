@@ -62,6 +62,15 @@ sub handler {
     # update the latest seen users
     $router->clients( $args{users} );
 
+    # gateway or repeater?
+    if (defined $args{role} && $args{role} eq 'G') {
+      $router->gateway(1);
+    } elsif (defined $args{role} && $args{role} eq 'R') {
+      $router->gateway(0);
+    } else {
+      $router->gateway(1);
+    }
+
     $router->update;
 
     # log the router entry

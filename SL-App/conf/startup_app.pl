@@ -92,6 +92,7 @@ use Data::Dumper qw(Dumper);
 use Data::FormValidator         ();
 use Crypt::CBC                  ();
 use Crypt::DES                  ();
+use HTML::GoogleMaps            ();
 use XML::Feed                   ();
 use XML::LibXML                 ();
 use String::Strip               ();

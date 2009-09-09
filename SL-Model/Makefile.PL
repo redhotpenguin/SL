@@ -24,6 +24,7 @@ WriteMakefile(
         'URI'                         => 1.37,
         'Text::Wrap'                  => 2005.0824_01,
         'Cache::Memcached'            => 1.24,
+        'Geo::Distance'               => 0,
     },
     EXE_FILES => [
         qw( bin/sl_mail_user_reports.pl

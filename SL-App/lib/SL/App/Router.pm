@@ -24,9 +24,8 @@ our $Config = SL::Config->new;
 
 our $Tmpl = SL::App::Template->template();
 
-use constant DEBUG => $ENV{SL_DEBUG} || 0;
+use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
-
 
 # production key, add on rollout
 #our $Apikey =
@@ -36,36 +35,43 @@ use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 our $Apikey =
 'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxTsWgBucG0c8uJlOLWh0_T9Sta0kxTxDDSstcYwd8oHy5R96NYHd07KFA';
 
-
 sub dispatch_index {
     my ( $class, $r ) = @_;
 
     my $reg = $r->pnotes( $r->user );
     my %tmpl_data = ( account => $reg->account );
-    my ($head, $map, $total, $trouble, $inactive ) =
-      eval { $class->map($r, { account     => $reg->account,
-                            server_root => $r->construct_url('')}) };
+    my ( $head, $map, $total, $trouble, $inactive ) = eval {
+        $class->map(
+            $r,
+            {
+                account     => $reg->account,
+                server_root => $r->construct_url('')
+            }
+        );
+    };
 
-    if ($@ or (!$head && !$map)) {
-      # handle map errors
-      $r->log->error("Error generating map: $@");
-      $tmpl_data{map_error} = 1;
-    } else {
-      %tmpl_data = ( head => $head, map => $map, %tmpl_data );
+    if ( $@ or ( !$head && !$map ) ) {
+
+        # handle map errors
+        $r->log->error("Error generating map: $@");
+        $tmpl_data{map_error} = 1;
+    }
+    else {
+        %tmpl_data = ( head => $head, map => $map, %tmpl_data );
     }
 
-    my $account = $reg->account;
-    my $filename =
-          join ( '/', $Config->sl_app_base_uri,
-                 $account->report_dir_base,
-                 "network_overview.csv" );
+    my $account  = $reg->account;
+    my $filename = join( '/',
+        $Config->sl_app_base_uri, $account->report_dir_base,
+        "network_overview.csv" );
 
     %tmpl_data = (
-                  active_nodes => $total,
-                   problem_nodes => $trouble,
-                   inactive_nodes => $inactive,
-                   network_overview => $filename,
-                   %tmpl_data);
+        active_nodes     => $total,
+        problem_nodes    => $trouble,
+        inactive_nodes   => $inactive,
+        network_overview => $filename,
+        %tmpl_data
+    );
 
     my $output;
     $Tmpl->process( 'router/index.tmpl', \%tmpl_data, \$output, $r )
@@ -150,20 +156,23 @@ sub dispatch_omsync {
             );
         }
 
-
         # parse the router xml
         my $parser = XML::LibXML->new;
-        my $doc    = eval { $parser->parse_string(
-                            $response->decoded_content ); };
+        my $doc = eval { $parser->parse_string( $response->decoded_content ); };
         if ($@) {
 
-          $r->log->error("open-mesh.com call network error for net " .
-                         $req->param('network'));
+            $r->log->error( "open-mesh.com call network error for net "
+                  . $req->param('network') );
 
-          $r->log->error("response: " . $response->decoded_content);
+            $r->log->error( "response: " . $response->decoded_content );
 
-          return $class->dispatch_omsync($r, { errors => { sync => 1 },
-                                               req => $req } );
+            return $class->dispatch_omsync(
+                $r,
+                {
+                    errors => { sync => 1 },
+                    req    => $req
+                }
+            );
         }
 
         my @nodes = $doc->getElementsByTagName('node');
@@ -326,7 +335,7 @@ sub dispatch_edit {
 
     ##################################
     # for banner ads only
-    my (@pzones, @bzones);
+    my ( @pzones, @bzones );
     if ( $zone_type eq 'banner_ad' ) {
 
         # persistent zones
@@ -341,13 +350,11 @@ sub dispatch_edit {
           if DEBUG;
     }
 
-
     # splash page
     my @szones = $reg->get_splash_zones;
 
     $r->log->debug( "got szones " . join( "\n", map { $_->name } @szones ) )
       if DEBUG;
-
 
     my ( %router__ad_zones, @locations, $router, $output );
     if ( $req->param('router_id') ) {    # edit existing router
@@ -370,7 +377,7 @@ sub dispatch_edit {
             return Apache2::Const::NOT_FOUND;
         }
 
-         # get the locations for the router
+        # get the locations for the router
         @locations =
           sort { $b->mts cmp $a->mts }
           map  { $_->location } $router->router__locations;
@@ -388,7 +395,6 @@ sub dispatch_edit {
             }
 
         }
-
 
     }
 
@@ -477,11 +483,10 @@ sub dispatch_edit {
         $router->update;
     }
 
-
     # macaddress
     $router->macaddr($macaddr);
 
-    $router->name($req->param('name'));
+    $router->name( $req->param('name') );
 
     # create an ssid event if the ssid changed
     if ( $router->device eq 'wrt54gl' ) {
@@ -496,7 +501,7 @@ sub dispatch_edit {
           serial_number ssid splash_timeout ) {
             $router->$param( $req->param($param) );
           };
-	$router->active(1);
+        $router->active(1);
     }
 
     # active?  adserving?
@@ -504,14 +509,12 @@ sub dispatch_edit {
 
     $router->update;
 
-
     if ( $reg->account->zone_type eq 'banner_ad' ) {
 
         # and update the associated ad zones for this router
         # first get rid of the old associations
         SL::Model::App->resultset('RouterAdZone')
           ->search( { router_id => $router->router_id } )->delete_all;
-
 
         # for ad zones
         foreach my $ad_zone_id ( $req->param('ad_zone') ) {
@@ -581,8 +584,6 @@ sub dispatch_edit {
 
     }
 
-
-
     # assign the splash page ad
     foreach my $ad_zone_id ( $req->param('splash_zone') ) {
 
@@ -614,12 +615,15 @@ sub dispatch_list {
     my @routers = $reg->get_routers( $req->param('ad_zone_id') );
 
     foreach my $router (@routers) {
+
         my $dt = DateTime::Format::Pg->parse_datetime( $router->last_ping );
 
         # hack for pacific time
         my $sec =
-          ( time - $dt->epoch - 3600 * 7 ); # FIX daylight savings time breaks
+          ( time - $dt->epoch - 3600 * 7 );   # FIX daylight savings time breaks
+
         my $minutes = sprintf( '%d', $sec / 60 );
+
         if ( $sec <= 360 ) {
             $router->{'last_seen'} =
               qq{<font color="green"><b>$sec sec</b></font>};
@@ -689,14 +693,15 @@ sub dispatch_deactivate {
     return Apache2::Const::REDIRECT;
 }
 
-
 sub map {
     my ( $class, $r, $args ) = @_;
 
-    my $account = $args->{account} || die 'no account id passed';
+    my $account     = $args->{account}     || die 'no account id passed';
     my $server_root = $args->{server_root} || die 'no server root';
 
     my $routers = $account->get_routers;
+
+    @{$routers} = grep { defined $_->lat && defined $_->lng } @{$routers};
 
     my $map = HTML::GoogleMaps->new(
         height => 600,
@@ -711,9 +716,7 @@ sub map {
     $map->info_window(1);
     $map->controls( 'large_map_control', 'map_type_control' );
     my $icon_base =
-        $server_root
-      . $Config->sl_app_base_uri
-      . '/resources/images/icons/maps/';
+      $server_root . $Config->sl_app_base_uri . '/resources/images/icons/maps/';
 
     $r->log->debug(
         sprintf(
@@ -730,20 +733,19 @@ sub map {
     $now->set_time_zone('local');
     my @misconfigured;
     my %icons_added;
-    my ($total_nodes, $problem_nodes, $inactive_nodes) = (0,0,0);
+    my ( $total_nodes, $problem_nodes, $inactive_nodes ) = ( 0, 0, 0 );
     foreach my $router (@$routers) {
 
         # improperly configured devices
-        unless ($router->lat && $router->lng) {
+        unless ( $router->lat && $router->lng ) {
             push @misconfigured, $router->id;
             next;
         }
 
+        my %tmpl_data = ( router => $router, );
 
-    my %tmpl_data = ( router => $router, );
-
-    my $output;
-    $Tmpl->process( 'map/info.tmpl', \%tmpl_data, \$output );
+        my $output;
+        $Tmpl->process( 'map/info.tmpl', \%tmpl_data, \$output );
 
         $output =~ s/\n//g;
 
@@ -769,8 +771,8 @@ sub map {
             $inactive_nodes++;
         }
 
-        my $icon = ($router->clients > 10) ? 10 : $router->clients;
-        if ($router->gateway) {
+        my $icon = ( $router->clients > 10 ) ? 10 : $router->clients;
+        if ( $router->gateway ) {
 
             # gateways
             $icon .= '_gateway';
@@ -779,19 +781,20 @@ sub map {
         # add the type (inactive, etc)
         $icon .= "_$type";
 
-        unless ($icons_added{$icon}) {
+        unless ( $icons_added{$icon} ) {
 
             my %icon_args = (
-                    shadow             => $shadow,
-                    shadow_size        => [ 20, 20 ],
-                    icon_anchor        => [ 0, 0 ],
-                    info_window_anchor => [ 0, 0 ],
-                    name               => $icon,
-                    image              => $icon_base . $icon . '.png',
-                    image_size         => [ 20, 20 ]
+                shadow             => $shadow,
+                shadow_size        => [ 20, 20 ],
+                icon_anchor        => [ 0, 0 ],
+                info_window_anchor => [ 0, 0 ],
+                name               => $icon,
+                image              => $icon_base . $icon . '.png',
+                image_size         => [ 20, 20 ]
             );
 
-            $r->log->debug(sprintf("icon %s", Dumper(\%icon_args))) if DEBUG;
+            $r->log->debug( sprintf( "icon %s", Dumper( \%icon_args ) ) )
+              if DEBUG;
             $map->add_icon(%icon_args);
         }
 
@@ -799,33 +802,38 @@ sub map {
             point => [ $router->lng, $router->lat ],
             html  => $output,
             icon  => $icon,
-         );
+        );
 
-        $map->add_marker( %marker_args );
+        $map->add_marker(%marker_args);
 
-        $r->log->debug(sprintf("placed router %d with args %s",
-                     $router->router_id, Dumper(\%marker_args))) if DEBUG;
+        $r->log->debug(
+            sprintf(
+                "placed router %d with args %s",
+                $router->router_id, Dumper( \%marker_args )
+            )
+        ) if DEBUG;
 
         $total_nodes++;
 
     }
 
     if (@misconfigured) {
-      $r->log->warn(sprintf("devices missing lat && lng: %s",
-                   join(',', @misconfigured)));
+        $r->log->warn(
+            sprintf( "devices missing lat && lng: %s",
+                join( ',', @misconfigured ) )
+        );
     }
 
     my ( $head, $stuff ) = $map->onload_render;
 
-    unless ($head && $stuff) {
-      die "error creating map";
+    unless ( $head && $stuff ) {
+        die "error creating map";
     }
 
-    $r->log->debug("map head: $head") if VERBOSE_DEBUG;
+    $r->log->debug("map head: $head")   if VERBOSE_DEBUG;
     $r->log->debug("map stuff: $stuff") if VERBOSE_DEBUG;
 
-    return ( $head, $stuff, $total_nodes, $problem_nodes, $inactive_nodes  );
+    return ( $head, $stuff, $total_nodes, $problem_nodes, $inactive_nodes );
 }
-
 
 1;

@@ -155,9 +155,10 @@ __PACKAGE__->has_many(
 # file again via Loader!
 
 
-use SL::Config       ();
-use File::Path       ();
-use Digest::MD5      ();
+use SL::Config  ();
+use File::Path  ();
+use Digest::MD5 ();
+use Geo::Distance ();
 
 our $Config = SL::Config->new();
 
@@ -169,7 +170,7 @@ sub report_dir_base {
     return $self->{report_dir_base} if $self->{report_dir_base};
 
     # make the directory to store the reporting data
-     my $dir = join ( '/', $Config->sl_data_root, $self->report_base );
+    my $dir = join( '/', $Config->sl_data_root, $self->report_base );
 
     File::Path::mkpath($dir) unless ( -d $dir );
 
@@ -178,8 +179,66 @@ sub report_dir_base {
 }
 
 sub report_base {
-  my $self = shift;
-  return join('/', Digest::MD5::md5_hex( $self->name ), 'report');
+    my $self = shift;
+    return join( '/', Digest::MD5::md5_hex( $self->name ), 'report' );
+}
+
+
+# centers the map!
+
+sub center_the_map {
+    my $self = shift;
+
+    my @routers =
+      grep { defined $_->lat && defined $_->lng && $_->active } $self->routers;
+
+    # make a circle from all the points (yeah right)
+    my $geo = Geo::Distance->new;
+    my %dist = ( meters => 0, rtrone => '', rtrtwo => '' );
+    foreach my $rtr (@routers) {
+
+        foreach my $ot_rtr (@routers) {
+            next if $ot_rtr->router_id == $rtr->router_id;
+
+            my $distance = $geo->distance(
+                'meter',
+                $rtr->lat, $rtr->lng =>
+                  $ot_rtr->lat,
+                $ot_rtr->lng,
+            );
+            warn(
+                sprintf(
+                    "distance between router %s and %s is %s",
+                    $rtr->name, $ot_rtr->name, $distance
+                )
+            ) if DEBUG;
+
+            # ouch weird code
+            if ( $dist{meters} < $distance ) {
+
+                # new distance
+                $dist{meters} = $distance;
+                $dist{rtrone} = $rtr;
+                $dist{rtrtwo} = $ot_rtr;
+            }
+
+        }
+    }
+
+    if ( $dist{meters} < 200 ) {
+        $self->map_zoom(25);
+    }
+
+    my $rtr    = $dist{rtrone};
+    my $ot_rtr = $dist{rtrtwo};
+
+    # now get the center of those two points
+    my ( $clat, $clng ) =
+      ( ( $rtr->lat + $ot_rtr->lat ) / 2, ( $rtr->lng + $ot_rtr->lng ) / 2 );
+    warn("clat $clat, clng $clng") if DEBUG;
+    $self->map_center("$clat, $clng");
+    $self->update;
+
 }
 
 
@@ -189,64 +248,75 @@ sub update_example_ad_zones {
     $self->zone_type('banner_ad');
     $self->update;
 
-    my $image_href = 'http://s1.slwifi.com/images/ads/sln/advertise_leaderboard.png';
+    my $image_href =
+      'http://s1.slwifi.com/images/ads/sln/advertise_leaderboard.png';
     my $link_href = 'http://www.silverliningnetworks.com/advertise_here';
 
-    my $adhere = SL::Model::App->resultset('AdZone')->create({
-	account_id => $self->account_id,
-	ad_size_id => 12,
-	image_href => $image_href,
-	link_href =>  $link_href,
-	code => sprintf( '<a href="%s"><img src="%s"></a>',
-            $link_href, $image_href ),
-	weight => 2,
-	name => 'Example Banner Ad',
-	is_default => 't',
-	reg_id => 14,
-    });
+    my $adhere = SL::Model::App->resultset('AdZone')->create(
+        {
+            account_id => $self->account_id,
+            ad_size_id => 12,
+            image_href => $image_href,
+            link_href  => $link_href,
+            code       => sprintf(
+                '<a href="%s"><img src="%s"></a>',
+                $link_href, $image_href
+            ),
+            weight     => 2,
+            name       => 'Example Banner Ad',
+            is_default => 't',
+            reg_id     => 14,
+        }
+    );
     $adhere->update;
 
-    my $bughere = SL::Model::App->resultset('AdZone')->create({
-	account_id => $self->account_id,
-	ad_size_id => 22,
-	image_href => 'http://s1.slwifi.com/images/ads/sln/leaderboard_sponsored_by.gif',
-	link_href => 'http://www.silverliningnetworks.com/?branding_account='
-	    . $self->account_id,
-	code => '',
-	weight => 2,
-	name => 'Example Branding Image',
-	is_default => 't',
-	reg_id => 14,
-    });
+    my $bughere = SL::Model::App->resultset('AdZone')->create(
+        {
+            account_id => $self->account_id,
+            ad_size_id => 22,
+            image_href =>
+'http://s1.slwifi.com/images/ads/sln/leaderboard_sponsored_by.gif',
+            link_href =>
+              'http://www.silverliningnetworks.com/?branding_account='
+              . $self->account_id,
+            code       => '',
+            weight     => 2,
+            name       => 'Example Branding Image',
+            is_default => 't',
+            reg_id     => 14,
+        }
+    );
     $bughere->update;
 
-
-    my $splash = SL::Model::App->resultset('AdZone')->create({
-	account_id => $self->account_id,
-	ad_size_id => 15,
-	image_href => 'http://s1.slwifi.com/images/ads/sln/300x250.gif',
-	link_href => 'http://www.silverliningnetworks.com/?splash_account='
-	    . $self->account_id,
-	code => '',
-	weight => 2,
-	name => 'Example Splash Page Ad',
-	is_default => 't',
-	reg_id => 14,
-    });
-    $bughere->update;	
-
+    my $splash = SL::Model::App->resultset('AdZone')->create(
+        {
+            account_id => $self->account_id,
+            ad_size_id => 15,
+            image_href => 'http://s1.slwifi.com/images/ads/sln/300x250.gif',
+            link_href  => 'http://www.silverliningnetworks.com/?splash_account='
+              . $self->account_id,
+            code       => '',
+            weight     => 2,
+            name       => 'Example Splash Page Ad',
+            is_default => 't',
+            reg_id     => 14,
+        }
+    );
+    $bughere->update;
 
     return 1;
 }
-
 
 sub get_ad_zones {
     my $self = shift;
 
     # ad zones allowed for this user
-    my @ad_zones = SL::Model::App->resultset('AdZone')->search({
-    		     active => 't',
-                     account_id => $self->account_id });
+    my @ad_zones = SL::Model::App->resultset('AdZone')->search(
+        {
+            active     => 't',
+            account_id => $self->account_id
+        }
+    );
 
     return unless scalar(@ad_zones) > 0;
 
@@ -260,8 +330,9 @@ sub process_ad_zone {
     my ( $self, $ad_zone ) = @_;
 
     # get routers for this account
-    my @routers = SL::Model::App->resultset('Router')->search({
-             account_id => $self->account_id });
+    my @routers =
+      SL::Model::App->resultset('Router')
+      ->search( { account_id => $self->account_id } );
 
     if ( scalar(@routers) == 0 ) {
         $ad_zone->{router_count} = 0;
@@ -273,7 +344,7 @@ sub process_ad_zone {
       SL::Model::App->resultset('RouterAdZone')->search(
         {
             ad_zone_id => $ad_zone->ad_zone_id,
-            router_id   => { -in => [ map { $_->router_id } @routers ] }
+            router_id  => { -in => [ map { $_->router_id } @routers ] }
         }
       )->count;
 
@@ -289,23 +360,25 @@ sub views_count {
 
     my $views_hashref;
     my $total = 0;
-    foreach my $router ( sort { $a->router_id <=> $b->router_id }
-                         @{$routers_aryref} ) {
+    foreach
+      my $router ( sort { $a->router_id <=> $b->router_id } @{$routers_aryref} )
+    {
 
-    my $router_name = $router->name || $router->macaddr ||
-        sprintf('empty router id %d', $router->router_id);
-    print "===> processing router $router_name\n" if DEBUG;
-    my $count = $router->views_count( $start, $end );
+        my $router_name =
+             $router->name
+          || $router->macaddr
+          || sprintf( 'empty router id %d', $router->router_id );
+        print "===> processing router $router_name\n" if DEBUG;
+        my $count = $router->views_count( $start, $end );
         $total += $count;
 
-        $views_hashref->{routers}->{ $router->router_id }->{count} =
-          $count || 0;
+        $views_hashref->{routers}->{ $router->router_id }->{count} = $count
+          || 0;
     }
     $views_hashref->{total} = $total;
 
     return $views_hashref;
 }
-
 
 # number of users seen in a time period
 sub users_count {
@@ -316,18 +389,21 @@ sub users_count {
 
     my $users_hashref;
     my $total = 0;
-    foreach my $router ( sort { $a->router_id <=> $b->router_id }
-                         @{$routers_aryref} ) {
+    foreach
+      my $router ( sort { $a->router_id <=> $b->router_id } @{$routers_aryref} )
+    {
 
-	    my $router_name = $router->name || $router->macaddr ||
-	        sprintf('empty router id %d', $router->router_id);
+        my $router_name =
+             $router->name
+          || $router->macaddr
+          || sprintf( 'empty router id %d', $router->router_id );
 
         print "===> processing router $router_name\n" if DEBUG;
-	    my $count = $router->users_count( $start, $end );
+        my $count = $router->users_count( $start, $end );
         $total += $count;
 
-        $users_hashref->{routers}->{ $router->router_id }->{count} =
-          $count || 0;
+        $users_hashref->{routers}->{ $router->router_id }->{count} = $count
+          || 0;
     }
     $users_hashref->{total} = $total;
 
@@ -336,23 +412,25 @@ sub users_count {
 
 sub users_unique {
     my ( $self, $start, $end, $routers_aryref ) = @_;
-    my $users_hashref = $self->users_count( $start, $end, $routers_aryref);
+    my $users_hashref = $self->users_count( $start, $end, $routers_aryref );
 
     return $users_hashref->{total};
 }
 
-
 sub get_routers {
-  my $self = shift;
+    my $self = shift;
 
-  my @routers = SL::Model::App->resultset('Router')->search({
-        account_id => $self->account_id,
-        active => 't' },
-       { -order_by => 'mts DESC' },);
+    my @routers = SL::Model::App->resultset('Router')->search(
+        {
+            account_id => $self->account_id,
+            active     => 't'
+        },
+        { -order_by => 'mts DESC' },
+    );
 
-  return unless scalar(@routers) > 0;
+    return unless scalar(@routers) > 0;
 
-  return \@routers;
+    return \@routers;
 }
 
 1;
