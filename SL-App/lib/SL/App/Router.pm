@@ -807,6 +807,7 @@ sub map {
             point => [ $router->lng, $router->lat ],
             html  => $output,
             icon  => $icon,
+            title => $router->name,
         );
 
         $map->add_marker(%marker_args);
