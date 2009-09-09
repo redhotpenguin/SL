@@ -49,7 +49,7 @@ foreach my $row (@$results) {
 # users
 $sql = <<'SQL';
 SELECT account.account_id, usertrack.mac, usertrack.cts,
-usertrack.kbup, usertrack.kbdown
+usertrack.kbup, usertrack.kbdown, router.router_id
 FROM usertrack, account, router
 WHERE
 router.account_id = account.account_id
@@ -64,11 +64,12 @@ my $users = $dbh->selectall_arrayref( $sql, { Slice => {} } );
 
 foreach my $row (@$users) {
 
-    # and group by router
+    # and group by user
     push @{ $refined{ $row->{account_id} }{users}{ $row->{mac} } },
       {
         kbup   => $row->{kbup},
         kbdown => $row->{kbdown},
+        router => $row->{router_id},
         cts    => DateTime::Format::Pg->parse_datetime( $row->{cts} ),
       };
 }
@@ -81,14 +82,20 @@ foreach my $account_id ( keys %refined ) {
     my @array;
     for ( 1 .. 24 * 12 ) {    # 5 minutes
         push @array,
-          [ $now->clone->subtract( minutes => 5 * $_ - 1 ), 0, 0, 0 ];
+          [ $now->clone->subtract( minutes => 5 * $_ - 1 ), # cts
+            0, # kbdown
+            0, # kbup
+            0, # users
+            0 ]; # checkin bit
     }
 
     # aggregate the router data
+    my $megabytes_total = 0;
     foreach my $router_id ( keys %{ $refined{$account_id}{routers} } ) {
 
         # loop over the data
         #        $DB::single = 1;
+        my $router_traffic = 0;
         my ( %last_row, %placeholder );
         foreach my $row ( sort { $a->{cts}->epoch <=> $b->{cts}->epoch }
             @{ $refined{$account_id}{routers}{$router_id} } )
@@ -129,6 +136,13 @@ foreach my $account_id ( keys %refined ) {
                     $array[$i]->[1] +=
                       sprintf( "%2.2f", $row->{kbdown} / 1024 );
                     $array[$i]->[2] += sprintf( "%2.2f", $row->{kbup} / 1024 );
+
+                    # bit to indicate a checkin took place for this device
+                    $array[$i]->[4] = 1;
+
+                    # total megs
+                    $megabytes_total += $array[$i]->[1] + $array[$i]->[2];
+                    $router_traffic  += $array[$i]->[1] + $array[$i]->[2];
                     last;    # last $row
                 }
 
@@ -137,9 +151,29 @@ foreach my $account_id ( keys %refined ) {
             %last_row = %placeholder;
         }
 
+        my ($router) = SL::Model::App->resultset('Router')->search({router_id => $router_id});
+
+        # uptime willis!!
+        my $unchecked_count = grep { !$_->[4] } @array;
+        my $uptime = 100 * ($#array-$unchecked_count) / $#array;
+
+        if ($unchecked_count == 0) {
+
+          $router->checkin_status("100% Uptime! (last 24 hrs)");
+
+        } else {
+
+          $router->checkin_status(sprintf("%2.2f%% uptime, %d failed checkins",
+                                          $uptime, $unchecked_count));
+        }
+
+        $router->traffic_daily(int($router_traffic));
+        $router->update;
+
     }
 
     # aggregate the user data
+    my %router_users;
     foreach my $mac ( keys %{ $refined{$account_id}{users} } ) {
 
         # loop over the data
@@ -148,6 +182,8 @@ foreach my $account_id ( keys %refined ) {
         foreach my $row ( sort { $b->{cts}->epoch <=> $a->{cts}->epoch }
             @{ $refined{$account_id}{users}{$mac} } )
         {
+
+            $router_users{$row->{router}}{$mac} = 1;
 
             # at this point we're processing time based data for $router_id.
             # add the totals to to the array in the correct time slot.
@@ -168,15 +204,29 @@ foreach my $account_id ( keys %refined ) {
 
     }
 
+    # now update the router totals
+    foreach my $router_id ( keys %router_users ) {
+      my ($router) = SL::Model::App->resultset('Router')->search({ router_id => $router_id  });
+
+      $router->users_daily(scalar(keys %{$router_users{$router_id}}));
+      $router->update;
+    }
+
     # reinitialize the array
     #    $DB::single = 1;
     $_->[0] = $_->[0]->strftime("%l:%M %p") for @array;
     warn( "array is " . Dumper( \@array ) ) if DEBUG;
+
     my ($account) =
       SL::Model::App->resultset('Account')
       ->search( { account_id => $account_id } );
 
     die "missing account for account $account_id" unless $account;
+
+    # users and traffic last 24 hours
+    $account->users_today(scalar( keys %{ $refined{$account_id}{users} } ) );
+    $account->megabytes_today(int($megabytes_total));
+    $account->update;
 
     my $filename =
       join( '/', $account->report_dir_base, "network_overview.csv" );
@@ -184,7 +234,7 @@ foreach my $account_id ( keys %refined ) {
     my $fh;
     open( $fh, '>', $filename ) or die "could not open $filename: " . $!;
     foreach my $line (@array) {
-        print $fh join( ',', @{$line} ) . "\n";
+        print $fh join( ',', @{$line}[0..3] ) . "\n";
     }
     close $fh or die $!;
 

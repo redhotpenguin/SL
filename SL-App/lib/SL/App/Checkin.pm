@@ -71,6 +71,19 @@ sub handler {
       $router->gateway(1);
     }
 
+    # repeater stuff
+    if (!$router->gateway) {
+        my $gwip = $args{routes};
+        my ($gateway) = SL::Model::App->resultset('Router')->search({ip => $gwip });
+
+        $router->speed_test(sprintf("%d hops, %d ms ping and %s to gateway %s",
+                                $args{hops}, $args{RTT}, $args{NTR}, $gateway->name));
+
+    } else {
+
+        $router->speed_test(sprintf("%d neighbors in range", scalar(split(/\;/, $args{nbs}))));
+    }
+
     $router->update;
 
     # log the router entry

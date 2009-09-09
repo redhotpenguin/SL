@@ -60,6 +60,20 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => undef,
   },
+  "checkin_status",
+  {
+    data_type => "text",
+    default_value => 'No checkin history',
+    is_nullable => 1,
+    size => undef,
+  },
+  "speed_test",
+  {
+    data_type => "text",
+    default_value => 'No speed test data',
+    is_nullable => 1,
+    size => undef,
+  },
   "name",
   {
     data_type => "text",
@@ -374,7 +388,7 @@ sub board {
 
       } elsif (lc(substr($mac, 0, 8)) eq '00:19:3b') {
 
-        $board = 'Ubiquiti';
+        $board = 'Willboard';
 
       } elsif (lc(substr($mac, 0, 8)) eq '00:18:84') {
 
@@ -382,7 +396,11 @@ sub board {
 
       } elsif (lc(substr($mac, 0, 8)) eq '00:02:6f') {
 
-        $board = 'Willboard';
+        $board = 'Engenius';
+
+      } elsif (lc(substr($mac, 0, 8)) eq '00:15:6d') {
+
+        $board = 'Ubiquiti';
 
       } elsif (lc(substr($mac, 0, 8)) eq '00:12:cf') {
 

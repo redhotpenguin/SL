@@ -29,6 +29,11 @@ my $dbh = DBI->connect( $dsn, 'phred', '', $db_options );
 ##############################
 use SL::Model::App;
 
+$dbh->do("alter table account add column map_center text not null default '94109'");
+$dbh->do("alter table account add column map_zoom integer not null default 20");
+$dbh->do("alter table account add column users_today integer not null default 0");
+$dbh->do("alter table account add column megabytes_today integer not null default 0");
+
 $dbh->do("create table network (network_id serial not null primary key)");
 $dbh->do("alter table network add column account_id integer NOT NULL");
 $dbh->do("ALTER TABLE ONLY network ADD CONSTRAINT network__account_id_fkey FOREIGN KEY (account_id) REFERENCES account(account_id) ON UPDATE CASCADE ON DELETE CASCADE");

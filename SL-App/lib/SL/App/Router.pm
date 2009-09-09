@@ -35,6 +35,10 @@ use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 our $Apikey =
 'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxTsWgBucG0c8uJlOLWh0_T9Sta0kxTxDDSstcYwd8oHy5R96NYHd07KFA';
 
+# 24.
+#'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxSg_ULh7M3_G5UrPi2z6bAJSsaYCBTAhApwkxdrjMZLFtjQMIII-pzzlQ';
+
+
 sub dispatch_index {
     my ( $class, $r ) = @_;
 
@@ -43,8 +47,7 @@ sub dispatch_index {
     my ( $head, $map, $total, $trouble, $inactive ) = eval {
         $class->map(
             $r,
-            {
-                account     => $reg->account,
+            {   account     => $reg->account,
                 server_root => $r->construct_url('')
             }
         );
@@ -771,7 +774,8 @@ sub map {
             $inactive_nodes++;
         }
 
-        my $icon = ( $router->clients > 10 ) ? 10 : $router->clients;
+        my $clients = ( $router->clients > 10 ) ? 10 : $router->clients;
+        my $icon = $clients;
         if ( $router->gateway ) {
 
             # gateways
@@ -783,14 +787,15 @@ sub map {
 
         unless ( $icons_added{$icon} ) {
 
+            my $s = 20 + (10 * $clients);
             my %icon_args = (
                 shadow             => $shadow,
-                shadow_size        => [ 20, 20 ],
+                shadow_size        => [ $s, $s ],
                 icon_anchor        => [ 0, 0 ],
                 info_window_anchor => [ 0, 0 ],
                 name               => $icon,
                 image              => $icon_base . $icon . '.png',
-                image_size         => [ 20, 20 ]
+                image_size         => [ $s, $s ]
             );
 
             $r->log->debug( sprintf( "icon %s", Dumper( \%icon_args ) ) )
@@ -811,7 +816,7 @@ sub map {
                 "placed router %d with args %s",
                 $router->router_id, Dumper( \%marker_args )
             )
-        ) if DEBUG;
+        ) if VERBOSE_DEBUG;
 
         $total_nodes++;
 
