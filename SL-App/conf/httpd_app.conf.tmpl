@@ -95,7 +95,13 @@ PerlLoadModule Apache2::Dispatch
 
 <Location /checkin>
     SetHandler modperl
-    PerlResponseHandler SL::App::Checkin
+
+	DispatchPrefix SL::App::Checkin
+
+	DispatchRequire On
+	DispatchUpperCase On
+
+	PerlResponseHandler Apache2::Dispatch
 </Location>
 
 

@@ -14,8 +14,11 @@ use Data::Dumper;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
-sub handler {
-    my $r = shift;
+sub dispatch_index {
+    my ($class, $r) = @_;
+
+    my $url = $r->construct_url( $r->unparsed_uri );
+    $r->log->debug("handling url $url") if DEBUG;
 
     # we get checkin string with unescaped + signs, so use args
     my %args;
@@ -81,7 +84,8 @@ sub handler {
 
     } else {
 
-        $router->speed_test(sprintf("%d neighbors in range", scalar(split(/\;/, $args{nbs}))));
+        my @neighbors = split(/\;/, $args{nbs});
+        $router->speed_test(sprintf("%d neighbors in range", scalar(@neighbors)));
     }
 
     $router->update;
@@ -132,6 +136,34 @@ sub handler {
 
     $r->content_type('text/plain');
     $r->print("FOO");
+    return Apache2::Const::OK;
+}
+
+# handles ajax move icon requests
+
+sub dispatch_move {
+    my ($class, $r) = @_;
+
+
+    my $req = Apache2::Request->new($r);
+
+    # we get checkin string with unescaped + signs, so use args
+    my $mac = $req->param('mac');
+    my $lat = $req->param('lat');
+    my $lng = $req->param('lng');
+
+    return Apache2::Const::SERVER_ERROR unless ($mac && $lng && $lat);
+
+    # BAD - no access controls
+    my ($router) = SL::Model::App->resultset('Router')->search({ active     => 't',
+                                                                 macaddr    => $mac });
+
+    $r->log->debug(sprintf("Updating router %s to lat %s, lng %s", $router->name, $lng, $lat)) if DEBUG;
+
+    $router->lng($lng);
+    $router->lat($lat);
+    $router->update;
+
     return Apache2::Const::OK;
 }
 

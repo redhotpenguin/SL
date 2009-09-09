@@ -808,6 +808,7 @@ sub map {
             html  => $output,
             icon  => $icon,
             title => $router->name,
+            mac   => $router->macaddr,
         );
 
         $map->add_marker(%marker_args);
