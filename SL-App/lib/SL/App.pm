@@ -32,6 +32,7 @@ our $Signup = 'SLN Signup <signup@silverliningnetworks.com>';
 
 use constant MAX_IMAGE_BYTES => 40_960;
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
+use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 
 =head1 METHODS
 
@@ -59,7 +60,7 @@ sub dispatch_index {
 
     } else {
 
-      $r->log->debug("unknown user, redirecting to login") if DEBUG;
+      $r->log->debug("unknown user, redirecting to login") if VERBOSE_DEBUG;
 
       $r->headers_out->set(
             Location => $r->construct_url('/login') );

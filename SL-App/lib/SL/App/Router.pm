@@ -36,10 +36,10 @@ our $Apikey =
 #'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxQy1V7Lnb51SK2Zw6jkMdSNmKWG4BR6rYy1O4_e1HE-uzbTquoRsEEKfA';
 
 # 192.168.1.121
-#'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxTsWgBucG0c8uJlOLWh0_T9Sta0kxTxDDSstcYwd8oHy5R96NYHd07KFA';
+'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxTsWgBucG0c8uJlOLWh0_T9Sta0kxTxDDSstcYwd8oHy5R96NYHd07KFA';
 
 # 127.0.0.1
-'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxRGsjeT8YPG8Wf95T-lVG33bp2K-xSOp0qPQkb8Yz7_cDoTISsnM3UrLg';
+#'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxRGsjeT8YPG8Wf95T-lVG33bp2K-xSOp0qPQkb8Yz7_cDoTISsnM3UrLg';
 
 # test iMac
 # 24.23.174.103
@@ -752,7 +752,55 @@ sub map {
             next;
         }
 
-        my %tmpl_data = ( router => $router, );
+
+        # get the latest checkin for this router
+        my ($checkin) = SL::Model::App->resultset('Checkin')->search({
+                       router_id => $router->router_id,},
+                       { order_by => 'me.cts DESC' });
+
+        $r->log->debug("grabbed last checkin: " . Dumper($checkin)) if DEBUG;
+
+        my @neighbors;
+        unless ( ( $checkin->nodes eq 'z' ) or ( $checkin->nodes_rssi eq 'z' ) )
+        {
+
+            my @nodes = split( /\;/, $checkin->nodes );
+            my @rssis = split( /\;/, $checkin->nodes_rssi );
+
+            $r->log->debug( "nodes are " . Dumper( \@nodes ) ) if DEBUG;
+
+            foreach my $node (@nodes) {
+
+                $r->log->debug("processing neighbor node $node") if DEBUG;
+
+                my %args = ( account_id => $router->account_id );
+
+                if ( substr( $node, 0, 2 ) eq '00' ) {
+
+                    # $node is mac address
+                    $args{macaddr} = $node;
+                }
+                else {
+
+                    # node is ip
+                    $args{ip} = $node;
+                }
+                my ($nbr) =
+                  SL::Model::App->resultset('Router')->search( \%args );
+
+                unless ($nbr) {
+                    $r->log->error("no device found for neighbor $node");
+                    next;
+                }
+
+                $nbr->{rssi} = shift(@rssis);
+
+                push @neighbors, $nbr;
+            }
+        }
+
+
+        my %tmpl_data = ( router => $router, neighbors => \@neighbors );
 
         my $output;
         $Tmpl->process( 'map/info.tmpl', \%tmpl_data, \$output );
@@ -808,7 +856,7 @@ sub map {
             );
 
             $r->log->debug( sprintf( "icon %s", Dumper( \%icon_args ) ) )
-              if DEBUG;
+              if VERBOSE_DEBUG;
             $map->add_icon(%icon_args);
         }
 

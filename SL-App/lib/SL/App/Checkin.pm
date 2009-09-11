@@ -15,7 +15,7 @@ use Data::Dumper;
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 sub dispatch_index {
-    my ($class, $r) = @_;
+    my ( $class, $r ) = @_;
 
     my $url = $r->construct_url( $r->unparsed_uri );
     $r->log->debug("handling url $url") if DEBUG;
@@ -28,8 +28,8 @@ sub dispatch_index {
         my ( $key, $value ) = split( /\=/, $pair );
         $args{$key} = $value || 0;
     }
-    $r->log->debug( "args string: " . $r->args );
-    $r->log->debug( "args: " . Dumper( \%args ) );
+    $r->log->debug( "args string: " . $r->args )  if DEBUG;
+    $r->log->debug( "args: " . Dumper( \%args ) ) if DEBUG;
 
     my $ip  = $r->connection->remote_ip;
     my $mac = $args{mac};
@@ -66,44 +66,72 @@ sub dispatch_index {
     $router->clients( $args{users} );
 
     # gateway or repeater?
-    if (defined $args{role} && $args{role} eq 'G') {
-      $router->gateway(1);
-    } elsif (defined $args{role} && $args{role} eq 'R') {
-      $router->gateway(0);
-    } else {
-      $router->gateway(1);
+    if ( defined $args{role} && $args{role} eq 'G' ) {
+        $router->gateway(1);
+    }
+    elsif ( defined $args{role} && $args{role} eq 'R' ) {
+        $router->gateway(0);
+
+    }
+    elsif ( substr( $args{gateway}, 0, 1 ) == 5 ) {
+
+        # HACK for firmware that doesn't have nodes, check for 5. gateway
+        $router->gateway(0);
+
+    }
+    else {
+
+        # default is gateway
+        $router->gateway(1);
     }
 
     # repeater stuff
-    if (!$router->gateway) {
+    if ( !$router->gateway ) {
         my $gwip = $args{routes};
-        my ($gateway) = SL::Model::App->resultset('Router')->search({ip => $gwip });
+        my ($gateway) =
+          SL::Model::App->resultset('Router')->search( { ip => $gwip } );
 
-        $router->speed_test(sprintf("%d hops, %d ms ping and %s to gateway %s",
-                                $args{hops}, $args{RTT}, $args{NTR}, $gateway->name));
+        $router->speed_test(
+            sprintf(
+                "%d hops, %d ms ping and %s to gateway %s",
+                $args{hops}, $args{RTT}, $args{NTR}, $gateway->name
+            )
+        );
 
-    } else {
+    }
+    else {
 
-        my @neighbors = split(/\;/, $args{nbs});
-#        $router->speed_test(sprintf("%d neighbors in range", scalar(@neighbors)));
-        $router->speed_test(sprintf("This gateway node has WAN ip %s", $router->wan_ip));
+        $router->speed_test(
+            sprintf( "This gateway node has WAN IP %s", $router->wan_ip ) );
     }
 
     $router->update;
 
+    # calculate throughput to gateway
+    my ( $speed, $units ) = split( /\-/, $args{NTR} );
+    if ( $units eq 'MB/s' ) {
+        $speed = int( $speed * 1024 );
+    }
+    elsif ( $units ne 'KB/s' ) {
+        $r->log->error("Unknown checkin units '$units'");
+    }
+
     # log the router entry
     my $checkin = SL::Model::App->resultset('Checkin')->create(
         {
-            router_id => $router->router_id,
-            memfree   => $args{memfree},
-            users     => $args{users},
-            kbup      => $args{kbup},
-            kbdown    => $args{kbdown},
+            router_id    => $router->router_id,
+            memfree      => $args{memfree},
+            users        => $args{users},
+            kbup         => $args{kbup},
+            kbdown       => $args{kbdown},
+            ping_ms      => sprintf( '%d', $args{RTT} ),
+            speed_kbytes => $speed,
+            nodes        => $args{nodes},
+            nodes_rssi   => $args{rssi},
         }
     );
 
     $r->log->debug( "new checkin entry for " . $router->router_id ) if DEBUG;
-
 
     # log user data if there is any
     my $top_users = $args{top_users};
@@ -143,8 +171,7 @@ sub dispatch_index {
 # handles ajax move icon requests
 
 sub dispatch_move {
-    my ($class, $r) = @_;
-
+    my ( $class, $r ) = @_;
 
     my $req = Apache2::Request->new($r);
 
@@ -153,13 +180,22 @@ sub dispatch_move {
     my $lat = $req->param('lat');
     my $lng = $req->param('lng');
 
-    return Apache2::Const::SERVER_ERROR unless ($mac && $lng && $lat);
+    return Apache2::Const::SERVER_ERROR unless ( $mac && $lng && $lat );
 
     # BAD - no access controls
-    my ($router) = SL::Model::App->resultset('Router')->search({ active     => 't',
-                                                                 macaddr    => $mac });
+    my ($router) = SL::Model::App->resultset('Router')->search(
+        {
+            active  => 't',
+            macaddr => $mac
+        }
+    );
 
-    $r->log->debug(sprintf("Updating router %s to lat %s, lng %s", $router->name, $lng, $lat)) if DEBUG;
+    $r->log->debug(
+        sprintf(
+            "Updating router %s to lat %s, lng %s",
+            $router->name, $lng, $lat
+        )
+    ) if DEBUG;
 
     $router->lng($lng);
     $router->lat($lat);
