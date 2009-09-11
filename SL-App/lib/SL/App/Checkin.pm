@@ -66,30 +66,21 @@ sub dispatch_index {
     $router->clients( $args{users} );
 
     # gateway or repeater?
-    if ( defined $args{role} && $args{role} eq 'G' ) {
-        $router->gateway(1);
-    }
-    elsif ( defined $args{role} && $args{role} eq 'R' ) {
-        $router->gateway(0);
+    if ( (defined $args{role}) && ($args{role} eq 'G') ) {
+
+        $router->gateway($router->wan_ip);
+        $router->speed_test(
+            sprintf( "This gateway node has WAN IP %s", $router->wan_ip ) );
 
     }
-    elsif ( substr( $args{gateway}, 0, 1 ) == 5 ) {
+    elsif ( ( (defined $args{role}) && ($args{role} eq 'R') ) or
+            ( substr( $args{gateway}, 0, 1 ) == 5 ) )
+      {
 
-        # HACK for firmware that doesn't have nodes, check for 5. gateway
-        $router->gateway(0);
-
-    }
-    else {
-
-        # default is gateway
-        $router->gateway(1);
-    }
-
-    # repeater stuff
-    if ( !$router->gateway ) {
-        my $gwip = $args{routes};
         my ($gateway) =
-          SL::Model::App->resultset('Router')->search( { ip => $gwip } );
+          SL::Model::App->resultset('Router')->search( {
+                                         ip => $args{gateway} } );
+        $router->gateway($args{gateway});
 
         $router->speed_test(
             sprintf(
@@ -98,13 +89,16 @@ sub dispatch_index {
             )
         );
 
+
     }
     else {
 
+        # default is gateway
+        $router->gateway($router->wan_ip);
         $router->speed_test(
             sprintf( "This gateway node has WAN IP %s", $router->wan_ip ) );
-    }
 
+    }
     $router->update;
 
     # calculate throughput to gateway

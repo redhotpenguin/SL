@@ -752,26 +752,30 @@ sub map {
             next;
         }
 
-
         # get the latest checkin for this router
-        my ($checkin) = SL::Model::App->resultset('Checkin')->search({
-                       router_id => $router->router_id,},
-                       { order_by => 'me.cts DESC' });
+        my ($checkin) = SL::Model::App->resultset('Checkin')->search(
+            { router_id => $router->router_id, },
+            { order_by  => 'me.cts DESC' }
+        );
 
-        $r->log->debug("grabbed last checkin: " . Dumper($checkin)) if DEBUG;
+        $r->log->debug( "grabbed last checkin: " . Dumper($checkin) )
+          if VERBOSE_DEBUG;
 
         my @neighbors;
+
+        # skip if no neighbors
         unless ( ( $checkin->nodes eq 'z' ) or ( $checkin->nodes_rssi eq 'z' ) )
         {
 
             my @nodes = split( /\;/, $checkin->nodes );
             my @rssis = split( /\;/, $checkin->nodes_rssi );
 
-            $r->log->debug( "nodes are " . Dumper( \@nodes ) ) if DEBUG;
+            $r->log->debug( "neighbors: " . Dumper( \@nodes ) ) if DEBUG;
 
             foreach my $node (@nodes) {
 
-                $r->log->debug("processing neighbor node $node") if DEBUG;
+                $r->log->debug("processing neighbor node $node")
+                  if VERBOSE_DEBUG;
 
                 my %args = ( account_id => $router->account_id );
 
@@ -779,6 +783,7 @@ sub map {
 
                     # $node is mac address
                     $args{macaddr} = $node;
+
                 }
                 else {
 
@@ -793,12 +798,11 @@ sub map {
                     next;
                 }
 
-                $nbr->{rssi} = shift(@rssis);
+                $nbr->{rssi} = abs( shift(@rssis) );
 
                 push @neighbors, $nbr;
             }
         }
-
 
         my %tmpl_data = ( router => $router, neighbors => \@neighbors );
 
@@ -807,7 +811,6 @@ sub map {
 
         my $neighbor_html;
         $Tmpl->process( 'map/neighbor.tmpl', \%tmpl_data, \$neighbor_html );
-
 
         my $dt = DateTime::Format::Pg->parse_datetime( $router->last_ping );
 
@@ -833,7 +836,7 @@ sub map {
 
         my $clients = ( $router->clients > 10 ) ? 10 : $router->clients;
         my $icon = $clients;
-        if ( $router->gateway ) {
+        if ( $router->gateway eq $router->wan_ip ) {
 
             # gateways
             $icon .= '_gateway';
@@ -844,15 +847,15 @@ sub map {
 
         unless ( $icons_added{$icon} ) {
 
-            my $s = 20 + (10 * $clients);
+            my $s = 20 + ( 1 * int($clients/2) );
             my %icon_args = (
                 shadow             => $shadow,
                 shadow_size        => [ $s, $s ],
-                icon_anchor        => [ 0, 0 ],
-                info_window_anchor => [ 0, 0 ],
+                icon_anchor        => [ int($s/2), int($s/2) ],
+                info_window_anchor => [ int($s/2), int($s/2) ],
                 name               => $icon,
                 image              => $icon_base . $icon . '.png',
-                image_size         => [ $s, $s ]
+                icon_size         => [ $s, $s ]
             );
 
             $r->log->debug( sprintf( "icon %s", Dumper( \%icon_args ) ) )
@@ -861,16 +864,44 @@ sub map {
         }
 
         my %marker_args = (
-            point => [ $router->lng, $router->lat ],
-            html  => $output,
+            point         => [ $router->lng, $router->lat ],
+            html          => $output,
             neighbor_html => $neighbor_html,
-            icon  => $icon,
-            title => $router->name,
-            mac   => $router->macaddr,
-            ip   => $router->ip,
+            icon          => $icon,
+            title         => $router->name,
+            mac           => $router->macaddr,
+            ip            => $router->ip,
         );
 
         $map->add_marker(%marker_args);
+
+        # is this a repeater?  add a polyline to the gateway
+        unless ( $router->gateway eq $router->wan_ip ) {
+
+            my ($gateway) =
+              SL::Model::App->resultset('Router')
+              ->search( { ip => $router->gateway } );
+
+            $r->log->debug( "gateway is " . Dumper($gateway) ) if VERBOSE_DEBUG;
+
+            unless ( $gateway && $gateway->lat && $gateway->lng ) {
+                $r->log->error(
+                    "no gateway found for router " . $router->name );
+            }
+            else {
+
+                $map->add_polyline(
+                    weight => 10,
+                    opacity => 1,
+                    color => '\#000000',
+                    points => [
+                        [ $router->lng,  $router->lat ],
+                        [ $gateway->lng, $gateway->lat ],
+                    ]
+                );
+            }
+
+        }
 
         $r->log->debug(
             sprintf(
