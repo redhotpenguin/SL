@@ -65,7 +65,7 @@ $dbh->do("alter table router add column hops integer not null default 0");
 $dbh->do("alter table router add column kbup integer not null default 0");
 $dbh->do("alter table router add column kbdown integer not null default 0");
 $dbh->do("alter table router add column neighbors text not null default ''");
-$dbh->do("alter table router add column gateway text not null default ''");
+$dbh->do("alter table router add column gateway inet");
 $dbh->do("alter table router add column gateway_quality text not null default ''");
 $dbh->do("alter table router add column routes text not null default ''");
 $dbh->do("alter table router add column load text not null default ''");

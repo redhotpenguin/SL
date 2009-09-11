@@ -186,10 +186,10 @@ __PACKAGE__->add_columns(
   },
   "gateway",
   {
-    data_type => "boolean",
-    default_value => "true",
-    is_nullable => 0,
-    size => 1,
+    data_type => "inet",
+    default_value => undef,
+    is_nullable => 1,
+    size => undef,
   },
   "adserving",
   {
