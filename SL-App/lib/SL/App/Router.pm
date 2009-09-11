@@ -867,6 +867,7 @@ sub map {
             icon  => $icon,
             title => $router->name,
             mac   => $router->macaddr,
+            ip   => $router->ip,
         );
 
         $map->add_marker(%marker_args);

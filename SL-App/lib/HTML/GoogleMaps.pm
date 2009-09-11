@@ -314,6 +314,7 @@ sub add_marker {
     html => $opts{html},
     neighbor_html => $opts{neighbor_html},
     title => $opts{title},
+    ip => $opts{ip},
     mac => $opts{mac},
     format => !$opts{noformat} };
 }
@@ -445,7 +446,7 @@ SCRIPT
       );
     }
 
-    my $title = $point->{title};
+    my $title = sprintf("%s - %s - %s",$point->{title}, $point->{mac}, $point->{ip});
     $title =~ s/'/\\'/g;
 
     $header .= "\nvar options_$i = { title: '$title', icon: $icon, draggable: true };\n";
