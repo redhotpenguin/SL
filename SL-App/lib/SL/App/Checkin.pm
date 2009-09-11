@@ -85,7 +85,8 @@ sub dispatch_index {
     } else {
 
         my @neighbors = split(/\;/, $args{nbs});
-        $router->speed_test(sprintf("%d neighbors in range", scalar(@neighbors)));
+#        $router->speed_test(sprintf("%d neighbors in range", scalar(@neighbors)));
+        $router->speed_test(sprintf("This gateway node has WAN ip %s", $router->wan_ip));
     }
 
     $router->update;

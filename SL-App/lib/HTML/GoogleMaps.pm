@@ -308,9 +308,11 @@ sub add_marker {
   my $point = $this->_text_to_point($opts{point});
   return 0 unless $point;
 
-  push @{$this->{points}}, { point => $point,
+  push @{$this->{points}}, {
+    point => $point,
     icon => $opts{icon},
     html => $opts{html},
+    neighbor_html => $opts{neighbor_html},
     title => $opts{title},
     mac => $opts{mac},
     format => !$opts{noformat} };
@@ -446,14 +448,27 @@ SCRIPT
     my $title = $point->{title};
     $title =~ s/'/\\'/g;
 
-    $header .= "\n      var options_$i = { title: '$title', icon: $icon, draggable: true };\n";
-    $header .= "      var marker_$i = new GMarker(new GLatLng($point->{point}[0], $point->{point}[1]), options_$i);\n";
-    if ( $point->{html} ) {
-        $point_html =~ s/'/\\'/g;
-        $header .= "      GEvent.addListener(marker_$i, \"click\", function () {  marker_$i.openInfoWindowHtml('$point_html'); });\n"
-    }
+    $header .= "\nvar options_$i = { title: '$title', icon: $icon, draggable: true };\n";
+    $header .= "var marker_$i = new GMarker(new GLatLng($point->{point}[0], $point->{point}[1]), options_$i);\n";
 
-    $header .= "      GEvent.addListener(marker_$i, \"dragstart\", function() { map.closeInfoWindow(); });\n";
+    $point_html =~ s/'/\\'/g;
+    $point_html =~ s/"/\\"/g;
+    $point_html =~ s/\n//g;
+
+    my $neighbor_html = $point->{neighbor_html};
+    $neighbor_html =~ s/'/\\'/g;
+    $neighbor_html =~ s/"/\\"/g;
+    $neighbor_html =~ s/\n//g;
+
+    $header .= "      GEvent.addListener(marker_$i, \"click\", function () {
+                var infoTabs = [
+                    new GInfoWindowTab('Device', '$point_html'),
+                    new GInfoWindowTab('Neighbors', '$neighbor_html')
+                ];
+                marker_$i.openInfoWindowTabsHtml(infoTabs)});\n";
+
+    $header .=
+"      GEvent.addListener(marker_$i, \"dragstart\", function() { map.closeInfoWindow(); });\n";
 
 
     my $mac = $point->{mac};

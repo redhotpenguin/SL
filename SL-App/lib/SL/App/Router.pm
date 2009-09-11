@@ -1,6 +1,9 @@
 package SL::App::Router;
 
 use strict;
+
+
+
 use warnings;
 
 use Apache2::Const -compile => qw(OK SERVER_ERROR NOT_FOUND M_GET M_POST);
@@ -27,15 +30,19 @@ our $Tmpl = SL::App::Template->template();
 use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 
+our $Apikey =
+
 # production key, add on rollout
-#our $Apikey =
 #'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxQy1V7Lnb51SK2Zw6jkMdSNmKWG4BR6rYy1O4_e1HE-uzbTquoRsEEKfA';
 
-#our $Apikey = $Config->sl_gmap_apikey
-our $Apikey =
-'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxTsWgBucG0c8uJlOLWh0_T9Sta0kxTxDDSstcYwd8oHy5R96NYHd07KFA';
+# 192.168.1.121
+#'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxTsWgBucG0c8uJlOLWh0_T9Sta0kxTxDDSstcYwd8oHy5R96NYHd07KFA';
 
-# 24.
+# 127.0.0.1
+'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxRGsjeT8YPG8Wf95T-lVG33bp2K-xSOp0qPQkb8Yz7_cDoTISsnM3UrLg';
+
+# test iMac
+# 24.23.174.103
 #'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxSg_ULh7M3_G5UrPi2z6bAJSsaYCBTAhApwkxdrjMZLFtjQMIII-pzzlQ';
 
 
@@ -750,7 +757,9 @@ sub map {
         my $output;
         $Tmpl->process( 'map/info.tmpl', \%tmpl_data, \$output );
 
-        $output =~ s/\n//g;
+        my $neighbor_html;
+        $Tmpl->process( 'map/neighbor.tmpl', \%tmpl_data, \$neighbor_html );
+
 
         my $dt = DateTime::Format::Pg->parse_datetime( $router->last_ping );
 
@@ -806,6 +815,7 @@ sub map {
         my %marker_args = (
             point => [ $router->lng, $router->lat ],
             html  => $output,
+            neighbor_html => $neighbor_html,
             icon  => $icon,
             title => $router->name,
             mac   => $router->macaddr,

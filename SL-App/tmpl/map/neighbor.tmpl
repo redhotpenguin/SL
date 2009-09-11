@@ -1,0 +1,46 @@
+<div class="google_bubble">
+
+	<div class="gbub_header">
+		<h1><a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">[% router.name %]</a></h1>
+		<p>(last seen [% router.last_seen_html %])</p>
+		<div class="clear"></div>
+	</div>
+
+	<div id="gbub_neighbors">	
+
+       <table>
+       <tr>
+         <th>Neighbor</th>
+         <th>IP</th>
+         <th>Mac Address</th>
+         <th>RSSI (128 max)</th>
+       </tr>
+       <tr>
+         <td><a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">Pizza WiFi</a></td>
+         <td>127.0.0.1</td>
+         <td>FF:FF:FF:FF:FF:FF</td>
+         <td><font color="green">25</font></td>
+       </tr>
+
+       <tr
+         <td><a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">Pizza WiFi</a></td>
+         <td>127.0.0.1</td>
+         <td>FF:FF:FF:FF:FF:FF</td
+         <td><font color="red">10</font></td>
+       </tr>
+
+       <tr>
+         <td><a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">Pizza WiFi</a></td>
+         <td>127.0.0.1</td>
+         <td>FF:FF:FF:FF:FF:FF</td>
+         <td><font color="green">199</font></td>
+      </tr>
+     </table>
+
+	</div>
+	
+	<div class="gbub_footer">
+		<p>Type: <strong>[% router.board %]</strong> | Mac: <strong>[% router.macaddr %]</strong> | IP: <strong>[% router.ip %]</strong></p>
+	</div>
+	
+</div>
