@@ -163,6 +163,7 @@ use Geo::Distance ();
 our $Config = SL::Config->new();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
+use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 
 sub report_dir_base {
     my $self = shift;
@@ -211,10 +212,10 @@ sub center_the_map {
                     "distance between router %s and %s is %s",
                     $rtr->name, $ot_rtr->name, $distance
                 )
-            ) if DEBUG;
+            ) if VERBOSE_DEBUG;
 
             # ouch weird code
-            if ( $dist{meters} < $distance ) {
+            if ( abs($dist{meters}) < $distance ) {
 
                 # new distance
                 $dist{meters} = $distance;
@@ -225,8 +226,11 @@ sub center_the_map {
         }
     }
 
-    if ( $dist{meters} < 200 ) {
-        $self->map_zoom(25);
+    warn("setting zoom for distance " . abs($dist{meters})) if DEBUG;
+    if ( abs($dist{meters}) < 200 ) {
+        $self->map_zoom(20);
+    } else {
+        $self->map_zoom(18);
     }
 
     my $rtr    = $dist{rtrone};
@@ -234,7 +238,7 @@ sub center_the_map {
 
     # now get the center of those two points
     my ( $clat, $clng ) =
-      ( ( $rtr->lat + $ot_rtr->lat ) / 2, ( $rtr->lng + $ot_rtr->lng ) / 2 );
+      ( ( $ot_rtr->lat + $rtr->lat ) / 2, ( $ot_rtr->lng + $rtr->lng ) / 2 );
     warn("clat $clat, clng $clng") if DEBUG;
     $self->map_center("$clat, $clng");
     $self->update;
