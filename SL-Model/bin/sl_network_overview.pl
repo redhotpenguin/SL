@@ -10,6 +10,7 @@ use SL::Model;
 use SL::Model::App;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
+use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 
 # grab the checkin data for the last 24 hours and write a csv file
 
@@ -115,14 +116,15 @@ foreach my $account_id ( keys %refined ) {
             );
 
             # get the difference
-            unless ( $row->{kbup} == 0 && $row->{kbdown} == 0 ) {
+            unless ( ($row->{kbup} < $last_row{kbup}) &&
+                     ($row->{kbdown} < $last_row{kbdown} ) ) {
                 $row->{kbup}   -= $last_row{kbup};
                 $row->{kbdown} -= $last_row{kbdown};
             }
 
             warn(
                 sprintf( "kbup %s, kbdown %s", $row->{kbup}, $row->{kbdown} ) )
-              if DEBUG;
+              if VERBOSE_DEBUG;
 
             # at this point we're processing  time based data for $router_id.
             # add the totals to to the array in the correct time slot.
