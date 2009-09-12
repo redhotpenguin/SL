@@ -64,6 +64,7 @@ SQL
 
 $sql = sprintf( $sql, DateTime::Format::Pg->format_datetime($yesterday) );
 
+
 my $users = $dbh->selectall_arrayref( $sql, { Slice => {} } );
 
 foreach my $row (@$users) {
@@ -77,6 +78,7 @@ foreach my $row (@$users) {
         cts    => DateTime::Format::Pg->parse_datetime( $row->{cts} ),
       };
 }
+
 
 foreach my $account_id ( keys %refined ) {
 
@@ -93,6 +95,8 @@ foreach my $account_id ( keys %refined ) {
     my $megabytes_total = 0;
     foreach my $router_id ( keys %{ $refined{$account_id}{routers} } ) {
 
+        warn("processing router id $router_id") if DEBUG;
+
         my @array;
         for ( 1 .. 24 * 12 ) {    # 5 minutes
             push @array, [
@@ -105,6 +109,9 @@ foreach my $account_id ( keys %refined ) {
                 0,    # speed_kbytes
             ];
         }
+
+        warn("created array with " . scalar(@array) . " elements") if DEBUG;
+        warn("processing array with " . scalar( @{ $refined{$account_id}{routers}{$router_id} }) . " elements") if DEBUG;
 
         # loop over the data
         #        $DB::single = 1;
@@ -163,7 +170,7 @@ foreach my $account_id ( keys %refined ) {
                     $array[$i]->[5] = $row->{ping_ms};
 
                     # speed
-                    $array[$i]->[6] = $row->{speed_kbytes};
+                    $array[$i]->[6] = sprintf("%2.1f",$row->{speed_kbytes}/1024);
 
                     last;    # last $row
                 }
@@ -199,24 +206,57 @@ foreach my $account_id ( keys %refined ) {
         $router->traffic_daily( int($router_traffic) );
         $router->update;
 
-        # write the router graph out to disk
+        ##################################
+        # write the mesh performance graph
         my $filename = join( '/',
             $account->report_dir_base,
-            "router_" . $router->router_id . ".csv" );
+            "router_" . $router_id . "_ping.csv" );
 
         my $fh;
         open( $fh, '>', $filename )
           or die "could not open $filename: " . $!;
 
-        foreach my $ae (@array) {
-
-            foreach my $line (@array) {
-                print $fh join( ',', @{$line}[ 0, 5, 6 ] ) . "\n";
-
-            }
-
+        foreach my $line (@array) {
+            $line->[0] = $line->[0]->strftime("%l:%M %p");
+            print $fh join( ',', @{$line}[ 0, 5, 6 ] ) . "\n";
         }
         close($fh) or die $!;
+
+        ############################
+
+        ##########################
+        # write out the connectivity graph
+        $filename = join( '/',
+            $account->report_dir_base,
+            "router_" . $router_id . "_connectivity.csv" );
+
+        open( $fh, '>', $filename )
+          or die "could not open $filename: " . $!;
+
+        foreach my $line (@array) {
+            print $fh join( ',', @{$line}[ 0, 4 ] ) . "\n";
+        }
+        close($fh) or die $!;
+
+        ############################
+        ##########################
+        # write out the traffic graph
+        $filename = join( '/',
+            $account->report_dir_base,
+            "router_" . $router_id . "_traffic.csv" );
+
+        open( $fh, '>', $filename )
+          or die "could not open $filename: " . $!;
+
+        foreach my $line (@array) {
+            print $fh join( ',', @{$line}[ 0, 1,2,3 ] ) . "\n";
+        }
+        close($fh) or die $!;
+
+        ############################
+
+
+
 
     }
 

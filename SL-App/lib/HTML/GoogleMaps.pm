@@ -248,7 +248,7 @@ sub center {
 sub zoom {
   my ($this, $zoom_level) = @_;
 
-  $this->{zoom} = 0;#17-$zoom_level;
+  $this->{zoom} = 30;#17-$zoom_level;
 }
 
 sub v2_zoom {
@@ -313,9 +313,11 @@ sub add_marker {
     icon => $opts{icon},
     html => $opts{html},
     neighbor_html => $opts{neighbor_html},
+    ping_html => $opts{ping_html},
     title => $opts{title},
     ip => $opts{ip},
     mac => $opts{mac},
+    board => $opts{board},
     format => !$opts{noformat} };
 }
 
@@ -379,10 +381,11 @@ sub onload_render {
     if (GBrowserIsCompatible()) {
       var map = new GMap2(document.getElementById("$this->{id}"));
 SCRIPT
-  $header .= "      map.setCenter(new GLatLng($this->{center}[0], $this->{center}[1]));\n"
+  $header .= "      map.setCenter(new GLatLng($this->{center}[0], $this->{center}[1]), " . $this->{zoom} . ");\n"
     if $this->{center};
-  $header .= "      map.setZoom($this->{zoom});\n"
-    if $this->{zoom};
+
+#  $header .= "      map.setZoom(22);\n" if $this->{zoom};
+#  $header .= "      map.setZoom($this->{zoom});\n" if $this->{zoom};
 
   $header .= "      map.setMapType($this->{type});\n";
 
@@ -446,7 +449,7 @@ SCRIPT
       );
     }
 
-    my $title = sprintf("%s - %s - %s",$point->{title}, $point->{mac}, $point->{ip});
+    my $title = sprintf("%s - %s - %s - %s",$point->{title}, $point->{mac}, $point->{ip}, $point->{board});
     $title =~ s/'/\\'/g;
 
     $header .= "\nvar options_$i = { title: '$title', icon: $icon, draggable: true };\n";
@@ -461,9 +464,17 @@ SCRIPT
     $neighbor_html =~ s/"/\\"/g;
     $neighbor_html =~ s/\n//g;
 
+    my $ping_html = $point->{ping_html};
+    $ping_html =~ s/\n//g;
+    $ping_html =~ s/"/\\"/g;
+#    $ping_html =~ s/'/\\'/g;
+#    $ping_html =~ s{/}{\/}g;
+#    $ping_html =~ s{[;]}{\\$1}g;
+
     $header .= "      GEvent.addListener(marker_$i, \"click\", function () {
                 var infoTabs = [
                     new GInfoWindowTab('Device', '$point_html'),
+                //    new GInfoWindowTab('Connectivity', '$ping_html'),
                     new GInfoWindowTab('Neighbors', '$neighbor_html')
                 ];
                 marker_$i.openInfoWindowTabsHtml(infoTabs)});\n";

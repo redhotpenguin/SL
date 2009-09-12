@@ -770,7 +770,7 @@ sub map {
             my @nodes = split( /\;/, $checkin->nodes );
             my @rssis = split( /\;/, $checkin->nodes_rssi );
 
-            $r->log->debug( "neighbors: " . Dumper( \@nodes ) ) if DEBUG;
+            $r->log->debug( "neighbors: " . Dumper( \@nodes ) ) if VERBOSE_DEBUG;
 
             foreach my $node (@nodes) {
 
@@ -794,7 +794,7 @@ sub map {
                   SL::Model::App->resultset('Router')->search( \%args );
 
                 unless ($nbr) {
-                    $r->log->error("no device found for neighbor $node");
+                    $r->log->warn("no device found for neighbor $node");
                     next;
                 }
 
@@ -811,6 +811,38 @@ sub map {
 
         my $neighbor_html;
         $Tmpl->process( 'map/neighbor.tmpl', \%tmpl_data, \$neighbor_html );
+
+        # going to hell for this
+        my $base_uri = $Config->sl_app_base_uri;
+        my $report_base = $account->report_base;
+
+=cut
+        my $js = <<"JS";
+		<script type="text/javascript" src="$base_uri/resources/chart/line/swfobject.js"></script>
+	    <div id="flashcontent">
+	        <strong>You need to upgrade your Flash Player</strong>
+	    </div>
+=cut
+
+        my $js = <<"JS";
+	    <script type="text/javascript">
+	            // <![CDATA[
+	            var so = new SWFObject("$base_uri/resources/chart/line/amline.swf","traffic", "580px", "250px", "4", "#FFFFFF");
+	            so.addVariable("path", "$base_uri/resources/chart/line/");
+	            so.addVariable("settings_file", encodeURIComponent("$base_uri/resources/chart/line/amline_settings.xml"));
+	            so.addVariable("data_file", encodeURIComponent("$base_uri/img/reports/$report_base/network_overview.csv"));
+	            so.write("flashcontent");
+	            // ]]>
+	    </script>
+JS
+
+        $js =~ s{([/#,.><()=![\];])}{\\$1}g;
+
+        $r->log->debug("escaped js: " . $js) if DEBUG;
+
+        my $ping_html;
+        $Tmpl->process( 'map/ping_speed.tmpl',
+                        { chartscript => $js, %tmpl_data }, \$ping_html );
 
         my $dt = DateTime::Format::Pg->parse_datetime( $router->last_ping );
 
@@ -865,11 +897,17 @@ sub map {
 
         my %marker_args = (
             point         => [ $router->lng, $router->lat ],
+
+            # this is out of control and must be stopped
             html          => $output,
             neighbor_html => $neighbor_html,
+            ping_html     => $ping_html,
+
+
             icon          => $icon,
             title         => $router->name,
             mac           => $router->macaddr,
+            board         => $router->board,
             ip            => $router->ip,
         );
 

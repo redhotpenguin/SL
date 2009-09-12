@@ -13,8 +13,6 @@
 </div>
 <div class="clear"></div>
 
-<form method="post" action="[% base_uri %]/app/router/edit">
-<div id="main_content" class="grid_9 suffix_2">
 
 [% IF !router && (reg.account.account_id !=2 ) %]
 	<!-- IF TRYING TO ADD A NEW ROUTER -->
@@ -28,14 +26,76 @@
 
 
 [% ELSE %]
+
 	<!-- IF TRYING TO EDIT AN EXISTING ROUTER -->
 	<h2>[% IF router.router_id %][% router.name or router.macaddr %][% ELSE %]Add New Router[% END %]</h2>
 
 
+	<div class="grid_10 omega">
+
+    <h3>Uptime:</h3>
+		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
+	    <div id="flashcontenttwo">
+	        <strong>You need to upgrade your Flash Player</strong>
+	    </div>
+	    <script type="text/javascript">
+	            // <![CDATA[            
+	            var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","traffic", "500px", "125px", "4", "#FFFFFF");
+	            so.addVariable("path", "[% base_uri %]/resources/chart/line/");
+	            so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/connect_settings.xml"));
+	            so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_connectivity.csv"));
+	            so.write("flashcontenttwo");
+	            // ]]>
+	    </script>
+
+
+    [% IF router.wan_ip != router.gateway %]
+
+
+      <h3>WiFi Mesh Connectivity:</h3>
+		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
+	    <div id="flashcontent">
+	        <strong>You need to upgrade your Flash Player</strong>
+	    </div>
+	    <script type="text/javascript">
+	            // <![CDATA[            
+	            var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","ping", "500px", "200px", "4", "#FFFFFF");
+	            so.addVariable("path", "[% base_uri %]/resources/chart/line/");
+	            so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/ping_settings.xml"));
+	            so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_ping.csv"));
+	            so.write("flashcontent");
+	            // ]]>
+	    </script>
+
+
+[% END %]
+
+
+    <h3>Traffic:</h3>
+	    <div id="flashcontenttraffic">
+	        <strong>You need to upgrade your Flash Player</strong>
+	    </div>
+	    <script type="text/javascript">
+	            // <![CDATA[            
+	            var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","traffic", "500px", "200px", "4", "#FFFFFF");
+	            so.addVariable("path", "[% base_uri %]/resources/chart/line/");
+	            so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/amline_settings.xml"));
+	            so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_traffic.csv"));
+	            so.write("flashcontenttraffic");
+	            // ]]>
+	    </script>
+
+	</div>
+
+
+
+
+<form method="post" action="[% base_uri %]/app/router/edit">
+<div id="main_content" class="grid_9 suffix_2">
+
 
 		[% IF errors.missing %]<p class="error">Please complete the missing fields</p>[% END %]
 		[% IF errors.invalid %]<p class="error">Some fields were invalid, please correct them</p>[% END %]
-
 
 
 
@@ -93,9 +153,6 @@
 				<div class="clear"></div>
 			</li>
 
-
-			<li id="wrt54gl">
-			<ul>
 				<li>
 					<!-- notes -->
 					<label for="notes">Notes</label>
@@ -103,6 +160,12 @@
 					<div class="clear"></div>
 					<label for="notes" class="tip">100 character limit</label>
 				</li>
+
+
+
+
+			<li id="wrt54gl">
+			<ul>
 	
 				<li>
 					<!-- SSID -->
