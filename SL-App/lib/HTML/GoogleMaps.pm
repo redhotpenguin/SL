@@ -449,7 +449,7 @@ SCRIPT
       );
     }
 
-    my $title = sprintf("%s - %s - %s - %s",$point->{title}, $point->{mac}, $point->{ip}, $point->{board});
+    my $title = sprintf("%s - %s - %s - %s - %s",$point->{title}, $point->{mac}, $point->{ip}, $point->{board}, '55% network usage');
     $title =~ s/'/\\'/g;
 
     $header .= "\nvar options_$i = { title: '$title', icon: $icon, draggable: true };\n";

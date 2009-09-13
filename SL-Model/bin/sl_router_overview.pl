@@ -156,8 +156,8 @@ foreach my $account_id ( keys %refined ) {
 
                     # then log it on the current element
                     $array[$i]->[1] +=
-                      sprintf( "%2.2f", $row->{kbdown} / 1024 );
-                    $array[$i]->[2] += sprintf( "%2.2f", $row->{kbup} / 1024 );
+                      sprintf( "%2.1f", $row->{kbdown} / 1024 * 8 / 300 );
+                    $array[$i]->[2] += sprintf( "%2.1f", $row->{kbup} / 1024 * 8 / 300 );
 
                     # bit to indicate a checkin took place for this device
                     $array[$i]->[4] = 1;
@@ -170,7 +170,7 @@ foreach my $account_id ( keys %refined ) {
                     $array[$i]->[5] = $row->{ping_ms};
 
                     # speed
-                    $array[$i]->[6] = sprintf("%2.1f",$row->{speed_kbytes}/1024);
+                    $array[$i]->[6] = sprintf("%2.1f",$row->{speed_kbytes}/1024*8);
 
                     last;    # last $row
                 }

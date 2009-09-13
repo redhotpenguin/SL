@@ -135,16 +135,15 @@ foreach my $account_id ( keys %refined ) {
                 if ( DateTime->compare( $row->{cts}, $array[$i]->[0] ) > 0 ) {
 
                     # then log it on the current element
-                    $array[$i]->[1] +=
-                      sprintf( "%2.2f", $row->{kbdown} / 1024 );
-                    $array[$i]->[2] += sprintf( "%2.2f", $row->{kbup} / 1024 );
+                    $array[$i]->[1] += sprintf( "%2.2f", $row->{kbdown} / 1024 * 8 /300 );
+                    $array[$i]->[2] += sprintf( "%2.2f", $row->{kbup} / 1024 * 8 / 300 );
 
                     # bit to indicate a checkin took place for this device
                     $array[$i]->[4] = 1;
 
                     # total megs
-                    $megabytes_total += $array[$i]->[1] + $array[$i]->[2];
-                    $router_traffic  += $array[$i]->[1] + $array[$i]->[2];
+                    $megabytes_total += ($array[$i]->[1]/8*300) + ($array[$i]->[2]/8*300);
+                    $router_traffic  += ($array[$i]->[1]/8*300) + ($array[$i]->[2]/8*300);
                     last;    # last $row
                 }
 
