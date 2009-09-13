@@ -64,7 +64,6 @@ SQL
 
 $sql = sprintf( $sql, DateTime::Format::Pg->format_datetime($yesterday) );
 
-
 my $users = $dbh->selectall_arrayref( $sql, { Slice => {} } );
 
 foreach my $row (@$users) {
@@ -78,7 +77,6 @@ foreach my $row (@$users) {
         cts    => DateTime::Format::Pg->parse_datetime( $row->{cts} ),
       };
 }
-
 
 foreach my $account_id ( keys %refined ) {
 
@@ -101,17 +99,20 @@ foreach my $account_id ( keys %refined ) {
         for ( 1 .. 24 * 12 ) {    # 5 minutes
             push @array, [
                 $now->clone->subtract( minutes => 5 * $_ - 1 ),    # cts
-                0,                                                 # kbdown
-                0,                                                 # kbup
-                0,                                                 # users
+                0,    # kbdown
+                0,    # kbup
+                0,    # users
                 0,    # checkin bit
                 0,    # ping_ms
                 0,    # speed_kbytes
             ];
         }
 
-        warn("created array with " . scalar(@array) . " elements") if DEBUG;
-        warn("processing array with " . scalar( @{ $refined{$account_id}{routers}{$router_id} }) . " elements") if DEBUG;
+        warn( "created array with " . scalar(@array) . " elements" ) if DEBUG;
+        warn(   "processing array with "
+              . scalar( @{ $refined{$account_id}{routers}{$router_id} } )
+              . " elements" )
+          if DEBUG;
 
         # loop over the data
         #        $DB::single = 1;
@@ -157,7 +158,8 @@ foreach my $account_id ( keys %refined ) {
                     # then log it on the current element
                     $array[$i]->[1] +=
                       sprintf( "%2.1f", $row->{kbdown} / 1024 * 8 / 300 );
-                    $array[$i]->[2] += sprintf( "%2.1f", $row->{kbup} / 1024 * 8 / 300 );
+                    $array[$i]->[2] +=
+                      sprintf( "%2.1f", $row->{kbup} / 1024 * 8 / 300 );
 
                     # bit to indicate a checkin took place for this device
                     $array[$i]->[4] = 1;
@@ -170,7 +172,8 @@ foreach my $account_id ( keys %refined ) {
                     $array[$i]->[5] = $row->{ping_ms};
 
                     # speed
-                    $array[$i]->[6] = sprintf("%2.1f",$row->{speed_kbytes}/1024*8);
+                    $array[$i]->[6] =
+                      sprintf( "%2.1f", $row->{speed_kbytes} / 1024 * 8 );
 
                     last;    # last $row
                 }
@@ -203,14 +206,47 @@ foreach my $account_id ( keys %refined ) {
             );
         }
 
+        # aggregate the user data
+        my %router_users;
+        foreach my $mac ( keys %{ $refined{$router_id}{users} } ) {
+
+            # loop over the data
+            #        $DB::single = 1;
+            my ( %last_row, %placeholder );
+            foreach my $row ( sort { $b->{cts}->epoch <=> $a->{cts}->epoch }
+                @{ $refined{$router_id}{users}{$mac} } )
+            {
+
+                $router_users{$router_id}{$mac} = 1;
+
+                # at this point we're processing time based data for $router_id.
+                # add the totals to to the array in the correct time slot.
+                # loop over the output @array until the row fits the slot.
+                for ( my $i = 0 ; $i <= $#array ; $i++ ) {
+
+                 # is this timestamp less than the next element?  That's a match
+                    if ( DateTime->compare( $row->{cts}, $array[$i]->[0] ) > 0 )
+                    {
+
+                        # then log it on the current element
+                        $array[$i]->[3]++;
+                        last;    # last $row
+                    }
+
+                }
+
+            }
+        }
+
+        $router->users_daily( scalar( keys %{ $router_users{$router_id} } ) );
+
         $router->traffic_daily( int($router_traffic) );
         $router->update;
 
         ##################################
         # write the mesh performance graph
         my $filename = join( '/',
-            $account->report_dir_base,
-            "router_" . $router_id . "_ping.csv" );
+            $account->report_dir_base, "router_" . $router_id . "_ping.csv" );
 
         my $fh;
         open( $fh, '>', $filename )
@@ -249,52 +285,17 @@ foreach my $account_id ( keys %refined ) {
           or die "could not open $filename: " . $!;
 
         foreach my $line (@array) {
-            print $fh join( ',', @{$line}[ 0, 1,2,3 ] ) . "\n";
+            print $fh join( ',', @{$line}[ 0, 1, 2, 3 ] ) . "\n";
         }
         close($fh) or die $!;
 
         ############################
-
-
-
 
     }
 
 }
 
 __END__
-
-    # aggregate the user data
-    my %router_users;
-    foreach my $mac ( keys %{ $refined{$account_id}{users} } ) {
-
-        # loop over the data
-        #        $DB::single = 1;
-        my ( %last_row, %placeholder );
-        foreach my $row ( sort { $b->{cts}->epoch <=> $a->{cts}->epoch }
-            @{ $refined{$account_id}{users}{$mac} } )
-        {
-
-            $router_users{ $row->{router} }{$mac} = 1;
-
-            # at this point we're processing time based data for $router_id.
-            # add the totals to to the array in the correct time slot.
-            # loop over the output @array until the row fits the slot.
-            for ( my $i = 0 ; $i <= $#array ; $i++ ) {
-
-                # is this timestamp less than the next element?  That's a match
-                if ( DateTime->compare( $row->{cts}, $array[$i]->[0] ) > 0 ) {
-
-                    # then log it on the current element
-                    $array[$i]->[3]++;
-                    last;    # last $row
-                }
-
-            }
-
-        }
-
-    }
 
     # now update the router totals
     foreach my $router_id ( keys %router_users ) {
