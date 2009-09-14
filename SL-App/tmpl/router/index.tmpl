@@ -8,7 +8,10 @@
 		     <li class="icon_node"><strong>[% active_nodes || 0 %] total routers </strong> in this network</li>
 		     <li class="node_trouble"><strong>[% problem_nodes || 0 %] recent problems</strong> with routers</li>
 		     <li class="node_inactive"><strong>[% inactive_nodes || 0 %] inactive routers</strong> on this network </li>
-		     <li class="icon_users"><strong>[% reg.account.users_today %] users</strong> transferred <strong>[% reg.account.megabytes_today %] megabytes</strong> (24 hours)</li>
+[%  USE Number.Format(GIGA_SUFFIX = ' GB', MEGA_SUFFIX = ' MB') %]
+		     <li class="icon_users"><strong>[% reg.account.users_today %] users</strong> transferred <strong>[% reg.account.megabytes_today * 1024 * 1024 | format_bytes %]</strong> (24 hours)</li>
+
+		     <li class="icon_users"><strong>[% reg.account.users_monthly %] users</strong> transferred <strong>[% reg.account.megabytes_monthly * 1024 * 1024 | format_bytes %]</strong> (30 days)</li>
 		 </ul>
 	</div>
 	
@@ -26,6 +29,21 @@
 	            so.write("flashcontent");
 	            // ]]>
 	    </script>
+
+	    <div id="flashcontenttwo">
+	        <strong>You need to upgrade your Flash Player</strong>
+	    </div>
+	    <script type="text/javascript">
+	            // <![CDATA[            
+	            var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","trafficthirty", "580px", "250px", "4", "#FFFFFF");
+	            so.addVariable("path", "[% base_uri %]/resources/chart/line/");
+	            so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/amline_settings.xml"));
+	            so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/network_monthly.csv"));
+	            so.write("flashcontenttwo");
+	            // ]]>
+	    </script>
+
+
 	</div>
 	<div class="clear"></div>
 	

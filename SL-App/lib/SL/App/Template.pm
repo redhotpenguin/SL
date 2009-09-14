@@ -7,6 +7,7 @@ use SL::Config;
 
 use Template;
 use Template::Plugin::Date;
+use Template::Plugin::Number::Format;
 use base 'Template';
 
 our ( $Template, %Tmpl_global );
