@@ -47,6 +47,33 @@ our $Apikey =
 #'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxSg_ULh7M3_G5UrPi2z6bAJSsaYCBTAhApwkxdrjMZLFtjQMIII-pzzlQ';
 
 
+
+sub dispatch_history {
+    my ( $class, $r ) = @_;
+
+    my $reg = $r->pnotes( $r->user );
+    my %tmpl_data = ( account => $reg->account );
+    my $account  = $reg->account;
+
+    my $filename = join( '/',
+        $Config->sl_app_base_uri, $account->report_dir_base,
+        "network_monthly.csv" );
+
+    %tmpl_data = (
+        network_history => $filename,
+        %tmpl_data
+    );
+
+    my $output;
+    $Tmpl->process( 'router/history.tmpl', \%tmpl_data, \$output, $r )
+      || return $class->error( $r, "Template error: " . $Tmpl->error );
+    return $class->ok( $r, $output );
+}
+
+
+
+
+
 sub dispatch_index {
     my ( $class, $r ) = @_;
 
