@@ -32,7 +32,8 @@ use SL::Model::App;
 $dbh->do("alter table account add column map_center text not null default '94109'");
 $dbh->do("alter table account add column map_zoom integer not null default 20");
 $dbh->do("alter table account add column users_today integer not null default 0");
-$dbh->do("alter table account add column megabytes_today integer not null default 0");
+$dbh->do("alter table account add column users_monthly integer not null default 0");
+$dbh->do("alter table account add column megabytes_monthly integer not null default 0");
 
 $dbh->do("create table network (network_id serial not null primary key)");
 $dbh->do("alter table network add column account_id integer NOT NULL");

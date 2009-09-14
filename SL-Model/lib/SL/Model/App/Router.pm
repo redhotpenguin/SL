@@ -60,20 +60,6 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => undef,
   },
-  "checkin_status",
-  {
-    data_type => "text",
-    default_value => 'No checkin history',
-    is_nullable => 1,
-    size => undef,
-  },
-  "speed_test",
-  {
-    data_type => "text",
-    default_value => 'No speed test data',
-    is_nullable => 1,
-    size => undef,
-  },
   "name",
   {
     data_type => "text",
@@ -184,13 +170,6 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 64,
   },
-  "gateway",
-  {
-    data_type => "inet",
-    default_value => undef,
-    is_nullable => 1,
-    size => undef,
-  },
   "adserving",
   {
     data_type => "boolean",
@@ -279,6 +258,27 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => undef,
   },
+  "checkin_status",
+  {
+    data_type => "text",
+    default_value => "'No checkin history'::text",
+    is_nullable => 0,
+    size => undef,
+  },
+  "speed_test",
+  {
+    data_type => "text",
+    default_value => "'No speed test data'::text",
+    is_nullable => 0,
+    size => undef,
+  },
+  "gateway",
+  {
+    data_type => "inet",
+    default_value => undef,
+    is_nullable => 1,
+    size => undef,
+  },
 );
 __PACKAGE__->set_primary_key("router_id");
 __PACKAGE__->add_unique_constraint("madaddr_uniq", ["macaddr"]);
@@ -309,8 +309,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04999_08 @ 2009-09-08 12:15:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GNStZZaVIgf3QYdZdeFKDA
+# Created by DBIx::Class::Schema::Loader v0.04999_08 @ 2009-09-14 13:37:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:geMARAnMo85X5Rd2NuCW+w
 # These lines were loaded from '/home/phred/dev/perl/lib/site_perl/5.8.9/SL/Model/App/Router.pm' found in @INC.
 # They are now part of the custom portion of this file
 # for you to hand-edit.  If you do not either delete
