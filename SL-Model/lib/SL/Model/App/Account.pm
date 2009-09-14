@@ -5,7 +5,7 @@ use warnings;
 
 use base 'DBIx::Class';
 
-__PACKAGE__->load_components("InflateColumn::DateTime", "Core");
+__PACKAGE__->load_components("Core");
 __PACKAGE__->table("account");
 __PACKAGE__->add_columns(
   "account_id",
@@ -22,41 +22,6 @@ __PACKAGE__->add_columns(
     default_value => undef,
     is_nullable => 0,
     size => undef,
-  },
-  "zone_type",
-  {
-    data_type => "text",
-    default_value => 'banner_ad',
-    is_nullable => 0,
-    size => undef,
-  },
-  "map_center",
-  {
-    data_type => "text",
-    default_value => '94109',
-    is_nullable => 0,
-    size => undef,
-  },
-  "map_zoom",
-  {
-    data_type => "integer",
-    default_value => 15,
-    is_nullable => 0,
-    size => 4,
-  },
-  "users_today",
-  {
-    data_type => "integer",
-    default_value => 0,
-    is_nullable => 0,
-    size => 4,
-  },
-  "megabytes_today",
-  {
-    data_type => "integer",
-    default_value => 0,
-    is_nullable => 0,
-    size => 4,
   },
   "premium",
   {
@@ -121,21 +86,49 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => undef,
   },
+  "zone_type",
+  {
+    data_type => "text",
+    default_value => "'banner_ad'::text",
+    is_nullable => 0,
+    size => undef,
+  },
+  "dnsone",
+  {
+    data_type => "inet",
+    default_value => undef,
+    is_nullable => 1,
+    size => undef,
+  },
+  "dnstwo",
+  {
+    data_type => "inet",
+    default_value => undef,
+    is_nullable => 1,
+    size => undef,
+  },
+  "map_center",
+  {
+    data_type => "text",
+    default_value => 94109,
+    is_nullable => 0,
+    size => undef,
+  },
+  "map_zoom",
+  { data_type => "integer", default_value => 15, is_nullable => 0, size => 4 },
+  "users_today",
+  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  "megabytes_today",
+  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  "users_monthly",
+  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  "megabytes_monthly",
+  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
 );
 __PACKAGE__->set_primary_key("account_id");
 __PACKAGE__->has_many(
-  "ad_zones",
-  "SL::Model::App::AdZone",
-  { "foreign.account_id" => "self.account_id" },
-);
-__PACKAGE__->has_many(
-  "payments",
-  "SL::Model::App::Payment",
-  { "foreign.account_id" => "self.account_id" },
-);
-__PACKAGE__->has_many(
-  "regs",
-  "SL::Model::App::Reg",
+  "networks",
+  "SL::Model::App::Network",
   { "foreign.account_id" => "self.account_id" },
 );
 __PACKAGE__->has_many(
@@ -145,14 +138,15 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04999_07 @ 2009-06-14 16:15:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RRtYhfWXU2vb5qbH+bvNaw
-# These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Account.pm' found in @INC.
+# Created by DBIx::Class::Schema::Loader v0.04999_08 @ 2009-09-14 13:37:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yRaWYj9m5kTfWmRguIctiQ
+# These lines were loaded from '/home/phred/dev/perl/lib/site_perl/5.8.9/SL/Model/App/Account.pm' found in @INC.
 # They are now part of the custom portion of this file
 # for you to hand-edit.  If you do not either delete
 # this section or remove that file from @INC, this section
 # will be repeated redundantly when you re-create this
 # file again via Loader!
+
 
 
 use SL::Config  ();
