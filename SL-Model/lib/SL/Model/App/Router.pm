@@ -279,6 +279,17 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => undef,
   },
+  "firmware_build",
+  {
+    data_type => "text",
+    default_value => "''::text",
+    is_nullable => 0,
+    size => undef,
+  },
+  "users_monthly",
+  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  "megabytes_monthly",
+  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
 );
 __PACKAGE__->set_primary_key("router_id");
 __PACKAGE__->add_unique_constraint("madaddr_uniq", ["macaddr"]);
@@ -309,8 +320,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04999_08 @ 2009-09-14 13:37:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:geMARAnMo85X5Rd2NuCW+w
+# Created by DBIx::Class::Schema::Loader v0.04999_08 @ 2009-09-15 15:16:53
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mlHo+GgLIZh6TMQHS8iCxQ
 # These lines were loaded from '/home/phred/dev/perl/lib/site_perl/5.8.9/SL/Model/App/Router.pm' found in @INC.
 # They are now part of the custom portion of this file
 # for you to hand-edit.  If you do not either delete
