@@ -32,8 +32,14 @@ use SL::Model::App;
 $dbh->do("alter table account add column map_center text not null default '94109'");
 $dbh->do("alter table account add column map_zoom integer not null default 20");
 $dbh->do("alter table account add column users_today integer not null default 0");
+$dbh->do("alter table account add column megabytes_today integer not null default 0");
 $dbh->do("alter table account add column users_monthly integer not null default 0");
 $dbh->do("alter table account add column megabytes_monthly integer not null default 0");
+
+
+
+
+=cut
 
 $dbh->do("create table network (network_id serial not null primary key)");
 $dbh->do("alter table network add column account_id integer NOT NULL");
@@ -60,12 +66,20 @@ $dbh->do("alter table network add column lan_block boolean default 't'");
 $dbh->do("alter table network add column ap1_isolate boolean default 't'");
 $dbh->do("alter table network add column ap2_isolate boolean default 't'");
 
+
+=cut
+
+
+
+$dbh->do("alter table router add column users_daily integer not null default 0");
+$dbh->do("alter table router add column traffic_daily integer not null default 0");
 $dbh->do("alter table router add column memfree integer not null default 0");
 $dbh->do("alter table router add column clients integer not null default 0");
 $dbh->do("alter table router add column hops integer not null default 0");
 $dbh->do("alter table router add column kbup integer not null default 0");
 $dbh->do("alter table router add column kbdown integer not null default 0");
 $dbh->do("alter table router add column neighbors text not null default ''");
+$dbh->do("alter table router drop column gateway");
 $dbh->do("alter table router add column gateway inet");
 $dbh->do("alter table router add column gateway_quality text not null default ''");
 $dbh->do("alter table router add column routes text not null default ''");
@@ -74,9 +88,12 @@ $dbh->do("alter table router add column download_last integer not null default 0
 $dbh->do("alter table router add column download_average integer not null default 0");
 $dbh->do("alter table router add column mesh_ip inet");
 
-$dbh->do("create table checkin (network_id serial not null primary key)");
-$dbh->do("alter table checkin add column router_id integer NOT NULL");
-$dbh->do("ALTER TABLE ONLY checkin ADD CONSTRAINT checkin__router_id_fkey FOREIGN KEY (router_id) REFERENCES router(router_id) ON UPDATE CASCADE ON DELETE CASCADE");
+$dbh->do("alter table router add column checkin_status text not null default 'No checkin history'");
+$dbh->do("alter table router add column speed_test text not null default 'No speed test data'");
+
+`psql -d $db -f ./sql/table/checkin.sql`;
+
+
 
 $dbh->do("ALTER TABLE ONLY router__location ADD CONSTRAINT router__location__router_id_fkey FOREIGN KEY (router_id) REFERENCES router(router_id) ON UPDATE CASCADE ON DELETE CASCADE");
 $dbh->do("ALTER TABLE ONLY router__location ADD CONSTRAINT router__location__location_id_fkey FOREIGN KEY (location_id) REFERENCES location(location_id) ON UPDATE CASCADE ON DELETE CASCADE");
