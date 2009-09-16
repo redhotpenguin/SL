@@ -68,7 +68,7 @@
             [% IF selected !="account" %]
 				 <ul id="nav_dashboard">
 				    <li[% IF selected == 'overview' %] class="selected"[% END %]><a id="button_overview" href="[% base_uri %]/app/home/index">Overview</a></li>
-				    <li[% IF selected == 'network' %] class="selected"[% END %]><a id="button_network" href="[% base_uri %]/app/router/index">Network</a></li>
+				    <li[% IF selected == 'network' %] class="selected"[% END %]><a id="button_network" href="[% base_uri %]/app/router/[% IF reg.account.beta %]index[% ELSE %]list[% END %]">Network</a></li>
 				    <li[% IF selected == 'adcenter' %] class="selected"[% END %]><a id="button_banners" href="[% base_uri %]/app/ad/index">Ad Center</a></li>
 				    <li[% IF selected == 'stats' %] class="selected"[% END %]><a id="button_stats" href="[% base_uri %]/app/report/index">Reports</a></li>
 [% IF new %]

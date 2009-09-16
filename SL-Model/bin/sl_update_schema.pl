@@ -35,6 +35,7 @@ $dbh->do("alter table account add column users_today integer not null default 0"
 $dbh->do("alter table account add column megabytes_today integer not null default 0");
 $dbh->do("alter table account add column users_monthly integer not null default 0");
 $dbh->do("alter table account add column megabytes_monthly integer not null default 0");
+$dbh->do("alter table account add column beta boolean not null default 'f'");
 
 
 

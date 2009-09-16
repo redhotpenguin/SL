@@ -31,6 +31,8 @@
 	<h2>[% IF router.router_id %][% router.name or router.macaddr %][% ELSE %]Add New Router[% END %]</h2>
 
 
+[% IF reg.account.beta %]
+
 	<div class="grid_10 omega">
 
     <h3>Uptime:</h3>
@@ -87,7 +89,7 @@
 
 	</div>
 
-
+[% END %]
 
 
 <form method="post" action="[% base_uri %]/app/router/edit">

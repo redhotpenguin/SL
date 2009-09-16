@@ -1,9 +1,6 @@
 package SL::App::Router;
 
 use strict;
-
-
-
 use warnings;
 
 use Apache2::Const -compile => qw(OK SERVER_ERROR NOT_FOUND M_GET M_POST);
@@ -52,6 +49,9 @@ sub dispatch_history {
     my ( $class, $r ) = @_;
 
     my $reg = $r->pnotes( $r->user );
+
+    return Apache2::Const::NOT_FOUND if !$reg->account->beta;
+
     my %tmpl_data = ( account => $reg->account );
     my $account  = $reg->account;
 
@@ -78,6 +78,9 @@ sub dispatch_index {
     my ( $class, $r ) = @_;
 
     my $reg = $r->pnotes( $r->user );
+
+    return Apache2::Const::NOT_FOUND if !$reg->account->beta;
+
     my %tmpl_data = ( account => $reg->account );
     my ( $head, $map, $total, $trouble, $inactive ) = eval {
         $class->map(
