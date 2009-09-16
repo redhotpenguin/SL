@@ -134,7 +134,7 @@
 		<option value="">Country</option>
 	    <option value="US" [% IF req.param('country') == '' || req.param('country') == 'US' %]SELECTED[% END %]>United States</option>
 	    <option value="CA" [% IF req.param('country') == 'CA' %]SELECTED[% END %]>Canada</option>
-	    <option value="SP" [% IF req.param('country') == 'SP' %]SELECTED[% END %]>Spain</option>
+	    <option value="ES" [% IF req.param('country') == 'ES' %]SELECTED[% END %]>Spain</option>
     </select> 
 	<label for="country">[% IF errors.missing.country or errors.invalid.country %]<font color="red">[% END %]Country[% IF errors.missing.country or errors.invalid.country %]</font>[% END %]</label>
 	</span>
