@@ -28,13 +28,13 @@ our $Tmpl = SL::App::Template->template();
 use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 
-our $Apikey =
+our $Apikey = $Config->sl_gmap_key ||  'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxTsWgBucG0c8uJlOLWh0_T9Sta0kxTxDDSstcYwd8oHy5R96NYHd07KFA';
 
 # production key, add on rollout
 #'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxQy1V7Lnb51SK2Zw6jkMdSNmKWG4BR6rYy1O4_e1HE-uzbTquoRsEEKfA';
 
 # 192.168.1.121
-'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxTsWgBucG0c8uJlOLWh0_T9Sta0kxTxDDSstcYwd8oHy5R96NYHd07KFA';
+#'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxTsWgBucG0c8uJlOLWh0_T9Sta0kxTxDDSstcYwd8oHy5R96NYHd07KFA';
 
 # 127.0.0.1
 #'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxRGsjeT8YPG8Wf95T-lVG33bp2K-xSOp0qPQkb8Yz7_cDoTISsnM3UrLg';
