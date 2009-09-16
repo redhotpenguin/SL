@@ -34,7 +34,7 @@
 	<h2>[% IF router.router_id %][% router.name or router.macaddr %][% ELSE %]Add New Router[% END %]</h2>
 
 
-[% IF reg.account.beta %]
+[% IF reg.account.beta && router %]
 
 
     <h3>Uptime:</h3>
@@ -358,6 +358,7 @@
 		</li>
 	</ul>
 </div>
+
 <div class="clear"></div>
 
 </form>
