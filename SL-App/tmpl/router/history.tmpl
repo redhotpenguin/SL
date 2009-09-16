@@ -3,18 +3,6 @@
 <div id="main_content" class="grid_16">	
 	[% PROCESS router/tertiarynav.tmpl active="history" %]
 	
-	<div class="grid_6 alpha">
-		 <ul class="simple_list">
-		     <li class="icon_node"><strong>[% active_nodes || 0 %] total routers </strong> in this network</li>
-		     <li class="node_trouble"><strong>[% problem_nodes || 0 %] recent problems</strong> with routers</li>
-		     <li class="node_inactive"><strong>[% inactive_nodes || 0 %] inactive routers</strong> on this network </li>
-[%  USE Number.Format(GIGA_SUFFIX = ' GB', MEGA_SUFFIX = ' MB') %]
-		     <li class="icon_users"><strong>[% reg.account.users_today %] users</strong> transferred <strong>[% reg.account.megabytes_today * 1024 * 1024 | format_bytes %]</strong> (24 hours)</li>
-
-		     <li class="icon_users"><strong>[% reg.account.users_monthly %] users</strong> transferred <strong>[% reg.account.megabytes_monthly * 1024 * 1024 | format_bytes %]</strong> (30 days)</li>
-		 </ul>
-	</div>
-	
 	<div class="grid_10 omega">
 
 		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
