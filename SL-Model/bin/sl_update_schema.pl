@@ -94,6 +94,8 @@ $dbh->do("alter table router add column speed_test text not null default 'No spe
 $dbh->do("alter table router add column firmware_build text not null default ''");
 $dbh->do("alter table router add column users_monthly integer not null default 0");
 $dbh->do("alter table router add column megabytes_monthly integer not null default 0");
+$dbh->do("alter table router add column nodes text not null default ''");
+$dbh->do("alter table router add column nodes_rssi text not null default ''");
 
 
 
