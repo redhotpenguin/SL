@@ -790,12 +790,14 @@ sub map {
         );
 
         $r->log->debug( "grabbed last checkin: " . Dumper($checkin) )
-          if VERBOSE_DEBUG;
+          if DEBUG;
 
         my @neighbors;
 
         # skip if no neighbors
-        unless ( ( $checkin->nodes eq 'z' ) or ( $checkin->nodes_rssi eq 'z' ) )
+        if ( $checkin &&
+                 (( $checkin->nodes ne 'z' ) or
+                  ( $checkin->nodes_rssi ne 'z' ) ))
         {
 
             my @nodes = split( /\;/, $checkin->nodes );
