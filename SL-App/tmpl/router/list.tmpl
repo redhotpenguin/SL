@@ -1,9 +1,11 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  View routers" selected="network" %]
 
+[% IF reg.account.beta %]
 <div class="grid_16 margin_b_20">
 	[% PROCESS router/tertiarynav.tmpl active="devices" %]
 </div>
 <div class="clear"></div>
+[% END %]
 
 <div class="grid_10 suffix_1">
 	[% IF msg %]
