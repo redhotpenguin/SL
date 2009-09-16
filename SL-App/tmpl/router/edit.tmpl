@@ -15,7 +15,9 @@
 
 
 [% IF !router && (reg.account.account_id !=2 ) %]
-	<!-- IF TRYING TO ADD A NEW ROUTER -->
+
+<div id="main_content" class="grid_9 suffix_2">
+<!-- IF TRYING TO ADD A NEW ROUTER -->
 	<h3>Existing Customers</h3>
 	<p>Learn about our brand new Silver Lining Repeaters. Our <a href="http://www.silverliningnetworks.com/store/">new repeaters are plug and play</a> and work out of the box!</p>
 	<p>If you are already using one or more WRT54GL device, rest assured you are a highly valued customer and we will continue to support you and your WRT54GL for the life of your account.</p>
@@ -24,16 +26,16 @@
 	<p>If you have an existing Open-Mesh.com account, <a href="[% base_uri %]/app/router/omsync">click here</a> to sync Silver Lining with your Open-Mesh.com network and update your list of devices.</p>
 	<p><a href="http://silverlining.zendesk.com/forums/26828/entries/37866">Click here</a> to learn more about integrating Open-Mesh.com with Silver Lining.</p>
 
-
+</div>
 [% ELSE %]
 
+	<div class="grid_10 omega">
 	<!-- IF TRYING TO EDIT AN EXISTING ROUTER -->
 	<h2>[% IF router.router_id %][% router.name or router.macaddr %][% ELSE %]Add New Router[% END %]</h2>
 
 
 [% IF reg.account.beta %]
 
-	<div class="grid_10 omega">
 
     <h3>Uptime:</h3>
 		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
@@ -344,7 +346,6 @@
 		</div>
 	</div>
 
-[% END %]
 
 </div>
 <div class="clear"></div>
@@ -361,5 +362,6 @@
 
 </form>
 
+[% END %]
 
 [% PROCESS footer.tmpl %]

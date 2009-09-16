@@ -460,6 +460,7 @@ sub dispatch_edit {
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
+	if ($router) {
 	my $router_id = $router->router_id;
 
     my $filename = join( '/',
@@ -496,7 +497,7 @@ sub dispatch_edit {
         close $fh or die $!;
     }
 
-
+}
 
 
         my %tmpl_data = (
@@ -605,7 +606,13 @@ sub dispatch_edit {
     }
 
     # active?  adserving?
-    $router->$_( $req->param($_) ) for qw( active adserving );
+     if ($req->param('active') ) {
+           $router->active($req->param('active'));
+	   $router->adserving($req->param('adserving'));
+      } else {
+          $router->active(0);
+	  $router->adserving(0);
+     }
 
     $router->update;
 
@@ -785,6 +792,7 @@ sub dispatch_deactivate {
     return Apache2::Const::NOT_FOUND unless $router;
 
     $router->active(0);
+    $router->adserving(0);
     $router->update;
 
     $r->pnotes('session')->{msg} =
