@@ -13,7 +13,6 @@ use XML::LibXML         ();
 use HTML::GoogleMaps    ();
 use Data::Dumper;
 
-
 use base 'SL::App';
 
 use SL::Model;
@@ -819,8 +818,14 @@ sub map {
                   ( $checkin->nodes_rssi ne 'z' ) ))
         {
 
-            my @nodes = split( /\;/, $checkin->nodes );
-            my @rssis = split( /\;/, $checkin->nodes_rssi );
+
+	    my $nodes = $checkin->nodes;
+            $nodes =~ s/(\%3b)/\;/g;
+	    my @nodes = split( /\;/, $nodes );
+
+	    my $rssis = $checkin->nodes_rssi;
+            $rssis =~ s/(\%3b)/\;/g;
+            my @rssis = split( /\;/, $rssis );
 
             $r->log->debug( "neighbors: " . Dumper( \@nodes ) ) if VERBOSE_DEBUG;
 
