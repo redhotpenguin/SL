@@ -457,7 +457,48 @@ sub dispatch_edit {
 
     }
 
+
     if ( $r->method_number == Apache2::Const::M_GET ) {
+
+	my $router_id = $router->router_id;
+
+    my $filename = join( '/',
+        $reg->account->report_dir_base,
+        "router_$router_id\_connectivity.csv" );
+
+    unless (-e $filename) {
+	my $fh;
+        open($fh, '>', $filename) or die $!;
+	print $fh '0,0';
+        close $fh or die $!;
+    }
+
+    $filename = join( '/',
+        $reg->account->report_dir_base,
+        "router_$router_id\_ping.csv" );
+
+    unless (-e $filename) {
+	my $fh;
+        open($fh, '>', $filename) or die $!;
+	print $fh '0,0,0';
+        close $fh or die $!;
+    }
+
+
+    $filename = join( '/',
+        $reg->account->report_dir_base,
+        "router_$router_id\_traffic.csv" );
+
+    unless (-e $filename) {
+	my $fh;
+        open($fh, '>', $filename) or die $!;
+	print $fh '0,0,0,0';
+        close $fh or die $!;
+    }
+
+
+
+
         my %tmpl_data = (
             ad_zones  => \@pzones,
             szones    => \@szones,
