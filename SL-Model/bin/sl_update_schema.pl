@@ -94,15 +94,19 @@ $dbh->do("alter table router add column speed_test text not null default 'No spe
 $dbh->do("alter table router add column firmware_build text not null default ''");
 $dbh->do("alter table router add column users_monthly integer not null default 0");
 $dbh->do("alter table router add column megabytes_monthly integer not null default 0");
-$dbh->do("alter table router add column nodes text not null default ''");
-$dbh->do("alter table router add column nodes_rssi text not null default ''");
-
+$dbh->do("update account set beta='t' where account_id in (1,2)");
 
 
 
 
 `psql -d $db -f ./sql/table/checkin.sql`;
+`psql -d $db -f ./sql/table/usertrack.sql`;
 
+$dbh->do("alter table checkin add column nodes text not null default ''");
+$dbh->do("alter table checkin add column nodes_rssi text not null default ''");
+$dbh->do("alter table checkin add column ping_ms integer not null default 0");
+$dbh->do("alter table checkin add column speed_kbytes integer not null default 0");
+$dbh->do("alter table checkin add column hops integer not null default 0");
 
 
 $dbh->do("ALTER TABLE ONLY router__location ADD CONSTRAINT router__location__router_id_fkey FOREIGN KEY (router_id) REFERENCES router(router_id) ON UPDATE CASCADE ON DELETE CASCADE");
