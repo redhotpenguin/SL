@@ -89,11 +89,14 @@ sub dispatch_index {
     return Apache2::Const::NOT_FOUND if !$reg->account->beta;
 
     my %tmpl_data = ( account => $reg->account );
+    my $server_root = (DEBUG) ? $r->construct_url('') :
+	'https://' . $Config->sl_app_servername;
+
     my ( $head, $map, $total, $trouble, $inactive ) = eval {
         $class->map(
             $r,
             {   account     => $reg->account,
-                server_root => $r->construct_url('')
+                server_root => $server_root,
             }
         );
     };
@@ -917,7 +920,7 @@ JS
 
         my $clients = ( $router->clients > 10 ) ? 10 : $router->clients;
         my $icon = $clients;
-        if ( $router->gateway eq $router->wan_ip ) {
+        if ( (defined $router->gateway && defined $router->wan_ip) && ($router->gateway eq $router->wan_ip) ) {
 
             # gateways
             $icon .= '_gateway';
@@ -962,8 +965,12 @@ JS
 
         $map->add_marker(%marker_args);
 
+	$r->log->debug("added marker for router_id " . Dumper(\%marker_args))
+	    if DEBUG;
+
         # is this a repeater?  add a polyline to the gateway
-        unless ( $router->gateway eq $router->wan_ip ) {
+        unless ( (defined $router->gateway && defined $router->wan_ip) && 
+		 ($router->gateway eq $router->wan_ip ) ) {
 
             my ($gateway) =
               SL::Model::App->resultset('Router')
@@ -972,7 +979,7 @@ JS
             $r->log->debug( "gateway is " . Dumper($gateway) ) if VERBOSE_DEBUG;
 
             unless ( $gateway && $gateway->lat && $gateway->lng ) {
-                $r->log->error(
+                $r->log->warn(
                     "no gateway found for router " . $router->name );
             }
             else {
