@@ -1,24 +1,26 @@
 SHELL=/bin/bash
-PATH=/home/phred2/dev/perl/bin
-MAILTO=phred
+PATH=/home/phred/dev/perl/bin
+MAILTO=fred@silverliningnetworks.com
+
+# monitorin
+*/12 * * * * $HOME/dev/perl/bin/perl $HOME/dev/sl/trunk/SL-Model/bin/sl_network_overview.pl
+*/12 * * * * $HOME/dev/perl/bin/perl $HOME/dev/sl/trunk/SL-Model/bin/sl_router_overview.pl
+20   4 * * * $HOME/dev/perl/bin/perl $HOME/dev/sl/trunk/SL-Model/bin/sl_network_monthly.pl
 
 # mail text report every day
-00 0 * * * perl $HOME/dev/perl/bin/sl_report.pl
-
-# delete any expired close ad actions from user_blacklist
-*/10 * * * * perl  $HOME/dev/perl/bin/sl_close_expire.pl
+00 2 * * * perl $HOME/dev/perl/bin/sl_report.pl
 
 # generate daily, weekly, and monthly reports every day
-15 0 * * * perl  $HOME/dev/perl/bin/sl_report_graph.pl --interval=daily --interval=weekly --interval=monthly
+30 2 * * * perl  $HOME/dev/perl/bin/sl_report_graph.pl --interval=daily --interval=weekly --interval=monthly
 
 # mail user specific reports every day in the morning to avoid spam
 00 06 * * * perl  $HOME/dev/perl/bin/sl_mail_user_reports.pl --interval=daily
 
-# generate the quarterly reports once a week
-30 0 0 * * perl  $HOME/dev/perl/bin/sl_report_graph.pl --interval=quarterly --interval=biannually --interval=annually
+# generate the quarterly reports once a week on sunday
+00 1 * * 0 perl  $HOME/dev/perl/bin/sl_report_graph.pl --interval=quarterly --interval=biannually --interval=annually
 
 # mail weekly reports on sunday
-00 6 * * 0 perl  $HOME/dev/perl/bin/sl_mail_user_reports.pl --interval=weekly
+00 6 * * 0 perl  $HOME/dev/perl/bin/sl_mail_user_reports.pl --interval=weekly --interval=monthly
 
-# monthly reports on the first of the month
-00 6 1 * * perl  $HOME/dev/perl/bin/sl_mail_user_reports.pl --interval=monthly
+# quarterly etc reports on the first of the month
+00 6 1 * * perl  $HOME/dev/perl/bin/sl_mail_user_reports.pl --interval=quarterly --interval=biannually --interval=annually
