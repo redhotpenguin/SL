@@ -56,8 +56,15 @@ sub dispatch_history {
     my $account  = $reg->account;
 
     my $filename = join( '/',
-        $Config->sl_app_base_uri, $account->report_dir_base,
+        $account->report_dir_base,
         "network_monthly.csv" );
+
+    unless (-e $filename) {
+	my $fh;
+        open($fh, '>', $filename) or die $!;
+	print $fh '0,0,0,0';
+        close $fh or die $!;
+    }
 
     %tmpl_data = (
         network_history => $filename,
@@ -102,9 +109,18 @@ sub dispatch_index {
     }
 
     my $account  = $reg->account;
+
     my $filename = join( '/',
-        $Config->sl_app_base_uri, $account->report_dir_base,
+        $account->report_dir_base,
         "network_overview.csv" );
+
+    unless (-e $filename) {
+	my $fh;
+        open($fh, '>', $filename) or die $!;
+	print $fh '0,0,0,0';
+        close $fh or die $!;
+    }
+
 
     %tmpl_data = (
         active_nodes     => $total,
