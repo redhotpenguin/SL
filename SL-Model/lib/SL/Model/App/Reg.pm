@@ -423,8 +423,12 @@ sub process_router {
 sub get_routers {
     my ( $self, $ad_zone_id ) = @_;
 
-    my @routers = @{ $self->account->get_routers };
+    my $account = $self->account;
+    my $devices = $account->get_routers;
 
+    return unless defined $devices;
+
+    my @routers = @{$devices};
     return unless scalar(@routers) > 0;
 
     # add metadata
