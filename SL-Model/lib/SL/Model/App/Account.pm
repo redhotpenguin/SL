@@ -124,6 +124,13 @@ __PACKAGE__->add_columns(
   { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
   "megabytes_monthly",
   { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  "beta",
+  {
+    data_type => "boolean",
+    default_value => "false",
+    is_nullable => 0,
+    size => 1,
+  },
 );
 __PACKAGE__->set_primary_key("account_id");
 __PACKAGE__->has_many(
@@ -138,15 +145,14 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04999_08 @ 2009-09-14 13:37:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yRaWYj9m5kTfWmRguIctiQ
+# Created by DBIx::Class::Schema::Loader v0.04999_08 @ 2009-09-16 00:34:17
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jWgYEgVvzaGrGjoRrCeNqQ
 # These lines were loaded from '/home/phred/dev/perl/lib/site_perl/5.8.9/SL/Model/App/Account.pm' found in @INC.
 # They are now part of the custom portion of this file
 # for you to hand-edit.  If you do not either delete
 # this section or remove that file from @INC, this section
 # will be repeated redundantly when you re-create this
 # file again via Loader!
-
 
 
 use SL::Config  ();
