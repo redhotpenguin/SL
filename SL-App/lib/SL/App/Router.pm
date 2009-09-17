@@ -1009,7 +1009,7 @@ JS
             neighbor_html => $neighbor_html,
             ping_html     => $ping_html,
 
-
+	    checkin       =>  $Config->sl_app_base_uri . '/checkin/move',
             icon          => $icon,
             title         => $router->name,
             mac           => $router->macaddr,

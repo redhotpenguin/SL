@@ -312,6 +312,7 @@ sub add_marker {
     point => $point,
     icon => $opts{icon},
     html => $opts{html},
+    checkin => $opts{checkin},
     neighbor_html => $opts{neighbor_html},
     ping_html => $opts{ping_html},
     title => $opts{title},
@@ -483,8 +484,8 @@ SCRIPT
     $header .=
 "      GEvent.addListener(marker_$i, \"dragstart\", function() { map.closeInfoWindow(); });\n";
 
-
     my $mac = $point->{mac};
+    my $checkin = $point->{checkin};
     $header .=     "      GEvent.addListener(marker_$i, \"dragend\", function() {
         var pDrop = marker_$i.getPoint();
         // code components lifted from open-mesh.com
@@ -493,7 +494,7 @@ SCRIPT
         else if (window.ActiveXObject)
             req = new ActiveXObject(\"Microsoft.XMLHTTP\");
 
-        req.open(\"POST\", \"/checkin/move\", false);
+        req.open(\"POST\", \"$checkin\", false);
         req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
         req.setRequestHeader('Cache-Control', 'private');
         var encoded = \"mac=$mac\" + \"&lat=\" + pDrop.y + \"&lng=\" + pDrop.x;
