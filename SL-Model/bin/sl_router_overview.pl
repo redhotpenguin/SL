@@ -50,6 +50,7 @@ foreach my $row (@$results) {
       };
 }
 
+
 # users
 $sql = <<'SQL';
 SELECT account.account_id, usertrack.mac, usertrack.cts,
@@ -66,10 +67,11 @@ $sql = sprintf( $sql, DateTime::Format::Pg->format_datetime($yesterday) );
 
 my $users = $dbh->selectall_arrayref( $sql, { Slice => {} } );
 
+my %user_refined;
 foreach my $row (@$users) {
 
     # and group by user
-    push @{ $refined{ $row->{router_id} }{users}{ $row->{mac} } },
+    push @{ $user_refined{ $row->{router_id} }{users}{ $row->{mac} } },
       {
         kbup   => $row->{kbup},
         kbdown => $row->{kbdown},
@@ -208,13 +210,13 @@ foreach my $account_id ( keys %refined ) {
 
         # aggregate the user data
         my %router_users;
-        foreach my $mac ( keys %{ $refined{$router_id}{users} } ) {
+        foreach my $mac ( keys %{ $user_refined{$router_id}{users} } ) {
 
             # loop over the data
             #        $DB::single = 1;
             my ( %last_row, %placeholder );
             foreach my $row ( sort { $b->{cts}->epoch <=> $a->{cts}->epoch }
-                @{ $refined{$router_id}{users}{$mac} } )
+                @{ $user_refined{$router_id}{users}{$mac} } )
             {
 
                 $router_users{$router_id}{$mac} = 1;
