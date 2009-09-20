@@ -25,6 +25,7 @@ Timeout              300
 AllowEncodedSlashes On
 
 Listen [% cfg.sl_gateway_ip %]:[% cfg.sl_apache_listen %]
+Listen [% cfg.sl_gateway_ip %]:8135
 
 ServerName [% cfg.sl_servername %]
 
