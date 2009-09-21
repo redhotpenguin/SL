@@ -103,7 +103,11 @@ slNET -p tcp -m tcp --dport 53 -j ACCEPT
 slNET -p udp -m udp --dport 53 -j ACCEPT
 slNET -d $Auth_ip -p tcp -m tcp --dport 443 -j ACCEPT
 slNET -d $Verify_authorize_net_ip -p tcp -m tcp --dport 443 -j ACCEPT
-slNET -d $Zendesk_ip -p tcp -m tcp --dport 80 -j ACCEPT
+slNET -d 69.36.240.30 -p tcp -m tcp --dport 443 -j ACCEPT
+slNET -d 69.36.240.30 -p tcp -m tcp --dport 80 -j ACCEPT
+slNET -d 69.36.240.28 -p tcp -m tcp --dport 80 -j ACCEPT
+slNET -d 69.36.240.29 -p tcp -m tcp --dport 80 -j ACCEPT
+slNET -d 69.36.240.29 -p tcp -m tcp --dport 443 -j ACCEPT
 slNET -d $Zendesk_ip -p tcp -m tcp --dport 443 -j ACCEPT
 slNET -d $Googleajax_ip -p tcp -m tcp --dport 80 -j ACCEPT
 slNET -d $Googleajax_ip -p tcp -m tcp --dport 443 -j ACCEPT
