@@ -22,18 +22,18 @@ function computeConnectionSpeed( ) {
     connectionSpeed = 0;
     fileSize = 1048576;
 
-    connectSpeed = (Math.floor((((fileSize/1024) / ((end - start) / 1000)))));
+    connectSpeed = (Math.floor((((fileSize/(1024*1024*8)) / ((end - start) / 1000)))));
 //    alert("connection speed is " + connectSpeed + " kilobytes per second (kB/s), start " + start + ", stop " + end);
 
 
-      if (connectSpeed < 50) {
+      if (connectSpeed < (0.25)) {
 
           document.getElementById('section_none').style.display="block";
           document.getElementById('section_all').style.display="none";
 
       } else  {
       div = document.getElementById('speed');
-      div.innerHTML = "<br />You're connected to the airCloud WiFi Network.<br />Your connection speed is <strong>" + connectSpeed + " kB/s</strong>";
+      div.innerHTML = "<br />You're connected to the airCloud WiFi Network.<br />Your connection speed is <strong>" + connectSpeed + " Mbits/s</strong>";
           document.getElementById('section_all').style.display="block";
           document.getElementById('testing').style.display="none";
       }
@@ -56,7 +56,7 @@ function computeConnectionSpeed( ) {
 				<hr />
 
 <div id="section_none" style="display: none; margin-left: 20px;">
-<p>Your connection speed is <strong>less than 50kB/s</strong>, so you are probably out of usable range of the WiFi network.<br />Visit <a href="http://www.aircloud.com/public/">http://www.aircloud.com/public/</a> for a list of nearby access points.</p>
+<p>Your connection speed is <strong>less than 0.25 Megabits/s</strong>, so you are out of usable range of the WiFi network.<br />Visit <a href="http://www.aircloud.com/public/">http://www.aircloud.com/public/</a> for a list of nearby access points.</p>
 </div>
 
 <div id="section_all" style="display: none;">
