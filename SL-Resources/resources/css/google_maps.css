@@ -89,8 +89,38 @@ background: url(../images/icons/minicon/chart.png) left center no-repeat;
 /* NEIGHBOR SECTION
 ============================================= */
 #gbub_neighbors {
-display: none;
 }
+#gbub_neighbors .notification {
+text-align: center;
+padding: 20px 0px;
+font-style: italic;
+font-size: 100%;
+background-color: #fff5c5;
+color: #999;
+}
+#gbub_neighbors table {
+width: 100%;
+}
+#gbub_neighbors table .highlight {
+color: green;
+}
+#gbub_neighbors table th {
+background-color: #EEE;
+color: #666;
+font-size: 77%;
+font-weight: bold;
+padding: 2px;
+text-align: center;
+}
+#gbub_neighbors table td {
+color: #333;
+font-size: 85%;
+padding: 5px;
+text-align: left;
+border-bottom: 1px solid #EEE;
+}
+
+
 
 /* FOOTER
 ============================================= */
