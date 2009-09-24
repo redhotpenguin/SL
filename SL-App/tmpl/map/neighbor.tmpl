@@ -7,9 +7,8 @@
 	</div>
 
 	<div id="gbub_neighbors">	
-
        [% IF !neighbors.0 %]
-         <p>No neighbor nodes in range</p>
+         <p class="notification">No neighbor nodes in range</p>
        [% ELSE %]
 
        <table>
@@ -25,17 +24,19 @@
        [% FOREACH mrrogers = neighbors %]
 
        <tr>
-         <td><a href="[% base_uri %]/app/router/edit/?router_id=[% mrrogers.router_id %]">[% mrrogers.name %]</a></td>&nbsp;|&nbsp;
-         <td>[% mrrogers.ip %]</td>&nbsp;|&nbsp;
-         <td>[% mrrogers.macaddr %]</td>&nbsp;|&nbsp;
-         <td><font color="green">[% mrrogers.rssi %]</font></td>
+         <td><a href="[% base_uri %]/app/router/edit/?router_id=[% mrrogers.router_id %]">[% mrrogers.name %]</a></td>
+         <td>[% mrrogers.ip %]</td>
+         <td>[% mrrogers.macaddr %]</td>
+         <td class="highlight">[% mrrogers.rssi %]</td>
        </tr>
 
        [% END %]
 
      </table>
-[% END %]
+	[% END %]
 	</div>
+	
+
 	
 	<div class="gbub_footer">
 		<p>Type: <strong>[% router.board %]</strong> | Mac: <strong>[% router.macaddr %]</strong> | IP: <strong>[% router.ip %]</strong></p>
