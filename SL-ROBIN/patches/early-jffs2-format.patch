@@ -1,0 +1,40 @@
+diff -Nwu robin-build/robin-mesh/files/etc/init.d-orig/done robin-build/robin-mesh/files/etc/init.d/done
+--- robin-mesh/files/etc/init.d-orig/done	1970-01-01 08:00:00.000000000 +0800
++++ robin-mesh/files/etc/init.d/done	2009-09-24 02:54:17.000000000 +0800
+@@ -0,0 +1,9 @@
++#!/bin/sh /etc/rc.common
++# Copyright (C) 2006 OpenWrt.org
++
++START=95
++boot() {
++	# set leds to normal state
++	. /etc/diag.sh
++	set_state done
++}
+diff -Nwu robin-build/robin-mesh/files/etc/init.d-orig/jffs2-format robin-build/robin-mesh/files/etc/init.d/jffs2-format
+--- robin-mesh/files/etc/init.d-orig/jffs2-format	1970-01-01 08:00:00.000000000 +0800
++++ robin-mesh/files/etc/init.d/jffs2-format	2009-09-24 02:54:59.000000000 +0800
+@@ -0,0 +1,11 @@
++#!/bin/sh
++
++[ $1 == "boot" ] || exit
++
++[ -d /tmp/root ] && {
++	lock /tmp/.switch2jffs
++	firstboot switch2jffs
++	lock -u /tmp/.switch2jffs
++}
++
++sed -i '/net.ipv4.tcp_ecn=1/d' /etc/sysctl.conf
+diff -Nwu robin-build/robin-mesh/files/etc/init.d-orig/rcS robin-build/robin-mesh/files/etc/init.d/rcS
+--- robin-mesh/files/etc/init.d-orig/rcS	2009-09-24 02:51:25.000000000 +0800
++++ robin-mesh/files/etc/init.d/rcS	2009-09-24 02:55:50.000000000 +0800
+@@ -9,6 +9,8 @@
+ [ -d /etc/rc.c ] && rm -rf /etc/rc.c
+ mkdir -p /etc/rc.c
+
++/etc/init.d/jffs2-format $2
++
+ # unwanted services which may be in boot sequence
+ if [ -e /etc/init.d/olsrd ] ; then
+ 	if cat /etc/init.d/olsrd |grep START=50 > /dev/null ; then

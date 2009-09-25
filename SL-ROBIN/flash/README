@@ -1,8 +1,0 @@
-This directory contains r2168 of ROBIN firmware that we use
-to flash all new routers with.
-
-Scp these files to a new router, then run 'sh flash.sh'
-
-Example, from the new router
-root@open-mesh:~# scp -r phred@192.168.1.121:~/flash/* .
-root@open-mesh:~# scp -r leo@192.168.1.121:~/flash/* .

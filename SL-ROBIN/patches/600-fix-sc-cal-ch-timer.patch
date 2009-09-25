@@ -1,0 +1,27 @@
+--- a/ath/if_ath.c	2009-09-13 00:04:02.000000000 +0800
++++ b/ath/if_ath.c	2009-09-13 00:04:02.000000000 +0800
+@@ -2781,13 +2785,14 @@
+ 	if (sc->sc_beacon_cal == !!val)
+ 		return;
+
++	sc->sc_beacon_cal = !!val && beacon_cal;
++
+ 	if (val) {
+ 		del_timer_sync(&sc->sc_cal_ch);
+ 	} else {
+ 		sc->sc_cal_ch.expires = jiffies + (ath_calinterval * HZ);
+ 		add_timer(&sc->sc_cal_ch);
+ 	}
+-	sc->sc_beacon_cal = !!val && beacon_cal;
+ }
+
+ /*
+@@ -5443,7 +5448,7 @@
+ 			"Invoking ath_hal_txstart with sc_bhalq: %d\n",
+ 			sc->sc_bhalq);
+ 		ath_hal_txstart(ah, sc->sc_bhalq);
+-		if (sc->sc_beacon_cal && (jiffies > sc->sc_lastcal + (ath_calinterval * HZ))) {
++		if (!sc->sc_beacon_cal && (jiffies > sc->sc_lastcal + (ath_calinterval * HZ))) {
+ 			sc->sc_cal_ch.expires = jiffies + msecs_to_jiffies(10);
+ 			add_timer(&sc->sc_cal_ch);
+ 		}
