@@ -15,7 +15,7 @@ start = (new Date()).getTime();
 function computeConnectionSpeed( ) {
 
     imageObj = new Image();
-    imageObj.src="http://s.slwifi.com/foo.gif";
+    imageObj.src="/sl/img/foo.gif";
 
     end = (new Date()).getTime();
 
@@ -29,13 +29,15 @@ function computeConnectionSpeed( ) {
       if (connectSpeed < (0.25)) {
 
           document.getElementById('section_none').style.display="block";
-          document.getElementById('section_all').style.display="none";
+        document.getElementById('section_all').style.display="block";
 
       } else  {
       div = document.getElementById('speed');
       div.innerHTML = "<br />You're connected to the airCloud WiFi Network.<br />Your connection speed is <strong>" + connectSpeed + " Mbits/s</strong>";
           document.getElementById('section_all').style.display="block";
-          document.getElementById('testing').style.display="none";
+
+	// This needs more testing!
+	document.getElementById('testing').style.display="block";
       }
 
 
