@@ -1039,9 +1039,9 @@ JS
             else {
 
                 $map->add_polyline(
-                    weight => 10,
-                    opacity => 1,
-                    color => '\#000000',
+                    weight => 5,
+                    opacity => 0.5,
+                    color => '\#81bad3',
                     points => [
                         [ $router->lng,  $router->lat ],
                         [ $gateway->lng, $gateway->lat ],
