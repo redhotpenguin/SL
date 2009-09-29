@@ -15,29 +15,28 @@ start = (new Date()).getTime();
 function computeConnectionSpeed( ) {
 
     imageObj = new Image();
-    imageObj.src="/sl/img/foo.gif";
+    imageObj.src="/sl/img/foo.gif?"+Math.floor(Math.random()*1000);
 
     end = (new Date()).getTime();
 
     connectionSpeed = 0;
     fileSize = 1048576;
 
-    connectSpeed = (Math.floor((((fileSize/(1024*1024*8)) / ((end - start) / 1000)))));
-//    alert("connection speed is " + connectSpeed + " kilobytes per second (kB/s), start " + start + ", stop " + end);
+    connectSpeed = ((fileSize/(1024*1024*8)) / ((end - start) / 1000));
 
-
-      if (connectSpeed < (0.25)) {
+      if (connectSpeed < 0.25) {
 
           document.getElementById('section_none').style.display="block";
         document.getElementById('section_all').style.display="block";
+        document.getElementById('testing').style.display="none";
 
       } else  {
       div = document.getElementById('speed');
-      div.innerHTML = "<br />You're connected to the airCloud WiFi Network.<br />Your connection speed is <strong>" + connectSpeed + " Mbits/s</strong>";
+      div.innerHTML = "You are connected to the airCloud WiFi Network.<br />Your connection speed is <strong>" + Math.floor(connectSpeed) + " Mbits/s</strong>";
           document.getElementById('section_all').style.display="block";
 
 	// This needs more testing!
-	document.getElementById('testing').style.display="block";
+	document.getElementById('testing').style.display="none";
       }
 
 
@@ -55,12 +54,12 @@ function computeConnectionSpeed( ) {
 				<div id="testing" style="display:block;"><p><strong>Testing your speed to the internet...</strong></p></div>
 				<p><div id="speed"></div></p>
 </div>
-				<hr />
 
 <div id="section_none" style="display: none; margin-left: 20px;">
-<p>Your connection speed is <strong>less than 0.25 Megabits/s</strong>, so you are out of usable range of the WiFi network.<br />Visit <a href="http://www.aircloud.com/public/">http://www.aircloud.com/public/</a> for a list of nearby access points.</p>
+<p><strong>Your connection speed is less than 0.25 Megabits/s</strong>, so you are out of usable range of the WiFi network.<br />Visit <a href="http://www.aircloud.com/public/">http://www.aircloud.com/public/</a> for a list of nearby access points.</p>
 </div>
 
+				<hr />
 <div id="section_all" style="display: none;">
 
 	<div id="section_one">
@@ -107,7 +106,7 @@ function computeConnectionSpeed( ) {
                         </div>
 
 			<div class="clear"></div>
-				<p class="free_service">Need a monthly subscription?  Scroll down!<br />You can also use our <a href="[% base_uri %]/auth/free?plan=ads&mac=[% mac %]&url=[% url %]">Free</a> WiFi service.  Advertisements will be displayed in the Free service, and you will be able to browse the web, receive and send email, and use instant messenger clients in the Free service.</p>
+				<p class="free_service"><strong>All WiFi purchases are final.</strong><br />If you have problems while surfing (see the speed test above) we will issue you more time, use the support tab on the left.<br />Need a zero commitment monthly subscription?  Scroll down!<br />You can also use our <a href="[% base_uri %]/auth/free?plan=ads&mac=[% mac %]&url=[% url %]">Free</a> WiFi service.  Advertisements will be displayed in the Free service, and you will be able to browse the web, receive and send email, and use instant messenger clients in the Free service.<br /><strong>If you have a problem while surfing</strong> you are probably in a bad signal area.  Try moving (even a few feet will do it sometimes) and loading this page again for the speed test.</p>
 
 			</div>
 	</div>
