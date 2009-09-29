@@ -76,7 +76,7 @@ robin_checkout:
 
 sln_setup:
 	cd $(BUILD_DIR)/$(OWRT_DIST_LOCAL_PATH)/package && \
-		$(foreach PACKAGE, $(SLN_PKG_LIST), ln -sf ../../package/$(PACKAGE) .;)
+		$(foreach PACKAGE, $(SLN_PKG_LIST), ln -sf ../../../package/$(PACKAGE) .;)
 
 
 apply_patches:
