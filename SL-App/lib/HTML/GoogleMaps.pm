@@ -350,7 +350,7 @@ sub onload_render {
   $this->{id} ||= 'map';
   $this->{height} ||= '400px';
   $this->{width} ||= '600px';
-  $this->{dragging} = 1 unless defined $this->{dragging};
+#  $this->{dragging} = 1 unless defined $this->{dragging};
   $this->{info_window} = 1 unless defined $this->{info_window};
   $this->{type} ||= "G_NORMAL_MAP";
   $this->{zoom} ||= 13;
@@ -454,7 +454,8 @@ SCRIPT
 #    my $title = sprintf("%s - %s - %s - %s - %s",$point->{title}, $point->{mac}, $point->{ip}, $point->{board}, '55% network usage');
     $title =~ s/'/\\'/g;
 
-    $header .= "\nvar options_$i = { title: '$title', icon: $icon, draggable: true };\n";
+#    $header .= "\nvar options_$i = { title: '$title', icon: $icon, draggable: true };\n";
+    $header .= "\nvar options_$i = { title: '$title', icon: $icon, draggable: false };\n";
     $header .= "var marker_$i = new GMarker(new GLatLng($point->{point}[0], $point->{point}[1]), options_$i);\n";
 
     $point_html =~ s/'/\\'/g;
@@ -481,6 +482,7 @@ SCRIPT
                 ];
                 marker_$i.openInfoWindowTabsHtml(infoTabs)});\n";
 
+=cut
     $header .=
 "      GEvent.addListener(marker_$i, \"dragstart\", function() { map.closeInfoWindow(); });\n";
 
@@ -505,6 +507,8 @@ SCRIPT
                    // alert(req.responseText);
         }
         });\n";
+
+=cut
 
     $header .= "      map.addOverlay(marker_$i);\n";
 
