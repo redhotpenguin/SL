@@ -1,13 +1,13 @@
 # 
 # Copyright (C) 2009 Silver Lining Networks
 #
-# See /LICENSE for more information.
+# See LICENSE for more information.
 
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=sln
-PKG_VERSION:=0.21
-PKG_RELEASE:=6
+PKG_VERSION:=0.22
+PKG_RELEASE:=1
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/kernel.mk
@@ -31,7 +31,7 @@ endef
 define KernelPackage/sln
   SUBMENU:=Netfilter Extensions
   TITLE:=Silver Lining conntrack and nat helpers
-  DEPENDS:=@LINUX_2_6_23
+  DEPENDS:=@LINUX_2_6_26
   MAINTAINER:=fred@redhotpenguin.com
   FILES:=$(PKG_BUILD_DIR)/nf_nat_sl.$(LINUX_KMOD_SUFFIX) \
 	 $(PKG_BUILD_DIR)/nf_conntrack_sl.$(LINUX_KMOD_SUFFIX)

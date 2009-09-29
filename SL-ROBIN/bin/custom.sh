@@ -1,31 +1,51 @@
 #!/bin/sh
 
-VERSION=0.08
+VERSION=0.09
 LICENSE="Copyright 2009 Silver Lining Networks, Inc."
 DESCRIPTION="This program installs the Silver Lining ipkg onto open-mesh.com ROBIN enabled devices"
 
-KMOD_SLN_RELEASE=6
-SLN_RELEASE=6
-
-MICROPERL_FILE=microperl_5.10.0-1_mips.ipk
-KMODSLN_FILE=kmod-sln_2.6.23.17+0.21-atheros-$KMOD_SLN_RELEASE\_mips.ipk
-SLN_FILE=sln_0.21-$SLN_RELEASE\_mips.ipk
-
-URL_MICROPERL=http://fw.slwifi.com/SL-ROBIN/perl/$MICROPERL_FILE
-URL_KMODSLN=http://fw.slwifi.com/SL-ROBIN/sln/0.21-$KMOD_SLN_RELEASE\_mips/$KMODSLN_FILE
-URL_SLN=http://fw.slwifi.com/SL-ROBIN/sln/0.21-$SLN_RELEASE\_mips/$SLN_FILE
 
 # see if there is enough room
-NO_UPGRADE=0
-if [ "$(free |grep 'Mem:' |awk '{print $4}')" -lt 3000 ] ; then
-        NO_UPGRADE=1 
+FREE_MEM=$(free |grep 'Mem:' |awk '{print $4}')
+if [ $FREE_MEM -lt 3000 ] ; then
+    echo "free memory less than 3000 bytes, cannot install SL"
+    exit
 fi
 
-if [ "$(uname -r | awk -F '\.' '{print $3}')" -ne 23 ] ; then
-        NO_UPGRADE=1;
+# see if the needed kernel version is present
+KVERSION=$(uname -r | awk -F '\.' '{print $3}')
+if [ $KVERSION -ne 23 -o $KVERSION -ne 26 ] ; then
+    echo "kernel version not .26 or .23, cannot install SL"
+    exit
 fi
 
-[ 1 -eq "$NO_UPGRADE" ] && exit
+if [ $KVERSION -eq 23 ] ; then
+
+    SL_VER=0.21
+    KMOD_SLN_RELEASE=6
+    SLN_RELEASE=6
+    KERNEL=2.6.23.17
+    MICROPERL_FILE=microperl_5.10.0-1_mips.ipk
+    TOOL=ipkg
+
+elif [ $KVERSION -eq 26 ] ; then
+
+    SL_VER=0.22
+    KMOD_SLN_RELEASE=1
+    SLN_RELEASE=1
+    KERNEL=2.6.26.28
+    MICROPERL_FILE=microperl_5.10.0-1_mips.ipk
+    TOOL=opkg
+
+fi
+
+KMODSLN_FILE=kmod-sln_$KERNEL+$SL_VER-atheros-$KMOD_SLN_RELEASE\_mips.ipk
+SLN_FILE=sln_$SL_VER-$SLN_RELEASE\_mips.ipk
+
+URL_MICROPERL=http://fw.slwifi.com/SL-ROBIN/perl/$MICROPERL_FILE
+URL_KMODSLN=http://fw.slwifi.com/SL-ROBIN/sln/$SL_VER-$KMOD_SLN_RELEASE\_mips/$KMODSLN_FILE
+URL_SLN=http://fw.slwifi.com/SL-ROBIN/sln/$SL_VER-$SLN_RELEASE\_mips/$SLN_FILE
+
 
 # shut down cron
 echo "Starting SLN ipkg install, stopping cron"
@@ -43,7 +63,7 @@ echo "removing old $IPKG files"
 
 # is $IPKG installed?  skip it
 echo "checking for old $IPKG install"
-if [ "$(/usr/bin/ipkg list_installed $IPKG)" != 'Done.' ] ; then
+if [ "$(/usr/bin/$TOOL list_installed $IPKG)" != 'Done.' ] ; then
 
     echo "$IPKG already installed"
 else
@@ -79,7 +99,7 @@ else
     # md5s check out, install the new ipkg
     echo "installing new package $MICROPERL_FILE"
 
-    INSTALLED=$(/usr/bin/ipkg -V3 install "$MICROPERL_FILE")
+    INSTALLED=$(/usr/bin/$TOOL -V3 install "$MICROPERL_FILE")
 
     echo "$MICROPERL_FILE installed ok - $INSTALLED"
 
@@ -101,7 +121,7 @@ echo "removing old files"
 
 # is $IPKG installed?  remove it
 echo "checking for old $IPKG install"
-[ "$(/usr/bin/ipkg list_installed $IPKG)" != 'Done.' ] && `/usr/bin/ipkg -V3 remove -force-depends $IPKG`
+[ "$(/usr/bin/$TOOL list_installed $IPKG)" != 'Done.' ] && `/usr/bin/$TOOL -V3 remove -force-depends $IPKG`
 
 # grab the packages
 echo "grabbing new $IPKG files"
@@ -132,7 +152,7 @@ fi
 # md5s check out, install the new ipkg
 echo "installing new package $KMODSLN_FILE"
 
-INSTALLED=$(/usr/bin/ipkg -V3 install "$KMODSLN_FILE")
+INSTALLED=$(/usr/bin/$TOOL -V3 install "$KMODSLN_FILE")
 
 echo "$KMODSLN_FILE installed ok - $INSTALLED"
 
@@ -151,7 +171,7 @@ echo "removing old files"
 
 # is $IPKG installed?  remove it
 echo "checking for old $IPKG install"
-[ "$(/usr/bin/ipkg list_installed $IPKG)" != 'Done.' ] && `/usr/bin/ipkg -V3 remove -force-depends $IPKG`
+[ "$(/usr/bin/$TOOL list_installed $IPKG)" != 'Done.' ] && `/usr/bin/$TOOL -V3 remove -force-depends $IPKG`
 
 # grab the packages
 echo "grabbing new $IPKG files"
@@ -182,7 +202,7 @@ fi
 # md5s check out, install the new ipkg
 echo "installing new package $SLN_FILE"
 
-INSTALLED=$(/usr/bin/ipkg -V3 install "$SLN_FILE")
+INSTALLED=$(/usr/bin/$TOOL -V3 install "$SLN_FILE")
 
 echo "$SLN_FILE installed ok - $INSTALLED"
 
