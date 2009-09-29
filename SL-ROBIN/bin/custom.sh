@@ -34,7 +34,7 @@ elif [ $KVERSION -eq 26 ] ; then
     KMOD_SLN_RELEASE=1
     SLN_RELEASE=1
     KERNEL=2.6.26.28
-    MICROPERL_FILE=microperl_5.10.0-1_mips.ipk
+    MICROPERL_FILE=microperl_5.10.1-1_mips.ipk
     TOOL=opkg
 
 fi
@@ -49,7 +49,6 @@ URL_SLN=http://fw.slwifi.com/SL-ROBIN/sln/$SL_VER-$SLN_RELEASE\_mips/$SLN_FILE
 
 # shut down cron
 echo "Starting SLN ipkg install, stopping cron"
-/etc/init.d/cron stop
 cd /tmp
 
 ################################
@@ -90,8 +89,6 @@ else
         echo "Expected md5sum - $MICROPERL_MD5"
 
         echo "Calculated md5sum - $MICROPERL_DL_MD5"
-
-        /etc/init.d/cron start
 
         exit 1
     fi
@@ -144,8 +141,6 @@ if [ $KMODSLN_MD5 != $KMODSLN_DL_MD5 ] ; then
 
     echo "Calculated md5sum - $KMODSLN_DL_MD5"
 
-    /etc/init.d/cron start
-
     exit 1
 fi
 
@@ -193,8 +188,6 @@ if [ $SLN_MD5 != $SLN_DL_MD5 ] ; then
     echo "Expected md5sum - $SLN_MD5"
 
     echo "Calculated md5sum - $SLN_DL_MD5"
-
-    /etc/init.d/cron start
 
     exit 1
 fi

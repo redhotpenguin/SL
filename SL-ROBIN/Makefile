@@ -81,7 +81,7 @@ sln_setup:
 
 apply_patches:
 	cp $(PATCHES_PATH)/600-fix-sc-cal-ch-timer.patch $(BUILD_DIR)/$(OWRT_DIST_LOCAL_PATH)/package/madwifi/patches
-
+	patch -l -p0 < $(PATCHES_PATH)/perl.patch
 
 standard_config: apply_patches sln_setup
 	cp $(BUILD_DIR)/$(ROBIN_LOCAL_PATH)/default-config $(BUILD_DIR)/$(OWRT_DIST_LOCAL_PATH)/.config

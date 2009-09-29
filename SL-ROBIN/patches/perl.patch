@@ -1,0 +1,52 @@
+Index: build/openwrt-packages-build/lang/perl/patches/100-static_uudmap.patch
+===================================================================
+--- build/openwrt-packages-build/lang/perl/patches/100-static_uudmap.patch	(revision 17505)
++++ build/openwrt-packages-build/lang/perl/patches/100-static_uudmap.patch	(working copy)
+@@ -29,22 +29,22 @@
+  # That's it, folks!
+ --- a/Makefile.SH	2007-12-18 11:47:07.000000000 +0100
+ +++ b/Makefile.SH	2008-07-05 21:26:49.383799357 +0200
+-@@ -478,11 +478,13 @@
++@@ -597,11 +597,13 @@
+  
+  globals\$(OBJ_EXT): uudmap.h
+  
+--uudmap.h: generate_uudmap\$(EXE_EXT)
+--	\$(RUN) ./generate_uudmap\$(EXE_EXT) >uudmap.h
++-uudmap.h: generate_uudmap\$(HOST_EXE_EXT)
++-	\$(RUN) ./generate_uudmap\$(HOST_EXE_EXT) >uudmap.h
+ -
+--generate_uudmap\$(EXE_EXT): generate_uudmap\$(OBJ_EXT)
+--	\$(CC) -o generate_uudmap \$(LDFLAGS) generate_uudmap\$(OBJ_EXT) \$(libs)
++-generate_uudmap\$(HOST_EXE_EXT): generate_uudmap\$(OBJ_EXT)
++-	\$(CC) -o generate_uudmap\$(EXE_EXT) \$(LDFLAGS) generate_uudmap\$(OBJ_EXT) \$(libs)
+ +uudmap.h: generate_uudmap
+ +	chmod a+x generate_uudmap
+ +	\$(RUN) ./generate_uudmap >uudmap.h
+ +
+ +generate_uudmap:
+ +	cp ../generate_uudmap .
+-+	touch generate_uudmap
+- 
+++	touch generate_uudmap .
++
+  !GROK!THIS!
+- $spitshell >>Makefile <<'!NO!SUBS!'
++ $spitshell >>$Makefile <<'!NO!SUBS!'
+Index: build/openwrt-packages-build/lang/perl/Makefile
+===================================================================
+--- build/openwrt-packages-build/lang/perl/Makefile	(revision 17505)
++++ build/openwrt-packages-build/lang/perl/Makefile	(working copy)
+@@ -8,9 +8,9 @@
+ include $(TOPDIR)/rules.mk
+ 
+ PKG_NAME:=perl
+-PKG_VERSION:=5.10.0
+-PKG_RELEASE:=2
+-PKG_MD5SUM:=d2c39b002ebfd2c3c5dba589365c5a71
++PKG_VERSION:=5.10.1
++PKG_RELEASE:=1
++PKG_MD5SUM:=b9b2fdb957f50ada62d73f43ee75d044
+ 
+ PKG_SOURCE_URL:=ftp://ftp.cpan.org/pub/CPAN/src/5.0 \
+ 		ftp://ftp.mpi-sb.mpg.de/pub/perl/CPAN/src/5.0 \
