@@ -32,7 +32,7 @@ elif [ $KVERSION -eq 26 ] ; then
 
     SL_VER=0.22
     KMOD_SLN_RELEASE=1
-    SLN_RELEASE=1
+    SLN_RELEASE=2
     KERNEL=2.6.26.8
     MICROPERL_FILE=microperl_5.10.1-1_mips.ipk
     TOOL=/bin/opkg
