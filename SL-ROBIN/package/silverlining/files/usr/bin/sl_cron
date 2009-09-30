@@ -2,17 +2,23 @@
 
 # Copyright 2009 Silver Lining Networks
 
+our $Debug = 0;
+
+my $setcron='/lib/robin/setcron.sh';
+
 my $fh;
-open($fh, '<', '/sbin/setcron') or die $!;
+open($fh, '<', $setcron) or die $!;
 my $content = do { local $/; <$fh> };
 close($fh) or die $!;
 
 # see if a cron entry is already present
 if ($content =~ m/sl_fw_ha/) {
 
+	print "sl_fw_ha already in cron, removing it\n" if $Debug;
+
 	# remove it
 	my ($match, $m2)  = $content=~ m/(\n)([^\n]+sl_fw_ha.*?\n)/;
-	# warn("match is $match, $m2");
+	print "match is $match, $m2" if $Debug;
 	$content =~ s/([^\n]+sl_fw_ha.*?\n)//g;
 }
 
@@ -22,13 +28,16 @@ for (0..11) {
     $start[$_] = ($_ * 5) + $interval;
 }
 
-# warn("interval is " . join(',', @start));
+print "interval is " . join(',', @start) if $Debug;
 my $intervals = join(',', @start);
 
 my $newcron = qq{\techo "$intervals  *   *   *   * /usr/bin/microperl /usr/bin/sl_fw_ha"\n};
 $content =~ s/(\)\s\|\scrontab)/$newcron$1/g;
+
+print "new cron is:\n$content\n" if $Debug;
+
  
-open($fh, '>', '/sbin/setcron') or die $!;
+open($fh, '>', $setcron) or die $!;
 print $fh $content;
 close($fh) or die;
 
