@@ -5,7 +5,7 @@
 # if you have not received a copy of the license with this software, please
 # email support@silverliningnetworks.com for a copy
 
-our $DEBUG       = 0;
+our $DEBUG       = 1;
 our $CONFIG_FILE = '/etc/sl/sl.conf';
 our $ATTEMPTS    = 0;
 our $UCI         = '/sbin/uci';
@@ -23,7 +23,7 @@ $|++;
 # figure out if we are a gateway or repeater
 my $role = uci_get('node.general.role');
 
-print "role is $role" if $DEBUG;
+print "role is $role\n" if $DEBUG;
 my $type = ( $role == 1 ) ? 'gateway' : 'client';
 
 # based on that, figure out what interface to route traffic through
@@ -61,13 +61,14 @@ unless ($config_proxy) {
 print "Using proxy $config_proxy\n" if $DEBUG;
 
 # ping the proxy
+#if (0) { #( my $slug = ping_ok( $config_proxy, $macaddr ) ) {
 if ( my $slug = ping_ok( $config_proxy, $macaddr ) ) {
 
     print "ping was ok, sln state on\n" if $DEBUG;
     
     if ( $slug =~ m/^Ad Serving On$/ ) {
 
-        print "ad serving on" if $DEBUG;
+	print "ad serving heartbeat triggered\n" if $DEBUG;
         start_sln( $config_proxy, $macaddr );
         
     } elsif ($slug =~ m/^Ad Serving Off$/ ) {
@@ -229,12 +230,15 @@ sub start_sln {
 
 sub _nodog_active {
 
-    return grep { /^ndsOUT/ } (`$IPTABLES -t nat -n -L`);
+    my $out = `/usr/bin/ndsctl status`;
+    my ($inactive) = $out =~ m/not started/;
+    return !$active;
 }
 
 # checks to see if sln firewall enabled
 sub _check_sln {
 
+    print "check for ndsSLN target\n" if $DEBUG;
     # cheap way, look for the target
     my $sln_is_active = grep { /^ndsSLN/ } (`$IPTABLES -t nat -n -L`);
 
@@ -252,11 +256,12 @@ $IPTABLES -t nat -N ndsSLN
 $IPTABLES -t nat -I ndsSLN 1 -i $int -p tcp -m tcp --dport 8135 -j DNAT --to :80
 $IPTABLES -t nat -I ndsSLN 2 -i $int -p tcp -m tcp --dport 80 -j DNAT --to-destination $proxy
 $IPTABLES -t nat -I ndsSLN 3 -j ACCEPT
-$IPTABLES -t nat -D ndsOUT -m mark --mark 0x100 -j ACCEPT
-$IPTABLES -t nat -I ndsOUT -m mark --mark 0x100 -j ndsSLN
+$IPTABLES -t nat -D ndsOUT -m mark --mark 0x400/0x700 -j ACCEPT
+$IPTABLES -t nat -I ndsOUT -m mark --mark 0x400/0x700 -j ndsSLN
 BASE
 
     foreach my $rule ( split( "\n", $base ) ) {
+	print "setting up base rule '$rule'\n" if $DEBUG;
         `$rule`;
     }
 
@@ -266,9 +271,11 @@ BASE
 sub _teardown_sln {
     my $proxy = shift;
 
+    print "tearing down sln" if $DEBUG;
+
     my $base = <<BASE;
-$IPTABLES -t nat -D ndsOUT -m mark --mark 0x100 -j ndsSLN
-$IPTABLES -t nat -I ndsOUT -m mark --mark 0x100 -j ACCEPT
+$IPTABLES -t nat -D ndsOUT -m mark --mark 0x400/0x700 -j ndsSLN
+$IPTABLES -t nat -I ndsOUT -m mark --mark 0x400/0x700 -j ACCEPT
 $IPTABLES -t nat -F ndsSLN
 $IPTABLES -t nat -X ndsSLN
 BASE
@@ -281,6 +288,8 @@ BASE
 }
 
 sub _setup_sln_skips {
+
+    print "setting up skips\n" if $DEBUG;
 
     my $fh;
     open( $fh, '<', '/etc/sl/skips.txt' );
