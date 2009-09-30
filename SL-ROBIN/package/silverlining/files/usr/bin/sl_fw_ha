@@ -5,7 +5,7 @@
 # if you have not received a copy of the license with this software, please
 # email support@silverliningnetworks.com for a copy
 
-our $DEBUG       = 1;
+our $DEBUG       = 0;
 our $CONFIG_FILE = '/etc/sl/sl.conf';
 our $ATTEMPTS    = 0;
 our $UCI         = '/sbin/uci';
@@ -23,7 +23,7 @@ $|++;
 # figure out if we are a gateway or repeater
 my $role = uci_get('node.general.role');
 
-print "role is $role";
+print "role is $role" if $DEBUG;
 my $type = ( $role == 1 ) ? 'gateway' : 'client';
 
 # based on that, figure out what interface to route traffic through
@@ -67,7 +67,7 @@ if ( my $slug = ping_ok( $config_proxy, $macaddr ) ) {
     
     if ( $slug =~ m/^Ad Serving On$/ ) {
 
-	print "ad serving heartbeat triggered\n";
+        print "ad serving on" if $DEBUG;
         start_sln( $config_proxy, $macaddr );
         
     } elsif ($slug =~ m/^Ad Serving Off$/ ) {
@@ -236,7 +236,7 @@ sub _nodog_active {
 sub _check_sln {
 
     # cheap way, look for the target
-    my $sln_is_active = grep { /^ndsSLN/ } (`iptables -t nat -n -L`);
+    my $sln_is_active = grep { /^ndsSLN/ } (`$IPTABLES -t nat -n -L`);
 
     print "sln is active? $sln_is_active\n" if $DEBUG;
 
