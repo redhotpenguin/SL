@@ -250,4 +250,4 @@ echo "SLN installation finished, rebooting in 5 seconds..."
 
 sleep 5
 
-#/bin/sh /sbin/do_reboot 91
+/bin/sh /sbin/do_reboot 91
