@@ -5,10 +5,10 @@
 # if you have not received a copy of the license with this software, please
 # email support@silverliningnetworks.com for a copy
 
-our $DEBUG       = 0;
+our $DEBUG       = 1;
 our $CONFIG_FILE = '/etc/sl/sl.conf';
 our $ATTEMPTS    = 0;
-our $UCI         = '/bin/uci';
+our $UCI         = '/sbin/uci';
 our $MD5         = '/usr/bin/md5sum';
 our $RMMOD       = '/sbin/rmmod';
 our $INSMOD      = '/sbin/insmod';
@@ -17,10 +17,13 @@ our $IPTABLES    = '/usr/sbin/iptables';
 our $VERSION     = '022';
 our $SLEEP       = 300;
 our $LIMIT       = 10000;
+our $WGET        = '/usr/bin/wget';
 $|++;
 
 # figure out if we are a gateway or repeater
-my $role = `$UCI get node.general.role`;
+my $role = uci_get('node.general.role');
+
+print "role is $role";
 my $type = ( $role == 1 ) ? 'gateway' : 'client';
 
 # based on that, figure out what interface to route traffic through
@@ -29,20 +32,21 @@ my $int = ( $role == 1 ) ? 'ath1' : 'br-lan';
 my $d = shift;
 
 # grab the mac address
-my $board = `$UCI get node.general.board`;
+my $board = uci_get('node.general.board');
 
 my $macaddr;
+
+# hack for ubiquiti
 if ( $board eq 'UBNT' ) {
 
-    $macaddr = `$UCI get node.general.wlanMAC`;
-
+    $macaddr = uci_get('node.general.wlanMAC');
 }
 else {
 
-    $macaddr = `$UCI get node.general.myMAC`;
+    $macaddr = uci_get('node.general.myMAC');
 }
 
-print "Board isi $board, Macaddr is $macaddr\n" if $DEBUG;
+print "Board is $board, Macaddr is $macaddr" if $DEBUG;
 
 ####################################################
 # no config is fa non starter
@@ -60,19 +64,37 @@ print "Using proxy $config_proxy\n" if $DEBUG;
 if ( my $slug = ping_ok( $config_proxy, $macaddr ) ) {
 
     print "ping was ok, sln state on\n" if $DEBUG;
+    
+    if ( $slug =~ m/^Ad Serving On$/ ) {
 
-    if ( $ct =~ m/Ad Serving On/ ) {
+	print "ad serving heartbeat triggered\n";
         start_sln( $config_proxy, $macaddr );
-    } elsif ($ct =~ m/Ad Serving Off/ ) {
+        
+    } elsif ($slug =~ m/^Ad Serving Off$/ ) {
+
         stop_sln( $config_proxy, $macaddr );
     }
-   
-    # custom skips refresh
-    if ( my ($skips) = $ct =~ m/CustomSkips\s(http\w+)/) {
 
-        my $get = `wget -O /etc/sl/custom_skips.txt $skips`;
-        print "custom_skips refetched, $get" if $DEBUG;
+    # blacklist update
+    my ($default_skips) = $slug =~ m/^DefaultSkips\s(http.*?)$/g;
+    if ($default_skips) {
+        my $get = `$WGET -O /etc/sl/skips.txt $default_skips`;
+        if ($? != 0) {
+            warn("failed to grab $default_skips");
+            undef $default_skips;
+        }
+    }
 
+    my ($custom_skips) = $slug =~ m/^CustomSkips\s(http.*?)$/g;
+    if ($custom_skips) {
+        my $get = `$WGET -O /etc/sl/custom_skips.txt $custom_skips`;
+        if ($? != 0) {
+            warn("failed to grab $custom_skips");
+            undef $custom_skips;
+        }
+    }
+
+    if ($default_skips or $custom_skips) {
         # hup the service
         stop_sln;
         sleep 1;
@@ -87,6 +109,15 @@ else {
     print STDERR "No available proxies, disabling silver lining\n";
     stop_sln($config_proxy);
     exit(1);
+}
+
+
+# uci returns values that need to be chomped.  yuck.
+sub uci_get {
+    my $key = shift || die 'uci_get';
+    my $val = `$UCI get $key` || die 'uci get $key';
+    chomp($val);
+    return $val;
 }
 
 sub get_config_proxy {
@@ -141,7 +172,7 @@ sub restore_config_file {
     chdir('/tmp');
     unlink($file) if -e $file;
     print "grabbing url $url\n" if $DEBUG;
-    my $grab = `/usr/bin/wget $url`;
+    my $grab = `$WGET $url`;
     unless ( -e $file ) {
         print STDERR "grab failed!: $grab\n";
 
@@ -198,7 +229,7 @@ sub start_sln {
 
 sub _nodog_active {
 
-    return grep { /^ndsOUT/ } (`iptables -t nat -n -L`);
+    return grep { /^ndsOUT/ } (`$IPTABLES -t nat -n -L`);
 }
 
 # checks to see if sln firewall enabled
@@ -282,7 +313,7 @@ sub ping_ok {
 
     my $slug = "$macaddr\_$VERSION";
     my $loc  = "http://$proxy/sl_secret_ping_button/$slug";
-    my $cmd  = "wget $loc  2>&1";
+    my $cmd  = "$WGET $loc  2>&1";
     print "Making request $cmd\n" if $DEBUG;
     my $ping = `$cmd`;
     print "ping result: _$ping\_\n"  if $DEBUG;
