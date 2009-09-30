@@ -1,0 +1,780 @@
+Binary search of large amount of ip addresses loaded from a file.
+
+Signed-off: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
+
+Index: linux-2.6.31/include/linux/netfilter/xt_ipfile.h
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.31/include/linux/netfilter/xt_ipfile.h	2009-09-16 06:01:49.000000000 +0200
+@@ -0,0 +1,20 @@
++#ifndef _LINUX_NETFILTER_XT_IPFILE_H
++#define _LINUX_NETFILTER_XT_IPFILE_H 1
++
++#include <linux/types.h>
++
++enum {
++	IPFILE_SRC	= 1 << 0,
++	IPFILE_DST	= 1 << 1,
++	IPFILE_INV	= 1 << 2,
++};
++
++#define IPFILE_FILENAME_LEN	1023
++
++struct xt_ipfile_info {
++	struct xt_file *m __attribute__((aligned(8)));
++	__u8 flags;
++	char filename[IPFILE_FILENAME_LEN + 1];
++};
++
++#endif /* _LINUX_NETFILTER_XT_IPFILE_H */
+Index: linux-2.6.31/net/netfilter/Kconfig
+===================================================================
+--- linux-2.6.31.orig/net/netfilter/Kconfig	2009-09-16 06:01:36.000000000 +0200
++++ linux-2.6.31/net/netfilter/Kconfig	2009-09-16 06:01:49.000000000 +0200
+@@ -668,6 +668,14 @@ config NETFILTER_XT_MATCH_HL
+ 	in the IPv6 header, or the time-to-live field in the IPv4
+ 	header of the packet.
+ 
++config NETFILTER_XT_MATCH_IPFILE
++	tristate '"ipfile" address range match support'
++	depends on NETFILTER_ADVANCED
++	---help---
++	This option allows you to match against IP addresses loaded from a file.
++	It uses binary search, so it is efficient even if there is large amount
++	of addresses.
++
+ config NETFILTER_XT_MATCH_IPRANGE
+ 	tristate '"iprange" address range match support'
+ 	depends on NETFILTER_ADVANCED
+Index: linux-2.6.31/net/netfilter/Makefile
+===================================================================
+--- linux-2.6.31.orig/net/netfilter/Makefile	2009-09-16 06:01:36.000000000 +0200
++++ linux-2.6.31/net/netfilter/Makefile	2009-09-16 06:01:49.000000000 +0200
+@@ -71,6 +71,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_ESP) += 
+ obj-$(CONFIG_NETFILTER_XT_MATCH_HASHLIMIT) += xt_hashlimit.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_HELPER) += xt_helper.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_HL) += xt_hl.o
++obj-$(CONFIG_NETFILTER_XT_MATCH_IPFILE) += xt_ipfile.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_IPRANGE) += xt_iprange.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_LENGTH) += xt_length.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_LIMIT) += xt_limit.o
+Index: linux-2.6.31/net/netfilter/xt_ipfile.c
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.31/net/netfilter/xt_ipfile.c	2009-09-16 06:09:18.000000000 +0200
+@@ -0,0 +1,715 @@
++/*
++ * Optimized search using binary tree.
++ *
++ * Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/ctype.h>
++#include <linux/string.h>
++#include <linux/gfp.h>
++#include <linux/mutex.h>
++#include <linux/sort.h>
++#include <linux/skbuff.h>
++#include <linux/ip.h>
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter/xt_ipfile.h>
++
++/*#define IPFILE_DEBUG_DUMP*/
++/*#define IPFILE_DEBUG_DUMP_RANGES*/
++
++struct dir_entry {
++	u8 *page;
++};
++
++struct xt_file {
++	/*
++	 * Vmallocated page directory. Directory size is "dir_allocated".
++	 * There area "get_dir_slots(m, m->n_entries)" used pointers in
++	 * the directory.
++	 */
++	struct dir_entry *dir;
++
++	/* Total number of entries in the store */
++	unsigned long n_entries;
++
++	/* The preallocated size of the directory */
++	unsigned long dir_allocated;
++
++	/*
++	 * Size of the address. An entry occupies two slots, "from" and "to"
++	 * address.
++	 */
++	unsigned address_len;
++
++	/* Entries per page. */
++	unsigned entries_per_page;
++
++	/*
++	 * If address_len is a power of two, then the power is stored here.
++	 * If it is not, -1 is here.
++	 */
++	s8 address_len_bits;
++};
++
++/*
++ * In-memory data store:
++ *
++ * Each entry contains two addresses, "from" and "to". The first bit is the
++ * most significant bit when comparing the addresses. The address matches if it
++ * is between these addresses inclusive.
++ *
++ * Data are stored in pages. There are "entries_per_page" entries in each page.
++ * All the pages are filled up except the last one that is partially filled.
++ *
++ * Page directory ("dir") points to the array of pages --- this array is in
++ * vmallocated memory. The size of the directory can be deduced from the total
++ * number of entries ("n_entries"). There can be some more directory slots
++ * preallocated.
++ *
++ * During load phase, we simply linearly add entries to the pages. Then we sort
++ * them. Finally we join overlaped or adjacent entries.
++ *
++ * Binary search is used to find if the address is in the store.
++ */
++
++static unsigned long get_dir_idx(struct xt_file *m, unsigned long pos)
++{
++	if (likely(m->address_len_bits >= 0))
++		return pos >> (PAGE_SHIFT - m->address_len_bits - 1);
++	else
++		return pos / m->entries_per_page;
++}
++
++static unsigned get_page_idx(struct xt_file *m, unsigned long pos)
++{
++	if (likely(m->address_len_bits >= 0))
++		return pos & (m->entries_per_page - 1);
++	else
++		return pos % m->entries_per_page;
++}
++
++static noinline u8 *get_data_generic(struct xt_file *m, unsigned long pos)
++{
++	unsigned long dir_idx = pos / m->entries_per_page;
++	unsigned page_idx = pos % m->entries_per_page;
++	return m->dir[dir_idx].page + page_idx * 2 * m->address_len;
++}
++
++/*
++ * Be smarter than the compiler: __always_inline really improves loading speed.
++ */
++static __always_inline u8 *get_data_a(struct xt_file *m, s8 address_len_bits, unsigned long pos)
++{
++	if (likely(address_len_bits >= 0)) {
++		unsigned long dir_idx = pos >> (u8)(PAGE_SHIFT - address_len_bits - 1);
++		unsigned page_offs = (pos << (u8)(address_len_bits + 1)) & (PAGE_SIZE - 1);
++		return m->dir[dir_idx].page + page_offs;
++	} else {
++		return get_data_generic(m, pos);
++	}
++}
++
++static __always_inline u8 *get_data(struct xt_file *m, unsigned long pos)
++{
++	return get_data_a(m, m->address_len_bits, pos);
++}
++
++/*
++ * Return the number of directory slots required to hold the requested
++ * number of entries.
++ */
++static unsigned long get_dir_slots(struct xt_file *m, unsigned long n_entries)
++{
++	return get_dir_idx(m, n_entries + m->entries_per_page - 1);
++}
++
++static noinline int my_memcmp(const u8 *val1, const u8 *val2, unsigned len)
++{
++	return memcmp(val1, val2, len);
++}
++
++static __always_inline int compare(struct xt_file *m, const u8 *val1, const u8 *val2)
++{
++	if (likely(m->address_len == 4)) {
++		u32 v1 = be32_to_cpu(*(int *)val1);
++		u32 v2 = be32_to_cpu(*(int *)val2);
++		if (v1 < v2) return -1;
++		return v1 > v2;
++	} else {
++		return my_memcmp(val1, val2, m->address_len);
++	}
++}
++
++/*
++ * Return true if address "val2" immediatelly follows "val1".
++ * If so, the entries can be joined.
++ */
++static int adjoins(struct xt_file *m, const u8 *val1, const u8 *val2)
++{
++	int i;
++	u8 add = 1;
++	for (i = m->address_len - 1; i >= 0; i--) {
++		if (val1[i] + add == val2[i]) {
++			add = 0;
++			continue;
++		} else if ((u8)(val1[i] + add) == val2[i]) {
++			continue;
++		} else
++			return false;
++	}
++	return !add;
++}
++
++static bool entry_matches(struct xt_file *m, const u8 *entry, const u8 *val)
++{
++	return compare(m, entry, val) >= 0 && compare(m, entry + m->address_len, val) <= 0;
++}
++
++static bool xt_file_lookup(struct xt_file *m, const u8 *val)
++{
++	unsigned long from, to, middle;
++	int c;
++
++	if (unlikely(!m->n_entries))
++		return false;
++
++	from = 0;
++	to = m->n_entries - 1;
++	while (from < to) {
++		middle = ((unsigned long)from + (unsigned long)to + 1) >> 1;
++		c = compare(m, get_data(m, middle), val);
++		if (unlikely(!c))
++			return true;
++		else if (c > 0)
++			to = middle - 1;
++		else
++			from = middle;
++	}
++	return entry_matches(m, get_data(m, from), val);
++}
++
++/* Join adjacent/overlaping entries after sorting */
++static void clean_conflicts(struct xt_file *m)
++{
++	unsigned long from, to, n;
++
++	from = to = 0;
++
++	while (from < m->n_entries) {
++		u8 *fp = get_data(m, from++);
++		u8 *tp = get_data(m, to++);
++
++		memcpy(tp, fp, m->address_len * 2);
++
++		while (from < m->n_entries) {
++			cond_resched();
++			fp = get_data(m, from);
++			if (unlikely(compare(m, fp, tp) < 0))
++				BUG();	/* the sort didn't work ... */
++			if (compare(m, tp + m->address_len, fp) >= 0 ||
++			    adjoins(m, tp + m->address_len, fp)) {
++				if (compare(m, tp + m->address_len, fp + m->address_len) < 0)
++					memcpy(tp + m->address_len, fp + m->address_len, m->address_len);
++				from++;
++				continue;
++			}
++			break;
++		}
++	}
++
++	for (n = get_dir_slots(m, to); n < get_dir_slots(m, m->n_entries); n++) {
++		free_page((unsigned long)m->dir[n].page);
++		cond_resched();
++	}
++	m->n_entries = to;
++}
++
++static bool extend_directory(struct xt_file *m)
++{
++	long new_dir_entries;
++	struct dir_entry *new_dir;
++
++	new_dir_entries = m->dir_allocated * 5 / 4 + 1;
++	new_dir_entries = roundup(new_dir_entries, PAGE_SIZE / sizeof(struct dir_entry));
++
++	if (unlikely(new_dir_entries > LONG_MAX / sizeof(struct dir_entry))) {
++		printk(KERN_ERR "ipfile: too big directory\n");
++		return false;
++	}
++
++	new_dir = vmalloc(new_dir_entries * sizeof(struct dir_entry));
++	if (unlikely(!new_dir)) {
++		printk(KERN_ERR "ipfile: out of vmalloc memory\n");
++		return false;
++	}
++	cond_resched();
++	memcpy(new_dir, m->dir, m->dir_allocated * sizeof(struct dir_entry));
++	cond_resched();
++	vfree(m->dir);
++	m->dir = new_dir;
++	m->dir_allocated = new_dir_entries;
++	return true;
++}
++
++static noinline bool insert_to_new_page(struct xt_file *m, const u8 *from, const u8 *to)
++{
++	u8 *new_page;
++	unsigned long dir_idx = get_dir_idx(m, m->n_entries);
++
++	if (dir_idx == m->dir_allocated)
++		if (!extend_directory(m))
++			return false;
++
++	/*
++	 * Use "GFP_USER" allocation because this is supposed to fail
++	 * sooner than "GFP_KERNEL". On a failure, we free whatever we allocated
++	 * so far, giving the chance to recover without other "GFP_KERNEL"
++	 * allocations failing.
++	 */
++	new_page = (u8 *)__get_free_page(GFP_USER);
++	if (unlikely(!new_page)) {
++		printk(KERN_ERR "ipfile: out of memory\n");
++		return false;
++	}
++	m->dir[dir_idx].page = new_page;
++
++	memcpy(new_page, from, m->address_len);
++	memcpy(new_page + m->address_len, to, m->address_len);
++	m->n_entries++;
++	cond_resched();
++	return true;
++}
++
++static bool xt_file_insert(struct xt_file *m, const u8 *from, const u8 *to)
++{
++	if (likely(get_page_idx(m, m->n_entries))) {
++		u8 *ptr = get_data(m, m->n_entries);
++		memcpy(ptr, from, m->address_len);
++		memcpy(ptr + m->address_len, to, m->address_len);
++		m->n_entries++;
++		cond_resched();
++		return true;
++	}
++
++	return insert_to_new_page(m, from, to);
++}
++
++/*
++ * The abuse of the sorting function:
++ *	The function sort() was meant to sort linear arrays. Our array is not
++ *	linear. But the function sort() doesn't really touch the array, it
++ *	accesses it only though "cmp_func" and "swap_func" functions.
++ *
++ *	So I cast indices to pointers, pass them to sort() and redefine the
++ *	functions to cast pointers back to indices and do real access.
++ *
++ *	This works as long as the computer has flat memory,
++ *	i.e. for integers "p" and "n": (unsigned long)((char *)p + n) == p + n
++ *
++ *	I think Linux already assumes it. It wouldn't work on 8086 or 80286
++ *	segmented "far" pointers but Linux doesn't run on 286 anyway :)
++ */
++
++static DEFINE_MUTEX(sort_mutex);
++static struct xt_file *sort_file;
++
++static int sort_compare(const void *p1, const void *p2)
++{
++	u8 *d1, *d2;
++#ifndef CONFIG_PREEMPT
++	cond_resched();
++#endif
++	d1 = get_data(sort_file, (unsigned long)p1);
++	d2 = get_data(sort_file, (unsigned long)p2);
++	return compare(sort_file, d1, d2);
++}
++
++static int sort_compare_4(const void *p1, const void *p2)
++{
++	u8 *d1, *d2;
++#ifndef CONFIG_PREEMPT
++	cond_resched();
++#endif
++	d1 = get_data_a(sort_file, 2, (unsigned long)p1);
++	d2 = get_data_a(sort_file, 2, (unsigned long)p2);
++	if (be32_to_cpup((u32 *)d1) < be32_to_cpup((u32 *)d2))
++		return -1;
++	else
++		return 1;
++}
++
++static void sort_swap(void *p1, void *p2, int size)
++{
++	u8 *d1 = get_data(sort_file, (unsigned long)p1);
++	u8 *d2 = get_data(sort_file, (unsigned long)p2);
++	unsigned i;
++	for (i = 0; i < sort_file->address_len * 2; i++) {
++		u8 t = d1[i];
++		d1[i] = d2[i];
++		d2[i] = t;
++	}
++}
++
++static void sort_swap_4(void *p1, void *p2, int size)
++{
++	u8 *d1 = get_data_a(sort_file, 2, (unsigned long)p1);
++	u8 *d2 = get_data_a(sort_file, 2, (unsigned long)p2);
++	u64 t = *(u64 *)d1;
++	*(u64 *)d1 = *(u64 *)d2;
++	*(u64 *)d2 = t;
++}
++
++static void xt_file_finalize(struct xt_file *m)
++{
++	unsigned long n;
++
++	if (!m->n_entries)
++		goto skip_sort;
++
++	for (n = 0; n < m->n_entries - 1; n++) {
++		if (unlikely(compare(m, get_data(m, n), get_data(m, n + 1)) > 0))
++			goto do_sort;
++	}
++	goto skip_sort;
++
++do_sort:
++	mutex_lock(&sort_mutex);
++	sort_file = m;
++	sort(0, m->n_entries, 1,
++	     m->address_len == 4 ? sort_compare_4 : sort_compare,
++	     m->address_len == 4 ? sort_swap_4 : sort_swap);
++	mutex_unlock(&sort_mutex);
++
++skip_sort:
++	clean_conflicts(m);
++}
++
++static struct xt_file *xt_file_init(unsigned address_len)
++{
++	struct xt_file *m = kmalloc(sizeof(struct xt_file), GFP_KERNEL);
++	if (!m)
++		return NULL;
++
++	m->dir = NULL;
++	m->n_entries = 0;
++	m->dir_allocated = 0;
++	m->address_len = address_len;
++	m->entries_per_page = PAGE_SIZE / (address_len * 2);
++	m->address_len_bits = address_len & (address_len - 1) ? -1 : ffs(address_len) - 1;
++
++	return m;
++}
++
++static void xt_file_destroy(struct xt_file *m)
++{
++	unsigned long n;
++	for (n = 0; n < get_dir_slots(m, m->n_entries); n++) {
++		free_page((unsigned long)m->dir[n].page);
++		cond_resched();
++	}
++	vfree(m->dir);
++	kfree(m);
++}
++
++
++static bool read_lines(const char *filename, size_t line_size, bool (*process_line)(char *line, struct xt_file *), struct xt_file *m)
++{
++	bool ret = false;
++	struct file *f;
++	loff_t pos;
++	char *linebuffer;
++	mm_segment_t old_fs;
++	ssize_t rd;
++	size_t bp;
++	long line_num;
++
++	if (filename[0] != '/') {
++		printk(KERN_ERR "ipfile: %s: path is not absolute\n", filename);
++		goto err1;
++	}
++	f = filp_open(filename, O_RDONLY | O_LARGEFILE, 0);
++	if (IS_ERR(f)) {
++		printk(KERN_ERR "ipfile: %s: unable to open file\n", filename);
++		goto err1;
++	}
++
++	linebuffer = kmalloc(line_size, GFP_KERNEL);
++	if (!linebuffer) {
++		printk(KERN_ERR "ipfile: out of memory\n");
++		goto err2;
++	}
++
++	old_fs = get_fs();
++	set_fs(get_ds());
++
++	pos = 0;
++	bp = 0;
++	line_num = 1;
++
++	do {
++		size_t i;
++		char *nl;
++
++		rd = vfs_read(f, linebuffer + bp, line_size - bp, &pos);
++		if (rd < 0) {
++			printk(KERN_ERR "ipfile: %s: file read error\n", filename);
++			goto err3;
++		}
++		bp += rd;
++
++		i = 0;
++		while ((nl = memchr(linebuffer + i, '\n', bp - i))) {
++			cond_resched();
++			*nl = 0;
++			if (!process_line(linebuffer + i, m)) {
++				printk(KERN_ERR "ipfile: %s: error at line %ld\n", filename, line_num);
++				goto err3;
++			}
++			i = nl - linebuffer + 1;
++			line_num++;
++		}
++		cond_resched();
++		memmove(linebuffer, linebuffer + i, bp -= i);
++		cond_resched();
++	} while (rd);
++
++	if (bp) {
++		printk(KERN_ERR "ipfile: %s: file does not end with a newline\n", filename);
++		goto err3;
++	}
++
++	ret = true;
++
++err3:
++	set_fs(old_fs);
++	kfree(linebuffer);
++err2:
++	filp_close(f, NULL);
++err1:
++	return ret;
++}
++
++static noinline bool ipv4_process_line(char *line, struct xt_file *m)
++{
++	/*
++	 * Linux sscanf can't check for overflowed values, so we must
++	 * read it into unsigned longs and check the range ourselves.
++	 * This should be better fixed in the sscanf function itself.
++	 */
++	size_t linelen;
++	int i;
++	int matchlen;
++	unsigned long nums[8], subnet;
++	u8 data[8] __attribute__((aligned(4)));
++	char *p;
++
++	if (unlikely((p = strchr(line, '#')) != NULL)) {
++		*p = 0;
++		while (p > line && isspace(p[-1]))
++			*--p = 0;
++	}
++
++	linelen = strlen(line);
++	if (unlikely(!linelen))
++		return true;
++
++	subnet = 32;
++	matchlen = -1;
++	if (sscanf(line, "%lu.%lu.%lu.%lu-%lu.%lu.%lu.%lu%n", &nums[0], &nums[1], &nums[2], &nums[3], &nums[4], &nums[5], &nums[6], &nums[7], &matchlen) == 8 && matchlen == linelen)
++		goto got_it;
++
++	matchlen = -1;
++	if (sscanf(line, "%lu.%lu.%lu.%lu/%lu%n", &nums[0], &nums[1], &nums[2], &nums[3], &subnet, &matchlen) == 5 && matchlen == linelen && subnet <= 32)
++		goto got_it2;
++
++	subnet = 32;
++	matchlen = -1;
++	if (sscanf(line, "%lu.%lu.%lu.%lu%n", &nums[0], &nums[1], &nums[2], &nums[3], &matchlen) == 4 && matchlen == linelen)
++		goto got_it2;
++
++	return false;
++
++got_it2:
++	for (i = 0; i < 4; i++)
++		nums[i + 4] = nums[i];
++
++got_it:
++	for (i = 0; i < 8; i++) {
++		if (unlikely(nums[i] >= 256))
++			return false;
++		data[i] = nums[i];
++	}
++
++	barrier();
++	*(u32 *)&data[0] &= htonl(-1LL << (32 - subnet));
++	*(u32 *)&data[4] |= ~htonl(-1LL << (32 - subnet));
++	barrier();
++
++	/*printk("inserting: %d.%d.%d.%d - %d.%d.%d.%d\n", data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);*/
++
++	return xt_file_insert(m, data, data + 4);
++}
++
++/*
++ * Quickly parse the most common case: single ip address per line.
++ * More advanced parsing is in the function ipv4_process_line.
++ */
++static bool ipv4_process_line_fast(char *line, struct xt_file *m)
++{
++	u8 ip[4] __attribute__((aligned(4)));
++	int i;
++	char *p = line;
++	for (i = 0; i < 4; i++) {
++		unsigned n, x;
++		x = (u8)*p - '0';
++		if (unlikely(x > 9))
++			goto slow;
++		n = x;
++		p++;
++		x = (u8)*p - '0';
++		if (unlikely(x > 9))
++			goto end_num;
++		n = n * 10 + x;
++		p++;
++		x = (u8)*p - '0';
++		if (unlikely(x > 9))
++			goto end_num;
++		n = n * 10 + x;
++		p++;
++end_num:
++		if (unlikely(n >= 256) || unlikely(*p != (i == 3 ? 0 : '.')))
++			goto slow;
++		ip[i] = n;
++		p++;
++	}
++	return xt_file_insert(m, ip, ip);
++slow:
++	return ipv4_process_line(line, m);
++}
++
++static bool ipfile_load(const struct xt_mtchk_param *par)
++{
++	struct xt_ipfile_info *info = par->matchinfo;
++
++	struct xt_file *m = xt_file_init(4);
++	if (!m) {
++		printk(KERN_ERR "ipfile: out of memory\n");
++		goto err1;
++	}
++
++	if (!read_lines(info->filename, 4096, ipv4_process_line_fast, m))
++		goto err2;
++
++	xt_file_finalize(m);
++
++	info->m = m;
++
++#ifdef IPFILE_DEBUG_DUMP
++	/*
++	 * Debug - dump what we loaded so that we can check that we didn't
++	 * load garbage.
++	 */
++	{
++		long idx;
++		loff_t pos = 0;
++		struct file *f;
++		mm_segment_t old_fs;
++
++		f = filp_open("/dump.dbg", O_WRONLY | O_CREAT | O_TRUNC | O_LARGEFILE, 0600);
++		if (IS_ERR(f))
++			goto skip_debug;
++
++		old_fs = get_fs();
++		set_fs(get_ds());
++
++		for (idx = 0; idx < m->n_entries; idx++) {
++			u8 *entry = get_data(m, idx);
++#ifndef IPFILE_DEBUG_DUMP_RANGES
++			char buffer[35];
++			if (entry[0] == entry[4] && entry[1] == entry[5] && entry[2] == entry[6] && entry[3] == entry[7])
++				snprintf(buffer, sizeof buffer, "%d.%d.%d.%d\n", entry[0], entry[1], entry[2], entry[3]);
++			else
++				snprintf(buffer, sizeof buffer, "%d.%d.%d.%d - %d.%d.%d.%d\n", entry[0], entry[1], entry[2], entry[3], entry[4], entry[5], entry[6], entry[7]);
++			if (vfs_write(f, buffer, strlen(buffer), &pos) != strlen(buffer))
++				goto write_error;
++#else
++			u32 v;
++			for (v = be32_to_cpu(*(u32 *)entry); v != be32_to_cpu(*(u32 *)(entry + 4)) + 1; v++) {
++				char buffer[17];
++				snprintf(buffer, sizeof buffer, "%d.%d.%d.%d\n", (v >> 24) & 0xff, (v >> 16) & 0xff, (v >> 8) & 0xff, v & 0xff);
++				if (vfs_write(f, buffer, strlen(buffer), &pos) != strlen(buffer))
++					goto write_error;
++			}
++#endif
++		}
++
++write_error:
++		set_fs(old_fs);
++
++		filp_close(f, NULL);
++
++skip_debug:;
++	}
++#endif
++
++	return true;
++
++err2:
++	xt_file_destroy(m);
++err1:
++	return false;
++}
++
++static bool ipfile_match(const struct sk_buff *skb, const struct xt_match_param *par)
++{
++	const struct xt_ipfile_info *info = par->matchinfo;
++	const struct iphdr *iph = ip_hdr(skb);
++	const u8 *addr = info->flags & IPFILE_SRC ? (u8 *)&iph->saddr : (u8 *)&iph->daddr;
++	bool match = xt_file_lookup(info->m, addr);
++	/*printk("testing packet: %d.%d.%d.%d -> %d\n", addr[0], addr[1], addr[2], addr[3], match);*/
++	return match ^ !!(info->flags & IPFILE_INV);
++}
++
++static void ipfile_destroy(const struct xt_mtdtor_param *par)
++{
++	struct xt_ipfile_info *info = par->matchinfo;
++
++	xt_file_destroy(info->m);
++}
++
++static struct xt_match iprange_reg[] __read_mostly = {
++	{
++		.name		= "ipfile",
++		.revision	= 0,
++		.family		= NFPROTO_IPV4,
++		.checkentry	= ipfile_load,
++		.match		= ipfile_match,
++		.destroy	= ipfile_destroy,
++		.matchsize	= sizeof(struct xt_ipfile_info),
++		.me		= THIS_MODULE,
++	}
++};
++
++static int __init ipfile_init(void)
++{
++	return xt_register_matches(iprange_reg, ARRAY_SIZE(iprange_reg));
++}
++
++static void __exit ipfile_exit(void)
++{
++	xt_unregister_matches(iprange_reg, ARRAY_SIZE(iprange_reg));
++}
++
++module_init(ipfile_init);
++module_exit(ipfile_exit);
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>");
++MODULE_DESCRIPTION("Xtables: match large amount of IP adresses from a file");
++MODULE_ALIAS("ipt_ipfile");
++
