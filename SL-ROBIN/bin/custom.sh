@@ -49,7 +49,8 @@ URL_KMODSLN=http://fw.slwifi.com/SL-ROBIN/sln/$SL_VER-$KMOD_SLN_RELEASE\_mips/$K
 URL_SLN=http://fw.slwifi.com/SL-ROBIN/sln/$SL_VER-$SLN_RELEASE\_mips/$SLN_FILE
 
 
-# shut down cron
+# assume we are being executed in a safe environment, so we don't
+# need to shut down cron, etc
 echo "Starting SLN ipkg install"
 cd /tmp
 
@@ -93,15 +94,11 @@ if [ $MICROPERL_INSTALLED == 0 ] ; then
 
     MICROPERL_DL_MD5=$(/usr/bin/md5sum $MICROPERL_FILE | head -c 32)
     MICROPERL_MD5=$(/bin/cat $MICROPERL_FILE.md5 | head -c 32);
-    echo "calculated md5 is $MICROPERL_DL_MD5"
-    echo "expected md5 is   $MICROPERL_MD5"
 
     if [ $MICROPERL_MD5 != $MICROPERL_DL_MD5 ] ; then
 
         echo "md5sum mismatch installing $URL_MICROPERL"
-
         echo "Expected md5sum - $MICROPERL_MD5"
-
         echo "Calculated md5sum - $MICROPERL_DL_MD5"
 
         exit 1
@@ -246,8 +243,8 @@ else
 fi
 
 
-echo "SLN installation finished, rebooting in 5 seconds..."
+echo "SLN installation finished, rebooting in 3 seconds..."
 
-sleep 5
+sleep 3
 
 /bin/sh /sbin/do_reboot 91
