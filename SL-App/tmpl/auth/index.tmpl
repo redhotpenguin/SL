@@ -15,20 +15,20 @@ start = (new Date()).getTime();
 function computeConnectionSpeed( ) {
 
     imageObj = new Image();
-    imageObj.src="/sl/img/foo.gif?"+Math.floor(Math.random()*1000);
+    imageObj.src="/sl/img/foo?"+Math.floor(Math.random()*1000);
 
     end = (new Date()).getTime();
 
     connectionSpeed = 0;
     fileSize = 1048576;
 
-    connectSpeed = ((fileSize/(1024*1024*8)) / ((end - start) / 1000));
+    connectSpeed = (((fileSize*8)/(1024*1024)) / ((end - start) / 1000));
 
-      if (connectSpeed < 0.25) {
+      if (connectSpeed < 1) {
 
           document.getElementById('section_none').style.display="block";
         document.getElementById('section_all').style.display="block";
-        document.getElementById('testing').style.display="none";
+      //  document.getElementById('testing').style.display="none";
 
       } else  {
       div = document.getElementById('speed');
@@ -36,7 +36,7 @@ function computeConnectionSpeed( ) {
           document.getElementById('section_all').style.display="block";
 
 	// This needs more testing!
-	document.getElementById('testing').style.display="none";
+//	document.getElementById('testing').style.display="none";
       }
 
 
@@ -60,7 +60,7 @@ function computeConnectionSpeed( ) {
 </div>
 
 				<hr />
-<div id="section_all" style="display: none;">
+<div id="section_all" style="display: block;">
 
 	<div id="section_one">
 		<div class="center">
