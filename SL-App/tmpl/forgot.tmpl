@@ -6,7 +6,7 @@
 			<div class="message_box center">
 				[% IF status == 'blank' %]<ul class="error_message"><li>Please enter an email address</li></ul>[% END %]
 				[% IF status == 'notfound' %]<ul class="error_message"><li>We couldn't find '[% forgot_email %]' in our system.  Please try again, or email <a href="mailto:support@silverliningnetworks.com">support@silverliningnetworks.com</a></li></ul>[% END %]
-				[% IF status == 'sent' %]<ul class="error_message"><li>A link to change your password has been emailed to [% forgot_email %]</li></ul>[% END %]
+				[% IF status == 'sent' %]<ul class="error_message"><li>A link to change your password has been emailed to [% forgot_email %]</li><li>If you do not get the email within five minutes, give it another try.  Some email providers don't process emails right away.</li></ul>[% END %]
 			</div>
 						
 			<div class="login_box">
