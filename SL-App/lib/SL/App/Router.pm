@@ -1035,7 +1035,7 @@ JS
 
                 $map->add_polyline(
                     weight => 5,
-                    opacity => 0.5,
+                    opacity => 0.8,
                     color => '\#81bad3',
                     points => [
                         [ $router->lng,  $router->lat ],
