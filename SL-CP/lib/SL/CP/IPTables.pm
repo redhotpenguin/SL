@@ -122,6 +122,7 @@ slRTR -p tcp -m tcp ! --tcp-option 2 --tcp-flags SYN SYN -j DROP
 slRTR -m mark --mark 0x200/0x700 -j ACCEPT
 slRTR -p tcp -m tcp --dport 22 -j ACCEPT
 slRTR -p tcp -m tcp --dport 20022 -j ACCEPT
+slRTR -p tcp -m tcp --dport 8135 -j ACCEPT
 slRTR -p tcp -m tcp --dport $Cp_server_port -j ACCEPT
 slRTR -p udp -m udp --dport 67 -j ACCEPT
 slRTR -j REJECT --reject-with icmp-port-unreachable
