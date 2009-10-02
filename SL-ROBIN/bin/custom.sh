@@ -25,7 +25,7 @@ if [ $KVERSION -eq 23 ] ; then
     KMOD_SLN_RELEASE=6
     SLN_RELEASE=6
     KERNEL=2.6.23.17
-    MICROPERL_FILE=microperl_5.10.0-1_mips.ipk
+    MICROPERL_FILE=microperl_5.10.1-1_mips.ipk
     TOOL=/usr/bin/ipkg
 
 elif [ $KVERSION -eq 26 ] ; then
@@ -69,7 +69,7 @@ echo "checking for old $IPKG install"
 if [ $KVERSION -eq 23 ] ; then
     MICROPERL_INSTALLED=$($TOOL list_installed $IPKG)
 
-    if [ $MICROPERL_INSTALLED != 'Done.' ] ; then
+    if [ $MICROPERL_INSTALLED == 'Done.' ] ; then
         MICROPERL_INSTALLED=0
     fi
 elif [ $KVERSION -eq 26 ] ; then
