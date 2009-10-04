@@ -419,11 +419,15 @@ sub valid_username {
 
         # existing user, make sure the password matches
         if ($reg->password_md5 eq Digest::MD5::md5_hex( $pass )) {
+
           # passwords match
           return $val;
-        }
-        return;
+        } else {
+      	  warn(sprintf("existing user %s registering with invalid pass %s",
+		      $reg->email, $pass));
+	  return;
       }
+   }
 }
 
 sub sldatetime {

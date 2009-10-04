@@ -79,10 +79,18 @@ sub dispatch_index {
     {
 
         my ($gateway) =
-          SL::Model::App->resultset('Router')
-          ->search( { ip => $args{gateway} } );
-        $router->gateway( $args{gateway} );
+          SL::Model::App->resultset('Router')->search( {
+                                         ip => $args{gateway} } );
+	if ($gateway) {
+		$router->gateway($args{gateway});
 
+	        $router->speed_test(
+	            sprintf(
+	                "%d hops, %d ms ping and %s to gateway %s",
+	                $args{hops}, $args{RTT}, $args{NTR}, $gateway->name
+	            )
+	        );
+	}
         # calculate throughput to gateway
         ( $speed, $units ) = split( /\-/, $args{NTR} );
         if ( $units eq 'MB/s' ) {
@@ -99,7 +107,6 @@ sub dispatch_index {
                 $args{hops}, $args{RTT}, $speed/1024*8, $gateway->name
             )
         );
-
 
     }
     else {
