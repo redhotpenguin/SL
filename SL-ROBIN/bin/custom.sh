@@ -1,9 +1,10 @@
 #!/bin/sh
 
 VERSION=0.09
-LICENSE="Copyright 2009 Silver Lining Networks, Inc."
-DESCRIPTION="This program installs the Silver Lining ipkg onto open-mesh.com ROBIN enabled devices"
-
+DESCRIPTION="This program installs the Silver Lining ipkg onto open-mesh.com ROBIN enabled devices\n\n"
+LICENSE="Copyright 2009 Silver Lining Networks, Inc.\n"
+echo $DESCRIPTION
+echo $LICENSE
 
 # see if there is enough room
 FREE_MEM=$(free |grep 'Mem:' |awk '{print $4}')
@@ -14,10 +15,24 @@ fi
 
 # see if the needed kernel version is present
 KVERSION=$(uname -r | awk -F '\.' '{print $3}')
-if ! [ $KVERSION -eq 23 -o $KVERSION -eq 26 ] ; then
+
+# bash sucks
+KVOK=0
+if [ $KVERSION -eq 23 ] ; then
+    echo "found kernel version 2.6.23.17"
+    KVOK=1
+fi
+
+if [ $KVERSION -eq 26 ] ; then
+    echo "found kernel version 2.6.26.28"
+    KVOK=1
+fi
+
+if [ $KVOK -eq 0 ] ; then
     echo "kernel version $KVERSION, not .26 or .23, cannot install SL"
     exit
 fi
+
 
 if [ $KVERSION -eq 23 ] ; then
 
@@ -25,8 +40,13 @@ if [ $KVERSION -eq 23 ] ; then
     KMOD_SLN_RELEASE=6
     SLN_RELEASE=6
     KERNEL=2.6.23.17
-    MICROPERL_FILE=microperl_5.10.1-1_mips.ipk
     TOOL=/usr/bin/ipkg
+    KMOD_EXT=$KERNEL+$SL_VER-atheros-$KMOD_SLN_RELEASE
+    KMODSLN_FILE=kmod-sln_$KMOD_EXT\_mips.ipk
+    SLN_EXT=$SL_VER-$SLN_RELEASE
+    SLN_FILE=sln_$SLN_EXT\_mips.ipk
+    URL_KMODSLN=http://fw.slwifi.com/SL-ROBIN/sln/$SL_VER-$KMOD_SLN_RELEASE\_mips/$KMODSLN_FILE
+    URL_SLN=http://fw.slwifi.com/SL-ROBIN/sln/$SL_VER-$SLN_RELEASE\_mips/$SLN_FILE
 
 elif [ $KVERSION -eq 26 ] ; then
 
@@ -34,25 +54,26 @@ elif [ $KVERSION -eq 26 ] ; then
     KMOD_SLN_RELEASE=1
     SLN_RELEASE=2
     KERNEL=2.6.26.8
-    MICROPERL_FILE=microperl_5.10.1-1_mips.ipk
     TOOL=/bin/opkg
+    KMOD_EXT=$KERNEL+$SL_VER-atheros-$KMOD_SLN_RELEASE
+    KMODSLN_FILE=kmod-sln_$KMOD_EXT\_mips.ipk
+    SLN_EXT=$SL_VER-$SLN_RELEASE
+    SLN_FILE=sln_$SLN_EXT\_mips.ipk
+    URL_KMODSLN=http://fw.slwifi.com/SL-ROBIN/sln/$SL_VER\_mips/$KMODSLN_FILE
+    URL_SLN=http://fw.slwifi.com/SL-ROBIN/sln/$SL_VER\_mips/$SLN_FILE
 fi
 
-KMOD_EXT=$KERNEL+$SL_VER-atheros-$KMOD_SLN_RELEASE
-KMODSLN_FILE=kmod-sln_$KMOD_EXT\_mips.ipk
-
-SLN_EXT=$SL_VER-$SLN_RELEASE
-SLN_FILE=sln_$SLN_EXT\_mips.ipk
-
+MP_VER=5.10.1-1
+MICROPERL_FILE=microperl_$MP_VER\_mips.ipk
 URL_MICROPERL=http://fw.slwifi.com/SL-ROBIN/perl/$MICROPERL_FILE
-URL_KMODSLN=http://fw.slwifi.com/SL-ROBIN/sln/$SL_VER-$KMOD_SLN_RELEASE\_mips/$KMODSLN_FILE
-URL_SLN=http://fw.slwifi.com/SL-ROBIN/sln/$SL_VER-$SLN_RELEASE\_mips/$SLN_FILE
 
 
 # assume we are being executed in a safe environment, so we don't
 # need to shut down cron, etc
 echo "Starting SLN ipkg install"
 cd /tmp
+
+
 
 ################################
 # install microperl first
@@ -80,8 +101,25 @@ elif [ $KVERSION -eq 26 ] ; then
     fi
 fi
 
-if [ $MICROPERL_INSTALLED == 0 ] ; then
+# determine if we should install microperl
+INSTALL_MP=0
 
+# if the version specified remotely is not the same as what as installed
+# then upgrade it
+if [ $MICROPERL_INSTALLED != $MP_VER ] ; then
+    INSTALL_MP=1
+    `$TOOL -V3 remove -force-depends $IPKG`
+fi
+
+# if microperl is not installed already then install it
+if [ $MICROPERL_INSTALLED -eq 0 ] ; then
+    INSTALL_MP=1
+fi
+
+
+if [ $INSTALL_MP -eq 0 ] ; then
+    echo "$IPKG $MICROPERL_INSTALLED already installed"
+else
     echo "installing $IPKG"
 
     # grab the new package
@@ -114,9 +152,9 @@ if [ $MICROPERL_INSTALLED == 0 ] ; then
     # remove the files
     [ -e $MICROPERL_FILE ] && rm -f $MICROPERL_FILE
     [ -e $MICROPERL_FILE.md5 ] && rm -f $MICROPERL_FILE.md5
-else
-    echo "$IPKG already installed"
 fi
+
+
 
 ################################
 # install sln kernel modules next
@@ -142,6 +180,7 @@ elif [ $KVERSION -eq 26 ] ; then
         KMOD_INSTALLED=0
     fi
 fi
+
 
 if [ $KMOD_INSTALLED == $KMOD_EXT ] ; then
 
@@ -179,6 +218,7 @@ else
     [ -e $KMODSLN_FILE ] && rm -f $KMODSLN_FILE
     [ -e $KMODSLN_FILE.md5 ] && rm -f $KMODSLN_FILE.md5
 fi
+
 
 ################################
 # install sln main ipkg next
