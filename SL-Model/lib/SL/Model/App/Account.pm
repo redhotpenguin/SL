@@ -75,7 +75,7 @@ __PACKAGE__->add_columns(
   "twitter_id",
   {
     data_type => "text",
-    default_value => "'silver_lined'::text",
+    default_value => "'slwifi'::text",
     is_nullable => 0,
     size => undef,
   },

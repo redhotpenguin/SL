@@ -12,6 +12,6 @@ use constant DEBUG => $ENV{SL_DEBUG} || 0;
 use SL::Model::App;
 use SL::Model::App::Account;
 
-my ($account) = SL::Model::App->resultset('Account')->search({ account_id => 1  });
+my ($account) = SL::Model::App->resultset('Account')->search({ beta => 1  });
 
 $account->center_the_map;
