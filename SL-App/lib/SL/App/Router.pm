@@ -900,7 +900,7 @@ sub map {
                   SL::Model::App->resultset('Router')->search( \%args );
 
                 unless ($nbr) {
-                    $r->log->warn("no device found for neighbor $node");
+                    $r->log->debug("no device found for neighbor $node") if DEBUG;
                     next;
                 }
 
