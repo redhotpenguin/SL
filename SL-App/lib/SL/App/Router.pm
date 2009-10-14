@@ -174,6 +174,10 @@ sub dispatch_omsync {
             );
         }
 
+	$r->log->warn(sprintf("syncing om network %s for account %s",
+		$req->param('network'),
+		$reg->account->name, ) );
+
         my $om_url =
           eval { URI->new('http://www.open-mesh.com/export_nodes.php') };
         if ($@) {
@@ -661,6 +665,7 @@ sub dispatch_edit {
 
                 $bi = SL::Model::App->resultset('AdZone')->create(
                     {
+		        code       => '',
                         reg_id     => $reg->reg_id,
                         account_id => $reg->account_id,
                         ad_size_id => 21,
@@ -1028,8 +1033,8 @@ JS
             $r->log->debug( "gateway is " . Dumper($gateway) ) if VERBOSE_DEBUG;
 
             unless ( $gateway && $gateway->lat && $gateway->lng ) {
-                $r->log->warn(
-                    "no gateway found for router " . $router->name );
+                $r->log->debug(
+                    "no gateway found for router " . $router->name ) if DEBUG;
             }
             else {
 
