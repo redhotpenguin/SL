@@ -20,6 +20,14 @@ our $LIMIT       = 10000;
 our $WGET        = '/usr/bin/wget';
 $|++;
 
+# figure out if we are already running
+my $already_running = `ps ax | grep sl_fw_ha`;
+
+if ($already_running) {
+	warn("sl_fw_ha already running");
+	exit 1;
+}
+
 # figure out if we are a gateway or repeater
 my $role = uci_get('node.general.role');
 
