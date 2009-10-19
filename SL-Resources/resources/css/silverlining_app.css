@@ -850,3 +850,58 @@ color:#fff;
 #map {
 margin-top: 20px;
 }
+#map_key {
+padding: 10px;
+background-color: #EEE;
+}
+#map_key dl {
+float: left;
+margin-right: 40px;
+}
+#map_key dl dt, 
+#map_key dl dd {
+float: left;
+margin-right: 15px;
+font-size: 77%;
+color: #666;
+}
+#map_key dl dt {
+font-weight: bold;
+font-size: 85%;
+color: #333;
+margin-right: 5px;
+}
+#map_key .key_active, 
+#map_key .key_alerting, 
+#map_key .key_trouble, 
+#map_key .key_inactive {
+padding-left: 12px; 
+}
+#map_key .key_active {
+background: url(../images/icons/maps/status_key.png) 0px 2px no-repeat;
+}
+#map_key .key_alerting {
+background: url(../images/icons/maps/status_key.png) 0px -58px no-repeat;
+}
+#map_key .key_trouble {
+background: url(../images/icons/maps/status_key.png) 0px -118px no-repeat;
+}
+#map_key .key_inactive {
+background: url(../images/icons/maps/status_key.png) 0px -178px no-repeat;
+}
+#map_key .key_router {
+padding: 0px 0px 3px 17px;
+background: url(../images/icons/maps/router-key.png) top left no-repeat; 
+}
+#map_key .key_gateway {
+padding: 0px 0px 3px 17px;
+background: url(../images/icons/maps/gateway-key.png) top left no-repeat; 
+}
+
+
+
+
+
+
+
+
