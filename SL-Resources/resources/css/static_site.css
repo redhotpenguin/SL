@@ -1183,13 +1183,17 @@ color: #82c114;
 float: right;
 padding-top: 22px;
 }
-.login_box  #signin {
+.login_box  #signin,
+.login_box  #submit {
 text-indent: -3000px;
 background: url(../images/backgrounds/login_box/signin_button.png) no-repeat top center;
 height: 46px;
 width: 114px;
 border: none;
 cursor: pointer;
+}
+.login_box  #submit {
+background: url(../images/backgrounds/login_box/submit_button.png) no-repeat top center;
 }
 #need_an_account {
  width: 400px;
