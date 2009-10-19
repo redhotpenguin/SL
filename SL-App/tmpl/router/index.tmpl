@@ -38,6 +38,22 @@
 		</div>
 	[% ELSE %]
 		<div id="map" class="alpha omega grid_16">
+			<div id="map_key">
+				<dl>
+					<dt>type:</dt>
+					<dd class="key_router">router</dd>
+					<dd class="key_gateway">gateway</dd>
+				</dl>
+			
+				<dl>
+					<dt>status:</dt>
+					<dd class="key_active">active</dd>
+					<dd class="key_alerting">alerting</dd>
+					<dd class="key_trouble">trouble</dd>
+					<dd class="key_inactive">inactive</dd>
+				</dl>
+				<div class="clear"></div>
+			</div>
 			[% map %]
 		</div>
 	[% END %]
