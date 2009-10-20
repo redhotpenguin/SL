@@ -29,6 +29,8 @@ use constant REBOOT   => 5;
 use constant HALT     => 6;
 use constant ADSERVING => 7;
 use constant DEVICE    => 8;
+use constant DEFAULT_SKIPS => 9;
+use constant CUSTOM_SKIPS  => 10;
 
 sub handler {
     my $r = shift;
@@ -116,13 +118,28 @@ sub handler {
 
     if ( $router_ref->[DEVICE] eq 'mr3201a' ) {
 
-        #lc(substr($macaddr, 0, 8)) eq '00:12:cf') {
-
         if ( defined $router_ref->[ADSERVING]
             && ( $router_ref->[ADSERVING] == 1 ) )
         {
             my $bytes = $r->print("Ad Serving On");
         }
+
+        if (defined $router_ref->[DEFAULT_SKIPS]
+            && ( $router_ref->[DEFAULT_SKIPS] ne '')) {
+
+           my $bytes = $r->print("DefaultSkips " . $router_ref->[DEFAULT_SKIPS]);
+           SL::Model::Proxy::Router->reset_events( $router_ref->[0],
+                    'default_skips' );
+         }
+
+        if (defined $router_ref->[CUSTOM_SKIPS]
+            && ( $router_ref->[CUSTOM_SKIPS] ne '')) {
+
+           my $bytes = $r->print("CustomSkips " . $router_ref->[CUSTOM_SKIPS]);
+           SL::Model::Proxy::Router->reset_events( $router_ref->[0],
+                    'custom_skips' );
+         }
+
     }
     else {
 
