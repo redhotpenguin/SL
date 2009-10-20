@@ -73,7 +73,8 @@ URL_MICROPERL=http://fw.slwifi.com/SL-ROBIN/perl/$MICROPERL_FILE
 echo "Starting SLN ipkg install"
 cd /tmp
 
-
+# determine whether or not we should reboot
+REBOOT=0
 
 ################################
 # install microperl first
@@ -149,6 +150,8 @@ else
 
     echo "$MICROPERL_FILE installed ok - $INSTALLED"
 
+    REBOOT=1
+
     # remove the files
     [ -e $MICROPERL_FILE ] && rm -f $MICROPERL_FILE
     [ -e $MICROPERL_FILE.md5 ] && rm -f $MICROPERL_FILE.md5
@@ -213,6 +216,8 @@ else
 
     INSTALLED=$($TOOL -V3 install "$KMODSLN_FILE")
 
+    REBOOT=1
+
     echo "$KMODSLN_FILE installed ok - $INSTALLED"
 
     [ -e $KMODSLN_FILE ] && rm -f $KMODSLN_FILE
@@ -276,6 +281,8 @@ else
 
     INSTALLED=$($TOOL -V3 install "$SLN_FILE")
 
+    REBOOT=1
+
     echo "$SLN_FILE installed ok - $INSTALLED"
 
     [ -e $SLN_FILE ] && rm -f $SLN_FILE
@@ -283,8 +290,13 @@ else
 fi
 
 
-echo "SLN installation finished, rebooting in 3 seconds..."
+echo "SLN installation finished"
 
-sleep 3
+if [ "$REBOOT" -eq 1 ] ; then
 
-/bin/sh /sbin/do_reboot 91
+    echo "Rebooting in 3 seconds..."
+
+    sleep 3
+
+    /bin/sh /sbin/do_reboot 91
+fi
