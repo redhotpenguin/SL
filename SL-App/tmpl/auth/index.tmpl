@@ -6,60 +6,6 @@
   <link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/triple_a.css" />
   <!--[if IE 6]><link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/triple_a_ie6.css" /><![endif]--> 
   <title>Choose a WiFi Option to connect to the Internet - Silver Lining Networks</title>
-
-<script language="javascript1.1">
-
-start = (new Date()).getTime();
-
-
-function computeConnectionSpeed( ) {
-
-    imageObj = new Image();
-    imageObj.src="/sl/img/foo?"+Math.floor(Math.random()*1000);
-
-    end = (new Date()).getTime();
-
-    connectionSpeed = 0;
-    fileSize = 1048576;
-
-    connectSpeed = (((fileSize*8)/(1024*1024)) / ((end - start) / 1000));
-
-      if (connectSpeed < 1) {
-
-          document.getElementById('section_none').style.display="block";
-        document.getElementById('section_all').style.display="block";
-      //  document.getElementById('testing').style.display="none";
-
-      } else  {
-      div = document.getElementById('speed');
-      div.innerHTML = "You are connected to the airCloud WiFi Network.<br />Your connection speed is <strong>" + Math.floor(connectSpeed) + " Mbits/s</strong>";
-          document.getElementById('section_all').style.display="block";
-
-	// This needs more testing!
-//	document.getElementById('testing').style.display="none";
-      }
-
-
-      return 1;
-}
-
-</script>
-</head>
-
-
-<body onload="computeConnectionSpeed();">
-
-
-<div id="connect" style="margin-left: 20px">
-				<div id="testing" style="display:block;"><p><strong>Testing your speed to the internet...</strong></p></div>
-				<p><div id="speed"></div></p>
-</div>
-
-<div id="section_none" style="display: none; margin-left: 20px;">
-<p><strong>Your connection speed is less than 0.25 Megabits/s</strong>, so you are out of usable range of the WiFi network.<br />Visit <a href="http://www.aircloud.com/public/">http://www.aircloud.com/public/</a> for a list of nearby access points.</p>
-</div>
-
-				<hr />
 <div id="section_all" style="display: block;">
 
 	<div id="section_one">
@@ -106,7 +52,7 @@ function computeConnectionSpeed( ) {
                         </div>
 
 			<div class="clear"></div>
-				<p class="free_service"><strong>All WiFi purchases are final.</strong><br />If you have problems while surfing (see the speed test above) we will issue you more time, use the support tab on the left.<br />Need a zero commitment monthly subscription?  Scroll down!<br />You can also use our <a href="[% base_uri %]/auth/free?plan=ads&mac=[% mac %]&url=[% url %]">Free</a> WiFi service.  Advertisements will be displayed in the Free service, and you will be able to browse the web, receive and send email, and use instant messenger clients in the Free service.<br /><strong>If you have a problem while surfing</strong> you are probably in a bad signal area.  Try moving (even a few feet will do it sometimes) and loading this page again for the speed test.</p>
+				<p class="free_service"><strong>All WiFi purchases are final.</strong><br />If you have problems while surfing we will issue you more time, use the support tab on the left.<br />Need a zero commitment monthly subscription?  Scroll down!<br />You can also use our <a href="[% base_uri %]/auth/free?plan=ads&mac=[% mac %]&url=[% url %]">Free</a> WiFi service.  Advertisements will be displayed in the Free service, and you will be able to browse the web, receive and send email, and use instant messenger clients in the Free service.<br /><strong>If you have a problem while surfing</strong> you are probably in a bad signal area.  Try moving, even a few feet will do it sometimes.</p>
 
 			</div>
 	</div>
