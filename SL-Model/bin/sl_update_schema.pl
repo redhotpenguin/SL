@@ -29,8 +29,10 @@ my $dbh = DBI->connect( $dsn, 'phred', '', $db_options );
 ##############################
 use SL::Model::App;
 
+$dbh->do("alter table router add column custom_skips text not null default ''");
+$dbh->do("alter table router add column default_skips text not null default ''");
 
-
+=cut
 
 $dbh->do("create table network (network_id serial not null primary key)");
 $dbh->do("alter table network add column account_id integer NOT NULL");
@@ -56,5 +58,6 @@ $dbh->do("alter table network add column access_control_list text not null defau
 $dbh->do("alter table network add column lan_block boolean default 't'");
 $dbh->do("alter table network add column ap1_isolate boolean default 't'");
 $dbh->do("alter table network add column ap2_isolate boolean default 't'");
+=cut
 
 warn("finished");

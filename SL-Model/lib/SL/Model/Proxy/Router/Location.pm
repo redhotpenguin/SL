@@ -31,7 +31,9 @@ router.firmware_event,
 router.reboot_event,
 router.halt_event,
 router.adserving,
-router.device
+router.device,
+router.default_skips,
+router.custom_skips
 FROM
 router__location
 INNER JOIN router USING(router_id)
