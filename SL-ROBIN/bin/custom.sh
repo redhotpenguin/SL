@@ -92,19 +92,18 @@ if [ $KVERSION -eq 23 ] ; then
     MICROPERL_INSTALLED=$($TOOL list_installed $IPKG)
 
     if [ $MICROPERL_INSTALLED == 'Done.' ] ; then
-        MICROPERL_INSTALLED=0
+        MICROPERL_INSTALLED=
     fi
 elif [ $KVERSION -eq 26 ] ; then
     MICROPERL_INSTALLED=$($TOOL list_installed $IPKG | awk '{ print $3 }')
     echo "is microperl installed?,  $MICROPERL_INSTALLED"
     if ! [ $MICROPERL_INSTALLED ] ; then
-        MICROPERL_INSTALLED=0
+        MICROPERL_INSTALLED=
     fi
 fi
 
 # determine if we should install microperl
 INSTALL_MP=0
-
 # if the version specified remotely is not the same as what as installed
 # then upgrade it
 if [ $MICROPERL_INSTALLED != $MP_VER ] ; then
@@ -113,10 +112,10 @@ if [ $MICROPERL_INSTALLED != $MP_VER ] ; then
 fi
 
 # if microperl is not installed already then install it
-if [ $MICROPERL_INSTALLED -eq 0 ] ; then
+if [ -z $MICROPERL_INSTALLED ] ; then
+    echo "Yes, install microperl"
     INSTALL_MP=1
 fi
-
 
 if [ $INSTALL_MP -eq 0 ] ; then
     echo "$IPKG $MICROPERL_INSTALLED already installed"
