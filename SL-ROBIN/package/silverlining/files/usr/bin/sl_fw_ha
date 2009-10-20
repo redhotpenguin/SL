@@ -15,16 +15,16 @@ our $INSMOD      = '/sbin/insmod';
 our $LSMOD       = '/sbin/lsmod';
 our $IPTABLES    = '/usr/sbin/iptables';
 our $VERSION     = '022';
-our $SLEEP       = 300;
-our $LIMIT       = 10000;
 our $WGET        = '/usr/bin/wget';
 $|++;
 
 # figure out if we are already running
-my $already_running = `ps ax | grep sl_fw_ha`;
+my $already_running = `ps ax | grep 'sl_fw_ha' | grep -v 'grep' | wc -l`;
 
-if ($already_running) {
-	warn("sl_fw_ha already running");
+# search for more than the grep statement
+# one for process, one for ps, one for wc, one for cron
+if ($already_running > 2) {
+	warn("sl_fw_ha already running: $already_running");
 	exit 1;
 }
 
@@ -57,7 +57,7 @@ else {
 print "Board is $board, Macaddr is $macaddr" if $DEBUG;
 
 ####################################################
-# no config is fa non starter
+# no config is a non starter
 my $config_proxy = get_config_proxy($CONFIG_FILE);
 
 unless ($config_proxy) {
@@ -69,7 +69,6 @@ unless ($config_proxy) {
 print "Using proxy $config_proxy\n" if $DEBUG;
 
 # ping the proxy
-#if (0) { #( my $slug = ping_ok( $config_proxy, $macaddr ) ) {
 if ( my $slug = ping_ok( $config_proxy, $macaddr ) ) {
 
     print "ping was ok, sln state on\n" if $DEBUG;
@@ -300,10 +299,19 @@ sub _setup_sln_skips {
     print "setting up skips\n" if $DEBUG;
 
     my $fh;
+    # default skips
     open( $fh, '<', '/etc/sl/skips.txt' );
     while ( my $line = <$fh> ) {
+
+        next if ((substr($line, 0,1) eq '#') or
+                 (substr($line, 0,1) eq "\n") or
+                 (substr($line, 0,1) eq ' '));
+
         chomp($line);
+
+        print "setting up default skip $line\n" if $DEBUG;
         `$IPTABLES -t nat -I ndsSLN 2 --dst $line -m tcp -p tcp -j ACCEPT`;
+        #sleep 1;
     }
     close($fh);
 
@@ -312,7 +320,14 @@ sub _setup_sln_skips {
 
         open( $fh, '<', '/etc/sl/custom_skips.txt' );
         while ( my $line = <$fh> ) {
+
+            next if ((substr($line, 0,1) eq '#') or
+                     (substr($line, 0,1) eq "\n") or
+                     (substr($line, 0,1) eq ' '));
+
             chomp($line);
+
+            print "setting up custom skip $line\n" if $DEBUG;
             `$IPTABLES -t nat -I ndsSLN 2 --dst $line -m tcp -p tcp -j ACCEPT`;
         }
         close($fh);
@@ -331,6 +346,7 @@ sub ping_ok {
     my $slug = "$macaddr\_$VERSION";
     my $loc  = "http://$proxy/sl_secret_ping_button/$slug";
     my $cmd  = "$WGET $loc  2>&1";
+
     print "Making request $cmd\n" if $DEBUG;
     my $ping = `$cmd`;
     print "ping result: _$ping\_\n"  if $DEBUG;
