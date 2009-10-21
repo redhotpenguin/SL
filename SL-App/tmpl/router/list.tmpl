@@ -11,16 +11,6 @@
 	[% IF msg %]
 		<p class="success margin_b_20">[% msg %]</p>
 	[% END %]
-		
-	<div class="grid_6 alpha">
-		<p class="tip">You have a total of <strong>[% count %]</strong> devices on your network</p>
-	</div>
-	<div class="grid_4 omega">
-		<a class="right" id="button_add_device" href="[% base_uri %]/app/router/edit">Add a device</a>
-		<div class="clear"></div>
-	</div>
-	<div class="clear"></div>
-
 
 	[% IF !routers.0 %]
 			<p>Oops!  It looks like you don't have any routers added.</p>
@@ -59,6 +49,10 @@
 	<div id="sc_top">
 		<div id="sc_bottom">
 			<ul>
+				<li>
+				<a class="left" id="button_add_device" href="[% base_uri %]/app/router/edit">Add a device</a>
+					<div class="clear"></div>				
+				</li>
 				<li><a class="icon_sync" href="[% base_uri %]/app/router/omsync">Sync Open-Mesh Devices</a></li>
 				<li><a class="icon_on_off" href="[% base_uri %]/app/router/adbar">Turn Ad Bar On/Off</a></li>
 			</ul>		

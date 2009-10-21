@@ -1,5 +1,10 @@
 <div id="tertiary_nav" class="alpha omega grid_16">
-	<h2>Network Overview</h2>
+	<h2>
+		[% IF active == 'history' %]Network History[% END %]
+		[% IF active == 'devices' %]Network Devices <em>You have a total of <strong>[% count %]</strong> devices on your network</em>[% END %]
+		[% IF active == 'overview' %]Network Overview[% END %]	
+	</h2>
+	
 	 <ul>
 	     <li [% IF active == 'history' %] class="selected"[% END %]><a href="[% base_uri %]/app/router/history">History</a></li>
 	     <li [% IF active == 'devices' %] class="selected" [% END %]><a href="[% base_uri %]/app/router/list">Devices</a></li>
