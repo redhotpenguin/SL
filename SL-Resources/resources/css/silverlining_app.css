@@ -445,6 +445,14 @@ font-size: 185%;
 color: #444;
 font-weight: bold;
 }
+#workspace h2 em {
+font-size: 45%;
+color: #666;
+font-weight: normal;
+}
+#workspace h2 em strong {
+font-weight: bold;
+}
 #workspace .tip {
 font-size: 85%;
 color: #868686;
@@ -476,6 +484,11 @@ background-color: #d9ffd1;
 border-top: 3px solid #EEE;
 padding: 10px 0px;
 margin-top: 10px
+}
+#workspace .row:first-child {
+border: none;
+margin-top: 0;
+padding-top: 0;
 }
 #workspace .row h3 {
 font-size: 114%;
