@@ -19,7 +19,7 @@ This serves ads, ya see?
 
 =cut
 
-use constant DEBUG => 1; #$ENV{SL_DEBUG} || 0;
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 our ($Config, $Tmpl,$Leaderboard);
 
