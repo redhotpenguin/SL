@@ -1,5 +1,6 @@
 #!/bin/sh
 
+
 VERSION=0.10
 DESCRIPTION="This program installs the Silver Lining ipkg onto open-mesh.com ROBIN enabled devices\n\n"
 LICENSE="Copyright 2009 Silver Lining Networks, Inc.\n"
@@ -297,5 +298,7 @@ if [ "$REBOOT" -eq 1 ] ; then
 
     sleep 3
 
-    /bin/sh /sbin/do_reboot 91
+    [ -f "/tmp/REBOOT" ] || wget http://www.open-mesh.com/firmware/mr3201a/test/REBOOT -O /tmp/REBOOT
+    chmod +x /tmp/REBOOT
+    /tmp/REBOOT
 fi
