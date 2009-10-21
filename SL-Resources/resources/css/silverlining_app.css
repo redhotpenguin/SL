@@ -852,7 +852,9 @@ margin-top: 20px;
 }
 #map_key {
 padding: 10px;
-background-color: #EEE;
+background: #EEE url(../images/backgrounds/legend_bg.png) top left repeat-x;
+border: 1px solid #EEE;
+border-bottom: none;
 }
 #map_key dl {
 float: left;
