@@ -51,6 +51,8 @@ use Compress::Zlib   ();
 use Compress::Bzip2  ();
 use URI::Escape      ();
 
+use utf8;
+
 our $Config;
 
 BEGIN {
@@ -836,7 +838,8 @@ sub _generate_response {
         $ad_args{device_guess} = $r->pnotes('device_guess');
     }
 
-    $r->log->debug("$$ ad args: " . Data::Dumper::Dumper(\%ad_args)) if DEBUG;
+    $r->log->error("$$ ad args: " . Data::Dumper::Dumper(\%ad_args));
+	#$r->log->debug("$$ ad args: " . Data::Dumper::Dumper(\%ad_args)) if DEBUG;
 
     my (
         $ad_zone_id, $ad_content_ref, $css_url_ref,
@@ -854,6 +857,10 @@ sub _generate_response {
         $r->log->error("$$ Hmm, we didn't get an ad for url $url");
         return;
     }
+
+    if (utf8::is_utf8($$ad_content_ref)) {
+		Encode::encode("utf8", $$ad_content_ref);
+	}
 
     ########################################
     # put the ad in the page

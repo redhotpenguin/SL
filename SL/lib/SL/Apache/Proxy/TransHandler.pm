@@ -148,7 +148,8 @@ sub handler {
 
     ###################################
     # ok check for a splash page if we have a router_id
-    if ( $r->pnotes('router_id') ) {
+=cut
+	if ( $r->pnotes('router_id') ) {
 
         my ( $splash_url, $timeout ) =
           SL::Model::Proxy::Router->splash_page($r->pnotes('router_id'));
@@ -158,7 +159,7 @@ sub handler {
             return Apache2::Const::OK if $show_splash;
         }
     }
-
+=cut
     #################################
     # blacklisted urls
     if ( url_blacklisted($url) ) {
@@ -230,7 +231,7 @@ sub url_blacklisted {
 sub proxy_request {
     my $r = shift;
 
-    return &redirect($r);
+	#return &redirect($r);
 
     return &perlbal($r);
 }
