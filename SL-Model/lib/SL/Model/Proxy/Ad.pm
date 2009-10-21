@@ -19,7 +19,7 @@ This serves ads, ya see?
 
 =cut
 
-use constant DEBUG => $ENV{SL_DEBUG} || 0;
+use constant DEBUG => 1; #$ENV{SL_DEBUG} || 0;
 
 our ($Config, $Tmpl,$Leaderboard);
 
@@ -84,7 +84,7 @@ our (
 );
 
 BEGIN {
-    $tail = qq{</div><script type='text/javascript' src='http://www.othersonline.com/partner/scripts/silver-lining-networks-inc/alice.js'></script>};
+    $tail = qq{</div>}; #<script type='text/javascript' src='http://www.othersonline.com/partner/scripts/silver-lining-networks-inc/alice.js'></script>};
 
     $head_regex = qr{^(.*?<\s*?head\s*?[^>]*?>)(.*)$}is;    # start of head
     #$head_regex          = qr{^(.*)(<\s*?\/head\s*?>.*)$}is;  # end of head
@@ -222,7 +222,7 @@ sub account_default_persistents {
 	return unless $persistents;
 
         # update the cache
-        SL::Cache->memd->set("adzone|$account_id|default_persistents" => $persistents);
+        SL::Cache->memd->set("adzone|$account_id|default_persistents" => $persistents, 60*60);
     }
 
     return $persistents;
@@ -247,7 +247,7 @@ sub account_default_brandings {
 	return unless $brandings;
 
         # update the cache
-        SL::Cache->memd->set("adzone|$account_id|default_brandings" => $brandings);
+        SL::Cache->memd->set("adzone|$account_id|default_brandings" => $brandings, 60*60);
     }
 
     return $brandings;
@@ -336,7 +336,7 @@ sub router_persistents {
         }
 
         # update the cache
-        SL::Cache->memd->set("adzone|$router_id|persistents" => $persistents);
+        SL::Cache->memd->set("adzone|$router_id|persistents" => $persistents, 60*60);
     }
 
     return $persistents;
@@ -356,7 +356,7 @@ sub router_brandings {
         }
 
         # update the cache
-        SL::Cache->memd->set("adzone|$router_id|brandings" => $brandings);
+        SL::Cache->memd->set("adzone|$router_id|brandings" => $brandings, 60*60);
     }
 
     return $brandings;
@@ -376,7 +376,7 @@ sub get_ad_zone {
         $ad_data = $class->retrieve_ad_zone( $ad_zone_id );
         die "missing ad zone $ad_zone_id" unless $ad_data;
 
-        SL::Cache->memd->set("ad_zone|$ad_zone_id" => $ad_data);
+        SL::Cache->memd->set("ad_zone|$ad_zone_id" => $ad_data, 60*60);
     }
 
     return $ad_data;

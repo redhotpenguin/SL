@@ -80,7 +80,8 @@ sub latest_mac_from_ip {
 
     # check the cache first
     # location|$ip = [ { 'FF:FF:FF:FF:FF:FF' => '2001-06-01 00:00:00' },
-    my $routers = SL::Cache->memd->set("location|$ip");
+=cut
+	my $routers = SL::Cache->memd->set("location|$ip");
     if ($routers) {
         foreach my $date ( sort values %{$routers} ) {
 
@@ -88,6 +89,7 @@ sub latest_mac_from_ip {
             return $routers->{$date};
         }
     }
+=cut
 
     # device mac not found in the cache, check the database
     my $sth = $class->connect->prepare_cached(LATEST_MAC_FROM_IP);
@@ -103,8 +105,8 @@ sub latest_mac_from_ip {
     return unless $router;
 
     # found a device, update the cache
-    SL::Cache->memd->set(
-        "location|$ip" => [ { $router->[0] => $router->[1] }, ] );
+#    SL::Cache->memd->set(
+#        "location|$ip" => [ { $router->[0] => $router->[1] }, ] );
 
     return $router->[0];
 }
@@ -146,8 +148,8 @@ SQL
 
         # update the cache
         $router_id = $router->{router_id};
-        SL::Cache->memd->set("router|$macaddr"   => $router_id);
-        SL::Cache->memd->set("router|$router_id" => $router);
+        SL::Cache->memd->set("router|$macaddr"   => $router_id, 60*60);
+        SL::Cache->memd->set("router|$router_id" => $router, 60*60);
     }
 
     # we've got the router id
@@ -169,8 +171,8 @@ sub get {
 	return unless $router;
 
 	# cache it
-	SL::Cache->memd->set("router|$router_id" => $router );
-        SL::Cache->memd->set("router|" . $router->{macaddr} => $router->{router_id});
+	SL::Cache->memd->set("router|$router_id" => $router, 60*60 );
+    SL::Cache->memd->set("router|" . $router->{macaddr} => $router->{router_id}, 60*60);
     }
 
     return $router;
@@ -246,7 +248,7 @@ RESET_EVENT_SQL
 sub splash_page {
     my ($class, $router_id) = @_;
     
-    my $router = SL::Cache->memd->set("router|$router_id") || return;
+    my $router = SL::Cache->memd->set("router|$router_id", 60) || return;
 
     return ( $router->{splash_href}, $router->{splash_timeout} );
 }

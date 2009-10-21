@@ -52,7 +52,7 @@ sub get_location_id_from_ip {
     return unless $location_id;
 
     # cache it
-    SL::Cache->memd->set($ip => $location_id);
+    SL::Cache->memd->set($ip => $location_id, 60*60*24);
 
     return $location_id;
 }
