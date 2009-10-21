@@ -838,8 +838,7 @@ sub _generate_response {
         $ad_args{device_guess} = $r->pnotes('device_guess');
     }
 
-    $r->log->error("$$ ad args: " . Data::Dumper::Dumper(\%ad_args));
-	#$r->log->debug("$$ ad args: " . Data::Dumper::Dumper(\%ad_args)) if DEBUG;
+	$r->log->debug("$$ ad args: " . Data::Dumper::Dumper(\%ad_args)) if DEBUG;
 
     my (
         $ad_zone_id, $ad_content_ref, $css_url_ref,
