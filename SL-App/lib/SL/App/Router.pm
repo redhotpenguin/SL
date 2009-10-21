@@ -953,7 +953,7 @@ JS
         my $dt = DateTime::Format::Pg->parse_datetime( $router->last_ping );
 
         my $type;
-        if ( DateTime->compare( $dt->add( minutes => 6 ), $now ) == 1 ) {
+        if ( DateTime->compare( $dt->add( minutes => 7 ), $now ) == 1 ) {
 
             $type = 'active';
 
