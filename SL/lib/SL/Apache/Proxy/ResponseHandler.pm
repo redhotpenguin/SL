@@ -51,8 +51,6 @@ use Compress::Zlib   ();
 use Compress::Bzip2  ();
 use URI::Escape      ();
 
-use utf8;
-
 our $Config;
 
 BEGIN {
@@ -856,10 +854,6 @@ sub _generate_response {
         $r->log->error("$$ Hmm, we didn't get an ad for url $url");
         return;
     }
-
-    if (utf8::is_utf8($$ad_content_ref)) {
-		Encode::encode("utf8", $$ad_content_ref);
-	}
 
     ########################################
     # put the ad in the page
