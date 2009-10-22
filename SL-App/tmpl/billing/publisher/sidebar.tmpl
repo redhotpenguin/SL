@@ -4,7 +4,7 @@
         <li class="clear"><strong>[% PROCESS billing/publisher/prices.tmpl %]</strong>
             <ul>
                 <li>Insertions Per Month:  <strong>
-[% IF req.param('plan') == 'free' %]2,500
+[% IF req.param('plan') == 'free' %]1,000
 [% ELSIF req.param('plan') == 'basic' %]10,000
 [% ELSIF req.param('plan') == 'plus' %]30,000
 [% ELSIF req.param('plan') == 'premium' %]125,000
@@ -20,11 +20,14 @@
 
 
 
-                <li>Ad Marketplace Revenue Share:  <strong>[% IF req.param('plan') == 'free' %]30[% ELSIF req.param('plan') == 'basic' or req.param('plan') == 'plus' %]50[% ELSE %]70[% END %]%</strong></li>
+                <li>Merchant Gateway Revenue:  <strong>[% IF req.param('plan') == 'free' %]30[% ELSIF req.param('plan') == 'basic' or req.param('plan') == 'plus' %]50[% ELSE %]75[% END %]%</strong></li>
 
                 <li>Use Your Own Branding:  <strong>[% IF req.param('plan') == 'free' %]No[% ELSE %]Yes[% END %]</strong></li>
 
-                <li>Priority Support:  <strong>[% IF req.param('plan') == 'free' %]No[% ELSE %]Yes[% END %]</strong></li>
+                <li>Zendesk Support:  <strong>[% IF req.param('plan') == 'free' %]No[% ELSE %]Yes[% END %]</strong></li>
+                <li>Phone Support:  <strong>[% IF req.param('plan') == 'enterprise' %]Priority[% ELSIF req.param('plan') == 'premium' %]Yes[% ELSE %]No[% END %]</strong></li>
+                <li>Number of Routers:  <strong>[% IF req.param('plan') == 'enterprise' %]100[% ELSIF req.param('plan') == 'premium' %]30[% ELSIF req.param('plan') == 'plus' %]8[% ELSIF req.param('plan') == 'basic' %]3[% ELSE %]1[% END %]</strong></li>
+                <li><a href="http://www.open-mesh.com/">Open-Mesh</a> Network Support:  <strong>[% IF req.param('plan') == 'free' %]No[% ELSE %]Yes[% END %]</strong></li>
             </ul>
         </li>
 
