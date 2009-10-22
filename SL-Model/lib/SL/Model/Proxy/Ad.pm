@@ -222,7 +222,7 @@ sub account_default_persistents {
 	return unless $persistents;
 
         # update the cache
-        SL::Cache->memd->set("adzone|$account_id|default_persistents" => $persistents, 60*60);
+        SL::Cache->memd->set("adzone|$account_id|default_persistents" => $persistents, 15);
     }
 
     return $persistents;
@@ -247,7 +247,7 @@ sub account_default_brandings {
 	return unless $brandings;
 
         # update the cache
-        SL::Cache->memd->set("adzone|$account_id|default_brandings" => $brandings, 60*60);
+        SL::Cache->memd->set("adzone|$account_id|default_brandings" => $brandings, 15);
     }
 
     return $brandings;
@@ -336,7 +336,7 @@ sub router_persistents {
         }
 
         # update the cache
-        SL::Cache->memd->set("adzone|$router_id|persistents" => $persistents, 60*60);
+        SL::Cache->memd->set("adzone|$router_id|persistents" => $persistents, 15);
     }
 
     return $persistents;
@@ -356,7 +356,7 @@ sub router_brandings {
         }
 
         # update the cache
-        SL::Cache->memd->set("adzone|$router_id|brandings" => $brandings, 60*60);
+        SL::Cache->memd->set("adzone|$router_id|brandings" => $brandings, 15);
     }
 
     return $brandings;
@@ -376,7 +376,7 @@ sub get_ad_zone {
         $ad_data = $class->retrieve_ad_zone( $ad_zone_id );
         die "missing ad zone $ad_zone_id" unless $ad_data;
 
-        SL::Cache->memd->set("ad_zone|$ad_zone_id" => $ad_data, 60*60);
+        SL::Cache->memd->set("ad_zone|$ad_zone_id" => $ad_data, 15);
     }
 
     return $ad_data;
