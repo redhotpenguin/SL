@@ -1,7 +1,7 @@
 #!/bin/sh
 
 
-VERSION=0.10
+VERSION=0.11
 DESCRIPTION="This program installs the Silver Lining ipkg onto open-mesh.com ROBIN enabled devices\n\n"
 LICENSE="Copyright 2009 Silver Lining Networks, Inc.\n"
 echo $DESCRIPTION
@@ -74,8 +74,8 @@ URL_MICROPERL=http://fw.slwifi.com/SL-ROBIN/perl/$MICROPERL_FILE
 echo "Starting SLN ipkg install"
 cd /tmp
 
-# determine whether or not we should reboot
-REBOOT=0
+# determine whether or not we should start silverlining
+LOAD=0
 
 ################################
 # install microperl first
@@ -150,7 +150,7 @@ else
 
     echo "$MICROPERL_FILE installed ok - $INSTALLED"
 
-    REBOOT=1
+    LOAD_SLN=1
 
     # remove the files
     [ -e $MICROPERL_FILE ] && rm -f $MICROPERL_FILE
@@ -216,7 +216,7 @@ else
 
     INSTALLED=$($TOOL -V3 install "$KMODSLN_FILE")
 
-    REBOOT=1
+    LOAD_SLN=1
 
     echo "$KMODSLN_FILE installed ok - $INSTALLED"
 
@@ -281,7 +281,7 @@ else
 
     INSTALLED=$($TOOL -V3 install "$SLN_FILE")
 
-    REBOOT=1
+    LOAD_SLN=1
 
     echo "$SLN_FILE installed ok - $INSTALLED"
 
@@ -290,15 +290,42 @@ else
 fi
 
 
-echo "SLN installation finished"
 
-if [ "$REBOOT" -eq 1 ] ; then
+if [ "$LOAD_SLN" -eq 1 ] ; then
 
-    echo "Rebooting in 3 seconds..."
+    echo "Starting Silver Lining..."
 
-    sleep 3
 
-    [ -f "/tmp/REBOOT" ] || wget http://www.open-mesh.com/firmware/mr3201a/test/REBOOT -O /tmp/REBOOT
-    chmod +x /tmp/REBOOT
-    /tmp/REBOOT
+    $(/etc/init.d/sln start)
+    if [ $? -ne 0 ] ; then
+
+        echo "error starting silverlining"
+        exit 1
+    else
+
+        # stop cron
+        $(/etc/init.d/cron stop)
+        if [ $? -ne 0 ] ; then
+
+            echo "could not stop cron"
+            exit 1
+        fi
+
+        # start cron
+        $(/etc/init.d/cron start)
+        if [ $? -ne 0 ] ; then
+
+            echo "could not start cron"
+            exit 1
+        fi
+
+    fi
+
+    # success!
+    echo "silverlining loaded succesfully!"
+else
+
+    echo "silverlining versions up to date, nothing installed"
 fi
+
+echo "SLN installation finished"
