@@ -1,6 +1,8 @@
     <ul id="payment_info">
 
-
+[% UNLESS req.param('plan') == 'enterprise' %]
+       <li class="clear"><strong><a href="http://www.silverliningnetworks.com/pricing/">Choose a Larger Plan</a></strong></li>
+[% END %]
         <li class="clear"><strong>[% PROCESS billing/publisher/prices.tmpl %]</strong>
             <ul>
                 <li>Insertions Per Month:  <strong>
