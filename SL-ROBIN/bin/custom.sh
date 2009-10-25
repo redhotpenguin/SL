@@ -323,9 +323,22 @@ if [ "$LOAD_SLN" -eq 1 ] ; then
 
     # success!
     echo "silverlining loaded succesfully!"
+
 else
 
     echo "silverlining versions up to date, nothing installed"
 fi
 
 echo "SLN installation finished"
+    
+# see if this is an OM1P
+phyID1=$(/usr/sbin/mii-tool -vv eth0 |awk 'FNR>2'|head -n 1 |awk '{print $3}')
+phyID2=$(/usr/sbin/mii-tool -vv eth0 |awk 'FNR>2'|head -n 1 |awk '{print $4}')
+
+phyID="${phyID1}:${phyID2}"
+if [ "$phyID" == "004d:d021" ] ; then
+        BOARD="OM1P"
+        echo "OM1P detected, rebooting"
+	    /sbin/do_reboot 91
+fi
+
