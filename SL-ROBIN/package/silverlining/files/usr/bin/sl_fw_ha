@@ -315,7 +315,7 @@ sub _setup_sln_skips {
 
         chomp($line);
 
-        print "setting up default skip $line\n";
+        print "setting up default skip $line\n" if $DEBUG;
         `$IPTABLES -t nat -I ndsSLN 2 --dst $line -m tcp -p tcp -j ACCEPT`;
         #sleep 1;
     }
@@ -333,7 +333,7 @@ sub _setup_sln_skips {
 
             chomp($line);
 
-            print "setting up default skip $line\n";
+            print "setting up default skip $line\n" if $DEBUG;
             `$IPTABLES -t nat -I ndsSLN 2 --dst $line -m tcp -p tcp -j ACCEPT`;
         }
         close($fh);
