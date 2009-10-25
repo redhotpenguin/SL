@@ -33,7 +33,7 @@ our %Plans = (
     enterprise => '249.00',
     premium    => '99.00',
     plus       => '24.00',
-    basic      => '10.00',
+    basic      => '9.00',
 );
 
 our %Routers = (
