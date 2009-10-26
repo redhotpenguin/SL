@@ -20,9 +20,12 @@
 
 
 [% IF reg.account.beta && router %]
-
-
-    <h3>Uptime:</h3>
+<br />
+[% IF gateway %]
+    <h3><label for="device" class="label">Speed Test:</label> [% speed_one %] gateway <a href="[% base_uri %]/app/router/edit/?router_id=[% gateway.router_id %]">[% speed_two %]</a></h3>
+[% END %]
+<br />
+    <h3><label for="device" class="label">Uptime:</label></h3>
 		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
 	    <div id="flashcontenttwo">
 	        <strong>You need to upgrade your Flash Player</strong>
@@ -41,7 +44,7 @@
     [% IF router.wan_ip != router.gateway %]
 
 
-      <h3>WiFi Mesh Connectivity:</h3>
+      <h3><label for="device" class="label">WiFi Mesh Connectivity:</label></h3>
 		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
 	    <div id="flashcontent">
 	        <strong>You need to upgrade your Flash Player</strong>
@@ -58,11 +61,11 @@
 
 
 
-[% END %]
+	[% END %]
 
 
 
-    <h3>Traffic:</h3>
+    <h3><label for="device" class="label">Traffic:</label></h3>
 	    <div id="flashcontenttraffic">
 	        <strong>You need to upgrade your Flash Player</strong>
 	    </div>
@@ -96,7 +99,7 @@
 					<label for="device" class="label [% IF errors.missing.device %]error[% END %]">Device Type</label>
 					<select name="device" id="device">
 						<option value="" [% IF ! router.device and req.param('device') == '' %][% END %]>Select a device type</option>
-						<option value="mr3201a" [% IF req.param('device') == 'mr3201a' or router.device == 'mr3201a' %]selected="selected" [% END %]>MR3201A or OM1P or EOC-1650 or PICO2-HP</option>
+						<option value="mr3201a" [% IF req.param('device') == 'mr3201a' or router.device == 'mr3201a' %]selected="selected" [% END %]>MR3201A, OM1P, EOC1650, PICO2HP, WBD500</option>
 						<option value="wrt54gl" [% IF req.param('device') == 'wrt54gl' or router.device == 'wrt54gl' %]selected="selected" [% END %]>Linksys WRT54GL</option>
 						<option value="linuxbox" [% IF req.param('device') == 'linuxbox' or router.device == 'linuxbox' %]SELECTED[% END %]>Linux Server</option>
 

@@ -288,6 +288,7 @@ sub dispatch_omsync {
                   ->create( { macaddr => $router_datum->{mac}, } );
                 $router->account_id( $reg->account->account_id );
                 $router->device('mr3201a');
+            	$router->adserving(0);
                 $created++;
             }
 
@@ -297,7 +298,6 @@ sub dispatch_omsync {
             $router->lng( $router_datum->{lng} );
             $router->ip( $router_datum->{ip} );
             $router->notes( $router_datum->{notes} );
-            $router->adserving(1);
             $router->update;
 
         }
@@ -498,8 +498,21 @@ sub dispatch_edit {
 
 }
 
+	my $gateway;
+	if (substr($router->gateway, 0, 1) == 5) {
+		($gateway) = SL::Model::App->resultset('Router')->search({
+			account_id => $router->account_id,
+			ip => $router->gateway, });
+	}
+	my ($speed_one, $speed_two);
+	if ($gateway) {
+		($speed_one, $speed_two) = split(/gateway/, $router->speed_test);
+	}
 
         my %tmpl_data = (
+	    speed_one => $speed_one,
+	    speed_two => $speed_two,
+	    gateway   => $gateway,
             ad_zones  => \@pzones,
             szones    => \@szones,
             bzones    => \@bzones,

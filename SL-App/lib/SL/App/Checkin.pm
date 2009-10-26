@@ -74,23 +74,27 @@ sub dispatch_index {
             sprintf( "This gateway node has WAN IP %s", $router->wan_ip ) );
 
     }
-    elsif (( ( defined $args{role} ) && ( $args{role} eq 'R' ) )
-        or ( substr( $args{gateway}, 0, 1 ) == 5 ) )
+    elsif ( ( defined $args{role} ) && ( $args{role} eq 'R' )
+      &&  (defined($args{gateway})))
     {
 
-        my ($gateway) =
+	my $gateway;
+      if (substr( $args{gateway}, 0, 1) ==5 )  {
+     		($gateway) =
           SL::Model::App->resultset('Router')->search( {
                                          ip => $args{gateway} } );
-	if ($gateway) {
-		$router->gateway($args{gateway});
+    }
 
-	        $router->speed_test(
+    if ($gateway) {
+
+	$router->gateway($args{gateway});
+
+	$router->speed_test(
 	            sprintf(
 	                "%d hops, %d ms ping and %s to gateway %s",
 	                $args{hops}, $args{RTT}, $args{NTR}, $gateway->name
 	            )
-	        );
-	}
+	);
         # calculate throughput to gateway
         ( $speed, $units ) = split( /\-/, $args{NTR} );
         if ( $units eq 'MB/s' ) {
@@ -101,13 +105,15 @@ sub dispatch_index {
         }
 
 
+	my $hops;
+	($args{hops} == 1) ?  $hops = 'hop' : $hops = 'hops';
         $router->speed_test(
             sprintf(
-                "%d hops, %d ms ping and %s Mbits/s to gateway %s",
-                $args{hops}, $args{RTT}, $speed/1024*8, $gateway->name
+                "%d %s, %d ms ping and %2.1f Mbits/s to gateway %s",
+                $args{hops}, $hops, $args{RTT}, $speed/1024*8, $gateway->name
             )
         );
-
+	}
     }
     else {
 
@@ -125,12 +131,12 @@ sub dispatch_index {
     my $checkin = SL::Model::App->resultset('Checkin')->create(
         {
             router_id    => $router->router_id,
-            memfree      => $args{memfree},
-            users        => $args{users},
-            kbup         => $args{kbup},
-            kbdown       => $args{kbdown},
-            ping_ms      => sprintf( '%d', $args{RTT} ),
-            speed_kbytes => $speed,
+            memfree      => $args{memfree} || 0,
+            users        => $args{users} || 0,
+            kbup         => $args{kbup} || 0,
+            kbdown       => $args{kbdown} || 0,
+            ping_ms      => sprintf( '%d', $args{RTT} || 0 ),
+            speed_kbytes => sprintf( '%d', $speed || 0),
             nodes        => $args{nodes},
             nodes_rssi   => $args{rssi},
         }
