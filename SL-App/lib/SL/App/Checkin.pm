@@ -97,7 +97,7 @@ sub dispatch_index {
 	);
         # calculate throughput to gateway
         ( $speed, $units ) = split( /\-/, $args{NTR} );
-        if ( $units eq 'MB/s' ) {
+        if ( $units && $units eq 'MB/s' ) {
             $speed = int( $speed * 1024 );
         }
         elsif ( $units ne 'KB/s' ) {
@@ -105,8 +105,7 @@ sub dispatch_index {
         }
 
 
-	my $hops;
-	($args{hops} == 1) ?  $hops = 'hop' : $hops = 'hops';
+	my $hops = ($args{hops} == 1) ? 'hop' : 'hops';
         $router->speed_test(
             sprintf(
                 "%d %s, %d ms ping and %2.1f Mbits/s to gateway %s",
@@ -139,6 +138,7 @@ sub dispatch_index {
             speed_kbytes => sprintf( '%d', $speed || 0),
             nodes        => $args{nodes},
             nodes_rssi   => $args{rssi},
+	    gateway_quality => $args{'gw-qual'} || 0
         }
     );
 

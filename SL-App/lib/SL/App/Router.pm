@@ -28,7 +28,8 @@ use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 
 # default to 127.0.0.1:8887
-our $Apikey = $Config->sl_gmap_key || 'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxRGsjeT8YPG8Wf95T-lVG33bp2K-xSOp0qPQkb8Yz7_cDoTISsnM3UrLg';
+our $Apikey = $Config->sl_gmap_key
+  || 'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxRGsjeT8YPG8Wf95T-lVG33bp2K-xSOp0qPQkb8Yz7_cDoTISsnM3UrLg';
 
 # production key, add on rollout
 #'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxQy1V7Lnb51SK2Zw6jkMdSNmKWG4BR6rYy1O4_e1HE-uzbTquoRsEEKfA';
@@ -36,8 +37,6 @@ our $Apikey = $Config->sl_gmap_key || 'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxRGsjeT8YPG8
 # test iMac
 # 24.23.174.103
 #'ABQIAAAAyhXzbW_tBTVZ2gviL0TQQxSg_ULh7M3_G5UrPi2z6bAJSsaYCBTAhApwkxdrjMZLFtjQMIII-pzzlQ';
-
-
 
 sub dispatch_history {
     my ( $class, $r ) = @_;
@@ -47,16 +46,15 @@ sub dispatch_history {
     return Apache2::Const::NOT_FOUND if !$reg->account->beta;
 
     my %tmpl_data = ( account => $reg->account );
-    my $account  = $reg->account;
+    my $account = $reg->account;
 
-    my $filename = join( '/',
-        $account->report_dir_base,
-        "network_monthly.csv" );
+    my $filename =
+      join( '/', $account->report_dir_base, "network_monthly.csv" );
 
-    unless (-e $filename) {
-	my $fh;
-        open($fh, '>', $filename) or die $!;
-	print $fh '0,0,0,0';
+    unless ( -e $filename ) {
+        my $fh;
+        open( $fh, '>', $filename ) or die $!;
+        print $fh '0,0,0,0';
         close $fh or die $!;
     }
 
@@ -71,10 +69,6 @@ sub dispatch_history {
     return $class->ok( $r, $output );
 }
 
-
-
-
-
 sub dispatch_index {
     my ( $class, $r ) = @_;
 
@@ -83,13 +77,16 @@ sub dispatch_index {
     return Apache2::Const::NOT_FOUND if !$reg->account->beta;
 
     my %tmpl_data = ( account => $reg->account );
-    my $server_root = (DEBUG) ? $r->construct_url('') :
-	'https://' . $Config->sl_app_servername;
+    my $server_root =
+      (DEBUG)
+      ? $r->construct_url('')
+      : 'https://' . $Config->sl_app_servername;
 
     my ( $head, $map, $total, $trouble, $inactive ) = eval {
         $class->map(
             $r,
-            {   account     => $reg->account,
+            {
+                account     => $reg->account,
                 server_root => $server_root,
             }
         );
@@ -105,19 +102,17 @@ sub dispatch_index {
         %tmpl_data = ( head => $head, map => $map, %tmpl_data );
     }
 
-    my $account  = $reg->account;
+    my $account = $reg->account;
 
-    my $filename = join( '/',
-        $account->report_dir_base,
-        "network_overview.csv" );
+    my $filename =
+      join( '/', $account->report_dir_base, "network_overview.csv" );
 
-    unless (-e $filename) {
-	my $fh;
-        open($fh, '>', $filename) or die $!;
-	print $fh '0,0,0,0';
+    unless ( -e $filename ) {
+        my $fh;
+        open( $fh, '>', $filename ) or die $!;
+        print $fh '0,0,0,0';
         close $fh or die $!;
     }
-
 
     %tmpl_data = (
         active_nodes     => $total,
@@ -174,9 +169,13 @@ sub dispatch_omsync {
             );
         }
 
-	$r->log->warn(sprintf("syncing om network %s for account %s",
-		$req->param('network'),
-		$reg->account->name, ) );
+        $r->log->warn(
+            sprintf(
+                "syncing om network %s for account %s",
+                $req->param('network'),
+                $reg->account->name,
+            )
+        );
 
         my $om_url =
           eval { URI->new('http://www.open-mesh.com/export_nodes.php') };
@@ -288,7 +287,7 @@ sub dispatch_omsync {
                   ->create( { macaddr => $router_datum->{mac}, } );
                 $router->account_id( $reg->account->account_id );
                 $router->device('mr3201a');
-            	$router->adserving(0);
+                $router->adserving(0);
                 $created++;
             }
 
@@ -456,63 +455,65 @@ sub dispatch_edit {
 
     }
 
-
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
-	if ($router) {
-	my $router_id = $router->router_id;
+        if ($router) {
+            my $router_id = $router->router_id;
 
-    my $filename = join( '/',
-        $reg->account->report_dir_base,
-        "router_$router_id\_connectivity.csv" );
+            my $filename = join( '/',
+                $reg->account->report_dir_base,
+                "router_$router_id\_connectivity.csv" );
 
-    unless (-e $filename) {
-	my $fh;
-        open($fh, '>', $filename) or die $!;
-	print $fh '0,0';
-        close $fh or die $!;
-    }
+            unless ( -e $filename ) {
+                my $fh;
+                open( $fh, '>', $filename ) or die $!;
+                print $fh '0,0';
+                close $fh or die $!;
+            }
 
-    $filename = join( '/',
-        $reg->account->report_dir_base,
-        "router_$router_id\_ping.csv" );
+            $filename = join( '/',
+                $reg->account->report_dir_base,
+                "router_$router_id\_ping.csv" );
 
-    unless (-e $filename) {
-	my $fh;
-        open($fh, '>', $filename) or die $!;
-	print $fh '0,0,0';
-        close $fh or die $!;
-    }
+            unless ( -e $filename ) {
+                my $fh;
+                open( $fh, '>', $filename ) or die $!;
+                print $fh '0,0,0';
+                close $fh or die $!;
+            }
 
+            $filename = join( '/',
+                $reg->account->report_dir_base,
+                "router_$router_id\_traffic.csv" );
 
-    $filename = join( '/',
-        $reg->account->report_dir_base,
-        "router_$router_id\_traffic.csv" );
+            unless ( -e $filename ) {
+                my $fh;
+                open( $fh, '>', $filename ) or die $!;
+                print $fh '0,0,0,0';
+                close $fh or die $!;
+            }
 
-    unless (-e $filename) {
-	my $fh;
-        open($fh, '>', $filename) or die $!;
-	print $fh '0,0,0,0';
-        close $fh or die $!;
-    }
+        }
 
-}
-
-	my $gateway;
-	if (substr($router->gateway, 0, 1) == 5) {
-		($gateway) = SL::Model::App->resultset('Router')->search({
-			account_id => $router->account_id,
-			ip => $router->gateway, });
-	}
-	my ($speed_one, $speed_two);
-	if ($gateway) {
-		($speed_one, $speed_two) = split(/gateway/, $router->speed_test);
-	}
+        my $gateway;
+        if ( substr( $router->gateway, 0, 1 ) == 5 ) {
+            ($gateway) = SL::Model::App->resultset('Router')->search(
+                {
+                    account_id => $router->account_id,
+                    ip         => $router->gateway,
+                }
+            );
+        }
+        my ( $speed_one, $speed_two );
+        if ($gateway) {
+            ( $speed_one, $speed_two ) =
+              split( /gateway/, $router->speed_test );
+        }
 
         my %tmpl_data = (
-	    speed_one => $speed_one,
-	    speed_two => $speed_two,
-	    gateway   => $gateway,
+            speed_one => $speed_one,
+            speed_two => $speed_two,
+            gateway   => $gateway,
             ad_zones  => \@pzones,
             szones    => \@szones,
             bzones    => \@bzones,
@@ -618,13 +619,14 @@ sub dispatch_edit {
     }
 
     # active?  adserving?
-     if ($req->param('active') ) {
-           $router->active($req->param('active'));
-	   $router->adserving($req->param('adserving'));
-      } else {
-          $router->active(0);
-	  $router->adserving(0);
-     }
+    if ( $req->param('active') ) {
+        $router->active( $req->param('active') );
+        $router->adserving( $req->param('adserving') );
+    }
+    else {
+        $router->active(0);
+        $router->adserving(0);
+    }
 
     $router->update;
 
@@ -678,7 +680,7 @@ sub dispatch_edit {
 
                 $bi = SL::Model::App->resultset('AdZone')->create(
                     {
-		        code       => '',
+                        code       => '',
                         reg_id     => $reg->reg_id,
                         account_id => $reg->account_id,
                         ad_size_id => 21,
@@ -864,10 +866,10 @@ sub map {
         }
 
         # get the latest checkin for this router
-        my ($checkin) = SL::Model::App->resultset('Checkin')->search(
-            { router_id => $router->router_id, },
-            { order_by  => 'me.cts DESC' }
-        );
+	my ($checkin) = SL::Model::App->resultset('Checkin')->search(
+		{ router_id => $router->router_id, },
+		{ order_by  => 'me.cts DESC' }
+	);
 
         $r->log->debug( "grabbed last checkin: " . Dumper($checkin) )
           if DEBUG;
@@ -875,21 +877,23 @@ sub map {
         my @neighbors;
 
         # skip if no neighbors
-        if ( $checkin &&
-                 (( $checkin->nodes ne 'z' ) or
-                  ( $checkin->nodes_rssi ne 'z' ) ))
+        if (
+            $checkin
+            && (   ( $checkin->nodes ne 'z' )
+                or ( $checkin->nodes_rssi ne 'z' ) )
+          )
         {
 
-
-	    my $nodes = $checkin->nodes;
+            my $nodes = $checkin->nodes;
             $nodes =~ s/(\%3b)/\;/g;
-	    my @nodes = split( /\;/, $nodes );
+            my @nodes = split( /\;/, $nodes );
 
-	    my $rssis = $checkin->nodes_rssi;
+            my $rssis = $checkin->nodes_rssi;
             $rssis =~ s/(\%3b)/\;/g;
             my @rssis = split( /\;/, $rssis );
 
-            $r->log->debug( "neighbors: " . Dumper( \@nodes ) ) if VERBOSE_DEBUG;
+            $r->log->debug( "neighbors: " . Dumper( \@nodes ) )
+              if VERBOSE_DEBUG;
 
             foreach my $node (@nodes) {
 
@@ -913,7 +917,8 @@ sub map {
                   SL::Model::App->resultset('Router')->search( \%args );
 
                 unless ($nbr) {
-                    $r->log->debug("no device found for neighbor $node") if DEBUG;
+                    $r->log->debug("no device found for neighbor $node")
+                      if DEBUG;
                     next;
                 }
 
@@ -932,7 +937,7 @@ sub map {
         $Tmpl->process( 'map/neighbor.tmpl', \%tmpl_data, \$neighbor_html );
 
         # going to hell for this
-        my $base_uri = $Config->sl_app_base_uri;
+        my $base_uri    = $Config->sl_app_base_uri;
         my $report_base = $account->report_base;
 
 =cut
@@ -957,11 +962,12 @@ JS
 
         $js =~ s{([/#,.><()=![\];])}{\\$1}g;
 
-        $r->log->debug("escaped js: " . $js) if DEBUG;
+        $r->log->debug( "escaped js: " . $js ) if DEBUG;
 
         my $ping_html;
         $Tmpl->process( 'map/ping_speed.tmpl',
-                        { chartscript => $js, %tmpl_data }, \$ping_html );
+            { chartscript => $js, %tmpl_data },
+            \$ping_html );
 
         my $dt = DateTime::Format::Pg->parse_datetime( $router->last_ping );
 
@@ -987,7 +993,9 @@ JS
 
         my $clients = ( $router->clients > 10 ) ? 10 : $router->clients;
         my $icon = $clients;
-        if ( (defined $router->gateway && defined $router->wan_ip) && ($router->gateway eq $router->wan_ip) ) {
+        if (   ( defined $router->gateway && defined $router->wan_ip )
+            && ( $router->gateway eq $router->wan_ip ) )
+        {
 
             # gateways
             $icon .= '_gateway';
@@ -998,15 +1006,15 @@ JS
 
         unless ( $icons_added{$icon} ) {
 
-            my $s = 20 + ( 1 * int($clients/2) );
+            my $s = 20 + ( 1 * int( $clients / 2 ) );
             my %icon_args = (
                 shadow             => $shadow,
                 shadow_size        => [ $s, $s ],
-                icon_anchor        => [ int($s/2), int($s/2) ],
-                info_window_anchor => [ int($s/2), int($s/2) ],
+                icon_anchor        => [ int( $s / 2 ), int( $s / 2 ) ],
+                info_window_anchor => [ int( $s / 2 ), int( $s / 2 ) ],
                 name               => $icon,
                 image              => $icon_base . $icon . '.png',
-                icon_size         => [ $s, $s ]
+                icon_size          => [ $s, $s ]
             );
 
             $r->log->debug( sprintf( "icon %s", Dumper( \%icon_args ) ) )
@@ -1015,29 +1023,31 @@ JS
         }
 
         my %marker_args = (
-            point         => [ $router->lng, $router->lat ],
+            point => [ $router->lng, $router->lat ],
 
             # this is out of control and must be stopped
             html          => $output,
             neighbor_html => $neighbor_html,
             ping_html     => $ping_html,
 
-	    checkin       =>  $Config->sl_app_base_uri . '/checkin/move',
-            icon          => $icon,
-            title         => $router->name,
-            mac           => $router->macaddr,
-            board         => $router->board,
-            ip            => $router->ip,
+            checkin => $Config->sl_app_base_uri . '/checkin/move',
+            icon    => $icon,
+            title   => $router->name,
+            mac     => $router->macaddr,
+            board   => $router->board,
+            ip      => $router->ip,
         );
 
         $map->add_marker(%marker_args);
 
-	$r->log->debug("added marker for router_id " . Dumper(\%marker_args))
-	    if DEBUG;
+        $r->log->debug(
+            "added marker for router_id " . Dumper( \%marker_args ) )
+          if DEBUG;
 
         # is this a repeater?  add a polyline to the gateway
-        unless ( (defined $router->gateway && defined $router->wan_ip) && 
-		 ($router->gateway eq $router->wan_ip ) ) {
+        unless ( ( defined $router->gateway && defined $router->wan_ip )
+            && ( $router->gateway eq $router->wan_ip ) )
+        {
 
             my ($gateway) =
               SL::Model::App->resultset('Router')
@@ -1046,16 +1056,16 @@ JS
             $r->log->debug( "gateway is " . Dumper($gateway) ) if VERBOSE_DEBUG;
 
             unless ( $gateway && $gateway->lat && $gateway->lng ) {
-                $r->log->debug(
-                    "no gateway found for router " . $router->name ) if DEBUG;
+                $r->log->debug( "no gateway found for router " . $router->name )
+                  if DEBUG;
             }
             else {
 
                 $map->add_polyline(
-                    weight => 5,
+                    weight  => 5,
                     opacity => 0.8,
-                    color => '\#81bad3',
-                    points => [
+                    color   => '\#81bad3',
+                    points  => [
                         [ $router->lng,  $router->lat ],
                         [ $gateway->lng, $gateway->lat ],
                     ]

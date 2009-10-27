@@ -22,7 +22,8 @@ my $dbh = SL::Model->connect;
 my $sql = <<'SQL';
 SELECT checkin.kbup, checkin.kbdown,
 account.account_id, checkin.cts, router.router_id,
-checkin.ping_ms, checkin.speed_kbytes
+checkin.ping_ms, checkin.speed_kbytes,
+checkin.memfree, checkin.gateway_quality
 FROM checkin, router, account
 WHERE checkin.cts > '%s'
 and router.account_id = account.account_id and
@@ -44,6 +45,8 @@ foreach my $row (@$results) {
       {
         ping_ms      => $row->{ping_ms},
         speed_kbytes => $row->{speed_kbytes},
+	memfree      => $row->{memfree},
+	gateway_quality      => $row->{gateway_quality},
         kbup         => $row->{kbup},
         kbdown       => $row->{kbdown},
         cts          => DateTime::Format::Pg->parse_datetime( $row->{cts} ),
@@ -107,6 +110,8 @@ foreach my $account_id ( keys %refined ) {
                 0,    # checkin bit
                 0,    # ping_ms
                 0,    # speed_kbytes
+                0,    # memfree
+                0,    # gateway quality
             ];
         }
 
@@ -177,6 +182,12 @@ foreach my $account_id ( keys %refined ) {
                     $array[$i]->[6] =
                       sprintf( "%2.1f", $row->{speed_kbytes} / 1024 * 8 );
 
+		    # memfree
+                    $array[$i]->[7] = $row->{memfree}/1024;
+
+		    # gateway quality
+                    $array[$i]->[8] = $row->{gateway_quality};
+
                     last;    # last $row
                 }
 
@@ -246,9 +257,9 @@ foreach my $account_id ( keys %refined ) {
         $router->update;
 
         ##################################
-        # write the mesh performance graph
+        # write the uptime
         my $filename = join( '/',
-            $account->report_dir_base, "router_" . $router_id . "_ping.csv" );
+            $account->report_dir_base, "router_" . $router_id . "_uptime.csv" );
 
         my $fh;
         open( $fh, '>', $filename )
@@ -256,28 +267,74 @@ foreach my $account_id ( keys %refined ) {
 
         foreach my $line (@array) {
             $line->[0] = $line->[0]->strftime("%l:%M %p");
-            print $fh join( ',', @{$line}[ 0, 5, 6 ] ) . "\n";
+            print $fh join( ',', @{$line}[ 0, 4 ] ) . "\n";
         }
         close($fh) or die $!;
 
-        ############################
 
         ##########################
-        # write out the connectivity graph
+        # write out the ping time graph
         $filename = join( '/',
             $account->report_dir_base,
-            "router_" . $router_id . "_connectivity.csv" );
+            "router_" . $router_id . "_ping.csv" );
 
         open( $fh, '>', $filename )
           or die "could not open $filename: " . $!;
 
         foreach my $line (@array) {
-            print $fh join( ',', @{$line}[ 0, 4 ] ) . "\n";
+            print $fh join( ',', @{$line}[ 0, 5 ] ) . "\n";
         }
         close($fh) or die $!;
 
-        ############################
+ 
         ##########################
+        # write out the speed graph
+        $filename = join( '/',
+            $account->report_dir_base,
+            "router_" . $router_id . "_speed.csv" );
+
+        open( $fh, '>', $filename )
+          or die "could not open $filename: " . $!;
+
+        foreach my $line (@array) {
+            print $fh join( ',', @{$line}[ 0, 6 ] ) . "\n";
+        }
+        close($fh) or die $!;
+
+  
+        ##########################
+        # write out the memory graph
+        $filename = join( '/',
+            $account->report_dir_base,
+            "router_" . $router_id . "_memfree.csv" );
+
+        open( $fh, '>', $filename )
+          or die "could not open $filename: " . $!;
+
+        foreach my $line (@array) {
+            print $fh join( ',', @{$line}[ 0, 7 ] ) . "\n";
+        }
+        close($fh) or die $!;
+
+   
+        ##########################
+    	# write out the gwqual graph
+        $filename = join( '/',
+            $account->report_dir_base,
+            "router_" . $router_id . "_gwqual.csv" );
+
+        open( $fh, '>', $filename )
+          or die "could not open $filename: " . $!;
+
+        foreach my $line (@array) {
+            print $fh join( ',', @{$line}[ 0, 8 ] ) . "\n";
+        }
+        close($fh) or die $!;
+
+      
+	
+	
+	##########################
         # write out the traffic graph
         $filename = join( '/',
             $account->report_dir_base,
@@ -287,11 +344,26 @@ foreach my $account_id ( keys %refined ) {
           or die "could not open $filename: " . $!;
 
         foreach my $line (@array) {
-            print $fh join( ',', @{$line}[ 0, 1, 2, 3 ] ) . "\n";
+            print $fh join( ',', @{$line}[ 0, 1, 2 ] ) . "\n";
         }
         close($fh) or die $!;
 
         ############################
+	
+	##########################
+        # write out the users graph
+        $filename = join( '/',
+            $account->report_dir_base,
+            "router_" . $router_id . "_users.csv" );
+
+        open( $fh, '>', $filename )
+          or die "could not open $filename: " . $!;
+
+        foreach my $line (@array) {
+            print $fh join( ',', @{$line}[ 0, 3 ] ) . "\n";
+        }
+        close($fh) or die $!;
+
 
     }
 

@@ -59,6 +59,14 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => undef,
   },
+  "gateway_quality",
+  {
+    data_type => "integer",
+    default_value => 0,
+    is_nullable => 0,
+    size => 3,
+  },
+
 );
 __PACKAGE__->set_primary_key("checkin_id");
 __PACKAGE__->belongs_to(
