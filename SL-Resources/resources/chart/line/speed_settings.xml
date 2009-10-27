@@ -19,7 +19,7 @@
       <alpha>5</alpha>
       <approx_count>5</approx_count>
     </y_left>
- </grid>
+  </grid>
   
   <values>                 
     <x>                    
@@ -31,12 +31,15 @@
       <frequency>1</frequency>
     </x>
 
+
     <y_left>
       <skip_first>false</skip_first>
+      <unit> Mbits/s</unit>
       <frequency>1</frequency>
-      <unit> ms</unit>
       <integers_only>true</integers_only>
+
     </y_left>
+
   </values>
 
 
@@ -50,7 +53,7 @@
     <y_left>
       <alpha>0</alpha>
     </y_left>
- </axes>  
+  </axes>  
   
   <indicator>
     <color>D84B3C</color>
@@ -66,18 +69,13 @@
   
   
   <graphs>             
+   
     <graph gid="1">
       <axis>left</axis>
-      <title>Gateway Ping Time (ms)</title>
-      <color>#9ce4ff</color>   
-      <balloon_text_color>#333333</balloon_text_color>
-      <balloon_text>
-        <![CDATA[{value} ms]]>
-      </balloon_text>
-      <fill_alpha>80</fill_alpha>
-    </graph>
-   
-   <balloon_text_color>#333333</balloon_text_color>                     
+      <title>Gateway Speed Test</title>
+      <color>#ffce1c</color>
+
+      <balloon_text_color>#333333</balloon_text_color>                     
       <balloon_text>
         <![CDATA[{value} Mbits/s]]>
       </balloon_text>

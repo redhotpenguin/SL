@@ -17,9 +17,9 @@
     </x>
     <y_left>      
       <alpha>5</alpha>
-      <approx_count>5</approx_count>
+      <approx_count>4</approx_count>
     </y_left>
- </grid>
+  </grid>
   
   <values>                 
     <x>                    
@@ -30,16 +30,13 @@
       <rotate>90</rotate>
       <frequency>1</frequency>
     </x>
-
     <y_left>
-      <skip_first>false</skip_first>
+      <unit> Mbits/s</unit>
+      <integers_only>false</integers_only>
       <frequency>1</frequency>
-      <unit> ms</unit>
-      <integers_only>true</integers_only>
     </y_left>
+
   </values>
-
-
   
   <axes>                           
     <x>                            
@@ -50,7 +47,7 @@
     <y_left>
       <alpha>0</alpha>
     </y_left>
- </axes>  
+  </axes>  
   
   <indicator>
     <color>D84B3C</color>
@@ -68,21 +65,26 @@
   <graphs>             
     <graph gid="1">
       <axis>left</axis>
-      <title>Gateway Ping Time (ms)</title>
+      <title>Mbits/s Down</title>
       <color>#9ce4ff</color>   
       <balloon_text_color>#333333</balloon_text_color>
       <balloon_text>
-        <![CDATA[{value} ms]]>
+        <![CDATA[{value} Mbits/s down]]>
       </balloon_text>
       <fill_alpha>80</fill_alpha>
     </graph>
-   
-   <balloon_text_color>#333333</balloon_text_color>                     
+    
+    <graph gid="2">
+      <axis>left</axis>
+      <title>Mbits/s Up</title>              
+      <color>#f36f6f</color>
+      <balloon_text_color>#333333</balloon_text_color>                     
       <balloon_text>
-        <![CDATA[{value} Mbits/s]]>
+        <![CDATA[{value} Mbits/s Up]]>
       </balloon_text>
-      <fill_alpha>20</fill_alpha>
+      <fill_alpha>100</fill_alpha>
     </graph>
+   
 
   </graphs>  
 </settings>
