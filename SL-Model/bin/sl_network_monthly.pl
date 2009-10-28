@@ -25,7 +25,8 @@ account.account_id, checkin.cts, router.router_id
 FROM checkin, router, account
 WHERE checkin.cts > '%s'
 and router.account_id = account.account_id and
-checkin.router_id = router.router_id
+checkin.router_id = router.router_id and
+account.beta='t'
 ORDER BY cts desc
 SQL
 
@@ -38,12 +39,14 @@ my %refined;
 my $now = DateTime->now( time_zone => "local" );
 foreach my $row (@$results) {
 
+    my $dt = DateTime::Format::Pg->parse_datetime( $row->{cts} );
+    $dt->set_time_zone('local');
     # and group by router
     push @{ $refined{ $row->{account_id} }{routers}{ $row->{router_id} } },
       {
         kbup   => $row->{kbup},
         kbdown => $row->{kbdown},
-        cts    => DateTime::Format::Pg->parse_datetime( $row->{cts} ),
+        cts    => $dt,
       };
 }
 
@@ -56,6 +59,7 @@ WHERE
 router.account_id = account.account_id
 AND usertrack.router_id = router.router_id
 AND  usertrack.cts > '%s'
+AND account.beta='t'
 ORDER BY usertrack.cts DESC
 SQL
 
@@ -65,13 +69,15 @@ my $users = $dbh->selectall_arrayref( $sql, { Slice => {} } );
 
 foreach my $row (@$users) {
 
+    my $dt = DateTime::Format::Pg->parse_datetime( $row->{cts} );
+    $dt->set_time_zone('local');
     # and group by user
     push @{ $refined{ $row->{account_id} }{users}{ $row->{mac} } },
       {
         kbup   => $row->{kbup},
         kbdown => $row->{kbdown},
         router => $row->{router_id},
-        cts    => DateTime::Format::Pg->parse_datetime( $row->{cts} ),
+        cts    => $dt,
       };
 }
 
@@ -174,7 +180,8 @@ foreach my $account_id ( keys %refined ) {
             for ( my $i = 0 ; $i <= $#array ; $i++ ) {
 
                 # is this timestamp less than the next element?  That's a match
-                if ( DateTime->compare( $row->{cts}, $array[$i]->[0] ) > 0 ) {
+                if ( $row->{cts}->epoch > $array[$i]->[0]->epoch) {
+                #if ( DateTime->compare( $row->{cts}, $array[$i]->[0] ) > 0 ) {
 
                     # then log it on the current element
                     $array[$i]->[3]->{$mac} = 1;

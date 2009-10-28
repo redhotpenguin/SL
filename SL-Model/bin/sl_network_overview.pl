@@ -26,6 +26,7 @@ FROM checkin, router, account
 WHERE checkin.cts > '%s'
 and router.account_id = account.account_id and
 checkin.router_id = router.router_id
+AND account.beta='t'
 ORDER BY cts desc
 SQL
 
@@ -36,14 +37,18 @@ my $results = $dbh->selectall_arrayref( $sql, { Slice => {} } );
 # group this data by account
 my %refined;
 my $now = DateTime->now( time_zone => "local" );
+warn("processing checkin raw data") if DEBUG;
 foreach my $row (@$results) {
 
+    my $dt = DateTime::Format::Pg->parse_datetime( $row->{cts} );
+    $dt->set_time_zone('local');
     # and group by router
     push @{ $refined{ $row->{account_id} }{routers}{ $row->{router_id} } },
       {
         kbup   => $row->{kbup},
         kbdown => $row->{kbdown},
-        cts    => DateTime::Format::Pg->parse_datetime( $row->{cts} ),
+        cts    => $dt,
+        #cts    => DateTime::Format::Pg->parse_datetime( $row->{cts} ),
       };
 }
 
@@ -54,6 +59,7 @@ usertrack.kbup, usertrack.kbdown, router.router_id
 FROM usertrack, account, router
 WHERE
 router.account_id = account.account_id
+AND account.beta = 't'
 AND usertrack.router_id = router.router_id
 AND  usertrack.cts > '%s'
 ORDER BY usertrack.cts DESC
@@ -63,23 +69,29 @@ $sql = sprintf( $sql, DateTime::Format::Pg->format_datetime($yesterday) );
 
 my $users = $dbh->selectall_arrayref( $sql, { Slice => {} } );
 
+warn("processing user raw data") if DEBUG;
 foreach my $row (@$users) {
 
+    my $dt = DateTime::Format::Pg->parse_datetime( $row->{cts} );
+    $dt->set_time_zone('local');
     # and group by user
     push @{ $refined{ $row->{account_id} }{users}{ $row->{mac} } },
       {
         kbup   => $row->{kbup},
         kbdown => $row->{kbdown},
         router => $row->{router_id},
-        cts    => DateTime::Format::Pg->parse_datetime( $row->{cts} ),
+        cts    => $dt,
+        #cts    => DateTime::Format::Pg->parse_datetime( $row->{cts} ),
       };
 }
 
 foreach my $account_id ( keys %refined ) {
+	warn("processing account $account_id") if DEBUG;
 
     # every 15 minutes for 24 hours is 4*24 = 96 - time, kbdown, kbup
     # setup an array to hold the data
 
+	warn("building interval array") if DEBUG;
     my @array;
     for ( 1 .. 24 * 12 ) {    # 5 minutes
         push @array,
@@ -93,12 +105,15 @@ foreach my $account_id ( keys %refined ) {
     # aggregate the router data
     my $megabytes_total = 0;
     foreach my $router_id ( keys %{ $refined{$account_id}{routers} } ) {
+	warn("processing router $router_id") if DEBUG;
 
         # loop over the data
         #        $DB::single = 1;
         my $router_traffic = 0;
         my ( %last_row, %placeholder );
-        foreach my $row ( sort { $a->{cts}->epoch <=> $b->{cts}->epoch }
+
+TIMES:
+	foreach my $row ( sort { $a->{cts}->epoch <=> $b->{cts}->epoch }
             @{ $refined{$account_id}{routers}{$router_id} } )
         {
 
@@ -116,8 +131,8 @@ foreach my $account_id ( keys %refined ) {
             );
 
             # get the difference
-            unless ( ($row->{kbup} < $last_row{kbup}) &&
-                     ($row->{kbdown} < $last_row{kbdown} ) ) {
+            if ( ($row->{kbup} >= $last_row{kbup}) and
+                     ($row->{kbdown} >= $last_row{kbdown} ) ) {
                 $row->{kbup}   -= $last_row{kbup};
                 $row->{kbdown} -= $last_row{kbdown};
             }
@@ -129,27 +144,30 @@ foreach my $account_id ( keys %refined ) {
             # at this point we're processing  time based data for $router_id.
             # add the totals to to the array in the correct time slot.
             # loop over the output @array until the row fits the slot.
+# 	warn("=> interval analysis for $router_id") if DEBUG;
             for ( my $i = 0 ; $i <= $#array ; $i++ ) {
 
+	#	warn("comparing date " . $row->{cts}->time_zone . " " . $row->{cts}->dmy . " " . $row->{cts}->hms . " with " . $array[$i]->[0]->time_zone . " " . $array[$i]->[0]->dmy . " " . $array[$i]->[0]->hms);
+	#	warn("comparing date " . $row->{cts}->epoch . " with " . $array[$i]->[0]->epoch);
                 # is this timestamp less than the next element?  That's a match
-                if ( DateTime->compare( $row->{cts}, $array[$i]->[0] ) > 0 ) {
-
-                    # then log it on the current element
-                    $array[$i]->[1] += sprintf( "%2.2f", $row->{kbdown} / 1024 * 8 /300 );
-                    $array[$i]->[2] += sprintf( "%2.2f", $row->{kbup} / 1024 * 8 / 300 );
+                if ( $row->{cts}->epoch > $array[$i]->[0]->epoch) {
+                    
+		    # then log it on the current element
+                    $array[$i]->[1] += $row->{kbdown};
+                    $array[$i]->[2] += $row->{kbup};
 
                     # bit to indicate a checkin took place for this device
                     $array[$i]->[4] = 1;
 
                     # total megs
-                    $megabytes_total += ($array[$i]->[1]/8*300) + ($array[$i]->[2]/8*300);
-                    $router_traffic  += ($array[$i]->[1]/8*300) + ($array[$i]->[2]/8*300);
-                    last;    # last $row
+                    $megabytes_total += ($array[$i]->[1]+$array[$i]->[2])/1024;
+                    $router_traffic  += ($array[$i]->[1]+$array[$i]->[2])/1024;
+            	%last_row = %placeholder;
+                    next TIMES;    # last $row
                 }
 
             }
 
-            %last_row = %placeholder;
         }
 
         my ($router) = SL::Model::App->resultset('Router')->search({router_id => $router_id});
@@ -176,6 +194,8 @@ foreach my $account_id ( keys %refined ) {
     # aggregate the user data
     my %router_users;
     foreach my $mac ( keys %{ $refined{$account_id}{users} } ) {
+		
+	warn("=> processing user mac $mac") if DEBUG;
 
         # loop over the data
         #        $DB::single = 1;
@@ -192,7 +212,7 @@ foreach my $account_id ( keys %refined ) {
             for ( my $i = 0 ; $i <= $#array ; $i++ ) {
 
                 # is this timestamp less than the next element?  That's a match
-                if ( DateTime->compare( $row->{cts}, $array[$i]->[0] ) > 0 ) {
+                if ( $row->{cts}->epoch > $array[$i]->[0]->epoch) {
 
                     # then log it on the current element
                     $array[$i]->[3]++;
@@ -235,6 +255,8 @@ foreach my $account_id ( keys %refined ) {
     my $fh;
     open( $fh, '>', $filename ) or die "could not open $filename: " . $!;
     foreach my $line (@array) {
+    	$line->[1] = sprintf("%2.1f", $line->[1]/(300/(1024**2)));
+    	$line->[2] = sprintf("%2.1f", ($line->[2]/300/(1024**2)));
         print $fh join( ',', @{$line}[0..3] ) . "\n";
     }
     close $fh or die $!;
