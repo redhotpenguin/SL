@@ -68,24 +68,6 @@ foreach my $row (@$results) {
         cts             => $dt,
       };
 
-=cut
-    [
-        #ping_ms      => 
-        $row->{ping_ms},
-        #speed_kbytes => 
-        $row->{speed_kbytes},
-	# memfree      => 
-        $row->{memfree},
-	# gateway_quality      => 
-        $row->{gateway_quality},
-        # kbup         => 
-        $row->{kbup},
-        # kbdown       => 
-        $row->{kbdown},
-        # cts          => $dt,
-      ];
-=cut
-
 }
 
 warn("prepping users") if DEBUG;
@@ -284,33 +266,47 @@ foreach my $account_id ( keys %refined ) {
             );
         }
 
+
         # aggregate the user data
         my %router_users;
 
-        foreach my $mac ( keys %{ $user_refined{$router_id}{users} } ) {
+	for ( my $i = 0 ; $i <= $#array ; $i++ ) {
 
-            # loop over the data
-            my ( %last_row, %placeholder );
-            foreach my $row ( sort { $b->{cts}->epoch <=> $a->{cts}->epoch }
-                @{ $user_refined{$router_id}{users}{$mac} } )
-            {
 
-                $router_users{$router_id}{$mac} = 1;
+	    foreach my $mac ( keys %{ $user_refined{$router_id}{users} } ) {
 
-                # at this point we're processing time based data for $router_id.
-                # add the totals to to the array in the correct time slot.
-                # loop over the output @array until the row fits the slot.
-                for ( my $i = 0 ; $i <= $#array ; $i++ ) {
+		$router_users{$router_id}{$mac} = 1;
 
-                 # is this timestamp less than the next element?  Match
-                    if ( $row->{cts}->epoch > $array[$i]->[0]->epoch ) {
+		# loop over the data
+		foreach my $row (
+		    sort { $a->{cts}->epoch <=> $b->{cts}->epoch }
+		    @{ $user_refined{$router_id}{users}{$mac} } )
+		{
 
-                        # then log it on the current element
-                        $array[$i]->[3]++;
-                        last;    # last $row
-                    }
 
+		    # see if this row fits in the first time slot
+		    unless (
+			(
+			 $row->{cts}->epoch >=
+			 $array[$i]->[0]->epoch
+			)
+			&& ( $row->{cts}->epoch <=
+                        $array[ $i + 1 ]->[0]->epoch )
+			)
+		    {
+
+			# not in this time slot
+			next;
+		    }
+		    else {
+			$array[$i]->[3]++;
+			warn(sprintf("mac %s after %s and before %s",
+				     $mac, $row->{cts}->hms,
+				     $row->{cts}->hms)) if DEBUG;
+			last;
+		    }
                 }
+
 
             }
         }
