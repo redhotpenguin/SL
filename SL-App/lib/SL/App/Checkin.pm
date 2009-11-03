@@ -58,7 +58,7 @@ sub dispatch_index {
     $router->last_ping( DateTime::Format::Pg->format_datetime($now) );
 
     # update the ip
-    unless ( $router->wan_ip eq $ip ) {
+    unless ( defined $router->wan_ip && ($router->wan_ip eq $ip) ) {
         $router->wan_ip($ip);
     }
 
@@ -97,7 +97,7 @@ sub dispatch_index {
 	);
         # calculate throughput to gateway
         ( $speed, $units ) = split( /\-/, $args{NTR} );
-        if ( $units && $units eq 'MB/s' ) {
+        if ( defined $units && $units eq 'MB/s' ) {
             $speed = int( $speed * 1024 );
         }
         elsif ( $units ne 'KB/s' ) {

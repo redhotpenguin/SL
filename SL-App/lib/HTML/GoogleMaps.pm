@@ -482,7 +482,6 @@ SCRIPT
                 ];
                 marker_$i.openInfoWindowTabsHtml(infoTabs)});\n";
 
-=cut
     $header .=
 "      GEvent.addListener(marker_$i, \"dragstart\", function() { map.closeInfoWindow(); });\n";
 
@@ -508,7 +507,6 @@ SCRIPT
         }
         });\n";
 
-=cut
 
     $header .= "      map.addOverlay(marker_$i);\n";
 

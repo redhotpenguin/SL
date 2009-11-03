@@ -460,43 +460,22 @@ sub dispatch_edit {
         if ($router) {
             my $router_id = $router->router_id;
 
+	   foreach my $fn ( qw( gwqual  uptime speed ping traffic users memfree ) ) {
+
             my $filename = join( '/',
                 $reg->account->report_dir_base,
-                "router_$router_id\_connectivity.csv" );
-
+                "router_$router_id\_$fn.csv" );
             unless ( -e $filename ) {
                 my $fh;
                 open( $fh, '>', $filename ) or die $!;
                 print $fh '0,0';
                 close $fh or die $!;
             }
-
-            $filename = join( '/',
-                $reg->account->report_dir_base,
-                "router_$router_id\_ping.csv" );
-
-            unless ( -e $filename ) {
-                my $fh;
-                open( $fh, '>', $filename ) or die $!;
-                print $fh '0,0,0';
-                close $fh or die $!;
-            }
-
-            $filename = join( '/',
-                $reg->account->report_dir_base,
-                "router_$router_id\_traffic.csv" );
-
-            unless ( -e $filename ) {
-                my $fh;
-                open( $fh, '>', $filename ) or die $!;
-                print $fh '0,0,0,0';
-                close $fh or die $!;
-            }
-
+           }
         }
 
         my $gateway;
-        if ( substr( $router->gateway, 0, 1 ) == 5 ) {
+        if (defined $router->gateway &&  (substr( $router->gateway, 0, 1 ) == 5 )) {
             ($gateway) = SL::Model::App->resultset('Router')->search(
                 {
                     account_id => $router->account_id,
@@ -739,10 +718,12 @@ sub dispatch_list {
     foreach my $router (@routers) {
 
         my $dt = DateTime::Format::Pg->parse_datetime( $router->last_ping );
-
+	$dt->time_zone('local');
+	$dt->add( hours => 8);
+	my $now = DateTime->now;
+	$now->time_zone('local');
         # hack for pacific time
-        my $sec =
-          ( time - $dt->epoch - 3600 * 7 );   # FIX daylight savings time breaks
+        my $sec = ($now->epoch - $dt->epoch);
 
         my $minutes = sprintf( '%d', $sec / 60 );
 
@@ -969,27 +950,36 @@ JS
             { chartscript => $js, %tmpl_data },
             \$ping_html );
 
+
         my $dt = DateTime::Format::Pg->parse_datetime( $router->last_ping );
+	$dt->set_time_zone('local');
+	$dt->add( hours => 8);
 
-        my $type;
-        if ( DateTime->compare( $dt->add( minutes => 7 ), $now ) == 1 ) {
+	my $now = DateTime->now;
+	$now->add(hours=>8);
+         # hack for pacific time
+        my $sec = ( $now->epoch - $dt->epoch);
 
-            $type = 'active';
-
+        my $minutes = sprintf( '%d', $sec / 60 );
+	my $type;
+        if ( $sec <= 300) {
+            
+	    $type = 'active';
         }
-        elsif ( DateTime->compare( $dt->add( hours => 1 ), $now ) == 1 ) {
+        elsif ( ( $sec > 360 ) && ( $minutes <= 60*2 ) ) {
             $type = 'alerting';
             $problem_nodes++;
-        }
-        elsif ( DateTime->compare( $dt->add( hours => 24 ), $now ) == 1 ) {
+	}
+        elsif ( ( $minutes > 60*2 ) && ( $minutes < 60*24 ) ) {
+        
             $type = 'trouble';
             $problem_nodes++;
-        }
+	}
         else {
-
+        
             $type = 'inactive';
             $inactive_nodes++;
-        }
+	}
 
         my $clients = ( $router->clients > 10 ) ? 10 : $router->clients;
         my $icon = $clients;
