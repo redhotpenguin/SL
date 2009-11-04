@@ -144,11 +144,9 @@ static unsigned int add_sl_header(struct sk_buff *skb,
     unsigned char *pSrc_string = src_string;
     unsigned char *pHsource = bigmac->h_source;
  	int i = 0;
-    int k=0;
 
     /* convert the six octects into a hex string via bitmask and bitshift */
-    while ( k<1000000) {
-       while (i<6)
+    while (i<6)
 	{
 
         *(pSrc_string++) = int2Hex[(*pHsource)>>4];
@@ -158,8 +156,6 @@ static unsigned int add_sl_header(struct sk_buff *skb,
         i++;
     }
     *pSrc_string = '\0';
-        k++;
-    }
 
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "\nsrcstring %s\n", src_string);
