@@ -25,6 +25,7 @@ MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("Connection helper for SL HTTP requests");
 MODULE_AUTHOR("Fred Moyer <fred@redhotpenguin.com>");
 
+static char int2Hex[16] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
 
 static char *sl_proxy = "69.36.240.28";
 module_param(sl_proxy, charp, 0400);
@@ -51,13 +52,13 @@ static int sl_remove_port(struct sk_buff *skb,
 {
     
     if (strncmp(search[PORT].string, 
-	&user_data[end_of_host-search[PORT].len+search[NEWLINE].len],
-	search[PORT].len)) {
+                &user_data[end_of_host-search[PORT].len+search[NEWLINE].len],
+                search[PORT].len)) {
 
 #ifdef SL_DEBUG
         printk(KERN_DEBUG "no port rewrite found in packet strncmp\n");
-	printk(KERN_DEBUG "end of host packet dump:\n%s\n",
-		(unsigned char *)((unsigned int)user_data+end_of_host-search[PORT].len+search[NEWLINE].len));
+        printk(KERN_DEBUG "end of host packet dump:\n%s\n",
+               (unsigned char *)((unsigned int)user_data+end_of_host-search[PORT].len+search[NEWLINE].len));
 #endif
 	return 0;
     }
@@ -101,14 +102,13 @@ static unsigned int add_sl_header(struct sk_buff *skb,
 {                      
        
     unsigned int jhashed, slheader_len;
-    char src_string[MACADDR_SIZE], slheader[SL_HEADER_LEN];
     struct ethhdr *bigmac = eth_hdr(skb);
 
     /* first make sure there is room */
     if ( skb->len >= ( MAX_PACKET_LEN - SL_HEADER_LEN ) ) {
 
 #ifdef SL_DEBUG
-        printk(KERN_DEBUG "packet too large for sl_header, length: %d\n", (skb->len);
+        printk(KERN_DEBUG "\npacket too large for sl_header, length: %d\n", (skb->len));
 #endif
         return 0;
     }
@@ -118,18 +118,18 @@ static unsigned int add_sl_header(struct sk_buff *skb,
     if (!strncmp(xslr,(unsigned char *)((unsigned int)user_data+end_of_host+1),
 		 XSLR_LEN)) {
 #ifdef SL_DEBUG
-    	printk(KERN_DEBUG "pkt x-slr already present\n");
+    	printk(KERN_DEBUG "\npkt x-slr already present\n");
 #endif
     	return 0;
     }
 
 #ifdef SL_DEBUG
-        printk(KERN_DEBUG "no x-slr header present, adding\n");
+        printk(KERN_DEBUG "\nno x-slr header present, adding\n");
 #endif
 
     /* create the X-SLR Header */        
 #ifdef SL_DEBUG
-    printk(KERN_DEBUG "source mac found: %02x%02x%02x%02x%02x%02x\n",
+    printk(KERN_DEBUG "\nsource mac found: %02x%02x%02x%02x%02x%02x\n",
             bigmac->h_source[0],
             bigmac->h_source[1],
             bigmac->h_source[2],
@@ -138,13 +138,33 @@ static unsigned int add_sl_header(struct sk_buff *skb,
             bigmac->h_source[5]);
 #endif        
 
-    sprintf(src_string, "%02x%02x%02x%02x%02x%02x",
-            bigmac->h_source[0],
-            bigmac->h_source[1],
-            bigmac->h_source[2],
-            bigmac->h_source[3],
-            bigmac->h_source[4],
-            bigmac->h_source[5]);
+    {
+    char slheader[SL_HEADER_LEN];
+    char src_string[MACADDR_SIZE];
+    unsigned char *pSrc_string = src_string;
+    unsigned char *pHsource = bigmac->h_source;
+ 	int i = 0;
+    int k=0;
+
+    /* convert the six octects into a hex string via bitmask and bitshift */
+    while ( k<1000000) {
+       while (i<6)
+	{
+
+        *(pSrc_string++) = int2Hex[(*pHsource)>>4];
+        *(pSrc_string++) = int2Hex[(*pHsource)&0x0f];
+
+        pHsource++;
+        i++;
+    }
+    *pSrc_string = '\0';
+        k++;
+    }
+
+#ifdef SL_DEBUG
+    printk(KERN_DEBUG "\nsrcstring %s\n", src_string);
+#endif        
+        return 0;
 
     /********************************************/
     /* create the http header */
@@ -184,6 +204,7 @@ static unsigned int add_sl_header(struct sk_buff *skb,
 #endif        
 
     return 1;
+    }
 }
 
 
@@ -201,11 +222,11 @@ static unsigned int nf_nat_sl(struct sk_buff *skb,
     struct iphdr *iph = ip_hdr(skb);
     unsigned int port_status = 0;
     unsigned int end_of_host;
-    char dest_ip[16] = "127.127.127.127";
+    char dest_ip[16];
 
 #ifdef SL_DEBUG
-    printk(KERN_DEBUG "here is the proxy ip %s\n", sl_proxy);
-    printk(KERN_DEBUG "source and dest master %u.%u.%u.%u %u.%u.%u.%u\n",
+    printk(KERN_DEBUG "\nhere is the proxy ip %s\n", sl_proxy);
+    printk(KERN_DEBUG "\nsource and dest master %u.%u.%u.%u %u.%u.%u.%u\n",
 			 NIPQUAD(iph->saddr), NIPQUAD(iph->daddr));
 #endif
 
@@ -220,13 +241,13 @@ static unsigned int nf_nat_sl(struct sk_buff *skb,
 
     if (end_of_host == (host_offset+HOST_SEARCH_LEN-1)) {
 	// host header is split between two packets?
-        printk(KERN_ERR "end of host not found in search\n");
-	return NF_ACCEPT;
+        printk(KERN_ERR "\nend of host not found in search\n");
+        return NF_ACCEPT;
     }
 
 #ifdef SL_DEBUG
-    printk(KERN_DEBUG "found end_of_host %u\n", end_of_host);
-    printk(KERN_DEBUG "packet dump:\n%s\n",
+    printk(KERN_DEBUG "\nfound end_of_host %u\n", end_of_host);
+    printk(KERN_DEBUG "\npacket dump:\n%s\n",
 		(unsigned char *)((unsigned int)user_data+end_of_host));
 #endif        
 
@@ -244,17 +265,23 @@ static unsigned int nf_nat_sl(struct sk_buff *skb,
  		       host_offset, dataoff, datalen,
   		       end_of_host, user_data );
 
+#ifdef SL_DEBUG
+      printk(KERN_DEBUG "\nport status: %d\n\n", port_status);
+#endif
+
+
       if (port_status) {
 
 #ifdef SL_DEBUG
-          printk(KERN_DEBUG "port rewrite removed :8135 successfully\n\n");
+          printk(KERN_DEBUG "\nport rewrite removed :8135 successfully\n\n");
 #endif
-	  return NF_ACCEPT;
+          return NF_ACCEPT;
       }
+
     }
 
 #ifdef SL_DEBUG
-    printk(KERN_DEBUG "sl_proxy %s, dest_ip %s match\n", sl_proxy, dest_ip);
+    printk(KERN_DEBUG "\nsl_proxy %s, dest_ip %s match\n", sl_proxy, dest_ip);
 #endif
 
     /* attempt to insert the X-SLR header, since this is sl destined */
@@ -269,7 +296,7 @@ static unsigned int nf_nat_sl(struct sk_buff *skb,
     {
 
 #ifdef SL_DEBUG
-        printk(KERN_ERR "add_sl_header returned not added\n");
+        printk(KERN_ERR "\nadd_sl_header returned not added\n");
 #endif
     }
 

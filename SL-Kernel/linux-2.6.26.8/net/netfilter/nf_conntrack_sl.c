@@ -43,11 +43,9 @@ static int sl_help (struct sk_buff *skb,
                     enum   ip_conntrack_info ctinfo)     
 {
     struct tcphdr _tcph, *th;
-    unsigned int host_offset, dataoff, datalen, start_offset, stop_offset;
+    unsigned int dataoff, datalen;
     struct nf_conntrack_expect *exp;
-    unsigned char *user_data;
     int ret = NF_ACCEPT;
-    int j=0;
     typeof(nf_nat_sl_hook) nf_nat_sl;
 
     /* only operate on established connections */
@@ -117,99 +115,111 @@ static int sl_help (struct sk_buff *skb,
 	dataoff, skb->len, datalen);
 #endif    
 
-    /* see if this is a GET request */
-    user_data = (void *)th + th->doff*4;
 
-    // look for 'GET /'
-    if (strncmp(get, user_data, GET_LEN)) {    
+    {
+        
+        unsigned char *user_data;
+        int j=0;
+        unsigned int start_offset, stop_offset, host_offset;
+
+        /* see if this is a GET request */
+        user_data = (void *)th + th->doff*4;
+
+        // look for 'GET /'
+        if (strncmp(get, user_data, GET_LEN)) {    
 
 #ifdef SL_DEBUG
-        printk(KERN_DEBUG "no get_needle found in packet, return\n\n");
+            printk(KERN_DEBUG "no get_needle found in packet, return\n\n");
 #endif  	      
-        return NF_ACCEPT;
-    } 
 
-    /* safety break */
-    exp = nf_ct_expect_alloc(ct);
-    if (exp == NULL)
-        return NF_ACCEPT;
+            return NF_ACCEPT;
+        } 
 
-    datalen = skb->len - dataoff;
+        /* safety break */
+        exp = nf_ct_expect_alloc(ct);
+        if (exp == NULL)
+            return NF_ACCEPT;
 
-    start_offset = GET_LEN;
-    stop_offset = datalen - HOST_LEN - start_offset;
+        datalen = skb->len - dataoff;
+
+        start_offset = GET_LEN;
+        stop_offset = datalen - HOST_LEN - start_offset;
 
 
 #ifdef SL_DEBUG
-    printk(KERN_DEBUG "packet dump:\n%s\n\n", user_data);
+        printk(KERN_DEBUG "packet dump:\n%s\n\n", user_data);
 
-    // see if the packet contains a Host header
-    printk(KERN_DEBUG "\ndataoff %u, user_data %u\n",
+        // see if the packet contains a Host header
+        printk(KERN_DEBUG "\ndataoff %u, user_data %u\n",
 	    dataoff, (unsigned int)user_data );
     
-    printk(KERN_DEBUG "host search:  search_start %u, search_stop %u\n",
+        printk(KERN_DEBUG "host search:  search_start %u, search_stop %u\n",
         start_offset, stop_offset );
 
-    if (start_offset > stop_offset) {
-	printk(KERN_ERR "invalid stop offset, return\n");
-	return NF_ACCEPT;
-    }
+        if (start_offset > stop_offset) {
+            printk(KERN_ERR "invalid stop offset, return\n");
+            return NF_ACCEPT;
+        }
 #endif
 
-    /* search for a host header */
-    while ( start_offset++ < stop_offset) {
+        /* search for a host header */
+        while ( start_offset++ < stop_offset) {
 
-      if ( !memcmp(&user_data[start_offset], &host[j], 1 )) {
+            if ( !memcmp(&user_data[start_offset], &host[j], 1 )) {
 
 #ifdef SL_DEBUG
-	printk(KERN_DEBUG "found a match at i %d, j %d\n", start_offset, j);
+                printk(KERN_DEBUG "found match i %d, j %d\n", start_offset, j);
 #endif
 
-	if (j == HOST_LEN-1) {
+                if (j == HOST_LEN-1) {
 
 #ifdef SL_DEBUG
-	  printk(KERN_DEBUG "FULL MATCH AT i %d, j %d\n", start_offset+HOST_LEN+GET_LEN+1, j);
-	  printk(KERN_DEBUG "match packet dump:\n%s\n", &user_data[start_offset+1]);
+                    printk(KERN_DEBUG "FULL MATCH AT i %d, j %d\n", start_offset+HOST_LEN+GET_LEN+1, j);
+                    printk(KERN_DEBUG "match packet dump:\n%s\n", &user_data[start_offset+1]);
 #endif
 
-	  break;
-	}
-	j++;
-      } else {
-	j = 0;
+                    break;
+                }
+                j++;
+            } else {
+                j = 0;
 
-      }
+            }
 
-    }
+        }
 
-    if (j != HOST_LEN-1) {
+        if (j != HOST_LEN-1) {
 #ifdef SL_DEBUG
-      printk("no host header found, j is %d, start_offset is %d, max is %d\n", j, start_offset, datalen-start_offset -HOST_LEN);
+            printk("no host header found, j is %d, start_offset is %d, max is %d\n", j, start_offset, datalen-start_offset -HOST_LEN);
 #endif
-      return NF_ACCEPT;
-    }
-    host_offset = start_offset;
+            return NF_ACCEPT;
+        }
+        host_offset = start_offset;
 
 #ifdef SL_DEBUG
 
-    printk(KERN_DEBUG "packet dump start offset:\n%s\n",
-		(unsigned char *)((unsigned int)user_data+ start_offset));
+        printk(KERN_DEBUG "packet dump start offset:\n%s\n",
+               (unsigned char *)((unsigned int)user_data+ start_offset));
 
-    printk(KERN_DEBUG "packet dump stop offset:\n%s\n",
-		(unsigned char *)((unsigned int)user_data+ stop_offset-10));
+        printk(KERN_DEBUG "packet dump stop offset:\n%s\n",
+               (unsigned char *)((unsigned int)user_data+ stop_offset-10));
 
 
-    printk(KERN_DEBUG "passing packet to nat module, host offset: %u\n", host_offset);
-    printk(KERN_DEBUG "packet dump:\n%s\n",
-		(unsigned char *)((unsigned int)user_data+host_offset));
+        printk(KERN_DEBUG "passing packet to nat module, host offset: %u\n", host_offset);
+        printk(KERN_DEBUG "packet dump:\n%s\n",
+               (unsigned char *)((unsigned int)user_data+host_offset));
 #endif
  	
-    nf_nat_sl = rcu_dereference(nf_nat_sl_hook);
-    ret = nf_nat_sl(skb, ctinfo, exp,
-	host_offset, dataoff, datalen, user_data);
+        nf_nat_sl = rcu_dereference(nf_nat_sl_hook);
+        ret = nf_nat_sl(skb, ctinfo, exp,
+                        host_offset, dataoff, datalen, user_data);
    
-    return ret;
+        return ret;
+
+    }
+
 }
+
 
 static const struct nf_conntrack_expect_policy sl_exp_policy = {
 	.max_expected	= 0,
