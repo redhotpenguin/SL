@@ -3,16 +3,11 @@
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/netfilter.h>
-#include <linux/ip.h>
-#include <linux/ctype.h>
-#include <linux/inet.h>
-#include <net/checksum.h>
-#include <net/tcp.h>
+#include <linux/tcp.h>
 
 #include <net/netfilter/nf_conntrack.h>
-#include <net/netfilter/nf_conntrack_expect.h>
-#include <net/netfilter/nf_conntrack_ecache.h>
 #include <net/netfilter/nf_conntrack_helper.h>
+#include <net/netfilter/nf_conntrack_expect.h>
 #include <linux/netfilter/nf_conntrack_sl.h>
 
 MODULE_LICENSE("GPL");
