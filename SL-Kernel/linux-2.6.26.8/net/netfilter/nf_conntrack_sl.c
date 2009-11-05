@@ -60,7 +60,7 @@ static int sl_help (struct sk_buff *skb,
     printk(KERN_DEBUG "conntrackinfo = %u\n", ctinfo);
 #endif    
 
-    // not a full tcp header
+    /* not a full tcp header */
     th = skb_header_pointer(skb, protoff, sizeof(_tcph), &_tcph);
     if (th == NULL)
         return NF_ACCEPT;
@@ -83,8 +83,7 @@ static int sl_help (struct sk_buff *skb,
         return NF_ACCEPT;
     }
 
-    /* No data? */
-    //    dataoff = protoff + sizeof(_tcph);
+    /* get tcp data offset */
     dataoff = protoff + th->doff*4;
     if (dataoff >= skb->len) {
 
@@ -95,8 +94,10 @@ static int sl_help (struct sk_buff *skb,
         return NF_ACCEPT;
     }
 
+    /* get tcp data length */
     datalen = skb->len - dataoff;
-    /* if there aren't MIN_PACKET_LEN we aren't interested */
+
+    /* if not MIN_PACKET_LEN we aren't interested */
     if (datalen < MIN_PACKET_LEN) {
 #ifdef SKB_DEBUG
     	printk(KERN_DEBUG "skb data too small,  %d bytes, return\n", datalen);
@@ -107,7 +108,7 @@ static int sl_help (struct sk_buff *skb,
 
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "dataoff %u, packet length %d, data length %d\n",
-	dataoff, skb->len, datalen);
+        dataoff, skb->len, datalen);
 #endif    
 
 
@@ -120,7 +121,7 @@ static int sl_help (struct sk_buff *skb,
         /* see if this is a GET request */
         user_data = (void *)th + th->doff*4;
 
-        // look for 'GET /'
+        /* look for 'GET /' */
         if (strncmp(get, user_data, GET_LEN)) {    
 
 #ifdef SL_DEBUG
@@ -130,7 +131,7 @@ static int sl_help (struct sk_buff *skb,
             return NF_ACCEPT;
         } 
 
-        /* safety break */
+        /* allocate space for an expectation */
         exp = nf_ct_expect_alloc(ct);
         if (exp == NULL)
             return NF_ACCEPT;

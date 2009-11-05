@@ -101,14 +101,11 @@ static unsigned int add_sl_header(struct sk_buff *skb,
 				  unsigned char *user_data)
 {                      
        
-    unsigned int jhashed, slheader_len;
-    struct ethhdr *bigmac = eth_hdr(skb);
-
     /* first make sure there is room */
     if ( skb->len >= ( MAX_PACKET_LEN - SL_HEADER_LEN ) ) {
 
 #ifdef SL_DEBUG
-        printk(KERN_DEBUG "\npacket too large for sl_header, length: %d\n", (skb->len));
+        printk(KERN_DEBUG "\nskb too big, length: %d\n", (skb->len));
 #endif
         return 0;
     }
@@ -127,21 +124,12 @@ static unsigned int add_sl_header(struct sk_buff *skb,
         printk(KERN_DEBUG "\nno x-slr header present, adding\n");
 #endif
 
-    /* create the X-SLR Header */        
-#ifdef SL_DEBUG
-    printk(KERN_DEBUG "\nsource mac found: %02x%02x%02x%02x%02x%02x\n",
-            bigmac->h_source[0],
-            bigmac->h_source[1],
-            bigmac->h_source[2],
-            bigmac->h_source[3],
-            bigmac->h_source[4],
-            bigmac->h_source[5]);
-#endif        
-
     {
+    unsigned int jhashed, slheader_len;
     char slheader[SL_HEADER_LEN];
     char src_string[MACADDR_SIZE];
     unsigned char *pSrc_string = src_string;
+    struct ethhdr *bigmac = eth_hdr(skb);
     unsigned char *pHsource = bigmac->h_source;
  	int i = 0;
 
@@ -158,14 +146,15 @@ static unsigned int add_sl_header(struct sk_buff *skb,
     *pSrc_string = '\0';
 
 #ifdef SL_DEBUG
-    printk(KERN_DEBUG "\nsrcstring %s\n", src_string);
+    printk(KERN_DEBUG "\nsrc macaddr %s\n", src_string);
 #endif        
-        return 0;
 
     /********************************************/
     /* create the http header */
     /* jenkins hash obfuscation of source mac */
     jhashed = jhash((void *)src_string, MACADDR_SIZE, JHASH_SALT);
+
+    /* create the X-SLR Header */        
     slheader_len = sprintf(slheader, "X-SLR: %08x|%s\r\n", jhashed, sl_device);
 
     /* handle sprintf failure */
@@ -191,7 +180,7 @@ static unsigned int add_sl_header(struct sk_buff *skb,
                                    slheader_len)) {  
 
         printk(KERN_ERR " failed to mangle packet\n");
-	return 0;
+        return 0;
     }
 
 #ifdef SL_DEBUG
@@ -222,7 +211,7 @@ static unsigned int nf_nat_sl(struct sk_buff *skb,
 
 #ifdef SL_DEBUG
     printk(KERN_DEBUG "\nhere is the proxy ip %s\n", sl_proxy);
-    printk(KERN_DEBUG "\nsource and dest master %u.%u.%u.%u %u.%u.%u.%u\n",
+    printk(KERN_DEBUG "\nsource %u.%u.%u.%u, dest %u.%u.%u.%u\n",
 			 NIPQUAD(iph->saddr), NIPQUAD(iph->daddr));
 #endif
 
@@ -252,7 +241,7 @@ static unsigned int nf_nat_sl(struct sk_buff *skb,
     if (strcmp(sl_proxy, dest_ip)) {
 
 #ifdef SL_DEBUG
-      printk(KERN_DEBUG "\nsl_proxy %s, dest_ip %s don't match, checking port\n",
+      printk(KERN_DEBUG "\nsl_proxy %s, dest %s no match, checking port\n",
 	     sl_proxy, dest_ip);
 #endif
 
@@ -312,8 +301,8 @@ static int __init nf_nat_sl_init(void)
 	rcu_assign_pointer(nf_nat_sl_hook, nf_nat_sl);
 
 #ifdef SL_DEBUG
-         printk(KERN_DEBUG "nf_nat_sl starting, proxy %s, device %s\n",
-		sl_proxy, sl_device);
+    printk(KERN_DEBUG "nf_nat_sl starting, proxy %s, device %s\n",
+        sl_proxy, sl_device);
 #endif
 
 	return 0;
