@@ -72,8 +72,8 @@ static int sl_help (struct sk_buff *skb,
 		   ntohs(th->dest), ntohs(th->source), th->ack_seq);
 
 	/* let SYN, FIN, RST, PSH, ACK, ECE, CWR, URG packets pass */
-		printk(KERN_DEBUG "FIN %d, SYN %d, RST %d, PSH %d, ACK %d, ECE %d\n",
-		 th->fin, th->syn, th->rst, th->psh, th->ack, th->ece);
+	printk(KERN_DEBUG "FIN %d, SYN %d, RST %d, PSH %d, ACK %d, ECE %d\n",
+		th->fin, th->syn, th->rst, th->psh, th->ack, th->ece);
 #endif	
 
 	/* only work on push or ack packets */
@@ -126,7 +126,7 @@ static int sl_help (struct sk_buff *skb,
 		if (strncmp(get, user_data, GET_LEN)) {	
 
 #ifdef SL_DEBUG
-			printk(KERN_DEBUG "no get_needle found in packet, return\n\n");
+			printk(KERN_DEBUG "No GET method found in packet, return\n\n");
 #endif		 
 
 			return NF_ACCEPT;
@@ -139,6 +139,7 @@ static int sl_help (struct sk_buff *skb,
 		if (exp == NULL)
 			return NF_ACCEPT;
 
+		/* length of the data portion of the skb */
 		datalen = skb->len - dataoff;
 
 		start_offset = GET_LEN;
@@ -148,9 +149,9 @@ static int sl_help (struct sk_buff *skb,
 #ifdef SL_DEBUG
 		printk(KERN_DEBUG "packet dump:\n%s\n\n", user_data);
 
-		// see if the packet contains a Host header
+		/* see if the packet contains a Host header */
 		printk(KERN_DEBUG "\ndataoff %u, user_data %u\n",
-	 dataoff, (unsigned int)user_data );
+			dataoff, (unsigned int)user_data );
 	
 		printk(KERN_DEBUG "host search:  search_start %u, search_stop %u\n",
 		start_offset, stop_offset );
@@ -190,7 +191,8 @@ static int sl_help (struct sk_buff *skb,
 
 		if (j != HOST_LEN-1) {
 #ifdef SL_DEBUG
-			printk("no host header found, j is %d, start_offset is %d, max is %d\n", j, start_offset, datalen-start_offset -HOST_LEN);
+			printk("no host header found, j %d, start_offset %d, max %d\n",
+				j, start_offset, datalen-start_offset -HOST_LEN);
 #endif
 			return NF_ACCEPT;
 		}
@@ -223,7 +225,7 @@ static int sl_help (struct sk_buff *skb,
 
 static const struct nf_conntrack_expect_policy sl_exp_policy = {
 	.max_expected	= 0,
-	.timeout		= 60,
+	.timeout		= 60, /* Is this 60 seconds? */
 };
 
 static struct nf_conntrack_helper sl_helper __read_mostly = {
