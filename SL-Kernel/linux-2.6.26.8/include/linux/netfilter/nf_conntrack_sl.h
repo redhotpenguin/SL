@@ -4,7 +4,7 @@
 #ifdef __KERNEL__
 
 /* enable for module debugging */
-//#define SL_DEBUG 1
+#define SL_DEBUG 1
 
 /* packets must be on port 80 to have fun */
 #define SL_PORT 80
