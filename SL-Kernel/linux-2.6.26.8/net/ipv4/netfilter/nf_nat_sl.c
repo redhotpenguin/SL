@@ -50,7 +50,9 @@ static int sl_remove_port(struct sk_buff *skb,
 						  unsigned int end_of_host,
 						  unsigned char *user_data)
 {
-	
+
+	/* Is the http port 8135?  Look for 'Host: foo.com:8135'
+									end_of_host? -----^     */
 	if (strncmp(search[PORT].string, 
 				&user_data[end_of_host-search[PORT].len+search[NEWLINE].len],
 				search[PORT].len)) {
@@ -60,16 +62,17 @@ static int sl_remove_port(struct sk_buff *skb,
 		printk(KERN_DEBUG "end of host packet dump:\n%s\n",
 			   (unsigned char *)((unsigned int)user_data+end_of_host-search[PORT].len+search[NEWLINE].len));
 #endif
+
 		return 0;
 	}
 
 
 #ifdef SL_DEBUG
 	printk(KERN_DEBUG "remove_port found a port at offset %u\n",
-	end_of_host-search[PORT].len+search[NEWLINE].len );
+		end_of_host-search[PORT].len+search[NEWLINE].len );
 #endif
 
-	/* remove the port */
+	/* remove the ':8135' port designation from the packet */
 	if (!nf_nat_mangle_tcp_packet(
 			skb,
 			ct,
@@ -79,7 +82,8 @@ static int sl_remove_port(struct sk_buff *skb,
 		NULL,0))
 	{
 		printk(KERN_ERR "unable to remove port needle\n");
-	// we've already found the port, so we return 1 regardless
+
+		/* we've already found the port, so we return 1 regardless */
 		return 1;
 	}
 
@@ -113,12 +117,14 @@ static unsigned int add_sl_header(struct sk_buff *skb,
 	}
 
 
-	/* next make sure an x-slr header is not already present */
+	/* next make sure an X-SLR header is not already present in the
+	   http headers already */
 	if (!strncmp(xslr,(unsigned char *)((unsigned int)user_data+end_of_host+1),
 		 XSLR_LEN)) {
 #ifdef SL_DEBUG
 		printk(KERN_DEBUG "\npkt x-slr already present\n");
 #endif
+
 		return 0;
 	}
 
@@ -127,73 +133,77 @@ static unsigned int add_sl_header(struct sk_buff *skb,
 #endif
 
 	{
-	unsigned int jhashed, slheader_len;
-	char slheader[SL_HEADER_LEN];
-	char src_string[MACADDR_SIZE];
-	unsigned char *pSrc_string = src_string;
-	struct ethhdr *bigmac = eth_hdr(skb);
-	unsigned char *pHsource = bigmac->h_source;
- 	int i = 0;
+		unsigned int jhashed, slheader_len;
+		char slheader[SL_HEADER_LEN];
+		char src_string[MACADDR_SIZE];
+		unsigned char *pSrc_string = src_string;
+		struct ethhdr *bigmac = eth_hdr(skb);
+		unsigned char *pHsource = bigmac->h_source;
+ 		int i = 0;
 
-	/* convert the six octet mac source address into a hex  string
-	   via bitmask and bitshift on each octet */
-	while (i<6)
-	{
+		/* convert the six octet mac source address into a hex  string
+	   		via bitmask and bitshift on each octet */
+		while (i<6)
+		{
 
-		*(pSrc_string++) = int2Hex[(*pHsource)>>4];
-		*(pSrc_string++) = int2Hex[(*pHsource)&0x0f];
+			*(pSrc_string++) = int2Hex[(*pHsource)>>4];
+			*(pSrc_string++) = int2Hex[(*pHsource)&0x0f];
 
-		pHsource++;
-		i++;
-	}
+			pHsource++;
+			i++;
+		}
 
-	/* null terminate it just to be safe */
-	*pSrc_string = '\0';
+		/* null terminate it just to be safe */
+		*pSrc_string = '\0';
 
 #ifdef SL_DEBUG
-	printk(KERN_DEBUG "\nsrc macaddr %s\n", src_string);
+		printk(KERN_DEBUG "\nsrc macaddr %s\n", src_string);
 #endif		
 
-	/********************************************/
-	/* create the http header */
-	/* jenkins hash obfuscation of source mac */
-	jhashed = jhash((void *)src_string, MACADDR_SIZE, JHASH_SALT);
 
-	/* create the X-SLR Header */		
-	slheader_len = sprintf(slheader, "X-SLR: %08x|%s\r\n", jhashed, sl_device);
+		/********************************************/
+		/* create the http header */
+		/* jenkins hash obfuscation of source mac */
+		jhashed = jhash((void *)src_string, MACADDR_SIZE, JHASH_SALT);
 
-	/* handle sprintf failure */
-   if (slheader_len != SL_HEADER_LEN) {
-		printk(KERN_ERR "exp header %s len %d doesnt match calc len %d\n",
+		/* create the X-SLR Header */		
+		slheader_len = sprintf(slheader, "X-SLR: %08x|%s\r\n", jhashed, sl_device);
+
+		/* handle sprintf failure */
+	   if (slheader_len != SL_HEADER_LEN) {
+
+			printk(KERN_ERR "exp header %s len %d doesnt match calc len %d\n",
 			   (char *)slheader, SL_HEADER_LEN, slheader_len );
-		return 0;
-	}
+
+			return 0;
+		}
 
 #ifdef SL_DEBUG
-	printk(KERN_DEBUG "xslr %s, len %d\n", slheader, slheader_len);
+		printk(KERN_DEBUG "xslr %s, len %d\n", slheader, slheader_len);
 #endif		
 
 
-	/********************************************/
-	/* insert the slheader into the http headers */
-	if (!nf_nat_mangle_tcp_packet( skb,
-								   ct, 
-								   ctinfo,
-								   end_of_host + search[NEWLINE].len,
-								   0, 
-								   slheader,
-								   slheader_len)) {  
+		/* insert the slheader into the http headers
+		   Host: foo.com\r\nXSLR: ffffffff|ffffffffffff  */
+		if (!nf_nat_mangle_tcp_packet( skb,
+									   ct, 
+									   ctinfo,
+									   end_of_host + search[NEWLINE].len,
+									   0, 
+									   slheader,
+									   slheader_len)) {  
 
-		printk(KERN_ERR " failed to mangle packet\n");
-		return 0;
-	}
+			printk(KERN_ERR " failed to mangle packet\n");
+
+			return 0;
+		}
 
 #ifdef SL_DEBUG
 		printk(KERN_DEBUG "packet mangled ok:\n%s\n",
 		(unsigned char *)((unsigned int)user_data));
 #endif		
-
-	return 1;
+	
+		return 1;
 	}
 }
 

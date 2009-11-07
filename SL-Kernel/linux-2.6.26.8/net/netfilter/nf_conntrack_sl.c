@@ -49,11 +49,12 @@ static int sl_help (struct sk_buff *skb,
 		return NF_ACCEPT;
 
 	/* only mangle outbound packets */
-	if ( ctinfo == IP_CT_IS_REPLY )
+	/* no parens on single line conditionals - kaber@netfilter-dev */
+	if ctinfo == IP_CT_IS_REPLY
 		return NF_ACCEPT;
 
 	/* No NAT? */
-	if (!(ct->status & IPS_NAT_MASK))
+	if !(ct->status & IPS_NAT_MASK)
 	  return NF_ACCEPT;
 
 #ifdef SKB_DEBUG				
@@ -89,7 +90,7 @@ static int sl_help (struct sk_buff *skb,
 
 #ifdef SKB_DEBUG
 	printk(KERN_DEBUG "dataoff(%u) >= skblen(%u), return\n\n", dataoff,
-	skb->len);
+		skb->len);
 #endif
 		return NF_ACCEPT;
 	}
