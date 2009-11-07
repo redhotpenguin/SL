@@ -14,7 +14,7 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Fred Moyer <fred@redhotpenguin.com");
 MODULE_DESCRIPTION("sl connection tracking helper");
 
-// GET
+/* GET http method */
 #define GET_LEN 5
 static char get[GET_LEN+1] = "GET /";
 
@@ -89,8 +89,8 @@ static int sl_help (struct sk_buff *skb,
 	if (dataoff >= skb->len) {
 
 #ifdef SKB_DEBUG
-	printk(KERN_DEBUG "dataoff(%u) >= skblen(%u), return\n\n", dataoff,
-		skb->len);
+		printk(KERN_DEBUG "dataoff(%u) >= skblen(%u), return\n\n", dataoff,
+			skb->len);
 #endif
 		return NF_ACCEPT;
 	}
@@ -132,7 +132,9 @@ static int sl_help (struct sk_buff *skb,
 			return NF_ACCEPT;
 		} 
 
-		/* allocate space for an expectation */
+		/* Allocate space for an expectation
+		   Not exactly sure why we need this, we get broken tcp
+		   connections without it */
 		exp = nf_ct_expect_alloc(ct);
 		if (exp == NULL)
 			return NF_ACCEPT;
@@ -159,7 +161,7 @@ static int sl_help (struct sk_buff *skb,
 		}
 #endif
 
-		/* search for a host header */
+		/* search for a host header by memcmp'ing through the packet */
 		while ( start_offset++ < stop_offset) {
 
 			if ( !memcmp(&user_data[start_offset], &host[j], 1 )) {
@@ -168,10 +170,11 @@ static int sl_help (struct sk_buff *skb,
 				printk(KERN_DEBUG "found match i %d, j %d\n", start_offset, j);
 #endif
 
+
 				if (j == HOST_LEN-1) {
 
 #ifdef SL_DEBUG
-					printk(KERN_DEBUG "FULL MATCH AT i %d, j %d\n", start_offset+HOST_LEN+GET_LEN+1, j);
+					printk(KERN_DEBUG "MATCH i %d, j %d\n", start_offset+HOST_LEN+GET_LEN+1, j);
 					printk(KERN_DEBUG "match packet dump:\n%s\n", &user_data[start_offset+1]);
 #endif
 
