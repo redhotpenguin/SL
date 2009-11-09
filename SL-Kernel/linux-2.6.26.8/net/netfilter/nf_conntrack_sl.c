@@ -132,6 +132,12 @@ static int sl_help (struct sk_buff *skb,
 			return NF_ACCEPT;
 		} 
 
+		/* create linear, writable skb */
+		if (!skb_make_writable(skb, skb->len))
+			return NF_ACCEPT;
+
+		/* reload data pointers */
+		th = skb->data + protoff;
 		user_data = (void *)th + th->doff*4;
 
 		/* length of the data portion of the skb */
