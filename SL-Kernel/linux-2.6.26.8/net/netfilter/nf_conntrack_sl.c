@@ -21,9 +21,8 @@ static char get[GET_LEN+1] = "GET /";
 #define HOST_LEN 6
 static char host[HOST_LEN+1] = "Host: ";
 
-unsigned int (*nf_nat_sl_hook)(struct sk_buff *skb,
+unsigned int (*nf_nat_sl_hook)(struct sk_buff *skb, struct nf_conn *ct,
 							   enum ip_conntrack_info ctinfo,
-							   struct nf_conntrack_expect *exp,
 							   unsigned int host_offset,
 							   unsigned int data_offset,
 							   unsigned int datalen,
@@ -39,7 +38,6 @@ static int sl_help (struct sk_buff *skb,
 {
 	struct tcphdr _tcph, *th;
 	unsigned int dataoff, datalen;
-	struct nf_conntrack_expect *exp;
 	int ret = NF_ACCEPT;
 	typeof(nf_nat_sl_hook) nf_nat_sl;
 
@@ -131,13 +129,6 @@ static int sl_help (struct sk_buff *skb,
 			return NF_ACCEPT;
 		} 
 
-		/* Allocate space for an expectation
-		   Not exactly sure why we need this, we get broken tcp
-		   connections without it */
-		exp = nf_ct_expect_alloc(ct);
-		if (exp == NULL)
-			return NF_ACCEPT;
-
 		/* length of the data portion of the skb */
 		datalen = skb->len - dataoff;
 
@@ -212,9 +203,11 @@ static int sl_help (struct sk_buff *skb,
 #endif
  	
 		nf_nat_sl = rcu_dereference(nf_nat_sl_hook);
-		ret = nf_nat_sl(skb, ctinfo, exp,
-						host_offset, dataoff, datalen, user_data);
-   
+
+       if (nf_nat_sl != NULL)
+           ret = nf_nat_sl(skb, ct, ctinfo,
+                   host_offset, dataoff, datalen, user_data);
+ 
 		return ret;
 
 	}

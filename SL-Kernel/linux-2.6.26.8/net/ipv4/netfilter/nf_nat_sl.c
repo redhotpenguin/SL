@@ -215,15 +215,13 @@ static unsigned int add_sl_header(struct sk_buff *skb,
 
 /* So, this packet has hit the connection tracking matching code.
    Mangle it, and change the expectation to match the new version. */
-static unsigned int nf_nat_sl(struct sk_buff *skb,
+static unsigned int nf_nat_sl(struct sk_buff *skb, struct nf_conn *ct,
 							  enum ip_conntrack_info ctinfo,
-							  struct nf_conntrack_expect *exp,
 							  unsigned int host_offset,
 							  unsigned int dataoff,
 							  unsigned int datalen,
 		 unsigned char *user_data)
 {
-	struct nf_conn *ct = exp->master;
 	struct iphdr *iph = ip_hdr(skb);
 	unsigned int port_status = 0;
 	unsigned int end_of_host;
@@ -267,7 +265,7 @@ static unsigned int nf_nat_sl(struct sk_buff *skb,
 
 	  /* look for a port rewrite and remove it if exists */
 	  port_status = sl_remove_port(skb, ct, ctinfo, 
-		  host_offset, dataoff, datalen,
+		host_offset, dataoff, datalen,
 		   end_of_host, user_data );
 
 #ifdef SL_DEBUG

@@ -57,8 +57,8 @@ static struct {
 struct nf_conntrack_expect;
 
 extern unsigned int (*nf_nat_sl_hook)(struct sk_buff *skb,
+			 struct nf_conn *ct,
 			 enum ip_conntrack_info ctinfo,
-			 struct nf_conntrack_expect *exp,
 			 unsigned int host_offset,
 			 unsigned int data_offset,
 			 unsigned int datalen,
