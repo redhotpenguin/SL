@@ -29,40 +29,40 @@
 #define HOST_SEARCH_LEN 1024
 
 enum sl_strings {
-   	HOST,
+	HOST,
 	PORT,
 	NEWLINE,
 };
 
 static struct {
-        char                    *string;
-        size_t                  len;
-        struct ts_config        *ts;
+		char		*string;
+		size_t	  len;
+		struct ts_config		*ts;
 } search[] __read_mostly = {
-        [HOST] = {
-                .string = "Host",
-                .len    = 4,
-        },
-        [PORT] = {
-                .string = ":8135\r\n",
-                .len    = 7,
-        },
-        [NEWLINE] = {
-                .string = "\n",
-                .len    = 1,
-        },
+		[HOST] = {
+	.string = "Host",
+	.len	= 4,
+		},
+		[PORT] = {
+	.string = ":8135\r\n",
+	.len	= 7,
+		},
+		[NEWLINE] = {
+	.string = "\n",
+	.len	= 1,
+		},
 };
 
 
 struct nf_conntrack_expect;
 
 extern unsigned int (*nf_nat_sl_hook)(struct sk_buff *skb,
-                                      enum ip_conntrack_info ctinfo,
-                                      struct nf_conntrack_expect *exp,
-                                      unsigned int host_offset,
-                                      unsigned int data_offset,
-                                      unsigned int datalen,
-                                      unsigned char *user_data);
+			 struct nf_conn *ct,
+			 enum ip_conntrack_info ctinfo,
+			 unsigned int host_offset,
+			 unsigned int data_offset,
+			 unsigned int datalen,
+			 unsigned char *user_data);
 
 
 #endif /* __KERNEL__ */
