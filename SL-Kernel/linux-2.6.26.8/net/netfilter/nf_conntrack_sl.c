@@ -49,7 +49,7 @@ static int sl_help (struct sk_buff *skb,
 		return NF_ACCEPT;
 
 	/* only mangle outbound packets */
-	if (ctinfo == IP_CT_IS_REPLY)
+	if (CTINFO2DIR(ctinfo) == IP_CT_IS_REPLY)
 		return NF_ACCEPT;
 
 	/* No NAT? */
