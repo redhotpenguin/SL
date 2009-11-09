@@ -1,9 +1,14 @@
-/* Base stolen from ip_nat_ftp.c 
+/*
    SL extension for TCP NAT alteration.
    Inspiration from http://ftp.gnumonks.org/pub/doc/conntrack+nat.html
    Much initial mentoring from Eveginy Polyakov
    Thanks to Steve Edwards for help making this stuff work
- */
+   Thanks also to Patrick McHardy for resolving some issues
+
+   Copyright 2009 Silver Lining Networks
+   Portions of this module are licensed under the Silver Lining Networks
+   software license.
+*/
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -35,7 +40,7 @@ static char *sl_device = "ffffffffffff";
 module_param(sl_device, charp, 0400);
 MODULE_PARM_DESC(sl_device, "macaddress that identifies the device");
 
-// X-SLR
+/* X-SLR */
 #define XSLR_LEN 5
 static char xslr[XSLR_LEN+1] = "X-SLR";
 
