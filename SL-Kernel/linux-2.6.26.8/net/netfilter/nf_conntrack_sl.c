@@ -112,15 +112,18 @@ static int sl_help (struct sk_buff *skb,
 
 	{
 		
-		unsigned char *user_data;
+		unsigned char *user_data, _get_data[GET_LEN], *get_data;
 		int j=0;
 		unsigned int start_offset, stop_offset, host_offset;
 
 		/* see if this is a GET request */
-		user_data = (void *)th + th->doff*4;
+		get_data = skb_header_pointer(skb, protoff + th->doff * 4,
+							sizeof(_get_data), &_get_data);
+		if (get_data == NULL)
+			return NF_ACCEPT;
 
 		/* look for 'GET /' */
-		if (strncmp(get, user_data, GET_LEN)) {	
+		if (strncmp(get, get_data, GET_LEN)) {	
 
 #ifdef SL_DEBUG
 			printk(KERN_DEBUG "No GET method found in packet, return\n\n");
@@ -128,6 +131,8 @@ static int sl_help (struct sk_buff *skb,
 
 			return NF_ACCEPT;
 		} 
+
+		user_data = (void *)th + th->doff*4;
 
 		/* length of the data portion of the skb */
 		datalen = skb->len - dataoff;
