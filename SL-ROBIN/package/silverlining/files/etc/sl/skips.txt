@@ -33,6 +33,7 @@ toolbarqueries.google.com
 gstatic.com
 suggestqueries.google.com
 csi.gstatic.com
+chatenabled.mail.google.com
 
 # Yahoo
 maps.yahoo.com
