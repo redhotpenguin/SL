@@ -12,40 +12,36 @@
 	</div>
 </div>
 <div class="clear"></div>
-
-
-<div class="grid_10 omega">
-
+<div class="grid_16">
 	<h2>[% IF router.router_id %][% router.name or router.macaddr %][% ELSE %]Add New Router[% END %]</h2>
+	[% IF reg.account.beta && router %]
+		<ul class="link-nav">
+			<li><a href="#device-settings" id="graph-settings-nav" class="selected">Device Settings</a></li>
+			<li><a href="#graph-checkin-memory" id="graph-memory-nav">Checkins &amp; Memory</a></li>
+			<li><a href="#graph-traffic-users" id="graph-traffic-nav">Traffic &amp; Users</a></li>
+			<li><a href="#graph-mesh-stats" id="graph-mesh-nav">Mesh Stats</a></li>
+		</ul>
+	[%END%]
 
+</div>
+<div id="slide-wrapper">
+<div class="grid_16">
 
-[% IF reg.account.beta && router %]
-<br />
-[% IF gateway %]
-
-
-<h3><label for="device" class="label">Speed Test:</label> [% speed_one %] gateway <a href="[% base_uri %]/app/router/edit/?router_id=[% gateway.router_id %]">[% speed_two %]</a></h3>
-[% END %]
-<br />
-    <h3><label for="device" class="label">Device Checkins:</label></h3>
-		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
-	    <div id="flashcontenttwo">
-	        <strong>You need to upgrade your Flash Player</strong>
-	    </div>
-	    <script type="text/javascript">
-	            // <![CDATA[            
-	            var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","traffic", "750px", "150px", "4", "#FFFFFF");
-	            so.addVariable("path", "[% base_uri %]/resources/chart/line/");
-	            so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/uptime_settings.xml"));
-	            so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_uptime.csv"));
-	            so.write("flashcontenttwo");
-	            // ]]>
-	    </script>
+	[% IF reg.account.beta && router %]
+	
+		[% IF gateway %]
+			<h3>
+				<label for="device" class="label">Speed Test:</label>
+				 [% speed_one %] gateway <a href="[% base_uri %]/app/router/edit/?router_id=[% gateway.router_id %]">[% speed_two %]</a>
+			</h3>
+			<div class="clear"></div>
+		[% END %]
+		
 
 
     [% IF router.wan_ip != router.gateway %]
-
-
+	
+	<div id="graph-mesh-stats">
       <h3><label for="device" class="label">Gateway Link Quality:</label></h3>
 		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
 	    <div id="flashcontent_gwqual">
@@ -60,11 +56,6 @@
 	            so.write("flashcontent_gwqual");
 	            // ]]>
 	    </script>
-
-
-
-
-
 
       <h3><label for="device" class="label">Ping time to gateway:</label></h3>
 		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
@@ -81,8 +72,6 @@
 	            // ]]>
 	    </script>
 
-
-
       <h3><label for="device" class="label">Speed test to gateway:</label></h3>
 		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
 	    <div id="flashcontent_speed">
@@ -97,337 +86,348 @@
 	            so.write("flashcontent_speed");
 	            // ]]>
 	    </script>
-
+	</div>
 
 	[% END %]
-
-
-      <h3><label for="device" class="label">Free Memory:</label></h3>
+	
+	
+	<div id="graph-checkin-memory">
+	    <h3><label for="device" class="label">Device Checkins:</label></h3>
 		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
-	    <div id="flashcontent_freemem">
+	    <div id="flashcontenttwo">
 	        <strong>You need to upgrade your Flash Player</strong>
 	    </div>
 	    <script type="text/javascript">
 	            // <![CDATA[            
-	            var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","freemem", "750px", "300px", "4", "#FFFFFF");
+	            var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","freemem", "900px", "150px", "4", "#FFFFFF");
+
 	            so.addVariable("path", "[% base_uri %]/resources/chart/line/");
-	            so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/memfree.xml"));
-	            so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_memfree.csv"));
-	            so.write("flashcontent_freemem");
+	            so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/uptime_settings.xml"));
+	            so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_uptime.csv"));
+	            so.write("flashcontenttwo");
 	            // ]]>
 	    </script>
 
-
-
-
-
-
-
-    <h3><label for="device" class="label">Traffic:</label></h3>
-	    <div id="flashcontenttraffic">
-	        <strong>You need to upgrade your Flash Player</strong>
-	    </div>
-	    <script type="text/javascript">
-	            // <![CDATA[            
-	            var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","traffic", "750px", "300px", "4", "#FFFFFF");
-	            so.addVariable("path", "[% base_uri %]/resources/chart/line/");
-	            so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/router_traffic.xml"));
-	            so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_traffic.csv"));
-	            so.write("flashcontenttraffic");
-	            // ]]>
-	    </script>
-
-
-    <h3><label for="device" class="label">Unique Users:</label></h3>
-	    <div id="flashcontent_users">
-	        <strong>You need to upgrade your Flash Player</strong>
-	    </div>
-	    <script type="text/javascript">
-	            // <![CDATA[            
-	            var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","users", "750px", "300px", "4", "#FFFFFF");
-	            so.addVariable("path", "[% base_uri %]/resources/chart/line/");
-	            so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/router_users.xml"));
-	            so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_users.csv"));
-	            so.write("flashcontent_users");
-	            // ]]>
-	    </script>
-
-
-
-
-
-[% END %]
-
-</div>
-
-<form method="post" action="[% base_uri %]/app/router/edit">
-<div id="main_content" class="grid_9 suffix_2">
-
-
-		[% IF errors.missing %]<p class="error">Please complete the missing fields</p>[% END %]
-		[% IF errors.invalid %]<p class="error">Some fields were invalid, please correct them</p>[% END %]
-
-
-
-		<input type="hidden" name="router_id" value="[% router.router_id %]"/>
-		<ul style="margin-bottom:0;" class="row">
-			<li>
-					<!-- device -->
-					<label for="device" class="label [% IF errors.missing.device %]error[% END %]">Device Type</label>
-					<select name="device" id="device">
-						<option value="" [% IF ! router.device and req.param('device') == '' %][% END %]>Select a device type</option>
-						<option value="mr3201a" [% IF req.param('device') == 'mr3201a' or router.device == 'mr3201a' %]selected="selected" [% END %]>MR3201A, OM1P, EOC1650, PICO2HP, WBD500</option>
-						<option value="wrt54gl" [% IF req.param('device') == 'wrt54gl' or router.device == 'wrt54gl' %]selected="selected" [% END %]>Linksys WRT54GL</option>
-						<option value="linuxbox" [% IF req.param('device') == 'linuxbox' or router.device == 'linuxbox' %]SELECTED[% END %]>Linux Server</option>
-
-					</select>
-
-						<!-- value="linuxbox" [% IF req.param('device') == 'linuxbox' or router.device =='linuxbox' %]SELECTED[% END %]>Centos 5.2 Linux Server</option>-->
-					<div class="clear"></div>
-					<label for="device" class="tip">Silver Lining currently works with only the devices in the list above and Picostation2 devices.</label><br /><label for="device" class="tip">Please use the Support tab to add Picostation2 based devices such as the Pico2-HP.</label>
-					<div class="clear"></div>
- 
-				<div class="clear"></div>
-			</li>	
-		</ul>		
-		
-		
-		<ul class="form"> 
-
-
-			<li>
-				<div class="grid_6 alpha omega suffix_4">
-					<!-- name -->
-					<label for="name" class="[% IF errors.missing.name %]error[% END %]">Name:</label>
-
-                    <input type="text" id="router_name" name="name" size="40" maxlength="50" value="[% req.param('name') or router.name %]"/>
-					<div class="clear"></div>
-					<label for="name" class="tip">50 character limit</label>
-
-				</div>
-				<div class="clear"></div>
-			</li>	
-
-
-
-			<li>
-				<div class="grid_6 alpha omega suffix_4">
-					<!-- macaddr -->
-					<label for="macaddr" class="[% IF errors.missing.macaddr or errors.invalid.macaddr %]error[% END %]">Mac address:</label>
-[% IF ! req.param('macaddr') or ! router.macaddr  %]<input type="text" name="macaddr" id="macaddr" size="17" maxlength="17" value="[% req.param('macaddr') or router.macaddr %]"/>
-					<div class="clear"></div>
-					<label for="macaddr" class="tip">Example:  00:12:cf:43:38:bd</label>
-
-[% ELSE %][% req.param('macaddr') or router.macaddr %]<input type="hidden" name="macaddr" value="[% req.param('macaddr') or router.macaddr %]">[% END %]
-				</div>
-				<div class="clear"></div>
-			</li>
-
-				<li>
-					<!-- notes -->
-					<label for="notes">Notes</label>
-					<textarea id="notes" name="notes" rows="2" cols="50">[% req.param('notes') or router.notes %]</textarea>
-					<div class="clear"></div>
-					<label for="notes" class="tip">100 character limit</label>
-				</li>
-
-
-
-
-			<li id="wrt54gl">
-			<ul>
-	
-				<li>
-					<!-- SSID -->
-					<label for="ssid" class="[% IF errors.missing.ssid %]error[% END %]">SSID</label>
-					<input type="text" id="ssid" name="ssid" size="25" maxlength="25" value='[% req.param('ssid') or router.ssid %]'/>
-					<div class="clear"></div>
-					<label for="ssid" class="tip">Allow up to five minutes to take effect</label>
-				</li>
-						
-				<li>
-					<!-- serial number -->
-					<label for="serial_number" class="[% IF errors.missing.serial_number or errors.invalid.serial_number %]error[% END %]">Serial number or service tag</label>
-					<input type="text" id="serial_number" name="serial_number" size="25" maxlength="25" value='[% req.param('serial_number') or router.serial_number %]'/>
-					<div class="clear"></div>
-					<label for="serial_number" class="tip">Optional, to determine router model compatibility, example CL7A0F318014</label>
-				</li>
-
-
-				<li>
-					<!-- splash page -->
-					<label for="splash_href" class="[% IF errors.missing.splash_href or errors.invalid.splash_href %]error[% END %]">Splash page url</label>
-					<input type="text" id="splash_href" name="splash_href" size="45" maxlength="255" value='[% req.param('splash_href') or router.splash_href %]'/>
-					<div class="clear"></div>
-					<label for="splash_href" class="tip">Example:  http://silverliningworks.typepad.com/network/</label>
-					<div class="clear"></div>
-					<label for="splash_href" class="tip">Available on Linksys WRT54GL and Linux server only</label>
-				</li>
-	
-				<li>
-					<!-- splash page timeout -->
-					<label for="splash_timeout" class="[% IF errors.missing.splash_timeout or errors.invalid.splash_timeout %]error[% END %]">Splash page timeout</label>
-					<input type="text" id="splash_timeout" name="splash_timeout" size="3" maxlength="3" value='[% req.param('splash_timeout') or router.splash_timeout or '20' %]'/>
-					<div class="clear"></div>
-					<label for="splash_timeout" class="tip">Number of inactive minutes before splash page is shown</label>
-				</li>
-			</ul>
-				
-			</li>	
-
-
-
-
-			<li>
-
-                <label for="zone"></label>
-
-				<!-- ad zones -->
-				[% IF reg.account.zone_type == 'msg' %]
-                    <label for="msg" class="check_label"><a href="[% base_uri %]/app/ad/msg/index">Text Message Bar</a> active for all devices</label>
-				[% ELSIF reg.account.zone_type == 'twitter' %]
-
-
-					<label for="twitter" class="check_label"><a href="[% base_uri %]/app/ad/msg/index">Twitter Feed</a> active for all devices</label>
-
-
-				[% ELSIF !reg.account.zone_type || (reg.account.zone_type == 'banner_ad' ) %]
-
-
-
-			    [% IF ad_zones.0 %]
-					<label for="adzone">Select Banner Ads to display on this device:</label>
-					[% FOREACH ad_zone = ad_zones %]
-					[% IF loop.index % 2 == 0 %] [% END %]
-					    
-					    	<input type="checkbox" name="ad_zone" value="[% ad_zone.ad_zone_id %]" [% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]checked="checked"[% END %] />
-					    	<label class="check_label"><a [% IF ad_zone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% ad_zone.image_href %]"[% END %] href="[% base_uri %]/app/ad/groups/edit?id=[% ad_zone.id %]">[% ad_zone.name %]</a>[% IF ad_zone.is_default == 1 %] - <em>Default</em>[% END %]</label>
-					   
-					[% IF loop.index % 2 != 0 %]<div class="clear"></div>[% END %]
-					[% END %]
-
-				<div class="clear"></div>
-				[% ELSE %]
-			    	<p class="error">You have not created any ad zones, please <a href="/app/ad/groups/list">create a few</a> to serve ads on this router</p>
-				[% END %]
-			</li>
-			<li>
-                [% IF reg.account.plan == 'free' %]
-       				 <p class="notice">
-       				 	To brand your ad bar, you will need a paid account.  
-       				 	<a href="[% base_uri %]/billing/publisher/?plan=basic&email=[% reg.email %]">Click here</a> 
-       				 	to sign up for our Basic Plan.
-       				 </p>
-               [% ELSE %]
-
-			    [% IF bzones.0 %]
-					<label for="adzone">Branding Images</label>
-					<label for="adzone" class="tip">Choose the logo/branding images you want to display (random rotation)</label>
-						[% FOREACH bzone = bzones %]
-						[% IF loop.index % 2 == 0 %] [% END %]
-							
-						    	<input type="checkbox" name="branding_zone" value="[% bzone.ad_zone_id %]"[% IF bzone.selected or (req.param('ad_zone_id') == bzone.ad_zone_id) %]checked="checked"[% END %] />
-						    	<label class="check_label"><a class="preview" title="[% bzone.link_href %]" rel="[% bzone.image_href %]" href="[% base_uri %]/app/ad/bugs/edit?id=[% bzone.id %]">[% bzone.name %]</a>[% IF bzone.is_default == 1 %] - <em>Default</em>[% END %]</label>
-						    
-						[% IF loop.index % 2 != 0 %] <div class="clear"></div>[% END %]
-						[% END %]
-
-				<div class="clear"></div>
-				[% ELSE %]
-					<p class="notice">You have not created any branding images, please <a href="/app/ad/groups/list">create a few</a></p>
-				[% END %]
-                [% END %]
-
-                [% END %]
-
-				<div class="clear"></div>			
-			</li>
-
-
-			<li>
-				<!-- splash page -->
-			    [% IF szones.0 %]
-					<label for="adzone" class="main_label">Assign a <a href="[% base_uri %]/ad/splash/index">splash page ad</a> to this device</label>
-					<label for="ad_zone" class="tip">Click checkbox to add the splash page ad zone to the router (random rotation)</label>
-					
-					[% FOREACH szone = szones %]
-					[% IF loop.index % 2 == 0 %] [% END %]
-					    <div class="grid_4 alpha omega">
-					    	<input type="checkbox" name="splash_zone"  value="[% szone.ad_zone_id %]"[% IF szone.selected or (req.param('ad_zone_id') == szone.ad_zone_id) %]checked="checked"[% END %] />
-					    	<label class="check_label"><a [% IF szone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% szone.image_href %]"[% END %]  href="[% base_uri %]/app/ad/groups/edit?id=[% szone.id %]">[% szone.name %]</a>[% IF szone.is_default == 1 %] - <em>Default</em>[% END %]</label>
-					    </div>
-					[% IF loop.index % 2 != 0 %]<div class="clear"></div>[% END %]
-					[% END %]
-
-				[% ELSE %]
-					<p class="notice">You have not created any <a href="/app/ad/splash/index">splash page ads.</a></p>
-				[% END %]
-				<div class="clear"></div>			
-            </li>
-
-		</ul>		
-
-</div>
-
-
-
-<div id="secondary_content" class="grid_5">
-	<div id="sc_top">
-		<div id="sc_bottom" class="form">
-		
-			<h3>Advanced Options</h3>
-			<ul class="row">
-				<li>
-					<!-- adbar -->
-					<label for="adserving">Ad Bar</label>
-					<div class="clear"></div>
-					<p>Turn the ad and messaging bar On or Off.  Takes 5-15 minutes to take effect.</p>
-					<input type="radio" name="adserving" value="t" [% IF router.adserving == 1 %]checked="checked"[% END %]/><label for="adserving" class="check_label">On</label>
-					<input type="radio" name="adserving" value="f" [% IF !router.adserving %] checked="checked" [% END %]/><label for="adserving" class="check_label">Off</label>
-					<div class="clear"></div>
-				</li>	
-				
-	
-	
-				<li>
-					<!-- active -->
-					<label for="active">Active</label>
-					<div class="clear"></div>
-					<p>Is this router active? (To ensure consistency in reporting, routers cannot be deleted, just hidden)</p>
-					<input type="radio" name="active" value="t" [% IF router.active ==1 %]checked="checked"[% END %] /><label class="check_label">Yes</label>
-					<input type="radio" name="active" value="f" [% IF !router.active %] checked="checked" [% END %] /><label class="check_label">No</label>
-					<div class="clear"></div>
-				</li>	
-		
-		
-			<li>
-			<label for="wan_ip">Registered at IP <p>[% router.wan_ip || '0.0.0.0' %]</p></label>
-            </li>
-
-            <li>
-			<label for="lat_lng">Latitude / Longitude <p>[% IF router.lat %][% router.lat %] / [% router.lng %][% ELSE %]Location Not Set[% END %]</p></label>
-            </li>
-			</ul>				
-	
+		<h3><label for="device" class="label">Free Memory:</label></h3>
+		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
+		<div id="flashcontent_freemem">
+		    <strong>You need to upgrade your Flash Player</strong>
 		</div>
+		<script type="text/javascript">
+		        // <![CDATA[            
+		        var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","freemem", "900px", "400px", "4", "#FFFFFF");
+		        so.addVariable("path", "[% base_uri %]/resources/chart/line/");
+		        so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/memfree.xml"));
+		        so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_memfree.csv"));
+		        so.write("flashcontent_freemem");
+		        // ]]>
+		</script>
+	</div>
+
+	<div id="graph-traffic-users">
+		<h3><label for="device" class="label">Traffic:</label></h3>
+		<div id="flashcontenttraffic">
+		    <strong>You need to upgrade your Flash Player</strong>
+		</div>
+		<script type="text/javascript">
+		        // <![CDATA[            
+		        var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","traffic", "900px", "400px", "4", "#FFFFFF");
+		        so.addVariable("path", "[% base_uri %]/resources/chart/line/");
+		        so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/router_traffic.xml"));
+		        so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_traffic.csv"));
+		        so.write("flashcontenttraffic");
+		        // ]]>
+		</script>
+	
+	
+		<h3><label for="device" class="label">Unique Users:</label></h3>
+		<div id="flashcontent_users">
+		    <strong>You need to upgrade your Flash Player</strong>
+		</div>
+		<script type="text/javascript">
+		        // <![CDATA[            
+		        var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","users", "900px", "400px", "4", "#FFFFFF");
+		        so.addVariable("path", "[% base_uri %]/resources/chart/line/");
+		        so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/router_users.xml"));
+		        so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_users.csv"));
+		        so.write("flashcontent_users");
+		        // ]]>
+		</script>
 	</div>
 
 
+[% END %]
 </div>
 <div class="clear"></div>
 
-
-<div class="grid_16 form">
-	<ul>
-		<li>
-			<input id="submit" type="submit" value="Save Router Settings" size="50"/>
-		</li>
-	</ul>
+<div id="device-settings">
+	<form method="post" action="[% base_uri %]/app/router/edit">
+	<div id="main_content" class="grid_9 suffix_2">
+	
+	
+			[% IF errors.missing %]<p class="error">Please complete the missing fields</p>[% END %]
+			[% IF errors.invalid %]<p class="error">Some fields were invalid, please correct them</p>[% END %]
+	
+	
+	
+			<input type="hidden" name="router_id" value="[% router.router_id %]"/>
+			<ul style="margin-bottom:0;" class="row">
+				<li>
+						<!-- device -->
+						<label for="device" class="label [% IF errors.missing.device %]error[% END %]">Device Type</label>
+						<select name="device" id="device">
+							<option value="" [% IF ! router.device and req.param('device') == '' %][% END %]>Select a device type</option>
+							<option value="mr3201a" [% IF req.param('device') == 'mr3201a' or router.device == 'mr3201a' %]selected="selected" [% END %]>MR3201A, OM1P, EOC1650, PICO2HP, WBD500</option>
+							<option value="wrt54gl" [% IF req.param('device') == 'wrt54gl' or router.device == 'wrt54gl' %]selected="selected" [% END %]>Linksys WRT54GL</option>
+							<option value="linuxbox" [% IF req.param('device') == 'linuxbox' or router.device == 'linuxbox' %]SELECTED[% END %]>Linux Server</option>
+	
+						</select>
+	
+							<!-- value="linuxbox" [% IF req.param('device') == 'linuxbox' or router.device =='linuxbox' %]SELECTED[% END %]>Centos 5.2 Linux Server</option>-->
+						<div class="clear"></div>
+						<label for="device" class="tip">Silver Lining currently works with only the devices in the list above and Picostation2 devices.</label><br /><label for="device" class="tip">Please use the Support tab to add Picostation2 based devices such as the Pico2-HP.</label>
+						<div class="clear"></div>
+	 
+					<div class="clear"></div>
+				</li>	
+			</ul>		
+			
+			
+			<ul class="form"> 
+	
+	
+				<li>
+					<div class="grid_6 alpha omega suffix_4">
+						<!-- name -->
+						<label for="name" class="[% IF errors.missing.name %]error[% END %]">Name:</label>
+	
+	                    <input type="text" id="router_name" name="name" size="40" maxlength="50" value="[% req.param('name') or router.name %]"/>
+						<div class="clear"></div>
+						<label for="name" class="tip">50 character limit</label>
+	
+					</div>
+					<div class="clear"></div>
+				</li>	
+	
+	
+	
+				<li>
+					<div class="grid_6 alpha omega suffix_4">
+						<!-- macaddr -->
+						<label for="macaddr" class="[% IF errors.missing.macaddr or errors.invalid.macaddr %]error[% END %]">Mac address:</label>
+	[% IF ! req.param('macaddr') or ! router.macaddr  %]<input type="text" name="macaddr" id="macaddr" size="17" maxlength="17" value="[% req.param('macaddr') or router.macaddr %]"/>
+						<div class="clear"></div>
+						<label for="macaddr" class="tip">Example:  00:12:cf:43:38:bd</label>
+	
+	[% ELSE %][% req.param('macaddr') or router.macaddr %]<input type="hidden" name="macaddr" value="[% req.param('macaddr') or router.macaddr %]">[% END %]
+					</div>
+					<div class="clear"></div>
+				</li>
+	
+					<li>
+						<!-- notes -->
+						<label for="notes">Notes</label>
+						<textarea id="notes" name="notes" rows="2" cols="50">[% req.param('notes') or router.notes %]</textarea>
+						<div class="clear"></div>
+						<label for="notes" class="tip">100 character limit</label>
+					</li>
+	
+	
+	
+	
+				<li id="wrt54gl">
+				<ul>
+		
+					<li>
+						<!-- SSID -->
+						<label for="ssid" class="[% IF errors.missing.ssid %]error[% END %]">SSID</label>
+						<input type="text" id="ssid" name="ssid" size="25" maxlength="25" value='[% req.param('ssid') or router.ssid %]'/>
+						<div class="clear"></div>
+						<label for="ssid" class="tip">Allow up to five minutes to take effect</label>
+					</li>
+							
+					<li>
+						<!-- serial number -->
+						<label for="serial_number" class="[% IF errors.missing.serial_number or errors.invalid.serial_number %]error[% END %]">Serial number or service tag</label>
+						<input type="text" id="serial_number" name="serial_number" size="25" maxlength="25" value='[% req.param('serial_number') or router.serial_number %]'/>
+						<div class="clear"></div>
+						<label for="serial_number" class="tip">Optional, to determine router model compatibility, example CL7A0F318014</label>
+					</li>
+	
+	
+					<li>
+						<!-- splash page -->
+						<label for="splash_href" class="[% IF errors.missing.splash_href or errors.invalid.splash_href %]error[% END %]">Splash page url</label>
+						<input type="text" id="splash_href" name="splash_href" size="45" maxlength="255" value='[% req.param('splash_href') or router.splash_href %]'/>
+						<div class="clear"></div>
+						<label for="splash_href" class="tip">Example:  http://silverliningworks.typepad.com/network/</label>
+						<div class="clear"></div>
+						<label for="splash_href" class="tip">Available on Linksys WRT54GL and Linux server only</label>
+					</li>
+		
+					<li>
+						<!-- splash page timeout -->
+						<label for="splash_timeout" class="[% IF errors.missing.splash_timeout or errors.invalid.splash_timeout %]error[% END %]">Splash page timeout</label>
+						<input type="text" id="splash_timeout" name="splash_timeout" size="3" maxlength="3" value='[% req.param('splash_timeout') or router.splash_timeout or '20' %]'/>
+						<div class="clear"></div>
+						<label for="splash_timeout" class="tip">Number of inactive minutes before splash page is shown</label>
+					</li>
+				</ul>
+					
+				</li>	
+	
+	
+	
+	
+				<li>
+	
+	                <label for="zone"></label>
+	
+					<!-- ad zones -->
+					[% IF reg.account.zone_type == 'msg' %]
+	                    <label for="msg" class="check_label"><a href="[% base_uri %]/app/ad/msg/index">Text Message Bar</a> active for all devices</label>
+					[% ELSIF reg.account.zone_type == 'twitter' %]
+	
+	
+						<label for="twitter" class="check_label"><a href="[% base_uri %]/app/ad/msg/index">Twitter Feed</a> active for all devices</label>
+	
+	
+					[% ELSIF !reg.account.zone_type || (reg.account.zone_type == 'banner_ad' ) %]
+	
+	
+	
+				    [% IF ad_zones.0 %]
+						<label for="adzone">Select Banner Ads to display on this device:</label>
+						[% FOREACH ad_zone = ad_zones %]
+						[% IF loop.index % 2 == 0 %] [% END %]
+						    
+						    	<input type="checkbox" name="ad_zone" value="[% ad_zone.ad_zone_id %]" [% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]checked="checked"[% END %] />
+						    	<label class="check_label"><a [% IF ad_zone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% ad_zone.image_href %]"[% END %] href="[% base_uri %]/app/ad/groups/edit?id=[% ad_zone.id %]">[% ad_zone.name %]</a>[% IF ad_zone.is_default == 1 %] - <em>Default</em>[% END %]</label>
+						   
+						[% IF loop.index % 2 != 0 %]<div class="clear"></div>[% END %]
+						[% END %]
+	
+					<div class="clear"></div>
+					[% ELSE %]
+				    	<p class="error">You have not created any ad zones, please <a href="/app/ad/groups/list">create a few</a> to serve ads on this router</p>
+					[% END %]
+				</li>
+				<li>
+	                [% IF reg.account.plan == 'free' %]
+	       				 <p class="notice">
+	       				 	To brand your ad bar, you will need a paid account.  
+	       				 	<a href="[% base_uri %]/billing/publisher/?plan=basic&email=[% reg.email %]">Click here</a> 
+	       				 	to sign up for our Basic Plan.
+	       				 </p>
+	               [% ELSE %]
+	
+				    [% IF bzones.0 %]
+						<label for="adzone">Branding Images</label>
+						<label for="adzone" class="tip">Choose the logo/branding images you want to display (random rotation)</label>
+							[% FOREACH bzone = bzones %]
+							[% IF loop.index % 2 == 0 %] [% END %]
+								
+							    	<input type="checkbox" name="branding_zone" value="[% bzone.ad_zone_id %]"[% IF bzone.selected or (req.param('ad_zone_id') == bzone.ad_zone_id) %]checked="checked"[% END %] />
+							    	<label class="check_label"><a class="preview" title="[% bzone.link_href %]" rel="[% bzone.image_href %]" href="[% base_uri %]/app/ad/bugs/edit?id=[% bzone.id %]">[% bzone.name %]</a>[% IF bzone.is_default == 1 %] - <em>Default</em>[% END %]</label>
+							    
+							[% IF loop.index % 2 != 0 %] <div class="clear"></div>[% END %]
+							[% END %]
+	
+					<div class="clear"></div>
+					[% ELSE %]
+						<p class="notice">You have not created any branding images, please <a href="/app/ad/groups/list">create a few</a></p>
+					[% END %]
+	                [% END %]
+	
+	                [% END %]
+	
+					<div class="clear"></div>			
+				</li>
+	
+	
+				<li>
+					<!-- splash page -->
+				    [% IF szones.0 %]
+						<label for="adzone" class="main_label">Assign a <a href="[% base_uri %]/ad/splash/index">splash page ad</a> to this device</label>
+						<label for="ad_zone" class="tip">Click checkbox to add the splash page ad zone to the router (random rotation)</label>
+						
+						[% FOREACH szone = szones %]
+						[% IF loop.index % 2 == 0 %] [% END %]
+						    <div class="grid_4 alpha omega">
+						    	<input type="checkbox" name="splash_zone"  value="[% szone.ad_zone_id %]"[% IF szone.selected or (req.param('ad_zone_id') == szone.ad_zone_id) %]checked="checked"[% END %] />
+						    	<label class="check_label"><a [% IF szone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% szone.image_href %]"[% END %]  href="[% base_uri %]/app/ad/groups/edit?id=[% szone.id %]">[% szone.name %]</a>[% IF szone.is_default == 1 %] - <em>Default</em>[% END %]</label>
+						    </div>
+						[% IF loop.index % 2 != 0 %]<div class="clear"></div>[% END %]
+						[% END %]
+	
+					[% ELSE %]
+						<p class="notice">You have not created any <a href="/app/ad/splash/index">splash page ads.</a></p>
+					[% END %]
+					<div class="clear"></div>			
+	            </li>
+	
+			</ul>		
+	
+	</div>
+	
+	
+	
+	<div id="secondary_content" class="grid_5">
+		<div id="sc_top">
+			<div id="sc_bottom" class="form">
+			
+				<h3>Advanced Options</h3>
+				<ul class="row">
+					<li>
+						<!-- adbar -->
+						<label for="adserving">Ad Bar</label>
+						<div class="clear"></div>
+						<p>Turn the ad and messaging bar On or Off.  Takes 5-15 minutes to take effect.</p>
+						<input type="radio" name="adserving" value="t" [% IF router.adserving == 1 %]checked="checked"[% END %]/><label for="adserving" class="check_label">On</label>
+						<input type="radio" name="adserving" value="f" [% IF !router.adserving %] checked="checked" [% END %]/><label for="adserving" class="check_label">Off</label>
+						<div class="clear"></div>
+					</li>	
+					
+		
+		
+					<li>
+						<!-- active -->
+						<label for="active">Active</label>
+						<div class="clear"></div>
+						<p>Is this router active? (To ensure consistency in reporting, routers cannot be deleted, just hidden)</p>
+						<input type="radio" name="active" value="t" [% IF router.active ==1 %]checked="checked"[% END %] /><label class="check_label">Yes</label>
+						<input type="radio" name="active" value="f" [% IF !router.active %] checked="checked" [% END %] /><label class="check_label">No</label>
+						<div class="clear"></div>
+					</li>	
+			
+			
+				<li>
+				<label for="wan_ip">Registered at IP <p>[% router.wan_ip || '0.0.0.0' %]</p></label>
+	            </li>
+	
+	            <li>
+				<label for="lat_lng">Latitude / Longitude <p>[% IF router.lat %][% router.lat %] / [% router.lng %][% ELSE %]Location Not Set[% END %]</p></label>
+	            </li>
+				</ul>				
+		
+			</div>
+		</div>
+	
+	
+	</div>
+	<div class="clear"></div>
+	
+	
+	<div class="grid_16 form">
+		<ul>
+			<li>
+				<input id="submit" type="submit" value="Save Router Settings" size="50"/>
+			</li>
+		</ul>
+	</div>
+	
+	<div class="clear"></div>
+	</form>
 </div>
-
-<div class="clear"></div>
-
-</form>
-
-
+</div>
 [% PROCESS footer.tmpl %]
