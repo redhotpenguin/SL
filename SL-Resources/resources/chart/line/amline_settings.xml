@@ -19,6 +19,10 @@
       <alpha>5</alpha>
       <approx_count>4</approx_count>
     </y_left>
+    <y_right>      
+      <alpha>5</alpha>
+      <approx_count>4</approx_count>
+    </y_right>    
   </grid>
   
   <values>                 
@@ -31,11 +35,16 @@
       <frequency>1</frequency>
     </x>
     <y_left>
-      <max>255</max>
-      <unit></unit>
+      <unit> Mbits/s</unit>
+      <integers_only>false</integers_only>
+      <frequency>1</frequency>
+    </y_left>
+
+    <y_right>
+      <unit> Users</unit>
       <frequency>1</frequency>
       <integers_only>true</integers_only>
-    </y_left>
+    </y_right>
   </values>
   
   <axes>                           
@@ -47,6 +56,9 @@
     <y_left>
       <alpha>0</alpha>
     </y_left>
+    <y_right>
+      <alpha>0</alpha>
+    </y_right>    
   </axes>  
   
   <indicator>
@@ -65,11 +77,33 @@
   <graphs>             
     <graph gid="1">
       <axis>left</axis>
-      <title>Gateway Link Quality (0-255)</title>              
+      <title>Mbits/s Down</title>
+      <color>#9ce4ff</color>   
+      <balloon_text_color>#333333</balloon_text_color>
+      <balloon_text>
+        <![CDATA[{value} Mbits/s down]]>
+      </balloon_text>
+      <fill_alpha>80</fill_alpha>
+    </graph>
+    
+    <graph gid="2">
+      <axis>left</axis>
+      <title>Mbits/s Up</title>              
+      <color>#f36f6f</color>
+      <balloon_text_color>#333333</balloon_text_color>                     
+      <balloon_text>
+        <![CDATA[{value} Mbits/s Up]]>
+      </balloon_text>
+      <fill_alpha>100</fill_alpha>
+    </graph>
+
+    <graph gid="3">
+      <axis>right</axis>
+      <title>Unique Users</title>              
       <color>#ffce1c</color>
       <balloon_text_color>#333333</balloon_text_color>                     
       <balloon_text>
-        <![CDATA[{value}]]>
+        <![CDATA[{value} users]]>
       </balloon_text>
       <fill_alpha>20</fill_alpha>
     </graph>    
