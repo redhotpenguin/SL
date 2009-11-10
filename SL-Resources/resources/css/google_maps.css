@@ -21,6 +21,10 @@ float: left;
 color: #444;
 text-decoration: none;
 }
+#main_content .google_bubble .gbub_header h1 a:hover {
+color: #087598;
+text-decoration: underline;
+}
 #main_content .google_bubble .gbub_header p {
 font-size: 85%;
 color: #999;
