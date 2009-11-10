@@ -909,7 +909,8 @@ sub map {
             }
         }
 
-        my %tmpl_data = ( router => $router, neighbors => \@neighbors );
+        my %tmpl_data = ( router => $router,
+	    neighbors => [ sort { $b->{rssi} <=> $a->{rssi} } @neighbors ] );
 
         my $output;
         $Tmpl->process( 'map/info.tmpl', \%tmpl_data, \$output );
@@ -920,14 +921,6 @@ sub map {
         # going to hell for this
         my $base_uri    = $Config->sl_app_base_uri;
         my $report_base = $account->report_base;
-
-=cut
-        my $js = <<"JS";
-		<script type="text/javascript" src="$base_uri/resources/chart/line/swfobject.js"></script>
-	    <div id="flashcontent">
-	        <strong>You need to upgrade your Flash Player</strong>
-	    </div>
-=cut
 
         my $js = <<"JS";
 	    <script type="text/javascript">
@@ -962,7 +955,7 @@ JS
 
         my $minutes = sprintf( '%d', $sec / 60 );
 	my $type;
-        if ( $sec <= 300) {
+        if ( $sec <= 360) {
             
 	    $type = 'active';
         }
