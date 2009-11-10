@@ -27,6 +27,7 @@ l.google.com
 video.google.com
 vp.video.google.com
 google-analytics.com
+www.google-analytics.com
 cache.googlevideo.com
 toolbarqueries.google.com
 gstatic.com
@@ -107,24 +108,6 @@ vthumb.ak.fbcdn.net
 external.ak.fbcdn.net
 platform.ak.fbcdn.net
 
-#channel01.facebook.com
-#channel04.facebook.com
-#channel05.facebook.com
-#channel07.facebook.com
-#channel09.facebook.com
-#channel10.facebook.com
-#channel18.facebook.com
-#channel23.facebook.com
-#3.channel13.facebook.com
-#0.channel07.facebook.com
-#0.channel09.facebook.com
-#0.channel11.facebook.com
-#0.channel15.facebook.com
-#0.channel16.facebook.com
-#0.channel65.facebook.com
-#0.channel32.facebook.com
-#14058657052.channel05.facebook.com
-#2884375843.channel13.facebook.com
 
 connect.facebook.com
 iphone.facebook.com
@@ -283,6 +266,7 @@ i.ebayimg.com
 thumbs1.ebaystatic.com
 thumbs2.ebaystatic.com
 thumbs3.ebaystatic.com
+images.wikia.com
 
 # Ad Servers
 ad.amgdgt.com
