@@ -1,1 +1,1 @@
-[% PROCESS dashboard.tmpl %]<li><a href="[% base_uri %]/app/router/[% IF reg.account.beta %]index[% ELSE %]list[% END %]">Network</a></li>
+[% PROCESS dashboard.tmpl %]<li><a href="[% base_uri %]/app/router/[% IF reg.account.beta %]index[% ELSE %]list[% END %]">Network</a></li>[% IF reg.account.beta %]<li><a href="[% base_uri %]/app/router/list">Router List</a></li>[% END %]
