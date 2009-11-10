@@ -25,7 +25,7 @@ my $sql = <<'SQL';
 SELECT checkin.kbup, checkin.kbdown,
 account.account_id, checkin.cts, router.router_id,
 checkin.ping_ms, checkin.speed_kbytes,
-checkin.memfree, checkin.gateway_quality
+checkin.memfree, checkin.gateway_quality,checkin.users
 FROM checkin, router, account
 WHERE checkin.cts > '%s'
 and router.account_id = account.account_id and
@@ -65,6 +65,7 @@ foreach my $row (@$results) {
         gateway_quality => $row->{gateway_quality},
         kbup            => $row->{kbup},
         kbdown          => $row->{kbdown},
+	users           => $row->{users},
         cts             => $dt,
       };
 
@@ -224,6 +225,7 @@ foreach my $account_id ( keys %refined ) {
 
             # bit to indicate a checkin took place for this device
             $array[$slot_idx]->[4] = 1;
+	    $array[$slot_idx]->[3] = $row->{users} || 0;
 
             # total megs
             $megabytes_total += ( $array[$slot_idx]->[1] + $array[$slot_idx]->[2] );
@@ -270,7 +272,7 @@ foreach my $account_id ( keys %refined ) {
         # aggregate the user data
         my %router_users;
 
-	for ( my $i = 0 ; $i <= $#array ; $i++ ) {
+	for ( my $i = 0 ; $i < $#array ; $i++ ) {
 
 
 	    foreach my $mac ( keys %{ $user_refined{$router_id}{users} } ) {
@@ -299,7 +301,7 @@ foreach my $account_id ( keys %refined ) {
 			next;
 		    }
 		    else {
-			$array[$i]->[3]++;
+#			$array[$i]->[3]++;
 			warn(sprintf("mac %s after %s and before %s",
 				     $mac, $row->{cts}->hms,
 				     $row->{cts}->hms)) if DEBUG;
