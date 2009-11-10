@@ -30,6 +30,71 @@ this.imagePreview = function(){
 };
 
 
+function graphSlider() {
+	if(!$('#graph-traffic-users') || !$('#graph-checkin-memory') ) return;
+	
+	
+	//Container Vars
+	var device = $('#device-settings'); 
+	var traffic = $('#graph-traffic-users'); 
+	var mesh = $('#graph-mesh-stats'); 
+	var hasMesh = false;
+	var memory = $('#graph-checkin-memory'); 
+	if(mesh.length > 0) {
+		hasMesh = true; 
+	}
+	
+	
+	//Link Vars
+	var deviceNav = $('#graph-settings-nav'); 
+	var trafficNav = $('#graph-traffic-nav'); 
+	var meshNav = $('#graph-mesh-nav'); 
+	if(hasMesh == false) {
+		meshNav.parent().hide(); 
+	}
+	var memoryNav = $('#graph-memory-nav'); 
+	var list = $('.link-nav li a'); 
+	
+	//Add Events
+	deviceNav.click(function() {
+		list.removeClass('selected'); 
+		$(this).addClass('selected'); 
+		device.show(); 
+		traffic.hide(); 
+		if(hasMesh) mesh.hide(); 
+		memory.hide(); 
+		return false; 
+	}); 
+	meshNav.click(function() {
+		list.removeClass('selected'); 
+		$(this).addClass('selected'); 
+		device.hide(); 
+		traffic.hide(); 
+		if(hasMesh) mesh.show(); 
+		memory.hide(); 
+		return false; 
+	}); 
+	trafficNav.click(function() {
+		list.removeClass('selected'); 
+		$(this).addClass('selected'); 
+		device.hide(); 
+		traffic.show(); 
+		if(hasMesh) mesh.hide(); 
+		memory.hide(); 
+		return false; 
+	}); 
+	memoryNav.click(function() {
+		list.removeClass('selected'); 
+		$(this).addClass('selected'); 
+		device.hide(); 
+		traffic.hide(); 
+		if(hasMesh) mesh.hide(); 
+		memory.show(); 
+		return false; 
+	}); 
+}; 
+
+
 $(document).ready(function(){
 	//NAVIGATION HOVER BUTTONS
 	$('#navigation li').hover(function(){
@@ -104,6 +169,6 @@ $(document).ready(function(){
 
 	//Hover image 
 	imagePreview();
-
+	graphSlider(); 
 	
 });
