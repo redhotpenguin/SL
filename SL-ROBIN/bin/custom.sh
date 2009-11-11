@@ -307,7 +307,6 @@ if [ "$LOAD_SLN" -eq 1 ] ; then
         if [ $? -ne 0 ] ; then
 
             echo "could not stop cron"
-            exit 1
         fi
 
         # start cron
@@ -315,7 +314,6 @@ if [ "$LOAD_SLN" -eq 1 ] ; then
         if [ $? -ne 0 ] ; then
 
             echo "could not start cron"
-            exit 1
         fi
 
     fi
