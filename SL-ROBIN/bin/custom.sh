@@ -324,6 +324,7 @@ if [ "$LOAD_SLN" -eq 1 ] ; then
 else
 
     echo "silverlining versions up to date, nothing installed"
+    exit
 fi
 
 echo "SLN installation finished"
