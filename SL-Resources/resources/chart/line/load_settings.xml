@@ -34,8 +34,8 @@
     <y_left>
       <skip_first>false</skip_first>
       <frequency>1</frequency>
-      <unit> ms</unit>
-      <integers_only>true</integers_only>
+      <unit></unit>
+      <integers_only>false</integers_only>
     </y_left>
   </values>
 
@@ -69,7 +69,7 @@
     <graph gid="1">
       <axis>left</axis>
       <title>System Load</title>
-      <color>#9ce4ff</color>   
+      <color>#ffce1c</color>
       <balloon_text_color>#333333</balloon_text_color>
       <balloon_text>
         <![CDATA[{value}]]>
