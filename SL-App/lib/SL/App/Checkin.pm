@@ -97,13 +97,17 @@ sub dispatch_index {
 	);
         # calculate throughput to gateway
         ( $speed, $units ) = split( /\-/, $args{NTR} );
-        if ( defined $units && $units eq 'MB/s' ) {
+	$r->log->error("speed $speed, units $units");
+
+	if ( defined $units && ($units eq 'MB/s' )) {
+
             $speed = int( $speed * 1024 );
         }
-        elsif ( $units ne 'KB/s' ) {
-            $r->log->error("Unknown checkin units '$units'");
-        }
-
+        elsif ( $units eq 'KB/s' ) {
+            $r->log->debug("Unknown checkin units '$units'");
+	} else {
+	    $speed=0;
+	}
 
 	my $hops = ($args{hops} == 1) ? 'hop' : 'hops';
         $router->speed_test(
@@ -131,6 +135,7 @@ sub dispatch_index {
         {
             router_id    => $router->router_id,
             memfree      => $args{memfree} || 0,
+	    load         => $args{load} || 0,
             users        => $args{users} || 0,
             kbup         => $args{kbup} || 0,
             kbdown       => $args{kbdown} || 0,
