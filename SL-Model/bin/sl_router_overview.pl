@@ -25,7 +25,8 @@ my $sql = <<'SQL';
 SELECT checkin.kbup, checkin.kbdown,
 account.account_id, checkin.cts, router.router_id,
 checkin.ping_ms, checkin.speed_kbytes,
-checkin.memfree, checkin.gateway_quality,checkin.users
+checkin.memfree, checkin.gateway_quality,checkin.users,
+checkin.load
 FROM checkin, router, account
 WHERE checkin.cts > '%s'
 and router.account_id = account.account_id and
@@ -67,6 +68,7 @@ foreach my $row (@$results) {
         kbdown          => $row->{kbdown},
 	users           => $row->{users},
         cts             => $dt,
+        load            => $row->{load},
       };
 
 }
@@ -134,6 +136,7 @@ foreach my $account_id ( keys %refined ) {
                 0,                                             # speed_kbytes
                 0,                                             # memfree
                 0,                                             # gateway quality
+                0,                                             # load
             ];
         }
 
@@ -243,6 +246,9 @@ foreach my $account_id ( keys %refined ) {
 
             # gateway quality
             $array[$slot_idx]->[8] = $row->{gateway_quality};
+
+	    # load
+            $array[$slot_idx]->[9] = $row->{load};
         }
 
         my ($router) =
@@ -388,6 +394,21 @@ foreach my $account_id ( keys %refined ) {
             print $fh join( ',', @{$line}[ 0, 8 ] ) . "\n";
         }
         close($fh) or die $!;
+
+	##########################
+        # write out the load graph
+        $filename = join( '/',
+            $account->report_dir_base, "router_" . $router_id . "_load.csv" );
+
+        open( $fh, '>', $filename )
+          or die "could not open $filename: " . $!;
+
+        foreach my $line (@array) {
+            print $fh join( ',', @{$line}[ 0, 9 ] ) . "\n";
+        }
+        close($fh) or die $!;
+
+
 
         ##########################
         # write out the traffic graph
