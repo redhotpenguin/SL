@@ -108,6 +108,22 @@
 	            // ]]>
 	    </script>
 
+		<h3><label for="device" class="label">System Load:</label></h3>
+		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
+		<div id="flashcontent_load">
+		    <strong>You need to upgrade your Flash Player</strong>
+		</div>
+		<script type="text/javascript">
+		        // <![CDATA[            
+		        var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","load", "900px", "400px", "4", "#FFFFFF");
+		        so.addVariable("path", "[% base_uri %]/resources/chart/line/");
+		        so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/load_settings.xml"));
+		        so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_load.csv"));
+		        so.write("flashcontent_load");
+		        // ]]>
+		</script>
+
+
 		<h3><label for="device" class="label">Free Memory:</label></h3>
 		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
 		<div id="flashcontent_freemem">
@@ -122,6 +138,8 @@
 		        so.write("flashcontent_freemem");
 		        // ]]>
 		</script>
+
+
 	</div>
 
 	<div id="graph-traffic-users">
@@ -215,11 +233,9 @@
 					<div class="grid_6 alpha omega suffix_4">
 						<!-- macaddr -->
 						<label for="macaddr" class="[% IF errors.missing.macaddr or errors.invalid.macaddr %]error[% END %]">Mac address:</label>
-	[% IF ! req.param('macaddr') or ! router.macaddr  %]<input type="text" name="macaddr" id="macaddr" size="17" maxlength="17" value="[% req.param('macaddr') or router.macaddr %]"/>
+	<input type="text" name="macaddr" id="macaddr" size="17" maxlength="17" value="[% req.param('macaddr') or router.macaddr %]"/>
 						<div class="clear"></div>
 						<label for="macaddr" class="tip">Example:  00:12:cf:43:38:bd</label>
-	
-	[% ELSE %][% req.param('macaddr') or router.macaddr %]<input type="hidden" name="macaddr" value="[% req.param('macaddr') or router.macaddr %]">[% END %]
 					</div>
 					<div class="clear"></div>
 				</li>
