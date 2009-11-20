@@ -123,18 +123,10 @@ $(document).ready(function(){
         var device = $("#device").val();
         if ( device == 'mr3201a' || !device ) {
 
-            $("#name").attr("readonly", true);
-            $("#device").attr("readonly", true);
-            $("#macaddr").attr("readonly", true);
-            $("#notes").attr("readonly", true);
             $("#wrt54gl").css("display","none");
 
         } else if (device == 'wrt54gl' ) {
 
-            $("#device").attr("readonly", false);
-            $("#name").attr("readonly", false);
-            $("#macaddr").attr("readonly", false);
-            $("#notes").attr("readonly", false);
             $("#wrt54gl").css("display","block");
 
         }
