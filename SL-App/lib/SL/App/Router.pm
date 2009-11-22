@@ -460,7 +460,7 @@ sub dispatch_edit {
         if ($router) {
             my $router_id = $router->router_id;
 
-	   foreach my $fn ( qw( gwqual  uptime speed ping traffic users memfree ) ) {
+	   foreach my $fn ( qw( gwqual  uptime speed ping traffic users memfree load ) ) {
 
             my $filename = join( '/',
                 $reg->account->report_dir_base,
@@ -475,7 +475,7 @@ sub dispatch_edit {
         }
 
         my $gateway;
-        if (defined $router->gateway &&  (substr( $router->gateway, 0, 1 ) == 5 )) {
+        if ((defined $router) && (defined $router->gateway) &&  (substr( $router->gateway, 0, 1 ) == 5 )) {
             ($gateway) = SL::Model::App->resultset('Router')->search(
                 {
                     account_id => $router->account_id,

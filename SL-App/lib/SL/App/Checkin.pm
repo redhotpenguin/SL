@@ -97,7 +97,10 @@ sub dispatch_index {
 	);
         # calculate throughput to gateway
         ( $speed, $units ) = split( /\-/, $args{NTR} );
-	$r->log->error("speed $speed, units $units");
+	
+	unless ($speed && $units) {
+		$r->log->error("speed $speed, units $units");
+	}
 
 	if ( defined $units && ($units eq 'MB/s' )) {
 
