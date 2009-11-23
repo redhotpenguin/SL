@@ -215,10 +215,14 @@ sub dispatch_omsync {
 
         # parse the router xml
         my $parser = XML::LibXML->new;
-        my $doc = eval { $parser->parse_string( $response->decoded_content ); };
+	my $ct = $response->decoded_content;
+	$ct =~ s/\&/\&amp\;/g;
+        my $doc = eval { $parser->parse_string( $ct ); };
         if ($@) {
 
-            $r->log->error( "open-mesh.com call network error for net "
+	    $r->log->error("sync error $@");
+
+            $r->log->error( "open-mesh.com call parsing error for net "
                   . $req->param('network') );
 
             $r->log->error( "response: " . $response->decoded_content );
