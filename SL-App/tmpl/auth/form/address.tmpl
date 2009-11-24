@@ -88,6 +88,12 @@
 		    <option value="WI" [% IF req.param('state') == 'WI' %]SELECTED[% END %]>Wisconsin</option>
 		    <option value="WY" [% IF req.param('state') == 'WY' %]SELECTED[% END %]>Wyoming</option>
 		    <option value=""><option>
+		    <option value="">---Irish Provinces---</option>
+		    <option value="D" [% IF req.param('state') == 'D' %]SELECTED[% END %]>Dublin</option>
+		    <option value=""><option>
+		    <option value="">---Italian Provinces---</option>
+		    <option value="MO" [% IF req.param('state') == 'MO' %]SELECTED[% END %]>Modena</option>
+		    <option value=""><option>
 		    <option value="">---Canadian Provinces---</option>
 		    <option value="ON" [% IF req.param('state') == 'ON' %]SELECTED[% END %]>Ontario</option>
 		    <option value="QC" [% IF req.param('state') == 'QC' %]SELECTED[% END %]>Quebec</option>
@@ -133,6 +139,8 @@
 	<select id="country" name="country">
 		<option value="">Country</option>
 	    <option value="US" [% IF req.param('country') == '' || req.param('country') == 'US' %]SELECTED[% END %]>United States</option>
+	    <option value="IE" [% IF req.param('country') == 'IE' %]SELECTED[% END %]>Ireland</option>
+	    <option value="IT" [% IF req.param('country') == 'IT' %]SELECTED[% END %]>Italy</option>
 	    <option value="CA" [% IF req.param('country') == 'CA' %]SELECTED[% END %]>Canada</option>
 	    <option value="ES" [% IF req.param('country') == 'ES' %]SELECTED[% END %]>Spain</option>
     </select> 

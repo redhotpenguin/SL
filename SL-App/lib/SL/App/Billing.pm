@@ -95,7 +95,7 @@ sub dispatch_publisher {
                 ),
     		state       => state_or_province(),
 		email       => email(),
-                zip         => zip_or_postcode(),
+               # zip         => zip_or_postcode(), intl
                 first_name  => $class->valid_first,
                 last_name   => $class->valid_last,
                 month       => $class->valid_month,
