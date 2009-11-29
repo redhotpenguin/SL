@@ -14,8 +14,8 @@ our $RMMOD       = '/sbin/rmmod';
 our $INSMOD      = '/sbin/insmod';
 our $LSMOD       = '/sbin/lsmod';
 our $IPTABLES    = '/usr/sbin/iptables';
-our $VERSION     = '022';
-our $WGET        = '/usr/bin/wget';
+our $VERSION     = '022_7';
+our $WGET        = '/usr/bin/wget -T 30 -t 3';
 $|++;
 
 # figure out if we are already running
@@ -306,7 +306,8 @@ sub _setup_sln_skips {
     print "setting up skips\n" if $DEBUG;
 
     my $fh;
-    open( $fh, '<', '/etc/sl/skips.txt' );
+    open( $fh, '<', '/etc/sl/skips.txt' ) or die $!;
+	my @hosts;
     while ( my $line = <$fh> ) {
 
         next if ((substr($line, 0,1) eq '#') or
@@ -315,11 +316,31 @@ sub _setup_sln_skips {
 
         chomp($line);
 
-        print "setting up default skip $line\n" if $DEBUG;
-        `$IPTABLES -t nat -I ndsSLN 2 --dst $line -m tcp -p tcp -j ACCEPT`;
-        #sleep 1;
+
+        if ($line !~ m/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2})?/) {	
+
+			# not a numeric ip? cache the entry in /etc/hosts
+			my ($junk, $payload) = split(/\n\n/, `/usr/sbin/nslookup $line`);
+			if (defined $payload) {
+
+				# successful lookup
+				while (my $other_line = split(/\n/, $payload)) {
+
+					next if (substr($other_line, 0, 5) eq 'Name:');
+				
+					chomp($line);
+	
+					my ($junk, $num, $ip, $host) = split(/\s+/, $line);
+					push @hosts, [ $ip, $host ];
+				}
+			}
+        }
+
+	    print "setting up default skip $line\n" if $DEBUG;
+    	`$IPTABLES -t nat -I ndsSLN 2 --dst $line -m tcp -p tcp -j ACCEPT`;
+        sleep 1;
     }
-    close($fh);
+    close($fh) or die $!;
 
     # local hosts added by user
     if ( -e '/etc/sl/custom_skips.txt' ) {
@@ -333,11 +354,40 @@ sub _setup_sln_skips {
 
             chomp($line);
 
-            print "setting up default skip $line\n" if $DEBUG;
+			# ugh...
+        	if ($line !~ m/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2})?/) {	
+
+				# not a numeric ip? cache the entry in /etc/hosts
+				my ($junk, $payload) = split(/\n\n/, `/usr/sbin/nslookup $line`);
+				if (defined $payload) {
+
+					# successful lookup
+					while (my $other_line = split(/\n/, $payload)) {
+
+						next if (substr($other_line, 0, 5) eq 'Name:');
+				
+						chomp($line);
+	
+						my ($junk, $num, $ip, $host) = split(/\s+/, $line);
+						push @hosts, [ $ip, $host ];
+					}
+				}
+        	}
+
+
+            print "setting up custom skip $line\n" if $DEBUG;
             `$IPTABLES -t nat -I ndsSLN 2 --dst $line -m tcp -p tcp -j ACCEPT`;
         }
-        close($fh);
+        close($fh) or die $!;
     }
+
+	# now write out to /etc/hosts file
+	print "writing to /etc/hosts\n" if $DEBUG;
+ 	open($fh, '>>', '/etc/hosts') or die $!;
+	foreach my $host (@hosts) {
+		print $fh join(' ', @{$hosts}) . "\n";
+    }
+	close($fh) or die $!;
 
     return 1;
 }

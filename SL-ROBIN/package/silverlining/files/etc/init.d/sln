@@ -10,6 +10,9 @@ ME="sln"
 start() {
 	logger -s -t "$ME" "starting..."
 
+	# turn nodogsplash thread limiting
+	uci set cp_switch.handler_1.max_threads=32
+
 	# set the cron mod to a random time
 	/usr/bin/microperl /usr/bin/sl_cron
 }

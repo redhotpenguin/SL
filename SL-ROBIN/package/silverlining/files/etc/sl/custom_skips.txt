@@ -1,3 +1,8 @@
 # Urban Wireless
 secure.kharmaconsulting.net
 www.urbanwireless.net
+
+# TvTiser
+www.tvtiser.com
+files.bannersnack.net
+stats.bannersnack.net

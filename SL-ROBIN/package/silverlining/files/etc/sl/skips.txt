@@ -33,6 +33,9 @@ toolbarqueries.google.com
 gstatic.com
 suggestqueries.google.com
 csi.gstatic.com
+googlemail.l.google.com
+tpc.googlesyndication.com
+pagead2.googlesyndication.com
 chatenabled.mail.google.com
 
 # Yahoo
@@ -85,6 +88,7 @@ internal.yahoo.com
 tv.yahoo.com
 fe.shortcuts.search.yahoo.com
 static.flickr.com
+pn1.adserver.yahoo.com
 
 # Facebook
 69.63.176.0/20
@@ -141,6 +145,8 @@ ac3.msn.com
 activex.microsoft.com
 contacts.microsoft.com
 messenger.zone.msn.com
+mscrl.microsoft.com
+images.adsyndication.msn.com
 
 # Amazon S3
 72.21.192.0/19
@@ -166,6 +172,7 @@ dyn.cnn.com
 # apple
 configuration.apple.com
 connect.apple.com
+iphone-wu.apple.com
 
 # streaming music
 last.fm
@@ -201,12 +208,17 @@ livechat.verticalresponse.com
 feeds.feedburner.com
 track.sxipper.net
 track.sxipper.com
+core.sxipper.com
 map.sxipper.com
 speedtest.net
 download.macromedia.com
 liveperson.net
 blip.tv
 kontera.com
+te.kontera.com
+konax.kontera.com
+kona5.kontera.com
+kona25.kontera.com
 shots.snap.com
 spa.snap.com
 cache.gawker.com
@@ -220,6 +232,9 @@ s6.addthis.com
 s7.addthis.com
 core.videoegg.com
 app.icontact.com
+w.sharethis.com
+isapi60.wxbug.com
+tags.expo9.exponential.com
 
 # stats
 stat.onestat.com
@@ -262,14 +277,32 @@ sfo-agg-n50.panthercdn.com
 eyewonder.com
 cdn.eyewonder.com
 ebaystatic.com
+rover.ebay.com
 rtm.ebaystatic.com
+pics.ebaystatic.com
+srx.main.ebayrtm.com
+deals.evay.com
 i.ebayimg.com
 thumbs1.ebaystatic.com
 thumbs2.ebaystatic.com
 thumbs3.ebaystatic.com
+include.ebaystatic.com
+static-cdn.weebly.com
+s3.amazonaws.com
+z-ecx.images-amazon.com
+g-ecx.images-amazon.com
+ecx.images-amazon.com
 images.wikia.com
 
 # Ad Servers
+admedia.wsod.com
+ad.wsod.com
+ds.serving-sys.com
+bs.serving-sys.com
+www.ftjcfx.com
+www.yceml.net
+d1.openx.org
+counters.gigya.com
 ad.amgdgt.com
 tag.contextweb.com
 fmpub.net
@@ -289,6 +322,7 @@ smartadserver.com
 # media.fimnetwork.com
 67.215.66.132
 
+jdn.monster.com
 atwola.com
 rmxads.com
 ar.atwola.com
@@ -303,6 +337,7 @@ ads.web.aol.com
 a.tribalfusion.com
 www.hitbox.com
 ch.questionmarket.com
+amch.questionmarket.com
 questionmarket.com
 realmedia.com
 fastclick.net
@@ -340,12 +375,15 @@ ads.svx.adbrite.com
 beacon.or4.scorecardresearch.com
 desk.opt.fimserve.com
 cache.fimservecdn.com
+p.opt.fimserve.com
 m1.2mdn.net
 2mdn.net
+static.2mdn.net
 pt.rewardtv.com
 ads.bluelithium.com
 stat.livejournal.com
 mediaplex.com
+altfarm.mediaplex.com
 edgesuite.net
 media.adrevolver.com
 api.aggregateknowledge.com
@@ -395,7 +433,8 @@ annymegabetavip1.doubleclick.net
 216.73.86.48/29
 eqvamegaadvip2.doubleclick.net
 
-
+# zendesk
+support.silverliningnetworks.com
 
 
 # Silver Lining Infrastructure
@@ -403,5 +442,4 @@ eqvamegaadvip2.doubleclick.net
 
 # Open-Mesh.com infrastructure
 checkin.open-mesh.com
-
 
