@@ -52,7 +52,7 @@ elif [ $KVERSION -eq 26 ] ; then
 
     SL_VER=0.22
     KMOD_SLN_RELEASE=6
-    SLN_RELEASE=7
+    SLN_RELEASE=8
     KERNEL=2.6.26.8
     TOOL=/bin/opkg
     KMOD_EXT=$KERNEL+$SL_VER-atheros-$KMOD_SLN_RELEASE
