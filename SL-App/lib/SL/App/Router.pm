@@ -1023,6 +1023,7 @@ JS
             mac     => $router->macaddr,
             board   => $router->board,
             ip      => $router->ip,
+	    fwbuild => $router->firmware_version || 'Unknown Build',
         );
 
         $map->add_marker(%marker_args);

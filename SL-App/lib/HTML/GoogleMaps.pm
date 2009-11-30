@@ -317,6 +317,7 @@ sub add_marker {
     ping_html => $opts{ping_html},
     title => $opts{title},
     ip => $opts{ip},
+    fwbuild => $opts{fwbuild},
     mac => $opts{mac},
     board => $opts{board},
     format => !$opts{noformat} };
@@ -450,7 +451,7 @@ SCRIPT
       );
     }
 
-    my $title = sprintf("%s - %s - %s - %s",$point->{title}, $point->{mac}, $point->{ip}, $point->{board});
+    my $title = sprintf("%s - %s - %s - %s - %s",$point->{title}, $point->{mac}, $point->{ip}, $point->{fwbuild}, $point->{board});
 #    my $title = sprintf("%s - %s - %s - %s - %s",$point->{title}, $point->{mac}, $point->{ip}, $point->{board}, '55% network usage');
     $title =~ s/'/\\'/g;
 
