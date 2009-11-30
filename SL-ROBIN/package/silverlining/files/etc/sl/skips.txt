@@ -366,6 +366,8 @@ zedo.net
 zedo.com
 bustnet.com
 delb.myspace.com
+messaging.myspace.com
+free.guba.com
 urchin.com
 valueclick.com
 cc-dt.com
