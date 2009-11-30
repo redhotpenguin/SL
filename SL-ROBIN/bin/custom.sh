@@ -1,8 +1,8 @@
 #!/bin/sh
 
 VERSION=0.13
-DESCRIPTION="This program installs the Silver Lining ipkg onto open-mesh.com ROBIN enabled devices\n\n"
-LICENSE="Copyright 2009 Silver Lining Networks, Inc.  If you did not receive a copy\n"
+DESCRIPTION="This program installs the Silver Lining ipkgs onto Open-Mesh.com ROBIN enabled devices.\n\n"
+LICENSE="Copyright 2009 Silver Lining Networks, Inc., email support@silverliningnetworks.com for the full license.\n"
 echo $DESCRIPTION
 echo $LICENSE
 
