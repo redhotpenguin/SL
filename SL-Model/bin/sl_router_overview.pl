@@ -61,7 +61,7 @@ foreach my $row (@$results) {
         cts             => $dt,
         load            => $row->{load},
         nodogs          => $row->{nodogs},
-        tcpconns        => $row->{tcpconnns},
+        tcpconns        => $row->{tcpconns},
       };
 
 }
