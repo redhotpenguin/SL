@@ -10,6 +10,7 @@ guide.opendns.com
 hit-nxdomain.opendns.com
 
 # Google/Gmail
+id.google.com
 mail.google.com
 gmail.com
 74.125.242.0/24
@@ -366,8 +367,6 @@ zedo.net
 zedo.com
 bustnet.com
 delb.myspace.com
-messaging.myspace.com
-free.guba.com
 urchin.com
 valueclick.com
 cc-dt.com

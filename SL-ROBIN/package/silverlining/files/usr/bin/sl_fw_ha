@@ -14,7 +14,7 @@ our $RMMOD       = '/sbin/rmmod';
 our $INSMOD      = '/sbin/insmod';
 our $LSMOD       = '/sbin/lsmod';
 our $IPTABLES    = '/usr/sbin/iptables';
-our $VERSION     = '02208';
+our $VERSION     = '02209';
 our $WGET        = '/usr/bin/wget -T 30 -t 3';
 $|++;
 
@@ -228,7 +228,8 @@ sub start_sln {
 
     my $base_setup  = _setup_sln_base($proxy);
     my $skips_setup = _setup_sln_skips($proxy);
-    print "base_setup $base_setup, skips setup $skips_setup\n" if $DEBUG;
+    my $noskips_setup = _setup_sln_noskips($proxy);
+    print "base_setup $base_setup, skips setup $skips_setup, noskips_setup $noskips_setup\n" if $DEBUG;
 
     return 1;
 }
@@ -299,6 +300,28 @@ BASE
     return 1;
 }
 
+sub _setup_sln_noskips {
+	my $proxy = shift;
+    print "setting up noskips\n" if $DEBUG;
+
+    my $fh;
+    open( $fh, '<', '/etc/sl/noskips.txt' ) or die $!;
+    while ( my $line = <$fh> ) {
+
+        next if ((substr($line, 0,1) eq '#') or
+                 (substr($line, 0,1) eq "\n") or
+                 (substr($line, 0,1) eq ' '));
+
+        chomp($line);
+
+	    print "setting up noskip $line\n" if $DEBUG;
+    	`$IPTABLES -t nat -I ndsSLN 2 -i $int -p tcp -m tcp --dport 80 --dst $line -j DNAT --to-destination $proxy`;
+    }
+    close($fh) or die $!;
+
+	return 1;
+}
+
 sub _setup_sln_skips {
     my $proxy = shift;
 
@@ -337,8 +360,6 @@ sub _setup_sln_skips {
         close($fh) or die $!;
     }
 
-    # facebook hack
-    `$IPTABLES -t nat -I ndsSLN 2 -i $int -p tcp -m tcp --dport 80 --dst 69.63.181.0/24 -j DNAT --to-destination $proxy`;
     return 1;
 }
 
