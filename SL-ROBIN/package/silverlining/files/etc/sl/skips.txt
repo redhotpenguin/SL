@@ -154,10 +154,6 @@ download.windowsupdate.com
 au.download.windowsupdate.com
 mscom-wui.vo.llnwd.net
 
-# Amazon S3
-72.21.192.0/19
-207.171.160.0/19
-
 # Akamai REFACTOR
 204.2.160.56
 204.2.160.16
