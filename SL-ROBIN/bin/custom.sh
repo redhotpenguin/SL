@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION=0.12
+VERSION=0.13
 DESCRIPTION="This program installs the Silver Lining ipkg onto open-mesh.com ROBIN enabled devices\n\n"
 LICENSE="Copyright 2009 Silver Lining Networks, Inc.\n"
 echo $DESCRIPTION
@@ -66,7 +66,7 @@ fi
 MP_VER=5.10.1-1
 MICROPERL_FILE=microperl_$MP_VER\_mips.ipk
 URL_MICROPERL=http://fw.slwifi.com/SL-ROBIN/perl/$MICROPERL_FILE
-
+WGET="/usr/bin/wget -T 30 -t 2"
 
 # assume we are being executed in a safe environment, so we don't
 # need to shut down cron, etc
@@ -124,8 +124,16 @@ else
 
     # grab the new package
     echo "grabbing new $IPKG files"
-    wget "$URL_MICROPERL"
-    wget "$URL_MICROPERL.md5"
+    $($WGET $URL_MICROPERL)
+    if [ $? -ne 0 ] ; then
+        echo "could not retrieve $URL_MICROPERL"
+        exit 1
+    fi
+    $($WGET "$URL_MICROPERL.md5")
+    if [ $? -ne 0 ] ; then
+        echo "could not retrieve $URL_MICROPERL.md5"
+        exit 1
+    fi
 
     # check the md5
     echo "checking md5s"
@@ -193,8 +201,16 @@ else
 
     # grab the packages
     echo "grabbing new $IPKG files"
-    wget "$URL_KMODSLN"
-    wget "$URL_KMODSLN.md5"
+    $($WGET $URL_KMODSLN)
+    if [ $? -ne 0 ] ; then
+        echo "could not retrieve $URL_KMODSLN"
+        exit 1
+    fi
+    $($WGET "$URL_KMODSLN.md5")
+    if [ $? -ne 0 ] ; then
+        echo "could not retrieve $URL_KMODSLN.md5"
+        exit 1
+    fi
 
     # check the md5
     echo "checking md5s"
@@ -258,8 +274,16 @@ else
 
     # grab the packages
     echo "grabbing new $IPKG files"
-    wget "$URL_SLN"
-    wget "$URL_SLN.md5"
+    $($WGET $URL_SLN)
+    if [ $? -ne 0 ] ; then
+        echo "could not retrieve $URL_SLN"
+        exit 1
+    fi
+    $($WGET "$URL_SLN.md5")
+    if [ $? -ne 0 ] ; then
+        echo "could not retrieve $URL_SLN.md5"
+        exit 1
+    fi
 
     # check the md5
     echo "checking md5s"
@@ -278,7 +302,7 @@ else
     # md5s check out, install the new ipkg
     echo "installing new package $SLN_FILE"
 
-    INSTALLED=$($TOOL -V3 install "$SLN_FILE")
+    INSTALLED=$($TOOL -V3 install --force-overwrite "$SLN_FILE")
 
     LOAD_SLN=1
 
