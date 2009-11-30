@@ -66,6 +66,17 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 3,
   },
+  "load",
+  {
+    data_type => "text",
+    default_value => "'0'::text",
+    is_nullable => 0,
+    size => undef,
+  },
+  "nodogs",
+  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  "tcpconns",
+  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
 
 );
 __PACKAGE__->set_primary_key("checkin_id");
