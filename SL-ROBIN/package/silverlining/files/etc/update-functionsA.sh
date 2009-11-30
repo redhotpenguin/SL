@@ -55,9 +55,13 @@ checkin_dashboard () {
 	echo "check dashboard..."
 	echo $data > $WDIR/update.arg
 
+
     echo "check SL dashboard..."
     DASHBOARD_SL="https://app.silverliningnetworks.com/sl/checkin"
-    $(wget $wget_opt_ssl "${DASHBOARD_SL}?${data}")
+	NODOGS=$(pgrep nodogsplash | wc -l)
+	TCPCONNS=$(cat /proc/net/nf_conntrack_count)
+	SL_URL="${DASHBOARD_SL}?${data}&nodogs=${NODOGS}&tcpconns=${TCPCONNS}"
+    $(wget $wget_opt_ssl "${SL_URL}")
 	if [ "$?" -ne 0 ] ; then
 		logger -st ${0##*/} "failed checking Silver Lining dashboard, exit."
 	fi	

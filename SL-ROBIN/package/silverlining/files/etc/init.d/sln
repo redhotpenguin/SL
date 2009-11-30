@@ -11,10 +11,19 @@ start() {
 	logger -s -t "$ME" "starting..."
 
 	# turn nodogsplash thread limiting
-	uci set cp_switch.handler_1.max_threads=32
+	$(uci set cp_switch.handler_1.max_threads=32)
 
 	# set the cron mod to a random time
-	/usr/bin/microperl /usr/bin/sl_cron
+	$(/usr/bin/microperl /usr/bin/sl_cron)
+
+	# turn on dns caching
+	if [ -z $(grep cache /tmp/dnsmasq.conf) ] ; then
+		$(echo "cache-size=1000" >> /tmp/dnsmasq.conf)
+
+		# restart dnsmasq
+		kill $(pgrep dnsmasq)
+		dnsmasq -C $(cat /tmp/dnsmasq.args)
+	fi
 }
 
 case $1 in

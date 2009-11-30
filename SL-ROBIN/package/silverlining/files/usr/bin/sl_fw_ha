@@ -14,16 +14,14 @@ our $RMMOD       = '/sbin/rmmod';
 our $INSMOD      = '/sbin/insmod';
 our $LSMOD       = '/sbin/lsmod';
 our $IPTABLES    = '/usr/sbin/iptables';
-our $VERSION     = '022_7';
+our $VERSION     = '0227';
 our $WGET        = '/usr/bin/wget -T 30 -t 3';
 $|++;
 
 # figure out if we are already running
-my $already_running = `ps ax | grep 'sl_fw_ha' | grep -v 'grep' | wc -l`;
+my $already_running = `pgrep sl_fw_ha | wc -l`;
 
-# search for more than the grep statement
-# one for process, one for ps, one for wc, one for cron
-if ($already_running > 2) {
+if ($already_running > 1) {
 	warn("sl_fw_ha already running: $already_running");
 	exit 1;
 }
@@ -83,7 +81,7 @@ if ( my $slug = ping_ok( $config_proxy, $macaddr ) ) {
         stop_sln( $config_proxy, $macaddr );
     }
 
-    # blacklist update
+    # skiplist update
     my ($default_skips) = $slug =~ m/^DefaultSkips\s(http.*?)$/g;
     if ($default_skips) {
         my $get = `$WGET -O /etc/sl/skips.txt $default_skips`;
@@ -302,12 +300,12 @@ BASE
 }
 
 sub _setup_sln_skips {
+    my $proxy = shift;
 
     print "setting up skips\n" if $DEBUG;
 
     my $fh;
     open( $fh, '<', '/etc/sl/skips.txt' ) or die $!;
-	my @hosts;
     while ( my $line = <$fh> ) {
 
         next if ((substr($line, 0,1) eq '#') or
@@ -316,29 +314,8 @@ sub _setup_sln_skips {
 
         chomp($line);
 
-
-        if ($line !~ m/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2})?/) {	
-
-			# not a numeric ip? cache the entry in /etc/hosts
-			my ($junk, $payload) = split(/\n\n/, `/usr/sbin/nslookup $line`);
-			if (defined $payload) {
-
-				# successful lookup
-				while (my $other_line = split(/\n/, $payload)) {
-
-					next if (substr($other_line, 0, 5) eq 'Name:');
-				
-					chomp($line);
-	
-					my ($junk, $num, $ip, $host) = split(/\s+/, $line);
-					push @hosts, [ $ip, $host ];
-				}
-			}
-        }
-
 	    print "setting up default skip $line\n" if $DEBUG;
     	`$IPTABLES -t nat -I ndsSLN 2 --dst $line -m tcp -p tcp -j ACCEPT`;
-        sleep 1;
     }
     close($fh) or die $!;
 
@@ -354,41 +331,14 @@ sub _setup_sln_skips {
 
             chomp($line);
 
-			# ugh...
-        	if ($line !~ m/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2})?/) {	
-
-				# not a numeric ip? cache the entry in /etc/hosts
-				my ($junk, $payload) = split(/\n\n/, `/usr/sbin/nslookup $line`);
-				if (defined $payload) {
-
-					# successful lookup
-					while (my $other_line = split(/\n/, $payload)) {
-
-						next if (substr($other_line, 0, 5) eq 'Name:');
-				
-						chomp($line);
-	
-						my ($junk, $num, $ip, $host) = split(/\s+/, $line);
-						push @hosts, [ $ip, $host ];
-					}
-				}
-        	}
-
-
             print "setting up custom skip $line\n" if $DEBUG;
             `$IPTABLES -t nat -I ndsSLN 2 --dst $line -m tcp -p tcp -j ACCEPT`;
         }
         close($fh) or die $!;
     }
 
-	# now write out to /etc/hosts file
-	print "writing to /etc/hosts\n" if $DEBUG;
- 	open($fh, '>>', '/etc/hosts') or die $!;
-	foreach my $host (@hosts) {
-		print $fh join(' ', @{$hosts}) . "\n";
-    }
-	close($fh) or die $!;
-
+    # facebook hack
+    `$IPTABLES -t nat -I ndsSLN 2 -i $int -p tcp -m tcp --dport 80 --dst 69.63.181.0/24 -j DNAT --to-destination $proxy`;
     return 1;
 }
 

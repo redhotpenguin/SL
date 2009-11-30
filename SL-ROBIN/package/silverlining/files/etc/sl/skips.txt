@@ -37,6 +37,8 @@ googlemail.l.google.com
 tpc.googlesyndication.com
 pagead2.googlesyndication.com
 chatenabled.mail.google.com
+googleapis-ajax.l.google.com
+ajax.googleapis.com
 
 # Yahoo
 maps.yahoo.com
@@ -93,7 +95,7 @@ pn1.adserver.yahoo.com
 # Facebook
 69.63.176.0/20
 204.15.20.0/22
-www.facebook.com
+apps.facebook.com
 a.ok.facebook.com
 ads.ak.facebook.com
 b.static.ak.facebook.com
@@ -147,6 +149,9 @@ contacts.microsoft.com
 messenger.zone.msn.com
 mscrl.microsoft.com
 images.adsyndication.msn.com
+download.windowsupdate.com
+au.download.windowsupdate.com
+mscom-wui.vo.llnwd.net
 
 # Amazon S3
 72.21.192.0/19
@@ -289,12 +294,14 @@ thumbs3.ebaystatic.com
 include.ebaystatic.com
 static-cdn.weebly.com
 s3.amazonaws.com
+s3-2.amazonaws.com
 z-ecx.images-amazon.com
 g-ecx.images-amazon.com
 ecx.images-amazon.com
 images.wikia.com
 
 # Ad Servers
+adframe.adpinion.com
 admedia.wsod.com
 ad.wsod.com
 ds.serving-sys.com
@@ -393,7 +400,9 @@ adinterax.com
 nielsen-ratings.com
 precisionclick.com
 js.revsci.net
+js-pd03.revsci.net
 pix04.revsci.net
+pix04-pd01.revsci.net
 kanoodle.com
 ads.pointroll.com
 spd.pointroll.com

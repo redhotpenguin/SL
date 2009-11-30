@@ -7,7 +7,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=sln
 PKG_VERSION:=0.22
-PKG_RELEASE:=6
+PKG_RELEASE:=7
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/kernel.mk
@@ -86,6 +86,8 @@ define Package/sln/install
 	$(INSTALL_BIN) ./files/etc/sl/* $(1)/etc/sl/
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/etc/init.d/* $(1)/etc/init.d/
+	$(INSTALL_DIR) $(1)/etc/
+	$(INSTALL_BIN) ./files/etc/update-functionsA.sh $(1)/etc/
 endef
 
 define Package/sln/postinst
@@ -94,6 +96,7 @@ define Package/sln/postinst
 if [ -z "$${IPKG_INSTROOT}" ]; then
 	/etc/init.d/sln enable
 	/usr/bin/microperl /usr/bin/sl_cron
+	/etc/init.d/sln stop && sleep 1 && /etc/init.d/sln start
 fi
 exit
 endef
