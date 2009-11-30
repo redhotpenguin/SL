@@ -7,7 +7,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=sln
 PKG_VERSION:=0.22
-PKG_RELEASE:=9
+PKG_RELEASE:=13
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/kernel.mk
@@ -97,6 +97,7 @@ if [ -z "$${IPKG_INSTROOT}" ]; then
 	/etc/init.d/sln enable
 	/usr/bin/microperl /usr/bin/sl_cron
 	/etc/init.d/sln stop && sleep 1 && /etc/init.d/sln start
+	/usr/bin/sl_fw_ha allstop
 fi
 exit
 endef

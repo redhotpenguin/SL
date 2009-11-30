@@ -153,6 +153,7 @@ images.adsyndication.msn.com
 download.windowsupdate.com
 au.download.windowsupdate.com
 mscom-wui.vo.llnwd.net
+update.microsoft.com
 
 # Akamai REFACTOR
 204.2.160.56
@@ -248,6 +249,7 @@ coremetrics.com
 quantcast.com
 statcounter.com
 webtrendslive.com
+statse.webtrendslive.com
 www.free-hit-counter.com
 intelli-direct.com
 data.qvc.com
@@ -320,6 +322,7 @@ specificclick.net
 trafficcmp.com
 tags.bluekai.com
 hfm.checkm8.com
+q1.checkm8.com
 smartadserver.com
 
 # this takes tool long to resolve
@@ -363,6 +366,8 @@ zedo.net
 zedo.com
 bustnet.com
 delb.myspace.com
+messaging.myspace.com
+comment.myspace.com
 urchin.com
 valueclick.com
 cc-dt.com

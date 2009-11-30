@@ -14,7 +14,7 @@ our $RMMOD       = '/sbin/rmmod';
 our $INSMOD      = '/sbin/insmod';
 our $LSMOD       = '/sbin/lsmod';
 our $IPTABLES    = '/usr/sbin/iptables';
-our $VERSION     = '02209';
+our $VERSION     = '02213';
 our $WGET        = '/usr/bin/wget -T 30 -t 3';
 $|++;
 
@@ -35,7 +35,7 @@ my $type = ( $role == 1 ) ? 'gateway' : 'client';
 # based on that, figure out what interface to route traffic through
 my $int = ( $role == 1 ) ? 'ath1' : 'br-lan';
 
-my $d = shift;
+my $cmd = shift;
 
 # grab the mac address
 my $board = uci_get('node.general.board');
@@ -65,6 +65,13 @@ unless ($config_proxy) {
 }
 
 print "Using proxy $config_proxy\n" if $DEBUG;
+
+# hard stop option
+if ($cmd && ($cmd eq 'allstop')) {
+	stop_sln( $config_proxy, $macaddr );
+	warn("sln all stop complete");
+	exit;
+}
 
 # ping the proxy
 if ( my $slug = ping_ok( $config_proxy, $macaddr ) ) {

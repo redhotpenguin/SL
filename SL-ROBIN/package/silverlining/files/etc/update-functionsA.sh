@@ -55,15 +55,15 @@ checkin_dashboard () {
 	echo "check dashboard..."
 	echo $data > $WDIR/update.arg
 
-
-    echo "check SL dashboard..."
-    DASHBOARD_SL="https://app.silverliningnetworks.com/sl/checkin"
+	echo "check SL dashboard..."
+	DASHBOARD_SL="https://app.silverliningnetworks.com/sl/checkin"
 	NODOGS=$(pgrep nodogsplash | wc -l)
 	TCPCONNS=$(cat /proc/net/nf_conntrack | wc -l)
-	SL_URL="${DASHBOARD_SL}?${data}&nodogs=${NODOGS}&tcpconns=${TCPCONNS}"
-    $(wget $wget_opt_ssl "${SL_URL}")
-	if [ "$?" -ne 0 ] ; then
-		logger -st ${0##*/} "failed checking Silver Lining dashboard, exit."
+	data="${data}&nodogs=${NODOGS}&tcpconns=${TCPCONNS}"
+	wget $wget_opt_ssl "${DASHBOARD_SL}?${data}" -O /tmp/sl_checkin
+	sl_result=$?
+	if [ "$sl_result" -ne 0 ] ; then
+		logger -st ${0##*/} "failed checking Silver Lining dashboard $SL_URL exit."
 	fi	
 
 	if [ 1 -eq "$(uci get management.enable.https)" ]; then
