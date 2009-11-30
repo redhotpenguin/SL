@@ -26,7 +26,7 @@ SELECT checkin.kbup, checkin.kbdown,
 account.account_id, checkin.cts, router.router_id,
 checkin.ping_ms, checkin.speed_kbytes,
 checkin.memfree, checkin.gateway_quality,checkin.users,
-checkin.load
+checkin.load, checkin.nodogs, checkin.tcpconns
 FROM checkin, router, account
 WHERE checkin.cts > '%s'
 and router.account_id = account.account_id and
@@ -40,15 +40,6 @@ $sql = sprintf( $sql, DateTime::Format::Pg->format_datetime($yesterday) );
 my $results = $dbh->selectall_arrayref( $sql, { Slice => {} } );
 
 warn("aggregating devices") if DEBUG;
-
-# group this data by account
-use constant PING_MS         => 0;
-use constant SPEED_KBYTED    => 0;
-use constant MEMFREE         => 0;
-use constant GATEWAY_QUALITY => 0;
-use constant KBUP            => 0;
-use constant KBDOWN          => 0;
-use constant ROUTER_CTS      => 0;
 
 my %refined;
 my $now = DateTime->now( time_zone => "local" );
@@ -69,6 +60,8 @@ foreach my $row (@$results) {
 	users           => $row->{users},
         cts             => $dt,
         load            => $row->{load},
+        nodogs          => $row->{nodogs},
+        tcpconns        => $row->{tcpconnns},
       };
 
 }
@@ -137,6 +130,8 @@ foreach my $account_id ( keys %refined ) {
                 0,                                             # memfree
                 0,                                             # gateway quality
                 0,                                             # load
+                0,                                             # nodogs
+                0,                                             # tcpconns
             ];
         }
 
@@ -249,6 +244,12 @@ foreach my $account_id ( keys %refined ) {
 
 	    # load
             $array[$slot_idx]->[9] = $row->{load};
+
+	    # nodogs
+            $array[$slot_idx]->[10] = $row->{nodogs};
+
+	    # tcpconns
+            $array[$slot_idx]->[11] = $row->{tcpconns};
         }
 
         my ($router) =
@@ -408,7 +409,31 @@ foreach my $account_id ( keys %refined ) {
         }
         close($fh) or die $!;
 
+	##########################
+        # write out the nodogs graph
+        $filename = join( '/',
+            $account->report_dir_base, "router_" . $router_id . "_nodogs.csv" );
 
+        open( $fh, '>', $filename )
+          or die "could not open $filename: " . $!;
+
+        foreach my $line (@array) {
+            print $fh join( ',', @{$line}[ 0, 10 ] ) . "\n";
+        }
+        close($fh) or die $!;
+
+	##########################
+        # write out the tcpconns graph
+        $filename = join( '/',
+            $account->report_dir_base, "router_" . $router_id . "_tcpconns.csv" );
+
+        open( $fh, '>', $filename )
+          or die "could not open $filename: " . $!;
+
+        foreach my $line (@array) {
+            print $fh join( ',', @{$line}[ 0, 11 ] ) . "\n";
+        }
+        close($fh) or die $!;
 
         ##########################
         # write out the traffic graph
