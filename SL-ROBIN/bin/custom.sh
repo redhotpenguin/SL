@@ -2,7 +2,7 @@
 
 VERSION=0.13
 DESCRIPTION="This program installs the Silver Lining ipkg onto open-mesh.com ROBIN enabled devices\n\n"
-LICENSE="Copyright 2009 Silver Lining Networks, Inc.\n"
+LICENSE="Copyright 2009 Silver Lining Networks, Inc.  If you did not receive a copy\n"
 echo $DESCRIPTION
 echo $LICENSE
 
@@ -52,7 +52,7 @@ elif [ $KVERSION -eq 26 ] ; then
 
     SL_VER=0.22
     KMOD_SLN_RELEASE=6
-    SLN_RELEASE=6
+    SLN_RELEASE=7
     KERNEL=2.6.26.8
     TOOL=/bin/opkg
     KMOD_EXT=$KERNEL+$SL_VER-atheros-$KMOD_SLN_RELEASE
