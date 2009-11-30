@@ -59,7 +59,7 @@ checkin_dashboard () {
     echo "check SL dashboard..."
     DASHBOARD_SL="https://app.silverliningnetworks.com/sl/checkin"
 	NODOGS=$(pgrep nodogsplash | wc -l)
-	TCPCONNS=$(cat /proc/net/nf_conntrack_count)
+	TCPCONNS=$(cat /proc/net/nf_conntrack | wc -l)
 	SL_URL="${DASHBOARD_SL}?${data}&nodogs=${NODOGS}&tcpconns=${TCPCONNS}"
     $(wget $wget_opt_ssl "${SL_URL}")
 	if [ "$?" -ne 0 ] ; then
