@@ -11,7 +11,10 @@ start() {
 	logger -s -t "$ME" "starting..."
 
 	# turn nodogsplash thread limiting
-	$(uci set cp_switch.handler_1.max_threads=32)
+	$(uci set cp_switch.handler_1.max_threads=16)
+
+	# force reboot on oops
+	$(echo 1 > /proc/sys/kernel/panic_on_oops)
 
 	# set the cron mod to a random time
 	$(/usr/bin/microperl /usr/bin/sl_cron)
@@ -22,6 +25,7 @@ start() {
 
 		# restart dnsmasq
 		kill $(pgrep dnsmasq)
+		sleep 1
 		dnsmasq -C $(cat /tmp/dnsmasq.args)
 	fi
 }
