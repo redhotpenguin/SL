@@ -14,7 +14,7 @@ our $RMMOD       = '/sbin/rmmod';
 our $INSMOD      = '/sbin/insmod';
 our $LSMOD       = '/sbin/lsmod';
 our $IPTABLES    = '/usr/sbin/iptables';
-our $VERSION     = '02213';
+our $VERSION     = '02214';
 our $WGET        = '/usr/bin/wget -T 30 -t 3';
 $|++;
 
@@ -225,6 +225,9 @@ sub start_sln {
 
     # first make sure the base nodogsplash rules are in effect
     return unless _nodog_active();
+
+	# pull the tun module just to be safe
+	`$RMMOD tun`;
 
     # load the kernel modules
     $macaddr =~ s/\://g;
