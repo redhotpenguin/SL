@@ -5,7 +5,7 @@
 # if you have not received a copy of the license with this software, please
 # email support@silverliningnetworks.com for a copy
 
-our $DEBUG       = 0;
+our $DEBUG       = 1;
 our $CONFIG_FILE = '/etc/sl/sl.conf';
 our $ATTEMPTS    = 0;
 our $UCI         = '/sbin/uci';
@@ -297,7 +297,8 @@ sub _teardown_sln {
     my $base = <<BASE;
 $IPTABLES -t nat -D ndsOUT -i $int -p tcp -m tcp --dport 8135 -j DNAT --to :80
 $IPTABLES -t nat -D ndsOUT -m tcp -p tcp --dport 80 -m mark --mark 0x400/0x700 -j ndsSLN
-$IPTABLES -t nat -I ndsOUT -m mark --mark 0x400/0x700 -j ACCEPT
+$IPTABLES -t nat -D ndsOUT -m mark --mark 0x400/0x700 -j ACCEPT
+$IPTABLES -t nat -I ndsOUT 2 -m mark --mark 0x400/0x700 -j ACCEPT
 $IPTABLES -t nat -F ndsSLN
 $IPTABLES -t nat -X ndsSLN
 BASE
