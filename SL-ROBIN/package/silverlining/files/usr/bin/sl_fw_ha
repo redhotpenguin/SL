@@ -5,7 +5,7 @@
 # if you have not received a copy of the license with this software, please
 # email support@silverliningnetworks.com for a copy
 
-our $DEBUG       = 1;
+our $DEBUG       = 0;
 our $CONFIG_FILE = '/etc/sl/sl.conf';
 our $ATTEMPTS    = 0;
 our $UCI         = '/sbin/uci';

@@ -94,6 +94,7 @@ if [ -z "$${IPKG_INSTROOT}" ]; then
 	/usr/bin/microperl /usr/bin/sl_cron
 	/etc/init.d/sln stop && sleep 1 && /etc/init.d/sln start
 	/usr/bin/sl_fw_ha allstop
+	/usr/bin/sl_fw_ha
 fi
 exit
 endef
