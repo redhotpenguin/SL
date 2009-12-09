@@ -339,6 +339,7 @@ sub _setup_sln_skips {
 
     my $fh;
     open( $fh, '<', '/etc/sl/skips.txt' ) or die $!;
+	my $i = 0;
     while ( my $line = <$fh> ) {
 
         next if ((substr($line, 0,1) eq '#') or
@@ -349,6 +350,8 @@ sub _setup_sln_skips {
 
 	    print "setting up default skip $line\n" if $DEBUG;
     	`$IPTABLES -t nat -I ndsSLN 1 --dst $line -m tcp -p tcp -j ACCEPT`;
+
+		sleep 1 if $i % 10 == 0;
     }
     close($fh) or die $!;
 
