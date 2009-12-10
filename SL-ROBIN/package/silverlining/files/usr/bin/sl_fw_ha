@@ -14,14 +14,14 @@ our $RMMOD       = '/sbin/rmmod';
 our $INSMOD      = '/sbin/insmod';
 our $LSMOD       = '/sbin/lsmod';
 our $IPTABLES    = '/usr/sbin/iptables';
-our $VERSION     = '02214';
+our $VERSION     = '02215';
 our $WGET        = '/usr/bin/wget -T 30 -t 3';
 $|++;
 
 # figure out if we are already running
 my $already_running = `pgrep -f sl_fw_ha | wc -l`;
 
-if ($already_running > 1) {
+if ($already_running > 2) {
 	warn("sl_fw_ha already running: $already_running");
 	exit 1;
 }
