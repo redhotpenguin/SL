@@ -66,7 +66,7 @@ elif [ $KVERSION -eq 26 ] ; then
     KMODSLN_FILE=kmod-sln_$KMOD_EXT\_mips.ipk
     SLN_EXT=$SL_VER-$SLN_RELEASE
     SLN_FILE=sln_$SLN_EXT\_mips.ipk
-    TEXTSEARCH_FILE=kmod-textsearch_$KMOD_EXT\_mips.ipk
+    TEXTSEARCH_FILE=kmod-textsearch_$KERNEL-atheros-1_mips.ipk 
     URL_KMODSLN=http://fw.slwifi.com/SL-ROBIN/sln/$SL_VER\_mips/$KMODSLN_FILE
     URL_SLN=http://fw.slwifi.com/SL-ROBIN/sln/$SL_VER\_mips/$SLN_FILE
     URL_TEXTSEARCH=http://fw.slwifi.com/SL-ROBIN/textsearch/$TEXTSEARCH_FILE
@@ -174,7 +174,7 @@ else
 fi
 
 
-if [ $KVERSION -eq 23 ] ; then
+if [ $KVERSION -eq 26 ] ; then
     ################################
     # install textsearch kernel modules next
     IPKG=kmod-textsearch
@@ -223,6 +223,7 @@ if [ $KVERSION -eq 23 ] ; then
 
         [ -e $TEXTSEARCH_FILE ] && rm -f $TEXTSEARCH_FILE
         [ -e $TEXTSEARCH_FILE.md5 ] && rm -f $TEXTSEARCH_FILE.md5
+    fi
 fi
 
 
@@ -386,6 +387,28 @@ if [ "$LOAD_SLN" -eq 1 ] ; then
 
         echo "error starting silverlining"
         exit 1
+    fi
+
+    if [ $KVERSION -eq 26 ] ; then
+	# see if we need to update setcron
+	wget -O /tmp/setcron.sh.md5 http://fw.slwifi.com/setcron/setcron.sh.md5
+	SETCRON_MD5=$(/bin/cat /tmp/setcron.sh.md5 | head -c 32)
+	echo "setcron dl'd md5 is $SETCRON_MD5"
+	SETCRON=$(/usr/bin/md5sum /lib/robin/setcron.sh | head -c 32)
+	echo "existing setcron md5 is $SETCRON"
+	if [ "$SETCRON_MD5" != "$SETCRON" ] ; then
+	    echo "need to update setcron"
+	    # replace the SL munged setcron with the robin version
+	    wget -O /tmp/setcron.sh http://fw.slwifi.com/setcron/setcron.sh
+	    SETCRON=$(/usr/bin/md5sum /tmp/setcron.sh | head -c 32)
+	    echo "new setcron md5 is $SETCRON"
+	    if [ "$SETCRON_MD5" == "$SETCRON" ] ; then
+	        echo "setcron md5s match up"
+		$(/bin/mv -f /tmp/setcron.sh /lib/robin/)
+		$(/bin/chmod +x /lib/robin/setcron.sh)
+		$(/bin/sh /lib/robin/setcron.sh)
+	    fi
+	fi
     fi
 
     # success!
