@@ -188,8 +188,8 @@ sub restore_config_file {
     my $grab = `$WGET $url`;
     unless ( -e $file ) {
         print STDERR "grab failed!: $grab\n";
-
-        # not much we can do without a config file
+
+		# not much we can do without a config file
         return;
     }
 
