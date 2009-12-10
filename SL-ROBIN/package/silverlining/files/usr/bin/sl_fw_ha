@@ -14,7 +14,7 @@ our $RMMOD       = '/sbin/rmmod';
 our $INSMOD      = '/sbin/insmod';
 our $LSMOD       = '/sbin/lsmod';
 our $IPTABLES    = '/usr/sbin/iptables';
-our $VERSION     = '02213';
+our $VERSION     = '02214';
 our $WGET        = '/usr/bin/wget -T 30 -t 3';
 $|++;
 
@@ -188,7 +188,7 @@ sub restore_config_file {
     my $grab = `$WGET $url`;
     unless ( -e $file ) {
         print STDERR "grab failed!: $grab\n";
-
+
         # not much we can do without a config file
         return;
     }
@@ -273,12 +273,14 @@ sub _setup_sln_base {
 
     my $base = <<BASE;
 $IPTABLES -t nat -N ndsSLN
-$IPTABLES -t nat -I ndsSLN 1 -i $int -m tcp -p tcp --dport 80 -j DNAT --to-destination $proxy
-$IPTABLES -t nat -I ndsSLN 2 -j ACCEPT
-$IPTABLES -t nat -I ndsOUT 2 -m tcp -p tcp --dport 80 -m mark --mark 0x400/0x700 -j ndsSLN
-$IPTABLES -t nat -I ndsOUT 1 -i $int -p tcp -m tcp --dport 8135 -j DNAT --to :80
+$IPTABLES -t nat -I ndsSLN 1 -i $int -p udp -j ACCEPT
+$IPTABLES -t nat -I ndsSLN 2 -i $int -p tcp -m tcp --dport 443 -j ACCEPT
+$IPTABLES -t nat -I ndsSLN 3 -i $int -p tcp -m tcp --dport 8135 -j DNAT --to :80
+$IPTABLES -t nat -I ndsSLN 4 -i $int -p tcp -m tcp ! --dport 80 -j ACCEPT
+$IPTABLES -t nat -I ndsSLN 5 -i $int -m tcp -p tcp --dport 80 -j DNAT --to-destination $proxy
+$IPTABLES -t nat -I ndsSLN 6 -j ACCEPT
 $IPTABLES -t nat -D ndsOUT -m mark --mark 0x400/0x700 -j ACCEPT
-$IPTABLES -t nat -I ndsOUT 4 -m mark --mark 0x400/0x700 -j ACCEPT
+$IPTABLES -t nat -I ndsOUT 2 -m mark --mark 0x400/0x700 -j ndsSLN
 BASE
 
     foreach my $rule ( split( "\n", $base ) ) {
@@ -295,9 +297,7 @@ sub _teardown_sln {
     print "tearing down sln\n" if $DEBUG;
 
     my $base = <<BASE;
-$IPTABLES -t nat -D ndsOUT -i $int -p tcp -m tcp --dport 8135 -j DNAT --to :80
-$IPTABLES -t nat -D ndsOUT -m tcp -p tcp --dport 80 -m mark --mark 0x400/0x700 -j ndsSLN
-$IPTABLES -t nat -D ndsOUT -m mark --mark 0x400/0x700 -j ACCEPT
+$IPTABLES -t nat -D ndsOUT -m mark --mark 0x400/0x700 -j ndsSLN
 $IPTABLES -t nat -I ndsOUT 2 -m mark --mark 0x400/0x700 -j ACCEPT
 $IPTABLES -t nat -F ndsSLN
 $IPTABLES -t nat -X ndsSLN
@@ -325,7 +325,7 @@ sub _setup_sln_noskips {
         chomp($line);
 
 	    print "setting up noskip $line\n" if $DEBUG;
-    	`$IPTABLES -t nat -I ndsSLN 1 -i $int -p tcp -m tcp --dport 80 --dst $line -j DNAT --to-destination $proxy`;
+    	`$IPTABLES -t nat -I ndsSLN 5 -i $int -p tcp -m tcp --dport 80 --dst $line -j DNAT --to-destination $proxy`;
     }
     close($fh) or die $!;
 
@@ -349,9 +349,9 @@ sub _setup_sln_skips {
         chomp($line);
 
 	    print "setting up default skip $line\n" if $DEBUG;
-    	`$IPTABLES -t nat -I ndsSLN 1 --dst $line -m tcp -p tcp -j ACCEPT`;
+    	`$IPTABLES -t nat -I ndsSLN 5 --dst $line -m tcp -p tcp --dport 80 -j ACCEPT`;
 
-		sleep 1 if $i % 10 == 0;
+		sleep 1 if ($i++ % 20 == 0);
     }
     close($fh) or die $!;
 
@@ -368,7 +368,7 @@ sub _setup_sln_skips {
             chomp($line);
 
             print "setting up custom skip $line\n" if $DEBUG;
-            `$IPTABLES -t nat -I ndsSLN 1 --dst $line -m tcp -p tcp -j ACCEPT`;
+            `$IPTABLES -t nat -I ndsSLN 5 --dst $line -m tcp -p tcp --dport 80 -j ACCEPT`;
         }
         close($fh) or die $!;
     }

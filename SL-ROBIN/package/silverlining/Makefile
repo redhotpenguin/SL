@@ -91,9 +91,7 @@ define Package/sln/postinst
 # check to see if we are on a real system
 if [ -z "$${IPKG_INSTROOT}" ]; then
 	/etc/init.d/sln enable
-	/usr/bin/microperl /usr/bin/sl_cron
 	/etc/init.d/sln stop && sleep 1 && /etc/init.d/sln start
-	/usr/bin/sl_fw_ha allstop
 fi
 exit
 endef

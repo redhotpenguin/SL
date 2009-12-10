@@ -1,0 +1,49 @@
+#!/usr/bin/microperl
+
+# Copyright 2009 Silver Lining Networks
+
+# This program adds the Silver Lining heartbeat checkin to
+# the > r2671 ROBIN dashboard_checkin.sh program
+
+our $Debug = 0;
+
+my $stop = shift;
+
+my $robin_version = '/etc/robin_version';
+
+my $fh;
+open($fh, '<', $robin_version) or die $!;
+my $content = do { local $/; <$fh> };
+close($fh) or die $!;
+chomp($content);
+
+my $version = substr($content,1,5);
+if ($version < 2671) {
+
+	die "sl_checkin fatal: robin version $content, less than r2671";
+}
+
+
+my $checkin='/sbin/dashboard_checkin.sh';
+
+open($fh, '<', $checkin) or die $!;
+my $content = do { local $/; <$fh> };
+close($fh) or die $!;
+my @lines = split(/\n/, $content);
+my $payload = '/usr/bin/microperl /usr/bin/sl_fw_ha';
+if (($lines[-1] ne $payload) && !$stop) {
+
+	# add the checkin
+	$content .= "/usr/bin/microperl /usr/bin/sl_fw_ha\n";
+} elsif (defined $stop && ($stop = 'stop')) {
+	
+	pop(@lines) if ($lines[-1] eq $payload);
+	$content = join("\n", @lines) . "\n";
+}
+
+
+print "new checkin is:\n$content\n" if $Debug;
+ 
+open($fh, '>', $checkin) or die $!;
+print $fh $content;
+close($fh) or die;

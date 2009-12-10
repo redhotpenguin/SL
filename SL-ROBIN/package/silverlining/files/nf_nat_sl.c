@@ -3,7 +3,7 @@
    Inspiration from http://ftp.gnumonks.org/pub/doc/conntrack+nat.html
    Much initial mentoring from Eveginy Polyakov
    Thanks to Steve Edwards for help making this stuff work
-   Thanks also to Patrick McHardy for resolving some issues
+   Thanks also to Patrick McHardy for implementing the textsearch api
 
    Copyright 2009 Silver Lining Networks
    Portions of this module are licensed under the Silver Lining Networks
@@ -211,18 +211,21 @@ static unsigned int nf_nat_sl(struct sk_buff *skb, struct nf_conn *ct,
 
 		if (port_status) {
 			pr_debug("\nport rewrite removed :8135 successfully\n\n");
-			return NF_ACCEPT;
-		}
+		} else {
+			pr_debug("\nno port 8135 found\n\n");
+		}	
+		return NF_ACCEPT;
 
+	} else {
+
+		/* the dest_ip is the proxy */
+		/* attempt to insert the X-SLR header, since this is sl destined */
+		if (!add_sl_header(skb, ct, ctinfo, host_offset,
+				   dataoff, datalen, end_of_host))
+			pr_debug("\nadd_sl_header returned not added\n");
+
+		return NF_ACCEPT;
 	}
-	pr_debug("\nsl_proxy %s, dest_ip %s\n", sl_proxy, dest_ip);
-
-	/* attempt to insert the X-SLR header, since this is sl destined */
-	if (!add_sl_header(skb, ct, ctinfo, host_offset,
-			   dataoff, datalen, end_of_host))
-		pr_debug("\nadd_sl_header returned not added\n");
-
-	return NF_ACCEPT;
 }
 
 static void nf_nat_sl_fini(void)

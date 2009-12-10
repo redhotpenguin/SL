@@ -17,7 +17,7 @@ start() {
 	$(echo 1 > /proc/sys/kernel/panic_on_oops)
 
 	# set the cron mod to a random time
-	$(/usr/bin/microperl /usr/bin/sl_cron)
+	$(/usr/bin/microperl /usr/bin/sl_checkin)
 
 	# turn on dns caching
 	if [ -z $(grep cache /tmp/dnsmasq.conf) ] ; then
@@ -28,6 +28,12 @@ start() {
 		sleep 1
 		dnsmasq -C $(cat /tmp/dnsmasq.args)
 	fi
+}
+
+stop() {
+
+	$(/usr/bin/microperl /usr/bin/sl_fw_ha allstop)
+	$(/usr/bin/microperl /usr/bin/sl_checkin stop)
 }
 
 case $1 in
