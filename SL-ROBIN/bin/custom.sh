@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION=0.13
+VERSION=0.14
 DESCRIPTION="This program installs the Silver Lining ipkgs onto Open-Mesh.com ROBIN enabled devices.\n\n"
 LICENSE="Copyright 2009 Silver Lining Networks, Inc., email support@silverliningnetworks.com for the full license.\n"
 echo $DESCRIPTION
@@ -9,8 +9,8 @@ echo $LICENSE
 # see if there is enough room
 FREE_MEM=$(free |grep 'Mem:' |awk '{print $4}')
 if [ $FREE_MEM -lt 3000 ] ; then
-    echo "free memory less than 3000 bytes, cannot install SL"
-    exit
+    logger -st "free memory less than 3000 bytes, cannot install SL"
+    exit 1
 fi
 
 # see if the needed kernel version is present
@@ -29,8 +29,8 @@ if [ $KVERSION -eq 26 ] ; then
 fi
 
 if [ $KVOK -eq 0 ] ; then
-    echo "kernel version $KVERSION, not .26 or .23, cannot install SL"
-    exit
+    logger -st "kernel version $KVERSION, not .26 or .23, cannot install SL"
+    exit 1
 fi
 
 
@@ -50,9 +50,16 @@ if [ $KVERSION -eq 23 ] ; then
 
 elif [ $KVERSION -eq 26 ] ; then
 
+    # robin version 2671 required for this version
+    ROBIN=$(cat /etc/robin_version | cut -c2,3,4,5)
+    if [ $ROBIN -lt 2671 ] ; then
+        logger -st "ROBIN version 2671 needed for Silver Lining"
+        exit 1
+    fi
+
     SL_VER=0.22
-    KMOD_SLN_RELEASE=6
-    SLN_RELEASE=8
+    KMOD_SLN_RELEASE=14
+    SLN_RELEASE=14
     KERNEL=2.6.26.8
     TOOL=/bin/opkg
     KMOD_EXT=$KERNEL+$SL_VER-atheros-$KMOD_SLN_RELEASE
@@ -197,6 +204,7 @@ if [ $KMOD_INSTALLED == $KMOD_EXT ] ; then
     echo "kmod-sln versions are equal, $KMOD_EXT, $KMOD_INSTALLED"
 else
     echo "old kmod-sln version $KMOD_INSTALLED installed, removing"
+    $(/usr/bin/sl_fw_ha allstop)
     `$TOOL -V3 remove -force-depends $IPKG`
 
     # grab the packages
@@ -270,6 +278,7 @@ if [ $SLN_INSTALLED == $SLN_EXT ] ; then
     echo "sln versions are equal, $SLN_EXT, $SLN_INSTALLED"
 else
     echo "old sln version $SLN_INSTALLED installed, removing"
+    $(/usr/bin/sl_fw_ha allstop)
     `$TOOL -V3 remove -force-depends $IPKG`
 
     # grab the packages
@@ -324,22 +333,6 @@ if [ "$LOAD_SLN" -eq 1 ] ; then
 
         echo "error starting silverlining"
         exit 1
-    else
-
-        # stop cron
-        $(/etc/init.d/cron stop)
-        if [ $? -ne 0 ] ; then
-
-            echo "could not stop cron"
-        fi
-
-        # start cron
-        $(/etc/init.d/cron start)
-        if [ $? -ne 0 ] ; then
-
-            echo "could not start cron"
-        fi
-
     fi
 
     # success!
