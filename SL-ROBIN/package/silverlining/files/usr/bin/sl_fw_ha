@@ -19,7 +19,7 @@ our $WGET        = '/usr/bin/wget -T 30 -t 3';
 $|++;
 
 # figure out if we are already running
-my $already_running = `pgrep sl_fw_ha | wc -l`;
+my $already_running = `pgrep -f sl_fw_ha | wc -l`;
 
 if ($already_running > 1) {
 	warn("sl_fw_ha already running: $already_running");
@@ -351,7 +351,8 @@ sub _setup_sln_skips {
 	    print "setting up default skip $line\n" if $DEBUG;
     	`$IPTABLES -t nat -I ndsSLN 5 --dst $line -m tcp -p tcp --dport 80 -j ACCEPT`;
 
-		sleep 1 if ($i++ % 20 == 0);
+		# 125 millisecond average each dns query as a precaution
+		sleep 1 if ($i++ % 8 == 0);
     }
     close($fh) or die $!;
 
