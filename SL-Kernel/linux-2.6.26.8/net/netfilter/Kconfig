@@ -636,6 +636,15 @@ config NETFILTER_XT_MATCH_MAC
 
 	  To compile it as a module, choose M here.  If unsure, say N.
 
+config NETFILTER_XT_MATCH_AAAA
+	tristate '"AAAA" DNS request match support'
+	depends on NETFILTER_XTABLES
+	depends on NETFILTER_ADVANCED
+	help
+	  This module allows matching AAAA DNS requests.
+
+	  To compile it as a module, choose M here.  If unsure, say N.
+
 config NETFILTER_XT_MATCH_MARK
 	tristate '"mark" match support'
 	depends on NETFILTER_XTABLES
