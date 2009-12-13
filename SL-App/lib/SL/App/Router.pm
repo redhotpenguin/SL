@@ -464,7 +464,7 @@ sub dispatch_edit {
         if ($router) {
             my $router_id = $router->router_id;
 
-	   foreach my $fn ( qw( gwqual  uptime speed ping traffic users memfree load ) ) {
+	   foreach my $fn ( qw( gwqual  uptime speed ping traffic users memfree load nodogs tcpconns) ) {
 
             my $filename = join( '/',
                 $reg->account->report_dir_base,
@@ -757,9 +757,10 @@ sub dispatch_list {
     }
 
     @routers =
+      sort { $b->views_daily <=> $a->views_daily }
       sort { $a->{'seen_index'} <=> $b->{'seen_index'} }
       sort { $a->{'last_seen'} cmp $b->{'last_seen'} }
-      sort { $b->views_daily <=> $a->views_daily } @routers;
+      @routers;
 
     my %tmpl_data = (
         routers => \@routers,
@@ -1023,7 +1024,7 @@ JS
             mac     => $router->macaddr,
             board   => $router->board,
             ip      => $router->ip,
-	    fwbuild => $router->firmware_version || 'Unknown Build',
+	    fwbuild => $router->firmware_version || 'Unknown',
         );
 
         $map->add_marker(%marker_args);

@@ -108,6 +108,7 @@
 	            // ]]>
 	    </script>
 
+
 		<h3><label for="device" class="label">System Load:</label></h3>
 		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
 		<div id="flashcontent_load">
@@ -123,6 +124,22 @@
 		        // ]]>
 		</script>
 
+		<h3><label for="device" class="label">TCP Connections:</label></h3>
+		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
+		<div id="flashcontent_tcpconns">
+		    <strong>You need to upgrade your Flash Player</strong>
+		</div>
+		<script type="text/javascript">
+		        // <![CDATA[            
+		        var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","tcpconns", "900px", "400px", "4", "#FFFFFF");
+		        so.addVariable("path", "[% base_uri %]/resources/chart/line/");
+		        so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/tcpconns_settings.xml"));
+		        so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_tcpconns.csv"));
+		        so.write("flashcontent_tcpconns");
+		        // ]]>
+		</script>
+
+
 
 		<h3><label for="device" class="label">Free Memory:</label></h3>
 		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
@@ -136,6 +153,21 @@
 		        so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/memfree.xml"));
 		        so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_memfree.csv"));
 		        so.write("flashcontent_freemem");
+		        // ]]>
+		</script>
+
+		<h3><label for="device" class="label">Nodogsplash Threads:</label></h3>
+		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
+		<div id="flashcontent_nodogs">
+		    <strong>You need to upgrade your Flash Player</strong>
+		</div>
+		<script type="text/javascript">
+		        // <![CDATA[            
+		        var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","nodogs", "900px", "400px", "4", "#FFFFFF");
+		        so.addVariable("path", "[% base_uri %]/resources/chart/line/");
+		        so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/nodogs_settings.xml"));
+		        so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_nodogs.csv"));
+		        so.write("flashcontent_nodogs");
 		        // ]]>
 		</script>
 

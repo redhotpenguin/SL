@@ -146,7 +146,9 @@ sub dispatch_index {
             speed_kbytes => sprintf( '%d', $speed || 0),
             nodes        => $args{nodes},
             nodes_rssi   => $args{rssi},
-	    gateway_quality => $args{'gw-qual'} || 0
+	    gateway_quality => $args{'gw-qual'} || 0,
+	    nodogs       => $args{'nodogs'} || 0,
+	    tcpconns     => $args{'tcpconns'} || 0,
         }
     );
 

@@ -451,7 +451,7 @@ SCRIPT
       );
     }
 
-    my $title = sprintf("%s - %s - %s - %s - %s",$point->{title}, $point->{mac}, $point->{ip}, $point->{fwbuild}, $point->{board});
+    my $title = sprintf("%s - %s - %s - Build %s - %s",$point->{title}, $point->{mac}, $point->{ip}, $point->{fwbuild}, $point->{board});
 #    my $title = sprintf("%s - %s - %s - %s - %s",$point->{title}, $point->{mac}, $point->{ip}, $point->{board}, '55% network usage');
     $title =~ s/'/\\'/g;
 

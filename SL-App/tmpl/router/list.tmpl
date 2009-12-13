@@ -28,12 +28,12 @@
 					<div class="grid_8">
 						<h3><a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">[% router.name or router.macaddr %]</a></h3>
 						<p>
-							<strong>[% router.device %]</strong>, 
-							MAC: [% router.macaddr %], 
+							Device: <strong>[% router.board %]</strong>, 
+							MAC: <strong>[% router.macaddr %]</strong>, 
 							[% IF router.device=='wrt54gl' %]SSID: [% router.ssid or '?'  %],[% END %] 
 							Last seen:[% router.last_seen or '?'  %],  
-							[% IF router.device=='mr3201a' %]Ad bar:  [% IF router.adserving==1 %]On[% ELSE %]Off[% END %],[% END %]  
-							<br/><strong>Ad views yesterday: [% router.views_daily  %]</strong>
+							[% IF router.device=='mr3201a' %]Ad bar:  <strong>[% IF router.adserving==1 %]On[% ELSE %]Off[% END %]</strong>,[% END %]  
+							<br/>Ad views yesterday: <strong>[% router.views_daily  %]</strong>, Firmware Build: <strong>[% router.firmware_version %]</strong>
 						</p>
 					</div>
 					<div class="grid_1 omega">
