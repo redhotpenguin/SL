@@ -118,7 +118,7 @@ foreach my $account_id ( keys %refined ) {
         warn("processing router id $router_id") if DEBUG;
 
         my @array;
-        for ( 0 .. ( 24 * 12 ) ) {    # 5 minutes
+        for ( 0 .. ( 24 * 12 ) + 1 ) {    # 5 minutes
             push @array, [
                 $yesterday->clone->add( minutes => 5 * $_ ),    # cts
                 0,                                             # kbdown
