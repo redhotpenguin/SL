@@ -731,12 +731,12 @@ sub dispatch_list {
 
         my $minutes = sprintf( '%d', $sec / 60 );
 
-        if ( $sec <= 360 ) {
+        if ( $sec <= 600 ) {
             $router->{'last_seen'} =
               qq{<font color="green"><b>$sec sec</b></font>};
             $router->{'seen_index'} = 1;
         }
-        elsif ( ( $sec > 360 ) && ( $minutes <= 60 ) ) {
+        elsif ( ( $sec > 600 ) && ( $minutes <= 60 ) ) {
             $router->{'last_seen'} =
               qq{<font color="red"><b>$minutes min</b></font>};
             $router->{'seen_index'} = 2;
@@ -961,11 +961,11 @@ JS
 
         my $minutes = sprintf( '%d', $sec / 60 );
 	my $type;
-        if ( $sec <= 360) {
+        if ( $sec <= 600) {
             
 	    $type = 'active';
         }
-        elsif ( ( $sec > 360 ) && ( $minutes <= 60*2 ) ) {
+        elsif ( ( $sec > 600 ) && ( $minutes <= 60*2 ) ) {
             $type = 'alerting';
             $problem_nodes++;
 	}
