@@ -7,6 +7,7 @@
 <div class="clear"></div>
 [% END %]
 
+[%  USE Number.Format(GIGA_SUFFIX = ' GB', MEGA_SUFFIX = ' MB') %]
 <div class="grid_10 suffix_1">
 	[% IF msg %]
 		<p class="success margin_b_20">[% msg %]</p>
@@ -33,7 +34,7 @@
 							[% IF router.device=='wrt54gl' %]SSID: [% router.ssid or '?'  %],[% END %] 
 							Last seen:[% router.last_seen or '?'  %],  
 							[% IF router.device=='mr3201a' %]Ad bar:  <strong>[% IF router.adserving==1 %]On[% ELSE %]Off[% END %]</strong>,[% END %]  
-							<br/>Ad views yesterday: <strong>[% router.views_daily  %]</strong>, Firmware Build: <strong>[% router.firmware_version %]</strong>
+							<br/>24 hour users: <strong>[% router.users_daily %]</strong>, 24 hour traffic: <strong>[% router.traffic_daily * 1024 *1024 | format_bytes %]</strong>, Firmware Build: <strong>[% router.firmware_version %]</strong>
 						</p>
 					</div>
 					<div class="grid_1 omega">

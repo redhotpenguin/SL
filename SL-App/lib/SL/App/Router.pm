@@ -757,7 +757,8 @@ sub dispatch_list {
     }
 
     @routers =
-      sort { $b->views_daily <=> $a->views_daily }
+      sort { $b->traffic_daily <=> $a->traffic_daily }
+      sort { $b->users_daily <=> $a->users_daily }
       sort { $a->{'seen_index'} <=> $b->{'seen_index'} }
       sort { $a->{'last_seen'} cmp $b->{'last_seen'} }
       @routers;
