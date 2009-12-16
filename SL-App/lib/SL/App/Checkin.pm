@@ -65,6 +65,8 @@ sub dispatch_index {
     # update the latest seen users
     $router->clients( $args{users} );
 
+    $router->robin( $args{robin} );
+
     # gateway or repeater?
     my ( $speed, $units );
     if ( ( defined $args{role} ) && ( $args{role} eq 'G' ) ) {
@@ -136,6 +138,7 @@ sub dispatch_index {
     # log the router entry
     my $checkin = SL::Model::App->resultset('Checkin')->create(
         {
+	    robin        => $args{robin} || 'unknown',
             router_id    => $router->router_id,
             memfree      => $args{memfree} || 0,
 	    load         => $args{load} || 0,
