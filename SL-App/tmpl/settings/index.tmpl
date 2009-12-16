@@ -12,7 +12,6 @@
 	
 
 
-	[% IF reg.account.plan != 'free' %]
 	<div class="row">
     <h3>Advertise Here Ad Bar Link</h3>
 		<form class="form" method="post" action="[% base_uri %]/app/settings/market">
@@ -21,7 +20,7 @@
 
 			    <div class="check_label">
 
-<label class="check_label">Set the 'Advertise Here' link on the Ad Bar[% IF reg.account.plan == 'free' %] (changeable with paid accounts only)[% END %].  The <a href="http://www.silverliningnetworks.com/site/advertise_here.html?">default link</a> is to the Silver Lining Merchant Gateway, where advertising purchases through the Merchant Gateway will be displayed in the Profit Center.</label>
+<label class="check_label">Set the 'Advertise Here' link on the Ad Bar[% IF reg.account.plan == 'free' %] (<a href="http://www.silverliningnetworks.com/pricing/?email=[% reg.email %]">paid accounts only</a>)[% END %].  The <a href="http://www.silverliningnetworks.com/site/advertise_here.html?">default link</a> is to the Silver Lining Merchant Gateway, where advertising purchases through the Merchant Gateway will be displayed in the Profit Center.</label>
 				<input size="40" type="text" name="marketplace" id="marketplace" [% IF reg.account.plan == 'free' %]readonly="1"[% END %] value="[% reg.account.advertise_here %]">&nbsp;&nbsp;<a href="http://www.silverliningnetworks.com/site/advertise_here.html?">Merchant Gateway Link</a>
 
 
@@ -36,7 +35,6 @@
 			</ul>
 		</form>
         </div>
-	[% END %]
 	
 		
 
