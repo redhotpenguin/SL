@@ -271,8 +271,14 @@ sub dispatch_payment {
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
+	my $slgateway;
+	if (substr($reg->account->advertise_here, 0, 31) == 'http://www.silverliningnetworks') {
+		$slgateway=1;
+	}
+
         my %tmpl_data = (
-            req      => $req,
+  	    slgateway => $slgateway,
+	    req      => $req,
             total    => $total,
             payments => \@payments,
             errors   => $args_ref->{errors},
