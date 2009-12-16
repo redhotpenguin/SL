@@ -93,7 +93,7 @@ sub dispatch_publisher {
                 retype => $class->check_retype(
                     { fields => [ 'password', 'retype' ] }
                 ),
-    		state       => state_or_province(),
+    	#	state       => state_or_province(),
 		email       => email(),
                # zip         => zip_or_postcode(), intl
                 first_name  => $class->valid_first,

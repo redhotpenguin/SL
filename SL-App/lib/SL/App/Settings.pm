@@ -76,17 +76,19 @@ sub dispatch_market {
 
         $r->log->debug("setting marketplace to " . $req->param('marketplace')) if DEBUG;
 
-        $r->pnotes('session')->{msg} = "Ad Marketplace Enabled";
-        $reg->account->advertise_here( $Config->sl_advertise_here
-              . '?network='
-              . $reg->account_id );
+	my $advertise_here = $req->param('marketplace');
+	if ($advertise_here eq 'http://www.silverliningnetworks.com/site/advertise_here.html?') {
+		$advertise_here .= 'network=' . $reg->account_id;
+	}
+
+        $reg->account->advertise_here( $advertise_here );
     }
     else {
         $r->log->debug("setting marketplace to off") if DEBUG;
-        $r->pnotes('session')->{msg} = "Ad Marketplace Disabled";
-        $reg->account->advertise_here(undef);
+        $reg->account->advertise_here('http://www.silverliningnetworks.com/site/advertise_here.html?network=' . $reg->account_id);
     }
 
+    $r->pnotes('session')->{msg} = "Advertise Here Link Updated";
     $reg->account->update;
     $r->headers_out->set( Location => $r->headers_in->{'Referer'} );
     return Apache2::Const::REDIRECT;
