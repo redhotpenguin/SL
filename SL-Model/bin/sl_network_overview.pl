@@ -48,7 +48,6 @@ foreach my $row (@$results) {
         kbup   => $row->{kbup},
         kbdown => $row->{kbdown},
         cts    => $dt,
-        #cts    => DateTime::Format::Pg->parse_datetime( $row->{cts} ),
       };
 }
 
@@ -86,16 +85,16 @@ foreach my $row (@$users) {
 }
 
 foreach my $account_id ( keys %refined ) {
-	warn("processing account $account_id") if DEBUG;
+    warn("processing account $account_id") if DEBUG;
 
     # every 15 minutes for 24 hours is 4*24 = 96 - time, kbdown, kbup
     # setup an array to hold the data
 
-	warn("building interval array") if DEBUG;
+    warn("building interval array") if DEBUG;
     my @array;
     for ( 1 .. 24 * 12 ) {    # 5 minutes
         push @array,
-          [ $now->clone->subtract( minutes => 5 * $_ - 1 ), # cts
+          [ $now->clone->add( minutes => 5 * $_ ), # cts
             0, # kbdown
             0, # kbup
             0, # users
@@ -112,83 +111,97 @@ foreach my $account_id ( keys %refined ) {
         my $router_traffic = 0;
         my ( %last_row, %placeholder );
 
-TIMES:
-	foreach my $row ( sort { $a->{cts}->epoch <=> $b->{cts}->epoch }
-            @{ $refined{$account_id}{routers}{$router_id} } )
-        {
+        my @sorted_checkins =
+		sort { $a->{cts}->epoch <=> $b->{cts}->epoch }
+		@{ $refined{$account_id}{routers}{$router_id} };
 
-            # handle first row
-            unless ( keys %last_row ) {
-                %last_row = (
-                    kbup   => $row->{kbup},
-                    kbdown => $row->{kbdown}
-                );
+	# start with yesterday and work forward
+        for ( my $i = 1 ; $i <= $#sorted_checkins ; $i++ ) {
+
+	    my $slot_idx;
+            # figure out what array slot this belongs in
+            for ( my $j = 0 ; $j < $#array ; $j++ ) {
+
+                # see if this row fits in the first time slot
+                unless ( (ref $array[$j]->[0] && ref $sorted_checkins[$i]->{cts} ) &&
+                    (
+                        $sorted_checkins[$i]->{cts}->epoch >=
+                        $array[$j]->[0]->epoch
+                    )
+                    && ( $sorted_checkins[$i]->{cts}->epoch <=
+                        $array[ $j + 1 ]->[0]->epoch )
+                  )
+                {
+
+                    # not in this time slot
+                    next;
+                }
+                else {
+		    warn("got slot index $j ") if DEBUG;
+		    warn("down " . $sorted_checkins[$i]->{kbdown}) if DEBUG;
+		    warn("up " . $sorted_checkins[$i]->{kbup}) if DEBUG;
+		    
+                    $slot_idx = $j;
+                    last;
+                }
+            }
+            unless (defined $slot_idx) {
+		next;
+#		warn("hey no slot idx but it is $slot_idx");
+		$sorted_checkins[$i]->{cts} = $sorted_checkins[$i]->{cts}->ymd . " - " . $sorted_checkins[$i]->{cts}->hms;
+		$array[0]->[0] = $array[0]->[0]->ymd . " " . $array[0]->[0]->hms;
+		warn("checkin range top is " . Dumper($array[0]->[0]));
+
+
+		$array[$#array]->[0] = $array[$#array]->[0]->ymd . " " . $array[$#array]->[0]->hms;
+		warn("checkin range bottom is " . Dumper($array[$#array]->[0]));
+
+                warn("checkin $i found outside time range: " . Dumper($sorted_checkins[$i]->{cts}));
+		next;
+
             }
 
-            %placeholder = (
-                kbup   => $row->{kbup},
-                kbdown => $row->{kbdown}
-            );
+            warn("found a slot $slot_idx") if VERBOSE_DEBUG;
 
-            # get the difference
-            if ( ($row->{kbup} >= $last_row{kbup}) and
-                     ($row->{kbdown} >= $last_row{kbdown} ) ) {
-                $row->{kbup}   -= $last_row{kbup};
-                $row->{kbdown} -= $last_row{kbdown};
+            # check to make sure an existing entry doesn't exist
+            if ( $array[$slot_idx]->[4] > 0 ) {
+                warn("existing checkin for array element $i") if DEBUG;
+                next;    # next checkin
             }
+            my $row      = $sorted_checkins[$i];
+            my $last_row = $sorted_checkins[ $i - 1 ];
+
+            # get the difference if traffic numbers not reset
+            if (   ( $row->{kbup} >= $last_row->{kbup} )
+                and ( $row->{kbdown} >= $last_row->{kbdown} ) )
+            {
+
+            $array[$slot_idx]->[1] = $row->{kbdown} - $last_row->{kbdown};
+            $array[$slot_idx]->[2] = $row->{kbup} - $last_row->{kbup};
+
+            } else {
+		# HACK!  Sometimes nodogsplash isn't accurate, so zero it
+
+		warn "oops - " . $row->{kbdown}/1024 . " , " . $last_row->{kbdown}/1024 if DEBUG;
+		warn "oops - " . $row->{kbup}/1024 . " , " . $last_row->{kbup}/1024 if DEBUG;
+		warn "OOPS - " . $row->{cts}->hms if DEBUG;
+		$array[$slot_idx]->[1] = 0;
+		$array[$slot_idx]->[2] = 0;
+
+	    }
 
             warn(
-                sprintf( "kbup %s, kbdown %s", $row->{kbup}, $row->{kbdown} ) )
-              if VERBOSE_DEBUG;
+                sprintf( "kbup %s, kbdown %s", $row->{kbup}/1024, $row->{kbdown}/1024 ) ) if DEBUG;
 
-            # at this point we're processing  time based data for $router_id.
-            # add the totals to to the array in the correct time slot.
-            # loop over the output @array until the row fits the slot.
-# 	warn("=> interval analysis for $router_id") if DEBUG;
-            for ( my $i = 0 ; $i <= $#array ; $i++ ) {
+            # bit to indicate a checkin took place for this device
+            $array[$slot_idx]->[4] = 1;
+	    $array[$slot_idx]->[3] = $row->{users} || 0;
 
-	#	warn("comparing date " . $row->{cts}->time_zone . " " . $row->{cts}->dmy . " " . $row->{cts}->hms . " with " . $array[$i]->[0]->time_zone . " " . $array[$i]->[0]->dmy . " " . $array[$i]->[0]->hms);
-	#	warn("comparing date " . $row->{cts}->epoch . " with " . $array[$i]->[0]->epoch);
-                # is this timestamp less than the next element?  That's a match
-                if ( $row->{cts}->epoch > $array[$i]->[0]->epoch) {
-                    
-		    # then log it on the current element
-                    $array[$i]->[1] += $row->{kbdown};
-                    $array[$i]->[2] += $row->{kbup};
+            # total megs
+            $megabytes_total += ( $array[$slot_idx]->[1] + $array[$slot_idx]->[2] );
+            $router_traffic  += ( $array[$slot_idx]->[1] + $array[$slot_idx]->[2] );
 
-                    # bit to indicate a checkin took place for this device
-                    $array[$i]->[4] = 1;
-
-                    # total megs
-                    $megabytes_total += ($array[$i]->[1]+$array[$i]->[2])/1024;
-                    $router_traffic  += ($array[$i]->[1]+$array[$i]->[2])/1024;
-            	%last_row = %placeholder;
-                    next TIMES;    # last $row
-                }
-
-            }
-
-        }
-
-        my ($router) = SL::Model::App->resultset('Router')->search({router_id => $router_id});
-
-        # uptime willis!!
-        my $unchecked_count = grep { !$_->[4] } @array;
-        my $uptime = 100 * ($#array-$unchecked_count) / $#array;
-
-        if ($unchecked_count == 0) {
-
-          $router->checkin_status("100% Uptime! (last 24 hrs)");
-
-        } else {
-
-          $router->checkin_status(sprintf("%2.2f%% uptime, %d failed checkins",
-                                          $uptime, $unchecked_count));
-        }
-
-        $router->traffic_daily(int($router_traffic));
-        $router->update;
-
+       }
     }
 
     # aggregate the user data

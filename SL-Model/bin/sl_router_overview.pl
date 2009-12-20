@@ -8,6 +8,7 @@ use DateTime::Format::Pg;
 use Data::Dumper;
 use SL::Model;
 use SL::Model::App;
+use Clone;
 
 use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
@@ -15,6 +16,24 @@ use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 # 24 hours worth of router data and write a csv file
 
 my $yesterday = DateTime->now( time_zone => "local" )->subtract( hours => 24 );
+
+my @Array;
+for ( 0 .. ( 24 * 12 )  ) {    # 5 minutes
+            push @Array, [
+                $yesterday->clone->add( minutes => 5 * $_ ),   # cts
+                0,                                             # kbdown
+                0,                                             # kbup
+                0,                                             # users
+                0,                                             # checkin bit
+                0,                                             # ping_ms
+                0,                                             # speed_kbytes
+                0,                                             # memfree
+                0,                                             # gateway quality
+                0,                                             # load
+                0,                                             # nodogs
+                0,                                             # tcpconns
+            ];
+}
 
 my $dbh = SL::Model->connect;
 
@@ -117,25 +136,10 @@ foreach my $account_id ( keys %refined ) {
 
         warn("processing router id $router_id") if DEBUG;
 
-        my @array;
-        for ( 0 .. ( 24 * 12 ) + 1 ) {    # 5 minutes
-            push @array, [
-                $yesterday->clone->add( minutes => 5 * $_ ),    # cts
-                0,                                             # kbdown
-                0,                                             # kbup
-                0,                                             # users
-                0,                                             # checkin bit
-                0,                                             # ping_ms
-                0,                                             # speed_kbytes
-                0,                                             # memfree
-                0,                                             # gateway quality
-                0,                                             # load
-                0,                                             # nodogs
-                0,                                             # tcpconns
-            ];
-        }
+	# the dirty data dance
+	my $array_ref = Clone::clone(\@Array);
+	my @array = @{$array_ref};
 
-        # loop over the data
         #        $DB::single = 1;
         my $router_traffic = 0;
 
@@ -152,7 +156,7 @@ foreach my $account_id ( keys %refined ) {
             for ( my $j = 0 ; $j < $#array ; $j++ ) {
 
                 # see if this row fits in the first time slot
-                unless (
+                if (
                     (
                         $sorted_checkins[$i]->{cts}->epoch >=
                         $array[$j]->[0]->epoch
@@ -161,18 +165,15 @@ foreach my $account_id ( keys %refined ) {
                         $array[ $j + 1 ]->[0]->epoch )
                   )
                 {
-
-                    # not in this time slot
-                    next;
-                }
-                else {
-		    warn("got slot index $j ") if DEBUG;
-		    warn("down " . $sorted_checkins[$i]->{kbdown}) if DEBUG;
-		    warn("up " . $sorted_checkins[$i]->{kbup}) if DEBUG;
+		    warn("got slot index $j ") if VERBOSE_DEBUG;
+		    warn("down " . $sorted_checkins[$i]->{kbdown}) if VERBOSE_DEBUG;
+		    warn("up " . $sorted_checkins[$i]->{kbup}) if VERBOSE_DEBUG;
 		    
                     $slot_idx = $j;
                     last;
                 }
+
+
             }
             unless (defined $slot_idx) {
 #		warn("hey no slot idx but it is $slot_idx");
@@ -210,16 +211,16 @@ foreach my $account_id ( keys %refined ) {
             } else {
 		# HACK!  Sometimes nodogsplash isn't accurate, so zero it
 
-		warn "oops - " . $row->{kbdown}/1024 . " , " . $last_row->{kbdown}/1024 if DEBUG;
-		warn "oops - " . $row->{kbup}/1024 . " , " . $last_row->{kbup}/1024 if DEBUG;
-		warn "OOPS - " . $row->{cts}->hms if DEBUG;
+		warn "nodoghack - " . $row->{kbdown}/1024 . " , " . $last_row->{kbdown}/1024 if DEBUG;
+		warn "nodoghack - " . $row->{kbup}/1024 . " , " . $last_row->{kbup}/1024 if DEBUG;
+		warn "nodoghack - " . $row->{cts}->hms if DEBUG;
 		$array[$slot_idx]->[1] = 0;
 		$array[$slot_idx]->[2] = 0;
 
 	    }
 
             warn(
-                sprintf( "kbup %s, kbdown %s", $row->{kbup}/1024, $row->{kbdown}/1024 ) ) if DEBUG;
+                sprintf( "kbup %s, kbdown %s", $row->{kbup}/1024, $row->{kbdown}/1024 ) ) if VERBOSE_DEBUG;
 
             # bit to indicate a checkin took place for this device
             $array[$slot_idx]->[4] = 1;
@@ -286,6 +287,8 @@ foreach my $account_id ( keys %refined ) {
 
 		$router_users{$router_id}{$mac} = 1;
 
+=cut
+
 		# loop over the data
 		foreach my $row (
 		    sort { $a->{cts}->epoch <=> $b->{cts}->epoch }
@@ -295,10 +298,9 @@ foreach my $account_id ( keys %refined ) {
 
 		    # see if this row fits in the first time slot
 		    unless (
-			(
-			 $row->{cts}->epoch >=
-			 $array[$i]->[0]->epoch
-			)
+			(ref $row->{cts} && ref $array[$i]->[0]) && 
+			 ($row->{cts}->epoch 
+			 >= $array[$i]->[0]->epoch  )
 			&& ( $row->{cts}->epoch <=
                         $array[ $i + 1 ]->[0]->epoch )
 			)
@@ -309,13 +311,14 @@ foreach my $account_id ( keys %refined ) {
 		    }
 		    else {
 #			$array[$i]->[3]++;
-			warn(sprintf("mac %s after %s and before %s",
-				     $mac, $row->{cts}->hms,
-				     $row->{cts}->hms)) if DEBUG;
+			warn(sprintf("mac %s after %s %s and before %s %s",
+				     $mac, $array[$i]->[0]->hms, $array[$i]->[0]->mdy,
+				     $row->{cts}->hms, $row->{cts}->mdy)) if DEBUG;
 			last;
 		    }
                 }
 
+=cut
 
             }
         }
@@ -472,37 +475,3 @@ foreach my $account_id ( keys %refined ) {
 
 }
 
-__END__
-
-    # now update the router totals
-    foreach my $router_id ( keys %router_users ) {
-        my ($router) =
-          SL::Model::App->resultset('Router')
-          ->search( { router_id => $router_id } );
-
-        $router->users_daily( scalar( keys %{ $router_users{$router_id} } ) );
-        $router->update;
-    }
-
-    # reinitialize the array
-    #    $DB::single = 1;
-    $_->[0] = $_->[0]->strftime("%l:%M %p") for @array;
-    warn( "array is " . Dumper( \@array ) ) if DEBUG;
-
-    # users and traffic last 24 hours
-    $account->users_today( scalar( keys %{ $refined{$account_id}{users} } ) );
-    $account->megabytes_today( int($megabytes_total) );
-    $account->update;
-
-    my $filename =
-      join( '/', $account->report_dir_base, "network_overview.csv" );
-
-    my $fh;
-    open( $fh, '>', $filename ) or die "could not open $filename: " . $!;
-    foreach my $line (@array) {
-        print $fh join( ',', @{$line}[ 0 .. 3 ] ) . "\n";
-    }
-    close $fh or die $!;
-
-    warn("wrote file $filename") if DEBUG;
-}
