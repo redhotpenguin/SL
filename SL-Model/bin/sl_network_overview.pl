@@ -10,7 +10,7 @@ use SL::Model;
 use SL::Model::App;
 use Clone;
 
-use constant DEBUG => $ENV{SL_DEBUG} || 0;
+use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 
 # grab the checkin data for the last 24 hours and write a csv file
@@ -18,15 +18,15 @@ use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 my $yesterday = DateTime->now( time_zone => "local" )->subtract( hours => 24 );
 
 my @Array;
-for ( 0 .. 24 * 12 ) { # 12 times/hour * 24 times/day
-        push @Array,
-          [ $yesterday->clone->add( minutes => 5 * $_ ), # cts
-            0, # kbdown
-            0, # kbup
-            0, # users
-            0 ]; # checkin bit
+for ( 0 .. 24 * 12 ) {    # 12 times/hour * 24 times/day
+    push @Array, [
+        $yesterday->clone->add( minutes => 5 * $_ ),    # cts
+        0,                                              # kbdown
+        0,                                              # kbup
+        0,                                              # users
+        0,                                              # checkin bit
+    ];
 }
-
 
 my $dbh = SL::Model->connect;
 
@@ -54,6 +54,7 @@ foreach my $row (@$results) {
 
     my $dt = DateTime::Format::Pg->parse_datetime( $row->{cts} );
     $dt->set_time_zone('local');
+
     # and group by router
     push @{ $refined{ $row->{account_id} }{routers}{ $row->{router_id} } },
       {
@@ -85,6 +86,7 @@ foreach my $row (@$users) {
 
     my $dt = DateTime::Format::Pg->parse_datetime( $row->{cts} );
     $dt->set_time_zone('local');
+
     # and group by user
     push @{ $refined{ $row->{account_id} }{users}{ $row->{mac} } },
       {
@@ -101,62 +103,70 @@ foreach my $account_id ( keys %refined ) {
     # every 15 minutes for 24 hours is 4*24 = 96 - time, kbdown, kbup
     # setup an array to hold the data
 
-
     # the dirty data dance
-    my $array_ref = Clone::clone(\@Array);
-    my @array = @{$array_ref};
+    my $array_ref = Clone::clone( \@Array );
+    my @array     = @{$array_ref};
 
     # aggregate the router data
     my $megabytes_total = 0;
     foreach my $router_id ( keys %{ $refined{$account_id}{routers} } ) {
-	warn("processing router $router_id") if DEBUG;
+        warn("processing router $router_id") if DEBUG;
 
         #        $DB::single = 1;
         my $router_traffic = 0;
         my ( %last_row, %placeholder );
 
         my @sorted_checkins =
-		sort { $a->{cts}->epoch <=> $b->{cts}->epoch }
-		@{ $refined{$account_id}{routers}{$router_id} };
+          sort { $a->{cts}->epoch <=> $b->{cts}->epoch }
+          @{ $refined{$account_id}{routers}{$router_id} };
 
-	# start with yesterday and work forward
+        # start with yesterday and work forward
         for ( my $i = 1 ; $i <= $#sorted_checkins ; $i++ ) {
 
-	    my $slot_idx;
+            my $slot_idx;
+
             # figure out what array slot this belongs in
             for ( my $j = 0 ; $j < $#array ; $j++ ) {
 
                 # see if this row fits in the first time slot
                 if (
-		    (ref $array[$j]->[0] && 
-		     ref $sorted_checkins[$i]->{cts} )
-                    && (
-                        $sorted_checkins[$i]->{cts}->epoch >=
-                        $array[$j]->[0]->epoch
-                    )
+                    ( ref $array[$j]->[0] && ref $sorted_checkins[$i]->{cts} )
+                    && ( $sorted_checkins[$i]->{cts}->epoch >=
+                        $array[$j]->[0]->epoch )
                     && ( $sorted_checkins[$i]->{cts}->epoch <=
                         $array[ $j + 1 ]->[0]->epoch )
                   )
                 {
-		    warn("got slot index $j ") if VERBOSE_DEBUG;
-		    warn("down " . $sorted_checkins[$i]->{kbdown}) if VERBOSE_DEBUG;
-		    warn("up " . $sorted_checkins[$i]->{kbup}) if VERBOSE_DEBUG;
+                    warn("got slot index $j ") if VERBOSE_DEBUG;
+                    warn( "down " . $sorted_checkins[$i]->{kbdown} )
+                      if VERBOSE_DEBUG;
+                    warn( "up " . $sorted_checkins[$i]->{kbup} )
+                      if VERBOSE_DEBUG;
 
                     $slot_idx = $j;
                     last;
                 }
             }
-            unless (defined $slot_idx) {
+            unless ( defined $slot_idx ) {
 
-		$sorted_checkins[$i]->{cts} = $sorted_checkins[$i]->{cts}->ymd . " - " . $sorted_checkins[$i]->{cts}->hms;
-		$array[0]->[0] = $array[0]->[0]->ymd . " " . $array[0]->[0]->hms;
-		warn("checkin range top is " . Dumper($array[0]->[0])) if DEBUG;
+                $sorted_checkins[$i]->{cts} =
+                    $sorted_checkins[$i]->{cts}->ymd . " - "
+                  . $sorted_checkins[$i]->{cts}->hms;
+                $array[0]->[0] =
+                  $array[0]->[0]->ymd . " " . $array[0]->[0]->hms;
+                warn( "checkin range top is " . Dumper( $array[0]->[0] ) )
+                  if DEBUG;
 
-		$array[$#array]->[0] = $array[$#array]->[0]->ymd . " " . $array[$#array]->[0]->hms;
-		warn("checkin range bottom is " . Dumper($array[$#array]->[0])) if DEBUG;
+                $array[$#array]->[0] =
+                  $array[$#array]->[0]->ymd . " " . $array[$#array]->[0]->hms;
+                warn( "checkin range bottom is "
+                      . Dumper( $array[$#array]->[0] ) )
+                  if DEBUG;
 
-                warn("checkin $i found outside time range: " . Dumper($sorted_checkins[$i]->{cts})) if DEBUG;
-		next;
+                warn( "checkin $i found outside time range: "
+                      . Dumper( $sorted_checkins[$i]->{cts} ) )
+                  if DEBUG;
+                next;
 
             }
 
@@ -166,40 +176,55 @@ foreach my $account_id ( keys %refined ) {
             my $last_row = $sorted_checkins[ $i - 1 ];
 
             # get the difference if traffic numbers not reset
-            if (   ( $row->{kbup} >= $last_row->{kbup} )
+            if (    ( $row->{kbup} >= $last_row->{kbup} )
                 and ( $row->{kbdown} >= $last_row->{kbdown} ) )
             {
 
-	         $array[$slot_idx]->[1] += $row->{kbdown} - $last_row->{kbdown};
-                 $array[$slot_idx]->[2] += $row->{kbup} - $last_row->{kbup};
+                $array[$slot_idx]->[1] += $row->{kbdown} - $last_row->{kbdown};
+                $array[$slot_idx]->[2] += $row->{kbup} - $last_row->{kbup};
 
-            } else {
-		# HACK!  Sometimes nodogsplash isn't accurate, so zero it
-		warn "nodoghack - " . $row->{kbdown}/1024 . " , " . $last_row->{kbdown}/1024 if VERBOSE_DEBUG;
-		warn "nodoghack - " . $row->{kbup}/1024 . " , " . $last_row->{kbup}/1024 if VERBOSE_DEBUG;
-		warn "nodoghack - " . $row->{cts}->hms if VERBOSE_DEBUG;
+            }
+            else {
 
-	    }
+                # HACK!  Sometimes nodogsplash isn't accurate, so zero it
+                warn "nodoghack - "
+                  . $row->{kbdown} / 1024 . " , "
+                  . $last_row->{kbdown} / 1024
+                  if VERBOSE_DEBUG;
+                warn "nodoghack - "
+                  . $row->{kbup} / 1024 . " , "
+                  . $last_row->{kbup} / 1024
+                  if VERBOSE_DEBUG;
+                warn "nodoghack - " . $row->{cts}->hms if VERBOSE_DEBUG;
+
+            }
 
             warn(
-                sprintf( "kbup %s, kbdown %s", $row->{kbup}/1024, $row->{kbdown}/1024 ) ) if VERBOSE_DEBUG;
+                sprintf(
+                    "kbup %s, kbdown %s",
+                    $row->{kbup} / 1024,
+                    $row->{kbdown} / 1024
+                )
+            ) if VERBOSE_DEBUG;
 
             # bit to indicate a checkin took place for this device
             $array[$slot_idx]->[4] = 1;
-	    $array[$slot_idx]->[3] += $row->{users} || 0;
+            $array[$slot_idx]->[3] += $row->{users} || 0;
 
             # total megs
-            $megabytes_total += ( $array[$slot_idx]->[1] + $array[$slot_idx]->[2] );
-            $router_traffic  += ( $array[$slot_idx]->[1] + $array[$slot_idx]->[2] );
+            $megabytes_total +=
+              ( $array[$slot_idx]->[1] + $array[$slot_idx]->[2] );
+            $router_traffic +=
+              ( $array[$slot_idx]->[1] + $array[$slot_idx]->[2] );
 
-       }
+        }
     }
 
     # aggregate the user data
     my %router_users;
     foreach my $mac ( keys %{ $refined{$account_id}{users} } ) {
-		
-	warn("=> processing user mac $mac") if DEBUG;
+
+        warn("=> processing user mac $mac") if DEBUG;
 
         # loop over the data
         #        $DB::single = 1;
@@ -208,7 +233,7 @@ foreach my $account_id ( keys %refined ) {
             @{ $refined{$account_id}{users}{$mac} } )
         {
 
-            $router_users{$row->{router}}{$mac} = 1;
+            $router_users{ $row->{router} }{$mac} = 1;
 
             # at this point we're processing time based data for $router_id.
             # add the totals to to the array in the correct time slot.
@@ -216,7 +241,7 @@ foreach my $account_id ( keys %refined ) {
             for ( my $i = 0 ; $i <= $#array ; $i++ ) {
 
                 # is this timestamp less than the next element?  That's a match
-                if ( $row->{cts}->epoch > $array[$i]->[0]->epoch) {
+                if ( $row->{cts}->epoch > $array[$i]->[0]->epoch ) {
 
                     # then log it on the current element
                     $array[$i]->[3]++;
@@ -231,10 +256,12 @@ foreach my $account_id ( keys %refined ) {
 
     # now update the router totals
     foreach my $router_id ( keys %router_users ) {
-      my ($router) = SL::Model::App->resultset('Router')->search({ router_id => $router_id  });
+        my ($router) =
+          SL::Model::App->resultset('Router')
+          ->search( { router_id => $router_id } );
 
-      $router->users_daily(scalar(keys %{$router_users{$router_id}}));
-      $router->update;
+        $router->users_daily( scalar( keys %{ $router_users{$router_id} } ) );
+        $router->update;
     }
 
     # reinitialize the array
@@ -249,8 +276,8 @@ foreach my $account_id ( keys %refined ) {
     die "missing account for account $account_id" unless $account;
 
     # users and traffic last 24 hours
-    $account->users_today(scalar( keys %{ $refined{$account_id}{users} } ) );
-    $account->megabytes_today(int($megabytes_total));
+    $account->users_today( scalar( keys %{ $refined{$account_id}{users} } ) );
+    $account->megabytes_today( int($megabytes_total) );
     $account->update;
 
     my $filename =
@@ -259,9 +286,9 @@ foreach my $account_id ( keys %refined ) {
     my $fh;
     open( $fh, '>', $filename ) or die "could not open $filename: " . $!;
     foreach my $line (@array) {
-    	$line->[1] = sprintf("%2.1f", $line->[1]/(300/(1024**2)));
-    	$line->[2] = sprintf("%2.1f", ($line->[2]/300/(1024**2)));
-        print $fh join( ',', @{$line}[0..3] ) . "\n";
+        $line->[1] = sprintf( "%2.1f", $line->[1] / ( 300 / ( 1024**2 ) ) );
+        $line->[2] = sprintf( "%2.1f", ( $line->[2] / 300 / ( 1024**2 ) ) );
+        print $fh join( ',', @{$line}[ 0 .. 3 ] ) . "\n";
     }
     close $fh or die $!;
 
