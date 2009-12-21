@@ -183,6 +183,11 @@ foreach my $account_id ( keys %refined ) {
                 $array[$slot_idx]->[1] += $row->{kbdown} - $last_row->{kbdown};
                 $array[$slot_idx]->[2] += $row->{kbup} - $last_row->{kbup};
 
+		# total megs
+        	$megabytes_total += $row->{kbdown} - $last_row->{kbdown};
+            	$router_traffic  += $row->{kbup} - $last_row->{kbup};
+
+
             }
             else {
 
@@ -199,25 +204,11 @@ foreach my $account_id ( keys %refined ) {
 
             }
 
-            warn(
-                sprintf(
-                    "kbup %s, kbdown %s",
-                    $row->{kbup} / 1024,
-                    $row->{kbdown} / 1024
-                )
-            ) if VERBOSE_DEBUG;
-
             # bit to indicate a checkin took place for this device
             $array[$slot_idx]->[4] = 1;
             $array[$slot_idx]->[3] += $row->{users} || 0;
-
-            # total megs
-            $megabytes_total +=
-              ( $array[$slot_idx]->[1] + $array[$slot_idx]->[2] );
-            $router_traffic +=
-              ( $array[$slot_idx]->[1] + $array[$slot_idx]->[2] );
-
         }
+
     }
 
     # aggregate the user data
@@ -286,8 +277,8 @@ foreach my $account_id ( keys %refined ) {
     my $fh;
     open( $fh, '>', $filename ) or die "could not open $filename: " . $!;
     foreach my $line (@array) {
-        $line->[1] = sprintf( "%2.1f", $line->[1] / ( 300 / ( 1024**2 ) ) );
-        $line->[2] = sprintf( "%2.1f", ( $line->[2] / 300 / ( 1024**2 ) ) );
+        $line->[1] = sprintf( "%2.1f", ( $line->[1] * 1000 * 8 / 1024 / 1024 / 300));
+        $line->[2] = sprintf( "%2.1f", ( -1 * $line->[2] * 1000 * 8 / 1024 / 1024 / 300));
         print $fh join( ',', @{$line}[ 0 .. 3 ] ) . "\n";
     }
     close $fh or die $!;
