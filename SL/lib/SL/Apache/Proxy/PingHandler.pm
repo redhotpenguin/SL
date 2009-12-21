@@ -65,10 +65,11 @@ sub handler {
     }
 
     # grab the mac address if there is one
-    my ( $macaddr, $version ) =
-      $r->uri =~ m/\/(\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2})_?(\d+)?$/;
-
-    unless (defined $macaddr) {
+	#GET /sl_secret_ping_button/00:12:CF:81:7A:E6_022 
+	my ( $macaddr, $version ) =
+      $r->uri =~ m/\/(\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2}\:\w{2})(?:_(\d+))?/;
+    
+	unless (defined $macaddr) {
 
         # no mac addr means something is probably broken
         $r->log->error( "$$ no mac address in ping uri " . $r->uri );
@@ -76,8 +77,8 @@ sub handler {
     }
 
 
-    my %args = ( ip => $r->connection->remote_ip, macaddr => $macaddr );
-
+    my %args = ( ip => $r->connection->remote_ip, macaddr => $macaddr,
+				 firmware_version => $version	);
 
     # Grab any registered routers for this location
     $r->log->debug("looking for routers with mac $macaddr") if DEBUG;
