@@ -78,10 +78,10 @@ __PACKAGE__->add_columns(
   },
   "firmware_version",
   {
-    data_type => "character varying",
-    default_value => "''::character varying",
+    data_type => "text",
+    default_value => "''::text",
     is_nullable => 1,
-    size => 4,
+    size => undef,
   },
   "ssid",
   {
@@ -290,6 +290,27 @@ __PACKAGE__->add_columns(
   { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
   "megabytes_monthly",
   { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  "robin",
+  {
+    data_type => "text",
+    default_value => "'0'::text",
+    is_nullable => 0,
+    size => undef,
+  },
+  "default_skips",
+  {
+    data_type => "text",
+    default_value => '',
+    is_nullable => 0,
+    size => undef,
+  },
+  "custom_skips",
+  {
+    data_type => "text",
+    default_value => '',
+    is_nullable => 0,
+    size => undef,
+  },
 );
 __PACKAGE__->set_primary_key("router_id");
 __PACKAGE__->add_unique_constraint("madaddr_uniq", ["macaddr"]);
@@ -399,7 +420,7 @@ sub board {
 
       } elsif (lc(substr($mac, 0, 8)) eq '00:19:3b') {
 
-        $board = 'Willboard';
+        $board = 'Williboard';
 
       } elsif (lc(substr($mac, 0, 8)) eq '00:18:84') {
 
@@ -468,21 +489,23 @@ sub last_seen_html {
     my $dt = DateTime::Format::Pg->parse_datetime( $self->last_ping );
 
     # hack for pacific time
-    my $sec =
-      ( time - $dt->epoch - 3600 * 7 );    # FIX daylight savings time breaks
+    my $now = DateTime->now;
+    $now->set_time_zone('local');
+    $now->subtract( hours => 8);
+    my $sec = (  $now->epoch - $dt->epoch); 
 
     my $minutes = sprintf( '%d', $sec / 60 );
 
-    if ( $sec <= 360 ) {
+    if ( $sec <= 600 ) {
         $self->{'last_seen'} = qq{<font color="green"><b>$sec sec</b></font>};
         $self->{'seen_index'} = 1;
     }
-    elsif ( ( $sec > 360 ) && ( $minutes <= 60 ) ) {
+    elsif ( ( $sec > 600 ) && ( $minutes <= 60*2 ) ) {
         $self->{'last_seen'} =
           qq{<font color="red"><b>$minutes min</b></font>};
         $self->{'seen_index'} = 2;
     }
-    elsif ( ( $minutes > 60 ) && ( $minutes < 1440 ) ) {
+    elsif ( ( $minutes > 60*2 ) && ( $minutes < 60*24 ) ) {
         my $hours = sprintf( '%d', $minutes / 60 );
         $self->{'last_seen'} =
           qq{<font color="orange"><b>$hours hours</b></font>};

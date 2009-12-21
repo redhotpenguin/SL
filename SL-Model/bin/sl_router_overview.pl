@@ -176,16 +176,15 @@ foreach my $account_id ( keys %refined ) {
 
             }
             unless (defined $slot_idx) {
-#		warn("hey no slot idx but it is $slot_idx");
-		$sorted_checkins[$i]->{cts} = $sorted_checkins[$i]->{cts}->ymd . " - " . $sorted_checkins[$i]->{cts}->hms;
-		$array[0]->[0] = $array[0]->[0]->ymd . " " . $array[0]->[0]->hms;
-		warn("checkin range top is " . Dumper($array[0]->[0]));
 
+  	        $sorted_checkins[$i]->{cts} = $sorted_checkins[$i]->{cts}->ymd . " - " . $sorted_checkins[$i]->{cts}->hms;
+		$array[0]->[0] = $array[0]->[0]->ymd . " " . $array[0]->[0]->hms;
+		warn("checkin range top is " . Dumper($array[0]->[0])) if DEBUG;
 
 		$array[$#array]->[0] = $array[$#array]->[0]->ymd . " " . $array[$#array]->[0]->hms;
-		warn("checkin range bottom is " . Dumper($array[$#array]->[0]));
+		warn("checkin range bottom is " . Dumper($array[$#array]->[0])) if DEBUG;
 
-                warn("checkin $i found outside time range: " . Dumper($sorted_checkins[$i]->{cts}));
+                warn("checkin $i found outside time range: " . Dumper($sorted_checkins[$i]->{cts})) if DEBUG;
 		next;
 
             }
@@ -279,52 +278,15 @@ foreach my $account_id ( keys %refined ) {
 
         # aggregate the user data
         my %router_users;
-
 	for ( my $i = 0 ; $i < $#array ; $i++ ) {
-
 
 	    foreach my $mac ( keys %{ $user_refined{$router_id}{users} } ) {
 
 		$router_users{$router_id}{$mac} = 1;
-
-=cut
-
-		# loop over the data
-		foreach my $row (
-		    sort { $a->{cts}->epoch <=> $b->{cts}->epoch }
-		    @{ $user_refined{$router_id}{users}{$mac} } )
-		{
-
-
-		    # see if this row fits in the first time slot
-		    unless (
-			(ref $row->{cts} && ref $array[$i]->[0]) && 
-			 ($row->{cts}->epoch 
-			 >= $array[$i]->[0]->epoch  )
-			&& ( $row->{cts}->epoch <=
-                        $array[ $i + 1 ]->[0]->epoch )
-			)
-		    {
-
-			# not in this time slot
-			next;
-		    }
-		    else {
-#			$array[$i]->[3]++;
-			warn(sprintf("mac %s after %s %s and before %s %s",
-				     $mac, $array[$i]->[0]->hms, $array[$i]->[0]->mdy,
-				     $row->{cts}->hms, $row->{cts}->mdy)) if DEBUG;
-			last;
-		    }
-                }
-
-=cut
-
             }
         }
 
         $router->users_daily( scalar( keys %{ $router_users{$router_id} } ) );
-
         $router->traffic_daily( int( $router_traffic / 1024 ) );
         $router->update;
 
@@ -341,7 +303,9 @@ foreach my $account_id ( keys %refined ) {
           or die "could not open $filename: " . $!;
 
         foreach my $line (@array) {
-            $line->[0] = $line->[0]->strftime("%l:%M %p");
+	    if (ref $line->[0]) {
+		$line->[0] = $line->[0]->strftime("%l:%M %p");
+	    }
             print $fh join( ',', @{$line}[ 0, 4 ] ) . "\n";
         }
         close($fh) or die $!;
