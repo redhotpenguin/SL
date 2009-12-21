@@ -34,7 +34,7 @@
 							[% IF router.device=='wrt54gl' %]SSID: [% router.ssid or '?'  %],[% END %] 
 							Last seen:[% router.last_seen or '?'  %],  
 							[% IF router.device=='mr3201a' %]Ad bar:  <strong>[% IF router.adserving==1 %]On[% ELSE %]Off[% END %]</strong>,[% END %]  
-							[% IF reg.account.beta %]<br/>24 hour users: <strong>[% router.users_daily %]</strong>, 24 hour traffic: <strong>[% router.traffic_daily * 1024 *1024 | format_bytes %]</strong>, SL Version: <strong>[% router.firmware_version %]</strong>[% END %]
+							<br />[% IF reg.account.beta %]24 hour users: <strong>[% router.users_daily %]</strong>, 24 hour traffic: <strong>[% router.traffic_daily * 1024 *1024 | format_bytes %]</strong>, [% END %]SL Version: <strong>[% router.firmware_version %]</strong>
 						[% IF router.robin != 'r2678-26/nO' AND router.robin != 'r2671-26/nO' %]<br/><br/><strong>ROBIN version [% router.robin || 'unknown' %], recommend using <a href="http://fw.slwifi.com/om_robin_stable/custom.sh">r2678</a> with Open captive portal</strong>[% END %]
 						</p>
 					</div>
