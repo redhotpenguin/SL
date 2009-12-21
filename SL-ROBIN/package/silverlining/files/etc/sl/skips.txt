@@ -204,6 +204,9 @@ ads.web.aol.com
 webmail.aol.com
 
 # Miscellaneous
+myipaddress.com
+whatismyip.com
+whatismyipaddress.com
 new-VIP-Rbinz.conxion.com
 truename-ix.tmcs.net
 truename-cc.tmcs.net
