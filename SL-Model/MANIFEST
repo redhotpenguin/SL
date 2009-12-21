@@ -12,8 +12,6 @@ lib/SL/Model/App/Router.pm
 lib/SL/Model/App/Payment.pm
 lib/SL/Model/App/Reg.pm
 lib/SL/Model/Proxy/Ad.pm
-lib/SL/Model/Proxy/Location.pm
-lib/SL/Model/Proxy/Router/Location.pm
 lib/SL/Model/Proxy/Router.pm
 lib/SL/Model/Proxy/URL.pm
 lib/SL/Model/Report.pm
@@ -25,8 +23,6 @@ t/SL-Model-Ad-Wsj.t
 t/SL-Model-Test.t
 t/SL-Model-Ad.t
 t/SL-Model-App.t
-t/SL-Model-Proxy-Location.t
-t/SL-Model-Proxy-Router-Location.t
 t/SL-Model-Report-Graph.t
 t/SL-Model-Report.t
 t/SL-Model-URL.t

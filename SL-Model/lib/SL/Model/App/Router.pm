@@ -330,11 +330,6 @@ __PACKAGE__->has_many(
   { "foreign.router_id" => "self.router_id" },
 );
 __PACKAGE__->has_many(
-  "router__locations",
-  "SL::Model::App::RouterLocation",
-  { "foreign.router_id" => "self.router_id" },
-);
-__PACKAGE__->has_many(
   "usertracks",
   "SL::Model::App::Usertrack",
   { "foreign.router_id" => "self.router_id" },

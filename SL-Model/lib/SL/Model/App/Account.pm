@@ -131,6 +131,14 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 1,
   },
+  "google_ad_client",
+  {
+    data_type => "text",
+    default_value => '',
+    is_nullable => 0,
+    size => undef,
+  },
+
 );
 __PACKAGE__->set_primary_key("account_id");
 __PACKAGE__->has_many(

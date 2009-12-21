@@ -40,8 +40,6 @@ use APR::Table              ();
 use SL::Model                          ();
 use SL::Model::Proxy::Ad               ();
 use SL::Model::Proxy::Router           ();
-use SL::Model::Proxy::Location         ();
-use SL::Model::Proxy::Router::Location ();
 use SL::Model::Proxy::URL              ();
 
 use SL::Apache::Proxy::AccessHandler          ();

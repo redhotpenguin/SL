@@ -11,7 +11,6 @@ use Sys::Load                          ();
 
 use SL::Model                          ();
 use SL::Model::Proxy::Router           ();
-use SL::Model::Proxy::Router::Location ();
 use SL::Config;
 
 our $Config;
@@ -22,15 +21,6 @@ BEGIN {
 
 use constant DEBUG    => $ENV{SL_DEBUG}             || 0;
 use constant MAX_LOAD => $Config->sl_proxy_max_load || 4;
-use constant SSID     => 2;
-use constant PASSWD   => 3;
-use constant FIRMWARE => 4;
-use constant REBOOT   => 5;
-use constant HALT     => 6;
-use constant ADSERVING => 7;
-use constant DEVICE    => 8;
-use constant DEFAULT_SKIPS => 9;
-use constant CUSTOM_SKIPS  => 10;
 
 sub handler {
     my $r = shift;
@@ -82,8 +72,8 @@ sub handler {
 
     # Grab any registered routers for this location
     $r->log->debug("looking for routers with mac $macaddr") if DEBUG;
-    my $router_ref =
-      eval { SL::Model::Proxy::Router::Location->get_registered( \%args ) };
+    my $router = eval {
+          SL::Model::Proxy::Router->ping_grab( \%args ) };
 
     if ($@) {
         require Data::Dumper;
@@ -91,16 +81,16 @@ sub handler {
             Data::Dumper::Dumper( \%args ) );
     }
 
-    unless ($router_ref) {
+    unless ($router) {
 
         # no routers at this ip, register this one
         $r->log->error( "registering router mac $macaddr at ip "
               . $r->connection->remote_ip );
 
-        $router_ref =
-          eval { SL::Model::Proxy::Router::Location->register( \%args ); };
+        $router =
+          eval { SL::Model::Proxy::Router->ping_register( \%args ); };
 
-        if ( $@ or ( !$router_ref ) ) {
+        if ( $@ or ( !$router ) ) {
 
             # handle registration failure
             $r->log->error( sprintf("$$ error $@ registering router") ) if $@;
@@ -117,27 +107,27 @@ sub handler {
     $r->log->debug("$$ ping ok for mac $macaddr") if DEBUG;
 
 
-    if ( $router_ref->[DEVICE] eq 'mr3201a' ) {
+    if ( $router->{device} eq 'mr3201a' ) {
 
-        if ( defined $router_ref->[ADSERVING]
-            && ( $router_ref->[ADSERVING] == 1 ) )
+        if ( defined $router->{adserving}
+            && ( $router->{adserving} == 1 ) )
         {
             my $bytes = $r->print("Ad Serving On");
         }
 
-        if (defined $router_ref->[DEFAULT_SKIPS]
-            && ( $router_ref->[DEFAULT_SKIPS] ne '')) {
+        if (defined $router->{default_skips}
+            && ( $router->{default_skips} ne '')) {
 
-           my $bytes = $r->print("DefaultSkips " . $router_ref->[DEFAULT_SKIPS]);
-           SL::Model::Proxy::Router->reset_events( $router_ref->[0],
+           my $bytes = $r->print("DefaultSkips " . $router->{default_skips});
+           SL::Model::Proxy::Router->reset_events( $router->[0],
                     'default_skips' );
          }
 
-        if (defined $router_ref->[CUSTOM_SKIPS]
-            && ( $router_ref->[CUSTOM_SKIPS] ne '')) {
+        if (defined $router->{custom_skips}
+            && ( $router->{custom_skips} ne '')) {
 
-           my $bytes = $r->print("CustomSkips " . $router_ref->[CUSTOM_SKIPS]);
-           SL::Model::Proxy::Router->reset_events( $router_ref->[0],
+           my $bytes = $r->print("CustomSkips " . $router->{custom_skips}
+           SL::Model::Proxy::Router->reset_events( $router->[0],
                     'custom_skips' );
          }
 
@@ -146,70 +136,70 @@ sub handler {
 
         # see if there are any events for this router to process
         if (
-            ( defined $router_ref->[SSID] && ( $router_ref->[SSID] ne '' ) )
+            ( defined $router->{ssid} && ( $router->{ssid} ne '' ) )
             or    # ssid event
             (
-                defined $router_ref->[PASSWD] && ( $router_ref->[PASSWD] ne '' )
+                defined $router->{passwd} && ( $router->{passwd} ne '' )
             )
             or    # passwd event
             (
-                defined $router_ref->[FIRMWARE]
-                && ( $router_ref->[FIRMWARE] ne '' )
+                defined $router->{firmware}
+                && ( $router->{firmware} ne '' )
             )
             or    # firmware event
             (
-                defined $router_ref->[REBOOT] && ( $router_ref->[REBOOT] ne '' )
+                defined $router->{reboot} && ( $router->{reboot} ne '' )
             )
             or    # reboot event
-            ( defined $router_ref->[HALT]
-                && ( $router_ref->[HALT] ne '' ) )    # halt event
+            ( defined $router->{halt}
+                && ( $router->{halt} ne '' ) )    # halt event
           )
         {
             my $events = '';
 
             $r->log->error("processing some events");
-            if ( defined $router_ref->[SSID] && ( $router_ref->[SSID] ne '' ) )
+            if ( defined $router->{ssid} && ( $router->{ssid} ne '' ) )
             {
                 $r->log->error(
-                    "$$ ping event for ssid: " . $router_ref->[SSID] );
-                $events .= _gen_event( ssid => $router_ref->[SSID] );
-                SL::Model::Proxy::Router->reset_events( $router_ref->[0],
+                    "$$ ping event for ssid: " . $router->{ssid} );
+                $events .= _gen_event( ssid => $router->{ssid} );
+                SL::Model::Proxy::Router->reset_events( $router->[0],
                     'ssid_event' );
             }
-            elsif ( defined $router_ref->[PASSWD]
-                && ( $router_ref->[PASSWD] ne '' ) )
+            elsif ( defined $router->{passwd}
+                && ( $router->{passwd} ne '' ) )
             {
                 $r->log->error(
-                    "$$ ping event for passwd: " . $router_ref->[PASSWD] );
-                $events .= _gen_event( passwd => $router_ref->[PASSWD] );
-                SL::Model::Proxy::Router->reset_events( $router_ref->[0],
+                    "$$ ping event for passwd: " . $router->{passwd} );
+                $events .= _gen_event( passwd => $router->{passwd} );
+                SL::Model::Proxy::Router->reset_events( $router->[0],
                     'passwd_event' );
             }
-            elsif ( defined $router_ref->[FIRMWARE]
-                && ( $router_ref->[FIRMWARE] ne '' ) )
+            elsif ( defined $router->{firmware}
+                && ( $router->{firmware} ne '' ) )
             {
                 $r->log->error(
-                    "$$ ping event for firmware" . $router_ref->[FIRMWARE] );
-                $events .= _gen_event( firmware => $router_ref->[FIRMWARE] );
-                SL::Model::Proxy::Router->reset_events( $router_ref->[0],
+                    "$$ ping event for firmware" . $router->{firmware} );
+                $events .= _gen_event( firmware => $router->{firmware} );
+                SL::Model::Proxy::Router->reset_events( $router->[0],
                     'firmware_event' );
             }
-            elsif ( defined $router_ref->[REBOOT]
-                && ( $router_ref->[REBOOT] ne '' ) )
+            elsif ( defined $router->{reboot}
+                && ( $router->{reboot} ne '' ) )
             {
                 $r->log->error(
-                    "$$ ping event for reboot: " . $router_ref->[REBOOT] );
-                $events .= _gen_event( reboot => $router_ref->[REBOOT] );
-                SL::Model::Proxy::Router->reset_events( $router_ref->[0],
+                    "$$ ping event for reboot: " . $router->{reboot} );
+                $events .= _gen_event( reboot => $router->{reboot} );
+                SL::Model::Proxy::Router->reset_events( $router->[0],
                     'reboot_event' );
             }
-            elsif ( defined $router_ref->[HALT]
-                && ( $router_ref->[HALT] ne '' ) )
+            elsif ( defined $router->{halt}
+                && ( $router->{halt} ne '' ) )
             {
                 $r->log->error(
-                    "$$ ping event for halt" . $router_ref->[HALT] );
-                $events .= _gen_event( halt => $router_ref->[HALT] );
-                SL::Model::Proxy::Router->reset_events( $router_ref->[0],
+                    "$$ ping event for halt" . $router->{halt} );
+                $events .= _gen_event( halt => $router->{halt} );
+                SL::Model::Proxy::Router->reset_events( $router->[0],
                     'halt_event' );
             }
 

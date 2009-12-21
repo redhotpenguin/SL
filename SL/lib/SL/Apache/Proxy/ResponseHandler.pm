@@ -92,6 +92,7 @@ our %response_map = (
     401 => 'bsod',
     403 => 'bsod',
     404 => 'bsod',
+    410 => 'bsod',
     500 => 'bsod',
     503 => 'bsod',
 );
@@ -741,6 +742,18 @@ sub twohundred {
         $r->log->info("$$ could not replace subrequests for url $url")
           unless $ok;
     }
+
+    # affiliate replacement
+    $TIMER->start('affiliate replace') if TIMING;
+
+    my $google_ad_client = $r->pnotes('router')->{google_ad_client};
+    if ($google_ad_client) {
+        $$response_content_ref =~
+            s/(google_ad_client\s+\=\s+["|'])(.*?)(["|'])/$1$google_ad_client$3/g;
+    }
+    $r->log->info(
+        sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
+      if TIMING;
 
     # set the status line
     $r->status_line( $response->status_line );

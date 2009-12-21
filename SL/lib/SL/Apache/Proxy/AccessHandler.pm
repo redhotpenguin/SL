@@ -8,7 +8,7 @@ use Apache2::RequestRec ();
 use Apache2::Log        ();
 use Apache2::Connection ();
 
-use SL::Model::Proxy::Location ();
+use SL::Model::Proxy::Router ();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
@@ -30,7 +30,8 @@ sub handler {
 
     $r->log->debug("sl_header is $sl_header") if DEBUG;
 
-    my ($router_id, $hash_mac, $device_guess, $router_mac, $router) = eval {
+    my ($router_id, $hash_mac, $device_guess, $router_mac,
+        $router) = eval {
         SL::Model::Proxy::Router->identify(
             {
                 ip        => $r->connection->remote_ip,

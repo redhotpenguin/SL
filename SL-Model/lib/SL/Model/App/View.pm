@@ -52,14 +52,6 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => undef,
   },
-  "location_id",
-  {
-    data_type => "integer",
-    default_value => 1,
-    is_foreign_key => 1,
-    is_nullable => 1,
-    size => 4,
-  },
   "usr_id",
   {
     data_type => "character varying",
@@ -77,12 +69,6 @@ __PACKAGE__->add_columns(
   },
 );
 __PACKAGE__->set_primary_key("view_id");
-__PACKAGE__->belongs_to(
-  "location",
-  "SL::Model::App::Location",
-  { location_id => "location_id" },
-  { join_type => "LEFT" },
-);
 __PACKAGE__->belongs_to(
   "router",
   "SL::Model::App::Router",

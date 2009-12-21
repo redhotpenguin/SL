@@ -53,20 +53,21 @@ sub identify {
     warn("got router mac $router_mac, hash_mac $hash_mac") if DEBUG;
 
     # now that we have the mac address, grab the device
-    my ($router_id, $router) = $class->get_router_id_from_mac($router_mac);
-    unless ($router_id) {
+    my $router = $class->get_router_from_mac($router_mac);
+    unless ($router) {
         warn("no router found for mac $router_mac");
         return;
     }
 
-    return ($router_id, $hash_mac, $device_guess, $router_mac, $router);
+    return ($router->{router_id}, $hash_mac, $device_guess,
+            $router_mac, $router);
 }
 
 
 
 
 use constant LATEST_MAC_FROM_IP => q{
-SELECT macaddr, mts
+SELECT macaddr
 FROM router
 WHERE wan_ip = ?
 AND router.active = 't'
@@ -78,19 +79,6 @@ sub latest_mac_from_ip {
     my ( $class, $ip ) = @_;
 
     die 'no ip' unless $ip;
-
-    # check the cache first
-    # location|$ip = [ { 'FF:FF:FF:FF:FF:FF' => '2001-06-01 00:00:00' },
-=cut
-	my $routers = SL::Cache->memd->set("location|$ip");
-    if ($routers) {
-        foreach my $date ( sort values %{$routers} ) {
-
-            # return the first device mac address
-            return $routers->{$date};
-        }
-    }
-=cut
 
     # device mac not found in the cache, check the database
     my $sth = $class->connect->prepare_cached(LATEST_MAC_FROM_IP);
@@ -105,17 +93,19 @@ sub latest_mac_from_ip {
 
     return unless $router;
 
-    # found a device, update the cache
-#    SL::Cache->memd->set(
-#        "location|$ip" => [ { $router->[0] => $router->[1] }, ] );
-
     return $router->[0];
 }
 
+our $Router_sql = <<SQL;
+SELECT router.router_id, router.account_id,router.macaddr,
+router.lan_ip, router.wan_ip, router.ip,
+router.splash_href, router.splash_timeout, router.show_aaa_link,
+account.dnsone,account.dnstwo,account.google_ad_client,account.aaa
+FROM router, account
+WHERE router.account_id = account.account_id
+SQL
 
-
-
-sub get_router_id_from_mac {
+sub get_router_from_mac {
     my ( $class, $macaddr ) = @_;
 
     die 'no macaddr passed' unless $macaddr;
@@ -131,14 +121,8 @@ sub get_router_id_from_mac {
 	warn("router mac $macaddr not in memcache, going to db") if DEBUG;
 
         $router = $class->connect->selectall_arrayref(<<SQL, { Slice => {}}, $macaddr)->[0];
-SELECT router.router_id, router.account_id, router.lan_ip, 
-router.wan_ip, router.splash_href, router.splash_timeout,router.macaddr,
-account.dnsone,account.dnstwo
-FROM router, account
-WHERE
-macaddr = ?
-AND
-router.account_id = account.account_id
+$Router_sql
+AND macaddr=?
 SQL
 
         return unless $router;
@@ -153,9 +137,72 @@ SQL
         SL::Cache->memd->set("router|$router_id" => $router, 60*60);
     }
 
-    # we've got the router id
-    return ($router_id, $router);
+    # we've got the router
+    return $router;
 }
+
+sub ping_register {
+    my ( $class, $args_ref ) = @_;
+
+    my $macaddr = $args_ref->{'macaddr'} || die 'no macaddr';
+    my $ip      = $args_ref->{'ip'}      || die 'no ip';
+
+    # get the router
+    my $router = $class->get_router_from_mac($macaddr);
+    unless ($router) {
+        warn("Unregistered router macaddr $macaddr entering system");
+        $router = eval { $class->add_router_from_mac($macaddr, $ip) };
+        die $@ if ($@);
+    }
+
+    warn("added router from mac $macaddr at ip $ip") if DEBUG;
+
+    # call get_registered and return
+    return $class->ping_grab($args_ref);
+}
+
+
+sub ping_grab {
+    my ( $class, $args_ref ) = @_;
+
+    my $macaddr = $args_ref->{'macaddr'} || die 'no mac address';
+    my $ip      = $args_ref->{'ip'}      || die 'no ip address';
+    my $fwbuild = $args_ref->{'firmware_version'} || 0;
+
+    my $ary = $class->connect->selectrow_arrayref(<<SQL, { Slice => {} }, $ip, $macaddr);
+SELECT
+router.ssid_event,
+router.passwd_event,
+router.firmware_event,
+router.reboot_event,
+router.halt_event,
+router.adserving,
+router.device,
+router.default_skips,
+router.custom_skips
+FROM
+router
+WHERE
+router.wan_ip = ?
+AND router.macaddr = ?
+SQL
+
+    # no results
+    return unless $ary;
+
+    warn("found router for ip $ip, mac $macaddr, " . $ary->[0]) if DEBUG;
+
+    # update last seen
+    $class->connect->do(<<SQL, {}, $ip, $fwbuild, $ary->[0]) || die $DBI::errstr;
+UPDATE router SET
+last_ping = now(), wan_ip = ?, firmware_version = ?
+WHERE router_id = ?
+SQL
+
+    # some results
+    return $ary;
+}
+
 
 
 sub get {
@@ -179,38 +226,39 @@ sub get {
     return $router;
 }
 
+
+
 sub retrieve {
     my ($class, $router_id) = @_;
 
     require Carp && Carp::croak unless $router_id;
 
     my $router = $class->connect->selectall_arrayref(<<SQL, { Slice => {}}, $router_id)->[0];
-SELECT router_id, account_id, lan_ip, splash_href, splash_timeout, macaddr
-FROM router
-WHERE
-router_id = ?
+$Router_sql
+AND router_id = ?
 SQL
     
     return (defined $router) ? $router : undef;
 }
 
 sub add_router_from_mac {
-    my ( $class, $macaddr ) = @_;
+    my ( $class, $macaddr, $ip ) = @_;
 
     die "no maccaddr passed" unless $macaddr;
+    die "no ip passed" unless $ip;
  
-    $class->connect->do(<<SQL, {}, $macaddr, 'mr3201a') || die $DBI::errstr;
+    $class->connect->do(<<SQL, {}, $macaddr,$ip,'mr3201a') || die $DBI::errstr;
 INSERT INTO ROUTER
-(macaddr, device)
+(macaddr, wan_ip, device)
 VALUES
 (?,?)
 SQL
 
     # grab the id of the new device
-    my ($router_id, $router) = $class->get_router_id_from_mac($macaddr) ||
+    my $router = $class->get_router_from_mac($macaddr) ||
        die "router add for macaddr $macaddr failed!";
 
-    return $router_id;
+    return $router;
 }
 
 
