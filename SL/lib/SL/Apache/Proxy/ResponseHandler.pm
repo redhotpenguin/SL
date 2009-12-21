@@ -95,6 +95,7 @@ our %response_map = (
     410 => 'bsod',
     500 => 'bsod',
     503 => 'bsod',
+    504 => 'bsod',
 );
 
 our $Cache              = SL::Cache->new( type => 'raw' );
