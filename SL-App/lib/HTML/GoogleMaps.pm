@@ -446,7 +446,7 @@ SCRIPT
     my $point_html = $point->{html};
     if ($point->{format} && $point->{html}) {
       $point_html = sprintf(
-        '<div style="width:350px;height:300px;">%s</div>',
+        '<div style="width:350px;height:280px;">%s</div>',
         $point->{html},
       );
     }

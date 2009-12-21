@@ -109,8 +109,9 @@ sub dispatch_index {
             $speed = int( $speed * 1024 );
         }
         elsif ( $units eq 'KB/s' ) {
-            $r->log->debug("Unknown checkin units '$units'");
+	    # nothing to do
 	} else {
+            $r->log->debug("Unknown checkin units '$units'");
 	    $speed=0;
 	}
 

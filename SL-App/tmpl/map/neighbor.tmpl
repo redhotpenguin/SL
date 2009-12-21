@@ -13,10 +13,7 @@
 
        <table>
        <tr>
-         <th>Neighbor</th>&nbsp;|&nbsp;
-         <th>IP</th>&nbsp;|&nbsp;
-         <th>Mac Address</th>&nbsp;|&nbsp;
-         <th>RSSI</th>
+         <th>Neighbor&nbsp;</th><th>&nbsp;IP&nbsp;</th><th>&nbsp;Mac Address&nbsp;</th><th>&nbsp;RSSI</th>
        </tr>
 
        
@@ -27,7 +24,7 @@
          <td><a href="[% base_uri %]/app/router/edit/?router_id=[% mrrogers.router_id %]">[% mrrogers.name %]</a></td>
          <td>[% mrrogers.ip %]</td>
          <td>[% mrrogers.macaddr %]</td>
-         <td class="highlight">[% mrrogers.rssi %]</td>
+         <td class="highlight"><font color="[% IF mrrogers.rssi > 19 %]green[% ELSIF mrrogers.rssi > 10 %]orange[% ELSE %]red[% END %]">[% mrrogers.rssi %]</font></td>
        </tr>
 
        [% END %]

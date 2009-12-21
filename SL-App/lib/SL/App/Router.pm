@@ -852,13 +852,16 @@ sub map {
             next;
         }
 
+        $r->log->debug( "map - grabbing last checkin: " )
+          if DEBUG;
         # get the latest checkin for this router
 	my ($checkin) = SL::Model::App->resultset('Checkin')->search(
 		{ router_id => $router->router_id, },
-		{ order_by  => 'me.cts DESC' }
+		{ order_by  => 'me.cts DESC' },
+		{ rows => 1 },
 	);
 
-        $r->log->debug( "grabbed last checkin: " . Dumper($checkin) )
+        $r->log->debug( "map - grabbed last checkin: " . Dumper($checkin) )
           if DEBUG;
 
         my @neighbors;
@@ -871,6 +874,7 @@ sub map {
           )
         {
 
+            $r->log->debug( "map - processing neighbors: " . Dumper($checkin) ) if DEBUG;
             my $nodes = $checkin->nodes;
             $nodes =~ s/(\%3b)/\;/g;
             my @nodes = split( /\;/, $nodes );
@@ -879,26 +883,32 @@ sub map {
             $rssis =~ s/(\%3b)/\;/g;
             my @rssis = split( /\;/, $rssis );
 
-            $r->log->debug( "neighbors: " . Dumper( \@nodes ) )
-              if VERBOSE_DEBUG;
+	    my @sorted_nodes;
+	    foreach my $node (@nodes) {
+	    	push @sorted_nodes, [ $node, abs(shift(@rssis)) ];
+	    }
 
-            foreach my $node (@nodes) {
+            $r->log->debug( "neighbors: " . Dumper( \@sorted_nodes ) ) if DEBUG;
 
-                $r->log->debug("processing neighbor node $node")
+	    # process a maximum of 8
+	    my ($i, $orange) = (0,0);
+            foreach my $node ( sort { $b->[1] <=> $a->[1] } @sorted_nodes ) {
+
+		$r->log->debug("processing neighbor node $node")
                   if VERBOSE_DEBUG;
 
                 my %args = ( account_id => $router->account_id );
 
-                if ( substr( $node, 0, 2 ) eq '00' ) {
+                if ( substr( $node->[0], 0, 2 ) eq '00' ) {
 
                     # $node is mac address
-                    $args{macaddr} = $node;
+                    $args{macaddr} = $node->[0];
 
                 }
                 else {
 
                     # node is ip
-                    $args{ip} = $node;
+                    $args{ip} = $node->[0];
                 }
                 my ($nbr) =
                   SL::Model::App->resultset('Router')->search( \%args );
@@ -909,9 +919,15 @@ sub map {
                     next;
                 }
 
-                $nbr->{rssi} = abs( shift(@rssis) );
+                $nbr->{rssi} = $node->[1];
 
                 push @neighbors, $nbr;
+
+		$i++;
+		if ( $node->[1] < 20) {
+			$orange++;
+		}
+		last if ($i > 4) && ($orange > 0);
             }
         }
 
@@ -1039,6 +1055,7 @@ JS
             && ( $router->gateway eq $router->wan_ip ) )
         {
 
+            $r->log->debug( "map - adding polyline: " . Dumper($checkin) ) if DEBUG;
             my ($gateway) =
               SL::Model::App->resultset('Router')
               ->search( { ip => $router->gateway } );
