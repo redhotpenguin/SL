@@ -465,8 +465,8 @@ sub random {
     if ($device_guess) {
 
        warn("grabbing device guess for account $account_id") if DEBUG;
-        # grab ad ids based on the ip
-        ($persistents, $brandings) =
+
+	   ($persistents, $brandings) =
             $class->account_default_ad_zones( $account_id );
 
     } else {
@@ -479,7 +479,7 @@ sub random {
 
     unless ($persistents && $brandings) {
 
-        warn("no ads for router $router_id, account $account_id") if DEBUG;
+        warn("no ads for router $router_id, account $account_id");
         return;
     }
 

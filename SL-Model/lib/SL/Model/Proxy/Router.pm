@@ -26,12 +26,13 @@ sub identify {
         ( $hash_mac, $router_mac ) = split( /\|/, $sl_header );
 
         # the leading zero is omitted on some sl_headers
-        if ( length($hash_mac) == 7 ) {
+        if ( (length($hash_mac) == 7 ) or (length($hash_mac) == 11)) {
             $hash_mac = '0' . $hash_mac;
         }
 
+
         die("Found invalid sl_header $sl_header")
-          unless ( ( length($hash_mac) == 8 )
+          unless ( (( length($hash_mac) == 8 ) or (length($hash_mac) == 12))
             && ( length($router_mac) == 12 ) );
 
     }

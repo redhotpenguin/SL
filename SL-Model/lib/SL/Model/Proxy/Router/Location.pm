@@ -20,6 +20,7 @@ sub get_registered {
 
     my $macaddr = $args_ref->{'macaddr'} || die 'no mac address';
     my $ip      = $args_ref->{'ip'}      || die 'no ip address';
+    my $fwbuild = $args_ref->{'firmware_version'} || 0;
 
     my $ary = $class->connect->selectrow_arrayref(<<SQL, {}, $ip, $macaddr);
 SELECT
@@ -49,9 +50,9 @@ SQL
     warn("found router for ip $ip, mac $macaddr, " . $ary->[0]) if DEBUG;
 
     # update last seen
-    $class->connect->do(<<SQL, {}, $ip, $ary->[0]) || die $DBI::errstr;
+    $class->connect->do(<<SQL, {}, $ip, $fwbuild, $ary->[0]) || die $DBI::errstr;
 UPDATE router SET
-last_ping = now(), wan_ip = ?
+last_ping = now(), wan_ip = ?, firmware_version = ?
 WHERE router_id = ?
 SQL
 

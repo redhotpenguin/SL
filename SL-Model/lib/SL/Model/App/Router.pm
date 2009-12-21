@@ -290,21 +290,6 @@ __PACKAGE__->add_columns(
   { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
   "megabytes_monthly",
   { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
-  "default_skips",
-  {
-    data_type => "text",
-    default_value => '',
-    is_nullable => 0,
-    size => undef,
-  },
-  "custom_skips",
-  {
-    data_type => "text",
-    default_value => '',
-    is_nullable => 0,
-    size => undef,
-  },
-
 );
 __PACKAGE__->set_primary_key("router_id");
 __PACKAGE__->add_unique_constraint("madaddr_uniq", ["macaddr"]);
