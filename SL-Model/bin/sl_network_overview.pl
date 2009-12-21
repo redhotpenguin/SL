@@ -8,6 +8,7 @@ use DateTime::Format::Pg;
 use Data::Dumper;
 use SL::Model;
 use SL::Model::App;
+use Clone;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
@@ -15,6 +16,17 @@ use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 # grab the checkin data for the last 24 hours and write a csv file
 
 my $yesterday = DateTime->now( time_zone => "local" )->subtract( hours => 24 );
+
+my @Array;
+for ( 0 .. 24 * 12 ) { # 12 times/hour * 24 times/day
+        push @Array,
+          [ $yesterday->clone->add( minutes => 5 * $_ ), # cts
+            0, # kbdown
+            0, # kbup
+            0, # users
+            0 ]; # checkin bit
+}
+
 
 my $dbh = SL::Model->connect;
 
@@ -80,7 +92,6 @@ foreach my $row (@$users) {
         kbdown => $row->{kbdown},
         router => $row->{router_id},
         cts    => $dt,
-        #cts    => DateTime::Format::Pg->parse_datetime( $row->{cts} ),
       };
 }
 
@@ -90,23 +101,16 @@ foreach my $account_id ( keys %refined ) {
     # every 15 minutes for 24 hours is 4*24 = 96 - time, kbdown, kbup
     # setup an array to hold the data
 
-    warn("building interval array") if DEBUG;
-    my @array;
-    for ( 1 .. 24 * 12 ) {    # 5 minutes
-        push @array,
-          [ $now->clone->add( minutes => 5 * $_ ), # cts
-            0, # kbdown
-            0, # kbup
-            0, # users
-            0 ]; # checkin bit
-    }
+
+    # the dirty data dance
+    my $array_ref = Clone::clone(\@Array);
+    my @array = @{$array_ref};
 
     # aggregate the router data
     my $megabytes_total = 0;
     foreach my $router_id ( keys %{ $refined{$account_id}{routers} } ) {
 	warn("processing router $router_id") if DEBUG;
 
-        # loop over the data
         #        $DB::single = 1;
         my $router_traffic = 0;
         my ( %last_row, %placeholder );
@@ -123,8 +127,10 @@ foreach my $account_id ( keys %refined ) {
             for ( my $j = 0 ; $j < $#array ; $j++ ) {
 
                 # see if this row fits in the first time slot
-                unless ( (ref $array[$j]->[0] && ref $sorted_checkins[$i]->{cts} ) &&
-                    (
+                if (
+		    (ref $array[$j]->[0] && 
+		     ref $sorted_checkins[$i]->{cts} )
+                    && (
                         $sorted_checkins[$i]->{cts}->epoch >=
                         $array[$j]->[0]->epoch
                     )
@@ -132,42 +138,30 @@ foreach my $account_id ( keys %refined ) {
                         $array[ $j + 1 ]->[0]->epoch )
                   )
                 {
+		    warn("got slot index $j ") if VERBOSE_DEBUG;
+		    warn("down " . $sorted_checkins[$i]->{kbdown}) if VERBOSE_DEBUG;
+		    warn("up " . $sorted_checkins[$i]->{kbup}) if VERBOSE_DEBUG;
 
-                    # not in this time slot
-                    next;
-                }
-                else {
-		    warn("got slot index $j ") if DEBUG;
-		    warn("down " . $sorted_checkins[$i]->{kbdown}) if DEBUG;
-		    warn("up " . $sorted_checkins[$i]->{kbup}) if DEBUG;
-		    
                     $slot_idx = $j;
                     last;
                 }
             }
             unless (defined $slot_idx) {
-		next;
-#		warn("hey no slot idx but it is $slot_idx");
+
 		$sorted_checkins[$i]->{cts} = $sorted_checkins[$i]->{cts}->ymd . " - " . $sorted_checkins[$i]->{cts}->hms;
 		$array[0]->[0] = $array[0]->[0]->ymd . " " . $array[0]->[0]->hms;
-		warn("checkin range top is " . Dumper($array[0]->[0]));
-
+		warn("checkin range top is " . Dumper($array[0]->[0])) if DEBUG;
 
 		$array[$#array]->[0] = $array[$#array]->[0]->ymd . " " . $array[$#array]->[0]->hms;
-		warn("checkin range bottom is " . Dumper($array[$#array]->[0]));
+		warn("checkin range bottom is " . Dumper($array[$#array]->[0])) if DEBUG;
 
-                warn("checkin $i found outside time range: " . Dumper($sorted_checkins[$i]->{cts}));
+                warn("checkin $i found outside time range: " . Dumper($sorted_checkins[$i]->{cts})) if DEBUG;
 		next;
 
             }
 
             warn("found a slot $slot_idx") if VERBOSE_DEBUG;
 
-            # check to make sure an existing entry doesn't exist
-            if ( $array[$slot_idx]->[4] > 0 ) {
-                warn("existing checkin for array element $i") if DEBUG;
-                next;    # next checkin
-            }
             my $row      = $sorted_checkins[$i];
             my $last_row = $sorted_checkins[ $i - 1 ];
 
@@ -176,26 +170,23 @@ foreach my $account_id ( keys %refined ) {
                 and ( $row->{kbdown} >= $last_row->{kbdown} ) )
             {
 
-            $array[$slot_idx]->[1] = $row->{kbdown} - $last_row->{kbdown};
-            $array[$slot_idx]->[2] = $row->{kbup} - $last_row->{kbup};
+	         $array[$slot_idx]->[1] += $row->{kbdown} - $last_row->{kbdown};
+                 $array[$slot_idx]->[2] += $row->{kbup} - $last_row->{kbup};
 
             } else {
 		# HACK!  Sometimes nodogsplash isn't accurate, so zero it
-
-		warn "oops - " . $row->{kbdown}/1024 . " , " . $last_row->{kbdown}/1024 if DEBUG;
-		warn "oops - " . $row->{kbup}/1024 . " , " . $last_row->{kbup}/1024 if DEBUG;
-		warn "OOPS - " . $row->{cts}->hms if DEBUG;
-		$array[$slot_idx]->[1] = 0;
-		$array[$slot_idx]->[2] = 0;
+		warn "nodoghack - " . $row->{kbdown}/1024 . " , " . $last_row->{kbdown}/1024 if VERBOSE_DEBUG;
+		warn "nodoghack - " . $row->{kbup}/1024 . " , " . $last_row->{kbup}/1024 if VERBOSE_DEBUG;
+		warn "nodoghack - " . $row->{cts}->hms if VERBOSE_DEBUG;
 
 	    }
 
             warn(
-                sprintf( "kbup %s, kbdown %s", $row->{kbup}/1024, $row->{kbdown}/1024 ) ) if DEBUG;
+                sprintf( "kbup %s, kbdown %s", $row->{kbup}/1024, $row->{kbdown}/1024 ) ) if VERBOSE_DEBUG;
 
             # bit to indicate a checkin took place for this device
             $array[$slot_idx]->[4] = 1;
-	    $array[$slot_idx]->[3] = $row->{users} || 0;
+	    $array[$slot_idx]->[3] += $row->{users} || 0;
 
             # total megs
             $megabytes_total += ( $array[$slot_idx]->[1] + $array[$slot_idx]->[2] );
@@ -249,7 +240,7 @@ foreach my $account_id ( keys %refined ) {
     # reinitialize the array
     #    $DB::single = 1;
     $_->[0] = $_->[0]->strftime("%l:%M %p") for @array;
-    warn( "array is " . Dumper( \@array ) ) if DEBUG;
+    warn( "array is " . Dumper( \@array ) ) if VERBOSE_DEBUG;
 
     my ($account) =
       SL::Model::App->resultset('Account')
