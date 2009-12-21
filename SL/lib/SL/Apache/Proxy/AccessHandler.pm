@@ -75,7 +75,7 @@ sub handler {
     elsif ( !$router_id ) {
 
         # unauthorized attempt, probably a bot
-        $r->log->error(
+        $r->log->warn(
             sprintf(
                 "client ip %s unregistered access attempt to url %s",
                 $r->connection->remote_ip, $url
