@@ -36,6 +36,31 @@
 		</form>
         </div>
 	
+	
+	<div class="row">
+    <h3>Affiliate Links</h3>
+		<form class="form" method="post" action="[% base_uri %]/app/settings/affiliates">
+			<ul>
+				<li>
+
+			    <div class="check_label">
+
+<label class="check_label">Set your Google AdSense for Content Publisher ID[% IF reg.account.plan == 'free' %] (<a href="http://www.silverliningnetworks.com/pricing/?email=[% reg.email %]">paid accounts only</a>)[% END %]</label>
+				<input size="40" type="text" name="google_ad_client" id="google_ad_client" [% IF reg.account.plan == 'free' %]readonly="1" value="pub-XXXXXXXXXXXXXXX"[% ELSE %] value="[% reg.account.google_ad_client || 'pub-XXXXXXXXXXXXXXX' %]">&nbsp;&nbsp;
+[% END %]
+
+					<div class="clear"></div>				
+				</div>
+				<div class="clear"></div>
+				</li>
+				
+				<li>
+					[% IF reg.account.plan != 'free' %]<input type="submit" value="Update AdSense" />[% END %]
+				</li>
+			</ul>
+		</form>
+        </div>
+	
 		
 
 

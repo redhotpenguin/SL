@@ -94,6 +94,30 @@ sub dispatch_market {
     return Apache2::Const::REDIRECT;
 }
 
+
+sub dispatch_affiliates {
+    my ( $self, $r, $args_ref ) = @_;
+
+    my $reg = $r->pnotes( $r->user );
+    my $req = $args_ref->{req} || Apache2::Request->new($r);
+
+    if ( $req->param('google_ad_client') ) {
+
+        $r->log->debug("setting google_ad_client to " . $req->param('google_ad_client')) if DEBUG;
+
+        $reg->account->google_ad_client( $req->param('google_ad_client' ));
+    }
+    else {
+        $reg->account->google_ad_client('pub-9104946517470276');
+    }
+
+    $r->pnotes('session')->{msg} = "AdSense ID Updated";
+    $reg->account->update;
+    $r->headers_out->set( Location => $r->headers_in->{'Referer'} );
+    return Apache2::Const::REDIRECT;
+}
+
+
 sub dispatch_account {
     my ( $self, $r, $args_ref ) = @_;
 
