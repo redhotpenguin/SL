@@ -151,19 +151,19 @@ foreach my $account_id ( keys %refined ) {
             unless ( defined $slot_idx ) {
 
                 $sorted_checkins[$i]->{cts} =
-                    $sorted_checkins[$i]->{cts}->ymd . " - "
+                    $sorted_checkins[$i]->{cts}->day_abbr . " - "
                   . $sorted_checkins[$i]->{cts}->hms;
             
 	    	if (ref $array[0]->[0]) {
 		    $array[0]->[0] =
-                  $array[0]->[0]->ymd . " " . $array[0]->[0]->hms;
+                  $array[0]->[0]->day_abbr . " " . $array[0]->[0]->hms;
 		}
 		warn( "checkin range top is " . Dumper( $array[0]->[0] ) )
                   if DEBUG;
 
 	    	if (ref $array[$#array]->[0]) {
                 $array[$#array]->[0] =
-                  $array[$#array]->[0]->ymd . " " . $array[$#array]->[0]->hms;
+                  $array[$#array]->[0]->day_abbr . " " . $array[$#array]->[0]->hms;
 		}
 		warn( "checkin range bottom is "
                       . Dumper( $array[$#array]->[0] ) )
@@ -190,7 +190,8 @@ foreach my $account_id ( keys %refined ) {
                 $array[$slot_idx]->[2] += $row->{kbup} - $last_row->{kbup};
 
 		# total megs
-        	$megabytes_total += $row->{kbdown} + $last_row->{kbup};
+        	$megabytes_total += $row->{kbdown} - $last_row->{kbdown};
+        	$megabytes_total += $row->{kbup} - $last_row->{kbup};
             }
             else {
 
@@ -245,7 +246,7 @@ foreach my $account_id ( keys %refined ) {
     #    $DB::single = 1;
     foreach my $line (@array) {
 	if (ref $line->[0]) {
-	    $line->[0] = $line->[0]->strftime("%l:%M %p");
+	    $line->[0] = $line->[0]->day_abbr . ' ' . $line->[0]->hms;
 	}
     }
     warn( "array is " . Dumper( \@array ) ) if VERBOSE_DEBUG;
