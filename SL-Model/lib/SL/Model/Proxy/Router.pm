@@ -96,33 +96,22 @@ sub latest_mac_from_ip {
     return $router->[0];
 }
 
-our $Router_sql = <<SQL;
+sub get_router_from_mac {
+    my ( $class, $macaddr ) = @_;
+
+    die 'no macaddr passed' unless $macaddr;
+
+
+	warn("router mac $macaddr not in memcache, going to db") if DEBUG;
+
+    my $router = $class->connect->selectall_arrayref(<<"SQL", { Slice => {}}, $macaddr)->[0];
 SELECT router.router_id, router.account_id,router.macaddr,
 router.lan_ip, router.wan_ip, router.ip,
 router.splash_href, router.splash_timeout, router.show_aaa_link,
 account.dnsone,account.dnstwo,account.google_ad_client,account.aaa
 FROM router, account
 WHERE router.account_id = account.account_id
-SQL
-
-sub get_router_from_mac {
-    my ( $class, $macaddr ) = @_;
-
-    die 'no macaddr passed' unless $macaddr;
-
-    # see if this device is in the cache
-    # router|$device_mac             = $device_id;
-    my $router_id = SL::Cache->memd->get("router|$macaddr");
-    my $router;
-    unless ($router_id) {
-
-        # check the database
-
-	warn("router mac $macaddr not in memcache, going to db") if DEBUG;
-
-        $router = $class->connect->selectall_arrayref(<<SQL, { Slice => {}}, $macaddr)->[0];
-$Router_sql
-AND macaddr=?
+AND router.macaddr=?
 SQL
 
         return unless $router;
@@ -132,10 +121,9 @@ SQL
 		     $router->{wan_ip}, $macaddr)) if DEBUG;
 
         # update the cache
-        $router_id = $router->{router_id};
+        my $router_id = $router->{router_id};
         SL::Cache->memd->set("router|$macaddr"   => $router_id, 60*60);
         SL::Cache->memd->set("router|$router_id" => $router, 60*60);
-    }
 
     # we've got the router
     return $router;
@@ -169,8 +157,9 @@ sub ping_grab {
     my $ip      = $args_ref->{'ip'}      || die 'no ip address';
     my $fwbuild = $args_ref->{'firmware_version'} || 0;
 
-    my $ary = $class->connect->selectrow_arrayref(<<SQL, { Slice => {} }, $ip, $macaddr);
+    my $ary = $class->connect->selectall_arrayref(<<SQL, { Slice => {} }, $macaddr)->[0];
 SELECT
+router.router_id,
 router.ssid_event,
 router.passwd_event,
 router.firmware_event,
@@ -183,22 +172,22 @@ router.custom_skips
 FROM
 router
 WHERE
-router.wan_ip = ?
-AND router.macaddr = ?
+router.macaddr = ?
 SQL
 
     # no results
     return unless $ary;
 
-    warn("found router for ip $ip, mac $macaddr, " . $ary->[0]) if DEBUG;
+    warn("found router for ip $ip, mac $macaddr, id " . $ary->{router_id}) if DEBUG;
 
     # update last seen
-    $class->connect->do(<<SQL, {}, $ip, $fwbuild, $ary->[0]) || die $DBI::errstr;
+    $class->connect->do(<<SQL, undef, $ip, $fwbuild, $ary->{router_id}) || die $DBI::errstr;
 UPDATE router SET
 last_ping = now(), wan_ip = ?, firmware_version = ?
 WHERE router_id = ?
 SQL
 
+    warn("updated last seen for router for ip $ip, mac $macaddr, ") if DEBUG;
     # some results
     return $ary;
 }
@@ -233,8 +222,13 @@ sub retrieve {
 
     require Carp && Carp::croak unless $router_id;
 
-    my $router = $class->connect->selectall_arrayref(<<SQL, { Slice => {}}, $router_id)->[0];
-$Router_sql
+    my $router = $class->connect->selectall_arrayref(<<"SQL", { Slice => {}}, $router_id)->[0];
+SELECT router.router_id, router.account_id,router.macaddr,
+router.lan_ip, router.wan_ip, router.ip,
+router.splash_href, router.splash_timeout, router.show_aaa_link,
+account.dnsone,account.dnstwo,account.google_ad_client,account.aaa
+FROM router, account
+WHERE router.account_id = account.account_id
 AND router_id = ?
 SQL
     
