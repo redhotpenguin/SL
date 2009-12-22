@@ -144,6 +144,8 @@ foreach my $account_id ( keys %refined ) {
                     $array[$i]->[1] += $row->{kbdown};
                     $array[$i]->[2] += $row->{kbup};
 
+	
+
                     # zbit to indicate a checkin took place for this device
                     $array[$i]->[4] = 1;
 
@@ -194,25 +196,6 @@ foreach my $account_id ( keys %refined ) {
 
     }
 
-
-
-=cut
-
-    # now update the router totals
-    foreach my $router_id ( keys %router_users ) {
-      my ($router) = SL::Model::App->resultset('Router')->search({ router_id => $router_id  });
-
-      $router->users_monthly(scalar(keys %{$router_users{$router_id}}));
-      $router->update;
-    }
-
-=cut
-
-    # reinitialize the array
-    #    $DB::single = 1;
-
-#    warn( "array is " . Dumper( \@array ) ) if DEBUG;
-
     my ($account) =
       SL::Model::App->resultset('Account')
       ->search( { account_id => $account_id } );
@@ -227,8 +210,8 @@ foreach my $account_id ( keys %refined ) {
     foreach my $el (@array) {
 
       # kb to MB
-      $megabytes_total += ($el->[1]/1024);
-      $megabytes_total += ($el->[2]/1024);
+      $megabytes_total += $el->[1];
+      $megabytes_total += $el->[2];
 
       # convert to Mbits/s
       $el->[1] = sprintf("%2.1f", $el->[1]/1024*8/(3600));
@@ -240,7 +223,7 @@ foreach my $account_id ( keys %refined ) {
 
     }
 
-    $account->megabytes_monthly(int($megabytes_total));
+    $account->megabytes_monthly(int($megabytes_total/1024));
     $account->update;
 
     my $filename =

@@ -32,7 +32,7 @@ my $dbh = SL::Model->connect;
 
 # devices
 my $sql = <<'SQL';
-SELECT checkin.kbup, checkin.kbdown,
+SELECT checkin.kbup, checkin.kbdown, checkin.users,
 account.account_id, checkin.cts, router.router_id
 FROM checkin, router, account
 WHERE checkin.cts > '%s'
@@ -60,6 +60,7 @@ foreach my $row (@$results) {
       {
         kbup   => $row->{kbup},
         kbdown => $row->{kbdown},
+        users => $row->{users},
         cts    => $dt,
       };
 }
@@ -113,8 +114,7 @@ foreach my $account_id ( keys %refined ) {
         warn("processing router $router_id") if DEBUG;
 
         #        $DB::single = 1;
-        my $router_traffic = 0;
-        my ( %last_row, %placeholder );
+        my %last_row;
 
         my @sorted_checkins =
           sort { $a->{cts}->epoch <=> $b->{cts}->epoch }
@@ -130,7 +130,8 @@ foreach my $account_id ( keys %refined ) {
 
                 # see if this row fits in the first time slot
                 if (
-                    ( ref $array[$j]->[0] && ref $sorted_checkins[$i]->{cts} )
+                    ( ref $array[$j]->[0] && ref $sorted_checkins[$i]->{cts}
+		    && ref $array[$j+1]->[0])
                     && ( $sorted_checkins[$i]->{cts}->epoch >=
                         $array[$j]->[0]->epoch )
                     && ( $sorted_checkins[$i]->{cts}->epoch <=
@@ -152,14 +153,19 @@ foreach my $account_id ( keys %refined ) {
                 $sorted_checkins[$i]->{cts} =
                     $sorted_checkins[$i]->{cts}->ymd . " - "
                   . $sorted_checkins[$i]->{cts}->hms;
-                $array[0]->[0] =
+            
+	    	if (ref $array[0]->[0]) {
+		    $array[0]->[0] =
                   $array[0]->[0]->ymd . " " . $array[0]->[0]->hms;
-                warn( "checkin range top is " . Dumper( $array[0]->[0] ) )
+		}
+		warn( "checkin range top is " . Dumper( $array[0]->[0] ) )
                   if DEBUG;
 
+	    	if (ref $array[$#array]->[0]) {
                 $array[$#array]->[0] =
                   $array[$#array]->[0]->ymd . " " . $array[$#array]->[0]->hms;
-                warn( "checkin range bottom is "
+		}
+		warn( "checkin range bottom is "
                       . Dumper( $array[$#array]->[0] ) )
                   if DEBUG;
 
@@ -184,10 +190,7 @@ foreach my $account_id ( keys %refined ) {
                 $array[$slot_idx]->[2] += $row->{kbup} - $last_row->{kbup};
 
 		# total megs
-        	$megabytes_total += $row->{kbdown} - $last_row->{kbdown};
-            	$router_traffic  += $row->{kbup} - $last_row->{kbup};
-
-
+        	$megabytes_total += $row->{kbdown} + $last_row->{kbup};
             }
             else {
 
@@ -204,9 +207,9 @@ foreach my $account_id ( keys %refined ) {
 
             }
 
+            $array[$slot_idx]->[3] += $row->{users} || 0;
             # bit to indicate a checkin took place for this device
             $array[$slot_idx]->[4] = 1;
-            $array[$slot_idx]->[3] += $row->{users} || 0;
         }
 
     }
@@ -219,28 +222,11 @@ foreach my $account_id ( keys %refined ) {
 
         # loop over the data
         #        $DB::single = 1;
-        my ( %last_row, %placeholder );
         foreach my $row ( sort { $b->{cts}->epoch <=> $a->{cts}->epoch }
             @{ $refined{$account_id}{users}{$mac} } )
         {
 
             $router_users{ $row->{router} }{$mac} = 1;
-
-            # at this point we're processing time based data for $router_id.
-            # add the totals to to the array in the correct time slot.
-            # loop over the output @array until the row fits the slot.
-            for ( my $i = 0 ; $i <= $#array ; $i++ ) {
-
-                # is this timestamp less than the next element?  That's a match
-                if ( $row->{cts}->epoch > $array[$i]->[0]->epoch ) {
-
-                    # then log it on the current element
-                    $array[$i]->[3]++;
-                    last;    # last $row
-                }
-
-            }
-
         }
 
     }
@@ -257,7 +243,11 @@ foreach my $account_id ( keys %refined ) {
 
     # reinitialize the array
     #    $DB::single = 1;
-    $_->[0] = $_->[0]->strftime("%l:%M %p") for @array;
+    foreach my $line (@array) {
+	if (ref $line->[0]) {
+	    $line->[0] = $line->[0]->strftime("%l:%M %p");
+	}
+    }
     warn( "array is " . Dumper( \@array ) ) if VERBOSE_DEBUG;
 
     my ($account) =
@@ -268,8 +258,11 @@ foreach my $account_id ( keys %refined ) {
 
     # users and traffic last 24 hours
     $account->users_today( scalar( keys %{ $refined{$account_id}{users} } ) );
-    $account->megabytes_today( int($megabytes_total) );
+    $account->megabytes_today( int($megabytes_total/1024) );
     $account->update;
+
+    # reverse for the graph
+    @array = reverse(@array);
 
     my $filename =
       join( '/', $account->report_dir_base, "network_overview.csv" );
@@ -278,7 +271,7 @@ foreach my $account_id ( keys %refined ) {
     open( $fh, '>', $filename ) or die "could not open $filename: " . $!;
     foreach my $line (@array) {
         $line->[1] = sprintf( "%2.1f", ( $line->[1] * 1000 * 8 / 1024 / 1024 / 300));
-        $line->[2] = sprintf( "%2.1f", ( -1 * $line->[2] * 1000 * 8 / 1024 / 1024 / 300));
+        $line->[2] = sprintf( "%2.1f", ( 1 * $line->[2] * 1000 * 8 / 1024 / 1024 / 300));
         print $fh join( ',', @{$line}[ 0 .. 3 ] ) . "\n";
     }
     close $fh or die $!;

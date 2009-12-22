@@ -415,7 +415,7 @@ foreach my $account_id ( keys %refined ) {
             $line->[1] =
               sprintf( "%.2f", ($line->[1]*1000*8/1024/1024/300  ));
             $line->[2] =
-              sprintf( "%.2f", (-1 * $line->[2]*1000*8/1024/1024/300));
+              sprintf( "%.2f", ( $line->[2]*1000*8/1024/1024/300));
             print $fh join( ',', @{$line}[ 0, 1, 2 ] ) . "\n";
         }
         close($fh) or die $!;
