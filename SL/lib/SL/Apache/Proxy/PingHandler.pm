@@ -97,7 +97,7 @@ sub handler {
 
             require Data::Dumper;
             $r->log->error(
-                sprintf( "$$ error registering router args %s",
+                sprintf( "$$ error registering router $@ args %s",
                     Data::Dumper::Dumper( \%args ) )
             );
             return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
@@ -126,7 +126,7 @@ sub handler {
         if (defined $router->{custom_skips}
             && ( $router->{custom_skips} ne '')) {
 
-           my $bytes = $r->print("CustomSkips " . $router->{custom_skips}
+           my $bytes = $r->print("CustomSkips " . $router->{custom_skips});
            SL::Model::Proxy::Router->reset_events( $router->[0],
                     'custom_skips' );
          }

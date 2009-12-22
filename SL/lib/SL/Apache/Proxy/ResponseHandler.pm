@@ -748,8 +748,10 @@ sub twohundred {
     $TIMER->start('affiliate replace') if TIMING;
 
     my $google_ad_client = $r->pnotes('router')->{google_ad_client};
-    if ($google_ad_client) {
-        $$response_content_ref =~
+    if (0 && defined $google_ad_client &&
+		($$response_content_ref =~ m/google_ad_client/s)) {
+		
+		$$response_content_ref =~
             s/(google_ad_client\s+\=\s+["|'])(.*?)(["|'])/$1$google_ad_client$3/g;
     }
     $r->log->info(
