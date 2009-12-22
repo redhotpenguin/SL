@@ -417,7 +417,7 @@ sub dispatch_edit {
     $r->log->debug( "got szones " . join( "\n", map { $_->name } @szones ) )
       if DEBUG;
 
-    my ( %router__ad_zones, @locations, $router, $output );
+    my ( %router__ad_zones, $router, $output );
     if ( $req->param('router_id') ) {    # edit existing router
 
         ($router) = SL::Model::App->resultset('Router')->search(
@@ -437,14 +437,6 @@ sub dispatch_edit {
             );
             return Apache2::Const::NOT_FOUND;
         }
-
-        # get the locations for the router
-        @locations =
-          sort { $b->mts cmp $a->mts }
-          map  { $_->location } $router->router__locations;
-
-        # format the time
-        $_->mts( $class->sldatetime( $_->mts ) ) for @locations;
 
         # current associations for this router, including twitter
         %router__ad_zones =
@@ -501,7 +493,6 @@ sub dispatch_edit {
             szones    => \@szones,
             bzones    => \@bzones,
             router    => $router,
-            locations => scalar( @locations > 0 ) ? \@locations : '',
             errors    => $args_ref->{errors},
             req       => $req,
         );
@@ -757,6 +748,7 @@ sub dispatch_list {
     }
 
     @routers =
+      sort { $b->views_daily <=> $a->views_daily }
       sort { $b->users_daily <=> $a->users_daily }
       sort { $b->traffic_daily <=> $a->traffic_daily }
       sort { $a->{'seen_index'} <=> $b->{'seen_index'} }
