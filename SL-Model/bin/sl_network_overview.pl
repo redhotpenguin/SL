@@ -152,18 +152,18 @@ foreach my $account_id ( keys %refined ) {
 
                 $sorted_checkins[$i]->{cts} =
                     $sorted_checkins[$i]->{cts}->day_abbr . " - "
-                  . $sorted_checkins[$i]->{cts}->hms;
+                  . $sorted_checkins[$i]->{cts}->strftime("%H:%M");
             
 	    	if (ref $array[0]->[0]) {
 		    $array[0]->[0] =
-                  $array[0]->[0]->day_abbr . " " . $array[0]->[0]->hms;
+                  $array[0]->[0]->day_abbr . " " . $array[0]->[0]->strftime("%H:%M");
 		}
 		warn( "checkin range top is " . Dumper( $array[0]->[0] ) )
                   if DEBUG;
 
 	    	if (ref $array[$#array]->[0]) {
                 $array[$#array]->[0] =
-                  $array[$#array]->[0]->day_abbr . " " . $array[$#array]->[0]->hms;
+                  $array[$#array]->[0]->day_abbr . " " . $array[$#array]->[0]->strftime("%H:%M");
 		}
 		warn( "checkin range bottom is "
                       . Dumper( $array[$#array]->[0] ) )
@@ -246,7 +246,7 @@ foreach my $account_id ( keys %refined ) {
     #    $DB::single = 1;
     foreach my $line (@array) {
 	if (ref $line->[0]) {
-	    $line->[0] = $line->[0]->day_abbr . ' ' . $line->[0]->hms;
+	    $line->[0] = $line->[0]->day_abbr . ' ' . $line->[0]->strftime("%H:%M");
 	}
     }
     warn( "array is " . Dumper( \@array ) ) if VERBOSE_DEBUG;

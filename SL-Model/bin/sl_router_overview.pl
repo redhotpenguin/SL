@@ -177,11 +177,11 @@ foreach my $account_id ( keys %refined ) {
             }
             unless (defined $slot_idx) {
 
-  	        $sorted_checkins[$i]->{cts} = $sorted_checkins[$i]->{cts}->ymd . " - " . $sorted_checkins[$i]->{cts}->hms;
-		$array[0]->[0] = $array[0]->[0]->ymd . " " . $array[0]->[0]->hms;
+  	        $sorted_checkins[$i]->{cts} = $sorted_checkins[$i]->{cts}->day_abbr . " - " . $sorted_checkins[$i]->{cts}->strftime("%H:%M");;
+		$array[0]->[0] = $array[0]->[0]->day_abbr . " " . $array[0]->[0]->strftime("%H:%M");
 		warn("checkin range top is " . Dumper($array[0]->[0])) if DEBUG;
 
-		$array[$#array]->[0] = $array[$#array]->[0]->ymd . " " . $array[$#array]->[0]->hms;
+		$array[$#array]->[0] = $array[$#array]->[0]->day_abbr . " " . $array[$#array]->[0]->strftime("%H:%M");
 		warn("checkin range bottom is " . Dumper($array[$#array]->[0])) if DEBUG;
 
                 warn("checkin $i found outside time range: " . Dumper($sorted_checkins[$i]->{cts})) if DEBUG;
@@ -304,7 +304,8 @@ foreach my $account_id ( keys %refined ) {
 
         foreach my $line (@array) {
 	    if (ref $line->[0]) {
-		$line->[0] = $line->[0]->strftime("%l:%M %p");
+
+		$line->[0] = $line->[0]->day_abbr . " " . $line->[0]->strftime("%H:%M");
 	    }
             print $fh join( ',', @{$line}[ 0, 4 ] ) . "\n";
         }
