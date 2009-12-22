@@ -23,13 +23,18 @@ sub handler {
     my ($router) =
       SL::Model::App->resultset('Router')->search( { wan_ip => $ip } );
 
+    unless ($router) {
+    	$r->log->warn("no router found at ip $ip");
+	return Apache2::Const::NOT_FOUND;
+    }
+
     unless ($router
         && $router->lan_ip
         && $router->splash_timeout
         && $router->wan_ip
             && $router->account->aaa_email_cc) {
 
-        $r->log->error( sprintf( "rtr %s not setup %s", $router->router_id,
+        $r->log->error( sprintf( "rtr ip %s not setup: %s", $ip,
 		Dumper($router)) );
         return Apache2::Const::SERVER_ERROR;
     }
