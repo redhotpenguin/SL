@@ -245,7 +245,7 @@ sub add_router_from_mac {
 INSERT INTO ROUTER
 (macaddr, wan_ip, device)
 VALUES
-(?,?)
+(?,?,?)
 SQL
 
     # grab the id of the new device
