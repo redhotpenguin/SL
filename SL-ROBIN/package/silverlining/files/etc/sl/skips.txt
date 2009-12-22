@@ -204,6 +204,7 @@ ads.web.aol.com
 webmail.aol.com
 
 # Miscellaneous
+ps3.us.playstation.com
 myipaddress.com
 whatismyip.com
 whatismyipaddress.com
@@ -327,6 +328,7 @@ tags.bluekai.com
 hfm.checkm8.com
 q1.checkm8.com
 smartadserver.com
+ads.specificmedia.com
 
 # this takes tool long to resolve
 # media.fimnetwork.com
@@ -384,6 +386,7 @@ dc2.122.2o7.net
 dc3.122.2o7.net
 dir.www.adbrite.com
 ads.svx.adbrite.com
+ads.vrx.adbrite.com
 beacon.or4.scorecardresearch.com
 desk.opt.fimserve.com
 cache.fimservecdn.com
