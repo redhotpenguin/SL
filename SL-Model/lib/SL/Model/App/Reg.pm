@@ -414,7 +414,6 @@ sub process_ad_zone {
 sub process_router {
     my ( $self, $router ) = @_;
 
-    $router->{location_count} = $router->router__locations->count;
     $router->{ad_zone_count} = $router->router__ad_zones->count;
 
     return 1;
