@@ -320,7 +320,7 @@ sub dispatch_edit {
 
       # mark this one as default UNLESS there are no existing defaults
 
-      if (@default_zones) {
+      if (@default_zones && ($default_zones[0]->ad_zone_id != $ad_zone->ad_zone_id)) {
         $ad_zone->is_default(0);
 
       } else {

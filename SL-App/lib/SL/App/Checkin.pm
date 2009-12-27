@@ -101,14 +101,14 @@ sub dispatch_index {
         ( $speed, $units ) = split( /\-/, $args{NTR} );
 	
 	unless ($speed && $units) {
-		$r->log->error("speed $speed, units $units");
+		$r->log->error("speed or units missing: " . $args{NTR});
 	}
 
-	if ( defined $units && ($units eq 'MB/s' )) {
+	if ( defined $units and ($units eq 'MB/s' )) {
 
             $speed = int( $speed * 1024 );
         }
-        elsif ( $units eq 'KB/s' ) {
+        elsif ( defined $units and ($units eq 'KB/s') ) {
 	    # nothing to do
 	} else {
 	    if (defined $units) {
