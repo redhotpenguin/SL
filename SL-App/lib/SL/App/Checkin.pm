@@ -87,10 +87,11 @@ sub dispatch_index {
                                          ip => $args{gateway} } );
     }
 
-    if ($gateway) {
+    if ($gateway && ($gateway ne '0')) {
 
 	$router->gateway($args{gateway});
 
+	# raw data in case of failures (so something is displayed)
 	$router->speed_test(
 	            sprintf(
 	                "%d hops, %d ms ping and %s to gateway %s",
@@ -101,7 +102,7 @@ sub dispatch_index {
         ( $speed, $units ) = split( /\-/, $args{NTR} );
 	
 	unless ($speed && $units) {
-		$r->log->error("speed or units missing: " . $args{NTR});
+		$r->log->warn("speed or units missing: " . $args{NTR});
 	}
 
 	if ( defined $units and ($units eq 'MB/s' )) {
@@ -124,9 +125,10 @@ sub dispatch_index {
                 $args{hops}, $hops, $args{RTT}, $speed/1024*8, $gateway->name
             )
         );
-	}
-    }
-    else {
+    } elsif ($gateway && ($gateway eq '0')) {
+
+    	$router->speed_test("Traceroute failed, unknown gateway, no speed test run");
+    } else {
 
         # default is gateway
         $router->gateway($router->wan_ip);
@@ -135,7 +137,7 @@ sub dispatch_index {
 
     }
     $router->update;
-
+	}
 
 
     # log the router entry
