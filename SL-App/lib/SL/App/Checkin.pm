@@ -87,7 +87,7 @@ sub dispatch_index {
                                          ip => $args{gateway} } );
     }
 
-    if ($gateway && ($gateway ne '0')) {
+    if ($gateway) {
 
 	$router->gateway($args{gateway});
 
@@ -107,7 +107,11 @@ sub dispatch_index {
 
 	if ( defined $units and ($units eq 'MB/s' )) {
 
-            $speed = int( $speed * 1024 );
+	    if ($speed > 1.1) {
+	    	$speed = 0;
+	    } else {
+            	$speed = int( $speed * 1024 );
+	    }
         }
         elsif ( defined $units and ($units eq 'KB/s') ) {
 	    # nothing to do
@@ -125,8 +129,7 @@ sub dispatch_index {
                 $args{hops}, $hops, $args{RTT}, $speed/1024*8, $gateway->name
             )
         );
-    } elsif ($gateway && ($gateway eq '0')) {
-
+    } elsif ($args{gateway} eq '0') {
     	$router->speed_test("Traceroute failed, unknown gateway, no speed test run");
     } else {
 

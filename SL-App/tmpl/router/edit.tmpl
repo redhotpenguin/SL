@@ -26,10 +26,10 @@
 </div>
 <div id="slide-wrapper">
 <div class="grid_16">
-
+<!--gateway: [% router.gateway %], speed [% router.speed_test %]-->
 	[% IF reg.account.beta && router %]
 	
-		[% IF gateway %]
+		[% IF gateway or (router.gateway == 0)%]
 			<h3>
 				<label for="device" class="label">Speed Test:</label>
 				 [% speed_one %] gateway <a href="[% base_uri %]/app/router/edit/?router_id=[% gateway.router_id %]">[% speed_two %]</a>

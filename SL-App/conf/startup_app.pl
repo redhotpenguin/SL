@@ -74,6 +74,7 @@ use SL::App::PostReadRequestHandler ();
 use SL::App::Report                 ();
 use SL::App::Router                 ();
 use SL::App::Settings               ();
+use SL::App::Checkin                ();
 
 use SL::Model                       ();
 use SL::Model::App                  ();
