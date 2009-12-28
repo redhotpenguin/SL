@@ -58,6 +58,7 @@ use SL::HTTP::Client ();
 use SL::BrowserUtil  ();
 use SL::User         ();
 use SL::DNS          ();
+use SL::AdParser     ();
 
 use Digest::MD5 ();
 use DBI         ();

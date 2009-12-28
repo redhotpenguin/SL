@@ -108,7 +108,7 @@ sub get_router_from_mac {
 SELECT router.router_id, router.account_id,router.macaddr,
 router.lan_ip, router.wan_ip, router.ip,
 router.splash_href, router.splash_timeout, router.show_aaa_link,
-account.dnsone,account.dnstwo,account.google_ad_client,account.aaa
+account.dnsone,account.dnstwo,account.plan,account.aaa,
 FROM router, account
 WHERE router.account_id = account.account_id
 AND router.macaddr=?
@@ -203,13 +203,13 @@ sub get {
 
     unless ($router) {
 
-	$router = $class->retrieve( $router_id );
+      $router = $class->retrieve( $router_id );
 
-	return unless $router;
+      return unless $router;
 
-	# cache it
-	SL::Cache->memd->set("router|$router_id" => $router, 60*60 );
-    SL::Cache->memd->set("router|" . $router->{macaddr} => $router->{router_id}, 60*60);
+      # cache it
+      SL::Cache->memd->set("router|$router_id" => $router, 60*60 );
+      SL::Cache->memd->set("router|" . $router->{macaddr} => $router->{router_id}, 60*60);
     }
 
     return $router;
@@ -226,12 +226,12 @@ sub retrieve {
 SELECT router.router_id, router.account_id,router.macaddr,
 router.lan_ip, router.wan_ip, router.ip,
 router.splash_href, router.splash_timeout, router.show_aaa_link,
-account.dnsone,account.dnstwo,account.google_ad_client,account.aaa
+account.dnsone,account.dnstwo,account.plan,account.aaa
 FROM router, account
 WHERE router.account_id = account.account_id
 AND router_id = ?
 SQL
-    
+
     return (defined $router) ? $router : undef;
 }
 
@@ -240,7 +240,7 @@ sub add_router_from_mac {
 
     die "no maccaddr passed" unless $macaddr;
     die "no ip passed" unless $ip;
- 
+
     $class->connect->do(<<SQL, {}, $macaddr,$ip,'mr3201a') || die $DBI::errstr;
 INSERT INTO ROUTER
 (macaddr, wan_ip, device)
@@ -290,8 +290,8 @@ RESET_EVENT_SQL
 
 sub splash_page {
     my ($class, $router_id) = @_;
-    
-    my $router = SL::Cache->memd->set("router|$router_id", 60) || return;
+
+    my $router = SL::Cache->memd->get("router|$router_id") || return;
 
     return ( $router->{splash_href}, $router->{splash_timeout} );
 }

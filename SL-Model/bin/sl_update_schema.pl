@@ -28,7 +28,6 @@ my $dbh = DBI->connect( $dsn, 'phred', '', $db_options );
 
 ##############################
 use SL::Model::App;
-$dbh->do("alter table view drop column location_id");
-$dbh->do("drop table router__location");
-$dbh->do("drop table location");
-$dbh->do("alter table account add column google_ad_client text not null default 'pub-9104946517470276'");
+$dbh->do("alter table ad_size add column height integer not null default 0");
+$dbh->do("alter table ad_size add column width integer not null default 0");
+

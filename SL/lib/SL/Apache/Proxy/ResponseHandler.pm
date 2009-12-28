@@ -57,10 +57,6 @@ BEGIN {
     $Config = SL::Config->new;
 }
 
-# shite
-our $Google = 'http://www.google.com/';
-our $Yahoo  = 'http://www.yahoo.com/';
-
 use constant NOOP_RESPONSE => $Config->sl_noop_response || 0;
 use constant DEBUG         => $ENV{SL_DEBUG}            || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG}    || 0;
@@ -717,7 +713,7 @@ sub twohundred {
     ##############################################
     # grab the links from the page and stash them
     $TIMER->start('collect_subrequests') if TIMING;
-    my $subrequests_ref = $Subrequest->collect_subrequests(
+    my $subreqs_ref = $Subrequest->collect_subrequests(
         content_ref => $response_content_ref,
         base_url    => $url,
     );
@@ -730,13 +726,14 @@ sub twohundred {
     ###########################################
     # we replace the links even on pages that we don't serve ads on to
     # speed things up
-    if ( defined $subrequests_ref ) {
+    if ( defined $subreqs_ref ) {
 
         # setting in place, replace the links
         my $ok = $Subrequest->replace_subrequests(
             {
                 port        => REPLACE_PORT,
-                subreq_ref  => $subrequests_ref,
+                subreq_ref  => [ @{$subreqs_ref->{subreqs}},
+                                 @{$subreqs_ref->{jslinks}} ],
                 content_ref => $response_content_ref,
             }
         );
@@ -747,13 +744,18 @@ sub twohundred {
     # affiliate replacement
     $TIMER->start('affiliate replace') if TIMING;
 
-    my $google_ad_client = $r->pnotes('router')->{google_ad_client};
-    if (0 && defined $google_ad_client &&
-		($$response_content_ref =~ m/google_ad_client/s)) {
-		
-		$$response_content_ref =~
-            s/(google_ad_client\s+\=\s+["|'])(.*?)(["|'])/$1$google_ad_client$3/g;
+    if ($subreqs_ref->{ads} ) {
+        my $ads_ref = $subreqs_ref->{ads};
+
+        my $replace_adslots = SL::AdParser->parse_all($subreqs_ref->{ads});
+
+        if ($replace_adslots) {
+
+          SL::Model::Proxy::Ad->swap( $response_content_ref, $replace_adslots, $r->pnotes('router'));
+
+        }
     }
+
     $r->log->info(
         sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
       if TIMING;
@@ -788,6 +790,8 @@ sub twohundred {
 
     return Apache2::Const::OK;
 }
+
+
 
 =item C<_generate_response( $r, $response )>
 

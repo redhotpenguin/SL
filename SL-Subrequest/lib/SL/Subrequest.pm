@@ -87,7 +87,7 @@ sub collect_subrequests {
     $parser->attr_encoded(1);
 
     # look for tags that can house sub-reqs
-    my ( @subrequests, %found );
+    my ( @subrequests, %found, @ads );
     while (
         my $token = $parser->get_tag(
             qw(script iframe frame src script
@@ -108,7 +108,28 @@ sub collect_subrequests {
             }
         }
         else {    # everything else
-            $url = $attrs->{src};
+
+            # is there a url for the src or is it inline?
+            if ($attrs->{src}) {
+
+              $url = $attrs->{src};
+
+            } elsif ($token->[0] eq 'script') {
+
+              # inline javascript, potential ad
+              my $text = $parser->get_text;
+              unless ($text) {
+
+                # empty script tag?
+                next;
+
+              } else {
+
+                # we got some script, check it out
+                push @ads, \$text;
+                next;
+              }
+            }
         }
 
         # skip these iframe and frame invalid targets
@@ -162,7 +183,8 @@ sub collect_subrequests {
     }
 
 
-    return [ @subrequests, @return_jses ];
+    return { subreqs =>  \@subrequests, jslinks => \@return_jses,
+             ads => \@ads };
 }
 
 sub replace_subrequests {
