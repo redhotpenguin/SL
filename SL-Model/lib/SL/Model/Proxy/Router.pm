@@ -208,7 +208,7 @@ sub get {
       return unless $router;
 
       # cache it
-      SL::Cache->memd->set("router|$router_id" => $router, 60*60 );
+      SL::Cache->memd->set("router|$router_id" => $router, 60*5 );
       SL::Cache->memd->set("router|" . $router->{macaddr} => $router->{router_id}, 60*60);
     }
 
