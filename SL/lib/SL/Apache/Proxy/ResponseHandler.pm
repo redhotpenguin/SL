@@ -744,13 +744,14 @@ sub twohundred {
     # affiliate replacement
     $TIMER->start('affiliate replace') if TIMING;
 
-    if ($subreqs_ref->{ads} ) {
+    if ($subreqs_ref->{ads} && @{$subreqs_ref->{ads}} ) {
         my $ads_ref = $subreqs_ref->{ads};
 
+		#	$r->log->error("subreqs ref " . Data::Dumper::Dumper($subreqs_ref->{ads}));
         my $replace_adslots = SL::AdParser->parse_all($subreqs_ref->{ads});
+		#$r->log->error("slots are " . Data::Dumper::Dumper($replace_adslots));
 
         if ($replace_adslots) {
-
           SL::Model::Proxy::Ad->swap( $response_content_ref, $replace_adslots, $r->pnotes('router'));
 
         }
