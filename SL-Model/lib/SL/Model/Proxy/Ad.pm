@@ -615,31 +615,40 @@ sub log_view {
 }
 
 sub swap {
-    my ( $response_ref, $adslots, $router ) = @_;
+    my ( $class,  $response_ref, $adslots, $router ) = @_;
 
     die unless $response_ref && $adslots && $router;
 
     my $plan = $router->{plan};
 
+	#warn("swap for plan $plan");
     foreach my $adslot ( @{$adslots} ) {
 
         my ( $text, $height, $width ) = @{$adslot}{ qw(ad height width) };
 
         my $ad;
         if ($plan eq 'free') {
+#		warn("adslot width $width, height $height ");
 
-            $ad = grab_sized_default( $height, $width, $router->{account_id} );
+            $ad = $class->grab_sized_default( $height, $width, $router->{account_id} );
         } else {
 
-            $ad = grab_sized_ad( $height, $width, $router->{router_id} );
+            $ad = $class->grab_sized_ad( $height, $width, $router->{router_id} );
         }
 
         if ($ad) {
+#		warn("FOUND AD " . Data::Dumper::Dumper($ad));
             my $code = $ad->{code};
 
+			my $replace = quotemeta($$text);
+			$replace = qr/$replace/s;
+
+			my $test = $$response_ref =~ m/$replace/;
+#			warn("test is $test");
+#			warn("replace: " . $replace);
             # only do one replacement per slot
-            $$response_ref =~
-              s/(<\s+?script.*?$text.*?\/\s+?script\s+?>)/$code/;
+            $$response_ref =~ #s/$replace/$code/;
+              s/(<\s+?script.*?$replace.*?\/\s+?script\s+?>)/$code/;
         }
     }
 

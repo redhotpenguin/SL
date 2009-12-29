@@ -108,7 +108,7 @@ sub get_router_from_mac {
 SELECT router.router_id, router.account_id,router.macaddr,
 router.lan_ip, router.wan_ip, router.ip,
 router.splash_href, router.splash_timeout, router.show_aaa_link,
-account.dnsone,account.dnstwo,account.plan,account.aaa,
+account.dnsone,account.dnstwo,account.plan,account.aaa
 FROM router, account
 WHERE router.account_id = account.account_id
 AND router.macaddr=?
