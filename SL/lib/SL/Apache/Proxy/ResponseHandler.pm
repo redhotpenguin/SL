@@ -90,6 +90,7 @@ our %response_map = (
     404 => 'bsod',
     410 => 'bsod',
     500 => 'bsod',
+    502 => 'bsod',
     503 => 'bsod',
     504 => 'bsod',
 );
