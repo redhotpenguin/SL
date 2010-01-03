@@ -329,6 +329,9 @@ sub perlbal {
             return mod_proxy($r);
         }
 
+		unless ($hostname && $ip) {
+			$r->log->error("failed to resolve hostname hostname, ip $ip");
+		}
         $uri =~ s/$hostname/$ip/;
         $r->log->debug("$$ ip for host $hostname is $ip, new uri is $uri")
           if DEBUG;
