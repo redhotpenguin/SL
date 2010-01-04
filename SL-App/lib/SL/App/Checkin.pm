@@ -112,8 +112,7 @@ sub dispatch_index {
 	    } else {
             	$speed = int( $speed * 1024 );
 	    }
-        }
-        elsif ( defined $units and ($units eq 'KB/s') ) {
+        } elsif ( defined $units and ($units eq 'KB/s') ) {
 	    # nothing to do
 	} else {
 	    if (defined $units) {
@@ -129,19 +128,18 @@ sub dispatch_index {
                 $args{hops}, $hops, $args{RTT}, $speed/1024*8, $gateway->name
             )
         );
-    } elsif ($args{gateway} eq '0') {
-    	$router->speed_test("Traceroute failed, unknown gateway, no speed test run");
-    } else {
+	    } elsif ($args{gateway} eq '0') {
+    		$router->speed_test("Traceroute failed, unknown gateway, no speed test run");
+    	} else {
 
         # default is gateway
         $router->gateway($router->wan_ip);
         $router->speed_test(
             sprintf( "This gateway node has WAN IP %s", $router->wan_ip ) );
 
+        }
     }
     $router->update;
-	}
-
 
     # log the router entry
     my $checkin = SL::Model::App->resultset('Checkin')->create(
