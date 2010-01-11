@@ -1,11 +1,9 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  View routers" selected="network" %]
 
-[% IF reg.account.beta %]
 <div class="grid_16 margin_b_20">
 	[% PROCESS router/tertiarynav.tmpl active="devices" %]
 </div>
 <div class="clear"></div>
-[% END %]
 
 [%  USE Number.Format(GIGA_SUFFIX = ' GB', MEGA_SUFFIX = ' MB') %]
 <div class="grid_10 suffix_1">
@@ -29,7 +27,7 @@
 					<div class="grid_8">
 						<h3><a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">[% router.name or router.macaddr %]</a></h3>
 						<p>
-							Ads inserted yesterday: <strong>[% router.views_daily %]</strong>[% IF reg.account.beta %], 24 hour users: <strong>[% router.users_daily %]</strong>, 24 hour traffic: <strong>[% router.traffic_daily * 1024 *1024 | format_bytes %]</strong>[% END %]
+							Ads inserted yesterday: <strong>[% router.views_daily %]</strong>, 24 hour users: <strong>[% router.users_daily %]</strong>, 24 hour traffic: <strong>[% router.traffic_daily * 1024 *1024 | format_bytes %]</strong>
 							<br />
 							Device: <strong>[% router.board %]</strong>, 
 							MAC: <strong>[% router.macaddr %]</strong>, 

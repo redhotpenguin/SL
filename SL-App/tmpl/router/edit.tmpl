@@ -14,7 +14,7 @@
 <div class="clear"></div>
 <div class="grid_16">
 	<h2>[% IF router.router_id %][% router.name or router.macaddr %][% ELSE %]Add New Router[% END %]</h2>
-	[% IF reg.account.beta && router %]
+	[% IF  router %]
 		<ul class="link-nav">
 			<li><a href="#device-settings" id="graph-settings-nav" class="selected">Device Settings</a></li>
 			<li><a href="#graph-checkin-memory" id="graph-memory-nav">Checkins &amp; Memory</a></li>
@@ -27,7 +27,7 @@
 <div id="slide-wrapper">
 <div class="grid_16">
 <!--gateway: [% router.gateway %], speed [% router.speed_test %]-->
-	[% IF reg.account.beta && router %]
+	[% IF router %]
 	
 		[% IF gateway or (router.gateway == 0)%]
 			<h3>
