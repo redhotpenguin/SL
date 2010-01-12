@@ -74,8 +74,6 @@ sub dispatch_index {
 
     my $reg = $r->pnotes( $r->user );
 
-    return Apache2::Const::NOT_FOUND if !$reg->account->beta;
-
     my %tmpl_data = ( account => $reg->account );
     my $server_root =
       (DEBUG)
