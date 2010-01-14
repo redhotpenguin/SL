@@ -43,6 +43,9 @@ sub parse {
 
         if ( $width && $height ) {
 
+            # quote the meta characters so we can use a regex
+            $$ad = quotemeta($ad);
+
             my $adref = { width => $width, height => $height, ad => $ad };
             return $adref;
 
