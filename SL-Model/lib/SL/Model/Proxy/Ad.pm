@@ -637,18 +637,10 @@ sub swap {
         }
 
         if ($ad) {
-#		warn("FOUND AD " . Data::Dumper::Dumper($ad));
             my $code = $ad->{code};
 
-			my $replace = quotemeta($$text);
-			$replace = qr/$replace/s;
-
-			my $test = $$response_ref =~ m/$replace/;
-#			warn("test is $test");
-#			warn("replace: " . $replace);
-            # only do one replacement per slot
-            $$response_ref =~ #s/$replace/$code/;
-              s/(<\s+?script.*?$replace.*?\/\s+?script\s+?>)/$code/;
+            $$response_ref =~
+              s/(<\s*?script.*?$$text.*?\/\s*?script\s*?>)/$code/;
         }
     }
 
