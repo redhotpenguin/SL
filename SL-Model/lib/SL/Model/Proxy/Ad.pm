@@ -625,14 +625,13 @@ sub swap {
 
     my $plan = $router->{plan};
 
-	#warn("swap for plan $plan");
+	warn("swap for plan $plan") if DEBUG;
     foreach my $adslot ( @{$adslots} ) {
 
         my ( $text, $height, $width ) = @{$adslot}{ qw(ad height width) };
 
         my $ad;
         if ($plan eq 'free') {
-#		warn("adslot width $width, height $height ");
 
             $ad = $class->grab_sized_default( $height, $width, $router->{account_id} );
         } else {
@@ -659,6 +658,7 @@ sub grab_sized_default {
 
     unless ($sized) {
 
+        warn("sized $width x $height NOT found in memcache") if DEBUG;
         $sized = $class->retrieve_account_sized( $height, $width, $account_id );
 
         return unless $sized;
@@ -668,6 +668,8 @@ sub grab_sized_default {
             "account|$account_id|sized|$height\_$width" => $sized,
             AD_TIMEOUT
         );
+    } else {
+        warn("sized $width x $height found in memcache") if DEBUG;
     }
 
     my @sized_list;
@@ -679,6 +681,8 @@ sub grab_sized_default {
     my $sized_id = $sized_list[ int( rand( scalar(@sized_list) ) ) ];
 
     my $sized_ad = $class->get_ad_zone($sized_id);
+
+    warn("returning sized default: " . Dumper($sized_ad)) if DEBUG;
 
     return $sized_ad;
 }
@@ -691,6 +695,7 @@ sub grab_sized_ad {
 
     unless ($sized) {
 
+        warn("sized $width x $height NOT found in memcache") if DEBUG;
         $sized = $class->retrieve_router_sized( $height, $width, $router_id );
 
         return unless $sized;
@@ -700,6 +705,9 @@ sub grab_sized_ad {
             "router|$router_id|sized|$height\_$width" => $sized,
             AD_TIMEOUT
         );
+    } else {
+
+      warn("sized $width x $height found in memcache") if DEBUG;
     }
 
     my @sized_list;
@@ -712,6 +720,7 @@ sub grab_sized_ad {
 
     my $sized_ad = $class->get_ad_zone($sized_id);
 
+    warn("returning sized ad: " . Dumper($sized_ad)) if DEBUG;
     return $sized_ad;
 }
 
@@ -732,7 +741,7 @@ AND router__ad_zone.ad_zone_id = ad_zone.ad_zone_id
 SQL
 
     unless ( $ad_data->[0] ) {
-        warn("no sized $width x $height, router $router_id!") if DEBUG;
+        warn("no database sized $width x $height, router $router_id!") if DEBUG;
         return;
     }
 
@@ -758,7 +767,7 @@ AND ad_zone.account_id = ?
 SQL
 
     unless ( $ad_data->[0] ) {
-        warn("no sized $width x $height, account $account_id!") if DEBUG;
+        warn("no database sized $width x $height, account $account_id!") if DEBUG;
         return;
     }
 
