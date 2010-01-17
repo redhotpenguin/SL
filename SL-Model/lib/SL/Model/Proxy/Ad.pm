@@ -19,7 +19,9 @@ This serves ads, ya see?
 
 =cut
 
+use Data::Dumper;
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
+use constant AD_TIMEOUT => 300; # 5 minute cache timeout for ads
 
 our ( $Config, $Tmpl, $Leaderboard );
 
@@ -60,7 +62,6 @@ BEGIN {
                      head_html => '',
                      template => 'horizontal_leaderboard.tmpl', };
 
-    require Data::Dumper if DEBUG;
 }
 
 =head1 METHODS
@@ -152,7 +153,7 @@ SQL
         return;
     }
 
-    warn( "got account default persistent " . Data::Dumper::Dumper($ad_data) )
+    warn( "got account default persistent " . Dumper($ad_data) )
       if DEBUG;
 
     return $ad_data;
@@ -179,7 +180,7 @@ SQL
         return;
     }
 
-    warn( "got account default branding " . Data::Dumper::Dumper($ad_data) )
+    warn( "got account default branding " . Dumper($ad_data) )
       if DEBUG;
 
     return $ad_data;
@@ -220,8 +221,7 @@ sub account_default_persistents {
         # update the cache
         SL::Cache->memd->set(
             "account|$account_id|persistents" => $persistents,
-            60
-        );
+            AD_TIMEOUT        );
     }
 
     return $persistents;
@@ -240,6 +240,7 @@ sub account_default_brandings {
 
     unless ($brandings) {
 
+        warn("no cached brandings account $account_id") if DEBUG;
         # go to the database
         $brandings = $class->retrieve_account_default_brandings($account_id);
 
@@ -248,7 +249,7 @@ sub account_default_brandings {
         # update the cache
         SL::Cache->memd->set(
             "account|$account_id|brandings" => $brandings,
-            60
+            AD_TIMEOUT
         );
     }
 
@@ -275,7 +276,7 @@ SQL
         return;
     }
 
-    warn( "got router persistent " . Data::Dumper::Dumper($ad_data) ) if DEBUG;
+    warn( "retrieved router persistent " . Dumper($ad_data) ) if DEBUG;
 
     return $ad_data;
 }
@@ -300,7 +301,7 @@ SQL
         return;
     }
 
-    warn( "got router branding " . Data::Dumper::Dumper($ad_data) ) if DEBUG;
+    warn( "retrieved got router branding " . Dumper($ad_data) ) if DEBUG;
 
     return $ad_data;
 }
@@ -321,8 +322,10 @@ sub router_persistents {
     my ( $class, $router_id, $account_id ) = @_;
 
     my $persistents = SL::Cache->memd->get("router|$router_id|persistents");
+
     unless ($persistents) {
 
+        warn("no cached persistents router $router_id") if DEBUG;
         $persistents = $class->retrieve_router_persistents($router_id);
 
         unless ($persistents) {
@@ -330,11 +333,14 @@ sub router_persistents {
             return;
         }
 
-        # update the cache
+        # update the cache, five minute timeout
         SL::Cache->memd->set(
             "router|$router_id|persistents" => $persistents,
-            60
+            AD_TIMEOUT
         );
+    } else {
+
+        warn("found router $router_id cached persistents") if DEBUG;
     }
 
     return $persistents;
@@ -346,6 +352,7 @@ sub router_brandings {
     my $brandings = SL::Cache->memd->get("router|$router_id|brandings");
     unless ($brandings) {
 
+        warn("no cached brandings router $router_id") if DEBUG;
         $brandings = $class->retrieve_router_brandings($router_id);
 
         unless ($brandings) {
@@ -353,8 +360,11 @@ sub router_brandings {
             return;
         }
 
-        # update the cache
-        SL::Cache->memd->set( "router|$router_id|brandings" => $brandings, 60 );
+        # update the cache, 5 minute expire
+        SL::Cache->memd->set( "router|$router_id|brandings" => $brandings,
+                              AD_TIMEOUT );
+    } else {
+        warn("found router $router_id cached brandings") if DEBUG;
     }
 
     return $brandings;
@@ -372,7 +382,7 @@ sub get_ad_zone {
         $ad_data = $class->retrieve_ad_zone($ad_zone_id);
         die "missing ad zone $ad_zone_id" unless $ad_data;
 
-        SL::Cache->memd->set( "ad_zone|$ad_zone_id" => $ad_data, 60 );
+        SL::Cache->memd->set( "ad_zone|$ad_zone_id" => $ad_data, AD_TIMEOUT );
     }
 
     return $ad_data;
@@ -449,7 +459,7 @@ sub random {
     my $account_id = $device->{account_id};
 
     # grab the ads specific to this device
-    warn("grabbing ads specific to router $router_id") if DEBUG;
+    warn("grabbing ads for router $router_id") if DEBUG;
 	my ($persistents, $brandings) =
             $class->router_ad_zones( $router_id, $account_id );
 
@@ -552,13 +562,7 @@ sub process_ad_template {
         lan_ip         => $router->{lan_ip},
     );
 
-=cut
-    $tmpl_vars{aaa} = $account->{aaa} if defined $account->{aaa};
-    $tmpl_vars{advertise_here} = $account->{advertise_here} if defined $account->{advertise_here};
-    $tmpl_vars{lan_ip} = $account->{lan_ip} if defined $account->{lan_ip};
-=cut
-
-    warn( "tmpl vars: " . Data::Dumper::Dumper( \%tmpl_vars ) ) if DEBUG;
+    warn( "tmpl vars: " . Dumper( \%tmpl_vars ) ) if DEBUG;
 
     # generate the ad
     my $output;
@@ -657,15 +661,12 @@ sub grab_sized_default {
 
         $sized = $class->retrieve_account_sized( $height, $width, $account_id );
 
-        unless ($sized) {
-            warn("no sized for account $account_id") if DEBUG;
-            return;
-        }
+        return unless $sized;
 
         # update the cache
         SL::Cache->memd->set(
             "account|$account_id|sized|$height\_$width" => $sized,
-            60
+            AD_TIMEOUT
         );
     }
 
@@ -692,15 +693,12 @@ sub grab_sized_ad {
 
         $sized = $class->retrieve_router_sized( $height, $width, $router_id );
 
-        unless ($sized) {
-            warn("no sized for router $router_id") if DEBUG;
-            return;
-        }
+        return unless $sized;
 
         # update the cache
         SL::Cache->memd->set(
             "router|$router_id|sized|$height\_$width" => $sized,
-            60
+            AD_TIMEOUT
         );
     }
 
@@ -734,11 +732,11 @@ AND router__ad_zone.ad_zone_id = ad_zone.ad_zone_id
 SQL
 
     unless ( $ad_data->[0] ) {
-        warn("no sized ads for router $router_id!") if DEBUG;
+        warn("no sized $width x $height, router $router_id!") if DEBUG;
         return;
     }
 
-    warn( "got router sized " . Data::Dumper::Dumper($ad_data) ) if DEBUG;
+    warn( "got router sized " . Dumper($ad_data) ) if DEBUG;
 
     return $ad_data;
 }
@@ -760,11 +758,11 @@ AND ad_zone.account_id = ?
 SQL
 
     unless ( $ad_data->[0] ) {
-        warn("no sized ads for account $account_id!") if DEBUG;
+        warn("no sized $width x $height, account $account_id!") if DEBUG;
         return;
     }
 
-    warn( "got account sized " . Data::Dumper::Dumper($ad_data) ) if DEBUG;
+    warn( "got account sized " . Dumper($ad_data) ) if DEBUG;
 
     return $ad_data;
 }

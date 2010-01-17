@@ -11,6 +11,7 @@ our $Config           = SL::Config->new;
 our $Default_Hash_Mac = 'ffffffff';
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
+use constant ROUTER_TIMEOUT => 300; # 5 minutes
 
 sub identify {
     my ( $class, $args ) = @_;
@@ -35,9 +36,12 @@ sub identify {
           unless ( (( length($hash_mac) == 8 ) or (length($hash_mac) == 12))
             && ( length($router_mac) == 12 ) );
 
+        warn("found sl header $sl_header") if DEBUG;
+
     }
     else {
 
+        warn("no sl header found, grabbing latest mac at ip $ip") if DEBUG;
         # grab the most recent device at this ip
         $device_guess = 1;
         $router_mac = $class->latest_mac_from_ip($ip);
@@ -101,10 +105,20 @@ sub get_router_from_mac {
 
     die 'no macaddr passed' unless $macaddr;
 
+    my $router_id = SL::Cache->memd->get("router|$macaddr");
+    if ($router_id) {
+        warn("router id $router_id mac $macaddr found in memcache") if DEBUG;
+    }
 
-	warn("router mac $macaddr not in memcache, going to db") if DEBUG;
+    my $router = SL::Cache->memd->get("router|$router_id");
+    if ($router) { 
+        warn("router obj id $router_id found in memcache") if DEBUG;
+        return $router;
+    }
 
-    my $router = $class->connect->selectall_arrayref(<<"SQL", { Slice => {}}, $macaddr)->[0];
+    warn("router mac $macaddr not in memcache, going to db") if DEBUG;
+
+    $router = $class->connect->selectall_arrayref(<<"SQL", { Slice => {}}, $macaddr)->[0];
 SELECT router.router_id, router.account_id,router.macaddr,
 router.lan_ip, router.wan_ip, router.ip,
 router.splash_href, router.splash_timeout, router.show_aaa_link,
@@ -114,16 +128,19 @@ WHERE router.account_id = account.account_id
 AND router.macaddr=?
 SQL
 
-        return unless $router;
+    return unless $router;
 
-	warn(sprintf("found router id %d, account %d, wan_ip %s, mac %s",
-		     $router->{router_id}, $router->{account_id},
-		     $router->{wan_ip}, $macaddr)) if DEBUG;
+    warn(sprintf("found router id %d, account %d, wan_ip %s, mac %s",
+             $router->{router_id}, $router->{account_id},
+             $router->{wan_ip}, $macaddr)) if DEBUG;
 
-        # update the cache
-        my $router_id = $router->{router_id};
-        SL::Cache->memd->set("router|$macaddr"   => $router_id, 60*60);
-        SL::Cache->memd->set("router|$router_id" => $router, 60*60);
+    # update the cache
+    $router_id = $router->{router_id};
+    SL::Cache->memd->set("router|$router_id" => $router, ROUTER_TIMEOUT);
+
+    # router id to macaddr should never timeout
+    SL::Cache->memd->set("router|$macaddr"   => $router_id);
+
 
     # we've got the router
     return $router;
@@ -187,7 +204,7 @@ last_ping = now(), wan_ip = ?, firmware_version = ?
 WHERE router_id = ?
 SQL
 
-    warn("updated last seen for router for ip $ip, mac $macaddr, ") if DEBUG;
+    warn("updated device last seen ip $ip, mac $macaddr") if DEBUG;
     # some results
     return $ary;
 }
@@ -208,8 +225,10 @@ sub get {
       return unless $router;
 
       # cache it
-      SL::Cache->memd->set("router|$router_id" => $router, 60*5 );
-      SL::Cache->memd->set("router|" . $router->{macaddr} => $router->{router_id}, 60*60);
+      SL::Cache->memd->set("router|$router_id" => $router, ROUTER_TIMEOUT );
+
+      # router id to mac address should never timeout
+      SL::Cache->memd->set("router|" . $router->{macaddr} => $router->{router_id});
     }
 
     return $router;
