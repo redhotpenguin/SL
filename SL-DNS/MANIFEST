@@ -3,4 +3,4 @@ Makefile.PL
 MANIFEST
 README
 t/SL-DNS.t
-lib/SL-DNS.pm
+lib/SL/DNS.pm
