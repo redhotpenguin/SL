@@ -25,6 +25,8 @@ if ( TIMING or REQ_TIMING ) {
 sub handler {
     my $r = shift;
 
+    $r->log->debug("$$ " . __PACKAGE__ . ", req: " . $r->as_string) if DEBUG;
+
     my $ua = $r->headers_in->{'user-agent'};
     unless ($ua) {
         $r->log->debug("$$ no user agent, request " . $r->as_string) if DEBUG;
@@ -47,9 +49,11 @@ sub handler {
     # delete the X-Forwarded header and set the connection ip
     if ( defined $r->headers_in->{'X-Forwarded-For'} ) {
         $r->connection->remote_ip( $r->headers_in->{'X-Forwarded-For'} );
-        delete $r->headers_in->{'X-Forwarded-For'};
+        $r->headers_in->unset('X-Forwarded-For');
     }
 
+	# hack for unpatched perlbal
+	$r->headers_in->unset('X-Proxy-Capabilities');
 
     $TIMER->start('global_request_timer') if ( TIMING or REQ_TIMING );
     $r->pnotes( 'global_request_timer' => $TIMER ) if ( TIMING or REQ_TIMING );

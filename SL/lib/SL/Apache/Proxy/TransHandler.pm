@@ -65,10 +65,10 @@ if (TIMING) {
 sub handler {
     my $r = shift;
 
-    $r->log->debug( "$$ " . __PACKAGE__ ) if VERBOSE_DEBUG;
-
     my $url = $r->construct_url( $r->unparsed_uri );
     $r->pnotes( 'url' => $url );
+
+	$r->log->debug( "$$ " . __PACKAGE__ . " url $url" ) if DEBUG;
 
     #######################
     # user agent and referer
@@ -82,10 +82,10 @@ sub handler {
 
     #########################
     # our secret namespace
-    $r->log->debug( "checking for secret ping with " . $r->unparsed_uri )
+    $r->log->debug( "$$ checking for secret ping with " . $r->unparsed_uri )
       if VERBOSE_DEBUG;
     if ( substr( $r->unparsed_uri, 0, 10 ) eq '/sl_secret' ) {
-        $r->log->debug("url $url in secret namespace") if VERBOSE_DEBUG;
+        $r->log->debug("$$ url $url in secret namespace") if DEBUG;
         return Apache2::Const::OK;
     }
 
@@ -146,21 +146,7 @@ sub handler {
         return &perlbal($r);
     }
 
-    ###################################
-    # ok check for a splash page if we have a router_id
-=cut
-	if ( $r->pnotes('router_id') ) {
-
-        my ( $splash_url, $timeout ) =
-          SL::Model::Proxy::Router->splash_page($r->pnotes('router_id'));
-
-        if ($splash_url && $splash_url ne '') {
-            my $show_splash = handle_splash( $r, $splash_url, $timeout );
-            return Apache2::Const::OK if $show_splash;
-        }
-    }
-=cut
-    #################################
+   #################################
     # blacklisted urls
     if ( url_blacklisted($url) ) {
         $r->log->debug("$$ url $url blacklisted") if DEBUG;
@@ -179,46 +165,16 @@ sub handler {
     ## Check the cache for a static content match
 	if ((($url ne $Google) and ($url ne $Yahoo) and ($url ne $Youtube) ) && $Cache->is_known_not_html($url)) {
 
+        $r->log->debug("$$ known nonhtml cached, not google/yahoo/youtube") if DEBUG;
 	    return &redirect($r)
 	}
 
     $r->log->info(
-        sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
+        sprintf( "$$ timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
       if TIMING;
 
+	$r->log->debug("$$ sending to response handler") if DEBUG;
     return Apache2::Const::OK;
-}
-
-sub handle_splash {
-    my ( $r, $splash_url, $timeout ) = @_;
-
-    $r->log->debug( "$$ splash $splash_url, timeout $timeout, x-sl "
-          . $r->pnotes('sl_header') )
-      if DEBUG;
-
-    # aha splash page, check when the last time we saw this user was
-    my $last_seen = $User->get_last_seen( $r->pnotes('sl_header') );
-    $r->log->debug( "$$ last seen $last_seen seen, time " . time() )
-      if ( DEBUG && defined $last_seen );
-
-    my $set_ok = $User->set_last_seen( $r->pnotes('sl_header') );
-
-    if ( !$last_seen
-        or ( ( $timeout * 60 ) < ( time() - $last_seen ) ) )
-    {
-
-        $r->log->debug("$$ sending to splash handler for url $splash_url")
-          if DEBUG;
-        $r->pnotes( 'splash_url' => $splash_url );
-        $r->pnotes( 'last_seen' => $last_seen ) if defined $last_seen;
-        $r->set_handlers(
-            PerlResponseHandler => ['SL::Apache::Proxy::SplashHandler'] );
-        return 1;
-    }
-    else {
-
-        return;
-    }
 }
 
 sub url_blacklisted {
@@ -236,20 +192,10 @@ sub proxy_request {
     return &perlbal($r);
 }
 
-sub _unset_proxy_headers {
-    my $r = shift;
-    $r->headers_in->unset($_)
-      for qw( X-Proxy-Capabilities X-SL X-SLR X-Forwarded-For );
-
-    return 1;
-}
-
 sub mod_proxy {
     my ( $r, $uri ) = @_;
 
     die("oops called proxy_request without \$r") unless ($r);
-
-    _unset_proxy_headers($r);
 
     ## Don't change this next line even if you think you should
     my $url = $r->construct_url;
@@ -304,22 +250,21 @@ sub redirect {
 sub perlbal {
     my $r = shift;
 
-    _unset_proxy_headers($r);
+    ##########
+    # Use perlbal to do the proxying
+
+    my $uri = $r->construct_url( $r->unparsed_uri );
+	$r->log->debug("perlbal handling request for $uri") if DEBUG;
 
     if ( $r->headers_in->{Cookie} ) {
 
-	$r->log->debug("cookies present, mod_proxy") if DEBUG;
+		$r->log->debug("cookies present, mod_proxy") if DEBUG;
         # sorry perlbal doesn't reproxy requests with cookies
         return mod_proxy($r);
     }
 
-    ##########
-    # Use perlbal to do the proxying
-    my $uri = $r->construct_url( $r->unparsed_uri );
-
-    my $hostname = $r->hostname;
-
     # don't resolve ip addresses
+    my $hostname = $r->hostname;
     unless ( $hostname && ($hostname =~ m/\d+\.\d+\.\d+\.\d+/ )) {
 
         my $router = $r->pnotes('router');

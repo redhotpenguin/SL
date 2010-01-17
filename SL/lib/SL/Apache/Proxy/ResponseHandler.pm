@@ -242,7 +242,7 @@ sub handler {
     );
 
     my $router = $r->pnotes('router');
-    $r->log->debug("resolving host with " . Data::Dumper::Dumper($router) . " hostname " . $r->hostname) if DEBUG;
+    $r->log->debug("$$ resolving host, router " . Data::Dumper::Dumper($router) . " hostname " . $r->hostname) if DEBUG;
     my $ip = eval { SL::DNS->resolve($r->hostname, $router->{dnsone}); };
     if ($@) {
       $r->log->error("unable to resolve host " . $r->hostname);
@@ -748,12 +748,15 @@ sub twohundred {
     if ($subreqs_ref->{ads} && @{$subreqs_ref->{ads}} ) {
         my $ads_ref = $subreqs_ref->{ads};
 
-		#	$r->log->error("subreqs ref " . Data::Dumper::Dumper($subreqs_ref->{ads}));
+        # $r->log->error("subreq ref " . Data::Dumper::Dumper($subreqs_ref->{ads}));
         my $replace_adslots = SL::AdParser->parse_all($subreqs_ref->{ads});
 		#$r->log->error("slots are " . Data::Dumper::Dumper($replace_adslots));
 
         if ($replace_adslots) {
-          SL::Model::Proxy::Ad->swap( $response_content_ref, $replace_adslots, $r->pnotes('router'));
+
+            $r->log->debug("$$ starting ad swap") if DEBUG;
+            SL::Model::Proxy::Ad->swap( $response_content_ref,
+                  $replace_adslots, $r->pnotes('router'));
 
         }
     }
