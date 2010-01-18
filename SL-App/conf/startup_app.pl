@@ -64,6 +64,7 @@ use SL::App::Ad                     ();
 use SL::App::Ad::Msg                ();
 use SL::App::Ad::Twitter            ();
 use SL::App::Ad::Groups             ();
+use SL::App::Ad::Swaps              ();
 use SL::App::Billing                ();
 use SL::App::Blacklist              ();
 use SL::App::CookieAuth             ();
@@ -100,6 +101,8 @@ use String::Strip               ();
 use CGI ();
 CGI->compile(':all');
 
+use Template::Plugin::Number::Format ();
+use Geo::Coder::Google ();
 #use JavaScript::Minifier::XS    ();
 
 print STDOUT "Modules loaded, initializing database connections\n";

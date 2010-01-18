@@ -1,0 +1,93 @@
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Ad Zones" selected="adcenter" %]
+<div class="grid_16">
+	<div id="breadcrumb">
+		<div id="breadcrumb_inner">
+			<ul>[% PROCESS ad/nav.tmpl %]<li><strong>Stealth Swap</strong></li></ul>
+		</div>
+	</div>
+</div>
+<div class="clear"></div>
+
+
+<div id="main_content" class="grid_10 suffix_1">
+	<!-- MESSAGE -->
+	[% IF msg %]<p class="success">[% msg %]</p>[% END %]
+
+
+	<div class="grid_6 alpha">
+	<h2>Stealth Swap</h2>
+		<p class="tip">You have <strong>[% count %]</strong> Ad Zones</p>
+	</div>
+	<div class="grid_4 omega">
+		<a class="right" id="button_add_banner" href="[% base_uri %]/app/ad/groups/add">Add a Banner</a>
+		<div class="clear"></div>
+	</div>
+	<div class="clear"></div>
+
+		<h3 class="row">Select an Ad Zone below to edit</h3>
+	
+	
+	<table class="large_table">
+	<tr>
+		<th>Name</th>
+[% IF views %]		<th>Views Yesterday</th>[% END %]
+		<th>Last Modified</th>
+		<th>Default</th>
+		<th>Active On</th>
+		<th>Remove</th>
+	</tr>
+	
+	[% FOREACH ad_zone = ad_zones %]
+		<tr>
+			<td class="larger">
+			<a [% IF ad_zone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% ad_zone.image_href %]"[% END %] href="[% base_uri %]/app/ad/groups/edit/?id=[% ad_zone.ad_zone_id %]">
+			[% ad_zone.name %]</a></td>
+			
+[% IF views %]			<td class="smaller">NA</td>[% END %]
+			
+			<td class="smaller">[% ad_zone.mts %]</td>
+
+			<td class="smaller center">[% IF ad_zone.is_default == 1 %]Yes[% ELSE %]No[% END %]</td>
+
+			<td class="smaller">
+			[% IF ad_zone.router_count == 0 %]
+			    [% ad_zone.router_count %]
+			[% ELSE %]
+			<a href="[% base_uri %]/app/router/list?ad_zone_id=[% ad_zone.ad_zone_id %]">
+			[% ad_zone.router_count %]</a>
+			[% END %]
+			devices
+			</td>
+			
+			<td class="center">
+            <a href="#" rel="[% base_uri %]/app/ad/deactivate?id=[% ad_zone.ad_zone_id %]"  class="icon_delete confirm">Delete</a></td>
+
+            </tr>
+
+	[% END %]
+	</table>
+</div>
+
+<div id="secondary_content" class="grid_5">
+	<div id="sc_top">
+		<div id="sc_bottom">
+		
+			<h3>Stealth Swap</h3>
+
+            <p>Add images or ad server invocation codes to enable ad replacement within web pages served.</p>
+			
+		</div>
+	</div>
+</div>
+
+[% PROCESS footer.tmpl %]
+
+
+<div id='confirm' style='display:none'>
+	<a href='#' title='Close' class='modalCloseX simplemodal-close'>x</a>
+	<div class='header'><span>Confirm</span></div>
+	<p class='message'></p>
+	<div class='buttons'>
+		<div class='no simplemodal-close'>No</div><div class='yes'>Yes</div>
+	</div>
+</div>

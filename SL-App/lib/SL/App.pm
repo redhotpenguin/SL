@@ -433,7 +433,6 @@ sub valid_username {
 sub sldatetime {
   my ($self, $mts) = @_;
 
-
   return DateTime::Format::Pg->parse_datetime( $mts )
               ->strftime("%m/%d/%y (%I:%M %p)");
 
@@ -444,7 +443,8 @@ sub format_adzone_list {
     my ( $class, $ad_zones ) = @_;
 
     foreach my $ad_zone ( @{$ad_zones} ) {
-        $ad_zone->mts( $class->sldatetime( $ad_zone->mts ) );
+        #$ad_zone->mts( $class->sldatetime( $ad_zone->mts ) );
+        $ad_zone->mts( $ad_zone->mts );
 
         if ( length( $ad_zone->name ) > 22 ) {
             $ad_zone->name( substr( $ad_zone->name, 0, 19 ) . '...' );
