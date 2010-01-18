@@ -21,9 +21,9 @@ WriteMakefile(
         'DBD::Pg'                     => 1.49,
         'Number::Format'              => 1.70,
         'Regexp::Assemble'            => 0.34,
-        'URI'                         => 1.37,
+        'URI'                         => 1.38,
         'Text::Wrap'                  => 2005.0824_01,
-        'Cache::Memcached'            => 1.24,
+	'SL::Cache'                   => 0.23,
         'Geo::Distance'               => 0,
     },
     EXE_FILES => [

@@ -105,17 +105,17 @@ sub get_router_from_mac {
 
     die 'no macaddr passed' unless $macaddr;
 
+    my $router;
     my $router_id = SL::Cache->memd->get("router|$macaddr");
     if ($router_id) {
         warn("router id $router_id mac $macaddr found in memcache") if DEBUG;
-    }
 
-    my $router = SL::Cache->memd->get("router|$router_id");
-    if ($router) { 
-        warn("router obj id $router_id found in memcache") if DEBUG;
-        return $router;
+        $router = SL::Cache->memd->get("router|$router_id");
+        if ($router) { 
+            warn("router obj id $router_id found in memcache") if DEBUG;
+            return $router;
+        }
     }
-
     warn("router mac $macaddr not in memcache, going to db") if DEBUG;
 
     $router = $class->connect->selectall_arrayref(<<"SQL", { Slice => {}}, $macaddr)->[0];
