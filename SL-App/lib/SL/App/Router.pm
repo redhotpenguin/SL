@@ -215,6 +215,14 @@ sub dispatch_omsync {
         my $parser = XML::LibXML->new;
 	my $ct = $response->decoded_content;
 	$ct =~ s/\&/\&amp\;/g;
+
+	# dump the data for inspection
+	my $fh;
+	my $act = $reg->account->name;
+	$act =~ s/\s/_/g;
+	open($fh, '>', "/tmp/$act") or $r->log->error("could not open /tmp/$act");
+	print $fh $response->decoded_content;
+	close($fh);
         my $doc = eval { $parser->parse_string( $ct ); };
         if ($@) {
 
