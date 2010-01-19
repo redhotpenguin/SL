@@ -250,6 +250,47 @@ sub valid_banner_ad {
 }
 
 
+sub valid_swap_ad {
+    return sub {
+        my $dfv            = shift;
+        my $image_href_val = $dfv->get_current_constraint_value;
+        my $data           = $dfv->get_filtered_data;
+        my $image_href     = $data->{image_href};
+
+        my $response = $Ua->get( URI->new($image_href) );
+
+        warn("response is " . Data::Dumper::Dumper($response) ) if DEBUG;
+
+        unless ($response->is_success) {
+
+            $dfv->{image_err} = { missing => 1 };
+            warn("could not find image at $image_href") if DEBUG;
+            return;
+        }
+
+        my ( $width, $height ) = Image::Size::imgsize( \$response->content );
+
+        my ($ad_size_obj) = SL::Model::App->resultset('AdSize')->search({
+                                      ad_size_id => $data->{ad_size_id}, });
+
+        unless (($width == $ad_size_obj->width)
+                && ($height == $ad_size_obj->height)) {
+
+            $dfv->{image_err} = { width => $width, height => $height};
+            warn(
+                 sprintf("image size width %s, height %s for url $image_href",
+                         $width, $height)) if DEBUG;
+            return;
+        }
+
+        $data->{width} = $width;
+
+        return $width;
+    }
+}
+
+
+
 sub valid_first {
 
     return sub {

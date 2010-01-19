@@ -171,7 +171,6 @@ sub dispatch_edit {
     # free users go away
     return Apache2::Const::NOT_FOUND if $reg->account->plan eq 'free';
 
-
     my $ad_zone;
     if (my $id = $req->param('id')) {
 
@@ -185,9 +184,12 @@ sub dispatch_edit {
 
     return Apache2::Const::NOT_FOUND unless $ad_zone;
 
+    my $ad_sizes = $reg->get_swap_sizes;
+
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
         my %tmpl_data = (
+            ad_sizes => $ad_sizes,
             image_err => $args_ref->{image_err},
             ad_zone  => $ad_zone,
             results => $args_ref->{results},
@@ -206,14 +208,16 @@ sub dispatch_edit {
         $r->method_number(Apache2::Const::M_GET);
 
         # validate input
-        my @required = qw( name zone_type active is_default id banner_placement display_rate );
-        my @optionals = qw( floating );
+        my @required = qw( name zone_type active is_default ad_size_id
+                           id display_rate );
+
+        my @optionals;
         my $constraints;
         if ( $req->param('zone_type') eq 'banner' ) {
 
             push @required, qw( image_href link_href );
             $constraints = {
-                image_href => $self->valid_banner_ad(),
+                image_href => $self->valid_swap_ad(),
                 link_href  => $self->valid_link(),
             };
 
@@ -250,28 +254,6 @@ sub dispatch_edit {
         }
     }
 
-    # calculate the ad size
-    my $ad_size_id;
-    if ($req->param('banner_placement') eq 'bottom') {
-
-       # must be floating footer leaderboard, no static footer
-       $ad_size_id = 12;
-
-     } elsif ($req->param('banner_placement') eq 'top') {
-
-       if ($req->param('floating')) {
-
-         # floating top leaderboard
-         $ad_size_id = 10;
-
-       } else {
-
-         # static leaderboard
-         $ad_size_id = 1;
-       }
-    }
-
-
     # calculate the weight
     my $weight = $self->display_weight( $req->param('display_rate') );
 
@@ -280,13 +262,11 @@ sub dispatch_edit {
     my $code = $req->param('code');
 
     # fredify the invocation code for size
-    #$code =~ s/(?:\t|\r|\n|\s{2,})/ /g;
-    # $code = minify( $code );
     my %args = (
         weight     => $weight,
         reg_id     => $reg->reg_id,
         account_id => $reg->account->account_id,
-        ad_size_id => $ad_size_id,
+        ad_size_id => $req->param('ad_size_id'),
         name       => $req->param('name'),
         active     => $req->param('active'),
     );
@@ -317,9 +297,10 @@ sub dispatch_edit {
 
     ############################################
     # handle default
+    my @ad_size_ids = map { $_->ad_size_id } @{$reg->get_swap_sizes};
     my @default_zones = SL::Model::App->resultset('AdZone')->search({
-	            account_id => $reg->account_id,
-                     ad_size_id => { -in => [ qw( 1 10 12 ) ] },
+                    account_id => $reg->account_id,
+                    ad_size_id => { -in => \@ad_size_ids },
                     is_default => 1 });
 
     if ($req->param('is_default') == 1) {
@@ -373,7 +354,7 @@ sub dispatch_list {
     my @ad_zones =
       sort { $b->{router_count} <=> $a->{router_count} }
       sort { $b->mts cmp $a->mts }
-      sort { $a->name cmp $b->name } $reg->get_persistent_zones;
+      sort { $a->name cmp $b->name } $reg->get_swap_zones;
 
     #$r->log->debug( "ad zones: " . Dumper( \@ad_zones ) ) if DEBUG;
 

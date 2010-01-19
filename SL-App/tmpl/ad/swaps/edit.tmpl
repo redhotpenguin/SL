@@ -1,0 +1,123 @@
+[% PROCESS header.tmpl title="Silver Lining Dashboard:  Edit Swap Zone"  selected="adcenter" %]
+
+
+
+<div class="grid_16">
+	<div id="breadcrumb">
+		<div id="breadcrumb_inner">
+			<ul>[% PROCESS ad/swaps/nav.tmpl %]<li>Edit<strong> '[% ad_zone.name %]'</strong> Swap Zone</li></ul>
+		</div>
+	</div>
+</div>
+<div class="clear"></div>
+
+
+<!-- BANNER PREVIEW -->
+<div class="grid_16 preview">
+   <h3>Preview</h3>
+	<div id="banner_preview">
+   		 <div id="banner">[% IF req.param('code') or ad_zone.code %][% re.param('code') or ad_zone.code %][% ELSE %]<a href="http://www.silverliningnetworks.com/?referer=dashboard_example"><img src="[% base_uri %]/resources/images/ads/sln/sl_leaderboard.gif"></a>[% END %]</div>
+		<div class="clear"></div>
+	</div>
+</div>	
+
+<form method="POST" action="[% base_uri %]/app/ad/swaps/edit">
+
+<div id="main_content" class="grid_10 suffix_1">
+
+
+	<h2>Edit '[% ad_zone.name %]' Swap Zone</h2>
+
+
+		<!-- Errors -->
+        [% IF image_err %]<p class="error">[% IF image_err.missing %]No image was found at [% req.param('image_href' ) %][% ELSE %]Invalid Image[% END %][% END %]
+		[% IF errors.missing %]<p class="error">Please fill in the missing fields</p>[% END %]
+		[% IF errors.invalid %]<p class="error">Some fields were invalid, please correct them</p>[% END %]
+
+		
+		<ul class="form row"> 
+			<li>
+            [% PROCESS ad/name.tmpl type="Swap Zone" %]
+			</li>
+		</ul>
+
+
+		<ul>
+			<li>
+            [% PROCESS ad/zone_type.tmpl type="Swap Zone" %]
+
+		  </li>
+
+		</ul>
+
+		<ul class="form">
+
+
+            [% PROCESS ad/banner.tmpl type="Swap Zone" %]
+
+            [% PROCESS ad/code.tmpl type="Swap Zone" %]
+
+
+
+            <!-- Size for swap zones -->
+			<li id="code" >
+		       <div class="grid_10 alpha omega">
+
+				<label for="ad_size_id" class="[% IF errors.missing.ad_size_id or errors.invalid.ad_size_id %]error[% END %]">[% type %] Ad Size</label>
+
+<select name="ad_size_id" id="ad_size_id">
+
+<option value="" [% IF ! req.param('ad_size_id') == '' %][% END %]>Choose a Size</option>
+
+
+[% FOREACH ad_size = ad_sizes %]
+
+[% IF ad_size.grouping == 1 %]
+<option value="">--- 2009 IAB Standard Ad Unit, IAB UAP Unit (Universal Ad Package)</option>
+[% END %]
+
+[% IF ad_size.grouping == 5 %]
+<option value=""></option>
+<option value="">--- 2009 IAB Standard Ad Unit</option>
+[% END %]
+
+[% IF ad_size.grouping == 8 %]
+<option value=""></option>
+<option value="">--- Sizes not meeting IAB 2009 Impressions Weight and Availability</option>
+[% END %]
+
+
+<option value="[% ad_size.ad_size_id %]" [% IF ad_zone.ad_size_id == ad_size.ad_size_id %]SELECTED[% END %]>[% ad_size.name %]</option>
+
+[% END %]
+
+</select>
+</div>
+				<div class="clear"></div>
+</li>
+
+
+
+
+
+
+		</ul>
+</div>
+
+
+[% PROCESS ad/advanced.tmpl type="Swap Zone" %]
+
+
+<div class="grid_16">
+	<ul class="form">
+		<li>
+			<input type="hidden" name="id" value="[% ad_zone.ad_zone_id %]">
+		   <input type="submit" value="Save Swap Zone" />
+		</li>
+	</ul>
+</div>
+
+</form>
+
+
+[% PROCESS footer.tmpl %]

@@ -16,21 +16,22 @@
 
 	<div class="grid_6 alpha">
 	<h2>Stealth Swap</h2>
-		<p class="tip">You have <strong>[% count %]</strong> Ad Zones</p>
+		<p class="tip">You have <strong>[% count %]</strong> Swap Zones</p>
 	</div>
 	<div class="grid_4 omega">
-		<a class="right" id="button_add_banner" href="[% base_uri %]/app/ad/groups/add">Add a Banner</a>
+		<a class="right" id="button_add_banner" href="[% base_uri %]/app/ad/swaps/add">Add a Banner</a>
 		<div class="clear"></div>
 	</div>
 	<div class="clear"></div>
 
-		<h3 class="row">Select an Ad Zone below to edit</h3>
+		<h3 class="row">Select a Swap Zone below to edit</h3>
 	
 	
 	<table class="large_table">
 	<tr>
 		<th>Name</th>
 [% IF views %]		<th>Views Yesterday</th>[% END %]
+		<th>Zone Size</th>
 		<th>Last Modified</th>
 		<th>Default</th>
 		<th>Active On</th>
@@ -40,11 +41,13 @@
 	[% FOREACH ad_zone = ad_zones %]
 		<tr>
 			<td class="larger">
-			<a [% IF ad_zone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% ad_zone.image_href %]"[% END %] href="[% base_uri %]/app/ad/groups/edit/?id=[% ad_zone.ad_zone_id %]">
+			<a [% IF ad_zone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% ad_zone.image_href %]"[% END %] href="[% base_uri %]/app/ad/swaps/edit/?id=[% ad_zone.ad_zone_id %]">
 			[% ad_zone.name %]</a></td>
 			
 [% IF views %]			<td class="smaller">NA</td>[% END %]
 			
+			<td class="smaller">[% ad_zone.ad_size.name %]</td>
+
 			<td class="smaller">[% ad_zone.mts %]</td>
 
 			<td class="smaller center">[% IF ad_zone.is_default == 1 %]Yes[% ELSE %]No[% END %]</td>

@@ -2,6 +2,7 @@
 			<li id="code" >
 		       <div class="grid_10 alpha omega">
 				<label for="code" class="[% IF errors.missing.code or errors.invalid.code %]error[% END %]">[% type %] Invocation Code (provided by your ad server)</label>
+
 				<textarea name="code" rows="10" cols="75">[% IF !ad_zone.image_href %][% req.param('code') or ad_zone.code %][% END %]</textarea>
 				<label class="tip" for="code">For faster speed add your Ad Server IP address to the custom_skips.txt on your router</label>
 				<div class="clear"></div>	
