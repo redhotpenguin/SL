@@ -71,6 +71,13 @@ __PACKAGE__->add_columns(
   { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
   "width",
   { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  "swap",
+  {
+    data_type => "boolean",
+    default_value => "false",
+    is_nullable => 0,
+    size => 1,
+  },
 );
 __PACKAGE__->set_primary_key("ad_size_id");
 __PACKAGE__->has_many(

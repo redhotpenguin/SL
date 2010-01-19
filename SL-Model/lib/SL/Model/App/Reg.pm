@@ -297,6 +297,7 @@ sub get_persistent_zones {
     return @ad_zones;
 }
 
+
 sub get_persistent_sizes {
     my $self = shift;
 
@@ -311,9 +312,39 @@ sub get_persistent_sizes {
 }
 
 
+sub get_swap_zones {
+    my $self = shift;
+
+    my $ad_sizes = $self->get_swap_sizes;
+
+    my @ad_size_ids = map { $_->ad_size_id } @{$ad_sizes};
+
+    # ad zones allowed for this user
+    my @ad_zones = SL::Model::App->resultset('AdZone')->search({
+					 active => 't',
+                     account_id => $self->account->account_id,
+                     ad_size_id => { -in => \@ad_size_ids }});
+
+    return unless scalar(@ad_zones) > 0;
+
+    # filter out internal zones
+    @ad_zones = grep { ($_->name ne '_twitter_bug')
+                         and ($_->name ne '_msg_bug') } @ad_zones;
 
 
+    # get router count for each ad zone
+    $self->process_ad_zone($_) for @ad_zones;
 
+    return @ad_zones;
+}
+
+sub get_swap_sizes {
+
+  my @ad_sizes = SL::Model::App->resultset('AdSize')->search({
+        swap => 1, });
+
+  return  [ sort { $a->grouping <=> $b->grouping  } @ad_sizes ];
+}
 
 sub get_splash_zones {
     my $self = shift;
