@@ -42,7 +42,7 @@
 			<a [% IF ad_zone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% ad_zone.image_href %]"[% END %] href="[% base_uri %]/app/ad/swaps/edit/?id=[% ad_zone.ad_zone_id %]">
 			[% ad_zone.name %]</a></td>
 			
-            <td class="smaller">[% ad_zone.insertions_yesterday || 'N/A' %]</td>
+            <td class="smaller">[% ad_zone.insertions_yesterday %]</td>
 			
 			<td class="smaller">[% ad_zone.ad_size.name %]</td>
 
