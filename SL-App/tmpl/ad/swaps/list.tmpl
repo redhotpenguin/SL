@@ -30,11 +30,9 @@
 	<table class="large_table">
 	<tr>
 		<th>Name</th>
-[% IF views %]		<th>Views Yesterday</th>[% END %]
+        <th>Insertions Yesterday</th>
 		<th>Zone Size</th>
 		<th>Last Modified</th>
-		<th>Default</th>
-		<th>Active On</th>
 		<th>Remove</th>
 	</tr>
 	
@@ -44,24 +42,12 @@
 			<a [% IF ad_zone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% ad_zone.image_href %]"[% END %] href="[% base_uri %]/app/ad/swaps/edit/?id=[% ad_zone.ad_zone_id %]">
 			[% ad_zone.name %]</a></td>
 			
-[% IF views %]			<td class="smaller">NA</td>[% END %]
+            <td class="smaller">[% ad_zone.insertions_yesterday || 'N/A' %]</td>
 			
 			<td class="smaller">[% ad_zone.ad_size.name %]</td>
 
 			<td class="smaller">[% ad_zone.mts %]</td>
 
-			<td class="smaller center">[% IF ad_zone.is_default == 1 %]Yes[% ELSE %]No[% END %]</td>
-
-			<td class="smaller">
-			[% IF ad_zone.router_count == 0 %]
-			    [% ad_zone.router_count %]
-			[% ELSE %]
-			<a href="[% base_uri %]/app/router/list?ad_zone_id=[% ad_zone.ad_zone_id %]">
-			[% ad_zone.router_count %]</a>
-			[% END %]
-			devices
-			</td>
-			
 			<td class="center">
             <a href="#" rel="[% base_uri %]/app/ad/deactivate?id=[% ad_zone.ad_zone_id %]"  class="icon_delete confirm">Delete</a></td>
 
@@ -77,8 +63,7 @@
 		
 			<h3>Stealth Swap</h3>
 
-            <p>Add images or ad server invocation codes to enable ad replacement within web pages served.</p>
-			
+            <p>Add images or ad server invocation codes to enable ad replacement within web pages served.  Currently replacement is network wide and cannot be targeted by device.  Each replacement is reported as one ad insertion.<br />Ads of equal size will be swapped out.</p>
 		</div>
 	</div>
 </div>

@@ -34,7 +34,8 @@
 					<label for="low" class="check_label">Low Display Rate</label>
 					<div class="clear"></div>
 				</li>
-					
+				
+[% UNLESS type == 'Swap Zone' %]	
 				<li>
 					<!-- default -->
 					<label for="is_default">Is this the default [% type %]?</label>
@@ -47,7 +48,7 @@
 					<div class="clear"></div>
 					<p class="tip">In cases where the specific router cannot be identified, the default [% type %] will be shown.</p>
 				</li>
-
+[% END %]
 			</ul>
 		</div>
 	</div>

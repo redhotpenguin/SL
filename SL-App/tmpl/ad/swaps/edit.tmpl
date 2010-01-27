@@ -12,14 +12,25 @@
 <div class="clear"></div>
 
 
+[% IF req.param('code') or ad_zone.code or (ad_zone.image_href && ad_zone.link_href) or (req.param('image_href') && req.param('link_href'))%]
 <!-- BANNER PREVIEW -->
 <div class="grid_16 preview">
    <h3>Preview</h3>
 	<div id="banner_preview">
-   		 <div id="banner">[% IF req.param('code') or ad_zone.code %][% re.param('code') or ad_zone.code %][% ELSE %]<a href="http://www.silverliningnetworks.com/?referer=dashboard_example"><img src="[% base_uri %]/resources/images/ads/sln/sl_leaderboard.gif"></a>[% END %]</div>
+   		 <div id="banner">
+[% IF req.param('code') or ad_zone.code %]
+
+    [% req.param('code') or ad_zone.code %]
+
+[% ELSIF ad_zone.image_href && ad_zone.link_href or (req.param('image_href') && req.param('link_href')) %]
+    <a href="[% req.param('link_href') or ad_zone.link_href %]"><img src="[% req.param('image_href') or ad_zone.image_href %]"></a>
+[% END %]
+        </div>
 		<div class="clear"></div>
 	</div>
 </div>	
+[% END %]
+
 
 <form method="POST" action="[% base_uri %]/app/ad/swaps/edit">
 
@@ -30,7 +41,7 @@
 
 
 		<!-- Errors -->
-        [% IF image_err %]<p class="error">[% IF image_err.missing %]No image was found at [% req.param('image_href' ) %][% ELSE %]Invalid Image[% END %][% END %]
+        [% IF image_err %]<p class="error">[% IF image_err.missing %]No image was found at [% req.param('image_href' ) %][% ELSE %]Image link invalid, probably incorrect size[% END %][% END %]
 		[% IF errors.missing %]<p class="error">Please fill in the missing fields</p>[% END %]
 		[% IF errors.invalid %]<p class="error">Some fields were invalid, please correct them</p>[% END %]
 

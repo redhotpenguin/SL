@@ -55,15 +55,15 @@ sub dispatch_add {
 
         my $ad_zone = SL::Model::App->resultset('AdZone')->create(
             {
-                name       => 'New Banner Ad',
+                name       => 'Large Rectangle Advertise Here',
                 account_id => $reg->account_id,
                 reg_id     => $reg->reg_id,
-                ad_size_id => 12, # Floating Footer Leaderboard
+                ad_size_id => 18,
                 code       => '',
                 active     => 1,
                 is_default => 0,
-                image_href => 'http://s1.slwifi.com/images/ads/sln/sl_leaderboard.gif',
-                link_href => 'http://www.silverliningnetworks.com/?referer=newad',
+                image_href => 'http://s1.slwifi.com/images/ads/sln/advertise_large_rect.png',
+                link_href => 'http://www.silverliningnetworks.com/advertise_here',
             }
         );
         return Apache2::Const::NOT_FOUND unless $ad_zone;
@@ -208,7 +208,7 @@ sub dispatch_edit {
         $r->method_number(Apache2::Const::M_GET);
 
         # validate input
-        my @required = qw( name zone_type active is_default ad_size_id
+        my @required = qw( name zone_type active ad_size_id
                            id display_rate );
 
         my @optionals;
@@ -294,41 +294,8 @@ sub dispatch_edit {
     $ad_zone->$_( $args{$_} ) for keys %args;
     $ad_zone->mts( DateTime::Format::Pg->format_datetime( DateTime->now( time_zone => 'local')));
 
-
-    ############################################
-    # handle default
-    my @ad_size_ids = map { $_->ad_size_id } @{$reg->get_swap_sizes};
-    my @default_zones = SL::Model::App->resultset('AdZone')->search({
-                    account_id => $reg->account_id,
-                    ad_size_id => { -in => \@ad_size_ids },
-                    is_default => 1 });
-
-    if ($req->param('is_default') == 1) {
-
-      # null out the existing default zones
-      foreach my $dz ( @default_zones ) {
-
-        next if $dz->ad_zone_id == $ad_zone->ad_zone_id;
-
-        $dz->is_default(0);
-        $dz->update;
-      }
-
-      $ad_zone->is_default(1);
-
-    } elsif ($req->param('is_default') == 0) {
-
-      # mark this one as default UNLESS there are no existing defaults
-
-      if (@default_zones && ($default_zones[0]->ad_zone_id != $ad_zone->ad_zone_id)) {
-        $ad_zone->is_default(0);
-
-      } else {
-
-        $ad_zone->is_default(1);
-      }
-
-    }
+    # swap zones are not default, the concept has no meaning for them.
+    $ad_zone->is_default(0);
 
     $ad_zone->update;
 
