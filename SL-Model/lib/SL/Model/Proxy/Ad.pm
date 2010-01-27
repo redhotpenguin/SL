@@ -633,10 +633,15 @@ sub swap {
         my $ad;
         if ($plan eq 'free') {
 
-            $ad = $class->grab_sized_default( $height, $width, $router->{account_id} );
+            # grab the Silver Lining account ads for free accounts
+            $ad = $class->grab_account_swap( $height, $width, 1 );
         } else {
 
-            $ad = $class->grab_sized_ad( $height, $width, $router->{router_id} );
+            # get a sized ad for the account
+            $ad = $class->grab_account_swap( $height, $width, $router->{account_id} );
+
+            # NOT IN USE yet, swaps by device
+            # $ad = $class->grab_router_swap( $height, $width, $router->{account_id} );
         }
 
         if ($ad) {
@@ -650,7 +655,7 @@ sub swap {
     return 1;
 }
 
-sub grab_sized_default {
+sub grab_account_swap {
 
     my ( $class, $height, $width, $account_id ) = @_;
 
@@ -659,7 +664,7 @@ sub grab_sized_default {
     unless ($sized) {
 
         warn("sized $width x $height NOT found in memcache") if DEBUG;
-        $sized = $class->retrieve_account_sized( $height, $width, $account_id );
+        $sized = $class->retrieve_account_swap( $height, $width, $account_id );
 
         return unless $sized;
 
@@ -687,7 +692,7 @@ sub grab_sized_default {
     return $sized_ad;
 }
 
-sub grab_sized_ad {
+sub grab_router_swap {
 
     my ( $class, $height, $width, $router_id ) = @_;
 
@@ -696,7 +701,7 @@ sub grab_sized_ad {
     unless ($sized) {
 
         warn("sized $width x $height NOT found in memcache") if DEBUG;
-        $sized = $class->retrieve_router_sized( $height, $width, $router_id );
+        $sized = $class->retrieve_router_swap( $height, $width, $router_id );
 
         return unless $sized;
 
@@ -724,7 +729,7 @@ sub grab_sized_ad {
     return $sized_ad;
 }
 
-sub retrieve_router_sized {
+sub retrieve_router_swap {
     my ( $class, $height, $width, $router_id ) = @_;
 
     my $ad_data = $class->connect->selectall_arrayref(
@@ -737,6 +742,7 @@ WHERE router__ad_zone.router_id = ?
 AND ad_zone.active = 't'
 AND ad_zone.ad_size_id = ad_size.ad_size_id
 AND ad_size.height = ? and ad_size.width = ?
+AND ad_size.swap = 't'
 AND router__ad_zone.ad_zone_id = ad_zone.ad_zone_id
 SQL
 
@@ -751,7 +757,7 @@ SQL
 }
 
 
-sub retrieve_account_sized {
+sub retrieve_account_swap {
     my ( $class, $height, $width, $account_id ) = @_;
 
     my $ad_data = $class->connect->selectall_arrayref(
@@ -763,6 +769,7 @@ FROM ad_zone, ad_size
 WHERE ad_zone.active = 't'
 AND ad_zone.ad_size_id = ad_size.ad_size_id
 AND ad_size.height = ? and ad_size.width = ?
+AND ad_size.swap = 't'
 AND ad_zone.account_id = ?
 SQL
 
