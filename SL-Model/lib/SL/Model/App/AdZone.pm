@@ -118,6 +118,14 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 4,
   },
+  "insertions_yesterday",
+  {
+    data_type => "integer",
+    default_value => 0,
+    is_foreign_key => 0,
+    is_nullable => 0,
+    size => 4,
+  },
 );
 __PACKAGE__->set_primary_key("ad_zone_id");
 __PACKAGE__->belongs_to("reg", "SL::Model::App::Reg", { reg_id => "reg_id" });
