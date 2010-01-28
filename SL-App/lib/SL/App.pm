@@ -493,7 +493,10 @@ sub format_adzone_list {
             $ad_zone->mts( $class->sldatetime( $ad_zone->mts ) );
         }
 
-        if ( length( $ad_zone->name ) > 22 ) {
+	my $len = 22;
+	$len = 30 if $ad_zone->ad_size->swap;
+
+        if ( length( $ad_zone->name ) > $len ) {
             $ad_zone->name( substr( $ad_zone->name, 0, 19 ) . '...' );
         }
     }
