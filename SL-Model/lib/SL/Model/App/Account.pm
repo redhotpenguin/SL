@@ -138,6 +138,20 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => undef,
   },
+  "persistent",
+  {
+    data_type => "boolean",
+    default_value => "true",
+    is_nullable => 0,
+    size => 1,
+  },
+  "swap",
+  {
+    data_type => "boolean",
+    default_value => "true",
+    is_nullable => 0,
+    size => 1,
+  },
 
 );
 __PACKAGE__->set_primary_key("account_id");
