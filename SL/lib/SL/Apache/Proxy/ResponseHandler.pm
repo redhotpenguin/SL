@@ -686,21 +686,22 @@ sub twohundred {
     {
 
         # put an ad in the response
-        $response_content_ref = _generate_response( $r, $response );
+		my $router = $r->pnotes('router');
+		if ($router->{persistent}) {
+			$response_content_ref = _generate_response( $r, $response );
 
-        if ( !$response_content_ref ) {
+		    if ( !$response_content_ref ) {
 
-            # we could not serve an ad on this page for some reason
-            $r->log->debug(
-                "ad not served, _generate_response failed url $url") if DEBUG;
-        }
-        else {
+			    # we could not serve an ad on this page for some reason
+				$r->log->debug(
+					"ad not served, _generate_response failed url $url") if DEBUG;
+			} else {
 
-            # we served an ad, note the ad-serving time for the rate-limiter
-            $ad_served = 1;
-            $RATE_LIMIT->record_ad_serve($user_id);
-        }
-
+				# we served an ad, note the ad-serving time for the rate-limiter
+				$ad_served = 1;
+				$RATE_LIMIT->record_ad_serve($user_id);
+			}
+		}
     }    # end 'if ('
     else {
 
