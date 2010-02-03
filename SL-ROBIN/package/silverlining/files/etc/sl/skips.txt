@@ -53,12 +53,17 @@ companion.yahoo.com
 messenger.yahooo.com
 geo.yahoo.com
 imageedit.photos.yahoo.com
+a323.yahoofs.com
+address.yahoo.com
+image.avatars.yahoo.com
+us.ard.yahoo.com
 ard.yahoo.com
 bc.yahoo.com
 us.bc.yahoo.com
 srd.yahoo.com
 yahoofs.com
 insider.msg.com
+srv2.wa.marketingsolutions.yahoo.com
 d.yimg.com
 l.yimg.com
 mail.yimg.com
@@ -92,7 +97,8 @@ tv.yahoo.com
 fe.shortcuts.search.yahoo.com
 static.flickr.com
 pn1.adserver.yahoo.com
-
+us.bookmarks.yahoo.com
+m.www.yahoo.com
 # Facebook
 69.63.176.0/20
 204.15.20.0/22
