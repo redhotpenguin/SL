@@ -112,22 +112,22 @@ sub handler {
         if ( defined $router->{adserving}
             && ( $router->{adserving} == 1 ) )
         {
-            my $bytes = $r->print("Ad Serving On");
+            my $bytes = $r->print("Ad Serving On\n");
         }
 
         if (defined $router->{default_skips}
             && ( $router->{default_skips} ne '')) {
 
-           my $bytes = $r->print("DefaultSkips " . $router->{default_skips});
-           SL::Model::Proxy::Router->reset_events( $router->[0],
+           my $bytes = $r->print("DefaultSkips " . $router->{default_skips} . "\n");
+           SL::Model::Proxy::Router->reset_events( $router->{router_id},
                     'default_skips' );
          }
 
         if (defined $router->{custom_skips}
             && ( $router->{custom_skips} ne '')) {
 
-           my $bytes = $r->print("CustomSkips " . $router->{custom_skips});
-           SL::Model::Proxy::Router->reset_events( $router->[0],
+           my $bytes = $r->print("\nCustomSkips " . $router->{custom_skips} . "\n");
+           SL::Model::Proxy::Router->reset_events( $router->{router_id},
                     'custom_skips' );
          }
 
