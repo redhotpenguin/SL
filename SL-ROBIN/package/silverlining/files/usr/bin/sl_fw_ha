@@ -1,6 +1,6 @@
 #!/usr/bin/microperl
 
-# this program copyright 2009 Silver Lining Networks Inc., and is governed
+# this program copyright 2010 Silver Lining Networks Inc., and is governed
 # by the Silver Lining software license, see http://www.silverliningnetworks.com/
 # if you have not received a copy of the license with this software, please
 # email support@silverliningnetworks.com for a copy
@@ -14,7 +14,7 @@ our $RMMOD       = '/sbin/rmmod';
 our $INSMOD      = '/sbin/insmod';
 our $LSMOD       = '/sbin/lsmod';
 our $IPTABLES    = '/usr/sbin/iptables';
-our $VERSION     = '02216';
+our $VERSION     = '02217';
 our $WGET        = '/usr/bin/wget -T 30 -t 3';
 $|++;
 
@@ -89,29 +89,63 @@ if ( my $slug = ping_ok( $config_proxy, $macaddr ) ) {
     }
 
     # skiplist update
-    my ($default_skips) = $slug =~ m/^DefaultSkips\s(http.*?)$/g;
+    my ($default_skips) = $slug =~ m/DefaultSkips\s([^\n]+)/;
     if ($default_skips) {
-        my $get = `$WGET -O /etc/sl/skips.txt $default_skips`;
+    	warn("yay, we have default skips $default_skips") if DEBUG;
+        my $get = `$WGET -O /tmp/skips.txt $default_skips`;
         if ($? != 0) {
             warn("failed to grab $default_skips");
             undef $default_skips;
         }
+
+        my $md5get = `$WGET -O /tmp/skips.txt.md5 $default_skips\.md5`;
+        if ($? != 0) {
+            warn("failed to grab $default_skips\.md5");
+            undef $default_skips;
+        }
+        
+        # compare the md5sums        
+        my $skip_actual=`$MD5 /tmp/skips.txt | head -c 32`;
+        chomp($skip_actual);
+        my $skip_md5=`/bin/cat /tmp/skips.txt.md5 | head -c 32`;
+        chomp($skip_md5);
+
+        die "$default_skips md5 error" unless $skip_actual eq $skip_md5;
+        `/bin/mv /tmp/skips.txt /etc/sl/skips.txt`;
     }
 
-    my ($custom_skips) = $slug =~ m/^CustomSkips\s(http.*?)$/g;
+
+    my ($custom_skips) = $slug =~ m/CustomSkips\s([^\n]+)/;
     if ($custom_skips) {
         my $get = `$WGET -O /etc/sl/custom_skips.txt $custom_skips`;
         if ($? != 0) {
             warn("failed to grab $custom_skips");
             undef $custom_skips;
         }
+
+        my $md5get = `$WGET -O /tmp/skips.txt.md5 $custom_skips\.md5`;
+        if ($? != 0) {
+            warn("failed to grab $custom_skips\.md5");
+            undef $custom_skips;
+        }
+      
+        # compare the md5sums        
+        my $skip_actual=`$MD5 /tmp/skips.txt | head -c 32`;
+        chomp($skip_actual);
+        my $skip_md5=`/bin/cat /tmp/skips.txt.md5 | head -c 32`;
+        chomp($skip_md5);
+
+        die "$custom_skips md5 error" unless $skip_actual eq $skip_md5;
+        `/bin/mv /tmp/skips.txt /etc/sl/custom_skips.txt`;
     }
 
     if ($default_skips or $custom_skips) {
         # hup the service
-        stop_sln;
+        warn("skips in place, stopping") if DEBUG;
+        stop_sln( $config_proxy, $macaddr );
         sleep 1;
-        start_sln;
+        warn("skips in place, starting") if DEBUG;
+        start_sln( $config_proxy, $macaddr);
     }
 
     exit(0);
@@ -352,7 +386,7 @@ sub _setup_sln_skips {
 	    print "setting up default skip $line\n" if $DEBUG;
     	`$IPTABLES -t nat -I ndsSLN 5 --dst $line -m tcp -p tcp --dport 80 -j ACCEPT`;
 
-		sleep 1 if ($i++ % $throttle == 0);
+		#sleep 1 if ($i++ % $throttle == 0);
     }
     close($fh) or die $!;
 
