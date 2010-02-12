@@ -42,9 +42,11 @@ use SL::Model::Proxy::Ad               ();
 use SL::Model::Proxy::Router           ();
 use SL::Model::Proxy::URL              ();
 
+use SL::Apache::Proxy                         ();
 use SL::Apache::Proxy::AccessHandler          ();
 use SL::Apache::Proxy::TransHandler           ();
 use SL::Apache::Proxy::ResponseHandler        ();
+use SL::Apache::Proxy::SwapHandler            ();
 use SL::Apache::Proxy::SplashHandler          ();
 use SL::Apache::Proxy::PostReadRequestHandler ();
 use SL::Apache::Proxy::PingHandler            ();

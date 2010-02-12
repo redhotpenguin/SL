@@ -69,16 +69,15 @@ use Carp qw(croak);
 use SL::Config;
 our $Config;
 
-our $Test = 0;
-
 BEGIN {
     $Config = SL::Config->new;
 }
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
-use constant MAX_CONTENT_LENGTH => $Config->sl_max_content_length || 131072;
+use constant MAX_CONTENT_LENGTH => $Config->sl_max_content_length || 131072; # 128k
 
 my %default_headers = (
+    'X-SLR' => 'aaaaaaaa|001c10090004',
     'Accept-Encoding' => 'gzip,deflate',
     'Accept-Charset'  => 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
     'Accept-Lang'     => 'en-us,en;q=0.5',
@@ -130,18 +129,15 @@ sub get {
     my $body = "";
     my $response = _build_response( $code, $mess, \@headers_out, \$body );
 
-    if ( !$SL::HTTP::Client::Test ) {
+    # WHY is this here???
+    # is this response html?
+    #return unless $response->is_html;
 
-        # is this response html?
-        #return unless $response->is_html;
-
-        # is this response too big?
-        my $content_length = $response->headers->header('Content-Length') || 0;
-        if ( $content_length > MAX_CONTENT_LENGTH ) {
-            warn("content length $content_length exceeds maximum limit")
-              if DEBUG;
+    # is this response too big?
+    my $content_length = $response->headers->header('Content-Length') || 0;
+    if ( $content_length > MAX_CONTENT_LENGTH ) {
+            warn("content length $content_length exceeds maximum limit") if DEBUG;
             return;
-        }
     }
 
     while (1) {
@@ -152,12 +148,10 @@ sub get {
         last                  unless $n;
         $body .= $buf;
 
-        if ( !$SL::HTTP::Client::Test ) {
-            if ( length($body) > MAX_CONTENT_LENGTH ) {
+        if ( length($body) > MAX_CONTENT_LENGTH ) {
                 warn("content length " . length($body) . " exceeds maximum limit")
                   if DEBUG;
                 return;
-            }
         }
     }
 

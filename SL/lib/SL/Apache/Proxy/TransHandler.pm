@@ -128,11 +128,28 @@ sub handler {
 
     ###################################
     ## Static content
+    ## This section will catch some ad replacement urls which are doing
+    ## javascript requests (.js files)
+
     if ( SL::Static->is_static_content( { url => $url } ) ) {
         $r->log->debug("$$ Url $url static content ext, port redir") if DEBUG;
 
         return &redirect($r);
     }
+
+
+    #######################################
+    # ad replacement handling
+    if (($hostname eq 'pagead2.googlesyndication.com') or
+        ($hostname eq 'googleads.g.doubleclick.net')) {
+
+        $r->log->debug("$$ diverting url $url to ad swap handler") if DEBUG;
+        $r->set_handlers( PerlResponseHandler => 'SL::Apache::Proxy::SwapHandler' );
+        return Apache2::Const::DECLINED;
+    }
+    ######################################
+
+
 
     #############################################
     # start the clock - the stuff above is all memory
@@ -156,7 +173,7 @@ sub handler {
     ###################################
     # check for sub-reqs if it passed the other tests
     my $is_subreq = $Subrequest->is_subrequest( url => $url );
-    if ($is_subreq) {
+    if (defined $is_subreq) {
         $r->log->debug("$$ Url $url is a subrequest, proxying") if DEBUG;
         return &proxy_request($r);
     }
