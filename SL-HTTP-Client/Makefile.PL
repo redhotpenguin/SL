@@ -12,7 +12,7 @@ WriteMakefile(
     PREREQ_PM    => {
 		URI => 1.38, 
 		'SL::Config' 	       => 0.14,
-                'LWP::UserAgent'       => 5.826,
+        'LWP::UserAgent'       => 5.826,
  	},
     ABSTRACT => 'Silver Lining HTTP Proxy Client',
     AUTHOR   => 'Fred Moyer <fred@redhotpenguin.com>',
