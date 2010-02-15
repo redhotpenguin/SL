@@ -62,7 +62,7 @@ use constant DEBUG         => $ENV{SL_DEBUG}            || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG}    || 0;
 use constant TIMING        => $ENV{SL_TIMING}           || 0;
 use constant REPLACE_PORT  => 8135;
-use constant MAX_NONHTML   => 200 * 1024; # 50k
+use constant MAX_NONHTML   => 200 * 1024; # 200k
 
 # unencoded http responses must be this big to get an ad
 use constant MIN_CONTENT_LENGTH => $Config->sl_min_content_length || 2500;
@@ -178,13 +178,13 @@ sub crazypage {
 
 
 sub twoohfour {
-    my ( $r, $res ) = @_;
+    my ( $class, $r, $res ) = @_;
 
     # status line 204 response
     $r->status( $res->code );
 
     # translate the headers from the remote response to the proxy response
-    my $translated = SL::Model::Proxy->set_response_headers( $r, $res );
+    my $translated = SL::Apache::Proxy->set_response_headers( $r, $res );
 
     # rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
@@ -195,7 +195,7 @@ sub twoohfour {
 }
 
 sub twoohsix {
-    my ( $r, $res ) = @_;
+    my ( $class, $r, $res ) = @_;
 
     # set the status line here and I will beat you with a stick
 
@@ -203,7 +203,7 @@ sub twoohsix {
     $r->content_type($content_type) if $content_type;
 
     # translate the headers from the remote response to the proxy response
-    my $translated = SL::Model::Proxy->set_response_headers( $r, $res );
+    my $translated = SL::Apache::Proxy->set_response_headers( $r, $res );
 
     # rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
@@ -216,7 +216,7 @@ sub twoohsix {
 }
 
 sub bsod {
-    my ( $r, $res ) = @_;
+    my ( $class, $r, $res ) = @_;
 
     # setup response
     $r->status( $res->code );
@@ -225,7 +225,7 @@ sub bsod {
     $r->content_type($content_type) if $content_type;
 
     # translate the headers from the remote response to the proxy response
-    my $translated = SL::Model::Proxy->set_response_headers( $r, $res );
+    my $translated = SL::Apache::Proxy->set_response_headers( $r, $res );
 
     # rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
@@ -237,13 +237,13 @@ sub bsod {
 }
 
 sub threeohone {
-    my ( $r, $res ) = @_;
+    my ( $class, $r, $res ) = @_;
 
     my $content_type = $res->content_type;
     $r->content_type($content_type) if $content_type;
 
     # translate the headers from the remote response to the proxy response
-    my $translated = SL::Model::Proxy->set_response_headers( $r, $res );
+    my $translated = SL::Apache::Proxy->set_response_headers( $r, $res );
 
     # do not change this line
     return Apache2::Const::HTTP_MOVED_PERMANENTLY;
@@ -254,33 +254,36 @@ sub redirect {
     my ( $r, $res ) = @_;
 
     # translate the headers from the remote response to the proxy response
-    my $translated = SL::Model::Proxy->set_response_headers( $r, $res );
+    my $translated = SL::Apache::Proxy->set_response_headers( $r, $res );
 
     # do not change this line
     return Apache2::Const::REDIRECT;
 }
 
 sub threeohfour {
-    my ( $r, $res ) = @_;
+    my ( $class, $r, $res ) = @_;
 
     # set the status line
     $r->status( $res->code );
 
     # translate the headers from the remote response to the proxy response
-    my $translated = SL::Model::Proxy->set_response_headers( $r, $res );
+    my $translated = SL::Apache::Proxy->set_response_headers( $r, $res );
 
     # do not change this line
     return Apache2::Const::OK;
 }
 
-sub _non_html_two_hundred {
-    my ( $r, $response ) = @_;
+sub non_html_two_hundred {
+    my ( $class, $r, $response ) = @_;
 
-    $r->log->debug("$$ non html 200, length " . length($response->decoded_content)) if DEBUG;
+    my $url = $r->pnotes('url');
 
-    my $url = $r->construct_url( $r->unparsed_uri );
+    $r->log->debug("$$ non html 200 for $url, length "
+                   . length($response->decoded_content) . " bytes") if DEBUG;
 
-    if ( $response->decoded_content && (length( $response->decoded_content ) < MAX_NONHTML )) {
+    # handle maximum size
+    if ( $response->decoded_content &&
+         (length( $response->decoded_content ) < MAX_NONHTML )) {
 
         $r->log->debug("$$ sending response directly ") if DEBUG;
 
@@ -293,11 +296,12 @@ sub _non_html_two_hundred {
 
         # set the response headers
         my $set_ok =
-          SL::Model::Proxy->set_twohundred_response_headers( $r, $response, $response_content_ref );
+          SL::Apache::Proxy->set_twohundred_response_headers(
+              $r, $response, $response_content_ref );
 
         if (VERBOSE_DEBUG) {
             $r->log->debug( "$$ Reponse headers to client " . $r->as_string );
-#            $r->log->debug( "$$ Response content: " . $$response_content_ref );
+            $r->log->debug( "$$ Response content: " . $$response_content_ref );
         }
 
         # rflush() flushes the headers to the client
@@ -309,22 +313,24 @@ sub _non_html_two_hundred {
 
         return Apache2::Const::OK;
 
+    } else {
+
+      # else send to perlbal to reproxy
+      $r->headers_out->add( 'X-REPROXY-URL' => $url );
+      $r->set_handlers( PerlLogHandler => undef );
+
+      return Apache2::Const::DONE;
+
     }
-
-    # else send to perlbal to reproxy
-    $r->headers_out->add( 'X-REPROXY-URL' => $url );
-    $r->set_handlers( PerlLogHandler => undef );
-
-    return Apache2::Const::DONE;
 }
 
 
 sub twohundred {
-    my ( $r, $response ) = @_;
+    my ($class, $r, $response ) = @_;
 
     my $url = $r->pnotes('url');
 
-    return _non_html_two_hundred($r, $response) if !$response->is_html;
+    return $class->non_html_two_hundred($r, $response) if !$response->is_html;
 
     # Cache the content_type, some misnomers in this section re: html
     $Cache->add_known_html( $url => $response->content_type );
@@ -337,7 +343,7 @@ sub twohundred {
     $TIMER->start('rate_limiter') if TIMING;
     my $user_id = join( '|', $r->pnotes('hash_mac'), $r->pnotes('ua') );
     my $is_toofast = $RATE_LIMIT->check_violation($user_id) || 0;
-    $r->log->debug("$$ ===> $url check_violation: $is_toofast") if VERBOSE_DEBUG;
+    $r->log->debug("$$ => $url check_violation: $is_toofast") if VERBOSE_DEBUG;
     $r->log->info(
         sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
       if TIMING;
@@ -347,34 +353,37 @@ sub twohundred {
     # ad-serving page, and it's not too soon after a previous ad was served
     my $response_content_ref;
     my $ad_served;
-    if ((	( not $is_toofast )
-        and ( not $Subrequest->is_subrequest( url => $url ) ) ) )
-    {
+    my $router = $r->pnotes('router');
+
+   	if ($router->{persistent}) {
+
+      if ((	( not $is_toofast )
+            and ( not $Subrequest->is_subrequest( url => $url ) ) ) )
+        {
 
         # put an ad in the response
-		my $router = $r->pnotes('router');
-		if ($router->{persistent}) {
-			$response_content_ref = _generate_response( $r, $response );
+		$response_content_ref = _generate_response( $r, $response );
 
-		    if ( !$response_content_ref ) {
+		if ( !$response_content_ref ) {
 
 			    # we could not serve an ad on this page for some reason
 				$r->log->debug(
-					"ad not served, _generate_response failed url $url") if DEBUG;
+					"ad not served, _generate_response failed $url") if DEBUG;
 			} else {
 
 				# we served an ad, note the ad-serving time for the rate-limiter
 				$ad_served = 1;
 				$RATE_LIMIT->record_ad_serve($user_id);
 			}
-		}
-    }    # end 'if ('
-    else {
+
+      }    # end 'if ('
+      else {
 
         # this is not html or its compressed, etc
         $r->log->debug("$$ ad not served, using existing content") if DEBUG;
-    }
 
+	  }
+    }
     # settings for ad not served
     $response_content_ref = \$response->decoded_content unless $ad_served;
 
@@ -437,7 +446,7 @@ sub twohundred {
     $r->log->debug( "$$ status line is " . $response->status_line ) if DEBUG;
 
     # set the response headers
-    my $set_ok = SL::Model::Proxy->set_twohundred_response_headers( $r, $response, $response_content_ref );
+    my $set_ok = SL::Apache::Proxy->set_twohundred_response_headers( $r, $response, $response_content_ref );
 
     if (VERBOSE_DEBUG) {
         $r->log->debug( "$$ Reponse headers to client " . $r->as_string );
@@ -578,7 +587,7 @@ sub _generate_response {
 
     # re-encode content if needed
     if ($content_needs_encoding) {
-        my $charset = SL::Model::Proxy->response_charset($response);
+        my $charset = SL::Apache::Proxy->response_charset($r, $response);
 
         # don't need to worry about errors - this content came from
         # Encode::decode via HTTP::Message::decoded_content, so as

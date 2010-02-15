@@ -21,7 +21,7 @@ WriteMakefile(
         'SL::RateLimit'      => 0.01,
         'SL::Subrequest'     => 0.06,
         'SL::Config'         => 0.15,
-        'SL::HTTP::Client'   => 0.02,
+        'SL::HTTP::Client'   => 0.03,
         'SL::Static'         => 0.12,
         'SL::Model'          => 0.14,
         'SL::User'           => 0.02,

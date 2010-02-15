@@ -8,6 +8,8 @@ use Apache2::RequestUtil ();
 use SL::DNS ();
 use SL::Config ();
 
+use Apache2::Const -compile => qw( DONE );
+
 our %Response_map = (
     200 => 'twohundred',
     204 => 'twoohfour',
@@ -192,14 +194,14 @@ sub translate_cookie_and_auth_headers {
 
 
 sub set_twohundred_response_headers {
-    my ( $r, $res, $response_content_ref ) = @_;
+    my ($class,  $r, $res, $response_content_ref ) = @_;
 
     # This loops over the response headers and adds them to headers_out.
     # Override any headers with our own here
     my %headers;
     $r->headers_out->clear();
 
-    _translate_cookie_and_auth_headers( $r, $res );
+    $class->translate_cookie_and_auth_headers( $r, $res );
 
     # Create a hash with the HTTP::Response HTTP::Headers attributes
     $res->scan( sub { $headers{ $_[0] } = $_[1]; } );
@@ -287,7 +289,7 @@ sub set_twohundred_response_headers {
 
     ##########################################
     # this is for any additional headers, usually site specific
-    _translate_remaining_headers( $r, \%headers );
+    $class->translate_remaining_headers( $r, \%headers );
 
     ###############################
     # possible through a nasty hack, set the server version
@@ -303,8 +305,8 @@ sub set_twohundred_response_headers {
 
 # figure out what charset a response was made in, code adapted from
 # HTTP::Message::decoded_content
-sub _response_charset {
-    my $response = shift;
+sub response_charset {
+    my ($class, $r, $response) = @_;
 
     # pull apart Content-Type header and extract charset
     my $charset;
@@ -362,23 +364,22 @@ sub handler {
 
     # dns error or socket timeout, give em the crazy page
     if ($@) {
-        $r->log->debug("$$ error fetching $url : $@" ) if DEBUG;
+        $r->log->debug("$class $$ error fetching $url : $@" ) if DEBUG;
         return &crazypage($r);    # haha this page is kwazy!
     }
 
-    $r->log->debug("$$ request to $url complete") if DEBUG;
+    $r->log->debug("$class $$ request to $url complete") if DEBUG;
 
 
     # no response means non html or html too big
     # send it to perlbal to reproxy
     unless ($response) {
-        $r->log->debug("$$ response non html or too big") if DEBUG;
+        $r->log->debug("$class $$ response non html or too big") if DEBUG;
 
 		$r->headers_out->add( 'X-REPROXY-URL' => $url );
 		$r->set_handlers( PerlLogHandler => undef );
 
 		return Apache2::Const::DONE;
-
     }
 
     $r->log->debug( "$$ Response headers from url $url proxy request code\n" .
@@ -411,11 +412,7 @@ sub handler {
     ) if VERBOSE_DEBUG;
 
     no strict 'refs';
-    my $method = "$subclass\:\:$sub";
-
-    return $method->( $r, $response );
-
-#    return $sub->( $r, $response );
+    return $subclass->$sub( $r, $response );
 }
 
 

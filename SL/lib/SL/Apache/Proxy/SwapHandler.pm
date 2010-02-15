@@ -59,11 +59,13 @@ use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG}    || 0;
 require Data::Dumper if ( DEBUG or VERBOSE_DEBUG );
 
 sub handler {
-
     my $r = shift;
 
     return SL::Apache::Proxy->handler(__PACKAGE__, $r);
 }
+
+sub twohundred {
+    my ($class, $r, $res) = @_;
 
 
 
