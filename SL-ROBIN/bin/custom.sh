@@ -2,9 +2,10 @@
 
 VERSION=0.14
 DESCRIPTION="This program installs the Silver Lining ipkgs onto Open-Mesh.com ROBIN enabled devices.\n\n"
-LICENSE="Copyright 2009 Silver Lining Networks, Inc., email support@silverliningnetworks.com for a license copy.\n"
+LICENSE="Copyright 2010 Silver Lining Networks, Inc., email support@silverliningnetworks.com for a license copy.\n"
 echo $DESCRIPTION
 echo $LICENSE
+
 
 # see if there is enough room
 FREE_MEM=$(free |grep 'Mem:' |awk '{print $4}')
@@ -59,14 +60,14 @@ elif [ $KVERSION -eq 26 ] ; then
 
     SL_VER=0.22
     KMOD_SLN_RELEASE=14
-    SLN_RELEASE=15
+    SLN_RELEASE=17
     KERNEL=2.6.26.8
     TOOL=/bin/opkg
     KMOD_EXT=$KERNEL+$SL_VER-atheros-$KMOD_SLN_RELEASE
     KMODSLN_FILE=kmod-sln_$KMOD_EXT\_mips.ipk
     SLN_EXT=$SL_VER-$SLN_RELEASE
     SLN_FILE=sln_$SLN_EXT\_mips.ipk
-    TEXTSEARCH_FILE=kmod-textsearch_$KERNEL-atheros-1_mips.ipk 
+    TEXTSEARCH_FILE=kmod-textsearch_2.6.26.8-atheros-1_mips.ipk 
     URL_KMODSLN=http://fw.slwifi.com/SL-ROBIN/sln/$SL_VER\_mips/$KMODSLN_FILE
     URL_SLN=http://fw.slwifi.com/SL-ROBIN/sln/$SL_VER\_mips/$SLN_FILE
     URL_TEXTSEARCH=http://fw.slwifi.com/SL-ROBIN/textsearch/$TEXTSEARCH_FILE
