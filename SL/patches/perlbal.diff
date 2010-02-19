@@ -1,8 +1,8 @@
 Index: lib/Perlbal/ClientHTTPBase.pm
 ===================================================================
---- lib/Perlbal/ClientHTTPBase.pm	(revision 820)
+--- lib/Perlbal/ClientHTTPBase.pm	(revision 850)
 +++ lib/Perlbal/ClientHTTPBase.pm	(working copy)
-@@ -44,17 +44,38 @@
+@@ -45,17 +45,38 @@
  
  # hard-code defaults can be changed with MIME management command
  our $MimeType = {qw(
@@ -41,7 +41,7 @@ Index: lib/Perlbal/ClientHTTPBase.pm
                      tif   image/tiff
                      tiff  image/tiff
                      torrent  application/x-bittorrent
-@@ -524,7 +545,7 @@
+@@ -549,7 +570,7 @@
              unless ($not_mod || $not_satisfiable) {
                  my ($ext) = ($file =~ /\.(\w+)$/);
                  $res->header("Content-Type",
@@ -50,7 +50,7 @@ Index: lib/Perlbal/ClientHTTPBase.pm
  
                  unless ($status == 206) {
                      $res->header("Content-Length", $size);
-@@ -641,7 +662,7 @@
+@@ -666,7 +687,7 @@
      # files must all exist
      my $sum_length      = 0;
      my $most_recent_mod = 0;
@@ -59,7 +59,7 @@ Index: lib/Perlbal/ClientHTTPBase.pm
      foreach my $f (@$filelist) {
          my $stat = $stats->{$f};
          unless (S_ISREG($stat->[2] || 0)) {
-@@ -655,7 +676,7 @@
+@@ -680,7 +701,7 @@
          $most_recent_mod = $stat->[9] if
              $stat->[9] >$most_recent_mod;
      }
@@ -70,9 +70,9 @@ Index: lib/Perlbal/ClientHTTPBase.pm
      my $ims     = $hd->header("If-Modified-Since") || "";
 Index: lib/Perlbal/ClientProxy.pm
 ===================================================================
---- lib/Perlbal/ClientProxy.pm	(revision 820)
+--- lib/Perlbal/ClientProxy.pm	(revision 850)
 +++ lib/Perlbal/ClientProxy.pm	(working copy)
-@@ -261,6 +261,10 @@
+@@ -266,6 +266,10 @@
  
      my $bad_code = sub {
          return 0 if $code >= 200 && $code <= 299;
@@ -83,7 +83,7 @@ Index: lib/Perlbal/ClientProxy.pm
          return 0 if $code == 416;
          return 1;
      };
-@@ -794,6 +798,7 @@
+@@ -805,6 +809,7 @@
      } else {
          # get the backend request process moving, since we aren't buffering
          $self->{is_buffering} = 0;
@@ -93,9 +93,9 @@ Index: lib/Perlbal/ClientProxy.pm
          return if $svc->{reproxy_cache} && $self->satisfy_request_from_cache;
 Index: lib/Perlbal/BackendHTTP.pm
 ===================================================================
---- lib/Perlbal/BackendHTTP.pm	(revision 820)
+--- lib/Perlbal/BackendHTTP.pm	(revision 850)
 +++ lib/Perlbal/BackendHTTP.pm	(working copy)
-@@ -262,12 +262,9 @@
+@@ -262,10 +262,6 @@
  
      $hds->header("Connection", $persist ? "keep-alive" : "close");
  
@@ -105,19 +105,8 @@ Index: lib/Perlbal/BackendHTTP.pm
 -
      # decide whether we trust the upstream or not, to give us useful
      # forwarding info headers
-+=cut
      if ($svc->trusted_ip($client_ip)) {
-         # yes, we trust our upstream, so just append our client's IP
-         # to the existing list of forwarded IPs, if we're a blind proxy
-@@ -283,6 +280,7 @@
-         $hds->header("X-Host", undef);
-         $hds->header("X-Forwarded-Host", undef);
-     }
-+=cut
- 
-     $self->tcp_cork(1);
-     $client->state('backend_req_sent');
-@@ -525,7 +523,10 @@
+@@ -529,7 +525,10 @@
      }
  
      print "  writing response headers to client\n" if Perlbal::DEBUG >= 3;
