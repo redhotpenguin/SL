@@ -51,7 +51,11 @@
 
 			<!-- LOGO ************************ --> 
 			<div class="one_third right">
-                <h1 class="logo"><a href="#"><span></span>Silver Lining Networks</a></h1>
+		[% IF req.param('network') == 'aircloud' %]
+		<h1><img src="[% base_uri %]/resources/images/logos/aircloud.png"></h1>
+		[% ELSE %]
+		<h1 class="logo"><a href="#"><span></span>Silver Lining Networks</a></h1>
+		[% END %]
             </div>
 
 			<div class="clear"></div>
