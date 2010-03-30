@@ -1,0 +1,11 @@
+bin/sl_perllllllllbal_watch
+bin/sl_proxy
+etc/httpd.conf.tmpl
+etc/mime.types
+etc/sl.conf
+etc/startup_proxy.pl
+lib/SL/Proxy/Search/PostReadRequestHandler.pm
+lib/SL/Proxy/Search/TransHandler.pm
+Makefile.old
+Makefile.PL
+MANIFEST

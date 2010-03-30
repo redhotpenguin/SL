@@ -1,0 +1,82 @@
+ServerRoot           [% cfg.sl_httpd_root %]
+ServerAdmin          [% cfg.sl_admin %]
+ServerSignature      Off
+ServerTokens         Prod
+PidFile              [% cfg.sl_tmp %]/sl_proxy.pid
+DocumentRoot         [% cfg.sl_httpd_root %]/htdocs
+TypesConfig          [% cfg.sl_config %]/mime.types
+User                 [% cfg.sl_apache_user %] 
+Group                [% cfg.sl_apache_group %]
+KeepAlive            [% cfg.sl_apache_keepalive %]
+MaxKeepAliveRequests 0
+KeepAliveTimeout     300
+ServerLimit          512
+MinSpareServers      [% cfg.sl_apache_min_spare_servers %]
+MaxSpareServers      [% cfg.sl_apache_max_spare_servers %]
+StartServers         [% cfg.sl_apache_start_servers %]
+LogLevel             [% cfg.sl_apache_loglevel %]
+MaxClients           [% cfg.sl_apache_maxclients %]
+ErrorLog             [% cfg.sl_tmp %]/logs/error_log
+TransferLog          [% cfg.sl_tmp %]/logs/access_log
+MaxRequestsPerChild  [% cfg.sl_apache_max_requests_per_child %]
+LogFormat "%h %t (%{User-agent}i) %{Host}i \"%r\" %>s %b %{SL_URL}e %{SL_TIMER}e %D"
+UseCanonicalName     Off
+HostNameLookups      Off
+Timeout              300
+AllowEncodedSlashes On
+#ProxyVia On # don't enable this
+
+Listen [% cfg.sl_apache_listen %]
+<IfModule mod_proxy.c>
+    # If mod_proxy is used for proxy forwarding
+    ProxyRequests On
+</IfModule>
+
+ServerName           [% cfg.sl_apache_servername %]
+ErrorDocument        404	/404.html
+ErrorDocument        500 /500.html
+
+LoadModule perl_module        modules/mod_perl.so
+
+PerlPassEnv SL_ROOT
+PerlPostConfigRequire "[% cfg.sl_config %]/startup_proxy.pl"
+
+[% IF cfg.sl_devel %]
+# Apache::Reload for development.
+PerlModule           Apache2::Reload
+PerlInitHandler      Apache2::Reload
+PerlSetVar           ReloadAll On
+PerlSetVar           ReloadDirectories "[% cfg.sl_root %]/lib"
+[% END %]
+
+PerlPassEnv          SL_DEBUG
+PerlPassEnv          SL_VERBOSE_DEBUG
+PerlPassEnv          SL_TIMING
+
+# handle dummy connections then security
+PerlPostReadRequestHandler SL::Proxy::Search::PostReadRequestHandler
+PerlMapToStorageHandler    Apache2::Const::OK
+PerlTransHandler           SL::Proxy::Search::TransHandler
+
+<Location />
+    SetHandler          modperl
+ 	PerlHeaderParserHandler Apache2::Const::OK
+    PerlAccessHandler       Apache2::Const::OK
+    PerlAuthenHandler       Apache2::Const::OK
+    PerlAuthzHandler        Apache2::Const::OK
+    PerlTypeHandler         Apache2::Const::OK
+    PerlFixupHandler        Apache2::Const::OK
+    PerlResponseHandler     Apache2::Const::OK
+</Location>
+
+<Directory />
+    AllowOverride None
+</Directory>
+
+[% IF cfg.sl_status %]
+<Location /sl_secret_status>
+	SetHandler modperl
+    PerlHandler Apache2::Status
+    PerlSetVar StatusOptionsAll On
+</Location>
+[% END %]
