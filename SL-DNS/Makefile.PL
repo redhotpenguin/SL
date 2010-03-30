@@ -5,7 +5,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME              => 'SL-DNS',
     VERSION_FROM      => 'lib/SL/DNS.pm', # finds $VERSION
-    PREREQ_PM         => {'Net::DNS' => 0.64 }, 
+    PREREQ_PM         => {'Net::DNS' => 0.66 }, 
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/SL/DNS.pm', # retrieve abstract from module
        AUTHOR         => 'Fred Moyer <phred@redhotpenguin.com>') : ()),

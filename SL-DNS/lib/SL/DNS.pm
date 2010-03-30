@@ -3,12 +3,19 @@ package SL::DNS;
 use strict;
 use warnings;
 
+=head1
+
+SL::DNS - handles dns work
+
+=cut
+
+
 use Net::DNS;
 
 use constant NAMESERVER => '208.67.222.222';
 use constant DEBUG      => $ENV{SL_DEBUG} || 0;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 our $resolver;
 
 BEGIN {
