@@ -34,7 +34,7 @@
 							[% IF router.device=='wrt54gl' %]SSID: [% router.ssid or '?'  %],[% END %] 
 							Last seen:[% router.last_seen or '?'  %],  
 							[% IF router.device=='mr3201a' %]Ad bar:  <strong>[% IF router.adserving==1 %]On[% ELSE %]Off[% END %]</strong>,[% END %]  
-							<br/>SL Version: <strong>[% router.firmware_version %]</strong>, ROBIN version <strong>[% router.robin || 'unknown' %]</strong>.  [% UNLESS (router.robin == 'r2678-26/nO') or (router.robin == 'r2671-26/nO') or (router.robin == 'r2690-26/nO) %]<br />Recommended versions r2671 or <a href="http://fw.slwifi.com/om_robin_stable/custom.sh">r2678 SL tested</a> with Open captive portal.[% END %]
+							<br/>SL Version: <strong>[% router.firmware_version %]</strong>, ROBIN version <strong>[% router.robin || 'unknown' %]</strong>.  [% UNLESS (router.robin == 'r2678-26/nO') or (router.robin == 'r2671-26/nO') or (router.robin == 'r2690-26/nO') %]<br />Recommended versions r2671 or <a href="http://fw.slwifi.com/om_robin_stable/custom.sh">r2678 SL tested</a> with Open captive portal.[% END %]
 						</p>
 					</div>
 					<div class="grid_1 omega">
