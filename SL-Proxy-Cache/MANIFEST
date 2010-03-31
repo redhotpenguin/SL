@@ -1,0 +1,4 @@
+MANIFEST
+Makefile.PL
+lib/SL/Proxy/Cache.pm
+t/01.t
