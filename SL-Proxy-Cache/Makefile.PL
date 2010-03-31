@@ -6,7 +6,7 @@ use warnings;
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
-    NAME         => 'SL-Cache',
+    NAME         => 'SL-Proxy-Cache',
     VERSION_FROM => 'lib/SL/Proxy/Cache.pm',
     PREREQ_PM    => {
         'SL::Config'       => 0.14,
