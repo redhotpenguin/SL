@@ -40,7 +40,7 @@ sub dispatch_index {
         && defined $args{kbdown} )
     {
 
-        $r->log->error("missing args for device at ip $ip");
+        $r->log->error("missing args for device mac $mac at ip $ip: " . Dumper(\%args));
         return Apache2::Const::SERVER_ERROR;
     }
 

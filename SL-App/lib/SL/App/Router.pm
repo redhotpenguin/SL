@@ -176,7 +176,7 @@ sub dispatch_omsync {
         );
 
         my $om_url =
-          eval { URI->new('http://www.open-mesh.com/export_nodes.php') };
+          eval { URI->new('http://dashboard.open-mesh.com/export_nodes.php') };
         if ($@) {
             $r->log->error("invalid om url");
             return Apache2::Const::SERVER_ERROR;
@@ -720,7 +720,7 @@ sub dispatch_list {
 
         my $dt = DateTime::Format::Pg->parse_datetime( $router->last_ping );
 	$dt->time_zone('local');
-	$dt->add( hours => 8);
+	$dt->add( hours => 7);
 	my $now = DateTime->now;
 	$now->time_zone('local');
         # hack for pacific time
@@ -966,10 +966,10 @@ JS
 
         my $dt = DateTime::Format::Pg->parse_datetime( $router->last_ping );
 	$dt->set_time_zone('local');
-	$dt->add( hours => 8);
+	$dt->add( hours => 7);
 
 	my $now = DateTime->now;
-	$now->add(hours=>8);
+	$now->add(hours=>7);
          # hack for pacific time
         my $sec = ( $now->epoch - $dt->epoch);
 
