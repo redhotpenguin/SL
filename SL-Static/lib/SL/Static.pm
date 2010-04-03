@@ -6,7 +6,7 @@ use warnings;
 use Regexp::Assemble;
 use SL::Config;
 
-our $VERSION = 0.13;
+our $VERSION = 0.14;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 our ($CONFIG, $EXT_REGEX);
@@ -41,7 +41,9 @@ sub is_static_content {
         return 1 if ($args_ref->{type} ne 'text/html');
     }
 
-    return 1 if ( $args_ref->{url} =~ m{\.(?:$EXT_REGEX)}i );
+    # match static ext followed by args ? or by nothing
+    return 1 if ( ( $args_ref->{url} =~ m{\.(?:$EXT_REGEX)\Q?\E}i )
+               or ( $args_ref->{url} =~ m{\.(?:$EXT_REGEX)$}i ) );
 
     return;
 }

@@ -1,5 +1,8 @@
 Revision history for SL-Static
 
+0.14 Fri Apr 02 20:49:00 2010 PST
+    - match end of query or end of filename
+
 0.13 Wed Jul 02 22:18:00 2008 PST
     - put the type detection back in
 
