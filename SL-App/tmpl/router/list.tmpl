@@ -55,7 +55,7 @@
 					<div class="clear"></div>				
 				</li>
 				<li><a class="icon_sync" href="[% base_uri %]/app/router/omsync">Sync Open-Mesh Devices</a></li>
-				<li><a class="icon_on_off" href="[% base_uri %]/app/router/adbar">Turn Ad Bar On/Off</a></li>
+		[% IF reg.account.plan != 'free' %]<li><a class="icon_on_off" href="[% base_uri %]/app/router/adbar">Turn Ad Bar On/Off</a></li>[% END %]
 			</ul>		
 		</div>
 	</div>

@@ -431,8 +431,12 @@
 						<label for="adserving">Ad Bar</label>
 						<div class="clear"></div>
 						<p>Turn the ad and messaging bar On or Off.  Takes 5-15 minutes to take effect.</p>
+						[% IF reg.account.plan != 'free' %]
 						<input type="radio" name="adserving" value="t" [% IF router.adserving == 1 %]checked="checked"[% END %]/><label for="adserving" class="check_label">On</label>
 						<input type="radio" name="adserving" value="f" [% IF !router.adserving %] checked="checked" [% END %]/><label for="adserving" class="check_label">Off</label>
+						[% ELSE %]
+						<p><strong>Paid account needed to activate adbar</strong></p>
+						[% END %]
 						<div class="clear"></div>
 					</li>	
 					
