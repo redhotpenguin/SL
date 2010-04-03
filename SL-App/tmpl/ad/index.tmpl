@@ -52,8 +52,7 @@
 	</div>
 	<div class="clear"></div>
 
-[% IF reg.account.beta == 1 %]
-[% IF reg.account.plan != 'free' %]
+[% IF reg.account_id == 1 or reg.account_id == 2 %]
 	<div class="grid_5 alpha">
 		<!-- STEALTH SWAP -->
 		<a class="large_button" href="[% base_uri %]/app/ad/swaps/list">
@@ -62,16 +61,6 @@
             <span>Replace ads in web page<br />Use images or invocation codes</span>
 		</a>
 	</div>
-[% ELSE %]
-	<div class="grid_5 alpha">
-		<!-- STEALTH SWAP -->
-		<a class="large_button" href="[% base_uri %]/app/ad/index">
-			<img alt="Stealth Swap" src="[% base_uri %]/resources/images/icons/application/splash.png" />
-			<strong>Stealth Swap (BETA)</strong> 
-            <span>Replace ads in web page<br />Paid account required</span>
-		</a>
-	</div>
-[% END %]
 	<div class="clear"></div>
 [% END %]
 

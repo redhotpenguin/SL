@@ -32,8 +32,8 @@ use SL::Model::App;    # don't ask me why we need both
 our %Plans = (
     enterprise => '249.00',
     premium    => '99.00',
-    plus       => '24.00',
-    basic      => '9.00',
+    plus       => '49.00',
+    basic      => '24.00',
 );
 
 our %Routers = (
@@ -166,9 +166,8 @@ sub dispatch_publisher {
                         state        => $req->param('state'),
                         referer      => $r->headers_in->{'referer'},
                         amount       => $amount,
-                        trialperiods => 1,
 			country      => $req->param('country'),
-}
+		}
                 );
             };
 
@@ -217,7 +216,7 @@ sub dispatch_publisher {
         my $mail;
         my %tmpl_data = (
             req        => $req,
-            start_date => DateTime->now->add( months => 1 )->mdy('/'),
+            start_date => DateTime->now->mdy('/'),
             date       => DateTime->now->mdy('/'),
         );
 

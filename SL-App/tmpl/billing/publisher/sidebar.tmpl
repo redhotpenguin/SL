@@ -7,8 +7,8 @@
             <ul>
                 <li>Insertions Per Month:  <strong>
 [% IF req.param('plan') == 'free' %]1,000
-[% ELSIF req.param('plan') == 'basic' %]9,000
-[% ELSIF req.param('plan') == 'plus' %]25,000
+[% ELSIF req.param('plan') == 'basic' %]24,000
+[% ELSIF req.param('plan') == 'plus' %]49,000
 [% ELSIF req.param('plan') == 'premium' %]125,000
 [% ELSIF req.param('plan') == 'enterprise' %]325,000[% END %]</strong></li>
 
@@ -16,7 +16,7 @@
 
                 <li>Cost per 1,000 ads (CPMI): <strong>$[% IF req.param('plan') == 'free' %]0
 [% ELSIF req.param('plan') == 'basic' %]1
-[% ELSIF req.param('plan') == 'plus' %]0.83
+[% ELSIF req.param('plan') == 'plus' %]1
 [% ELSIF req.param('plan') == 'premium' %]0.80
 [% ELSIF req.param('plan') == 'enterprise' %]0.76[% END %]</strong></li>
 
