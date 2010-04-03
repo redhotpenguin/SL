@@ -61,6 +61,11 @@ sub dispatch_publisher {
         req    => $req,
     );
 
+    if ($req->param('plan') eq 'free') {
+
+	return Apache2::Const::SERVER_ERROR;
+    }
+
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
         my $output;
