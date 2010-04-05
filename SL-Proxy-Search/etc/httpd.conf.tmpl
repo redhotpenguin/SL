@@ -24,13 +24,8 @@ UseCanonicalName     Off
 HostNameLookups      Off
 Timeout              300
 AllowEncodedSlashes On
-#ProxyVia On # don't enable this
 
 Listen [% cfg.sl_apache_listen %]
-<IfModule mod_proxy.c>
-    # If mod_proxy is used for proxy forwarding
-    ProxyRequests On
-</IfModule>
 
 ServerName           [% cfg.sl_apache_servername %]
 ErrorDocument        404	/404.html
@@ -60,7 +55,7 @@ PerlTransHandler           SL::Proxy::Search::TransHandler
 
 <Location />
     SetHandler          modperl
- 	PerlHeaderParserHandler Apache2::Const::OK
+    PerlHeaderParserHandler Apache2::Const::OK
     PerlAccessHandler       Apache2::Const::OK
     PerlAuthenHandler       Apache2::Const::OK
     PerlAuthzHandler        Apache2::Const::OK

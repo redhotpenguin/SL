@@ -1,4 +1,4 @@
-bin/sl_perllllllllbal_watch
+bin/sl_perbal_watch
 bin/sl_proxy
 etc/httpd.conf.tmpl
 etc/mime.types
@@ -9,3 +9,4 @@ lib/SL/Proxy/Search/TransHandler.pm
 Makefile.old
 Makefile.PL
 MANIFEST
+META.yml                                 Module meta-data (added by MakeMaker)

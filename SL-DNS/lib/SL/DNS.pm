@@ -12,10 +12,11 @@ SL::DNS - handles dns work
 
 use Net::DNS;
 
-use constant NAMESERVER => '208.67.222.222';
 use constant DEBUG      => $ENV{SL_DEBUG} || 0;
 
-our $VERSION = '0.02';
+use Data::Dumper;
+
+our $VERSION = '0.04';
 our $resolver;
 
 BEGIN {
@@ -24,27 +25,44 @@ BEGIN {
 }
 
 sub resolve {
-    my ( $class, $hostname, $nameserver ) = @_;
+    my ( $class, $args ) = @_;
 
-    unless ($nameserver) {
-        warn("using default nameserver " . NAMESERVER) if DEBUG;
-        $nameserver = NAMESERVER;
+    my $hostname = $args->{hostname} || die 'hostname needed';
+
+    if ($args->{cache}) {
+
+        warn("checking dns cache") if DEBUG;
+        my $ips = $args->{cache}->memd->get($hostname);
+
+        warn("ips: " . Dumper($ips)) if DEBUG;
+	return @{$ips} if $ips;
+    }
+ 
+    if ($args->{nameserver}) {
+        $resolver->nameserver($args->{nameserver});
     }
 
-    $resolver->nameserver($nameserver);
-
+    warn("running dns query") if DEBUG;
     my $ip;
     my $query = $resolver->query($hostname);
 
     die $resolver->errorstring unless $query;
 
+    my @ips;
+
+    warn("answer: " . Dumper($query->answer)) if DEBUG;
     foreach my $rr ( $query->answer ) {
         next unless $rr->type eq "A";
         $ip = $rr->address;
-        last;
+        push @ips, $ip;
     }
 
-    return $ip;
+    if ($args->{cache}) {
+
+        $args->{cache}->memd->set($hostname => \@ips, 3600);
+    }
+
+    return @ips;
 }
 
 1;

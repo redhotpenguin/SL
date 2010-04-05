@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Apache2::RequestRec ();
-use Apache2::Const -compile => qw( DECLINED DONE );
+use Apache2::Const -compile => qw( DECLINED DONE HTTP_BAD_REQUEST );
 use Apache2::Log         ();
 use APR::Table           ();
 use Apache2::RequestUtil ();
@@ -29,8 +29,8 @@ sub handler {
 
     my $ua = $r->headers_in->{'user-agent'};
     unless ($ua) {
-        $r->log->debug("$$ no user agent, request " . $r->as_string) if DEBUG;
-        $ua = 'none';
+        $r->log->error("$$ no user agent, request " . $r->as_string);
+        return Apache2::Const::HTTP_BAD_REQUEST;
     }
     $r->pnotes( 'ua' => $ua );
 
@@ -52,8 +52,8 @@ sub handler {
         $r->headers_in->unset('X-Forwarded-For');
     }
 
-	# hack for unpatched perlbal
-	$r->headers_in->unset('X-Proxy-Capabilities');
+    # hack for unpatched perlbal
+    $r->headers_in->unset('X-Proxy-Capabilities');
 
     $TIMER->start('global_request_timer') if ( TIMING or REQ_TIMING );
     $r->pnotes( 'global_request_timer' => $TIMER ) if ( TIMING or REQ_TIMING );

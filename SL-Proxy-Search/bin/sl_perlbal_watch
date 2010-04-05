@@ -1,11 +1,9 @@
-#!perl
+#!/usr/local/bin/perl
 
 use strict;
 use warnings;
 
-my $perlbal_user = 'phred';
-
-my $perlbal = "/home/$perlbal_user/dev/perl/bin/perl /home/$perlbal_user/dev/perl/bin/perlbal -d";
+my $perlbal = "/usr/local/bin/perl /usr/local/bin/perlbal -d";
 
 unless ( _is_perlbal_running()) {
     # uh oh, houston we have a problem
@@ -24,7 +22,7 @@ unless ( _is_perlbal_running()) {
 
 sub _is_perlbal_running {
 
-	my $is_perlbal_running = `ps aux  | grep '$perlbal' | grep -v 'grep'`;
+	my $is_perlbal_running = `pgrep perlbal`;
 	chomp($is_perlbal_running);
 
 	return if ($is_perlbal_running eq '');

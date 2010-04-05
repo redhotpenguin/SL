@@ -1,7 +1,5 @@
-Changes
-Makefile.PL
 MANIFEST
-README
-t/SL-DNS.t
-lib/SL/DNS.pm
+bin/configure_httpd_2_2
+Makefile.PL
+lib/SL/Proxy.pm
 META.yml                                 Module meta-data (added by MakeMaker)
