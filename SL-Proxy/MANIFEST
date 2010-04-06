@@ -1,5 +1,5 @@
-MANIFEST
 bin/configure_httpd_2_2
+MANIFEST
 Makefile.PL
 lib/SL/Proxy.pm
 META.yml                                 Module meta-data (added by MakeMaker)
