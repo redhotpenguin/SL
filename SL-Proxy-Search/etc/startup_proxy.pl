@@ -62,11 +62,11 @@ our $iptables = '/sbin/iptables';
 our $ebtables = '/sbin/ebtables';
 
 print "flushing\n";
-`iptables -t nat -F`;
-`ebtables -t broute -F`;
+`$iptables -t nat -F`;
+`$ebtables -t broute -F`;
 
 # setup the firewall rules
-`iptables -t nat -A PREROUTING -i br0 -p tcp -m tcp --dport 8135 -j DNAT --to-destination :80`;
+`$iptables -t nat -A PREROUTING -i br0 -p tcp -m tcp --dport 8135 -j DNAT --to-destination :80`;
 
 # grab google ips and setup the firewall
 print "grabbing ips\n";
@@ -74,10 +74,10 @@ my @ips = SL::DNS->resolve({hostname => 'www.google.com'});
 
 foreach my $ip (@ips) {
 
-print "setting ip $ip\n";
-    `ebtables -t broute -A BROUTING -p IPv4 -i eth1 --ip-dst $ip -j redirect --redirect-target ACCEPT`;
+    print "setting ip $ip\n";
+    `$ebtables -t broute -A BROUTING -p IPv4 -i eth1 --ip-dst $ip -j redirect --redirect-target ACCEPT`;
 
-    `iptables -t nat -A PREROUTING -d $ip -i br0 -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 9999`;
+    `$iptables -t nat -A PREROUTING -d $ip -i br0 -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 9999`;
 }
 
 print STDOUT "Startup.pl finished...\n";

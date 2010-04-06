@@ -1,4 +1,5 @@
-bin/sl_perbal_watch
+bin/sl_perlbal_watch
+bin/sl_httpd_watch
 bin/sl_proxy
 etc/httpd.conf.tmpl
 etc/mime.types
