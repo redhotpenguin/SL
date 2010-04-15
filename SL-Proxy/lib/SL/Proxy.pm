@@ -70,7 +70,7 @@ if (TIMING) {
     $REMOTE_TIMER = RHP::Timer->new();
 }
 
-require Data::Dumper if ( DEBUG or VERBOSE_DEBUG );
+use Data::Dumper;
 
 # handles common proxy functions
 
@@ -104,7 +104,7 @@ sub get_request_headers {
     # work around clients which don't support compression
     if ( !exists $headers{'Accept-Encoding'} ) {
         $r->log->debug( "$$ client DOES NOT support compression "
-              . Data::Dumper::Dumper( \%headers ) )
+              . Dumper( \%headers ) )
           if DEBUG;
 
         # set default outgoing compression headers
@@ -119,7 +119,7 @@ sub get_request_headers {
     }
 
     $r->log->debug(
-        "$$ proxy request headers " . Data::Dumper::Dumper( \%headers ) )
+        "$$ proxy request headers " . Dumper( \%headers ) )
       if DEBUG;
 
     return \%headers;
@@ -224,7 +224,7 @@ sub set_twohundred_response_headers {
     $res->scan( sub { $headers{ $_[0] } = $_[1]; } );
     $r->log->debug(
         sprintf( "$$ not cookie/auth headers: %s",
-            Data::Dumper::Dumper( \%headers ) )
+            Dumper( \%headers ) )
     ) if DEBUG;
 
     ## Set the response content type from the request, preserving charset
@@ -374,6 +374,8 @@ sub handler {
         $get{host} = $ip;
     }
 
+    $r->log->debug("making request " . Dumper(\%get)) if DEBUG;
+
     # Make the request to the remote server
     my $response = eval { SL::HTTP::Client->get( \%get ); };
 
@@ -397,7 +399,7 @@ sub handler {
     $r->log->debug( "$$ Response headers from url $url proxy request code\n" 
           . "code: "
           . $response->code . "\n"
-          . Data::Dumper::Dumper( $response->headers ) )
+          . Dumper( $response->headers ) )
       if VERBOSE_DEBUG;
 
     # checkpoint make remote request
@@ -420,7 +422,7 @@ sub handler {
     $r->log->debug(
         sprintf(
             "$$ Request returned %d response: %s",
-            $response->code, Data::Dumper::Dumper( $response->decoded_content ),
+            $response->code, Dumper( $response->decoded_content ),
         )
     ) if VERBOSE_DEBUG;
 
@@ -580,7 +582,7 @@ sub twohundred {
     my $bytes_sent = $r->print($$response_content_ref);
     $r->log->debug("$$ bytes sent: $bytes_sent") if DEBUG;
 
-    return Apache2::Const::OK;
+    return Apache2::Const::DONE;
 }
 
 1;
