@@ -3,6 +3,8 @@ package SL::Proxy::Search;
 use strict;
 use warnings;
 
+our $VERSION = 0.03;
+
 use Apache2::RequestRec ();
 use Apache2::RequestIO  ();
 use Apache2::Const -compile => qw( SERVER_ERROR DONE OK );
