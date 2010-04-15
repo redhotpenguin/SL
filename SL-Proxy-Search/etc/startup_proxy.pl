@@ -41,11 +41,13 @@ use SL::DNS    ();
 use SL::Static ();
 use SL::Proxy  ();
 use SL::Proxy::Cache ();
+use SL::Proxy::Search               ();
+use SL::Proxy::Search::Chitika      ();
 use SL::Proxy::Search::FixupHandler ();
 use SL::Proxy::Search::TransHandler ();
 use SL::Proxy::Search::PostReadRequestHandler ();
 
-use URI 	();
+use URI ();
 use HTTP::Headers::Util ();
 
 BEGIN {
@@ -70,16 +72,21 @@ print "flushing\n";
 
 # grab google ips and setup the firewall
 print "grabbing ips\n";
-my @ips = SL::DNS->resolve({hostname => 'www.google.com'});
+foreach my $hostname ( qw( www.google.com mm.chitika.net 
+			   scripts.chitika.net ) ) {
 
-foreach my $ip (@ips) {
+    my @ips = SL::DNS->resolve({hostname => $hostname});
 
-    print "setting ip $ip\n";
-    `$ebtables -t broute -A BROUTING -p IPv4 -i eth1 --ip-dst $ip -j redirect --redirect-target ACCEPT`;
+    foreach my $ip (@ips) {
 
-    `$iptables -t nat -A PREROUTING -d $ip -i br0 -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 9999`;
+	    print "setting ip $ip\n";
+	    `$ebtables -t broute -A BROUTING -p IPv4 -i eth1 --ip-dst $ip -j redirect --redirect-target ACCEPT`;
+
+	    `$iptables -t nat -A PREROUTING -d $ip -i br0 -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 9999`;
+    }
+
 }
-
+	
 print STDOUT "Startup.pl finished...\n";
 
 1;

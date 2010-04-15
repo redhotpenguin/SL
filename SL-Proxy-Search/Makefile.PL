@@ -7,7 +7,7 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
     NAME      => 'SL-Proxy-Search',
-    VERSION   => '0.01',
+    VERSION   => '0.02',
     PREREQ_PM => {
         'Compress::Zlib'     => 2.007,
         'Template'           => 2.18,

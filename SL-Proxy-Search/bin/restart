@@ -1,0 +1,4 @@
+SL_PROXY_PID_FILE=/tmp/sl/sl_proxy.pid
+PID=`cat $SL_PROXY_PID_FILE`
+echo "killing pid $PID and restarting"
+kill "$PID" && sleep 3 && /usr/local/bin/sl_proxy

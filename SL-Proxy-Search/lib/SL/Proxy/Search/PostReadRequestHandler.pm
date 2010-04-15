@@ -27,11 +27,7 @@ sub handler {
 
     $r->log->debug("$$ " . __PACKAGE__ . ", req: " . $r->as_string) if DEBUG;
 
-    my $ua = $r->headers_in->{'user-agent'};
-    unless ($ua) {
-        $r->log->error("$$ no user agent, request " . $r->as_string);
-        return Apache2::Const::HTTP_BAD_REQUEST;
-    }
+    my $ua = $r->headers_in->{'user-agent'} || '';
     $r->pnotes( 'ua' => $ua );
 
     if ( length($ua) > 25 ) {
