@@ -114,16 +114,17 @@ sub handler {
     $Template->param(QUERY_LIMIT => $limit);
     $Template->param(SEARCH_RESULTS => \@results);
     $Template->param(CHITIKA_ID => $Config->sl_chitika_id);
-    $r->content_type('text/html; charset=ISO-8859-1');
 
+    $r->content_type('text/html; charset=ISO-8859-1');
+    $r->no_cache(1);
     $r->rflush;
+
     my $output = $Template->output;
     $r->print($output);
 
     $r->log->info(
         sprintf( "$$ timer $$ %s %s %d %s %f", @{ $Timer->checkpoint } ) )
       if TIMING;
-
 
     return Apache2::Const::OK;
 }
