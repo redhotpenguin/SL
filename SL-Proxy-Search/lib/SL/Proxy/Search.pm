@@ -15,6 +15,7 @@ use Google::Search ();
 use SL::Config     ();
 use Data::Dumper qw(Dumper);
 use RHP::Timer     ();
+use Encode         ();
 
 use constant DEBUG  => $ENV{SL_DEBUG}  || 0;
 use constant VERBOSE_DEBUG  => $ENV{SL_VERBOSE_DEBUG}  || 0;
@@ -79,6 +80,9 @@ sub handler {
             $hash{'visibleUrl'} .= '/';
         }
 
+        $hash{'content'} = Encode::decode('UTF-8', $hash{'content'});
+        $hash{'title'} = Encode::decode('UTF-8', $hash{'title'});
+
 	push @results, \%hash;
     }
 
@@ -119,7 +123,7 @@ sub handler {
     $Template->param(START => $start);
     $Template->param(START_PARAM => $start+1);
     $Template->param(FINISH => $start+10);
-    if ($start > 0) {
+    if ($start > 9) {
         $Template->param(PREV => 1);
         $Template->param(PREV_START => $start-10);
     }
@@ -134,6 +138,8 @@ sub handler {
             $nums{current} = 1;
         }
 
+
+=cut
         if ($_ < 6) {
             $nums{bgpos} = 60;
             $nums{bgwid} = 16;
@@ -144,13 +150,15 @@ sub handler {
             $nums{bgpos} = 76;
             $nums{bgwid} = 42;
         }
+=cut
+
         push @numbers, \%nums;
     }
 
-    $Template->param(NUMBERS => \@numbers);
-    $Template->param(SEARCH_RESULTS => \@results);
-    $Template->param(CHITIKA_ID => $Config->sl_chitika_id);
-    $r->content_type('text/html; charset=ISO-8859-1');
+    $Template->param(NUMBERS         => \@numbers);
+    $Template->param(SEARCH_RESULTS  => \@results);
+    $Template->param(CHITIKA_ID      => $Config->sl_chitika_id);
+    $r->content_type('text/html; charset=UTF-8');
 
     $r->no_cache(1);
     $r->rflush;
