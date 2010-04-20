@@ -12,7 +12,8 @@ SL::DNS - handles dns work
 
 use Net::DNS;
 
-use constant DEBUG      => $ENV{SL_DEBUG} || 0;
+use constant DEBUG         => $ENV{SL_DEBUG} || 0;
+use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 
 use Data::Dumper;
 
@@ -31,10 +32,10 @@ sub resolve {
 
     if ($args->{cache}) {
 
-        warn("checking dns cache") if DEBUG;
+        warn("checking dns cache for $hostname") if VERBOSE_DEBUG;
         my $ips = $args->{cache}->memd->get($hostname);
 
-        warn("ips: " . Dumper($ips)) if DEBUG;
+        warn("ips: " . Dumper($ips)) if VERBOSE_DEBUG;
 	return @{$ips} if $ips;
     }
  
@@ -42,7 +43,7 @@ sub resolve {
         $resolver->nameserver($args->{nameserver});
     }
 
-    warn("running dns query") if DEBUG;
+    warn("running dns query for $hostname") if DEBUG;
     my $ip;
     my $query = $resolver->query($hostname);
 
@@ -50,7 +51,7 @@ sub resolve {
 
     my @ips;
 
-    warn("answer: " . Dumper($query->answer)) if DEBUG;
+    warn("answer: " . Dumper($query->answer)) if VERBOSE_DEBUG;
     foreach my $rr ( $query->answer ) {
         next unless $rr->type eq "A";
         $ip = $rr->address;
