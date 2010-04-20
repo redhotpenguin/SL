@@ -34,6 +34,7 @@ use Apache2::SubRequest     ();
 use Apache2::URI            ();
 use Apache2::Const          ();
 use Apache2::Filter         ();
+use Apache2::Request        ();
 use APR::Table              ();
 
 use SL::Config ();

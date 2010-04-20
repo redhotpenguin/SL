@@ -45,43 +45,18 @@ if (TIMING) {
     $TIMER = RHP::Timer->new();
 }
 
-our $Gpartner_code = $Config->sl_gpartner_code;
-our $Gpartner_url  = $Config->sl_gpartner_url;
-
 sub handler {
     my $r = shift;
 
     my $url = $r->construct_url( $r->unparsed_uri );
     $r->pnotes( 'url' => $url );
 
-    $r->log->debug( "$$ " . __PACKAGE__ . " url $url" ) if DEBUG;
-
     my $referer = $r->headers_in->{'referer'} || 'no_referer';
     $r->pnotes( 'referer' => $referer );
 
     if ($r->hostname eq 'mm.chitika.net') {
 
-#	my $headers_in = $r->headers_in();
-#	$r->log->debug("headers_in original: " . Dumper($headers_in)) if DEBUG;
-#	$headers_in->{Referer} =~ s/google/silverliningnetworks/;
-#	$r->headers_in($headers_in);
-#	$r->log->debug("headers_in processed: " . Dumper($headers_in)) if DEBUG;
-
-	# what the hell are you doing boy?  just intercept /search
-#	my $uri = $r->unparsed_uri;
-	#$uri =~ s/xyzzy/search/;
-#	$uri =~ s/google/silverliningnetworks/;
-#	$r->unparsed_uri($uri);
-
-#	my $hostname = $r->hostname;
-#	$hostname =~ s/google/silverliningnetworks/;
-#	$r->hostname($hostname);
-
- #       $r->log->debug("chitika request: " . $r->as_string) if DEBUG;
-
 	# have chitika handle it
-
-        $r->log->debug("chitika handler found.") if DEBUG;
         $r->set_handlers( PerlResponseHandler => 'SL::Proxy::Search::Chitika' );
         return Apache2::Const::OK;
 	return proxy($r);
@@ -92,7 +67,7 @@ sub handler {
     # search response handler
     if (substr($r->uri, 1, 7) eq 'search') {
 
-        $r->log->debug("search handler found.") if DEBUG;
+        $r->log->debug("search handler found for $url") if DEBUG;
         $r->set_handlers( PerlResponseHandler => 'SL::Proxy::Search' );
         return Apache2::Const::OK;
     }
@@ -202,7 +177,7 @@ sub proxy {
 
     if ( $r->headers_in->{Cookie} ) {
 
-        $r->log->debug("cookies present, handing to SL::Proxy") if DEBUG;
+        $r->log->debug("cookies present, SL::Proxy") if VERBOSE_DEBUG;
 
         # sorry perlbal doesn't reproxy requests with cookies
         $r->set_handlers( PerlResponseHandler => 'SL::Proxy->handler' );

@@ -9,9 +9,10 @@ use Apache2::Log         ();
 use APR::Table           ();
 use Apache2::RequestUtil ();
 
-use constant DEBUG      => $ENV{SL_DEBUG}      || 0;
-use constant TIMING     => $ENV{SL_TIMING}     || 0;
-use constant REQ_TIMING => $ENV{SL_REQ_TIMING} || 0;
+use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
+use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
+use constant TIMING        => $ENV{SL_TIMING}        || 0;
+use constant REQ_TIMING    => $ENV{SL_REQ_TIMING}    || 0;
 
 our $TIMER;
 if ( TIMING or REQ_TIMING ) {
@@ -25,7 +26,8 @@ if ( TIMING or REQ_TIMING ) {
 sub handler {
     my $r = shift;
 
-    $r->log->debug("$$ " . __PACKAGE__ . ", req: " . $r->as_string) if DEBUG;
+    $r->log->debug("$$ " . __PACKAGE__ . ", req: " . $r->as_string)
+        if VERBOSE_DEBUG;
 
     my $ua = $r->headers_in->{'user-agent'} || '';
     $r->pnotes( 'ua' => $ua );
@@ -34,7 +36,7 @@ sub handler {
         my $potential_dummy = substr( $ua, ( length($ua) - 27 ), length($ua) );
 
         if ( $potential_dummy eq '(internal dummy connection)' ) {
-            $r->log->debug("$$ dummy connection") if DEBUG;
+            $r->log->debug("$$ dummy connection") if VERBOSE_DEBUG;
 
             $r->subprocess_env( SL_URL => 'sl_dummy' );
             $r->set_handlers( PerlResponseHandler => undef );
