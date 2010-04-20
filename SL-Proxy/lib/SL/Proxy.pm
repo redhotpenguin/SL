@@ -56,7 +56,7 @@ BEGIN {
   $Cache  = SL::Proxy::Cache->new;
 }
 
-use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
+use constant DEBUG         => $ENV{SL_PROXY_DEBUG}   || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 use constant TIMING        => $ENV{SL_TIMING}        || 0;
 
@@ -149,7 +149,8 @@ sub set_response_headers {
 
     # set the server header
     $headers{Server} ||= 'SLN';
-    $r->log->debug( "$$ server header is " . $headers{Server} ) if DEBUG;
+    $r->log->debug( "$$ server header is " . $headers{Server} )
+        if VERBOSE_DEBUG;
     $r->server->add_version_component( $headers{Server} );
 
     return 1;
@@ -225,7 +226,7 @@ sub set_twohundred_response_headers {
     $r->log->debug(
         sprintf( "$$ not cookie/auth headers: %s",
             Dumper( \%headers ) )
-    ) if DEBUG;
+    ) if VERBOSE_DEBUG;
 
     ## Set the response content type from the request, preserving charset
     my $content_type = $res->header('content-type');
