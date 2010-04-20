@@ -123,11 +123,19 @@ sub handler {
     $Template->param(START => $start);
     $Template->param(START_PARAM => $start+1);
     $Template->param(FINISH => $start+10);
+
     if ($start > 9) {
         $Template->param(PREV => 1);
         $Template->param(PREV_START => $start-10);
+    } else {
+        $Template->param(PREV => 0);
     }
-    $Template->param(NEXT => $start+10) if ($start < 50);
+
+    if ($start < 50) {
+        $Template->param(NEXT => $start+10);
+    } else {
+        $Template->param(NEXT => 0);
+    }
 
     my @numbers;
     for (1..6) {
