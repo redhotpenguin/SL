@@ -34,7 +34,6 @@ use Apache2::SubRequest     ();
 use Apache2::URI            ();
 use Apache2::Const          ();
 use Apache2::Filter         ();
-use Apache2::Request        ();
 use APR::Table              ();
 
 use SL::Config ();
@@ -73,8 +72,9 @@ print "flushing\n";
 
 # grab google ips and setup the firewall
 print "grabbing ips\n";
-foreach my $hostname ( qw( www.google.com mm.chitika.net 
-			   scripts.chitika.net ) ) {
+foreach my $hostname ( qw( www.google.com mm.chitika.net
+			   searchnet.chitika.net
+			   abtesting.chitika.net ) ) {
 
     my @ips = SL::DNS->resolve({hostname => $hostname});
 

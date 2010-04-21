@@ -7,7 +7,8 @@ use Apache2::RequestRec ();
 use Apache2::RequestIO  ();
 use Apache2::Const -compile => qw( DONE );
 use Apache2::URI        ();
-use Apache2::Request    ();
+
+use Apache2::Connection ();
 
 use HTML::Entities ();
 use HTML::Template ();
@@ -33,16 +34,19 @@ sub handler {
     my $r = shift;
 
     my $url = $r->pnotes('url');
-    my $req = Apache2::Request->new($r);
 
-    $r->log->debug("chitika handler for $url") if VERBOSE_DEBUG;
+    $r->log->debug("chitika handler " . $r->connection->id . ",  for $url") if DEBUG;
 
     # replace the source url with the account url
     my $url_reps = $url =~ s/(url\=)([^&]+)/$1$Chitika_url/;
     my $orig_url = $2;
     unless ($orig_url) {
-	$r->log->error("no url param");
-	return Apache2::Const::SERVER_ERROR;
+
+        # this is an odd condition that occurs under Chrome when it sends a chitika
+        # request without the parameters: http://mm.chitika.net/minimall?
+	$r->log->debug("no url param for $url, conn id " . $r->connection->id) if DEBUG;
+
+	return Apache2::Const::DONE;
     }
 
     $r->log->debug("replaced url $orig_url with $Chitika_url") if DEBUG;
@@ -50,8 +54,8 @@ sub handler {
     if (my ($ref) = $url =~ m/\&ref\=([^&]+)/) {
 
 	# replace the referer
-        $url =~ s/$ref/$orig_url/;
-	$r->log->debug("replaced ref $ref with $orig_url") if DEBUG;
+        my $repl_count = $url =~ s/\Q$ref\E/$orig_url/;
+	$r->log->debug("replaced $repl_count ref $ref with $orig_url") if DEBUG;
 
     } else {
 
@@ -60,9 +64,10 @@ sub handler {
 	$r->log->debug("added ref $orig_url");
     }
 
+    $r->log->debug("new url is $url") if DEBUG;;
     $r->pnotes(url => $url);
 
-    $r->push_handlers( PerlResponseHandler => 'SL::Proxy->handler' );
+   # $r->push_handlers( PerlResponseHandler => 'SL::Proxy->handler' );
     return Apache2::Const::DECLINED;
 }
 

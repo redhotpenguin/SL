@@ -54,12 +54,20 @@ sub handler {
     my $referer = $r->headers_in->{'referer'} || 'no_referer';
     $r->pnotes( 'referer' => $referer );
 
-    if ($r->hostname eq 'mm.chitika.net') {
+    if (($r->hostname eq 'mm.chitika.net') or
+        ($r->hostname eq 'searchnet.chitika.net')) {
 
-	# have chitika handle it
-        $r->set_handlers( PerlResponseHandler => 'SL::Proxy::Search::Chitika' );
-        return Apache2::Const::OK;
-	return proxy($r);
+        $r->log->debug("uri " . $r->uri . ", host " . $r->hostname) if DEBUG;
+        if (substr($r->uri,1,9) eq 'minimall') {
+
+            # have chitika handle it
+            $r->set_handlers(PerlResponseHandler
+                => ['SL::Proxy::Search::Chitika', 'SL::Proxy->handler' ] );
+            return Apache2::Const::OK;
+
+        } else {
+	    return proxy($r);
+        }
     }
 
     return proxy($r) unless $r->hostname eq 'www.google.com';

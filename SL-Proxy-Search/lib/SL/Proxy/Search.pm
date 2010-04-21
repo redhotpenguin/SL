@@ -71,6 +71,8 @@ sub handler {
     $Timer->start('results parsing') if TIMING;
     while( my $result = $search->next ) {
 
+        $r->log->debug(Dumper($result)) if DEBUG;
+
 	last if ++$i > $limit;
         my %hash = map { $_ => $result->{_content}->{$_}  }
 		keys %{$result->{_content}};
@@ -80,8 +82,8 @@ sub handler {
             $hash{'visibleUrl'} .= '/';
         }
 
-        $hash{'content'} = Encode::decode('UTF-8', $hash{'content'});
-        $hash{'title'} = Encode::decode('UTF-8', $hash{'title'});
+        $hash{'content'} = Encode::decode('utf8', $hash{'content'});
+        $hash{'title'} = Encode::decode('utf8', $hash{'title'});
 
 	push @results, \%hash;
     }
