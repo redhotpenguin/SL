@@ -3,7 +3,6 @@ package SL::Proxy::Search;
 use strict;
 use warnings;
 
-use Apache2::Request    ();
 use Apache2::RequestRec ();
 use Apache2::RequestIO  ();
 use Apache2::Const -compile => qw( SERVER_ERROR DONE OK );
@@ -33,8 +32,6 @@ our $Template = HTML::Template->new(
 
 sub handler {
     my $r = shift;
-
-    my $req = Apache2::Request->new($r);
 
     $Searchtimer->start('searchtimer');
     $Timer->start('url parsing') if TIMING;
