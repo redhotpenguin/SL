@@ -26,7 +26,7 @@ are really fast.
 
 =cut
 
-our $VERSION = 0.16;
+our $VERSION = 0.17;
 
 our( $config, $conf_dir );
 our $file = 'sl.conf';
@@ -83,7 +83,14 @@ sub new {
     die "\nNo config files read! conf_dir $conf_dir\n" unless $read;
 
     $config->autoload_support(1);
+
     return $config;
+}
+
+sub sl_debug {
+    my $config = shift;
+
+    return $ENV{SL_DEBUG};
 }
 
 sub conf_dir {
