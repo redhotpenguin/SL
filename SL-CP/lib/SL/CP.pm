@@ -10,7 +10,6 @@ use Apache2::Const -compile => qw( NOT_FOUND OK REDIRECT SERVER_ERROR AUTH_REQUI
 				   HTTP_SERVICE_UNAVAILABLE M_GET HTTP_METHOD_NOT_ALLOWED );
 use Apache2::Log         ();
 use Apache2::RequestUtil ();
-use Apache2::Request     ();
 use Apache2::URI         ();
 use APR::Table           ();
 
@@ -163,10 +162,20 @@ sub ads {
     my ( $mac, $ip ) = _mac_from_ip($r);
     return Apache2::Const::NOT_FOUND unless $mac;
 
+=cut
     my $req     = Apache2::Request->new($r);
     my $url     = $req->param('url');
     my $req_mac = $req->param('mac');
     my $token   = $req->param('token');
+=cut
+
+
+    my $req     = $r->args;
+    my $url     = $req->param('url');
+    my $req_mac = $req->param('mac');
+    my $token   = $req->param('token');
+
+
 
     unless ($req_mac) {
 	   $r->log->error("no mac passed in url for dhcp mac $mac");
@@ -221,10 +230,19 @@ sub paid {
     my ( $mac, $ip ) = _mac_from_ip($r);
     return Apache2::Const::NOT_FOUND unless $mac;
 
+=cut
     my $req     = Apache2::Request->new($r);
     my $url     = $req->param('url');
     my $req_mac = $req->param('mac');
     my $token   = $req->param('token');
+=cut
+
+    my $req     = $r->args;
+    my $url     = $req->param('url');
+    my $req_mac = $req->param('mac');
+    my $token   = $req->param('token');
+
+
 
     # urls had better match up
     unless ( $req_mac eq $mac ) {
