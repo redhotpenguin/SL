@@ -3,33 +3,41 @@ package SL::CP::IPTables;
 use strict;
 use warnings;
 
+use Data::Dumper   qw(Dumper);
+
+=cut
+
 use SL::Config     ();
 use LWP::UserAgent ();
 use Crypt::SSLeay  ();
 use URI::Escape    ();
+=cut
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 our (
-    $Config,                  $Iptables,   $Ext_if,
-    %tables_chains,           $Int_if,     $Auth_ip,
-    $Cp_server_port,          $Gateway_ip, $Ad_proxy,
+    $Config,                  $Iptables,   $Wan_if,
+    %tables_chains,           $Lan_if,     $Auth_host,
+    $Perlbal_port,            $Ad_proxy,
     $Mark_op,                 $Auth_url,   $Lease_file,
-    $Verify_authorize_net_ip, $Aircloud_ip,
+    $Gateway_ip,              $Wan_ip,     $Wan_mac,
 );
 
 BEGIN {
     $Config                  = SL::Config->new;
     $Iptables                = $Config->sl_iptables || die 'oops';
-    $Ext_if                  = $Config->sl_ext_if || die 'oops';
-    $Int_if                  = $Config->sl_int_if || die 'oops';
-    $Auth_ip                 = $Config->sl_auth_server_ip || die 'oops';
-    $Verify_authorize_net_ip = $Config->sl_verify_authorize_net_ip
-      || die 'oops';
-    $Aircloud_ip    = $Config->sl_aircloud_ip     || die 'oops';
+    $Perlbal_port            = $Config->sl_perlbal_port || die 'oops';
+
+    # wan and lan interfaces
+    $Wan_if                  = $Config->sl_wan_if || die 'oops';
+    $Lan_if                  = $Config->sl_lan_if || die 'oops';
+
+    ($Gateway_ip)  = `/sbin/ifconfig $Lan_if` =~ m/inet addr:(\S+)/;
+    ($Wan_ip)  = `/sbin/ifconfig $Wan_if` =~ m/inet addr:(\S+)/;
+    ($Wan_mac)  = `/sbin/ifconfig $Wan_if` =~ m/HWaddr\s(\S+)/;
+
+    $Auth_host      = $Config->sl_auth_server     || die 'oops';
     $Auth_url       = $Config->sl_cp_auth_url     || die 'oops';
-    $Cp_server_port = $Config->sl_apache_listen   || die 'oops';
-    $Gateway_ip     = $Config->sl_gateway_ip      || die 'oops';
     $Ad_proxy       = $Config->sl_proxy           || die 'oops';
     $Mark_op        = $Config->sl_mark_op         || die 'oops';
     $Lease_file     = $Config->sl_dhcp_lease_file || die 'oops';
@@ -45,15 +53,33 @@ BEGIN {
 our $UA = LWP::UserAgent->new;
 $UA->timeout(60);
 
-our $Paid_mark = '0x400';
-our $Ads_mark  = '0x500';
+our $Blocked_mark = '0x100';
+our $Trusted_mark = '0x200';
+our $Paid_mark    = '0x400';
+our $Ads_mark     = '0x500';
 
-our $Zendesk_ip = '65.74.185.41';
-our $Googleajax_ip = '74.125.19.95';
+sub load_allows {
+    my ($class, $file) = @_;
+
+    my $fh;
+    open($fh, '<', $Config->sl_config . "/$file") or die $!;
+    my $ct = do { local $/; <$fh> };
+    close($fh) or die $!;
+
+    my @lines = split(/\n/, $ct);
+    @lines = grep { $_ =~ m/\S/ }
+             grep { $_ !~ /#/ }   # skip comments
+             grep { defined $_ } @lines; # skip undef
+
+    return \@lines;
+}
 
 sub init_firewall {
     my $class = shift;
 
+    `echo 1 > /proc/sys/net/ipv4/ip_forward`;
+
+    # flush the existing firewall
     $class->clear_firewall();
 
     # create the chains
@@ -64,67 +90,82 @@ sub init_firewall {
         }
     }
 
+    # walled garden exceptions
+    my $hosts_allow = $class->load_allows('cp_hosts_allow.txt');
+    my $sslhosts_allow = $class->load_allows('cp_sslhosts_allow.txt');
+    my $accept = "slNET -d %s -p tcp -m tcp --dport %d -j ACCEPT";
+
+    my $slout = "slOUT -d %s -p tcp -m tcp --dport %d -j ACCEPT";
+
+
+    my $hosts_accept = join("\n", map { sprintf($accept, $_, 80) }
+        @{$hosts_allow});
+
+    my $sslhosts_accept = join("\n", map { sprintf($accept, $_, 443 ) }
+        @{$sslhosts_allow} );
+
+    my $hosts_slout = join("\n", map { sprintf($slout, $_, 80) }
+        @{$hosts_allow});
+
+    my $sslhosts_slout = join("\n", map { sprintf($slout, $_, 443 ) }
+        @{$sslhosts_allow} );
+
     ##############################
     # add the filter default chains
     my $filters = <<"FILTERS";
-INPUT -i $Int_if -j slRTR
-FORWARD -i $Int_if -j slNET
+INPUT -i $Lan_if -j slRTR
+
+FORWARD -i $Lan_if -j slNET
+
 slAUT --protocol tcp --source-port ! 25 -j ACCEPT
+
 slAUTads -m state --state RELATED,ESTABLISHED -j ACCEPT
+slAUTads -p tcp -m tcp --dport 22 -j ACCEPT 
 slAUTads -p tcp -m tcp --dport 53 -j ACCEPT 
 slAUTads -p udp -m udp --dport 53 -j ACCEPT 
 slAUTads -p tcp -m tcp --dport 80 -j ACCEPT 
-slAUTads -p tcp -m tcp --dport 443 -j ACCEPT 
-slAUTads -p tcp -m tcp --dport 465 -j ACCEPT 
-slAUTads -p tcp -m tcp --dport 587 -j ACCEPT 
-slAUTads -p tcp -m tcp --dport 8136 -j ACCEPT 
-slAUTads -p tcp -m tcp --dport 587 -j ACCEPT 
-slAUTads -p tcp -m tcp --dport 22 -j ACCEPT 
 slAUTads -p tcp -m tcp --dport 110 -j ACCEPT 
 slAUTads -p tcp -m tcp --dport 143 -j ACCEPT 
-slAUTads -p tcp -m tcp --dport 1723 -j ACCEPT 
-slAUTads -p udp -m udp --dport 1701 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 443 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 465 -j ACCEPT 
 slAUTads -p udp -m udp --dport 500 -j ACCEPT 
-slAUTads -p tcp -m tcp --dport 3389 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 587 -j ACCEPT 
 slAUTads -p tcp -m tcp --dport 993 -j ACCEPT 
 slAUTads -p tcp -m tcp --dport 995 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 1723 -j ACCEPT 
+slAUTads -p udp -m udp --dport 1701 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 3389 -j ACCEPT 
 slAUTads -p tcp -m tcp --dport 5050 -j ACCEPT 
 slAUTads -p tcp -m tcp --dport 5190 -j ACCEPT 
 slAUTads -p tcp -m tcp --dport 5222 -j ACCEPT 
 slAUTads -p tcp -m tcp --dport 5223 -j ACCEPT 
+slAUTads -p tcp -m tcp --dport 8136 -j ACCEPT 
 slAUTads  -j REJECT --reject-with icmp-port-unreachable
-slNET -m mark --mark 0x100/0x700 -j DROP
+
+slNET -m mark --mark $Blocked_mark/0x700 -j DROP
 slNET -m state --state INVALID -j DROP
 slNET -p tcp -m tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
-slNET -m mark --mark 0x200/0x700 -j ACCEPT
-slNET -m mark --mark 0x400/0x700 -j slAUT
-slNET -m mark --mark 0x500/0x700 -j slAUTads
+slNET -m mark --mark $Trusted_mark/0x700 -j ACCEPT
+slNET -m mark --mark $Paid_mark/0x700 -j slAUT
+slNET -m mark --mark $Ads_mark/0x700 -j slAUTads
 slNET -p tcp -m tcp --dport 53 -j ACCEPT
 slNET -p udp -m udp --dport 53 -j ACCEPT
-slNET -d $Auth_ip -p tcp -m tcp --dport 443 -j ACCEPT
-slNET -d $Verify_authorize_net_ip -p tcp -m tcp --dport 443 -j ACCEPT
-slNET -d 69.36.240.30 -p tcp -m tcp --dport 443 -j ACCEPT
-slNET -d 69.36.240.30 -p tcp -m tcp --dport 80 -j ACCEPT
-slNET -d 69.36.240.28 -p tcp -m tcp --dport 80 -j ACCEPT
-slNET -d 69.36.240.29 -p tcp -m tcp --dport 80 -j ACCEPT
-slNET -d 69.36.240.29 -p tcp -m tcp --dport 443 -j ACCEPT
-slNET -d $Zendesk_ip -p tcp -m tcp --dport 443 -j ACCEPT
-slNET -d $Googleajax_ip -p tcp -m tcp --dport 80 -j ACCEPT
-slNET -d $Googleajax_ip -p tcp -m tcp --dport 443 -j ACCEPT
-slNET -d 69.42.24.27 -p tcp -m tcp --dport 80 -j ACCEPT
-slNET -d 69.42.25.1 -p tcp -m tcp --dport 80 -j ACCEPT
-slNET -d 69.42.24.3 -p tcp -m tcp --dport 80 -j ACCEPT
+$hosts_accept
+$sslhosts_accept
 slNET -j REJECT --reject-with icmp-port-unreachable
-slRTR -m mark --mark 0x100/0x700 -j DROP
+
+slRTR -m mark --mark $Blocked_mark/0x700 -j DROP
 slRTR -m state --state INVALID -j DROP
 slRTR -m state --state RELATED,ESTABLISHED -j ACCEPT
 slRTR -p tcp -m tcp ! --tcp-option 2 --tcp-flags SYN SYN -j DROP
-slRTR -m mark --mark 0x200/0x700 -j ACCEPT
+slRTR -p tcp -m tcp --dport $Perlbal_port -j ACCEPT
+slRTR -m mark --mark $Trusted_mark/0x700 -j ACCEPT
 slRTR -p tcp -m tcp --dport 22 -j ACCEPT
-slRTR -p tcp -m tcp --dport 20022 -j ACCEPT
-slRTR -p tcp -m tcp --dport 8135 -j ACCEPT
-slRTR -p tcp -m tcp --dport $Cp_server_port -j ACCEPT
+slRTR -p udp -m udp --dport 53 -j ACCEPT
+slRTR -p tcp -m tcp --dport 53 -j ACCEPT
 slRTR -p udp -m udp --dport 67 -j ACCEPT
+slRTR -p tcp -m tcp --dport 8135 -j ACCEPT
+slRTR -p tcp -m tcp --dport 20022 -j ACCEPT
 slRTR -j REJECT --reject-with icmp-port-unreachable
 FILTERS
 
@@ -133,10 +174,10 @@ FILTERS
     #############################
     # default mangle chains
     my $mangles = <<"MANGLES";
-PREROUTING -i $Int_if -j slOUT
-PREROUTING -i $Int_if -j slBLK
-PREROUTING -i $Int_if -j slTRU
-POSTROUTING -o $Ext_if -j slINC
+PREROUTING -i $Lan_if -j slOUT
+PREROUTING -i $Lan_if -j slBLK
+PREROUTING -i $Lan_if -j slTRU
+POSTROUTING -o $Wan_if -j slINC
 MANGLES
 
     add_rules( 'mangle', $mangles );
@@ -144,16 +185,21 @@ MANGLES
     #############################
     # default nat chains
     my $nats = <<"NATS";
-PREROUTING -i $Int_if -j slOUT
-POSTROUTING -o $Ext_if -j MASQUERADE
-slOUT -m mark --mark 0x200/0x700 -j ACCEPT
+PREROUTING -i $Lan_if -j slOUT
+POSTROUTING -o $Wan_if -j MASQUERADE
+
+slOUT -m mark --mark $Trusted_mark/0x700 -j ACCEPT
 slOUT -m mark --mark $Paid_mark/0x700 -j ACCEPT
 slOUT -m mark --mark $Ads_mark/0x700 -j slADS
+slOUT -p tcp -m tcp --dport 22 -j ACCEPT
 slOUT -p tcp -m tcp --dport 53 -j ACCEPT
 slOUT -p udp -m udp --dport 53 -j ACCEPT
-slOUT -d $Auth_ip -p tcp -m tcp --dport 443 -j ACCEPT
-slOUT -p tcp -m tcp --dport 80 -j DNAT --to-destination $Gateway_ip:$Cp_server_port
+slOUT -p tcp -m tcp --dport 20022 -j ACCEPT
+$hosts_slout
+$sslhosts_slout
+slOUT -p tcp -m tcp --dport 80 -j DNAT --to-destination $Gateway_ip:$Perlbal_port
 slOUT -j ACCEPT
+
 slADS -p tcp -m tcp --dport 80 -j DNAT --to-destination $Ad_proxy
 slADS -p tcp -m tcp --dport 8135 -j DNAT --to-destination :80
 slADS -j ACCEPT
@@ -167,8 +213,10 @@ sub add_rules {
     my ( $table, $rules ) = @_;
 
     foreach my $rule ( split( /\n/, $rules ) ) {
+
         chomp($rule);
-        warn("$$ Adding rule $rule to table $table") if DEBUG;
+        next unless $rule =~ m/\S/; # skip blanks
+        warn("$$ Adding rule $rule to table $table\n") if DEBUG;
         iptables("-t $table -A $rule");
     }
 }
@@ -183,7 +231,7 @@ sub clear_firewall {
     iptables("-t $_ -X") for keys %tables_chains;
 
     # reset the postrouting rule
-    iptables("-t nat -A POSTROUTING -o $Ext_if -j MASQUERADE");
+#    iptables("-t nat -A POSTROUTING -o $Wan_if -j MASQUERADE");
 }
 
 sub iptables {
@@ -192,59 +240,6 @@ sub iptables {
     system("sudo $Iptables $cmd") == 0
       or require Carp
       && Carp::confess "could not iptables '$cmd', err: $!, ret: $?\n";
-
-    return 1;
-}
-
-sub check_for_ads_mac {
-    my ( $class, $mac, $ip ) = @_;
-
-    warn("check for ads mac $mac, ip $ip ") if DEBUG;
-    my $esc_mac = URI::Escape::uri_escape($mac);
-    my $url     = "$Auth_url/check?mac=$esc_mac&plan=ads";
-
-    my $res = $UA->get($url);
-
-    if ( ( $res->code == 404 ) or ( $res->code == 401 ) ) {
-
-        # no mac authenticated
-        return $res->code;
-
-    }
-    elsif ( !$res->is_success ) {
-
-        # huh something broke
-        require Data::Dumper;
-        die "$$ Error checking ads mac $mac, response: "
-          . Data::Dumper::Dumper($res);
-    }
-
-    warn( "mac check response code " . $res->code ) if DEBUG;
-
-    # successful request, make sure the rules are ok
-    my $uc_mac        = uc($mac);
-    my $iptables_rule = `sudo $Iptables -t mangle -L -v`;
-
-    # see if the mac address is in a rule
-    my ($iptables_ip) =
-      $iptables_rule =~ m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*?MAC\s+$uc_mac/i;
-
-    if ( !$iptables_ip ) {
-
-        warn("no iptables rules, creating one") if DEBUG;
-
-        # probably a server restart, re-add the rules
-        $class->_ads_chain( 'A', $mac, $ip );
-
-    }
-    elsif ( $ip ne $iptables_ip ) {
-        warn("iptables rules don't match, updating") if DEBUG;
-
-        # dhcp lease probably expired, delete old rule, create new rule
-        $class->delete_from_ads_chain( $mac, $iptables_ip );
-        $class->_ads_chain( 'A', $mac, $ip );
-
-    }
 
     return 1;
 }
@@ -267,20 +262,17 @@ sub _mac_check {
     }
     elsif ( !$res->is_success ) {
 
-        # huh something broke
-        require Data::Dumper;
-        die "$$ Error checking mac $mac, response: "
-          . Data::Dumper::Dumper($res);
+        die $res;
     }
 
     return 1;
 }
 
-sub check_for_paid_mac {
+sub check_for_mac {
     my ( $class, $mac, $ip ) = @_;
 
     my $esc_mac = URI::Escape::uri_escape($mac);
-    my $url     = "$Auth_url/check?mac=$esc_mac";
+    my $url     = "$Auth_url/check?mac=$esc_mac&cp_mac=" . URI::Escape::uri_escape($Wan_mac);
 
     my $res = $UA->get($url);
 
@@ -292,13 +284,14 @@ sub check_for_paid_mac {
     }
     elsif ( !$res->is_success ) {
 
-        # huh something broke
-        require Data::Dumper;
-        die "$$ Error checking mac $mac, response: "
-          . Data::Dumper::Dumper($res);
+        die $res;
     }
 
     warn( "mac check response code " . $res->code ) if DEBUG;
+
+    my $payload = $res->content;
+
+    my $type = ($payload =~ m/paid/) ? 'paid' : 'ads';
 
     # successful request, make sure the rules are ok
     my $uc_mac        = uc($mac);
@@ -320,24 +313,28 @@ sub check_for_paid_mac {
         warn("iptables rules don't match, updating") if DEBUG;
 
         # dhcp lease probably expired, delete old rule, create new rule
-        $class->delete_from_paid_chain( $mac, $iptables_ip );
-        $class->_paid_chain( 'A', $mac, $ip );
+        my $delete = "delete_from_$type\_chain";
+        $class->$delete( $mac, $iptables_ip );
+        my $chain = "_$type\_chain";
+        $class->$chain( 'A', $mac, $ip );
 
     }
 
-    return 1;
+    return $type;
 }
+
+
 
 sub paid_users {
     my ($class) = @_;
 
-    return $class->users('0x400');
+    return $class->users($Paid_mark);
 }
 
 sub ads_users {
     my ($class) = @_;
 
-    return $class->users('0x500');
+    return $class->users($Ads_mark);
 }
 
 sub users {
@@ -354,7 +351,7 @@ sub users {
 sub _paid_chain {
     my ( $class, $op, $mac, $ip ) = @_;
     iptables(
-"-t mangle -$op slOUT -s $ip -m mac --mac-source $mac -j MARK $Mark_op 0x400"
+"-t mangle -$op slOUT -s $ip -m mac --mac-source $mac -j MARK $Mark_op $Paid_mark"
     );
     iptables("-t mangle -$op slINC -d $ip -j ACCEPT");
 }
@@ -471,7 +468,7 @@ sub _ads_chain {
     my ( $class, $op, $mac, $ip ) = @_;
 
     iptables(
-"-t mangle -$op slOUT -s $ip -m mac --mac-source $mac -j MARK $Mark_op 0x500"
+"-t mangle -$op slOUT -s $ip -m mac --mac-source $mac -j MARK $Mark_op $Ads_mark"
     );
     iptables("-t mangle -$op slINC -d $ip -j ACCEPT");
 }

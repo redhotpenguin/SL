@@ -1,0 +1,121 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link rel="stylesheet" type="text/css" href="<TMPL_VAR NAME="CDN_HOST">/css/zendesk.css" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" type="text/css" href="<TMPL_VAR NAME="CDN_HOST">/css/triple_a.css" />
+  <!--[if IE 6]><link rel="stylesheet" type="text/css" href="<TMPL_VAR NAME="CDN_HOST">/css/triple_a_ie6.css" /><![endif]--> 
+  <title>Choose a WiFi Option to connect to the Internet - Silver Lining Networks</title>
+<div id="section_all" style="display: block;">
+
+	<div id="section_one">
+		<div class="center">
+			<!-- CHOOSE WIFI COPY ************************ --> 
+			<div class="two_thirds left padding_top">
+
+
+
+				<h2 class="choose_wifi">Choose a WiFi option</h2>
+				<TMPL_IF NAME="EXPIRED"><p><strong><font color="red">Your existing plan has expired, please select a new plan.</font></strong></p></TMPL_IF>
+				<TMPL_IF NAME="UPGRADE"><p><strong><font color="red">Thank you for upgrading, please select a new plan.</font></strong></p></TMPL_IF>
+
+				<p>To get started choose a WiFi option that works best for you. We use the revenue from Ads on our free WiFi to pay for the internet so you don't have to. Thanks for understanding. However, if you really don't like Ads, choose one of our   simple pay-per-use options and surf Ad Free. Thanks!</p>
+			
+			</div>
+			
+                       <!-- LOGO ************************ -->
+                        <div class="one_third left">
+                                <div id="custom_logo">
+                                        <a id="logo_image" href="<TMPL_VAR NAME="PROVIDER_HREF">" style="background: url(<TMPL_VAR NAME="PROVIDER_LOGO">) no-repeat center center ">
+                                        <div id="gloss"> </div>
+                                        </a>
+                                </div>
+                        </div>
+			<div class="clear"></div>
+			
+			
+			<!-- WIFI OPTION BUTTONS ************************ --> 
+			<div class="one_third left">
+				<p><a class="one_hour_service" href="<TMPL_VAR NAME="AUTH_URL">/auth/paid?plan=one&mac=<TMPL_VAR NAME="MAC">&url=<TMPL_VAR NAME="URL">&cp_mac=<TMPL_VAR NAME="CP_MAC">">$2 WiFi (No Ads, 1 Hour Use)</a></p>
+			</div>
+
+			<div class="one_third left">
+				<p><a class="three_hour_service" href="<TMPL_VAR NAME="AUTH_URL">/auth/paid?plan=four&mac=<TMPL_VAR NAME="MAC">&url=<TMPL_VAR NAME="URL">&cp_mac=<TMPL_VAR NAME="CP_MAC">">$3 WiFi (No Ads, 4 Hours Use)</a></p>
+			</div>
+
+                        <div class="one_third left">
+                                <p><a class="one_day_service" href="<TMPL_VAR NAME="AUTH_URL">/auth/paid?plan=day&mac=<TMPL_VAR NAME="MAC">&url=<TMPL_VAR NAME="URL">&cp_mac=<TMPL_VAR NAME="CP_MAC">">$5 WiFi (No Ads, 24 Hours of Use)</a></p>
+                        </div>
+			<div class="clear"></div>
+				<p class="free_service"><strong>All WiFi purchases are final. <br />  Please check your speed at <a href="http://www.speedtest.net">Speedtest.net</a> to make sure you are close enough to the transmitter.</strong><br />If you have problems while surfing we will issue you more time, email <a href="mailto:support@slwifi.com">support@slwifi.com</a>.<br />Need a zero commitment monthly subscription?  Scroll down!<br />You can also use our <a href="<TMPL_VAR NAME="AUTH_URL">/auth/free?plan=ads&mac=<TMPL_VAR NAME="MAC">&url=<TMPL_VAR NAME="URL">">Free</a> WiFi service.  Advertisements will be displayed in the Free service, and you will be able to browse the web, receive and send email, and use instant messenger clients in the Free service.<br /><strong>If you have a problem while surfing</strong> you are probably in a bad signal area.  Use the speed test to find a good spot.</p>
+
+			</div>
+	</div>
+	
+	<div id="section_two">
+		<div id="section_two_inner">
+		<div class="center">
+			<!-- MONTHLY PLAN ************************ --> 
+			<div class="one_third left">
+				<p><a class="one_month_service" href="<TMPL_VAR NAME="AUTH_URL">/auth/paid?plan=month&mac=<TMPL_VAR NAME="MAC">&url=<TMPL_VAR NAME="URL">&cp_mac=<TMPL_VAR NAME="CP_MAC">">$15 WiFi (No Ads, 1 Month Use)</a></p>
+			</div>
+
+			<!-- CHOOSE WIFI COPY ************************ --> 
+			<div class="two_thirds left">
+				<h2 class="monthly_plan">Montly Service Plan</h2>
+				<p>
+				<strong>Are you a frequent user?</strong> Sign up for our monthly service and you can get ad free, unlimited service for the whole month for just $15 per month.  No commitment required, cancel anytime.
+				
+				<a href="<TMPL_VAR NAME="AUTH_URL">/auth/paid?plan=month&mac=<TMPL_VAR NAME="MAC">&url=<TMPL_VAR NAME="URL">&cp_mac=<TMPL_VAR NAME="CP_MAC">">Sign up now for our monthly service plan.</a>
+				 </p>
+			
+			</div>			
+			<div class="clear"></div>
+		</div>
+		</div>	
+	</div>
+
+<!--
+	<div id="section_three">
+		<div id="section_two_inner">
+		<div class="center">
+			<!-- CHOOSE WIFI COPY ************************ --> 
+			<div class="two_thirds left">
+				<h2>Are you a WiFi Network Provider?</h2>
+				<h3>Learn how Silver Lining can help you make money with your WiFi network</h3>
+				<p>
+				If you own a WiFi Network you can sign up with Silver Lining to 
+				make money with Ad based and pay per use revenue. Silver Lining 
+				is free to try and easy to set up. We offer the best selection 
+				of Ad Zone Layouts, Payment Plans, and Customizable Ad Insertions. 
+				<a href="http://www.silverliningnetworks.com">Learn more about Silver Lining Networks</a>
+				</p>
+			</div>	
+			<!-- LOGO ************************ --> 
+			<div class="one_third left">
+				<h1 id="logo_240"><a href="http://www.silverliningnetworks.com"><span></span>Silver Lining Networks</a></h1>
+			</div>					
+			<div class="clear"></div>
+
+		</div>
+		</div>	
+	</div>
+-->
+
+<!--
+<script type="text/javascript">
+var zenbox_params = {};
+zenbox_params.tab_id = "support";
+zenbox_params.tab_color = "#03406a";
+zenbox_params.title = "Silver Lining Support";
+zenbox_params.text = "How may we help you? Please fill in details below, and we'll get back to you as soon as possible.  Include your phone number if you would like a callback from a support agent.";
+zenbox_params.tag = "dropbox";
+zenbox_params.url = "silverlining.zendesk.com";
+</script>
+<script type='text/javascript' src='//assets0.zendesk.com/external/zenbox/overlay.js'></script>
+-->
+</div>
+
+</body>
+</html>
+
