@@ -33,19 +33,21 @@ use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 our $VERSION = 0.04;
 
-our ( $Config, $Lease_file, $Auth_url, $Max_rate, $Min_count, $Wan_if );
+our ( $Config, $Lease_file, $Auth_url, $Max_rate,
+      $Min_count, $Wan_if, $Lan_if, $Lan_ip, $Wan_mac );
 
 BEGIN {
     $Config     = SL::Config->new;
     $Auth_url   = $Config->sl_cp_auth_url        || die 'oops';
     $Lease_file = $Config->sl_dhcp_lease_file    || die 'oops';
-    $Max_rate = $Config->sl_ratelimit_max_rate   || die 'oops';
-    $Min_count = $Config->sl_ratelimit_min_count || die 'oops';
-    $Wan_if    = $Config->sl_wan_if              || die 'oops';
+    $Max_rate   = $Config->sl_ratelimit_max_rate   || die 'oops';
+    $Min_count  = $Config->sl_ratelimit_min_count || die 'oops';
+    $Wan_if     = $Config->sl_wan_if              || die 'oops';
+    $Lan_if     = $Config->sl_lan_if              || die 'oops';
+    ($Lan_ip)   = `/sbin/ifconfig $Lan_if` =~ m/inet addr:(\S+)/;
+    ($Wan_mac)  = `/sbin/ifconfig $Wan_if` =~ m/HWaddr\s(\S+)/;
 }
     
-our ($Wan_mac)  = `/sbin/ifconfig $Wan_if` =~ m/HWaddr\s(\S+)/;
-
 our $Template = HTML::Template->new(
         filename          => $Config->sl_httpd_root . '/htdocs/sl/splash.tmpl',
         die_on_bad_params => 0 );
@@ -93,6 +95,7 @@ sub handler {
             die_on_bad_params => 0 );
     }
 
+    $Template->param(PERLBAL  => "http://$Lan_ip:" . $Config->sl_perlbal_port);
     $Template->param(CDN_HOST => $Config->sl_cdn_host);
     $Template->param(AUTH_URL => $Auth_url);
     $Template->param(MAC      => URI::Escape::uri_escape($mac));
@@ -112,7 +115,7 @@ sub handler {
     return Apache2::Const::OK;
 }
 
-sub ads {
+sub free {
     my ( $class, $r ) = @_;
 
     my $ip = $r->connection->remote_ip;
@@ -122,14 +125,13 @@ sub ads {
     my $req     = Apache2::Request->new($r);
     my $url     = $req->param('url');
     my $req_mac = $req->param('mac');
-    my $token   = $req->param('token');
 
     unless ($req_mac) {
 	   $r->log->error("no mac passed in url for dhcp mac $mac");
 	   return Apache2::Const::NOT_FOUND;
     }
 
-    # urls had better match up
+    # macs had better match up
     unless ( $req_mac eq $mac ) {
         $r->log->error(
             "auth macs didn't match up, mac $mac, req mac $req_mac");
@@ -137,7 +139,7 @@ sub ads {
     }
 
     my $added =
-      eval { SL::CP::IPTables->add_to_ads_chain( $mac, $ip, $token ); };
+      eval { SL::CP::IPTables->add_to_ads_chain( $mac, $ip ); };
 
     if ($@) {
 
@@ -145,32 +147,14 @@ sub ads {
         return Apache2::Const::SERVER_ERROR;
     }
 
-    if ( ( $added == 401 ) or ( $added == 404 ) ) {
+    my $location = $class->make_post_url($Config->sl_splash_href,
+        URI::Escape::uri_escape($url));
 
-        # must be a 404
-        my $dest_url = URI::Escape::uri_escape($url);
-        my $esc_mac  = URI::Escape::uri_escape($mac);
-        my $location = "$Auth_url?mac=$esc_mac&url=$dest_url";
-
-        $location .= "&expired=1" if ( $added == 401 );
-
-        $r->log->debug("expired $mac, code $added, 302 to $location")
-            if DEBUG;
-
-        $r->headers_out->set( Location => $location );
-        $r->no_cache(1);
-        return Apache2::Const::REDIRECT;
-    }
-
-    $r->log->debug("$$ added mac $mac to ads chain, redir to $url") if DEBUG;
-
-    $mac = URI::Escape::uri_escape($mac);
-    $url = URI::Escape::uri_escape($url);
-    my $location = $Auth_url . "/post?mac=$mac&url=$url";
     $r->headers_out->set( Location => $location );
     $r->no_cache(1);
     return Apache2::Const::REDIRECT;
 }
+
 
 sub paid {
     my ( $class, $r ) = @_;
@@ -184,7 +168,7 @@ sub paid {
     my $req_mac = $req->param('mac');
     my $token   = $req->param('token');
 
-    # urls had better match up
+    # macs had better match up
     unless ( $req_mac eq $mac ) {
         $r->log->error(
             "$$ auth macs didn't match up, mac $mac, req mac $req_mac");
@@ -253,31 +237,20 @@ sub upgrade {
 
     if ( $paid_code == 1 ) {
 
-        $r->log->error("$$ mac $mac trying to upgrade, but already has paid plan");
-        $r->headers_out->set( Location => 'http://www.silverliningnetworks.com/aircloud/splash.html' );
+        $r->log->error("$$ $mac trying to upgrade, but already has paid plan");
+        $r->headers_out->set(Location => $Config->sl_splash_href);
         $r->no_cache(1);
         return Apache2::Const::REDIRECT;
     }
 
-    # this person wants to upgrade, they should have an ads plan
-    my $iptables_ip = SL::CP::IPTables->check_ads_chain_for_mac( $mac );
-
-    if (!$iptables_ip or ( $iptables_ip && ( $iptables_ip ne $ip ) )) {
-      # something bad happened
-
-      $r->log->error("mac $mac, ip $ip invalid or missing iptables rule upgrading");
-      return Apache2::Const::SERVER_ERROR;
-    }
-
-    # yay, they have a valid firewall rule for the ad chain.  so delete it
-    SL::CP::IPTables->delete_from_ads_chain( $mac, $ip );
+    SL::CP::IPTables->delete_from_ads_chain($mac, $ip);
 
     # and then redirect them to the auth page
     my $esc_mac  = URI::Escape::uri_escape($mac);
     my $location = "$Auth_url?mac=$esc_mac&upgrade=1";
 
-    $r->log->debug("$$ mac $mac redirecting upgrade req to $location") if DEBUG;
-    $r->headers_out->set( Location => $location );
+    $r->log->debug("$$ mac $mac redirecting upgrade to $location") if DEBUG;
+    $r->headers_out->set(Location => $location);
     $r->no_cache(1);
     return Apache2::Const::REDIRECT;
 }

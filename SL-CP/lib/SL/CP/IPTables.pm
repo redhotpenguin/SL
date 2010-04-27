@@ -5,13 +5,10 @@ use warnings;
 
 use Data::Dumper   qw(Dumper);
 
-=cut
-
 use SL::Config     ();
 use LWP::UserAgent ();
 use Crypt::SSLeay  ();
 use URI::Escape    ();
-=cut
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
@@ -381,25 +378,19 @@ sub add_to_paid_chain {
     }
 
     # add the mac to the paid chain
-    $class->_paid_chain( 'A', $mac, $ip );
-
-    return 1;
+    return $class->_paid_chain( 'A', $mac, $ip );
 }
 
 sub delete_from_paid_chain {
     my ( $class, $mac, $ip ) = @_;
 
-    $class->_paid_chain( 'D', $mac, $ip );
+    return $class->_paid_chain( 'D', $mac, $ip );
 }
 
 sub check_paid_chain_for_mac {
     my ($class, $mac ) = @_;
 
-    my $ip = $class->_check_chain_for_mac( $Paid_mark, $mac );
-
-    return unless $ip;
-
-    return $ip
+    return $class->_check_chain_for_mac( $Paid_mark, $mac );
 }
 
 sub _check_chain_for_mac {
@@ -417,14 +408,6 @@ sub _check_chain_for_mac {
     }
 
     return unless $ip;
-
-   unless ($ip) {
-      warn("no ip could be found in iptables for mac $mac");
-      return;
-    }
-
-    return unless $ip;
-
     return $ip;
 }
 
@@ -432,36 +415,20 @@ sub _check_chain_for_mac {
 sub check_ads_chain_for_mac {
     my ( $class, $mac ) = @_;
 
-    my $ip = $class->_check_chain_for_mac( $Ads_mark, $mac );
-
-    return unless $ip;
-
-    return $ip;
+    return $class->_check_chain_for_mac( $Ads_mark, $mac );
 }
 
 sub add_to_ads_chain {
-    my ( $class, $mac, $ip, $token ) = @_;
+    my ( $class, $mac, $ip ) = @_;
 
     my $esc_mac = URI::Escape::uri_escape($mac);
-    my $url     = "$Auth_url/token?mac=$esc_mac&token=$token";
-    warn("token url is $url") if DEBUG;
-
-    # fetch the token and validate
-    my $res = $UA->get($url);
-
-    if ( ( $res->code == 404 ) or ( $res->code == 401 ) ) {
-        return $res->code;
-    }
-
-    die "error validating mac $mac with token $token:  " . $res->status_line
-      unless $res->is_success;
-
-    $class->_ads_chain( 'A', $mac, $ip );
+    return $class->_ads_chain( 'A', $mac, $ip );
 }
 
 sub delete_from_ads_chain {
     my ( $class, $mac, $ip ) = @_;
-    $class->_ads_chain( 'D', $mac, $ip );
+
+    return $class->_ads_chain( 'D', $mac, $ip );
 }
 
 sub _ads_chain {
