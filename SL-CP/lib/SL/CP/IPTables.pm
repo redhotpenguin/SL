@@ -21,23 +21,23 @@ our (
 );
 
 BEGIN {
-    $Config                  = SL::Config->new;
-    $Iptables                = $Config->sl_iptables || die 'oops';
-    $Perlbal_port            = $Config->sl_perlbal_port || die 'oops';
+    $Config       = SL::Config->new;
+    $Iptables     = $Config->sl_iptables || die 'oops';
+    $Perlbal_port = $Config->sl_perlbal_port || die 'oops';
 
     # wan and lan interfaces
-    $Wan_if                  = $Config->sl_wan_if || die 'oops';
-    $Lan_if                  = $Config->sl_lan_if || die 'oops';
+    $Wan_if  = $Config->sl_wan_if || die 'oops';
+    $Lan_if  = $Config->sl_lan_if || die 'oops';
 
     ($Gateway_ip)  = `/sbin/ifconfig $Lan_if` =~ m/inet addr:(\S+)/;
-    ($Wan_ip)  = `/sbin/ifconfig $Wan_if` =~ m/inet addr:(\S+)/;
-    ($Wan_mac)  = `/sbin/ifconfig $Wan_if` =~ m/HWaddr\s(\S+)/;
+    ($Wan_ip)      = `/sbin/ifconfig $Wan_if` =~ m/inet addr:(\S+)/;
+    ($Wan_mac)     = `/sbin/ifconfig $Wan_if` =~ m/HWaddr\s(\S+)/;
 
-    $Auth_host      = $Config->sl_auth_server     || die 'oops';
-    $Auth_url       = $Config->sl_cp_auth_url     || die 'oops';
-    $Ad_proxy       = $Config->sl_proxy           || die 'oops';
-    $Mark_op        = $Config->sl_mark_op         || die 'oops';
-    $Lease_file     = $Config->sl_dhcp_lease_file || die 'oops';
+    $Auth_host   = $Config->sl_auth_server     || die 'oops';
+    $Auth_url    = $Config->sl_cp_auth_url     || die 'oops';
+    $Ad_proxy    = $Config->sl_proxy           || die 'oops';
+    $Mark_op     = $Config->sl_mark_op         || die 'oops';
+    $Lease_file  = $Config->sl_dhcp_lease_file || die 'oops';
 
     %tables_chains = (
         filter => [qw( slAUT slAUTads slNET slRTR )],
@@ -137,7 +137,6 @@ slAUTads -p tcp -m tcp --dport 5190 -j ACCEPT
 slAUTads -p tcp -m tcp --dport 5222 -j ACCEPT 
 slAUTads -p tcp -m tcp --dport 5223 -j ACCEPT 
 slAUTads -p tcp -m tcp --dport 8136 -j ACCEPT 
-slAUTads  -j REJECT --reject-with icmp-port-unreachable
 
 slNET -m mark --mark $Blocked_mark/0x700 -j DROP
 slNET -m state --state INVALID -j DROP
@@ -149,7 +148,6 @@ slNET -p tcp -m tcp --dport 53 -j ACCEPT
 slNET -p udp -m udp --dport 53 -j ACCEPT
 $hosts_accept
 $sslhosts_accept
-slNET -j REJECT --reject-with icmp-port-unreachable
 
 slRTR -m mark --mark $Blocked_mark/0x700 -j DROP
 slRTR -m state --state INVALID -j DROP
@@ -174,7 +172,7 @@ FILTERS
 PREROUTING -i $Lan_if -j slOUT
 PREROUTING -i $Lan_if -j slBLK
 PREROUTING -i $Lan_if -j slTRU
-POSTROUTING -o $Wan_if -j slINC
+POSTROUTING -o $Lan_if -j slINC
 MANGLES
 
     add_rules( 'mangle', $mangles );
@@ -187,7 +185,6 @@ POSTROUTING -o $Wan_if -j MASQUERADE
 
 slOUT -m mark --mark $Trusted_mark/0x700 -j ACCEPT
 slOUT -m mark --mark $Paid_mark/0x700 -j ACCEPT
-slOUT -m mark --mark $Ads_mark/0x700 -j slADS
 slOUT -p tcp -m tcp --dport 22 -j ACCEPT
 slOUT -p tcp -m tcp --dport 53 -j ACCEPT
 slOUT -p udp -m udp --dport 53 -j ACCEPT
@@ -197,14 +194,40 @@ $sslhosts_slout
 slOUT -p tcp -m tcp --dport 80 -j DNAT --to-destination $Gateway_ip:$Perlbal_port
 slOUT -j ACCEPT
 
+NATS
+
+    add_rules( 'nat', $nats );
+
+    # add the ad chains
+    if ($Config->sl_ads eq 'search') {
+
+        my $hosts_allow = $class->load_allows('search_hosts.txt');
+        iptables("-t nat -I slOUT 3 -m mark --mark $Ads_mark/0x700 -j ACCEPT");
+        foreach my $hostname ( @{$hosts_allow} ) {
+
+            my $rule = "-t nat -I slOUT 3 -m mark --mark $Ads_mark/0x700 -d %s -i $Lan_if -p tcp -m tcp --dport 80 -j REDIRECT --to-ports $Perlbal_port";
+            iptables(sprintf($rule, $hostname));
+        }
+
+    } elsif ($Config->sl_ads eq 'persistent') {
+
+        my $nat_ads = <<"NATS";
 slADS -p tcp -m tcp --dport 80 -j DNAT --to-destination $Ad_proxy
 slADS -p tcp -m tcp --dport 8135 -j DNAT --to-destination :80
 slADS -j ACCEPT
 NATS
 
-    add_rules( 'nat', $nats );
+        add_rules( 'nat', $nat_ads );
 
+        # add the redirect
+        iptables("-t nat -I slOUT 3 -m mark --mark $Ads_mark/0x700 -j slADS");
+
+    } else {
+
+        die 'no ad chains configured';
+    }
 }
+
 
 sub add_rules {
     my ( $table, $rules ) = @_;
@@ -402,9 +425,10 @@ sub _check_chain_for_mac {
     
     my $ip;
     foreach my $line (@lines) {
-	next unless $line =~ m/^MARK/;
-	last if ($ip) =
-		$line =~ m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*?MAC\s+$mac/i;
+
+        next unless $line =~ m/^MARK/;
+        last if ($ip) =
+            $line =~ m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*?MAC\s+$mac/i;
     }
 
     return unless $ip;
@@ -418,6 +442,7 @@ sub check_ads_chain_for_mac {
     return $class->_check_chain_for_mac( $Ads_mark, $mac );
 }
 
+
 sub add_to_ads_chain {
     my ( $class, $mac, $ip ) = @_;
 
@@ -425,19 +450,33 @@ sub add_to_ads_chain {
     return $class->_ads_chain( 'A', $mac, $ip );
 }
 
+
 sub delete_from_ads_chain {
     my ( $class, $mac, $ip ) = @_;
 
     return $class->_ads_chain( 'D', $mac, $ip );
 }
 
+
 sub _ads_chain {
     my ( $class, $op, $mac, $ip ) = @_;
 
-    iptables(
-"-t mangle -$op slOUT -s $ip -m mac --mac-source $mac -j MARK $Mark_op $Ads_mark"
-    );
+    iptables("-t mangle -$op slOUT -s $ip -m mac --mac-source $mac -j MARK $Mark_op $Ads_mark");
+
     iptables("-t mangle -$op slINC -d $ip -j ACCEPT");
+}
+
+
+sub check_overage {
+    my ($class, $mac, $ip, $in, $out) = @_;
+
+    my ($bytes_in) = $in =~ m/\d+\s+(\d+).*?$ip/;
+    return 1 if $bytes_in > $Config->sl_down_overage;
+
+    my ($bytes_out) = $out =~ m/\d+\s+(\d+).*?$ip/;
+    return 1 if $bytes_out > $Config->sl_up_overage;
+
+    return;
 }
 
 1;

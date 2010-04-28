@@ -3,41 +3,61 @@
 use strict;
 use warnings;
 
+use SL::Config;
 use SL::CP::IPTables ();
 
-run_check($_, 'ads') for SL::CP::IPTables->ads_users;
-run_check($_, 'paid') for SL::CP::IPTables->paid_users;
-	
-sub run_check {
-	my ($user, $type) = @_;
+our $Config = SL::Config->new;
 
-	my $method = sprintf('check_for_%s_mac', $type);
+my @ads_users = SL::CP::IPTables->ads_users;
 
-	my $code = eval { SL::CP::IPTables->$method($user->[1], $user->[0]); };
+my $in  = `iptables -t mangle -n -v -x -L slINC`;
+my $out = `iptables -t mangle -n -v -x -L slOUT`;
 
-    	if ($@) {
-		warn(sprintf("$$ failed to contact auth server, mac %s ip %s", $user->[1], $user->[0])); 
-		next;
- 	 }
+foreach my $user (@ads_users) {
 
-	$method = sprintf('delete_from_%s_chain', $type);
- 	 if ($code == 1) {
+    my $overage = eval { SL::CP::IPTables->check_overage($user->[1], $user->[0], $in, $out) };
 
-		warn(sprintf("$$ mac %s from ip %s still valid", $user->[1], $user->[0]));
+    if ($@) {
 
-	} elsif ($code == 404) {
+        warn(sprintf("$$ failed overage check %s - %s", $user->[1], $user->[0]));
+        next;
+    }
 
-		# something went really wrong
-		warn(sprintf("$$ mac %s, ip %si not registered, removing", $user->[1], $user->[0]));
-		SL::CP::IPTables->$method($user->[1], $user->[0]);
 
-	} elsif ($code == 401) {
+    if ($overage) {
 
-		warn(sprintf("$$ mac %s, ip %s expired, removing", $user->[1], $user->[0]));
-		SL::CP::IPTables->$method($user->[1], $user->[0]);
-	}
-
+        warn(sprintf("$$ mac %s, ip %s expired, removing", $user->[1], $user->[0]));
+        SL::CP::IPTables->delete_from_ads_chain($user->[1], $user->[0]);
+    }
 }
 
+
+my @paid_users = SL::CP::IPTables->paid_users;
+
+foreach my $user (@paid_users) {
+
+    my $code = eval { SL::CP::IPTables->check_for_paid_mac($user->[1], $user->[0]); };
+
+    if ($@) {
+        warn(sprintf("$$ failed to contact auth server, mac %s ip %s", $user->[1], $user->[0])); 
+        next;
+    }
+
+    if ($code == 1) {
+
+        warn(sprintf("$$ mac %s from ip %s still valid", $user->[1], $user->[0]));
+
+    } elsif ($code == 404) {
+
+        # something went really wrong
+        warn(sprintf("$$ mac %s, ip %si not registered, removing", $user->[1], $user->[0]));
+        SL::CP::IPTables->delete_from_paid_chain($user->[1], $user->[0]);
+
+    } elsif ($code == 401) {
+
+        warn(sprintf("$$ mac %s, ip %s expired, removing", $user->[1], $user->[0]));
+        SL::CP::IPTables->delete_from_paid_chain($user->[1], $user->[0]);
+    }
+}
 
 

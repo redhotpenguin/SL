@@ -17,7 +17,8 @@ WriteMakefile(
         'URI::Escape'     => 3.30,
         'Crypt::SSLeay'   => 0.57,
     },
-    EXE_FILES => [qw( bin/sl_cp bin/sl_cp_watch )],
+    EXE_FILES => [qw( bin/sl_cp bin/sl_httpd_watch bin/sl_cp_check
+                      bin/sl_cp_bouncer )],
     ABSTRACT      => 'Silver Lining Captive Portal',
     AUTHOR        => 'Fred Moyer <fred@silverliningnetworks.com>',
 
