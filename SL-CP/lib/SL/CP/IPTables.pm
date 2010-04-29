@@ -198,29 +198,58 @@ NATS
 
     add_rules( 'nat', $nats );
 
-    # add the ad chains
-    if ($Config->sl_ads eq 'search') {
+    # setup the search page chain
+    if ($Config->sl_search eq 'On') {
 
         my $hosts_allow = $class->load_allows('search_hosts.txt');
-        iptables("-t nat -I slOUT 3 -m mark --mark $Ads_mark/0x700 -j ACCEPT");
+
+        my $target = ($Config->sl_adbar eq 'On') ? 'slADS' : 'ACCEPT';
+        iptables("-t nat -I slOUT 3 -m mark --mark $Ads_mark/0x700 -j $target");
         foreach my $hostname ( @{$hosts_allow} ) {
 
             my $rule = "-t nat -I slOUT 3 -m mark --mark $Ads_mark/0x700 -d %s -i $Lan_if -p tcp -m tcp --dport 80 -j REDIRECT --to-ports $Perlbal_port";
             iptables(sprintf($rule, $hostname));
         }
 
-    } elsif ($Config->sl_ads eq 'persistent') {
+    }
+
+    if ($Config->sl_adbar eq 'On') {
 
         my $nat_ads = <<"NATS";
+slADS -p udp -j ACCEPT
+slADS -p tcp -m tcp --dport 443 -j ACCEPT
+slADS -p tcp -m tcp --dport 8135 -j DNAT --to :80
+slADS -p tcp -m tcp ! --dport 80 -j ACCEPT
 slADS -p tcp -m tcp --dport 80 -j DNAT --to-destination $Ad_proxy
-slADS -p tcp -m tcp --dport 8135 -j DNAT --to-destination :80
 slADS -j ACCEPT
 NATS
 
         add_rules( 'nat', $nat_ads );
 
-        # add the redirect
-        iptables("-t nat -I slOUT 3 -m mark --mark $Ads_mark/0x700 -j slADS");
+        # add the skips
+        my $skip_rule = "-t nat -I slADS 5 --dst %s -m tcp -p tcp --dport 80 -j ACCEPT";
+        my $skips = $class->load_allows('skips.txt');
+        my $throttle = 10;
+        my $i = 0;
+        foreach my $skip (@{$skips}) {
+            iptables(sprintf($skip_rule, $skip));
+            if ($i++ % $throttle == 0) {
+                warn("added $throttle skips, sleeping 1") if DEBUG;
+                sleep 1;
+            }
+        }
+
+        # add the noskips
+        my $noskip_rule = "-t nat -I slADS 5 -p tcp -m tcp --dport 80 --dst %s -j DNAT --to-destination $Ad_proxy";
+        my $noskips = $class->load_allows('noskips.txt');
+        foreach my $noskip (@{$noskips}) {
+            iptables(sprintf($noskip_rule, $noskip));
+        }
+
+        # add the redirect unless the search already added it.
+        unless ($Config->sl_search eq 'On') {
+            iptables("-t nat -I slOUT 3 -m mark --mark $Ads_mark/0x700 -j slADS");
+        }
 
     } else {
 
@@ -256,7 +285,6 @@ sub clear_firewall {
 
 sub iptables {
     my $cmd = shift;
-
     system("sudo $Iptables $cmd") == 0
       or require Carp
       && Carp::confess "could not iptables '$cmd', err: $!, ret: $?\n";
@@ -377,21 +405,12 @@ sub _paid_chain {
 }
 
 sub add_to_paid_chain {
-    my ( $class, $mac, $ip, $token ) = @_;
+    my ( $class, $mac, $ip ) = @_;
 
-    my $esc_mac = URI::Escape::uri_escape($mac);
-    my $url     = "$Auth_url/token?mac=$esc_mac&token=$token";
-    warn("token url is $url") if DEBUG;
+    my $check = eval { $class->check_for_mac($mac, $ip) };
+    die $@ if $@;
 
-    # fetch the token and validate
-    my $res = $UA->get($url);
-
-    if ( ( $res->code == 404 ) or ( $res->code == 401 ) ) {
-        return $res->code;
-    }
-
-    die "error validating mac $mac with token $token:  " . $res->status_line
-      unless $res->is_success;
+    return Apache2::Const::NOT_FOUND unless $check eq 'paid';
 
     # see if this mac is already in the ads chain
     my $ads_ip = $class->check_ads_chain_for_mac( $mac );

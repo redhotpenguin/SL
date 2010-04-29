@@ -166,7 +166,6 @@ sub paid {
     my $req     = Apache2::Request->new($r);
     my $url     = $req->param('url');
     my $req_mac = $req->param('mac');
-    my $token   = $req->param('token');
 
     # macs had better match up
     unless ( $req_mac eq $mac ) {
@@ -176,7 +175,7 @@ sub paid {
     }
 
     my $added =
-      eval { SL::CP::IPTables->add_to_paid_chain( $mac, $ip, $token ); };
+      eval { SL::CP::IPTables->add_to_paid_chain( $mac, $ip ); };
 
     if ($@) {
 
