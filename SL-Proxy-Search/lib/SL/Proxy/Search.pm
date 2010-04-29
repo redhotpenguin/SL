@@ -35,7 +35,6 @@ sub handler {
     my $r = shift;
 
     my $req = Apache2::Request->new($r);
-
     $Searchtimer->start('searchtimer');
     $Timer->start('url parsing') if TIMING;
     my $uri = $r->unparsed_uri;
@@ -82,8 +81,23 @@ sub handler {
             $hash{'visibleUrl'} .= '/';
         }
 
-        $hash{'content'} = Encode::decode('utf8', $hash{'content'});
-        $hash{'title'} = Encode::decode('utf8', $hash{'title'});
+	if (defined $hash{'content'}) {
+		my $content = $hash{'content'};
+        	$hash{'content'} = eval { Encode::decode('utf8', $hash{'content'}) };
+		if ($@) {
+			$r->log->error("encoding error: $@ for content '$content'");
+			$hash{'content'} = $content;
+		}
+	}
+
+	if (defined $hash{'title'}) {
+		my $title = $hash{'title'};
+        	$hash{'title'} = eval { Encode::decode('utf8', $hash{'title'}) };
+		if ($@) {
+			$r->log->error("encoding error: $@ for title " . $hash{'title'});
+			$hash{'title'} = $title;
+		}	
+	}
 
 	push @results, \%hash;
     }
