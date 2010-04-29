@@ -36,8 +36,11 @@ use SL::CP::IPTables ();
 use SL::CP::PostReadRequestHandler ();
 use SL::BrowserUtil  ();
 
-print "Initializing firewall...\n";
-SL::CP::IPTables->init_firewall;
+
+if (Apache2::ServerUtil::restart_count() > 1) {
+    print "Initializing firewall...\n";
+    SL::CP::IPTables->init_firewall;
+}
 
 # register cleanup
 print "Registering cleanup handler...\n";
