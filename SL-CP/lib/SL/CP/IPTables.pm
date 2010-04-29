@@ -6,6 +6,7 @@ use warnings;
 use Data::Dumper   qw(Dumper);
 
 use SL::Config     ();
+use SL::CP         ();
 use LWP::UserAgent ();
 use Crypt::SSLeay  ();
 use URI::Escape    ();
@@ -198,6 +199,19 @@ NATS
 
     add_rules( 'nat', $nats );
 
+    # trusted hosts
+    my $trusted_hosts = $class->load_allows('trusted_hosts.txt');
+    my $out_rule = "-t mangle -A slTRU -s %s -m mac --mac-source %s -j MARK $Mark_op $Trusted_mark";
+    #my $in_rule = "-t mangle -A slINC -d %s -j ACCEPT";
+
+    foreach my $mac (@{$trusted_hosts}) {
+
+        my $ip = SL::CP->ip_from_mac($mac);
+        iptables(sprintf($out_rule, $ip, $mac));
+     #   iptables($in_rule, $ip);
+    }
+
+
     # setup the search page chain
     if ($Config->sl_search eq 'On') {
 
@@ -229,7 +243,7 @@ NATS
         # add the skips
         my $skip_rule = "-t nat -I slADS 5 --dst %s -m tcp -p tcp --dport 80 -j ACCEPT";
         my $skips = $class->load_allows('skips.txt');
-        my $throttle = 10;
+        my $throttle = 25;
         my $i = 0;
         foreach my $skip (@{$skips}) {
             iptables(sprintf($skip_rule, $skip));

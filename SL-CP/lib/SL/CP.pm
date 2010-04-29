@@ -2,13 +2,12 @@ package SL::CP;
 
 use strict;
 use warnings;
-use Apache2::Const -compile => qw( NOT_FOUND OK REDIRECT SERVER_ERROR
+use Apache2::Const -compile => qw( NOT_FOUND OK REDIRECT SERVER_ERROR DECLINED
                                    AUTH_REQUIRED HTTP_SERVICE_UNAVAILABLE
                                    M_GET HTTP_METHOD_NOT_ALLOWED );
 
 use Data::Dumper qw(Dumper);
 
-=cut
 use Apache2::Request    ();
 use Apache2::RequestRec ();
 use Apache2::Connection ();
@@ -25,9 +24,6 @@ use SL::CP::IPTables ();
 use SL::BrowserUtil  ();
 use HTML::Template   ();
 use URI::Escape ();
-
-=cut
-
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
@@ -52,8 +48,19 @@ our $Template = HTML::Template->new(
         filename          => $Config->sl_httpd_root . '/htdocs/sl/splash.tmpl',
         die_on_bad_params => 0 );
 
+our $Search_hosts = SL::CP::IPTables->load_allows('search_hosts.txt');
+
 sub handler {
     my ($class, $r) = @_;
+
+    # handle search hosts
+    if (($Config->sl_search eq 'On') &&
+        (grep { $r->hostname eq $_ } @{$Search_hosts} )) {
+
+        $r->log->debug("$$ found search host " . $r->hostname) if DEBUG;
+        $r->push_handlers(PerlResponseHandler => 'SL::Proxy::Search::TransHandler');
+        return Apache2::Const::DECLINED;
+    }
 
     my $ip = $r->connection->remote_ip;
     $r->log->debug("$$ new request ip $ip") if DEBUG;
@@ -278,6 +285,33 @@ sub mac_from_ip {
 
     return $client_mac;
 }
+
+
+sub ip_from_mac {
+    my ($class, $client_mac) = @_;
+
+    my $fh;
+    open($fh, '<', $Lease_file) or die "couldn't open lease $Lease_file";
+    my $client_ip;
+    while (my $line = <$fh>) {
+
+        my ($time, $mac, $hostip, $hostname, $othermac) = split(/\s/, $line);
+        if ($client_mac eq $mac) {
+
+            $client_ip = $hostip;
+            last;
+        }
+    }
+    close($fh) or die $!;
+
+    return unless $client_ip;
+
+    warn("$$ found ip $client_ip for mac $client_mac") if DEBUG;
+
+    return $client_ip;
+}
+
+
 
 1;
 
