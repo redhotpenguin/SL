@@ -16,16 +16,26 @@ use SL::Config     ();
 use Data::Dumper qw(Dumper);
 use RHP::Timer     ();
 use Encode         ();
+use WebService::Viglink ();
+use Digest::MD5 ();
 
 use constant DEBUG  => $ENV{SL_DEBUG}  || 0;
 use constant VERBOSE_DEBUG  => $ENV{SL_VERBOSE_DEBUG}  || 0;
 use constant TIMING => $ENV{SL_TIMING} || 0;
+
+our $VERSION = 0.03;
 
 our $Config  = SL::Config->new;
 our $Timer   = RHP::Timer->new();
 our $Searchtimer  = RHP::Timer->new();
 our $Referer = $Config->sl_gsearch_referer;
 our $Key     = $Config->sl_gsearch_key;
+
+our $Viglink = WebService::Viglink->new({
+    key => $Config->sl_viglink_apikey,
+    format => 'go', });
+
+warn("viglink is " . Dumper($Viglink));
 
 our $Template = HTML::Template->new(
         filename          => $Config->sl_httpd_root . '/htdocs/sl_search.tmpl',
@@ -35,6 +45,7 @@ sub handler {
     my $r = shift;
 
     my $req = Apache2::Request->new($r);
+
     $Searchtimer->start('searchtimer');
     $Timer->start('url parsing') if TIMING;
     my $uri = $r->unparsed_uri;
@@ -76,28 +87,42 @@ sub handler {
         my %hash = map { $_ => $result->{_content}->{$_}  }
 		keys %{$result->{_content}};
 
+        if (defined $hash{'content'}) {
+            my $content = $hash{'content'};
+            $hash{'content'} = eval { Encode::decode('utf8', $hash{'content'}) };
+             if ($@) {
+               $r->log->error("encoding error: $@ for " . $hash{'content'});
+                $hash{'content'} = $content;
+            } 
+        }
+        if (defined $hash{'title'}) {
+            my $title = $hash{'title'};
+            $hash{'title'} = eval { Encode::decode('utf8', $hash{'title'}) };
+            if ($@) {
+               $r->log->error("encoding error: $@ for title " . $hash{'title'});
+                $hash{'title'} = $title;
+            }
+        }
+
 	unless ($hash{'visibleUrl'} =~ m{/}) {
 
             $hash{'visibleUrl'} .= '/';
         }
 
-	if (defined $hash{'content'}) {
-		my $content = $hash{'content'};
-        	$hash{'content'} = eval { Encode::decode('utf8', $hash{'content'}) };
-		if ($@) {
-			$r->log->error("encoding error: $@ for content '$content'");
-			$hash{'content'} = $content;
-		}
-	}
+        my $loc = $r->construct_url($r->unparsed_uri);
+        $loc =~ s/google/slwifi/g;
 
-	if (defined $hash{'title'}) {
-		my $title = $hash{'title'};
-        	$hash{'title'} = eval { Encode::decode('utf8', $hash{'title'}) };
-		if ($@) {
-			$r->log->error("encoding error: $@ for title " . $hash{'title'});
-			$hash{'title'} = $title;
-		}	
-	}
+        my $ref = $r->headers_in->{'Referer'};
+        $ref =~ s/google/slwifi/g;
+
+        $hash{'url'} = $Viglink->make_url({
+            out          => $hash{'url'},
+            cuid         => Digest::MD5::md5_hex($r->connection->remote_ip),
+            loc          => $loc,
+            referrer     => $ref,
+            txt          => $hash{'title'},
+            title        => $Config->sl_account_name . " - Custom Search for '$q'",
+        });
 
 	push @results, \%hash;
     }

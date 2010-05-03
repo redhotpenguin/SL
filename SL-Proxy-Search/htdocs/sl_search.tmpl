@@ -35,7 +35,7 @@ function ga(o,e) {if (document.getElementById) {var a = o.id.substring(1); var p
 <input type=hidden name=oe value="ISO-8859-1">
 <input type=text name=q size=41 maxlength=2048 value="<TMPL_VAR NAME=QUERY>" title="Search"> 
 <input type=submit name="btnG" value="Search"></td><td class=tc nowrap width=100%><span id=ap></span></td></tr>
-<tr><td class=tc colspan=2><font size=-1> Search the Web from the <a href="<TMPL_VAR NAME="ACCOUNT_WEBSITE">"><TMPL_VAR NAME="ACCOUNT_NAME"></a> network.  Ads by <a href="http://www.slwifi.com/">Silver Lining</a>.</td></tr>
+<tr><td class=tc colspan=2><font size=-1> Search the Web from the <a href="<TMPL_VAR NAME="ACCOUNT_WEBSITE">"><TMPL_VAR NAME="ACCOUNT_NAME"></a> network.</td></tr>
 </table></td></tr>
 </form>
 
@@ -114,7 +114,7 @@ ch_query = ch_queries[ch_selected];
 
 <TMPL_LOOP NAME="SEARCH_RESULTS">
 
-<li><div class=g><h2 class=r><a href="<TMPL_VAR NAME="URL">" class=l onmousedown="return clk(this.href,'','','res','1','','0CAoQFjAA')"><TMPL_VAR NAME="TITLE"></a></h2>
+<li><div class=g><h2 class=r><a href="<TMPL_VAR NAME="URL">" class=l><TMPL_VAR NAME="TITLE"></a></h2>
 <table border=0 cellpadding=0 cellspacing=0><tr><td class="j"><div class=std><TMPL_VAR NAME="CONTENT"><br><span class=a><TMPL_VAR NAME="VISIBLEURL"></span><nobr></nobr></div></td></tr></table>
 
 </TMPL_LOOP>
