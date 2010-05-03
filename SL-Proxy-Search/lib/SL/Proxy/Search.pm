@@ -112,7 +112,7 @@ sub handler {
         my $loc = $r->construct_url($r->unparsed_uri);
         $loc =~ s/google/slwifi/g;
 
-        my $ref = $r->headers_in->{'Referer'};
+        my $ref = $r->headers_in->{'Referer'} || 'http://www.slwifi.com/';
         $ref =~ s/google/slwifi/g;
 
         $hash{'url'} = $Viglink->make_url({
