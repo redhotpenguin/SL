@@ -9,9 +9,10 @@ WebService::Viglink - Interface to the Viglink web API
 
 =cut
 
-our $VERSION = 0.03;
+our $VERSION = 0.04;
 
-use URI::Escape ();
+use URI::Escape    ();
+use HTML::Entities ();
 
 =head1 METHODS
 
@@ -64,14 +65,14 @@ sub make_url {
     }
 
     my $url = sprintf("http://api.viglink.com/api/click?title=%s&key=%s&out=%s&format=%s&cuid=%s&loc=%s&txt=%s&ref=%s",
-        URI::Escape::uri_escape_utf8($args->{'title'}),
+        URI::Escape::uri_escape_utf8(HTML::Entities::encode_numeric($args->{'title'})),
         $self->{'key'},
-        URI::Escape::uri_escape($args->{'out'}),
+        URI::Escape::uri_escape(HTML::Entities::encode_numeric($args->{'out'})),
         $self->{'format'},
         $args->{'cuid'},
-        URI::Escape::uri_escape($args->{'loc'}),
-        URI::Escape::uri_escape_utf8($args->{'txt'}),
-        URI::Escape::uri_escape($args->{'referrer'}),);
+        URI::Escape::uri_escape(HTML::Entities::encode_numeric($args->{'loc'})),
+        URI::Escape::uri_escape_utf8(HTML::Entities::encode_numeric($args->{'txt'})),
+        URI::Escape::uri_escape(HTML::Entities::encode_numeric( $args->{'referrer'}),));
 
     return $url;
 }

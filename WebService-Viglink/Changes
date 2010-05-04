@@ -1,5 +1,8 @@
 Revision history for Perl extension WebService-Viglink.
 
+0.04
+    - encode html entities numerically
+
 0.03 Tue May 4 13:02:00 PST 2010
     - use uri_escape_utf8 for text and title
     - deprecate version param, thanks to @viglink for the spot
