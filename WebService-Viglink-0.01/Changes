@@ -1,0 +1,13 @@
+Revision history for Perl extension WebService-Viglink.
+
+0.03 Tue May 4 13:02:00 PST 2010
+    - use uri_escape_utf8 for text and title
+    - deprecate version param, thanks to @viglink for the spot
+
+0.02 Mon May 3 12:10:00 PST 2010
+    - fix fatal error in constructor
+    - use referrer instead of ref to avoid quoting reserved word
+
+0.01 Sun May 2 21:53:51 PST 2010
+    - initial version
+
