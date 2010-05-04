@@ -116,7 +116,7 @@ sub handler {
         $ref =~ s/google/slwifi/g;
 
         $hash{'url'} = $Viglink->make_url({
-            out          => $hash{'url'},
+            out          => $hash{'unescapedUrl'},
             cuid         => Digest::MD5::md5_hex($r->connection->remote_ip),
             loc          => $loc,
             referrer     => $ref,
