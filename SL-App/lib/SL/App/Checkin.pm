@@ -34,11 +34,7 @@ sub dispatch_index {
     my $ip  = $r->connection->remote_ip;
     my $mac = $args{mac};
 
-    unless ( $mac
-        && defined $args{users}
-        && defined $args{kbup}
-        && defined $args{kbdown} )
-    {
+    unless ( $mac ) {
 
         $r->log->error("missing args for device mac $mac at ip $ip: " . Dumper(\%args));
         return Apache2::Const::SERVER_ERROR;
@@ -63,7 +59,7 @@ sub dispatch_index {
     }
 
     # update the latest seen users
-    $router->clients( $args{users} );
+    $router->clients( $args{users} || 0 );
 
     $router->robin( $args{robin} );
 
@@ -101,9 +97,6 @@ sub dispatch_index {
         # calculate throughput to gateway
         ( $speed, $units ) = split( /\-/, $args{NTR} );
 	
-	unless ($speed && $units) {
-		$r->log->warn("speed or units missing: " . $args{NTR});
-	}
 
 	if ( defined $units and ($units eq 'MB/s' )) {
 
@@ -119,6 +112,7 @@ sub dispatch_index {
             	$r->log->debug("Unknown checkin units '$units'") if DEBUG;
 	    }
 	    $speed=0;
+	    $units='KB/s';
 	}
 
 	my $hops = ($args{hops} == 1) ? 'hop' : 'hops';

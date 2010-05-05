@@ -32,7 +32,7 @@ sub handler {
         && $router->lan_ip
         && $router->splash_timeout
         && $router->wan_ip
-            && $router->account->aaa_email_cc) {
+        && $router->account->aaa_email_cc) {
 
         $r->log->error( sprintf( "rtr ip %s not setup: %s", $ip,
 		Dumper($router)) );

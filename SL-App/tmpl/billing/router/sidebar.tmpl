@@ -1,11 +1,16 @@
     <ul id="payment_info">
 
-    <li><img class="repeater" src="[% base_uri %]/resources/images/billboard/repeater.png" alt="WiFi Router and Repeater" />
+    <li><img class="repeater" src="[% base_uri %]/resources/images/icons/application/server.png" alt="Advertising Appliance" />
             <ul>
-                <li><strong>Silver Lining Pre-installed</strong></li>
-                <li><strong>Free Shipping</strong></li>
-                <li><strong>Router Model MR3201A</strong></li>
-                <li><strong><a href="http://www.open-mesh.com/">Open-Mesh.com</a> Mesh Networking</strong></li>
+		[% IF req.param('coupon') == 'urbanwireless' %]
+	    	<li><strong>$200 each</li>
+	    	[% ELSE %]
+		<li><strong>$495 each, limited time offer</li>
+		[% END %]
+                <li><strong>One year <a href="http://silverlining.zendesk.com/">Zendesk</a><sup>&#0153;</sup> based support</strong></li>
+                <li><strong>30 day money back guarantee</strong></li>
+                <li><strong>Free Shipping (US only, $100 intl)</strong></li>
+                <li><strong>One year of feature upgrades</strong></li>
             </ul>
     </li>
 

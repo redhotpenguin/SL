@@ -540,13 +540,12 @@ sub dispatch_router {
             );
         }
 
-        my $amount = $Routers{ $req->param('plan') };
+        my $amount = ($req->param('coupon') eq 'urbanwireless') ? '$200.00' : '$495.00';
 
         my %payment_args = (
             account_id  => 1,
             description => sprintf(
-                'Silver Lining Router Purchase %s Routers - %s',
-                $req->param('plan'), $amount
+                'Silver Lining Rainmaker Appliance Purchase - %s', $amount
             ),
             email       => $req->param('email'),
             card_type   => $req->param('card_type'),

@@ -58,25 +58,45 @@ BEGIN {
 sub check {
     my ( $class, $r ) = @_;
 
-    my $req  = Apache2::Request->new($r);
-    my $mac  = $req->param('mac');
-    my $plan = $req->param('plan');
+    my $req    = Apache2::Request->new($r);
+    my $mac    = $req->param('mac');    # device mac to be auth'd
+    my $cp_mac = $req->param('cp_mac'); # captive portal wan mac
+    my $plan   = $req->param('plan');
+
+    my $newhotness;
+    if ($cp_mac) {
+
+    	my ($router) = SL::Model::App->resultset('Router')->search({macaddr => $cp_mac });
+    	unless ($router) {
+	
+	#	$r->log->error("no router for mac $cp_mac");
+	#	return Apache2::Const::NOT_FOUND;
+	} else {
+		$r->pnotes($router => $router);
+		$newhotness = 1;
+	}
+    }
 
     my %payment_args = (
         mac             => $mac,
         account_id      => $r->pnotes('router')->account->account_id,
         approved        => 't',
-        token_processed => 't',
     );
 
     # hack to separate paid vs ad supported, very bad
     if ( $plan && ( $plan eq 'ads' ) ) {
+
         $payment_args{'amount'} = '$0.00';
+
     }
-    else {
+    elsif (!$newhotness)  {
 
         # look for paid plans
         $payment_args{'amount'} = { '>', '$0.00' };
+
+    } elsif ($newhotness) {
+
+	# looking for any plan amount
     }
 
     # get the most recent payment for payment args
@@ -371,7 +391,6 @@ sub paid {
     my ( $class, $r, $args_ref ) = @_;
 
     my $req = $args_ref->{req} || Apache2::Request->new($r);
-    #my ($plan, $mac, $dest ) = map { $req->param($_) } ('plan','mac', 'url' );
     my $mac = $req->param('mac');
     my $dest = $req->param('url');
     my $plan = $req->param('plan');
@@ -381,7 +400,6 @@ sub paid {
 
     my $router = $r->pnotes('router');
     my $ziponly = ( $plan eq 'month' ) ? undef: 1;
-
 
     if ( $r->method_number == Apache2::Const::M_GET ) {
 
@@ -682,9 +700,10 @@ sub auth_dest {
           { payment_id => $payment->payment_id } );
 
       ## payment successful, redirect to auth
-      $mac      = URI::Escape::uri_escape($mac);
+      $mac  = URI::Escape::uri_escape($mac);
       $dest = URI::Escape::uri_escape($dest);
-
+      
+      # FIXME NEW ROLLOUT
       my $location = sprintf(
               'http://%s/%s?mac=%s&url=%s&token=%s',
               $router->lan_ip, $type, $mac, $dest, $payment->md5
