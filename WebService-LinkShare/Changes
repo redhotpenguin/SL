@@ -1,0 +1,6 @@
+Revision history for Perl extension WebService-LinkShare.
+
+0.01  Tue May  4 17:00:22 2010
+	- original version; created by h2xs 1.23 with options
+		-X WebService-LinkShare
+
