@@ -1,0 +1,35 @@
+#!/usr/bin/env perl
+
+#my $dist = shift or die $0 . ' My::Module';
+
+#$dist =~ s/\:\:/-/;
+
+use Dzpl
+        name => 'SL-Apache2-Search',
+        version => '0.01',
+        author => 'Fred Moyer <fred@redhotpenguin.com>',
+        license => 'Perl5',
+        copyright => 'Silver Lining Networks', # Will automaticaly fill in the current year
+
+        # Declare prerequisites for runtime and testing (building)
+        # Alternatively, you can specify 'recommend' or 'prefer'
+        require => q/
+            Moose
+
+            [Test]
+            Test::Most
+        /;
+;
+
+# Declare some plugins to use. The regular expression following
+# the @Basic bundle is a filter excluding Dist::Zilla::Plugin::Readme
+plugin
+        '@Basic' => qr/Readme$/,
+        'PodWeaver',
+        'PkgVersion',
+        'ReadmeFromPod',
+        '=Dist::Dzpl::Plugin::DynamicManifest',
+        '=Dist::Dzpl::Plugin::CopyReadmeFromBuild',
+;
+
+run;

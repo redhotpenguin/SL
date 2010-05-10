@@ -1,0 +1,6 @@
+Revision history for Perl extension SL-Apache2-Search.
+
+0.01  Sun May  9 18:03:15 2010
+	- original version; created by h2xs 1.23 with options
+		-X SL-Apache2-Search
+
