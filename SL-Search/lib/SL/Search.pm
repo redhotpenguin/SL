@@ -16,8 +16,9 @@ use Encode              ();
 use WebService::VigLink ();
 use Digest::MD5         ();
 use Carp                ();
+use Data::Dumper        qw(Dumper);
 
-use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
+use constant DEBUG         => $ENV{SL_SEARCH_DEBUG}  || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 
 # temp bullshit
@@ -50,10 +51,12 @@ sub vhost {
 
     die 'need a hostname' unless $args->{host};
 
-    my $self = $Vhosts{ $args->{host} };
-    bless $self, $class;
+    return unless defined $Vhosts{ $args->{host} };
 
-    return $self;
+    my %self = %{$Vhosts{ $args->{host} }};
+    bless \%self, $class;
+
+    return \%self;
 }
 
 sub default_vhost {
