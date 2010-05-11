@@ -1,0 +1,6 @@
+Revision history for Perl extension SL-Search.
+
+0.01  Tue May 11 14:51:15 2010
+	- original version; created by h2xs 1.23 with options
+		-X SL-Search
+

@@ -1,0 +1,6 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/SL-Search.t
+lib/SL/Search.pm
