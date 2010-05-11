@@ -10,9 +10,9 @@ WriteMakefile(
     VERSION_FROM => 'lib/SL/Apache2/Search.pm',
     PREREQ_PM    => {
         'Apache2::Connection::XForwardedFor' => 0.01,
-        'WebService::VigLink'                => 0.05,
-        'Google::Search'                     => 0.025,
+        'SL::Search'                         => 0.01,
         'HTML::Template'                     => 2.9,
+        'HTML::Entities'                     => 0,
         'SL::Config'                         => 0.17,
         'SL::BrowserUtil'                    => 0.03,
         'RHP::Timer'                         => 0.1,

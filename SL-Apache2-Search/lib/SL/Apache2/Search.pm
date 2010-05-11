@@ -18,27 +18,25 @@ use Apache2::RequestIO  ();
 use Apache2::Const -compile => qw( SERVER_ERROR DONE OK );
 use Apache2::URI ();
 
+use SL::Config ();
+use SL::Search ();
+
 use HTML::Entities ();
 use HTML::Template ();
-use Google::Search ();
-use SL::Config     ();
 use Data::Dumper qw(Dumper);
-use RHP::Timer          ();
-use Encode              ();
-use WebService::Viglink ();
-use Digest::MD5         ();
+use RHP::Timer ();
 
 use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 use constant TIMING        => $ENV{SL_TIMING}        || 0;
 
-our $Config   = SL::Config->new;
-our $Vkey     = $Config->sl_viglink_apikey;
-our $Filename = $Config->sl_root . '/htdocs/sl_search.tmpl';
-our $Template = HTML::Template->new(
+our $Config        = SL::Config->new;
+our $Filename      = $Config->sl_root . '/htdocs/sl_search.tmpl';
+our %Template_args = (
     filename          => $Filename,
     die_on_bad_params => 0
 );
+our $Template = HTML::Template->new(%Template_args);
 
 our $Fivehundred =
   HTML::Template->new( filename => $Config->sl_root . '/htdocs/errors/500.html',
@@ -46,31 +44,38 @@ our $Fivehundred =
 $Fivehundred->param( static_href => 'http://s.slwifi.com' );
 $Fivehundred = $Fivehundred->output;
 
-our $Viglink = WebService::VigLink->new( { 'key' => $Vkey } );
-
 our $Timer       = RHP::Timer->new();
 our $Searchtimer = RHP::Timer->new();
-our $Referer     = $Config->sl_gsearch_referer;
-our $Key         = $Config->sl_gsearch_key;
-our $Chitika_id =  $Config->sl_chitika_id;
 
 sub handler {
     my $r = shift;
 
     my $req = Apache2::Request->new($r);
 
+    # figure out what vhost we are
+    my $hostname = $r->hostname;
+    $r->log->debug("handling host $hostname, client " . $r->connection->remote_ip) if DEBUG;
+
+    my $search_vhost = SL::Search->vhost( { host => $r->hostname } )
+      || SL::Search->default_vhost;
+
     my @search_results;
     my $q = $req->param('q');
+    my $start = $req->param('start') || 0;
     if ( defined $q && ( $q ne '' ) ) {
 
         $Searchtimer->start('searchtimer');
 
-        my %search_args = ( q => $q, key => $Key, referer => $Referer );
-        my $start = $req->param('start') || 0;
+        my %search_args = (
+            q         => $q,
+            start     => $start,
+            url       => $r->construct_url( $r->unparsed_uri ),
+            remote_ip => $r->connection->remote_ip,
+            referrer  => $r->headers_in->{'Referer'}
+              || 'http://search.slwifi.com'
+        );
 
-        $search_args{start} = $start;
-
-        my $search = eval { Google::Search->Web(%search_args) };
+        my $search_results = eval { $search_vhost->search( \%search_args ); };
         if ($@) {
             $r->log->error(
                 sprintf(
@@ -82,85 +87,16 @@ sub handler {
             return Apache2::Const::SERVER_ERROR;
         }
 
-        my $i     = 1;
-        my $limit = 10;
-        while ( my $result = $search->next ) {
-
-            $r->log->debug( Dumper($result) ) if DEBUG;
-
-            last if ++$i > $limit;
-            my %hash = map { $_ => $result->{_content}->{$_} }
-              keys %{ $result->{_content} };
-
-            if ( defined $hash{'content'} ) {
-                my $content = $hash{'content'};
-                $hash{'content'} =
-                  eval { Encode::decode( 'utf8', $hash{'content'} ) };
-                if ($@) {
-                    $r->log->error(
-                        "encoding error: $@ for " . $hash{'content'} );
-                    $hash{'content'} = $content;
-                }
-            }
-            if ( defined $hash{'title'} ) {
-                my $title = $hash{'title'};
-                $hash{'title'} =
-                  eval { Encode::decode( 'utf8', $hash{'title'} ) };
-                if ($@) {
-                    $r->log->error(
-                        "encoding error: $@ for title " . $hash{'title'} );
-                    $hash{'title'} = $title;
-                }
-            }
-
-            unless ( $hash{'visibleUrl'} =~ m{/} ) {
-
-                $hash{'visibleUrl'} .= '/';
-            }
-
-            my $loc = $r->construct_url( $r->unparsed_uri );
-
-            my $ref = $r->headers_in->{'Referer'}
-              || 'http://search.slwifi.com/';
-
-            $hash{'url'} = $Viglink->make_url(
-                {
-                    out  => $hash{'unescapedUrl'},
-                    cuid => Digest::MD5::md5_hex( $r->connection->remote_ip ),
-                    loc  => $loc,
-                    referrer => $ref,
-                    txt      => $hash{'title'},
-                    title    => $Config->sl_account_name
-                      . " - Custom Search for '$q'",
-                }
-            );
-
-            push @search_results, \%hash;
-        }
-
-        $r->log->debug( Dumper( \@search_results ) ) if VERBOSE_DEBUG;
-
-        $q = HTML::Entities::encode_numeric($q);
-        $q ||= '';
-
-        if (DEBUG) {
-            $Template = HTML::Template->new(
-                filename          => $Filename,
-                die_on_bad_params => 0
-            );
-        }
-
         my ( $pkg, $file, $line, $timer_name, $interval ) =
           @{ $Searchtimer->checkpoint };
 
-        $r->log->info(
-            sprintf(
-                "$$ timer $$ %s %s %d %s %f",
-                $pkg, $file, $line, $timer_name, $interval
-            )
-        ) if TIMING;
-
         $r->log->debug("search time $interval") if VERBOSE_DEBUG;
+
+        $r->log->debug( Dumper($search_results) ) if VERBOSE_DEBUG;
+
+        $q = HTML::Entities::encode_numeric($q);
+
+        $Template = HTML::Template->new(%Template_args) if DEBUG;
 
         $r->log->debug("Start is $start");
         my $plus_q = $q;
@@ -205,9 +141,8 @@ sub handler {
         }
 
         $Template->param( NUMBERS        => \@numbers );
-        $Template->param( SEARCH_RESULTS => \@search_results );
-
-
+        $Template->param( SEARCH_RESULTS => $search_results );
+        my $Chitika_id = $search_vhost->{chitika_id};
         my $clicksor_code = <<CLICKSOR_CODE;
 <script type="text/javascript">
 clicksor_layer_border_color = '';
@@ -219,8 +154,7 @@ clicksor_text_link_color = '#290cff'; clicksor_enable_text_link = true;
 <noscript><a href="http://www.bannercenter.net">web banner design</a></noscript>
 CLICKSOR_CODE
 
-
-        my $topadcode =  <<"TOPADCODE";
+        my $topadcode = <<"TOPADCODE";
 <script type="text/javascript">
 ch_client = "$Chitika_id";
 ch_type = "mpu";
@@ -240,8 +174,7 @@ ch_query = ch_queries[ch_selected];
 </script>
 TOPADCODE
 
-
-        $Template->param( TOPADCODE => $topadcode);
+        $Template->param( TOPADCODE => $topadcode );
 
         my $sideadcode = <<"SIDEADCODE";
 <script type="text/javascript">
@@ -263,11 +196,11 @@ ch_query = ch_queries[ch_selected];
 </script>
 SIDEADCODE
 
-        $Template->param( SIDEADCODE => $sideadcode);
+        $Template->param( SIDEADCODE => $sideadcode );
     }
 
-    $Template->param( ACCOUNT_WEBSITE => $Config->sl_account_website );
-    $Template->param( ACCOUNT_NAME    => $Config->sl_account_name );
+    $Template->param( ACCOUNT_WEBSITE => $search_vhost->{account_website} );
+    $Template->param( ACCOUNT_NAME    => $search_vhost->{account_name} );
 
     $Template->param( STATIC_HREF => 'http://s.slwifi.com' );
 
