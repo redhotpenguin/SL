@@ -37,7 +37,6 @@ our %Template_args = (
     filename          => $Filename,
     die_on_bad_params => 0
 );
-our $Template = HTML::Template->new(%Template_args);
 
 our $Fivehundred =
   HTML::Template->new( filename => $Config->sl_root . '/htdocs/errors/500.html',
@@ -70,6 +69,8 @@ sub handler {
     my @search_results;
     my $q = $req->param('q');
     my $start = $req->param('start') || 0;
+    my $Template = HTML::Template->new(%Template_args);
+
     if ( defined $q && ( $q ne '' ) ) {
 
         $Searchtimer->start('searchtimer');
@@ -103,8 +104,6 @@ sub handler {
         $r->log->debug( Dumper($search_results) ) if VERBOSE_DEBUG;
 
         $q = HTML::Entities::encode_numeric($q);
-
-        $Template = HTML::Template->new(%Template_args) if DEBUG;
 
         $r->log->debug("Start is $start");
         my $plus_q = $q;
