@@ -11,11 +11,12 @@ SL::Apache2::Search - mod_perl2 silverlining search handler
 
 =cut
 
+use Apache2::Connection ();
 use Apache2::Response   ();
 use Apache2::Request    ();
 use Apache2::RequestRec ();
 use Apache2::RequestIO  ();
-use Apache2::Const -compile => qw( SERVER_ERROR DONE OK );
+use Apache2::Const -compile => qw( SERVER_ERROR DONE OK REDIRECT );
 use Apache2::URI ();
 
 use SL::Config ();
@@ -56,6 +57,13 @@ sub handler {
     my $hostname = $r->hostname;
     $r->log->debug("handling host $hostname, client " . $r->connection->remote_ip) if DEBUG;
 
+    if ($hostname eq 'app.silverliningnetworks.com') {
+
+        # redirect this app server request
+        $r->headers_out->set( Location => "https://$hostname/" );
+        return Apache2::Const::REDIRECT;
+    }
+
     my $search_vhost = SL::Search->vhost( { host => $r->hostname } )
       || SL::Search->default_vhost;
 
@@ -90,7 +98,7 @@ sub handler {
         my ( $pkg, $file, $line, $timer_name, $interval ) =
           @{ $Searchtimer->checkpoint };
 
-        $r->log->debug("search time $interval") if VERBOSE_DEBUG;
+        $r->log->debug("search time $interval") if DEBUG;
 
         $r->log->debug( Dumper($search_results) ) if VERBOSE_DEBUG;
 
