@@ -1,0 +1,42 @@
+# perlbal config file for our app server
+
+CREATE POOL app
+  POOL app ADD 127.0.0.1:8887
+
+CREATE POOL search
+  POOL search ADD 127.0.0.1:9999
+
+CREATE SERVICE bal
+  SET listen   = 127.0.0.1:80
+  SET role            = reverse_proxy
+  SET pool            = app
+  SET persist_client  = on
+  SET persist_backend = on
+  SET verify_backend  = off
+
+ENABLE bal
+
+
+CREATE SERVICE sslbal
+  SET listen          = 69.36.240.30:443
+  SET role            = reverse_proxy
+  SET pool            = app
+  SET persist_client  = on
+  SET persist_backend = on
+  SET verify_backend  = off
+
+  SET enable_ssl    = on
+  SET ssl_key_file  = /etc/apache2/ssl/app.silverliningnetworks.com.geotrust.key
+  SET ssl_cert_file = /etc/apache2/ssl/app.silverliningnetworks.com.geotrust.crt
+
+  # optionally set the cipher list.  the default is "ALL:!LOW:!EXP"
+  SET ssl_cipher_list = ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP:+eNULL
+
+ENABLE sslbal
+
+
+# always good to keep an internal management port open:
+CREATE SERVICE mgmt
+  SET role   = management
+  SET listen = 127.0.0.1:60000
+ENABLE mgmt
