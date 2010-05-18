@@ -17,22 +17,27 @@ use Digest::MD5    ();
 
 use SL::Model::App    ();
 use SL::App::Template ();
+use SL::Config ();
 
 # don't add the () here
 use Data::Dumper;
 
 my $Ua = LWP::UserAgent->new;
-$Ua->agent('Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en-US; rv:1.9.1.2) Gecko/20090729 Firefox/3.5.2');
+$Ua->agent(
+'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en-US; rv:1.9.1.2) Gecko/20090729 Firefox/3.5.2'
+);
 $Ua->timeout(10);    # needs to respond somewhat quickly
 our $Tmpl = SL::App::Template->template();
 
 our $Tech_error = 'A technical problem occurred, please try again';
-our $From = 'SLN Support <support@silverliningnetworks.com>';
-our $Signup = 'SLN Signup <signup@silverliningnetworks.com>';
+our $From       = 'SLN Support <support@silverliningnetworks.com>';
+our $Signup     = 'SLN Signup <signup@silverliningnetworks.com>';
+
+our $Config = SL::Config->new;
 
 use constant MAX_IMAGE_BYTES => 40_960;
-use constant DEBUG => $ENV{SL_DEBUG} || 0;
-use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
+use constant DEBUG           => $ENV{SL_DEBUG} || 0;
+use constant VERBOSE_DEBUG   => $ENV{SL_VERBOSE_DEBUG} || 0;
 
 =head1 METHODS
 
@@ -51,25 +56,24 @@ sub dispatch_index {
 
     if ( $r->user ) {
 
-        $r->log->debug(sprintf('authd user %s, redirecting', $r->user))
+        $r->log->debug( sprintf( 'authd user %s, redirecting', $r->user ) )
           if DEBUG;
 
         # authenticated user, send to the dashboard home page
         $r->headers_out->set(
-            Location => $r->construct_url('/app/home/index') );
+            Location => $Config->sl_app_proxy . $Config->sl_app_base_uri . '/app/home/index' );
 
-    } else {
+    }
+    else {
+        my $location = $Config->sl_app_proxy . $Config->sl_app_base_uri . '/login';
+        $r->log->debug("unknown user, redirecting to $location") if DEBUG;
 
-      $r->log->debug("unknown user, redirecting to login") if VERBOSE_DEBUG;
-
-      $r->headers_out->set(
-            Location => $r->construct_url('/login') );
+        $r->headers_out->set( Location => $location );
 
     }
 
-        return Apache2::Const::REDIRECT;
+    return Apache2::Const::REDIRECT;
 }
-
 
 sub ok {
     my ( $self, $r, $output ) = @_;
@@ -110,17 +114,17 @@ sub valid_link {
         my $dfv = shift;
         my $val = $dfv->get_current_constraint_value;
 
-	my $uri = eval { URI->new($val) };
-	if ($@) {
-	    warn("$$ problem creating URI object from url $val: $@");
-	    return;
-	}
+        my $uri = eval { URI->new($val) };
+        if ($@) {
+            warn("$$ problem creating URI object from url $val: $@");
+            return;
+        }
 
-        my $response = eval { $Ua->get( $uri ) };
-	if ($@) {
-	    warn("$$ problem grabbing uri " . $uri->as_string . ": $@");
-	    return;
-	}
+        my $response = eval { $Ua->get($uri) };
+        if ($@) {
+            warn( "$$ problem grabbing uri " . $uri->as_string . ": $@" );
+            return;
+        }
 
         return $val if $response->is_success;
         return;    # oops didn't validate
@@ -129,16 +133,15 @@ sub valid_link {
 
 sub check_password {
     return sub {
-        my $dfv    = shift;
-        my $val    = $dfv->get_current_constraint_value;
-        my $data   = $dfv->get_filtered_data;
-        my $pass   = $data->{password};
+        my $dfv  = shift;
+        my $val  = $dfv->get_current_constraint_value;
+        my $data = $dfv->get_filtered_data;
+        my $pass = $data->{password};
 
         return unless length($pass) > 5;
         return $val;
       }
 }
-
 
 sub check_retype {
     return sub {
@@ -146,7 +149,7 @@ sub check_retype {
         my $val    = $dfv->get_current_constraint_value;
         my $data   = $dfv->get_filtered_data;
         my $pass   = $data->{password};
-        my $retype   = $data->{retype};
+        my $retype = $data->{retype};
 
         return unless $pass eq $retype;
         return $val;
@@ -162,27 +165,26 @@ sub valid_branding_image {
 
         my $response = $Ua->get( URI->new($image_href) );
 
+        unless ( $response->is_success ) {
 
-        unless ($response->is_success) {
-
-	    $dfv->{image_err} = { missing => 1 };
+            $dfv->{image_err} = { missing => 1 };
             return;
-          }
-
+        }
 
         my ( $width, $height ) = Image::Size::imgsize( \$response->content );
 
-        unless (($height == 90) && (($width == 200) or ($width == 120))) {
-            $dfv->{image_err} = { width => $width, height => $height};
+        unless ( ( $height == 90 )
+            && ( ( $width == 200 ) or ( $width == 120 ) ) )
+        {
+            $dfv->{image_err} = { width => $width, height => $height };
             return;
         }
 
         $data->{width} = $width;
 
         return $width;
-    }
+      }
 }
-
 
 sub valid_splash_ad {
     return sub {
@@ -193,25 +195,23 @@ sub valid_splash_ad {
 
         my $response = $Ua->get( URI->new($image_href) );
 
-        unless ($response->is_success) {
+        unless ( $response->is_success ) {
             $dfv->{image_err} = { missing => 1 };
             return;
-          }
+        }
 
         my ( $width, $height ) = Image::Size::imgsize( \$response->content );
 
-        unless (($height == 250) && ($width == 300)) {
-            $dfv->{image_err} = { width => $width, height => $height};
+        unless ( ( $height == 250 ) && ( $width == 300 ) ) {
+            $dfv->{image_err} = { width => $width, height => $height };
             return;
         }
 
         $data->{width} = $width;
 
         return $width;
-    }
+      }
 }
-
-
 
 sub valid_banner_ad {
     return sub {
@@ -222,33 +222,34 @@ sub valid_banner_ad {
 
         my $response = $Ua->get( URI->new($image_href) );
 
-        warn("response is " . Data::Dumper::Dumper($response) ) if DEBUG;
+        warn( "response is " . Data::Dumper::Dumper($response) ) if DEBUG;
 
-        unless ($response->is_success) {
+        unless ( $response->is_success ) {
 
             $dfv->{image_err} = { missing => 1 };
             warn("could not find image at $image_href") if DEBUG;
             return;
         }
 
-
         my ( $width, $height ) = Image::Size::imgsize( \$response->content );
 
-        unless (($width == 728) && ($height == 90)) {
+        unless ( ( $width == 728 ) && ( $height == 90 ) ) {
 
-            $dfv->{image_err} = { width => $width, height => $height};
+            $dfv->{image_err} = { width => $width, height => $height };
             warn(
-                 sprintf("image size width %s, height %s for url $image_href",
-                         $width, $height)) if DEBUG;
+                sprintf(
+                    "image size width %s, height %s for url $image_href",
+                    $width, $height
+                )
+            ) if DEBUG;
             return;
         }
 
         $data->{width} = $width;
 
         return $width;
-    }
+      }
 }
-
 
 sub valid_swap_ad {
     return sub {
@@ -259,9 +260,9 @@ sub valid_swap_ad {
 
         my $response = $Ua->get( URI->new($image_href) );
 
-        warn("response is " . Data::Dumper::Dumper($response) ) if DEBUG;
+        warn( "response is " . Data::Dumper::Dumper($response) ) if DEBUG;
 
-        unless ($response->is_success) {
+        unless ( $response->is_success ) {
 
             $dfv->{image_err} = { missing => 1 };
             warn("could not find image at $image_href") if DEBUG;
@@ -270,26 +271,29 @@ sub valid_swap_ad {
 
         my ( $width, $height ) = Image::Size::imgsize( \$response->content );
 
-        my ($ad_size_obj) = SL::Model::App->resultset('AdSize')->search({
-                                      ad_size_id => $data->{ad_size_id}, });
+        my ($ad_size_obj) =
+          SL::Model::App->resultset('AdSize')
+          ->search( { ad_size_id => $data->{ad_size_id}, } );
 
-        unless (($width == $ad_size_obj->width)
-                && ($height == $ad_size_obj->height)) {
+        unless ( ( $width == $ad_size_obj->width )
+            && ( $height == $ad_size_obj->height ) )
+        {
 
-            $dfv->{image_err} = { width => $width, height => $height};
+            $dfv->{image_err} = { width => $width, height => $height };
             warn(
-                 sprintf("image size width %s, height %s for url $image_href",
-                         $width, $height)) if DEBUG;
+                sprintf(
+                    "image size width %s, height %s for url $image_href",
+                    $width, $height
+                )
+            ) if DEBUG;
             return;
         }
 
         $data->{width} = $width;
 
         return $width;
-    }
+      }
 }
-
-
 
 sub valid_first {
 
@@ -397,11 +401,11 @@ sub valid_mac {
 }
 
 sub check_mac {
-  my $mac = shift;
+    my $mac = shift;
 
-  return 1 if ( $mac =~ m/^([0-9a-fA-F]{2}([:-]|$)){6}$/i );
+    return 1 if ( $mac =~ m/^([0-9a-fA-F]{2}([:-]|$)){6}$/i );
 
-  return;
+    return;
 }
 
 sub valid_serial {
@@ -445,40 +449,45 @@ sub valid_aaa_plan {
 }
 
 sub valid_username {
-  return sub {
-        my $dfv = shift;
-        my $val = $dfv->get_current_constraint_value;
-        my $data   = $dfv->get_filtered_data;
-        my $email   = $data->{email};
-        my $pass   = $data->{password};
+    return sub {
+        my $dfv   = shift;
+        my $val   = $dfv->get_current_constraint_value;
+        my $data  = $dfv->get_filtered_data;
+        my $email = $data->{email};
+        my $pass  = $data->{password};
 
-	return if !$pass;
-        my ($reg) = SL::Model::App->resultset('Reg')->search({
-                                                 email => $email });
+        return if !$pass;
+        my ($reg) =
+          SL::Model::App->resultset('Reg')->search( { email => $email } );
+
         # new user, ok
         return $val if !$reg;
 
         # existing user, make sure the password matches
-        if ($reg->password_md5 eq Digest::MD5::md5_hex( $pass )) {
+        if ( $reg->password_md5 eq Digest::MD5::md5_hex($pass) ) {
 
-          # passwords match
-          return $val;
-        } else {
-      	  warn(sprintf("existing user %s registering with invalid pass %s",
-		      $reg->email, $pass));
-	  return;
+            # passwords match
+            return $val;
+        }
+        else {
+            warn(
+                sprintf(
+                    "existing user %s registering with invalid pass %s",
+                    $reg->email, $pass
+                )
+            );
+            return;
+        }
       }
-   }
 }
 
 sub sldatetime {
-  my ($self, $mts) = @_;
+    my ( $self, $mts ) = @_;
 
-  return DateTime::Format::Pg->parse_datetime( $mts )
-              ->strftime("%m/%d/%y (%I:%M %p)");
+    return DateTime::Format::Pg->parse_datetime($mts)
+      ->strftime("%m/%d/%y (%I:%M %p)");
 
 }
-
 
 sub format_adzone_list {
     my ( $class, $ad_zones ) = @_;
@@ -489,12 +498,13 @@ sub format_adzone_list {
 
             # HACK for dev environment
             $ad_zone->mts( $ad_zone->mts );
-        } else {
+        }
+        else {
             $ad_zone->mts( $class->sldatetime( $ad_zone->mts ) );
         }
 
-	my $len = 22;
-	$len = 30 if $ad_zone->ad_size->swap;
+        my $len = 22;
+        $len = 30 if $ad_zone->ad_size->swap;
 
         if ( length( $ad_zone->name ) > $len ) {
             $ad_zone->name( substr( $ad_zone->name, 0, 19 ) . '...' );
@@ -504,26 +514,25 @@ sub format_adzone_list {
     return 1;
 }
 
-
 sub display_weight {
-    my ($self, $rate) = @_;
+    my ( $self, $rate ) = @_;
 
     my $weight;
 
-    if ($rate eq 'low') {
+    if ( $rate eq 'low' ) {
 
-      $weight = 1;
-    } elsif ($rate eq 'normal' ) {
+        $weight = 1;
+    }
+    elsif ( $rate eq 'normal' ) {
 
-      $weight = 2;
-    } elsif ($rate eq 'high' ) {
+        $weight = 2;
+    }
+    elsif ( $rate eq 'high' ) {
 
-      $weight = 3;
+        $weight = 3;
     }
 
     return $weight || 1;
 }
-
-
 
 1;

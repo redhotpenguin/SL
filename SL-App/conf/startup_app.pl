@@ -14,16 +14,9 @@ use lib "$FindBin::Bin/../lib";
 use SL::Config;
 my $config = SL::Config->new();
 
-print STDOUT "Starting SL::App server on port "
-  . $config->sl_app_http_port . "\n";
+print STDOUT "Starting SL::App server on "
+  . $config->sl_app_httpd_listen . "\n";
 print STDOUT "Loading modules...\n";
-
-# single user mode
-if ( $config->sl_debug or $config->sl_small_prof ) {
-    require APR::Pool;
-    require Apache::DB;
-    Apache::DB->init();
-}
 
 # profiling
 if ( $config->sl_prof ) {

@@ -75,17 +75,13 @@ sub dispatch_index {
     my $reg = $r->pnotes( $r->user );
 
     my %tmpl_data = ( account => $reg->account );
-    my $server_root =
-      (DEBUG)
-      ? $r->construct_url('')
-      : 'https://' . $Config->sl_app_servername;
 
     my ( $head, $map, $total, $trouble, $inactive ) = eval {
         $class->map(
             $r,
             {
                 account     => $reg->account,
-                server_root => $server_root,
+                server_root => $Config->sl_app_proxy,
             }
         );
     };

@@ -1,10 +1,10 @@
-ServerRoot           [% cfg.sl_httpd_root %]
-ServerAdmin          fred@redhotpenguin.com
+ServerRoot           [% cfg.sl_root %]
+ServerAdmin          support@slwifi.com
 ServerSignature      Off
 ServerTokens         Prod
-PidFile              [% cfg.sl_app_root %]/tmp/sl_app.pid
-DocumentRoot         [% cfg.sl_app_root %]/htdocs
-TypesConfig          [% cfg.sl_app_root %]/conf/mime.types
+PidFile              [% cfg.sl_root %]/tmp/sl_app.pid
+DocumentRoot         [% cfg.sl_root %]/htdocs
+TypesConfig          [% cfg.sl_root %]/conf/mime.types
 User                 [% cfg.sl_app_apache_user %] 
 Group                [% cfg.sl_app_apache_group %]
 KeepAlive            [% cfg.sl_app_apache_keepalive %]
@@ -13,42 +13,38 @@ KeepAliveTimeout     300
 MinSpareServers      [% cfg.sl_app_apache_min_spare_servers %]
 MaxSpareServers      [% cfg.sl_app_apache_max_spare_servers %]
 StartServers         [% cfg.sl_app_apache_start_servers %]
-LogLevel             [% cfg.sl_app_apache_loglevel %]
+LogLevel             [% IF cfg.sl_debug %]debug[% ELSE %]warn[% END %]
 MaxClients           [% cfg.sl_app_apache_maxclients %]
-ErrorLog             [% cfg.sl_app_root %]/logs/httpd_app_error_log
-TransferLog          [% cfg.sl_app_root %]/logs/httpd_app_access_log
+ErrorLog             [% cfg.sl_root %]/logs/error_log
+TransferLog          [% cfg.sl_root %]/logs/access_log
 MaxRequestsPerChild  250
 LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\""
 UseCanonicalName     Off
 HostNameLookups      Off
 Timeout              300
 
-Listen        [% cfg.sl_app_http_port %]
+Listen        [% cfg.sl_app_httpd_listen %]
 
 ServerName           [% cfg.sl_app_servername %]
-ErrorDocument        404	/404.html
-ErrorDocument        500	/500.html
+ErrorDocument        500	"An unrecoverable error occurred, please email support@slwifi.com for help."
 
-LoadModule apreq_module        modules/mod_apreq2.so
 LoadModule perl_module        modules/mod_perl.so
+LoadModule apreq_module        modules/mod_apreq2.so
 
 PerlOptions +GlobalRequest
 PerlPassEnv SL_DEBUG
 PerlPassEnv SL_TEST_MODE
 PerlPassEnv DBIC_TRACE
 
-PerlPostConfigRequire "[% cfg.sl_app_root %]/conf/startup_app.pl"
+PerlPostConfigRequire "[% cfg.sl_root %]/conf/startup_app.pl"
 
-[% IF cfg.sl_debug %]
-PerlRequire "[% cfg.sl_app_root %]/conf/db.pl"
-[% END %]
-PerlSetVar data_root "[% cfg.sl_app_root %]/data"
+PerlSetVar data_root "[% cfg.sl_root %]/data"
 
 [% IF cfg.sl_devel %]
 # Apache::Reload for quick fixes
 PerlModule           Apache2::Reload
 PerlInitHandler      Apache2::Reload
-PerlSetVar           ReloadAll On
+PerlSetVar           ReloadAll Off
 PerlSetVar ReloadModules "SL::*"
 [% END %]
 
@@ -81,19 +77,19 @@ PerlLoadModule Apache2::Dispatch
 	PerlResponseHandler Apache2::Dispatch
 </Location>
 
-<Location /css>
+<Location /sl/css>
     SetHandler default-handler
 </Location>
 
-<Location /img>
+<Location /sl/img>
     SetHandler default-handler
 </Location>
 
-<Location /resources>
+<Location /sl/resources>
     SetHandler default-handler
 </Location>
 
-<Location /checkin>
+<Location /sl/checkin>
     SetHandler modperl
 
 	DispatchPrefix SL::App::Checkin
@@ -106,7 +102,7 @@ PerlLoadModule Apache2::Dispatch
 
 
 ## the user application, need to be logged in
-<Location  /app>
+<Location  /sl/app>
 	AuthType SL::App::CookieAuth
 	AuthName [% cfg.sl_app_cookie_name %]
 	SetHandler modperl
@@ -119,32 +115,32 @@ PerlLoadModule Apache2::Dispatch
 
 ## method handlers for authentication and signup
 
-<Location /login>
+<Location /sl/login>
 	SetHandler modperl
 	PerlResponseHandler SL::App::CookieAuth->login
 </Location>
 
-<Location /logout>
+<Location /sl/logout>
 	SetHandler modperl
 	PerlResponseHandler SL::App::CookieAuth->logout
 </Location>
 
-<Location /forgot>
+<Location /sl/forgot>
 	SetHandler modperl
 	PerlResponseHandler SL::App::CookieAuth->forgot
 </Location>
 
-<Location /signup>
+<Location /sl/signup>
 	SetHandler modperl
 	PerlResponseHandler SL::App::CookieAuth->signup
 </Location>
 
-<Location /forgot/reset>
+<Location /sl/forgot/reset>
     SetHandler modperl
     PerlResponseHandler SL::App::CookieAuth->forgot_reset
 </Location>
 
-<Location /splash>
+<Location /sl/splash>
     SetHandler modperl
     PerlResponseHandler SL::App::Ad::Splash->dispatch_splash
 </Location>
@@ -152,48 +148,48 @@ PerlLoadModule Apache2::Dispatch
 
 ## captive portal handler
 
-<Location /auth>
+<Location /sl/auth>
     SetHandler modperl
 	PerlFixupHandler SL::App::CPAuthHandler
     PerlResponseHandler SL::App::CP->auth
 </Location>
 
-<Location /auth/free>
+<Location /sl/auth/free>
     SetHandler modperl
     PerlResponseHandler SL::App::CP->free
 </Location>
 
-<Location /auth/paid>
+<Location /sl/auth/paid>
     SetHandler modperl
     PerlResponseHandler SL::App::CP->paid
 </Location>
 
-<Location /auth/token>
+<Location /sl/auth/token>
     SetHandler modperl
     PerlResponseHandler SL::App::CP->token
 </Location>
 
-<Location /auth/post>
+<Location /sl/auth/post>
     SetHandler modperl
     PerlResponseHandler SL::App::CP->post
 </Location>
 
-<Location /auth/check>
+<Location /sl/auth/check>
     SetHandler modperl
     PerlResponseHandler SL::App::CP->check
 </Location>
 
-<Location /auth/paypal_notify>
+<Location /sl/auth/paypal_notify>
     SetHandler modperl
     PerlResponseHandler SL::App::CP->paypal_notify
 </Location>
 
-<Location /auth/paypal_return>
+<Location /sl/auth/paypal_return>
     SetHandler modperl
     PerlResponseHandler SL::App::CP->paypal_return
 </Location>
 
-<Location /billing>
+<Location /sl/billing>
 	SetHandler modperl
 
     # dispatch directives
@@ -213,5 +209,5 @@ PerlLoadModule Apache2::Dispatch
 </Directory>
 
 [% IF cfg.sl_proxy_deflate %]
-Include [% cfg.sl_app_root %]/conf/deflate.conf
+Include [% cfg.sl_root %]/conf/deflate.conf
 [% END %]

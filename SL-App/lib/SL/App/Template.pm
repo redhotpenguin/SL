@@ -15,7 +15,7 @@ our ( $Template, %Tmpl_global );
 BEGIN {
     our $config = SL::Config->new;
 
-    our %tmpl_config = ( INCLUDE_PATH => $config->sl_app_root . '/tmpl' );
+    our %tmpl_config = ( INCLUDE_PATH => $config->sl_root . '/tmpl' );
     $Template = __PACKAGE__->SUPER::new( \%tmpl_config )
       || die $Template::ERROR;
 

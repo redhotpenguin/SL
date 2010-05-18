@@ -8,37 +8,27 @@ use Template::Context;
 
 use SL::Config;
 
-my $server = 'app';
 my $config = SL::Config->new();
 
-if ( $ENV{SL_TEST_MODE} ) {
-    $ENV{SL_DEBUG} = 1;
-    print "Starting in TEST_MODE mode\n";
-}
+$|++;
 
-if ( $ENV{SL_DEBUG} ) {
+if ($ENV{SL_DEBUG}) {
     print "Starting in DEBUG mode\n";
+    $config->sl_apache_loglevel('debug');
 }
 
-
-# FIll out the httpd.conf
-my $httpd_conf  = "httpd_$server.conf";
-my $conf_dir    = sprintf( "%s/conf", $config->sl_app_root );
-my $conf_tmpl   = sprintf( "%s/$httpd_conf.tmpl", $conf_dir );
-my $tmpl_out    = sprintf( "%s/$httpd_conf", $conf_dir );
-my %tmpl_config = ( ABSOLUTE => 1, INCLUDE_PATH => $conf_dir . '/' );
-my $template    = Template->new( \%tmpl_config ) || die $Template::ERROR, "\n";
-$template->process( $conf_tmpl, { cfg => $config }, $tmpl_out )
+# Fill out the httpd.conf
+mkdir($config->sl_root . '/' . $_) for qw( logs tmp );
+my $conf_tmpl   = sprintf("%s/conf/httpd.conf.tmpl", $config->sl_root);
+my $tmpl_out    = sprintf("%s/tmp/httpd.conf", $config->sl_root);
+my %tmpl_config = (ABSOLUTE => 1);
+my $template    = Template->new(\%tmpl_config) || die $Template::ERROR, "\n";
+$template->process($conf_tmpl, { cfg => $config }, $tmpl_out)
   || die $template->error, "\n";
 
 $|++;
 
-my $attr = "sl_$server\_root";
-my $cmd = sprintf( "%s/bin/httpd", $config->$attr );
-
-$cmd .= "-X " if ( $config->sl_debug );
-
-$cmd .= sprintf( " -f %s/$httpd_conf -k start", $conf_dir );
+my $cmd .= sprintf("%s/bin/httpd -f %s -k start", $config->sl_root, $tmpl_out );
 print "Starting with command: $cmd\n";
 my $started = `$cmd`;
 print $started;

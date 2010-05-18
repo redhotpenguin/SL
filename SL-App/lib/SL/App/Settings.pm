@@ -160,6 +160,10 @@ sub dispatch_account {
 
         my $results = Data::FormValidator->check( $req, \%profile );
 
+        $r->log->debug( "$$ form errors:" . Data::Dumper::Dumper($results) )
+              if DEBUG;
+
+
         if ( $results->has_missing or $results->has_invalid ) {
             my $errors = $self->SUPER::_results_to_errors($results);
 
