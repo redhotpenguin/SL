@@ -9,7 +9,6 @@ WriteMakefile(
     NAME         => 'SL-Apache2-Search',
     VERSION_FROM => 'lib/SL/Apache2/Search.pm',
     PREREQ_PM    => {
-	'Mouse' => 0,
 	'Apache2::Connection::XForwardedFor' => 0.02,
         'SL::Search'                         => 0.01,
         'HTML::Template'                     => 2.9,
