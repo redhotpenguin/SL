@@ -52,6 +52,9 @@ our %Vhosts = (
             max_pages  => 1
         ),
         search_logo => 'http://s.slwifi.com/images/logos/sl_logo_small.png',
+        citygrid_api_key => 'xt8fua382xpg6sdt3zwynuvq',
+        citygrid_where  => '94109',
+        citygrid_publisher => 'slnetworks',
     },
 
     'search.urbanwireless.net' => {
@@ -60,13 +63,20 @@ our %Vhosts = (
         gsearch_referrer => 'http://www.urbanwireless.net/tos.html',
         gsearch_key =>
 'ABQIAAAAt99bvP994xq9YNIdB2-NFxT1C8xMKBm2uaMFjGyMDlpu1AwWNxR6u5j0td4nhB0zNeALaEIHJPB3QQ',
+
         chitika_id     => 'urbanwireless',
+
         viglink_apikey => '1ce7984ceec563945297aa68b7fbed11',
+
         linkshare_api =>
           'ece9b8630351548eaf66fade91653f9d05826e7052a4be7e1acec82c62d3931d',
-        search_logo =>
+
+          search_logo =>
 'http://www.urbanwireless.net/wp-content/themes/urban-view/images/urbanweblogo.png',
-        citygrid_apikey => 'xt8fua382xpg6sdt3zwynuvq',
+
+        citygrid_api_key => 'ba87j9x45p3jc4fvb8yxgag9',
+        citygrid_where  => '72099',
+        citygrid_publisher => 'urbanwireless',
     },
 );
 
