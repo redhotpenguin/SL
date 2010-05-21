@@ -25,7 +25,8 @@ use SL::Search ();
 use HTML::Entities ();
 use HTML::Template ();
 use Data::Dumper qw(Dumper);
-use RHP::Timer ();
+use RHP::Timer                   ();
+use WebService::CityGrid::Search ();
 
 use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
@@ -54,9 +55,11 @@ sub handler {
 
     # figure out what vhost we are
     my $hostname = $r->hostname;
-    $r->log->debug("handling host $hostname, client " . $r->connection->remote_ip) if DEBUG;
+    $r->log->debug(
+        "handling host $hostname, client " . $r->connection->remote_ip )
+      if DEBUG;
 
-    if ($hostname eq 'app.silverliningnetworks.com') {
+    if ( $hostname eq 'app.silverliningnetworks.com' ) {
 
         # redirect this app server request
         $r->headers_out->set( Location => "https://$hostname/" );
@@ -67,8 +70,8 @@ sub handler {
       || SL::Search->default_vhost;
 
     my @search_results;
-    my $q = $req->param('q');
-    my $start = $req->param('start') || 0;
+    my $q        = $req->param('q');
+    my $start    = $req->param('start') || 0;
     my $Template = HTML::Template->new(%Template_args);
 
     if ( defined $q && ( $q ne '' ) ) {
@@ -103,7 +106,35 @@ sub handler {
 
         $r->log->debug( Dumper($search_results) ) if VERBOSE_DEBUG;
 
+        # now ping citysearch
+        my $cg = WebService::CityGrid::Search->new(
+            api_key   => $search_vhost->{citygrid_api_key},
+            publisher => $search_vhost->{citygrid_publisher}
+        );
+        my $cg_results = $cg->query(
+            {
+                mode  => 'locations',
+                where => $search_vhost->{citygrid_where},
+                what  => URI::Escape::uri_escape($q)
+            }
+        );
+        my $i = 0;
+        my @refined;
+        foreach my $cg_result ( @{$cg_results} ) {
+            next unless $cg_result->tagline;
+            last if ++$i == 3;
+            push @refined, $cg_result;
+        }
+
+        if (@refined) {
+            $Template->param( CG_ADS => \@refined );
+        }
+
         $q = HTML::Entities::encode_numeric($q);
+
+        # grab some ads - FUCK YOU AMAZON
+        #my $amazon_ads = $search_vhost->amazon_ads($q);
+        #$Template->param( AMAZON_ADS => $amazon_ads ) if $amazon_ads;
 
         $r->log->debug("Start is $start");
         my $plus_q = $q;
@@ -149,7 +180,8 @@ sub handler {
 
         $Template->param( NUMBERS        => \@numbers );
         $Template->param( SEARCH_RESULTS => $search_results );
-        my $Chitika_id = $search_vhost->{chitika_id};
+
+        my $Chitika_id    = $search_vhost->{chitika_id};
         my $clicksor_code = <<CLICKSOR_CODE;
 <script type="text/javascript">
 clicksor_layer_border_color = '';
@@ -161,7 +193,7 @@ clicksor_text_link_color = '#290cff'; clicksor_enable_text_link = true;
 <noscript><a href="http://www.bannercenter.net">web banner design</a></noscript>
 CLICKSOR_CODE
 
-        my $topadcode = <<"TOPADCODE";
+        my $chitika_top = <<"TOPADCODE";
 <script type="text/javascript">
 ch_client = "$Chitika_id";
 ch_type = "mpu";
@@ -181,7 +213,7 @@ ch_query = ch_queries[ch_selected];
 </script>
 TOPADCODE
 
-        $Template->param( TOPADCODE => $topadcode );
+#        $Template->param( CHITIKA_TOP => $chitika_top );
 
         my $sideadcode = <<"SIDEADCODE";
 <script type="text/javascript">
@@ -210,6 +242,7 @@ SIDEADCODE
     $Template->param( ACCOUNT_NAME    => $search_vhost->{account_name} );
 
     $Template->param( STATIC_HREF => 'http://s.slwifi.com' );
+    $Template->param( SEARCH_LOGO => $search_vhost->{search_logo} );
 
     $r->content_type('text/html; charset=UTF-8');
 

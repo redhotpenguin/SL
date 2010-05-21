@@ -39,12 +39,16 @@ use APR::Table              ();
 # sl
 use SL::Config                         ();
 use SL::Apache2::Search                ();
+use SL::Search ();
 
 # cpan
 use Apache2::Request                   ();
 use Apache2::Connection::XForwardedFor ();
 use URI                                ();
 use HTTP::Headers::Util                ();
+use Net::Amazon  ();
+use HTML::Entities ();
+use HTML::Template ();
 
 
 # dtrace identified these files as being loaded per request, so load them at startup

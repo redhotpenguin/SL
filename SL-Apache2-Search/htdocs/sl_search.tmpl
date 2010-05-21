@@ -1,6 +1,6 @@
 <html>
 	<head>
-<title><TMPL_VAR NAME="QUERY"> - <TMPL_VAR NAME="ACCOUNT_NAME"> Google Search</title>
+<title><TMPL_IF NAME="QUERY"><TMPL_VAR NAME="QUERY"> - </TMPL_IF><TMPL_VAR NAME="ACCOUNT_NAME"> Search</title>
 <style>html{overflow-y:scroll}div,td,.n a,.n a:visited{color:#000}.ts td,.tc{padding:0}.ts,.tb{border-collapse:collapse}.ti{display:inline}.ti{display:inline-table}.hd{position:absolute;width:1px;height:1px;top:-1000em;overflow:hidden}.f{color:#000}.flc,a.fl{color:#000}a,.w,.q:visited,.q:active,.q,.b a,.b a:visited{color:#00f}a:visited{color:#639}a:active{color:#00f}.t{background:#fff;color:#000;padding:5px 1px}.bb{border-bottom:1px solid #369}.bt{border-top:1px solid #369}.j{width:34em}.h{color:#36c}.i{color:#000}.a{color:green}.z{display:none}div.n{margin-top:20px}.n a,.n .i{font-size:10pt}.n .i,.b a{font-weight:bold}#navbar a{display:block}.std{font-size:82%}.xsm{font-size:67%}#np,#nn,.nr,#logo span,.ch{cursor:pointer;cursor:hand}.ta{padding:3px 3px 3px 5px}#tpa2,#tpa3,#tpa4{padding-top:9px}#guser{font-size:84%;padding:0 0 4px;text-align:right}a.gb1,a.gb2,a.gb3,.link{color:#00f!important}.sl,.r{display:inline;font-weight:normal;margin:0}.sl{font-size:84%}.r{font-size:100%}.e{margin:.75em 0}.sm{display:block;margin:0;margin-left:40px}.slk td{padding-top:5px;padding-left:40px;vertical-align:top;font-size:84%}.slk div{text-indent:-10px;padding-left:10px}.csb,.n div,#logo span,.ss,#rptglbl{background:url(<TMPL_VAR NAME="STATIC_HREF">/images/search/google/nav_logo4.png) no-repeat;overflow:hidden}.csb,.n div,#logo span{background-position:0 0;height:26px}.n .nr{background-position:-60px 0;width:16px}#np{width:44px}#nf{background-position:-26px 0;width:18px}#nc{background-position:-44px 0;width:16px}#nn{margin-right:34px;width:66px}#nl{width:42px}#nn,#nl{background-position:-76px 0}#logo{display:block;height:52px;margin:13px 0 7px;overflow:hidden;position:relative;width:150px}#logo span{background-position:0 -26px;height:100%;left:0;position:absolute;top:0;width:100%}.ss{background-position:0 -87px;display:block;left:0;overflow:hidden;position:absolute;top:0}.cps{height:18px;overflow:hidden;width:114px}em{font-weight:bold;font-style:normal}#cnt{max-width:80em;clear:both}body,td,div,.p,a{font-family:arial,sans-serif}.g{margin:1em 0}#sd{font-size:84%;font-weight:bold}#ap{font-size:64%}</style>
 
 
@@ -28,7 +28,7 @@ function ga(o,e) {if (document.getElementById) {var a = o.id.substring(1); var p
 <div align="left">
 
 <table border=0 align="left"><tr><td width=1 nowrap>
-<img alt="" src="<TMPL_VAR NAME="STATIC_HREF">/images/search/google/custom_search_logo_sm.gif" height=30 border=0></td><td>
+<a href="<TMPL_VAR NAME="ACCOUNT_WEBSITE">"><img alt="<TMPL_VAR NAME="ACCOUNT_WEBSITE">" src="<TMPL_VAR NAME="SEARCH_LOGO">"></td><td>
 <table class=tb style=clear:left width=100%>
 <tr><form name=slsearch method=GET action=/search>
 <td class=tc valign=top></td>
@@ -38,8 +38,8 @@ function ga(o,e) {if (document.getElementById) {var a = o.id.substring(1); var p
 <tr><td class=tc nowrap>
 
 <input type=text name=q size=41 maxlength=2048 value="<TMPL_VAR NAME=QUERY>" title="Search"> 
-<input type=submit name="btnG" value="Search"></td>
-<td class=tc nowrap width=100%><span id=ap></span></td></tr>
+<input type=submit name="search" value="Search"></td>
+<td class=tc nowrap width=100%><span id=ap></span>&nbsp;&nbsp;<img src="<TMPL_VAR NAME="STATIC_HREF">/images/logos/powered_by_google.png" alt=Google border=0></td></tr>
 <tr><td class=tc colspan=2><font size=-1> Search the Web from the <a href="<TMPL_VAR NAME="ACCOUNT_WEBSITE">"><TMPL_VAR NAME="ACCOUNT_NAME"></a> network.</td></tr>
 </table></td></tr>
 </form>
@@ -51,20 +51,49 @@ function ga(o,e) {if (document.getElementById) {var a = o.id.substring(1); var p
 <TMPL_IF NAME="SEARCH_RESULTS">
 
 
-<TMPL_IF NAME="TOPADCODE">
 <!-- begin top ad bar -->
 
-<table cellpadding=0 width=100%>
-	<tr><td><table width=100% border=0 cellpadding=2 cellspacing=0></table>
+<table cellpadding=10 width=100% bgcolor="#fff8e7">
+    <tr><td>
 
 <!-- begin top ads -->
-<TMPL_VAR NAME="TOPADCODE">
+
+<span class="std"><a href="<TMPL_VAR NAME="ACCOUNT_WEBSITE">" class=l>Advertise Here on Highly Targeted Search Results</a></span>
+
+<TMPL_IF NAME="CG_ADS">
+<hr>
+<!-- CityGrid -->
+<TMPL_LOOP NAME="CG_ADS">
+    <div class=g><h2 class=r><a href="<TMPL_VAR NAME="PROFILE">" class=l><TMPL_VAR NAME="NAME"></a></h2> - <span class="std"><TMPL_VAR NAME="TAGLINE"></span></div>
+</TMPL_LOOP>
+<img src="<TMPL_VAR NAME="STATIC_HREF">/images/logos/Citysearch.gif">
+</TMPL_IF>
+
+
+<TMPL_IF NAME="AMAZON_ADS">
+<hr>
+<!-- Amazon -->
+<TMPL_LOOP NAME="AMAZON_ADS">
+    <div class=g>
+        <h2 class=r><a href="<TMPL_VAR NAME="HREF">" class=l><TMPL_VAR NAME="NAME"></a></h2><span class=a>&nbsp;&nbsp;<TMPL_VAR NAME="PRICE"></span>
+        <table border=0 cellpadding=0 cellspacing=0>
+        <tr><td class="j"><div class=std><TMPL_VAR NAME="DESCRIPTION"></div></td></tr>
+        </table>
+    </div>
+</TMPL_LOOP>
+</TMPL_IF>
+
+
+<TMPL_IF NAME="CHITIKA_TOP">
+<hr>
+<!-- Chitika -->
+<TMPL_VAR NAME="CHITIKA_TOP">
+</TMPL_IF>
 
 	</td></tr>
 </table>
 
 <!-- end top ads -->
-</TMPL_IF>
 
 <table border=0 cellpadding=0 cellspacing=0 width=100% class="t bb">
 	<tr><td nowrap></td><td align=right nowrap><font size=-1>Results <b><TMPL_VAR NAME="START_PARAM"></b> - <b><TMPL_VAR NAME="FINISH"></b> for <b>'<TMPL_VAR NAME="QUERY">'</b>. (<b><TMPL_VAR NAME="QUERY_TIME"></b> seconds)&nbsp;</font></td></tr>
@@ -90,8 +119,7 @@ function ga(o,e) {if (document.getElementById) {var a = o.id.substring(1); var p
 
 <div id=res><div><ol style="margin:0;padding:0;list-style:none">
 
-<table align=right><tr><td align=left><img src="<TMPL_VAR NAME="STATIC_HREF">/images/search/google/poweredby_FFFFFF.gif" alt=Google border=0><br>
-<span style="font-size:9px;font-weight:bolder;color:#000000">&nbsp;Custom Search</span></td></tr></table>
+<table align=right><tr><td align=left><br></td></tr></table>
 
 <TMPL_LOOP NAME="SEARCH_RESULTS">
 
@@ -144,7 +172,7 @@ function ga(o,e) {if (document.getElementById) {var a = o.id.substring(1); var p
 <table border=0 cellpadding=0 cellspacing=0 align=center><form method=GET action=/search>
 
 <tr><td nowrap>
-<font size=-1><input type=text name=q size=41 maxlength=2048 value="<TMPL_VAR NAME="QUERY">" title="Search"> <input type=submit name=btnG value="Search"></font></td></tr>
+<font size=-1><input type=text name=q size=41 maxlength=2048 value="<TMPL_VAR NAME="QUERY">" title="Search"> <input type=submit name=search value="Search"></font></td></tr>
 
 </form>
 </table>
