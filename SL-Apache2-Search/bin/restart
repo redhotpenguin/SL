@@ -1,0 +1,4 @@
+SL_PID_FILE=./tmp/sl.pid
+PID=`cat $SL_PID_FILE`
+echo "killing pid $PID and restarting"
+kill "$PID" && sleep 3 && ./bin/sl_search
