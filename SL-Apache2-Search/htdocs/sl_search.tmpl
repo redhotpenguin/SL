@@ -28,7 +28,7 @@ function ga(o,e) {if (document.getElementById) {var a = o.id.substring(1); var p
 <div align="left">
 
 <table border=0 align="left"><tr><td width=1 nowrap>
-<a href="<TMPL_VAR NAME="ACCOUNT_WEBSITE">"><img alt="<TMPL_VAR NAME="ACCOUNT_WEBSITE">" src="<TMPL_VAR NAME="SEARCH_LOGO">"></td><td>
+<a href="<TMPL_VAR NAME="ACCOUNT_WEBSITE">"><img border="0" alt="<TMPL_VAR NAME="ACCOUNT_WEBSITE">" src="<TMPL_VAR NAME="SEARCH_LOGO">"></td><td>
 <table class=tb style=clear:left width=100%>
 <tr><form name=slsearch method=GET action=/search>
 <td class=tc valign=top></td>
@@ -39,7 +39,7 @@ function ga(o,e) {if (document.getElementById) {var a = o.id.substring(1); var p
 
 <input type=text name=q size=41 maxlength=2048 value="<TMPL_VAR NAME=QUERY>" title="Search"> 
 <input type=submit name="search" value="Search"></td>
-<td class=tc nowrap width=100%><span id=ap></span>&nbsp;&nbsp;<img src="<TMPL_VAR NAME="STATIC_HREF">/images/logos/powered_by_google.png" alt=Google border=0></td></tr>
+<td class=tc nowrap width=100%><span id=ap></span>&nbsp;&nbsp;</td></tr>
 <tr><td class=tc colspan=2><font size=-1> Search the Web from the <a href="<TMPL_VAR NAME="ACCOUNT_WEBSITE">"><TMPL_VAR NAME="ACCOUNT_NAME"></a> network.</td></tr>
 </table></td></tr>
 </form>
@@ -50,6 +50,8 @@ function ga(o,e) {if (document.getElementById) {var a = o.id.substring(1); var p
 
 <TMPL_IF NAME="SEARCH_RESULTS">
 
+<span class="std"><a href="<TMPL_VAR NAME="ACCOUNT_WEBSITE">" class=l>Advertise Here on Highly Targeted Search Results</a></span>
+<hr>
 
 <!-- begin top ad bar -->
 
@@ -58,10 +60,8 @@ function ga(o,e) {if (document.getElementById) {var a = o.id.substring(1); var p
 
 <!-- begin top ads -->
 
-<span class="std"><a href="<TMPL_VAR NAME="ACCOUNT_WEBSITE">" class=l>Advertise Here on Highly Targeted Search Results</a></span>
 
 <TMPL_IF NAME="CG_ADS">
-<hr>
 <!-- CityGrid -->
 <TMPL_LOOP NAME="CG_ADS">
     <div class=g><h2 class=r><a href="<TMPL_VAR NAME="PROFILE">" class=l><TMPL_VAR NAME="NAME"></a></h2> - <span class="std"><TMPL_VAR NAME="TAGLINE"></span></div>
@@ -93,10 +93,11 @@ function ga(o,e) {if (document.getElementById) {var a = o.id.substring(1); var p
 	</td></tr>
 </table>
 
+<hr>
 <!-- end top ads -->
 
 <table border=0 cellpadding=0 cellspacing=0 width=100% class="t bb">
-	<tr><td nowrap></td><td align=right nowrap><font size=-1>Results <b><TMPL_VAR NAME="START_PARAM"></b> - <b><TMPL_VAR NAME="FINISH"></b> for <b>'<TMPL_VAR NAME="QUERY">'</b>. (<b><TMPL_VAR NAME="QUERY_TIME"></b> seconds)&nbsp;</font></td></tr>
+	<tr><td nowrap></td><td align=right nowrap><font size=-1>Results <b><TMPL_VAR NAME="START_PARAM"></b> - <b><TMPL_VAR NAME="FINISH"></b> for <b>'<TMPL_VAR NAME="QUERY">'</b>. (<b><TMPL_VAR NAME="QUERY_TIME"></b> seconds)&nbsp;</font><img src="<TMPL_VAR NAME="STATIC_HREF">/images/logos/powered_by_google.png" alt=Google border=0></td></tr>
 </table>
 
 
