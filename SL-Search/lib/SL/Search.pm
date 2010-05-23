@@ -25,6 +25,43 @@ use Net::Amazon::Response::All ();
 use constant DEBUG         => $ENV{SL_SEARCH_DEBUG}  || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 
+my $sl_adserver_side = <<'ADSIDE';
+<script type='text/javascript'><!--//<![CDATA[
+    var m3_u = (location.protocol=='https:'?'https://ads.slwifi.com/www/delivery/ajs.php':'http://ads.slwifi.com/www/delivery/ajs.php');
+    var m3_r = Math.floor(Math.random()*99999999999);
+    if (!document.MAX_used) document.MAX_used = ',';
+    document.write ("<scr"+"ipt type='text/javascript' src='"+m3_u);
+    document.write ("?zoneid=43");
+    document.write ('&amp;cb=' + m3_r);
+    if (document.MAX_used != ',') document.write ("&amp;exclude=" + document.MAX_used);
+    document.write (document.charset ? '&amp;charset='+document.charset : (document.characterSet ? '&amp;charset='+document.characterSet : ''));
+    document.write ("&amp;loc=" + escape(window.location));
+    if (document.referrer) document.write ("&amp;referer=" + escape(document.referrer));
+    if (document.context) document.write ("&context=" + escape(document.context));
+    if (document.mmm_fo) document.write ("&amp;mmm_fo=1");
+    document.write ("'><\/scr"+"ipt>");
+    //]]>--></script><noscript><a href='http://ads.slwifi.com/www/delivery/ck.php?n=ab406678&amp;cb=INSERT_RANDOM_NUMBER_HERE' target='_blank'><img src='http://ads.slwifi.com/www/delivery/avw.php?zoneid=43&amp;n=ab406678' border='0' alt='' /></a></noscript>
+ADSIDE
+
+my $uw_adserver_side = <<'ADSIDE';
+<script type='text/javascript'><!--//<![CDATA[
+    var m3_u = (location.protocol=='https:'?'https://www.urbanwireless.net/adserver/www/delivery/ajs.php':'http://www.urbanwireless.net/adserver/www/delivery/ajs.php');
+    var m3_r = Math.floor(Math.random()*99999999999);
+    if (!document.MAX_used) document.MAX_used = ',';
+    document.write ("<scr"+"ipt type='text/javascript' src='"+m3_u);
+    document.write ("?zoneid=60");
+    document.write ('&amp;cb=' + m3_r);
+    if (document.MAX_used != ',') document.write ("&amp;exclude=" + document.MAX_used);
+    document.write (document.charset ? '&amp;charset='+document.charset : (document.characterSet ? '&amp;charset='+document.characterSet : ''));
+    document.write ("&amp;loc=" + escape(window.location));
+    if (document.referrer) document.write ("&amp;referer=" + escape(document.referrer));
+    if (document.context) document.write ("&context=" + escape(document.context));
+    if (document.mmm_fo) document.write ("&amp;mmm_fo=1");
+    document.write ("'><\/scr"+"ipt>");
+    //]]>--></script><noscript><a href='http://www.urbanwireless.net/adserver/www/delivery/ck.php?n=a945d503&amp;cb=5013710012' target='_blank'><img src='http://www.urbanwireless.net/adserver/www/delivery/avw.php?zoneid=60&amp;cb=5013710012&amp;n=a945d503' border='0' alt='' /></a></noscript>
+ADSIDE
+    
+
 # temp bullshit
 our %Vhosts = (
     'search.slwifi.com' => {
@@ -55,6 +92,7 @@ our %Vhosts = (
         citygrid_api_key => 'xt8fua382xpg6sdt3zwynuvq',
         citygrid_where  => '94109',
         citygrid_publisher => 'slnetworks',
+        adserver_side => $sl_adserver_side,
     },
 
     'search.urbanwireless.net' => {
@@ -77,6 +115,7 @@ our %Vhosts = (
         citygrid_api_key => 'ba87j9x45p3jc4fvb8yxgag9',
         citygrid_where  => '72099',
         citygrid_publisher => 'urbanwireless',
+        adserver_side => $uw_adserver_side,
     },
 );
 
