@@ -235,7 +235,7 @@ ch_query = ch_queries[ch_selected];
 </script>
 SIDEADCODE
 
-        $Template->param( SIDEADCODE => $sideadcode );
+        $Template->param( SIDEADCODE => $search_vhost->{adserver_side} );
     }
 
     $Template->param( ACCOUNT_WEBSITE => $search_vhost->{account_website} );
