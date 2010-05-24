@@ -36,6 +36,8 @@ use Apache2::URI            ();
 use Apache2::Const          ();
 use Apache2::Filter         ();
 use APR::Table              ();
+use Apache2::Connection::XForwardedFor ();
+use Apache2::Connection::SkipDummy ();
 
 use SL::Config ();
 use SL::DNS    ();
@@ -43,10 +45,6 @@ use SL::Static ();
 use SL::Proxy  ();
 use SL::Proxy::Cache ();
 use SL::Proxy::Search               ();
-use SL::Proxy::Search::Chitika      ();
-use SL::Proxy::Search::FixupHandler ();
-use SL::Proxy::Search::TransHandler ();
-use SL::Proxy::Search::PostReadRequestHandler ();
 
 use URI ();
 use HTTP::Headers::Util ();
@@ -59,34 +57,6 @@ BEGIN {
     require 'unicore/Canonical.pl';
     require 'unicore/To/Fold.pl';
     require 'unicore/lib/gc_sc/SpacePer.pl';
-}
-
-our $iptables = '/sbin/iptables';
-our $ebtables = '/sbin/ebtables';
-
-print "flushing\n";
-`$iptables -t nat -F`;
-`$ebtables -t broute -F`;
-
-# setup the firewall rules
-`$iptables -t nat -A PREROUTING -i br0 -p tcp -m tcp --dport 8135 -j DNAT --to-destination :80`;
-
-# grab google ips and setup the firewall
-print "grabbing ips\n";
-foreach my $hostname ( qw( www.google.com mm.chitika.net
-			   searchnet.chitika.net
-			   abtesting.chitika.net ) ) {
-
-    my @ips = SL::DNS->resolve({hostname => $hostname});
-
-    foreach my $ip (@ips) {
-
-	    print "setting ip $ip\n";
-	    `$ebtables -t broute -A BROUTING -p IPv4 -i eth1 --ip-dst $ip -j redirect --redirect-target ACCEPT`;
-
-	    `$iptables -t nat -A PREROUTING -d $ip -i br0 -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 9999`;
-    }
-
 }
 	
 print STDOUT "Startup.pl finished...\n";

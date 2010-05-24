@@ -1,0 +1,63 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings FATAL => 'all';
+
+use SL::Config;
+use SL::DNS;
+
+my $Config = SL::Config->new();
+
+$|++;
+
+if ($ENV{SL_DEBUG}) {
+    print "Starting in DEBUG mode\n";
+}
+
+# look for active httpds
+
+my $is_active = `pgrep httpd`;
+if ($is_active) { 
+
+    my $iptables_active = sprintf($Config->sl_iptables_active, $Config->sl_iptables);
+    my $ip_out = `$iptables_active`;
+
+    my $ebtables_active = sprintf($Config->sl_ebtables_active, $Config->sl_ebtables);
+    my $eb_out = `$ebtables_active`;
+
+    foreach my $host ( $Config->sl_search_hosts ) {
+
+         print "resolving host $host\n";
+         my @ips = SL::DNS->resolve({hostname => $host});
+
+         foreach my $ip (@ips) {
+
+            unless ($ip_out =~ m/$ip/) {
+
+                my $iptables_add = sprintf($Config->sl_iptables_add, $Config->sl_iptables, $ip);
+                `$iptables_add`;
+                print "adding iptables rule for $ip\n";
+            }
+
+            unless ($eb_out =~ m/$ip/) {
+
+                my $ebtables_add = sprintf($Config->sl_ebtables_add, $Config->sl_ebtables, $ip);
+                `$ebtables_add`;
+                print "adding ebtables rule for $ip\n";
+            }
+        }
+    }
+
+
+} else {
+
+    print "no httpds, flushing firewall\n";
+    my $iptables_flush = sprintf($Config->sl_iptables_flush, $Config->sl_iptables);
+    `$iptables_flush`;
+
+    my $ebtables_flush = sprintf($Config->sl_ebtables_flush, $Config->sl_ebtables);
+    `$ebtables_flush`;
+
+}
+
+1;

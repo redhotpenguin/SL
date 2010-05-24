@@ -2,15 +2,11 @@ bin/sl_perlbal_watch
 bin/sl_httpd_watch
 bin/sl_proxy
 bin/restart
-etc/httpd.conf.tmpl
-etc/mime.types
-etc/sl.conf
-etc/startup_proxy.pl
+conf/httpd.conf.tmpl
+conf/mime.types
+conf/sl.conf
+conf/startup_proxy.pl
 Makefile.PL
 MANIFEST
 META.yml                                 Module meta-data (added by MakeMaker)
-htdocs/sl_search.tmpl
 lib/SL/Proxy/Search.pm
-lib/SL/Proxy/Search/Chitika.pm
-lib/SL/Proxy/Search/PostReadRequestHandler.pm
-lib/SL/Proxy/Search/TransHandler.pm
