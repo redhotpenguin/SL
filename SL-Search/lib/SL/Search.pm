@@ -109,11 +109,10 @@ our %Vhosts = (
         linkshare_api =>
           'ece9b8630351548eaf66fade91653f9d05826e7052a4be7e1acec82c62d3931d',
 
-          search_logo =>
-'http://www.urbanwireless.net/wp-content/themes/urban-view/images/urbanweblogo.png',
+        search_logo => 'http://s.slwifi.com/images/logos/urbanwireless.png',
 
         citygrid_api_key => 'ba87j9x45p3jc4fvb8yxgag9',
-        citygrid_where  => '72099',
+        citygrid_where  => '72201',
         citygrid_publisher => 'urbanwireless',
         adserver_side => $uw_adserver_side,
     },
@@ -206,13 +205,14 @@ sub search {
         if ( defined $hash{'content'} ) {
             my $content = $hash{'content'};
 
-            #$hash{'content'} = Encode::decode_utf8( $hash{'content'} );
-            $hash{'content'} = $self->force_utf8( $hash{'content'} );
+            $hash{'content'} = eval { $self->force_utf8( $hash{'content'} ) };
+	    warn($@) if ($@ && DEBUG);
         }
 
         my $title = $hash{'title'};
         if ( defined $hash{'title'} ) {
-            $hash{'title'} = $self->force_utf8( $hash{'title'} );
+            $hash{'title'} = eval { $self->force_utf8( $hash{'title'} ) };
+	    warn($@) if ($@ && DEBUG);
         }
 
         unless ( $hash{'visibleUrl'} =~ m{/} ) {
@@ -244,11 +244,17 @@ sub force_utf8 {
 
     if ( ref( Encode::Guess::guess_encoding($string) ) ) {
 
-        $string = Encode::Guess::decode( "Guess", $string, 0 );
+        $string = eval { Encode::Guess::decode( "Guess", $string, 0 ) };
+	if ($@) {
+		die("could not guess decode for $string");
+	}
     }
     else {
 
-        $string = Encode::decode( 'utf8', $string );
+        $string = Encode::decode( 'utf8', $string, 0 );
+	if ($@) {
+		die("could not decode utf8 for $string");
+	}
     }
 
     return $string;
