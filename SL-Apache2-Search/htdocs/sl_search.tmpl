@@ -29,7 +29,7 @@
 <input type=text name=q size=41 maxlength=2048 value="<TMPL_VAR NAME=QUERY>" title="Search"> 
 <input type=submit name="search" value="Search"></td>
 <td class=tc nowrap width=100%><span id=ap></span>&nbsp;&nbsp;</td></tr>
-<tr><td class=tc colspan=2><font size=-1> Search the Web from the <a href="<TMPL_VAR NAME="ACCOUNT_WEBSITE">"><TMPL_VAR NAME="ACCOUNT_NAME"></a> network.</td></tr>
+<tr><td class=tc colspan=2><font size=-1> Search the Web from the <a href="<TMPL_VAR NAME="ACCOUNT_WEBSITE">"><TMPL_VAR NAME="ACCOUNT_NAME"></a> network.  Safe search is <strong>enabled</strong>.</td></tr>
 </table></td></tr>
 </form>
 
@@ -39,7 +39,6 @@
 
 <TMPL_IF NAME="SEARCH_RESULTS">
 
-<span class="std"><a href="<TMPL_VAR NAME="ACCOUNT_WEBSITE">" class=l>Advertise Here on Highly Targeted Search Results</a></span>
 <hr>
 
 <!-- begin top ad bar -->
@@ -65,7 +64,7 @@
 <!-- end top ads -->
 
 <table border=0 cellpadding=0 cellspacing=0 width=100% class="t">
-	<tr><td nowrap><img src="<TMPL_VAR NAME="STATIC_HREF">/images/logos/powered_by_google.png" alt=Google border=0></td><td align=left nowrap><font size=-1>Results <b><TMPL_VAR NAME="START_PARAM"></b> - <b><TMPL_VAR NAME="FINISH"></b> for <b>'<TMPL_VAR NAME="QUERY">'</b>. (<b><TMPL_VAR NAME="QUERY_TIME"></b> seconds)</font></td></tr>
+	<tr><td nowrap><img src="<TMPL_VAR NAME="STATIC_HREF">/images/logos/powered_by_google.png" alt=Google border=0></td><td align=left nowrap><font size=-1>Results <b><TMPL_VAR NAME="START_PARAM"></b> - <b><TMPL_VAR NAME="FINISH"></b> for <b>'<TMPL_VAR NAME="QUERY">'</b>. (<b><TMPL_VAR NAME="QUERY_TIME"></b> seconds)&nbsp;&nbsp;<a href="http://images.google.com/images?q=<TMPL_VAR NAME="PLUSQUERY">">Images</a>&nbsp;&nbsp;<a href="http://news.google.com/news/search?q=<TMPL_VAR NAME="PLUSQUERY">">News</a>&nbsp;&nbsp;<a href="http://groups.google.com/groups/search?q=<TMPL_VAR NAME="PLUSQUERY">">Groups</a>&nbsp;&nbsp;<a href="http://maps.google.com/maps?q=<TMPL_VAR NAME="PLUSQUERY">">Maps</a></font></td></tr>
 </table>
 
 
@@ -80,6 +79,8 @@
 </td></tr>
 			<tr height=7><td><img width=1 height=1 alt=""></td></tr>
 	<tr><td height=25 align=center>&nbsp;</td></tr>
+
+
 </table>
 <!-- end right side ad bar -->
 </TMPL_IF>
@@ -149,4 +150,7 @@
 </center>
 
 </TMPL_IF>
+<hr>
+<p style="text-align: center;"><font size="-1"><a href="mailto:support@slwifi.com">Feedback</a> regarding this service</a></font></p>
+<p style="text-align: center;"><font size="-1">Third party provider data displayed on the <a href="<TMPL_VAR NAME="ACCOUNT_WEBSITE">"><TMPL_VAR NAME="ACCOUNT_NAME"></a> network is displayed in compliance with <br /> provider terms of service to provide a safe browsing experience for all ages.</font></p>
 </body></html>
