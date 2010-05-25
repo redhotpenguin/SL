@@ -1,0 +1,6 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/WebService-Yahoo-BOSS.t
+lib/WebService/Yahoo/BOSS.pm
