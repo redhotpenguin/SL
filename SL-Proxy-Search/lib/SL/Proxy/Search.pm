@@ -42,6 +42,7 @@ use Data::Dumper qw(Dumper);
 our $Config = SL::Config->new();
 our $Cache  = SL::Proxy::Cache->new();
 
+our @Search_hosts = $Config->sl_search_hosts;
 
 our $TIMER;
 if (TIMING) {
@@ -58,19 +59,21 @@ sub handler {
     my $referer = $r->headers_in->{'referer'} || 'no_referer';
     $r->pnotes( 'referer' => $referer );
 
-    return proxy($r) unless ($r->hostname eq 'www.google.com')
-        or ($r->hostname eq 'search.yahoo.com')
-        or ($r->hostname eq 'www.bing.com');
-
+    return proxy($r) unless (grep { $_ eq $r->hostname }  @Search_hosts);
     my $req = Apache2::Request->new($r);
 
     # search response handler
-    if (substr($r->uri, 1, 7) eq 'search') {
+    if (substr($r->uri, 1, 6) eq 'search') {
 
+        my $q; 
+        if ($r->hostname eq 'search.yahoo.com') {
+            $q = $req->param('p');
 
-        my $uri = $r->unparsed_uri;
-        my $q = $req->param('q');
-        $q =~ s/ /\+/g;
+        } else {
+
+            $q = $req->param('q');
+            $q =~ s/ /\+/g;
+        }
 
         my $location = $Config->sl_search_href . 'q=' . $q;
         $r->headers_out->set( Location => $location );

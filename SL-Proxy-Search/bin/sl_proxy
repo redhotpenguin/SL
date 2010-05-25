@@ -43,7 +43,7 @@ if ($is_active) {
     my $iptables_flush = sprintf($Config->sl_iptables_flush, $Config->sl_iptables);
     `$iptables_flush`;
 
-    my $ebtables_flush = sprintf($Config->sl_iptables_flush, $Config->sl_iptables);
+    my $ebtables_flush = sprintf($Config->sl_ebtables_flush, $Config->sl_ebtables);
     `$ebtables_flush`;
 
     my @hosts = $Config->sl_search_hosts;

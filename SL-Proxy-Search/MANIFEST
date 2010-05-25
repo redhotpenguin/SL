@@ -1,5 +1,6 @@
 bin/sl_perlbal_watch
 bin/sl_httpd_watch
+bin/sl_iptables
 bin/sl_proxy
 bin/restart
 conf/httpd.conf.tmpl
