@@ -181,7 +181,6 @@ sub handler {
         $Template->param( NUMBERS        => \@numbers );
         $Template->param( SEARCH_RESULTS => $search_results );
 
-        my $Chitika_id    = $search_vhost->{chitika_id};
         my $clicksor_code = <<CLICKSOR_CODE;
 <script type="text/javascript">
 clicksor_layer_border_color = '';
@@ -193,47 +192,6 @@ clicksor_text_link_color = '#290cff'; clicksor_enable_text_link = true;
 <noscript><a href="http://www.bannercenter.net">web banner design</a></noscript>
 CLICKSOR_CODE
 
-        my $chitika_top = <<"TOPADCODE";
-<script type="text/javascript">
-ch_client = "$Chitika_id";
-ch_type = "mpu";
-ch_width = 728;
-ch_height = 90;
-ch_non_contextual = 4;
-ch_vertical ="premium";
-ch_backfill = 1;
-ch_sid = "Chitika Premium";
-var ch_queries = new Array( );
-var ch_selected=Math.floor((Math.random()*ch_queries.length));
-if ( ch_selected < ch_queries.length ) {
-ch_query = ch_queries[ch_selected];
-}
-</script>
-<script  src="http://scripts.chitika.net/eminimalls/amm.js" type="text/javascript">
-</script>
-TOPADCODE
-
-#        $Template->param( CHITIKA_TOP => $chitika_top );
-
-        my $sideadcode = <<"SIDEADCODE";
-<script type="text/javascript">
-ch_client = "$Chitika_id";
-ch_type = "mpu";
-ch_width = 160;
-ch_height = 600;
-ch_backfill = 1;
-ch_non_contextual = 4;
-ch_vertical ="premium";
-ch_sid = "Chitika Premium";
-var ch_queries = new Array( );
-var ch_selected=Math.floor((Math.random()*ch_queries.length));
-if ( ch_selected < ch_queries.length ) {
-ch_query = ch_queries[ch_selected];
-}
-</script>
-<script  src="http://scripts.chitika.net/eminimalls/amm.js" type="text/javascript">
-</script>
-SIDEADCODE
 
         $Template->param( SIDEADCODE => $search_vhost->{adserver_side} );
     }
