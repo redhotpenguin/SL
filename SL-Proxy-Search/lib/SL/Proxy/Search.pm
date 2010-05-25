@@ -63,7 +63,7 @@ sub handler {
     my $req = Apache2::Request->new($r);
 
     # search response handler
-    if (substr($r->uri, 1, 6) eq 'search') {
+    if ((substr($r->uri, 1, 6) eq 'search') or ($r->uri eq '/m/search')) {
 
         my $q; 
         if ($r->hostname eq 'search.yahoo.com') {
