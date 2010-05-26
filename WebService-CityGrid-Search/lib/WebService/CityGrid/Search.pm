@@ -80,19 +80,24 @@ sub query {
     my @results;
     foreach my $loc (@locations) {
 
-        #warn("loc is " . $loc->toString);
+        warn("loc is " . $loc->toString);
         my $name = $loc->getElementsByTagName('name')->[0]->firstChild->data;
         warn("name is $name");
         my $tagline_element = $loc->getElementsByTagName('tagline')->[0];
+        my $img = $loc->getElementsByTagName('image')->[0];
         my %res_args        = (
             id   => $loc->getAttribute('id'),
             name => $loc->getElementsByTagName('name')->[0]->firstChild->data,
             profile =>
               $loc->getElementsByTagName('profile')->[0]->firstChild->data,
-        );
 
+          );
+
+        if ($img) {
+            $res_args{image} = $img->firstChild->data;
+        }
         if ($tagline_element) {
-            $res_args{tagline} = $tagline_element->firstChild->data,;
+            $res_args{tagline} = $tagline_element->firstChild->data;
         }
         my $result = WebService::CityGrid::Search::Result->new(%res_args);
 
@@ -143,6 +148,7 @@ has 'id'      => ( is => 'ro', isa => 'Int', required => 1 );
 has 'name'    => ( is => 'ro', isa => 'Str', required => 1 );
 has 'tagline' => ( is => 'ro', isa => 'Str', required => 0 );
 has 'profile' => ( is => 'ro', isa => 'Str', required => 1 );
+has 'image'   => ( is => 'ro', isa => 'Str', required => 0 );
 
 1;
 
