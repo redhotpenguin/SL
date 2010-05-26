@@ -80,11 +80,12 @@ sub query {
     my @results;
     foreach my $loc (@locations) {
 
-        warn("loc is " . $loc->toString);
+        #warn("loc is " . $loc->toString);
         my $name = $loc->getElementsByTagName('name')->[0]->firstChild->data;
-        warn("name is $name");
+        #warn("name is $name");
         my $tagline_element = $loc->getElementsByTagName('tagline')->[0];
         my $img = $loc->getElementsByTagName('image')->[0];
+        my $nbh = $loc->getElementsByTagName('neighborhood')->[0];
         my %res_args        = (
             id   => $loc->getAttribute('id'),
             name => $loc->getElementsByTagName('name')->[0]->firstChild->data,
@@ -93,6 +94,9 @@ sub query {
 
           );
 
+        if ($nbh) {
+            $res_args{neighborhood} = $nbh->firstChild->data;
+        }
         if ($img) {
             $res_args{image} = $img->firstChild->data;
         }
@@ -149,6 +153,8 @@ has 'name'    => ( is => 'ro', isa => 'Str', required => 1 );
 has 'tagline' => ( is => 'ro', isa => 'Str', required => 0 );
 has 'profile' => ( is => 'ro', isa => 'Str', required => 1 );
 has 'image'   => ( is => 'ro', isa => 'Str', required => 0 );
+has 'top_hit' => ( is => 'rw', isa => 'Int', required => 0 );
+has 'neighborhood' => ( is => 'rw', isa => 'Str', required => 0 );
 
 1;
 
