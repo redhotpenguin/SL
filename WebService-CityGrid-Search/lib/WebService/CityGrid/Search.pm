@@ -80,9 +80,7 @@ sub query {
     my @results;
     foreach my $loc (@locations) {
 
-        #warn("loc is " . $loc->toString);
         my $name = $loc->getElementsByTagName('name')->[0]->firstChild->data;
-        #warn("name is $name");
         my $tagline_element = $loc->getElementsByTagName('tagline')->[0];
         my $img = $loc->getElementsByTagName('image')->[0];
         my $nbh = $loc->getElementsByTagName('neighborhood')->[0];
@@ -94,7 +92,7 @@ sub query {
 
           );
 
-        if ($nbh) {
+        if ($nbh && $nbh->firstChild) {
             $res_args{neighborhood} = $nbh->firstChild->data;
         }
         if ($img) {
