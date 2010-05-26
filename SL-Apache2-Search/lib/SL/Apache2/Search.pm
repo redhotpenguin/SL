@@ -27,6 +27,7 @@ use HTML::Template ();
 use Data::Dumper qw(Dumper);
 use RHP::Timer                   ();
 use WebService::CityGrid::Search ();
+use Cache::Memcached ();
 
 use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
@@ -36,7 +37,8 @@ our $Config        = SL::Config->new;
 our $Filename      = $Config->sl_root . '/htdocs/sl_search.tmpl';
 our %Template_args = (
     filename          => $Filename,
-    die_on_bad_params => 0
+    die_on_bad_params => 0,
+    global_vars       => 1,
 );
 
 our $Fivehundred =
@@ -47,6 +49,8 @@ $Fivehundred = $Fivehundred->output;
 
 our $Timer       = RHP::Timer->new();
 our $Searchtimer = RHP::Timer->new();
+
+our $Memd = Cache::Memcached->new({ servers => [ '127.0.0.1:11211' ] });
 
 sub handler {
     my $r = shift;
@@ -107,34 +111,45 @@ sub handler {
         $r->log->debug( Dumper($search_results) ) if VERBOSE_DEBUG;
 
         # now ping citysearch
-        my $cg = WebService::CityGrid::Search->new(
-            api_key   => $search_vhost->{citygrid_api_key},
-            publisher => $search_vhost->{citygrid_publisher}
-        );
-        my $cg_results = $cg->query(
-            {
-                mode  => 'locations',
-                where => $search_vhost->{citygrid_where},
-                what  => URI::Escape::uri_escape($q)
-            }
-        );
-        my $i = 0;
-        my @refined;
-        foreach my $cg_result ( @{$cg_results} ) {
-            next unless $cg_result->tagline;
-            last if ++$i == 3;
-            push @refined, $cg_result;
-        }
+        my $last_search = $Memd->get('last_citygrid_searchtime') || 0;
 
-        if (@refined) {
-            $Template->param( CG_ADS => \@refined );
+        # hardcode to 1 search per second right now
+        my $time = time();
+        if ($time - $last_search > 0) {
+
+            # ok to run a new search
+            $Memd->set('last_citygrid_searchtime' => $time);
+            my $cg = WebService::CityGrid::Search->new(
+                api_key   => $search_vhost->{citygrid_api_key},
+                publisher => $search_vhost->{citygrid_publisher}
+            );
+            my $cg_results = $cg->query(
+                {
+                    mode  => 'locations',
+                    where => $search_vhost->{citygrid_where},
+                    what  => URI::Escape::uri_escape($q),
+                }
+            );
+            my $i = 0;
+            my @refined;
+            foreach my $cg_result ( @{$cg_results} ) {
+                next unless $cg_result->tagline;
+                next unless $cg_result->neighborhood;
+                last if ++$i == 3;
+
+                if ($i == 1) {
+                    $cg_result->top_hit(1);
+                }
+                push @refined, $cg_result;
+            }
+
+            if (@refined) {
+                $r->log->error(Dumper(\@refined));
+                $Template->param( CG_ADS => \@refined );
+            }
         }
 
         $q = HTML::Entities::encode_numeric($q);
-
-        # grab some ads - FUCK YOU AMAZON
-        #my $amazon_ads = $search_vhost->amazon_ads($q);
-        #$Template->param( AMAZON_ADS => $amazon_ads ) if $amazon_ads;
 
         $r->log->debug("Start is $start");
         my $plus_q = $q;
