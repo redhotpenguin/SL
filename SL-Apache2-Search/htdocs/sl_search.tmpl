@@ -45,17 +45,19 @@
 
 
 <TMPL_IF NAME="CG_ADS">
-<table cellpadding=10 width=100% bgcolor="#fff8e7">
-    <tr><td>
+<div style="width: 100%; background-color:#fff8e7; padding-left: 10px; padding-top: 5px; padding-bottom: 5px;">
 
 <!-- CityGrid -->
 <TMPL_LOOP NAME="CG_ADS">
-    <div class=g><h2 class=r><a href="<TMPL_VAR NAME="PROFILE">" class=l><TMPL_VAR NAME="NAME"></a></h2> - <span class="std"><TMPL_VAR NAME="TAGLINE"></span></div>
+    <div style="width: 450px; height: 60px;">
+        <span style="margin-top: 0px;"><img height="50" width="50" src="<TMPL_VAR NAME="IMAGE">"></span>
+        <span style="margin-top: 0px; position: absolute; margin-left: 5px;"><a href="<TMPL_VAR NAME="PROFILE">"><TMPL_VAR NAME="NAME"></a></span>
+        <span style="margin-top: 15px; position: absolute;margin-left: 5px; width: 400 "><TMPL_VAR NAME="TAGLINE"></span>
+    </div>
 </TMPL_LOOP>
 <img src="<TMPL_VAR NAME="STATIC_HREF">/images/logos/Citysearch.gif">
+</div>
 
-	</td></tr>
-</table>
 <hr>
 </TMPL_IF>
 
