@@ -135,6 +135,7 @@ sub handler {
             foreach my $cg_result ( @{$cg_results} ) {
                 next unless $cg_result->tagline;
                 next unless $cg_result->neighborhood;
+		next unless $cg_result->image;
                 last if ++$i == 3;
 
                 if ($i == 1) {
