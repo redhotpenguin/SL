@@ -144,7 +144,6 @@ sub handler {
             }
 
             if (@refined) {
-                $r->log->error(Dumper(\@refined));
                 $Template->param( CG_ADS => \@refined );
             }
         }
