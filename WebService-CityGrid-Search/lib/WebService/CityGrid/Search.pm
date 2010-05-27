@@ -17,6 +17,8 @@ use LWP::UserAgent;
 has 'api_key'   => ( is => 'ro', isa => 'Str', required => 1 );
 has 'publisher' => ( is => 'ro', isa => 'Str', required => 1 );
 
+use constant DEBUG => $ENV{CG_DEBUG} || 0;
+
 our $api_host = 'api2.citysearch.com';
 our $api_base = "http://$api_host/search/";
 our $VERSION  = 0.02;
@@ -80,10 +82,12 @@ sub query {
     my @results;
     foreach my $loc (@locations) {
 
+        warn("raw location: " . $loc->toString) if DEBUG;
         my $name = $loc->getElementsByTagName('name')->[0]->firstChild->data;
-        my $tagline_element = $loc->getElementsByTagName('tagline')->[0];
+        my $tagline = $loc->getElementsByTagName('tagline')->[0];
         my $img = $loc->getElementsByTagName('image')->[0];
         my $nbh = $loc->getElementsByTagName('neighborhood')->[0];
+        my $sc = $loc->getElementsByTagName('samplecategories')->[0];
         my %res_args        = (
             id   => $loc->getAttribute('id'),
             name => $loc->getElementsByTagName('name')->[0]->firstChild->data,
@@ -92,14 +96,20 @@ sub query {
 
           );
 
+        if ($sc && $sc->firstChild) {
+            $res_args{samplecategories} = $sc->firstChild->data;
+        }
+
         if ($nbh && $nbh->firstChild) {
             $res_args{neighborhood} = $nbh->firstChild->data;
         }
+
         if ($img) {
             $res_args{image} = $img->firstChild->data;
         }
-        if ($tagline_element) {
-            $res_args{tagline} = $tagline_element->firstChild->data;
+
+        if ($tagline) {
+            $res_args{tagline} = $tagline->firstChild->data;
         }
         my $result = WebService::CityGrid::Search::Result->new(%res_args);
 
@@ -153,6 +163,7 @@ has 'profile' => ( is => 'ro', isa => 'Str', required => 1 );
 has 'image'   => ( is => 'ro', isa => 'Str', required => 0 );
 has 'top_hit' => ( is => 'rw', isa => 'Int', required => 0 );
 has 'neighborhood' => ( is => 'rw', isa => 'Str', required => 0 );
+has 'samplecategories' => ( is => 'rw', isa => 'Str', required => 0 );
 
 1;
 
