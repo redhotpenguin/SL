@@ -14,33 +14,33 @@ our $VERSION = 0.01;
 use Google::Search      ();
 use Encode              ();
 use Encode::Guess qw/euc-jp shiftjis 7bit-jis/;
-use WebService::VigLink ();
-use Digest::MD5         ();
 use Carp                ();
 use Data::Dumper qw(Dumper);
-use Net::Amazon                ();
-use Net::Amazon::Request::All  ();
-use Net::Amazon::Response::All ();
 
 use constant DEBUG         => $ENV{SL_SEARCH_DEBUG}  || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 
+my $sf_adserver_side = <<'ADSIDE';
+<a href="http://www.spotfocus.com/"><img src="http://spotfocus.com/Images/Spot_Logo_Header_trans.gif"></a>
+ADSIDE
+
+
 my $sl_adserver_side = <<'ADSIDE';
 <script type='text/javascript'><!--//<![CDATA[
-    var m3_u = (location.protocol=='https:'?'https://ads.slwifi.com/www/delivery/ajs.php':'http://ads.slwifi.com/www/delivery/ajs.php');
-    var m3_r = Math.floor(Math.random()*99999999999);
-    if (!document.MAX_used) document.MAX_used = ',';
-    document.write ("<scr"+"ipt type='text/javascript' src='"+m3_u);
-    document.write ("?zoneid=43");
-    document.write ('&amp;cb=' + m3_r);
-    if (document.MAX_used != ',') document.write ("&amp;exclude=" + document.MAX_used);
-    document.write (document.charset ? '&amp;charset='+document.charset : (document.characterSet ? '&amp;charset='+document.characterSet : ''));
-    document.write ("&amp;loc=" + escape(window.location));
-    if (document.referrer) document.write ("&amp;referer=" + escape(document.referrer));
-    if (document.context) document.write ("&context=" + escape(document.context));
-    if (document.mmm_fo) document.write ("&amp;mmm_fo=1");
-    document.write ("'><\/scr"+"ipt>");
-    //]]>--></script><noscript><a href='http://ads.slwifi.com/www/delivery/ck.php?n=ab406678&amp;cb=INSERT_RANDOM_NUMBER_HERE' target='_blank'><img src='http://ads.slwifi.com/www/delivery/avw.php?zoneid=43&amp;n=ab406678' border='0' alt='' /></a></noscript>
+   var m3_u = (location.protocol=='https:'?'https://ads.slwifi.com/www/delivery/ajs.php':'http://ads.slwifi.com/www/delivery/ajs.php');
+   var m3_r = Math.floor(Math.random()*99999999999);
+   if (!document.MAX_used) document.MAX_used = ',';
+document.write ("<scr"+"ipt type='text/javascript' src='"+m3_u);
+document.write ("?zoneid=44");
+document.write ('&amp;cb=' + m3_r);
+if (document.MAX_used != ',') document.write ("&amp;exclude=" + document.MAX_used);
+document.write (document.charset ? '&amp;charset='+document.charset : (document.characterSet ? '&amp;charset='+document.characterSet : ''));
+document.write ("&amp;loc=" + escape(window.location));
+if (document.referrer) document.write ("&amp;referer=" + escape(document.referrer));
+if (document.context) document.write ("&context=" + escape(document.context));
+if (document.mmm_fo) document.write ("&amp;mmm_fo=1");
+document.write ("'><\/scr"+"ipt>");
+//]]>--></script><noscript><a href='http://ads.slwifi.com/www/delivery/ck.php?n=a82c0627&amp;cb=INSERT_RANDOM_NUMBER_HERE' target='_blank'><img src='http://ads.slwifi.com/www/delivery/avw.php?zoneid=44&amp;n=a82c0627' border='0' alt='' /></a></noscript>
 ADSIDE
 
 my $uw_adserver_side = <<'ADSIDE';
@@ -71,23 +71,10 @@ our %Vhosts = (
         gsearch_key =>
 'ABQIAAAAt99bvP994xq9YNIdB2-NFxRoGs5M4h5stXbFY-B98U2dj3BFJxTyPyzVnLw_SKtAXQeZ0B7OiGWElQ',
 
-        # crappy returns
-        chitika_id => 'silverlining',
-
-        # low payout
-        viglink_apikey => 'c93c31688caea7b9cef80e101a9458e8',
-
         # in progress
         linkshare_api =>
           '4e5c9767680b23d7965887f50f25a6ff17ddc1fcb1bc2f6df7cf8c493aead77c',
 
-        # Amazon.  Non-starter because no search engines allowed in Amazon TOS
-        aws_id => 'sillinseapor-20',
-        aws_ua => Net::Amazon->new(
-            token      => '11KEP8CKMDE38S9A8EG2',
-            secret_key => 'fal/qogvs0sA9ZgwYJdfW/H0kmnzpyLcCNylhvr6',
-            max_pages  => 1
-        ),
         search_logo => 'http://s.slwifi.com/images/logos/sl_logo_small.png',
         citygrid_api_key => 'xt8fua382xpg6sdt3zwynuvq',
         citygrid_where  => '94109',
@@ -102,10 +89,6 @@ our %Vhosts = (
         gsearch_key =>
 'ABQIAAAAt99bvP994xq9YNIdB2-NFxT1C8xMKBm2uaMFjGyMDlpu1AwWNxR6u5j0td4nhB0zNeALaEIHJPB3QQ',
 
-        chitika_id     => 'urbanwireless',
-
-        viglink_apikey => '1ce7984ceec563945297aa68b7fbed11',
-
         linkshare_api =>
           'ece9b8630351548eaf66fade91653f9d05826e7052a4be7e1acec82c62d3931d',
 
@@ -116,50 +99,24 @@ our %Vhosts = (
         citygrid_publisher => 'urbanwireless',
         adserver_side => $uw_adserver_side,
     },
+
+    'occ.slwifi.com' => {
+        account_name     => 'Oregon Convention Center',
+        account_website  => 'http://www.oregoncc.org/',
+        gsearch_referrer => 'http://www.silverliningnetworks.com/index.html',
+        gsearch_key =>
+'ABQIAAAAt99bvP994xq9YNIdB2-NFxRoGs5M4h5stXbFY-B98U2dj3BFJxTyPyzVnLw_SKtAXQeZ0B7OiGWElQ',
+
+        search_logo => 'http://www.oregoncc.org/images/topphoto2.gif',
+        citygrid_api_key => 'xt8fua382xpg6sdt3zwynuvq',
+        citygrid_where  => '97232',
+        citygrid_publisher => 'slnetworks',
+        adserver_side => $sf_adserver_side,
+ 
+
+    }
 );
 
-=over 4 AMAZON
-
-
-=cut
-
-our $amazon_href = 'http://www.amazon.com/gp/product/%s/?tag=%s';
-
-sub amazon_ads {
-    my ( $self, $q ) = @_;
-
-    my $req = Net::Amazon::Request::All->new(
-        all  => $q,
-        page => 1,
-        type => 'Medium',
-    );
-
-    my $resp = $self->{aws_ua}->request($req);
-
-    return unless $resp->is_success;
-
-    my @results;
-    my $i = 0;
-    for my $property ( $resp->properties ) {
-
-        my $desc = substr( $property->ProductDescription, 0, 175 );
-        next unless $desc;
-        next if $desc =~ m/(?:<)/;    # no html characters please
-        next unless $property->ListPrice;
-        push @results,
-          {
-            name        => $property->ProductName,
-            asin        => $property->ASIN,
-            group       => $property->Catalog,
-            price       => $property->ListPrice,
-            description => $desc . '...',
-            href => sprintf( $amazon_href, $property->ASIN, $self->{aws_id} ),
-          };
-        last if ++$i == 3;
-    }
-
-    return \@results;
-}
 
 sub vhost {
     my ( $class, $args ) = @_;
@@ -187,9 +144,6 @@ sub search {
     $search_args->{referrer} = $self->{gsearch_referrer};
     my $search = eval { Google::Search->Web( %{$search_args} ) };
     die $@ if $@;
-
-    my $viglink =
-      WebService::VigLink->new( { 'key' => $self->{viglink_apikey} } );
 
     my $i     = 1;
     my $limit = 10;
@@ -220,18 +174,7 @@ sub search {
             $hash{'visibleUrl'} .= '/';
         }
 
-        $hash{'url'} = $viglink->make_url(
-            {
-                out      => $hash{'unescapedUrl'},
-                cuid     => Digest::MD5::md5_hex( $search_args->{remote_ip} ),
-                loc      => $search_args->{url},
-                referrer => $search_args->{referrer},
-                txt      => Encode::encode_utf8($title),
-                title    => $self->{account_name}
-                  . " - Custom Search for '"
-                  . $search_args->{q} . "'",
-            }
-        );
+        $hash{'url'} = $hash{'unescapedUrl'};
 
         push @search_results, \%hash;
     }
