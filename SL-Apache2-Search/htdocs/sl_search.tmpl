@@ -53,7 +53,8 @@
         <span style="margin-top: 0px; position: absolute; margin-left: 10px; margin-top: 3px;"><strong><font color="#0081C5"><TMPL_VAR NAME="NAME"></font></strong></span>
         <span style="position: absolute; margin-left: 10px; margin-top: 25px;"><img border="0" height="60" width="60" src="<TMPL_VAR NAME="IMAGE">"></span>
 
-        <span style="margin-top: 25px; position: absolute;margin-left: 80px; width: 350px;"><font color="black"><TMPL_VAR NAME="TAGLINE"></font></span>
+        <TMPL_IF NAME="TAGLINE"><span style="margin-top: 25px; position: absolute;margin-left: 80px; width: 350px;"><font color="black"><TMPL_VAR NAME="TAGLINE"></font></span><TMPL_ELSE>
+        <span style="margin-top: 25px; position: absolute;margin-left: 80px; width: 350px;"><font color="black"><TMPL_VAR NAME="SAMPLECATEGORIES"></font></span></TMPL_IF>
         <span style="margin-top: 70px; position: absolute;margin-left: 80px; width: 350px;"><font color="grey">Neighborhood:  <TMPL_VAR NAME="NEIGHBORHOOD"></font></span>
     </a>
     </div>
