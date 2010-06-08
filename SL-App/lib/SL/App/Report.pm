@@ -73,7 +73,7 @@ sub dispatch_index {
 
     $r->headers_out->set(
         Location => 
-            $r->construct_url( $r->uri . "?temporal=$temporal&status=updated" ));
+            $Config->sl_app_proxy .  $r->uri . "?temporal=$temporal&status=updated" );
     return Apache2::Const::REDIRECT;
     }
 }

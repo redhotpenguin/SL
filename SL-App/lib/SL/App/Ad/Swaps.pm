@@ -108,8 +108,8 @@ sub dispatch_assign {
         $r->pnotes('session')->{msg} =
           sprintf( "Ad Zone '%s' was assigned to all routers", $ad_zone->name );
 
-        $r->headers_out->set(
-            Location => $r->construct_url('/app/ad/swaps/list') );
+        $r->headers_out->set( Location => $Config->sl_app_proxy
+                  . $Config->sl_app_base_uri . '/app/ad/swap/list');
         return Apache2::Const::REDIRECT;
 
     }
@@ -150,8 +150,8 @@ sub dispatch_remove {
           sprintf( "Ad Zone '%s' was removed from all routers",
             $ad_zone->name );
 
-        $r->headers_out->set(
-            Location => $r->construct_url('/app/ad/swaps/list') );
+    	$r->headers_out->set( Location => $Config->sl_app_proxy
+                  . $Config->sl_app_base_uri . '/app/ad/swap/list');
         return Apache2::Const::REDIRECT;
 
     }
@@ -304,8 +304,8 @@ sub dispatch_edit {
     # done with argument processing
     $r->pnotes('session')->{msg} = sprintf( "Ad Zone '%s' was updated", $ad_zone->name );
 
-    $r->headers_out->set(
-        Location => $r->construct_url('/app/ad/swaps/list') );
+    $r->headers_out->set( Location => $Config->sl_app_proxy
+                  . $Config->sl_app_base_uri . '/app/ad/swap/list');
     return Apache2::Const::REDIRECT;
 }
 

@@ -15,6 +15,10 @@ use base 'SL::App';
 use SL::App::Template ();
 use SL::Model;
 use SL::Model::App;    # works for now
+use SL::Config;
+
+our $Config = SL::Config->new;
+
 use Data::Dumper;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
@@ -208,7 +212,9 @@ sub dispatch_edit {
 
 
     $r->pnotes('session')->{msg} = sprintf("Branding Image '%s' updated successfully", $bug->name);
-    $r->headers_out->set( Location => $r->construct_url('/app/ad/bugs/list') );
+
+    $r->headers_out->set( Location => $Config->sl_app_proxy
+                  . $Config->sl_app_base_uri . '/app/ad/bugs/list');
     return Apache2::Const::REDIRECT;
 }
 
@@ -219,8 +225,8 @@ sub dispatch_list {
 
     if ($reg->account->plan eq 'free') {
 
-	$r->headers_out->set(
-	    Location => $r->construct_url('/billing/publisher/?plan=plus&email=' . $reg->email) );
+	    $r->headers_out->set( Location => $Config->sl_app_proxy
+                  . $Config->sl_app_base_uri . '/billing/publisher/?plan=plus&email=' . $reg->email);
 	return Apache2::Const::REDIRECT;
     }
 

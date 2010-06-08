@@ -113,9 +113,10 @@ sub dispatch_payment {
 
         $r->pnotes('session')->{msg} = "Payment settings have been updated";
 
-        $r->headers_out->set(
-            Location => $r->construct_url('/app/settings/index') );
-        return Apache2::Const::REDIRECT;
+    	$r->headers_out->set( Location => $Config->sl_app_proxy
+                  . $Config->sl_app_base_uri . '/app/settings/index');
+        
+	return Apache2::Const::REDIRECT;
     }
 }
 

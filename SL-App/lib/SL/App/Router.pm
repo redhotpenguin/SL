@@ -313,8 +313,8 @@ sub dispatch_omsync {
             $created, $updated
         );
 
-        $r->headers_out->set(
-            Location => $r->construct_url('/app/router/list') );
+    	$r->headers_out->set( Location => $Config->sl_app_proxy
+                  . $Config->sl_app_base_uri . '/app/router/list');
         return Apache2::Const::REDIRECT;
     }
 
@@ -382,8 +382,10 @@ sub dispatch_adbar {
           sprintf( "Ad Serving was set to %s for %d routers",
             $status, $changed );
 
-        $r->headers_out->set(
-            Location => $r->construct_url('/app/router/list') );
+
+    	$r->headers_out->set( Location => $Config->sl_app_proxy
+                  . $Config->sl_app_base_uri . '/app/router/list');
+
         return Apache2::Const::REDIRECT;
     }
 }
@@ -700,7 +702,9 @@ sub dispatch_edit {
     $r->pnotes('session')->{msg} =
       sprintf( "Router '%s' was %s", $router->name, $status );
 
-    $r->headers_out->set( Location => $r->construct_url('/app/router/list') );
+    $r->headers_out->set( Location => $Config->sl_app_proxy
+                  . $Config->sl_app_base_uri . '/app/router/list');
+
     return Apache2::Const::REDIRECT;
 }
 

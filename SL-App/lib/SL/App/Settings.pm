@@ -228,8 +228,8 @@ sub dispatch_account {
 
     $r->pnotes('session')->{msg} = "Account settings have been updated";
 
-    $r->headers_out->set(
-        Location => $r->construct_url('/app/settings/index') );
+    $r->headers_out->set( Location => $Config->sl_app_proxy
+                  . $Config->sl_app_base_uri . '/app/settings/index');
     return Apache2::Const::REDIRECT;
 }
 

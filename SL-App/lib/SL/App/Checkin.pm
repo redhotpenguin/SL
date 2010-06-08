@@ -17,9 +17,6 @@ use constant DEBUG => $ENV{SL_DEBUG} || 0;
 sub dispatch_index {
     my ( $class, $r ) = @_;
 
-    my $url = $r->construct_url( $r->unparsed_uri );
-    $r->log->debug("handling url $url") if DEBUG;
-
     # we get checkin string with unescaped + signs, so use args
     my %args;
     my @pairs = split( /\&/, $r->args );

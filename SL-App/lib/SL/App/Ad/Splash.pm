@@ -261,8 +261,8 @@ $r->log->error("ad sizes: " . Dumper($ad_zone));
     # done with argument processing
     $r->pnotes('session')->{msg} = sprintf( "Splash Page Ad '%s' was updated", $ad_zone->name);
 
-    $r->headers_out->set(
-        Location => $r->construct_url('/app/ad/splash/index') );
+    $r->headers_out->set( Location => $Config->sl_app_proxy
+                  . $Config->sl_app_base_uri . '/app/ad/splash/index');
     return Apache2::Const::REDIRECT;
 }
 
