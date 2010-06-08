@@ -472,7 +472,7 @@ sub random {
 
     unless ( $persistents && $brandings ) {
 
-        warn("no ads for router $router_id, account $account_id");
+        warn("no ads for router $router_id, account $account_id") if DEBUG;
         return;
     }
 
