@@ -42,7 +42,7 @@ use SL::Model::Proxy::Ad     ();
 use SL::Subrequest           ();
 use SL::RateLimit            ();
 use SL::Model::Proxy::Router ();
-use SL::Apache::Proxy        ();
+use SL::Static               ();
 
 # non core perl libs
 use Encode           ();
@@ -62,7 +62,7 @@ use constant DEBUG         => $ENV{SL_DEBUG}            || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG}    || 0;
 use constant TIMING        => $ENV{SL_TIMING}           || 0;
 use constant REPLACE_PORT  => 8135;
-use constant MAX_NONHTML   => 200 * 1024; # 200k
+use constant MAX_NONHTML   => 200 * 1024; # 50k
 
 # unencoded http responses must be this big to get an ad
 use constant MIN_CONTENT_LENGTH => $Config->sl_min_content_length || 2500;
@@ -74,6 +74,26 @@ if (TIMING) {
 }
 
 require Data::Dumper if ( DEBUG or VERBOSE_DEBUG );
+
+our %response_map = (
+    200 => 'twohundred',
+    204 => 'twoohfour',
+    206 => 'twoohsix',
+    301 => 'threeohone',
+    302 => 'redirect',
+    303 => 'redirect',
+    304 => 'threeohfour',
+    307 => 'redirect',
+    400 => 'bsod',
+    401 => 'bsod',
+    403 => 'bsod',
+    404 => 'bsod',
+    410 => 'bsod',
+    500 => 'bsod',
+    502 => 'bsod',
+    503 => 'bsod',
+    504 => 'bsod',
+);
 
 our $Cache              = SL::Cache->new( type => 'raw' );
 our $RATE_LIMIT         = SL::RateLimit->new;
@@ -156,12 +176,139 @@ The question at hand for container is 'will it work?'
 
 =cut
 
+sub _build_request_headers {
+    my $r = shift;
+
+    my %headers;
+    $r->headers_in->do(
+        sub {
+            my $k = shift;
+            my $v = shift;
+
+            # skip connection, keep alive headers, are added by SL::HTTP::Client
+            return 1 if $k =~ m/^keep-alive/i;
+            return 1 if $k =~ m/^connection/i;
+
+            if ( $k =~ m/^connection/i ) {
+                $headers{$k} = 'keep-alive';
+                return 1;
+            }
+
+            # pass this header onto the remote request
+            $headers{$k} = $v;
+
+            return 1;    # don't remove me or you will burn in hell baby
+        }
+    );
+
+    # work around clients which don't support compression
+    if ( !exists $headers{'Accept-Encoding'} ) {
+        $r->log->debug( "$$ client DOES NOT support compression "
+              . Data::Dumper::Dumper( \%headers ) )
+          if DEBUG;
+
+        # set default outgoing compression headers
+        $headers{'Accept-Encoding'} = 'gzip, deflate';
+    }
+    else {
+        $r->log->debug(
+            "$$ client supports compression " . $headers{'Accept-Encoding'} )
+          if VERBOSE_DEBUG;
+        $r->pnotes(
+            client_supports_compression => $headers{'Accept-Encoding'} );
+    }
+
+    $r->log->debug(
+        "$$ proxy request headers " . Data::Dumper::Dumper( \%headers ) )
+      if DEBUG;
+
+    return \%headers;
+}
+
 sub handler {
     my $r = shift;
 
-    return SL::Apache::Proxy->handler(__PACKAGE__, $r);
-}
+    # Build the request headers
+    my $headers = _build_request_headers($r);
 
+    # start the clock
+    $TIMER->start('make_remote_request') if TIMING;
+
+    my $url = $r->pnotes('url');
+    my %get = (
+                headers      => $headers,
+                url          => $url,
+                headers_only => 1,
+    );
+
+    my $router = $r->pnotes('router');
+    $r->log->debug("$$ resolving host, router " . Data::Dumper::Dumper($router) . " hostname " . $r->hostname) if DEBUG;
+    my $ip = eval { SL::DNS->resolve($r->hostname, $router->{dnsone}); };
+    if ($@) {
+      $r->log->error("unable to resolve host " . $r->hostname);
+    } elsif ($ip) {
+
+      $get{host} = $ip;
+    }
+
+    # Make the request to the remote server
+    my $response = eval {
+        SL::HTTP::Client->get(\%get);
+    };
+
+
+    # dns error or socket timeout, give em the crazy page
+    if ($@) {
+        $r->log->debug("$$ error fetching $url : $@" ) if DEBUG;
+        return &crazypage($r);    # haha this page is kwazy!
+    }
+
+    $r->log->debug("$$ request to $url complete") if DEBUG;
+
+
+    # no response means non html or html too big
+    unless ($response) {
+        $r->log->debug("$$ response non html or too big") if DEBUG;
+
+		$r->headers_out->add( 'X-REPROXY-URL' => $url );
+		$r->set_handlers( PerlLogHandler => undef );
+
+		return Apache2::Const::DONE;
+
+    }
+
+    $r->log->debug( "$$ Response headers from url $url proxy request code\n" .
+        "code: " . $response->code . "\n" .
+                    Data::Dumper::Dumper($response->headers) )
+      if VERBOSE_DEBUG;
+
+    # checkpoint make remote request
+    $r->log->info(
+        sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
+      if TIMING;
+
+    # Dispatch the response
+    my $sub = $response_map{ $response->code };
+    unless ( defined $sub ) {
+        $r->log->error(
+            sprintf(
+                "No handler for response code %d, url %s, ua %s",
+                $response->code, $url, $r->pnotes('ua')
+            )
+        );
+        $sub = $response_map{'404'};
+    }
+
+    $r->log->debug(
+        sprintf(
+            "$$ Request returned %d response: %s",
+            $response->code, Data::Dumper::Dumper($response->decoded_content),
+        )
+    ) if VERBOSE_DEBUG;
+
+    no strict 'refs';
+    return $sub->( $r, $response );
+}
 
 # this page handles invalid urls, we run ads there
 
@@ -175,16 +322,41 @@ sub crazypage {
     return Apache2::Const::OK;
 }
 
+# handles header translation for non 200 responses
+sub _translate_headers {
+    my ( $r, $res ) = @_;
 
+    #############################
+    # clear the current headers
+    $r->headers_out->clear();
+
+    _translate_cookie_and_auth_headers( $r, $res );
+
+    #########################
+    # Create a hash with the remaining HTTP::Response HTTP::Headers attributes
+    my %headers;
+    $res->scan( sub { $headers{ $_[0] } = $_[1]; } );
+
+    ##########################################
+    # this is for any additional headers, usually site specific
+    _translate_remaining_headers( $r, \%headers );
+
+    # set the server header
+    $headers{Server} ||= 'sl';
+    $r->log->debug( "$$ server header is " . $headers{Server} ) if DEBUG;
+    $r->server->add_version_component( $headers{Server} );
+
+    return 1;
+}
 
 sub twoohfour {
-    my ( $class, $r, $res ) = @_;
+    my ( $r, $res ) = @_;
 
     # status line 204 response
     $r->status( $res->code );
 
     # translate the headers from the remote response to the proxy response
-    my $translated = SL::Apache::Proxy->set_response_headers( $r, $res );
+    my $translated = _translate_headers( $r, $res );
 
     # rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
@@ -195,7 +367,7 @@ sub twoohfour {
 }
 
 sub twoohsix {
-    my ( $class, $r, $res ) = @_;
+    my ( $r, $res ) = @_;
 
     # set the status line here and I will beat you with a stick
 
@@ -203,7 +375,7 @@ sub twoohsix {
     $r->content_type($content_type) if $content_type;
 
     # translate the headers from the remote response to the proxy response
-    my $translated = SL::Apache::Proxy->set_response_headers( $r, $res );
+    my $translated = _translate_headers( $r, $res );
 
     # rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
@@ -216,7 +388,7 @@ sub twoohsix {
 }
 
 sub bsod {
-    my ( $class, $r, $res ) = @_;
+    my ( $r, $res ) = @_;
 
     # setup response
     $r->status( $res->code );
@@ -225,7 +397,7 @@ sub bsod {
     $r->content_type($content_type) if $content_type;
 
     # translate the headers from the remote response to the proxy response
-    my $translated = SL::Apache::Proxy->set_response_headers( $r, $res );
+    my $translated = _translate_headers( $r, $res );
 
     # rflush() flushes the headers to the client
     # thanks to gozer's mod_perl for speed presentation
@@ -237,13 +409,13 @@ sub bsod {
 }
 
 sub threeohone {
-    my ( $class, $r, $res ) = @_;
+    my ( $r, $res ) = @_;
 
     my $content_type = $res->content_type;
     $r->content_type($content_type) if $content_type;
 
     # translate the headers from the remote response to the proxy response
-    my $translated = SL::Apache::Proxy->set_response_headers( $r, $res );
+    my $translated = _translate_headers( $r, $res );
 
     # do not change this line
     return Apache2::Const::HTTP_MOVED_PERMANENTLY;
@@ -254,36 +426,33 @@ sub redirect {
     my ( $r, $res ) = @_;
 
     # translate the headers from the remote response to the proxy response
-    my $translated = SL::Apache::Proxy->set_response_headers( $r, $res );
+    my $translated = _translate_headers( $r, $res );
 
     # do not change this line
     return Apache2::Const::REDIRECT;
 }
 
 sub threeohfour {
-    my ( $class, $r, $res ) = @_;
+    my ( $r, $res ) = @_;
 
     # set the status line
     $r->status( $res->code );
 
     # translate the headers from the remote response to the proxy response
-    my $translated = SL::Apache::Proxy->set_response_headers( $r, $res );
+    my $translated = _translate_headers( $r, $res );
 
     # do not change this line
     return Apache2::Const::OK;
 }
 
-sub non_html_two_hundred {
-    my ( $class, $r, $response ) = @_;
+sub _non_html_two_hundred {
+    my ( $r, $response ) = @_;
 
-    my $url = $r->pnotes('url');
+    $r->log->debug("$$ non html 200, length " . length($response->decoded_content)) if DEBUG;
 
-    $r->log->debug("$$ non html 200 for $url, length "
-                   . length($response->decoded_content) . " bytes") if DEBUG;
+    my $url = $r->construct_url( $r->unparsed_uri );
 
-    # handle maximum size
-    if ( $response->decoded_content &&
-         (length( $response->decoded_content ) < MAX_NONHTML )) {
+    if ( $response->decoded_content && (length( $response->decoded_content ) < MAX_NONHTML )) {
 
         $r->log->debug("$$ sending response directly ") if DEBUG;
 
@@ -296,12 +465,11 @@ sub non_html_two_hundred {
 
         # set the response headers
         my $set_ok =
-          SL::Apache::Proxy->set_twohundred_response_headers(
-              $r, $response, $response_content_ref );
+          _set_response_headers( $r, $response, $response_content_ref );
 
         if (VERBOSE_DEBUG) {
             $r->log->debug( "$$ Reponse headers to client " . $r->as_string );
-            $r->log->debug( "$$ Response content: " . $$response_content_ref );
+#            $r->log->debug( "$$ Response content: " . $$response_content_ref );
         }
 
         # rflush() flushes the headers to the client
@@ -313,24 +481,184 @@ sub non_html_two_hundred {
 
         return Apache2::Const::OK;
 
-    } else {
-
-      # else send to perlbal to reproxy
-      $r->headers_out->add( 'X-REPROXY-URL' => $url );
-      $r->set_handlers( PerlLogHandler => undef );
-
-      return Apache2::Const::DONE;
-
     }
+
+    # else send to perlbal to reproxy
+    $r->headers_out->add( 'X-REPROXY-URL' => $url );
+    $r->set_handlers( PerlLogHandler => undef );
+
+    return Apache2::Const::DONE;
 }
 
+sub _translate_cookie_and_auth_headers {
+    my ( $r, $res ) = @_;
+
+    ################################################
+    # process the www-auth and set-cookie headers
+    no strict 'refs';
+    foreach my $header_type qw( set-cookie www-authenticate ) {
+        next unless defined $res->header($header_type);
+
+        my @headers = $res->header($header_type);
+        foreach my $header (@headers) {
+            $r->log->debug("$$ setting header $header_type value $header")
+              if VERBOSE_DEBUG;
+            $r->err_headers_out->add( $header_type => $header );
+        }
+
+        # and remove it from the response headers
+        my $removed = $res->headers->remove_header($header_type);
+        $r->log->debug("$$ translated $removed $header_type headers")
+	    if VERBOSE_DEBUG;
+    }
+
+    return 1;
+}
+
+sub _set_response_headers {
+    my ( $r, $res, $response_content_ref ) = @_;
+
+    # This loops over the response headers and adds them to headers_out.
+    # Override any headers with our own here
+    my %headers;
+    $r->headers_out->clear();
+
+    _translate_cookie_and_auth_headers( $r, $res );
+
+    # Create a hash with the HTTP::Response HTTP::Headers attributes
+    $res->scan( sub { $headers{ $_[0] } = $_[1]; } );
+    $r->log->debug(
+        sprintf( "$$ not cookie/auth headers: %s",
+            Data::Dumper::Dumper( \%headers ) )
+    ) if DEBUG;
+
+    ## Set the response content type from the request, preserving charset
+    my $content_type = $res->header('content-type');
+    $r->content_type( $headers{'Content-Type'} || '' );
+    delete $headers{'Content-Type'};
+
+    #############################
+    ## Content languages
+    if ( defined $headers{'content-language'} ) {
+        $r->content_languages( [ $res->header('content-language') ] );
+        $r->log->debug(
+            "$$ content languages set to " . $res->header('content_language') )
+          if DEBUG;
+        delete $headers{'Content-Language'};
+    }
+
+    ##################
+    # content_encoding
+    # do not mess with this next section unless you like pain
+    my $encoding;
+    if ( $r->pnotes('client_supports_compression') ) {
+
+        $r->log->debug( "$$ client supports compression: "
+              . $r->pnotes('client_supports_compression') )
+          if VERBOSE_DEBUG;
+
+        my @h =
+          map { $_->[0] }
+          HTTP::Headers::Util::split_header_words(
+            $r->pnotes('client_supports_compression') );
+        $r->log->debug( "$$ header words are " . join( ',', @h ) )
+	    if VERBOSE_DEBUG;
+
+        # use the first acceptable compression, ordered by
+        if ( grep { $_ eq 'x-bzip2' } @h ) {
+
+            $response_content_ref =
+              Compress::Bzip2::compress($$response_content_ref);
+            $encoding = 'x-bzip2';
+
+        }
+        elsif (( grep { $_ eq 'gzip' } @h )
+            || ( grep { $_ eq 'x-gzip' } @h ) )
+        {    # some parts lifted from HTTP::Message
+
+            # need a copy for memgzip, see HTTP::Message notes
+            my $gzipped =
+              eval { Compress::Zlib::memGzip($response_content_ref); };
+            if ( $gzipped && !$@ ) {
+                $$response_content_ref = $gzipped;
+                $encoding              = 'gzip';
+            }
+        }
+        elsif ( grep { $_ eq 'deflate' } @h ) {
+
+            my $copy = $$response_content_ref;
+            $$response_content_ref = Compress::Zlib::compress($copy);
+            $encoding              = 'deflate';
+
+        }
+        else {
+            $r->log->error( "$$ unknown content-encoding encountered:  "
+                  . join( ',', @h ) );
+        }
+    }
+
+    if ($encoding) {
+        $r->log->debug("$$ setting content encoding to $encoding") if DEBUG;
+        $r->content_encoding($encoding);
+        delete $headers{'Transfer-Encoding'};    # don't want to be chunked here
+    }
+    delete $headers{'Content-Encoding'};
+
+    ###########################
+    # set the content length to the uncompressed content length
+    $r->set_content_length( length($$response_content_ref) );
+    delete $headers{'Content-Length'};
+
+    ##########################################
+    # this is for any additional headers, usually site specific
+    _translate_remaining_headers( $r, \%headers );
+
+    ###############################
+    # possible through a nasty hack, set the server version
+    $r->server->add_version_component( $headers{Server} || 'sl' );
+
+    ###############################
+    # maybe someday but not today, do not cache this response
+    $r->no_cache(1);
+
+    return 1;
+}
+
+sub _translate_remaining_headers {
+    my ( $r, $headers ) = @_;
+
+    foreach my $key ( keys %{$headers} ) {
+
+        # we set this manually
+        next if lc($key) eq 'server';
+
+        # skip HTTP::Response inserted headers
+        next if substr( lc($key), 0, 6 ) eq 'client';
+
+        # let apache set these
+        next if substr( lc($key), 0, 10 ) eq 'connection';
+        next if substr( lc($key), 0, 10 ) eq 'keep-alive';
+
+        # some headers have an unecessary newline appended so chomp the value
+        chomp( $headers->{$key} );
+        if ( $headers->{$key} =~ m/\n/ ) {
+            $headers->{$key} =~ s/\n/ /g;
+        }
+
+        $r->log->debug( "$$ Setting header key $key, value " . $headers->{$key} )
+          if VERBOSE_DEBUG;
+        $r->headers_out->set( $key => $headers->{$key} );
+    }
+
+    return 1;
+}
 
 sub twohundred {
-    my ($class, $r, $response ) = @_;
+    my ( $r, $response ) = @_;
 
     my $url = $r->pnotes('url');
 
-    return $class->non_html_two_hundred($r, $response) if !$response->is_html;
+    return _non_html_two_hundred($r, $response) if !$response->is_html;
 
     # Cache the content_type, some misnomers in this section re: html
     $Cache->add_known_html( $url => $response->content_type );
@@ -343,7 +671,7 @@ sub twohundred {
     $TIMER->start('rate_limiter') if TIMING;
     my $user_id = join( '|', $r->pnotes('hash_mac'), $r->pnotes('ua') );
     my $is_toofast = $RATE_LIMIT->check_violation($user_id) || 0;
-    $r->log->debug("$$ => $url check_violation: $is_toofast") if VERBOSE_DEBUG;
+    $r->log->debug("$$ ===> $url check_violation: $is_toofast") if VERBOSE_DEBUG;
     $r->log->info(
         sprintf( "timer $$ %s %s %d %s %f", @{ $TIMER->checkpoint } ) )
       if TIMING;
@@ -353,37 +681,34 @@ sub twohundred {
     # ad-serving page, and it's not too soon after a previous ad was served
     my $response_content_ref;
     my $ad_served;
-    my $router = $r->pnotes('router');
-
-   	if ($router->{persistent}) {
-
-      if ((	( not $is_toofast )
-            and ( not $Subrequest->is_subrequest( url => $url ) ) ) )
-        {
+    if ((	( not $is_toofast )
+        and ( not $Subrequest->is_subrequest( url => $url ) ) ) )
+    {
 
         # put an ad in the response
-		$response_content_ref = _generate_response( $r, $response );
+		my $router = $r->pnotes('router');
+		if ($router->{persistent}) {
+			$response_content_ref = _generate_response( $r, $response );
 
-		if ( !$response_content_ref ) {
+		    if ( !$response_content_ref ) {
 
 			    # we could not serve an ad on this page for some reason
 				$r->log->debug(
-					"ad not served, _generate_response failed $url") if DEBUG;
+					"ad not served, _generate_response failed url $url") if DEBUG;
 			} else {
 
 				# we served an ad, note the ad-serving time for the rate-limiter
 				$ad_served = 1;
 				$RATE_LIMIT->record_ad_serve($user_id);
 			}
-
-      }    # end 'if ('
-      else {
+		}
+    }    # end 'if ('
+    else {
 
         # this is not html or its compressed, etc
         $r->log->debug("$$ ad not served, using existing content") if DEBUG;
-
-	  }
     }
+
     # settings for ad not served
     $response_content_ref = \$response->decoded_content unless $ad_served;
 
@@ -446,7 +771,7 @@ sub twohundred {
     $r->log->debug( "$$ status line is " . $response->status_line ) if DEBUG;
 
     # set the response headers
-    my $set_ok = SL::Apache::Proxy->set_twohundred_response_headers( $r, $response, $response_content_ref );
+    my $set_ok = _set_response_headers( $r, $response, $response_content_ref );
 
     if (VERBOSE_DEBUG) {
         $r->log->debug( "$$ Reponse headers to client " . $r->as_string );
@@ -552,7 +877,7 @@ sub _generate_response {
     $r->log->debug("$$ Ad content is \n$$ad_content_ref\n") if VERBOSE_DEBUG;
 
     unless ($ad_content_ref) {
-        $r->log->error("$$ Hmm, we didn't get an ad for url $url");
+        $r->log->debug("$$ Hmm, we didn't get an ad for url $url") if DEBUG;
         return;
     }
 
@@ -587,7 +912,7 @@ sub _generate_response {
 
     # re-encode content if needed
     if ($content_needs_encoding) {
-        my $charset = SL::Apache::Proxy->response_charset($r, $response);
+        my $charset = _response_charset($response);
 
         # don't need to worry about errors - this content came from
         # Encode::decode via HTTP::Message::decoded_content, so as
@@ -599,6 +924,31 @@ sub _generate_response {
     }
 
     return \$decoded_content;
+}
+
+# figure out what charset a reponse was made in, code adapted from
+# HTTP::Message::decoded_content
+sub _response_charset {
+    my $response = shift;
+
+    # pull apart Content-Type header and extract charset
+    my $charset;
+    my @ct =
+      HTTP::Headers::Util::split_header_words(
+        $response->header("Content-Type") );
+    if (@ct) {
+        my ( undef, undef, %ct_param ) = @{ $ct[-1] };
+        $charset = $ct_param{charset};
+    }
+
+    # if the charset wasn't in the http header look for meta-equiv
+    unless ($charset) {
+
+        # default charset for HTTP::Message - if it couldn't guess it will
+        # have decoded as 8859-1, so we need to match that when
+        # re-encoding
+        return $charset || "ISO-8859-1";
+    }
 }
 
 1;
