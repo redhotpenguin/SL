@@ -3,7 +3,7 @@ package SL::Proxy;
 use strict;
 use warnings;
 
-our $VERSION = 0.01;
+our $VERSION = 0.02;
 
 use Apache2::Const -compile => qw( OK SERVER_ERROR NOT_FOUND DECLINED
   REDIRECT LOG_DEBUG LOG_ERR LOG_INFO CONN_KEEPALIVE HTTP_BAD_REQUEST
@@ -541,7 +541,7 @@ sub threeohfour {
 
 # the big dog
 sub twohundred {
-    my ( $class, $r, $response ) = @_;
+    my ( $class, $r, $response, $subref ) = @_;
 
     my $url = $r->pnotes('url');
 
@@ -560,6 +560,13 @@ sub twohundred {
       if DEBUG;
 
     my $response_content_ref = \$response->decoded_content;
+
+    # handle custom function
+    if (my $m_class = $r->pnotes('sl_proxy_munge_class') &&
+        my $m_method = $r->pnotes('sl_proxy_munge_method')) {
+
+        $response_content_ref = $m_class->$m_method($response_content_ref);
+    }
 
     # set the status line
     $r->status_line( $response->status_line );
