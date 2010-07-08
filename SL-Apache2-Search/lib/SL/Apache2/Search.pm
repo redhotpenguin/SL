@@ -19,6 +19,8 @@ use Apache2::RequestIO  ();
 use Apache2::Const -compile => qw( SERVER_ERROR DONE OK REDIRECT );
 use Apache2::URI ();
 
+use Apache2::Cookie ();
+
 use SL::Config ();
 use SL::Search ();
 
@@ -27,19 +29,16 @@ use HTML::Template ();
 use Data::Dumper qw(Dumper);
 use RHP::Timer                   ();
 use WebService::CityGrid::Search ();
-use Cache::Memcached ();
+use Cache::Memcached             ();
+use MIME::Base64                 ();
+use Crypt::CBC                   ();
 
 use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 use constant TIMING        => $ENV{SL_TIMING}        || 0;
 
-our $Config        = SL::Config->new;
-our $Filename      = $Config->sl_root . '/htdocs/sl_search.tmpl';
-our %Template_args = (
-    filename          => $Filename,
-    die_on_bad_params => 0,
-    global_vars       => 1,
-);
+our $Config   = SL::Config->new;
+our $Filename = $Config->sl_root . '/htdocs/sl_search.tmpl';
 
 our $Fivehundred =
   HTML::Template->new( filename => $Config->sl_root . '/htdocs/errors/500.html',
@@ -50,10 +49,15 @@ $Fivehundred = $Fivehundred->output;
 our $Timer       = RHP::Timer->new();
 our $Searchtimer = RHP::Timer->new();
 
-our $Memd = Cache::Memcached->new({ servers => [ '127.0.0.1:11211' ] });
+our $Memd = Cache::Memcached->new( { servers => ['127.0.0.1:11211'] } );
+
+our $Cipher = Crypt::CBC->new(
+    -key    => $Config->sl_cookie_secret,
+    -cipher => 'Blowfish',
+);
 
 sub handler {
-    my $r = shift;
+    my ( $class, $r ) = @_;
 
     my $req = Apache2::Request->new($r);
 
@@ -70,8 +74,51 @@ sub handler {
         return Apache2::Const::REDIRECT;
     }
 
+    # figure out what virtual host we are
     my $search_vhost = SL::Search->vhost( { host => $r->hostname } )
       || SL::Search->default_vhost;
+
+    # see if the user has cookies for this host
+    my $j    = Apache2::Cookie::Jar->new($r);
+    my $c_in = $j->cookies('SLSearch');
+
+    my ( %state, $last_seen );
+    if ($c_in) {    # read their cookie
+
+        %state = $class->decode( $c_in->value );
+
+        $r->log->debug( "found cookie " . Dumper( \%state ) ) if DEBUG;
+        unless ( keys %state ) {
+            $r->log->error(
+                "malformed cookie: $c_in for ip " . $r->connection->remote_ip );
+            return Apache2::Const::SERVER_ERROR;
+        }
+
+        $state{last_seen} = $last_seen = time;
+
+        $class->send_cookie( $r, \%state );
+
+    }
+    else {    # give them a new cookie
+        $r->log->debug("issuing new cookie") if DEBUG;
+
+        $last_seen = 0;
+        my %state = (
+            last_seen => time(),
+            ip        => $r->connection->remote_ip,
+            vhost     => $r->hostname,
+            last_seen => $last_seen,
+        );
+
+        $class->send_cookie( \%state );
+
+    }
+
+    our %Template_args = (
+        filename          => $Filename,
+        die_on_bad_params => 0,
+        global_vars       => 1,
+    );
 
     my @search_results;
     my $q        = $req->param('q');
@@ -115,10 +162,10 @@ sub handler {
 
         # hardcode to 1 search per second right now
         my $time = time();
-        if ($time - $last_search > 0) {
+        if ( $time - $last_search > 0 ) {
 
             # ok to run a new search
-            $Memd->set('last_citygrid_searchtime' => $time);
+            $Memd->set( 'last_citygrid_searchtime' => $time );
             my $cg = WebService::CityGrid::Search->new(
                 api_key   => $search_vhost->{citygrid_api_key},
                 publisher => $search_vhost->{citygrid_publisher}
@@ -136,7 +183,7 @@ sub handler {
                 next unless $cg_result->neighborhood;
                 last if ++$i == 3;
 
-                if ($i == 1) {
+                if ( $i == 1 ) {
                     $cg_result->top_hit(1);
                 }
                 push @refined, $cg_result;
@@ -148,15 +195,14 @@ sub handler {
         }
 
         $q = HTML::Entities::encode_numeric($q);
-
         $r->log->debug("Start is $start");
         my $plus_q = $q;
         $plus_q =~ s/ /\+/g;
 
-        $Template->param( QUERY_TIME => sprintf( "%1.2f", $interval ) );
-        $Template->param( QUERY      => $q );
-        $Template->param( PLUSQUERY  => $plus_q );
-        $Template->param( START      => $start );
+        $Template->param( QUERY_TIME  => sprintf( "%1.2f", $interval ) );
+        $Template->param( QUERY       => $q );
+        $Template->param( PLUSQUERY   => $plus_q );
+        $Template->param( START       => $start );
         $Template->param( START_PARAM => $start + 1 );
         $Template->param( FINISH      => $start + 10 );
 
@@ -205,7 +251,6 @@ clicksor_text_link_color = '#290cff'; clicksor_enable_text_link = true;
 <noscript><a href="http://www.bannercenter.net">web banner design</a></noscript>
 CLICKSOR_CODE
 
-
         $Template->param( SIDEADCODE => $search_vhost->{adserver_side} );
     }
 
@@ -215,6 +260,7 @@ CLICKSOR_CODE
     $Template->param( STATIC_HREF => 'http://s.slwifi.com' );
     $Template->param( SEARCH_LOGO => $search_vhost->{search_logo} );
 
+    $Template->param( LAST_SEEN   => $last_seen );
     $r->content_type('text/html; charset=UTF-8');
 
     $r->no_cache(1);
@@ -223,6 +269,49 @@ CLICKSOR_CODE
     $r->print($output);
 
     return Apache2::Const::OK;
+}
+
+sub expire_cookie {
+    my ( $class, $r ) = @_;
+
+    my $cookie = Apache2::Cookie->new(
+        $r,
+        -name    => $Config->sl_app_cookie_name,
+        -value   => '',
+        -expires => 'Mon, 21-May-1971 00:00:00 GMT',
+        -path    => $Config->sl_app_base_uri . '/app/',
+    );
+
+    $cookie->bake($r);
+    return 1;
+}
+
+sub encode {
+    my ( $class, $state_hashref ) = @_;
+
+    my $joined = join( ':',
+        map { join( ':', $_, $state_hashref->{$_} ) } keys %{$state_hashref} );
+    return $Cipher->encrypt($joined);
+}
+
+sub decode {
+    my ( $class, $val ) = @_;
+    my $decrypted = $Cipher->decrypt($val);
+    return split( ':', $decrypted );
+}
+
+sub send_cookie {
+    my ( $class, $r, $state ) = @_;
+
+    my $cookie = Apache2::Cookie->new(
+        $r,
+        -name  => 'SLSearch',
+        -value => $class->encode($state),
+
+        #     -expires => '60s',
+        -expires => '+1M',
+    );
+    $cookie->path('/'), $cookie->bake($r);
 }
 
 1;
