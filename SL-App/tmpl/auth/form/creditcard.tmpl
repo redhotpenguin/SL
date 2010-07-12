@@ -6,7 +6,7 @@
 		    <option value="" selected="selected">Select a card type</option>
 			<option value="visa" [% IF req.param('card_type') == 'visa' %]SELECTED[% END %]>Visa</option>
 			<option value="mastercard" [% IF req.param('card_type') == 'mastercard' %]SELECTED[% END %]>MasterCard</option>
-			<option value="american express" [% IF req.param('card_type') == 'american express' %]SELECTED[% END %]>American Express</option> 
+<!--			<option value="american express" [% IF req.param('card_type') == 'american express' %]SELECTED[% END %]>American Express</option> -->
 		</select>
     </span>
     <img class="left" src="[% base_uri %]/resources/images/icons/creditcards.png" alt="creditcards"/>
