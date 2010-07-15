@@ -1154,6 +1154,14 @@ line-height: 120%;
 color: #CCC;
 }
 
+.search_box {
+width: 406px;
+height: 107px;
+background:  url(../images/backgrounds/login_box/login_box_border.png) no-repeat top center;
+margin: 30px auto;
+text-align: left;
+}
+
 
 
 /* LOGIN PAGE 
