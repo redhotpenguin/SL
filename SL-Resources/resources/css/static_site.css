@@ -625,6 +625,16 @@ top: 0;
 left: 0px;
 z-index: 1000;
 }
+#sl_logo_240 span {
+height: 145px;
+width: 200px;
+overflow: hidden;
+background:url(../images/logos/sl_logo_240.png) no-repeat top center;
+position: absolute;
+top: 0;
+left: 0px;
+z-index: 1000;
+}
 .basic_logo,
 .enterprise_logo,
 .premium_logo,
