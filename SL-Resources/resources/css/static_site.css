@@ -601,7 +601,7 @@ color: #FFF;
 
 /* LOGOS
 ================================================= */
-#sl_logo {
+#sl_logo,#sl_logo_240 {
 height: 145px;
 width: 200px;
 overflow: hidden;
@@ -610,7 +610,7 @@ text-align: center;
 font-family: 'Helvetica Neue', Helvetica, Verdana, Arial, san-serif;
 position: relative;
 }
-#sl_logo a {
+#sl_logo,#sl_logo_240 a {
 color:#666;
 text-decoration: none;
 line-height: 200px;
