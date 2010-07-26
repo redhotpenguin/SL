@@ -3,7 +3,7 @@ package SL::CP;
 use strict;
 use warnings;
 use Apache2::Const -compile => qw( NOT_FOUND OK REDIRECT SERVER_ERROR DECLINED
-                                   AUTH_REQUIRED HTTP_SERVICE_UNAVAILABLE
+                                   AUTH_REQUIRED HTTP_SERVICE_UNAVAILABLE DONE
                                    M_GET HTTP_METHOD_NOT_ALLOWED );
 
 use Data::Dumper qw(Dumper);
@@ -17,7 +17,6 @@ use Apache2::Response    ();
 use Apache2::RequestUtil ();
 use Apache2::URI         ();
 use APR::Table           ();
-
 
 use SL::Config       ();
 use SL::CP::IPTables ();
@@ -50,30 +49,36 @@ our $Template = HTML::Template->new(
 
 our $Search_hosts = SL::CP::IPTables->load_allows('search_hosts.txt');
 
+sub iphone_check {
+    my ($class, $r) = @_;
+
+    my $ua = $r->headers_in->{'user-agent'};
+    $r->log->debug("ua is " . substr($ua, 0, 21)) if DEBUG;
+    if (defined $ua && (substr($ua, 0, 21) eq 'CaptiveNetworkSupport')) {
+
+        $r->set_handlers(PerlResponseHandler => undef);
+        return Apache2::Const::OK;
+    } else {
+        return Apache2::Const::OK;
+    }
+}
+
 sub handler {
     my ($class, $r) = @_;
 
-    # handle search hosts
-    if (($Config->sl_search eq 'On') &&
-        (grep { $r->hostname eq $_ } @{$Search_hosts} )) {
-
-        $r->log->debug("$$ found search host " . $r->hostname) if DEBUG;
-        $r->push_handlers(PerlResponseHandler => 'SL::Proxy::Search::TransHandler');
-        return Apache2::Const::DECLINED;
-    }
-
     my $ip = $r->connection->remote_ip;
     $r->log->debug("$$ new request ip $ip") if DEBUG;
+    $r->log->debug("request: " . $r->as_string) if DEBUG;
 
+    # "Thou shalt not pass!" - Gandalf
     my $mac = $class->mac_from_ip($ip);
     return Apache2::Const::NOT_FOUND unless $mac;
 
     return Apache2::Const::HTTP_METHOD_NOT_ALLOWED
     	if ($r->header_only or ($r->method_number != Apache2::Const::M_GET));
 
-    return Apache2::Const::AUTH_REQUIRED
-	if ((!defined $r->headers_in->{'user-agent'}) or
-	    (!SL::BrowserUtil->is_a_browser($r->headers_in->{'user-agent'})));
+    return Apache2::Const::HTTP_SERVICE_UNAVAILABLE
+        unless $r->headers_in->{'user-agent'};
 
     my $dest_url = $r->construct_url( $r->unparsed_uri );
 

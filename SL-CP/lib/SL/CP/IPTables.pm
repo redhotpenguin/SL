@@ -43,7 +43,7 @@ BEGIN {
     %tables_chains = (
         filter => [qw( slAUT slAUTads slNET slRTR )],
         mangle => [qw( slBLK slINC slOUT slTRU )],
-        nat    => [qw( slOUT slADS )],
+        nat    => [qw( slOUT )],
     );
 
 }
@@ -60,7 +60,7 @@ sub load_allows {
     my ($class, $file) = @_;
 
     my $fh;
-    open($fh, '<', $Config->sl_config . "/$file") or die $!;
+    open($fh, '<', $Config->sl_root . "/conf/$file") or die $!;
     my $ct = do { local $/; <$fh> };
     close($fh) or die $!;
 
@@ -119,8 +119,6 @@ slAUT --protocol tcp --source-port ! 25 -j ACCEPT
 
 slAUTads -m state --state RELATED,ESTABLISHED -j ACCEPT
 slAUTads -p tcp -m tcp --dport 22 -j ACCEPT 
-slAUTads -p tcp -m tcp --dport 53 -j ACCEPT 
-slAUTads -p udp -m udp --dport 53 -j ACCEPT 
 slAUTads -p tcp -m tcp --dport 80 -j ACCEPT 
 slAUTads -p tcp -m tcp --dport 110 -j ACCEPT 
 slAUTads -p tcp -m tcp --dport 143 -j ACCEPT 
@@ -137,7 +135,6 @@ slAUTads -p tcp -m tcp --dport 5050 -j ACCEPT
 slAUTads -p tcp -m tcp --dport 5190 -j ACCEPT 
 slAUTads -p tcp -m tcp --dport 5222 -j ACCEPT 
 slAUTads -p tcp -m tcp --dport 5223 -j ACCEPT 
-slAUTads -p tcp -m tcp --dport 8136 -j ACCEPT 
 
 slNET -m mark --mark $Blocked_mark/0x700 -j DROP
 slNET -m state --state INVALID -j DROP
@@ -145,10 +142,10 @@ slNET -p tcp -m tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
 slNET -m mark --mark $Trusted_mark/0x700 -j ACCEPT
 slNET -m mark --mark $Paid_mark/0x700 -j slAUT
 slNET -m mark --mark $Ads_mark/0x700 -j slAUTads
-slNET -p tcp -m tcp --dport 53 -j ACCEPT
-slNET -p udp -m udp --dport 53 -j ACCEPT
+slNET -p icmp -j REJECT  --reject-with icmp-port-unreachable
 $hosts_accept
 $sslhosts_accept
+slNET -j DROP
 
 slRTR -m mark --mark $Blocked_mark/0x700 -j DROP
 slRTR -m state --state INVALID -j DROP
@@ -156,13 +153,11 @@ slRTR -m state --state RELATED,ESTABLISHED -j ACCEPT
 slRTR -p tcp -m tcp ! --tcp-option 2 --tcp-flags SYN SYN -j DROP
 slRTR -p tcp -m tcp --dport $Perlbal_port -j ACCEPT
 slRTR -m mark --mark $Trusted_mark/0x700 -j ACCEPT
-slRTR -p tcp -m tcp --dport 22 -j ACCEPT
 slRTR -p udp -m udp --dport 53 -j ACCEPT
-slRTR -p tcp -m tcp --dport 53 -j ACCEPT
 slRTR -p udp -m udp --dport 67 -j ACCEPT
-slRTR -p tcp -m tcp --dport 8135 -j ACCEPT
+slRTR -p udp -m udp --dport 68 -j ACCEPT
 slRTR -p tcp -m tcp --dport 20022 -j ACCEPT
-slRTR -j REJECT --reject-with icmp-port-unreachable
+slRTR -p icmp -j ACCEPT
 FILTERS
 
     add_rules( 'filter', $filters );
@@ -186,89 +181,31 @@ POSTROUTING -o $Wan_if -j MASQUERADE
 
 slOUT -m mark --mark $Trusted_mark/0x700 -j ACCEPT
 slOUT -m mark --mark $Paid_mark/0x700 -j ACCEPT
-slOUT -p tcp -m tcp --dport 22 -j ACCEPT
-slOUT -p tcp -m tcp --dport 53 -j ACCEPT
-slOUT -p udp -m udp --dport 53 -j ACCEPT
-slOUT -p tcp -m tcp --dport 20022 -j ACCEPT
+slOUT -m mark --mark $Ads_mark/0x700 -j ACCEPT
 $hosts_slout
 $sslhosts_slout
 slOUT -p tcp -m tcp --dport 80 -j DNAT --to-destination $Gateway_ip:$Perlbal_port
-slOUT -j ACCEPT
-
+slOUT -p tcp -m tcp --dport 443 -j DNAT --to-destination $Gateway_ip:$Perlbal_port
+slOUT -p udp --dport 53 -d $Gateway_ip -j ACCEPT
+slOUT -p tcp --dport 20022 -d $Gateway_ip -j ACCEPT
+slOUT -j DROP
 NATS
 
     add_rules( 'nat', $nats );
 
     # trusted hosts
     my $trusted_hosts = $class->load_allows('trusted_hosts.txt');
-    my $out_rule = "-t mangle -A slTRU -s %s -m mac --mac-source %s -j MARK $Mark_op $Trusted_mark";
+    my $out_rule = "-t mangle -A slTRU -m mac --mac-source %s -j MARK $Mark_op $Trusted_mark";
+    #my $out_rule = "-t mangle -A slTRU -s %s -m mac --mac-source %s -j MARK $Mark_op $Trusted_mark";
     #my $in_rule = "-t mangle -A slINC -d %s -j ACCEPT";
 
     foreach my $mac (@{$trusted_hosts}) {
 
-        my $ip = SL::CP->ip_from_mac($mac);
-        iptables(sprintf($out_rule, $ip, $mac));
+        #my $ip = SL::CP->ip_from_mac($mac);
+        iptables(sprintf($out_rule, $mac));
      #   iptables($in_rule, $ip);
     }
 
-
-    # setup the search page chain
-    if ($Config->sl_search eq 'On') {
-
-        my $hosts_allow = $class->load_allows('search_hosts.txt');
-
-        my $target = ($Config->sl_adbar eq 'On') ? 'slADS' : 'ACCEPT';
-        iptables("-t nat -I slOUT 3 -m mark --mark $Ads_mark/0x700 -j $target");
-        foreach my $hostname ( @{$hosts_allow} ) {
-
-            my $rule = "-t nat -I slOUT 3 -m mark --mark $Ads_mark/0x700 -d %s -i $Lan_if -p tcp -m tcp --dport 80 -j REDIRECT --to-ports $Perlbal_port";
-            iptables(sprintf($rule, $hostname));
-        }
-
-    }
-
-    if ($Config->sl_adbar eq 'On') {
-
-        my $nat_ads = <<"NATS";
-slADS -p udp -j ACCEPT
-slADS -p tcp -m tcp --dport 443 -j ACCEPT
-slADS -p tcp -m tcp --dport 8135 -j DNAT --to :80
-slADS -p tcp -m tcp ! --dport 80 -j ACCEPT
-slADS -p tcp -m tcp --dport 80 -j DNAT --to-destination $Ad_proxy
-slADS -j ACCEPT
-NATS
-
-        add_rules( 'nat', $nat_ads );
-
-        # add the skips
-        my $skip_rule = "-t nat -I slADS 5 --dst %s -m tcp -p tcp --dport 80 -j ACCEPT";
-        my $skips = $class->load_allows('skips.txt');
-        my $throttle = 25;
-        my $i = 0;
-        foreach my $skip (@{$skips}) {
-            iptables(sprintf($skip_rule, $skip));
-            if ($i++ % $throttle == 0) {
-                warn("added $throttle skips, sleeping 1") if DEBUG;
-                sleep 1;
-            }
-        }
-
-        # add the noskips
-        my $noskip_rule = "-t nat -I slADS 5 -p tcp -m tcp --dport 80 --dst %s -j DNAT --to-destination $Ad_proxy";
-        my $noskips = $class->load_allows('noskips.txt');
-        foreach my $noskip (@{$noskips}) {
-            iptables(sprintf($noskip_rule, $noskip));
-        }
-
-        # add the redirect unless the search already added it.
-        unless ($Config->sl_search eq 'On') {
-            iptables("-t nat -I slOUT 3 -m mark --mark $Ads_mark/0x700 -j slADS");
-        }
-
-    } else {
-
-        die 'no ad chains configured';
-    }
 }
 
 

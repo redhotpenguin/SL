@@ -1,60 +1,72 @@
-ServerRoot           [% cfg.sl_httpd_root %]
+ServerRoot           [% cfg.sl_root %]
 ServerAdmin          [% cfg.sl_admin %]
 ServerSignature      Off
 ServerTokens         Prod
-PidFile              [% cfg.sl_root %]/tmp/sl_cp.pid
-DocumentRoot         [% cfg.sl_root %]/htdocs
+PidFile              [% cfg.sl_tmp %]/sl_cp.pid
+DocumentRoot         [% cfg.sl_httpd_root %]/htdocs/sl
 TypesConfig          [% cfg.sl_root %]/conf/mime.types
-User                 [% cfg.sl_apache_user %]
+User                 [% cfg.sl_apache_user %] 
 Group                [% cfg.sl_apache_group %]
-KeepAlive            On
-MaxKeepAliveRequests 100
+KeepAlive            [% cfg.sl_apache_keepalive %]
+MaxKeepAliveRequests 0
 KeepAliveTimeout     300
-MinSpareServers      4
-MaxSpareServers      8
-StartServers         24
-LogLevel             [% cfg.sl_apache_loglevel %]
-MaxClients           128
-ErrorLog             [% cfg.sl_root %]/logs/httpd_cp_error_log
-TransferLog          [% cfg.sl_root %]/logs/httpd_cp_access_log
-MaxRequestsPerChild  100
+ServerLimit          32
+MinSpareServers      [% cfg.sl_apache_min_spare_servers %]
+MaxSpareServers      [% cfg.sl_apache_max_spare_servers %]
+StartServers         [% cfg.sl_apache_start_servers %]
+LogLevel             [% IF cfg.sl_debug %]debug[% ELSE %]warn[% END %]
+MaxClients           [% cfg.sl_apache_maxclients %]
+ErrorLog             [% cfg.sl_tmp %]/logs/error_log
+TransferLog          [% cfg.sl_tmp %]/logs/access_log
+MaxRequestsPerChild  [% cfg.sl_apache_max_requests_per_child %]
 LogFormat "%h %t (%{User-agent}i) %{Host}i \"%r\" %>s %b %{SL_URL}e %{SL_TIMER}e %D"
 UseCanonicalName     Off
 HostNameLookups      Off
 Timeout              300
 AllowEncodedSlashes On
 
-Listen [% cfg.sl_gateway_ip %]:[% cfg.sl_apache_listen %]
-Listen [% cfg.sl_gateway_ip %]:8135
+Listen [% cfg.sl_apache_listen %]
 
-ServerName [% cfg.sl_servername %]
+ServerName           [% cfg.sl_apache_servername %]
+ErrorDocument        404 "An error occurred, please email support@slwifi.com"
+ErrorDocument        500 "An error occurred, please email support@slwifi.com"
 
-ErrorDocument        404  /errors/404.html
-ErrorDocument        500  /errors/500.html
+LoadModule perl_module         modules/mod_perl.so
+LoadModule apreq_module        modules/mod_apreq2.so
 
-LoadModule perl_module   modules/mod_perl.so
-LoadModule apreq_module  modules/mod_apreq2.so
-PerlPostConfigRequire "[% cfg.sl_root %]/conf/startup.pl"
+PerlPassEnv SL_ROOT
+PerlPostConfigRequire "/etc/sl/startup_cp.pl"
 
-PerlPostReadRequestHandler Apache2::Const::OK
-#PerlTransHandler Apache2::Const::OK
+[% IF cfg.sl_debug %]
+# Apache::Reload for development.
+PerlModule           Apache2::Reload
+PerlInitHandler      Apache2::Reload
+#PerlSetVar           ReloadAll Off
+#PerlSetVar           ReloadModules "SL::*"
+[% END %]
 
-<Location /errors>
-	Sethandler default-handler
-</Location>
+PerlPassEnv          SL_DEBUG
+PerlPassEnv          SL_PROXY_DEBUG
+PerlPassEnv          SL_VERBOSE_DEBUG
+PerlPassEnv          SL_TIMING
+
+PerlPostReadRequestHandler Apache2::Connection::XForwardedFor SL::CP->iphone_check
+
+# don't uncomment this or errors ye shall have
+# PerlTransHandler           Apache2::Const::OK
 
 <Location />
-    SetHandler modperl
+    SetHandler          modperl
     PerlHeaderParserHandler Apache2::Const::OK
     PerlAccessHandler       Apache2::Const::OK
     PerlAuthenHandler       Apache2::Const::OK
     PerlAuthzHandler        Apache2::Const::OK
     PerlTypeHandler         Apache2::Const::OK
     PerlFixupHandler        Apache2::Const::OK
-    PerlResponseHandler SL::CP
+    PerlResponseHandler     SL::CP->handler
 </Location>
 
-<Location /ads>
+<Location /free>
     SetHandler modperl
     PerlHeaderParserHandler Apache2::Const::OK
     PerlAccessHandler       Apache2::Const::OK
@@ -63,7 +75,7 @@ PerlPostReadRequestHandler Apache2::Const::OK
     PerlTypeHandler         Apache2::Const::OK
     PerlFixupHandler        Apache2::Const::OK
 
-    PerlResponseHandler SL::CP->ads
+    PerlResponseHandler SL::CP->free
 </Location>
 
 <Location /paid>
@@ -78,6 +90,7 @@ PerlPostReadRequestHandler Apache2::Const::OK
     PerlResponseHandler SL::CP->paid
 </Location>
 
+
 <Location /upgrade>
     SetHandler modperl
     PerlHeaderParserHandler Apache2::Const::OK
@@ -89,10 +102,16 @@ PerlPostReadRequestHandler Apache2::Const::OK
 
     PerlResponseHandler SL::CP->upgrade
 </Location>
- 
 
 
 <Directory />
-    AllowOverride none
+    AllowOverride None
 </Directory>
 
+[% IF cfg.sl_status %]
+<Location /sl_secret_status>
+	SetHandler modperl
+    PerlHandler Apache2::Status
+    PerlSetVar StatusOptionsAll On
+</Location>
+[% END %]

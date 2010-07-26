@@ -1,0 +1,27 @@
+www.slwifi.com
+app.redhotpenguin.com
+app.silverliningnetworks.com
+
+authorize.net
+verify.authorize.net
+
+assets0.zendesk.com
+cdn.zendesk.com
+support.silverliningnetworks.com
+silverlining.zendesk.com
+
+# speed tests
+cdn.speedtest.net
+speedtest.net
+dslreports.com
+www.unwiredltd.com
+i.dslr.net
+
+mt.l.google.com
+maps.google.com
+maps.gstatic.com
+www.google-analytics.com
+
+aircloud.net
+
+

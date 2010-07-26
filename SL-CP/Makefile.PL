@@ -16,10 +16,11 @@ WriteMakefile(
         'LWP::UserAgent'  => 5.834,
         'URI::Escape'     => 3.30,
         'Crypt::SSLeay'   => 0.57,
+        'Apache2::Connection::XForwardedFor' => 0.01,
     },
     EXE_FILES => [qw( bin/sl_cp bin/sl_httpd_watch bin/sl_cp_check
                       bin/sl_cp_bouncer )],
     ABSTRACT      => 'Silver Lining Captive Portal',
-    AUTHOR        => 'Fred Moyer <fred@silverliningnetworks.com>',
+    AUTHOR        => 'Fred Moyer <fred@slwifi.com>',
 
 );
