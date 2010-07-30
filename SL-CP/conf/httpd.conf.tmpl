@@ -50,7 +50,7 @@ PerlPassEnv          SL_PROXY_DEBUG
 PerlPassEnv          SL_VERBOSE_DEBUG
 PerlPassEnv          SL_TIMING
 
-PerlPostReadRequestHandler Apache2::Connection::XForwardedFor SL::CP->iphone_check
+PerlPostReadRequestHandler Apache2::Connection::XForwardedFor SL::CP::Apache2->iphone_check
 
 # don't uncomment this or errors ye shall have
 # PerlTransHandler           Apache2::Const::OK
@@ -63,7 +63,7 @@ PerlPostReadRequestHandler Apache2::Connection::XForwardedFor SL::CP->iphone_che
     PerlAuthzHandler        Apache2::Const::OK
     PerlTypeHandler         Apache2::Const::OK
     PerlFixupHandler        Apache2::Const::OK
-    PerlResponseHandler     SL::CP->handler
+    PerlResponseHandler     SL::CP::Apache2->handler
 </Location>
 
 <Location /free>
@@ -75,7 +75,7 @@ PerlPostReadRequestHandler Apache2::Connection::XForwardedFor SL::CP->iphone_che
     PerlTypeHandler         Apache2::Const::OK
     PerlFixupHandler        Apache2::Const::OK
 
-    PerlResponseHandler SL::CP->free
+    PerlResponseHandler SL::CP::Apache2->free
 </Location>
 
 <Location /paid>
@@ -87,20 +87,7 @@ PerlPostReadRequestHandler Apache2::Connection::XForwardedFor SL::CP->iphone_che
     PerlTypeHandler         Apache2::Const::OK
     PerlFixupHandler        Apache2::Const::OK
 
-    PerlResponseHandler SL::CP->paid
-</Location>
-
-
-<Location /upgrade>
-    SetHandler modperl
-    PerlHeaderParserHandler Apache2::Const::OK
-    PerlAccessHandler       Apache2::Const::OK
-    PerlAuthenHandler       Apache2::Const::OK
-    PerlAuthzHandler        Apache2::Const::OK
-    PerlTypeHandler         Apache2::Const::OK
-    PerlFixupHandler        Apache2::Const::OK
-
-    PerlResponseHandler SL::CP->upgrade
+    PerlResponseHandler SL::CP::Apache2->paid
 </Location>
 
 

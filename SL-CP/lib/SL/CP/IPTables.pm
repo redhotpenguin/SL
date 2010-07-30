@@ -3,6 +3,8 @@ package SL::CP::IPTables;
 use strict;
 use warnings;
 
+use base 'SL::CP';
+
 use Data::Dumper   qw(Dumper);
 
 use SL::Config     ();
@@ -153,11 +155,11 @@ slRTR -m state --state RELATED,ESTABLISHED -j ACCEPT
 slRTR -p tcp -m tcp ! --tcp-option 2 --tcp-flags SYN SYN -j DROP
 slRTR -p tcp -m tcp --dport $Perlbal_port -j ACCEPT
 slRTR -m mark --mark $Trusted_mark/0x700 -j ACCEPT
-slRTR -p udp -m udp --dport 53 -j ACCEPT
-slRTR -p udp -m udp --dport 67 -j ACCEPT
-slRTR -p udp -m udp --dport 68 -j ACCEPT
-slRTR -p tcp -m tcp --dport 20022 -j ACCEPT
-slRTR -p icmp -j ACCEPT
+slRTR -p udp -m udp -s 10.69.0.1/16 --dport 53 -j ACCEPT
+slRTR -p udp -m udp -s 10.69.0.1/16 --dport 67 -j ACCEPT
+slRTR -p udp -m udp -s 10.69.0.1/16 --dport 68 -j ACCEPT
+slRTR -p tcp -m tcp -s 10.69.0.1/16 --dport 20022 -j ACCEPT
+slRTR -p icmp -s 10.69.0.1/16 -j ACCEPT
 FILTERS
 
     add_rules( 'filter', $filters );
@@ -187,7 +189,10 @@ $sslhosts_slout
 slOUT -p tcp -m tcp --dport 80 -j DNAT --to-destination $Gateway_ip:$Perlbal_port
 slOUT -p tcp -m tcp --dport 443 -j DNAT --to-destination $Gateway_ip:$Perlbal_port
 slOUT -p udp --dport 53 -d $Gateway_ip -j ACCEPT
+slOUT -p udp --dport 67 -j ACCEPT
+slOUT -p udp --dport 68 -j ACCEPT
 slOUT -p tcp --dport 20022 -d $Gateway_ip -j ACCEPT
+slOUT -p tcp --dport $Perlbal_port -d $Gateway_ip -j ACCEPT
 slOUT -j DROP
 NATS
 
@@ -267,32 +272,9 @@ sub _mac_check {
     return 1;
 }
 
-sub check_for_mac {
-    my ( $class, $mac, $ip ) = @_;
+sub fixup_access {
+    my ( $class, $mac, $ip, $type ) = @_;
 
-    my $esc_mac = URI::Escape::uri_escape($mac);
-    my $url     = "$Auth_url/check?mac=$esc_mac&cp_mac=" . URI::Escape::uri_escape($Wan_mac);
-
-    my $res = $UA->get($url);
-
-    if ( ( $res->code == 404 ) or ( $res->code == 401 ) ) {
-
-        # no mac authenticated
-        return $res->code;
-
-    }
-    elsif ( !$res->is_success ) {
-
-        die $res;
-    }
-
-    warn( "mac check response code " . $res->code ) if DEBUG;
-
-    my $payload = $res->content;
-
-    my $type = ($payload =~ m/paid/) ? 'paid' : 'ads';
-
-    # successful request, make sure the rules are ok
     my $uc_mac        = uc($mac);
     my $iptables_rule = `sudo $Iptables -t mangle -L -v`;
 
@@ -300,12 +282,11 @@ sub check_for_mac {
     my ($iptables_ip) =
       $iptables_rule =~ m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*?MAC\s+$uc_mac/i;
 
+    my $chain = "_$type\_chain";
     if ( !$iptables_ip ) {
 
-        warn("no iptables rules, creating one") if DEBUG;
-
-        # probably a server restart, re-add the rules
-        $class->_paid_chain( 'A', $mac, $ip );
+        warn("no rule for authed mac $mac, adding") if DEBUG;
+       $class->$chain( 'A', $mac, $ip );
 
     }
     elsif ( $ip ne $iptables_ip ) {
@@ -314,12 +295,12 @@ sub check_for_mac {
         # dhcp lease probably expired, delete old rule, create new rule
         my $delete = "delete_from_$type\_chain";
         $class->$delete( $mac, $iptables_ip );
-        my $chain = "_$type\_chain";
-        $class->$chain( 'A', $mac, $ip );
+       $class->$chain( 'A', $mac, $ip );
+    } elsif ($ip eq $iptables_ip ) {
 
+        # no-op
     }
-
-    return $type;
+    return 1;
 }
 
 
@@ -361,7 +342,7 @@ sub add_to_paid_chain {
     my $check = eval { $class->check_for_mac($mac, $ip) };
     die $@ if $@;
 
-    return Apache2::Const::NOT_FOUND unless $check eq 'paid';
+    return unless $check eq 'paid';
 
     # see if this mac is already in the ads chain
     my $ads_ip = $class->check_ads_chain_for_mac( $mac );
@@ -417,6 +398,12 @@ sub add_to_ads_chain {
     my ( $class, $mac, $ip ) = @_;
 
     my $esc_mac = URI::Escape::uri_escape($mac);
+
+    # convert minutes to seconds 
+    my $stay = time() + $Config->sl_visitor_limit * 60;   
+    $class->set($mac => "$stay|ads");
+
+    warn("cache set $mac => $stay") if DEBUG;
     return $class->_ads_chain( 'A', $mac, $ip );
 }
 
@@ -438,8 +425,12 @@ sub _ads_chain {
 
 
 sub check_overage {
-    my ($class, $mac, $ip, $in, $out) = @_;
+    my ($class, $mac, $ip) = @_;
 
+    my $in  = `iptables -t mangle -n -v -x -L slINC`;
+    my $out = `iptables -t mangle -n -v -x -L slOUT`;
+
+    # check the megabyte limits first
     my ($bytes_in) = $in =~ m/\d+\s+(\d+).*?$ip/;
     return 1 if $bytes_in > $Config->sl_down_overage;
 

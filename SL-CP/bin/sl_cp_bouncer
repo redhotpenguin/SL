@@ -4,31 +4,37 @@ use strict;
 use warnings;
 
 use SL::Config;
+use SL::CP ();
 use SL::CP::IPTables ();
+
+use Data::Dumper;
 
 our $Config = SL::Config->new;
 
-my @ads_users = SL::CP::IPTables->ads_users;
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
-my $in  = `iptables -t mangle -n -v -x -L slINC`;
-my $out = `iptables -t mangle -n -v -x -L slOUT`;
+my @ads_users = SL::CP::IPTables->ads_users;
 
 foreach my $user (@ads_users) {
 
-    my $overage = eval { SL::CP::IPTables->check_overage($user->[1], $user->[0], $in, $out) };
-
-    if ($@) {
-
-        warn(sprintf("$$ failed overage check %s - %s", $user->[1], $user->[0]));
-        next;
-    }
-
+    warn("user " . Dumper($user)) if DEBUG;
+    # check data overage
+    my $overage = SL::CP::IPTables->check_overage($user->[1], $user->[0]);
 
     if ($overage) {
-
-        warn(sprintf("$$ mac %s, ip %s expired, removing", $user->[1], $user->[0]));
+        warn(sprintf("$$ mac %s, ip %s expired", $user->[1], $user->[0]))
+             if DEBUG;
         SL::CP::IPTables->delete_from_ads_chain($user->[1], $user->[0]);
     }
+
+    # check timed overage
+    my $not_timed_out = SL::CP->not_timed_out($user->[1], $user->[0]);
+    unless ($not_timed_out) {
+        warn(sprintf("$$ mac %s, ip %s expired", $user->[1], $user->[0]))
+             if DEBUG;
+        SL::CP::IPTables->delete_from_ads_chain($user->[1], $user->[0]);
+    }
+
 }
 
 
@@ -36,12 +42,8 @@ my @paid_users = SL::CP::IPTables->paid_users;
 
 foreach my $user (@paid_users) {
 
-    my $code = eval { SL::CP::IPTables->check_for_paid_mac($user->[1], $user->[0]); };
+    my $code = SL::CP::IPTables->check_for_paid_mac($user->[1], $user->[0]);
 
-    if ($@) {
-        warn(sprintf("$$ failed to contact auth server, mac %s ip %s", $user->[1], $user->[0])); 
-        next;
-    }
 
     if ($code == 1) {
 

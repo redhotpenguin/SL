@@ -26,14 +26,15 @@ use Apache2::Response   ();
 use Apache2::Request    ();
 use Apache2::RequestIO  ();
 use Apache2::Connection::XForwardedFor ();
+#use Apache2::Connection::Arp ();
 
 
 use LWP::UserAgent      ();
 use Crypt::SSLeay       ();
 use URI::Escape         ();
-use HTML::Template      ();
 
 use SL::CP           ();
+use SL::CP::Apache2  ();
 use SL::CP::IPTables ();
 use SL::BrowserUtil  ();
 
@@ -43,8 +44,9 @@ if (Apache2::ServerUtil::restart_count() > 1) {
     SL::CP::IPTables->init_firewall;
 }
 
+# BROKEN
 # register cleanup
-print "Registering cleanup handler...\n";
+# print "Registering cleanup handler...\n";
 #Apache2::ServerUtil::server_shutdown_cleanup_register(
 #    \&SL::CP::IPTables::clear_firewall );
 
