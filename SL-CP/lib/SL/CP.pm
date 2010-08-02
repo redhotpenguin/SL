@@ -158,7 +158,7 @@ sub not_timed_out {
 
     my $exp = $class->get($mac);
 
-    return 1 unless $exp;
+    return unless $exp;
 
     my ($exp_time, $chain) = split(/\|/, $exp);
 

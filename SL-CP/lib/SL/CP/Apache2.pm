@@ -5,13 +5,11 @@ use warnings;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
-our $VERSION = 0.04;
-
 use base 'SL::CP';
 
 use Apache2::Const -compile => qw( NOT_FOUND OK REDIRECT SERVER_ERROR DECLINED
                                    AUTH_REQUIRED HTTP_SERVICE_UNAVAILABLE DONE
-                                   M_GET HTTP_METHOD_NOT_ALLOWED );
+                                   M_GET M_POST HTTP_METHOD_NOT_ALLOWED );
 
 use Data::Dumper qw(Dumper);
 
@@ -28,10 +26,15 @@ use APR::Table           ();
 use SL::Config       ();
 use SL::CP           ();
 use SL::BrowserUtil  ();
-use HTML::Template   ();
+use Template   ();
 use URI::Escape ();
 
 our $Config = SL::Config->new;
+
+our $Template = Template->new( INCLUDE_PATH => $Config->sl_httpd_root . '/htdocs/sl/' );
+
+
+# bypass the iphone captive portal detector
 
 sub iphone_check {
     my ($class, $r) = @_;
@@ -81,25 +84,20 @@ sub handler {
 
     }
  
-    my $Template = HTML::Template->new(
-            filename => $Config->sl_httpd_root . '/htdocs/sl/splash.tmpl',
-            die_on_bad_params => 0 );
-
-    my $lan_ip = SL::CP->lan_ip;
-    my $wan_mac = SL::CP->wan_mac;
-    $Template->param(PERLBAL  => "http://$lan_ip:" . $Config->sl_perlbal_port);
-    $Template->param(CDN_HOST => $Config->sl_cdn_host);
-    $Template->param(MAC      => URI::Escape::uri_escape($mac));
-    $Template->param(URL      => URI::Escape::uri_escape($dest_url));
-    $Template->param(CP_MAC   => URI::Escape::uri_escape($wan_mac));
-    $Template->param(PROVIDER_HREF => $Config->sl_account_website);
-    $Template->param(PROVIDER_LOGO => $Config->sl_account_logo);
+    my %tmpl = (perlbal  => 'http://' . $class->lan_ip . ':' . $Config->sl_perlbal_port,
+    cdn_host => $Config->sl_cdn_host,
+   mac      => URI::Escape::uri_escape($mac),
+    url      => URI::Escape::uri_escape($dest_url),
+    cp_mac   => URI::Escape::uri_escape($class->wan_mac),
+    provider_href => $Config->sl_account_website,
+    provider_logo => $Config->sl_account_logo, );
 
     $r->content_type('text/html; charset=UTF-8');
     $r->no_cache(1);
     $r->rflush;
 
-    my $output = $Template->output;
+    my $output;
+    $Template->process( 'splash.tmpl', \%tmpl, \$output) || die $Template->error;
     $r->print($output);
 
     return Apache2::Const::OK;
@@ -109,42 +107,57 @@ sub handler {
 
 sub free {
     my ( $class, $r ) = @_;
-
+    
     my $ip = $r->connection->remote_ip;
     my $mac = $class->mac_from_ip($ip);
     return Apache2::Const::NOT_FOUND unless $mac;
 
     my $req     = Apache2::Request->new($r);
     my $url     = $req->param('url');
-    my $req_mac = $req->param('mac');
+    
+    # serve the page or process the request
+    if ($r->method_number == Apache2::Const::M_GET) {
 
-    $r->log->debug("url $url, mac $req_mac") if DEBUG;
-    unless ($req_mac) {
-	   $r->log->error("no mac passed in url for dhcp mac $mac");
-	   return Apache2::Const::NOT_FOUND;
-    }
+    my %tmpl = (perlbal  => 'http://' . $class->lan_ip . ':' . $Config->sl_perlbal_port,
+    cdn_host => $Config->sl_cdn_host,
+   mac      => URI::Escape::uri_escape($mac),
+    url      => $url, #URI::Escape::uri_escape($url),
+    cp_mac   => URI::Escape::uri_escape($class->wan_mac),
+    provider_href => $Config->sl_account_website,
+    provider_logo => $Config->sl_account_logo, );
 
-    # macs had better match up
-    unless ( $req_mac eq $mac ) {
-        $r->log->error(
-            "auth macs didn't match up, mac $mac, req mac $req_mac");
-        return Apache2::Const::SERVER_ERROR;
-    }
-
-    my $added = SL::CP::IPTables->add_to_ads_chain( $mac, $ip );
-
-    unless ($added) {
-
-        $r->log->error("$$ error adding mac $mac to ads chain: $@");
-        return Apache2::Const::SERVER_ERROR;
-    }
-
-    my $location = $class->make_post_url($Config->sl_splash_href,
-        URI::Escape::uri_escape($url));
-
-    $r->headers_out->set( Location => $location );
+        my $output;
+        $Template->process( 'free.tmpl', \%tmpl, \$output) || die $Template->error;
+    $r->content_type('text/html; charset=UTF-8');
     $r->no_cache(1);
-    return Apache2::Const::REDIRECT;
+    $r->rflush;
+        $r->print($output);
+        return Apache2::Const::OK;
+
+    } elsif ($r->method_number == Apache2::Const::M_POST) {
+
+        my $terms = $req->param('terms');
+
+        unless ($terms) {
+              $r->method_number(Apache2::Const::M_GET);
+              return $class->free($r);
+        }
+        # they clicked yes, authenticate
+        my $added = SL::CP::IPTables->add_to_ads_chain( $mac, $ip );
+
+        unless ($added) {
+
+            $r->log->error("$$ error adding mac $mac to ads chain: $@");
+            return Apache2::Const::SERVER_ERROR;
+        }
+
+        my $location = $class->make_post_url($Config->sl_splash_href,
+            URI::Escape::uri_escape($url));
+
+        $r->headers_out->set( Location => $location );
+        $r->no_cache(1);
+        return Apache2::Const::REDIRECT;
+    }
 }
 
 
