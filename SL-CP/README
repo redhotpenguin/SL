@@ -1,16 +1,7 @@
-SL-CP version 0.01
+SL-CP version 0.05
 ==================
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
-
-A README file is required for CPAN modules since CPAN extracts the
-README file from a module distribution so that people browsing the
-archive can use it get an idea of the modules uses. It is usually a
-good idea to provide version information here so that people can
-decide whether fixes for the module are worth downloading.
+The Silver Lining Networks Captive Portal
 
 INSTALLATION
 
@@ -25,16 +16,26 @@ DEPENDENCIES
 
 This module requires these other modules and libraries:
 
-  blah blah blah
+mod_perl2
 
 COPYRIGHT AND LICENCE
 
-Put the correct copyright and licence information here.
+Copyright (C) 2010 by Silver Lining Networks
 
-Copyright (C) 2008 by Fred Moyer
+This program may be used provided the user follows these requirements:
 
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.8.8 or,
-at your option, any later version of Perl 5 you may have available.
+1) The 'Captive Portal by Silver Lining' text and corresponding link must be
+displayed on the captive portal pages above the web page fold.
 
+2) The user may not redistribute or resell this program without explicit
+written permission from Silver Lining Networks.
+
+3) The user exempts Silver Lining Networks from any liability incurred
+from the use of this program.
+
+4) The user may modify the source code of this program but may not distribute
+derivative works of this program without written permission from Silver Lining
+Networks.
+
+For specific questions regarding this license, email support@slwifi.com.
 
