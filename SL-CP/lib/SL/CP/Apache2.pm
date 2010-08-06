@@ -24,10 +24,10 @@ use Apache2::URI         ();
 use APR::Table           ();
 
 use SL::Config       ();
-use SL::CP           ();
 use SL::BrowserUtil  ();
 use Template   ();
 use URI::Escape ();
+use Business::PayPal;
 
 our $Config = SL::Config->new;
 
@@ -40,7 +40,6 @@ sub iphone_check {
     my ($class, $r) = @_;
 
     my $ua = $r->headers_in->{'user-agent'};
-    $r->log->debug("ua is " . substr($ua, 0, 21)) if DEBUG;
     if (defined $ua && (substr($ua, 0, 21) eq 'CaptiveNetworkSupport')) {
 
         $r->set_handlers(PerlResponseHandler => undef);
@@ -48,6 +47,38 @@ sub iphone_check {
     } else {
         return Apache2::Const::OK;
     }
+}
+
+# paypal ipn handler
+
+sub ipnvalidate {
+    my ($class, $r) = @_;
+
+    my $req = Apache2::Request->new($r);
+
+    # build cgi compatible request hash
+    my @param = $req->param;
+    my %q;
+    foreach my $key ( @param) {
+        $q{$key} = $req->param($key);
+    }
+
+    $r->log->debug("request dump is " . Dumper(\%q)) if DEBUG;
+
+    my $id = $q{custom};
+    my $paypal = Business::PayPal->new(id => $id);
+    my ($txnstatus, $reason) = $paypal->ipnvalidate(\%q);
+    unless ($txnstatus) {
+        $r->log->error("PayPal failed: $reason");
+        return Apache2::Const::SERVER_ERROR;
+    }
+
+    # check to see if we can find a mac address for this paypal_id
+    my $found = $class->get("paypal_id|$id");
+    my ($mac, $ip) = split(/\|/, $found);
+    my $added = SL::CP::IPTables->add_to_paid_chain( $mac, $ip );
+
+    return Apache2::Const::OK;
 }
 
 
@@ -62,7 +93,12 @@ sub handler {
 
     # "Thou shalt not pass!" - Gandalf
     my $mac = $class->mac_from_ip($ip);
-    return Apache2::Const::NOT_FOUND unless $mac;
+    unless ($mac) {
+        $r->no_cache(1);
+        $r->content_type('text/plain');
+        $r->print("Please renew your DHCP lease, or reboot your computer to get a valid DHCP lease");
+        return Apache2::Const::OK;
+    }
 
     return Apache2::Const::HTTP_METHOD_NOT_ALLOWED
     	if ($r->header_only or ($r->method_number != Apache2::Const::M_GET));
@@ -170,14 +206,58 @@ sub paid {
 
     my $req     = Apache2::Request->new($r);
     my $url     = $req->param('url');
-    my $req_mac = $req->param('mac');
 
-    # macs had better match up
-    unless ( $req_mac eq $mac ) {
-        $r->log->error(
-            "$$ auth macs didn't match up, mac $mac, req mac $req_mac");
-        return Apache2::Const::SERVER_ERROR;
-    }
+    # serve the page or process the request
+    if ($r->method_number == Apache2::Const::M_GET) {
+
+    my $p = Business::PayPal->new;
+    my $id = $p->id;
+    my $b = $p->button(
+        'item_number' => 420,
+        'business' => $Config->sl_paypal_account,
+        'item_name' => 'airCloud WiFi Purchase',
+        'notify_url' => 'http://' . $Config->sl_dmz_listen . "/ipn_validate?url=$url&id=$id",
+        'return' => $Config->sl_splash_href,
+        'cancel_return' => 'http://' . $class->lan_ip . ":9999/paid?url=$url",
+        'amount'  => '0.05',
+        'quantity' => 1,
+        'button_image' => 
+		 CGI::image_button(-name => 'submit',
+                               -src  => 'http://s1.slwifi.com/images/buttons/3_hour_service.png',
+                               -alt  => 'Make payments with PayPal',
+                              ),
+        );
+
+    $class->set("paypal_id|$id" => "$mac|$ip");
+
+    my %tmpl = (perlbal  => 'http://' . $class->lan_ip . ':' . $Config->sl_perlbal_port,
+    cdn_host => $Config->sl_cdn_host,
+   mac      => URI::Escape::uri_escape($mac),
+    url      => $url, #URI::Escape::uri_escape($url),
+    cp_mac   => URI::Escape::uri_escape($class->wan_mac),
+    provider_href => $Config->sl_account_website,
+    provider_logo => $Config->sl_account_logo,
+    button => $b,
+ );
+
+        my $output;
+        $Template->process( 'paid.tmpl', \%tmpl, \$output) || die $Template->error;
+    $r->content_type('text/html; charset=UTF-8');
+    $r->no_cache(1);
+    $r->rflush;
+        $r->print($output);
+        return Apache2::Const::OK;
+
+    } elsif ($r->method_number == Apache2::Const::M_POST) {
+
+        my $terms = $req->param('terms');
+
+        unless ($terms) {
+              $r->method_number(Apache2::Const::M_GET);
+              return $class->free($r);
+        }
+        # they clicked yes, authenticate
+
 
     my $added = SL::CP::IPTables->add_to_paid_chain( $mac, $ip );
 
@@ -186,23 +266,9 @@ sub paid {
         $r->log->error("$$ error adding mac $mac to paid chain: $@");
         return Apache2::Const::SERVER_ERROR;
     }
-
+    }
     $mac = URI::Escape::uri_escape($mac);
     $url = URI::Escape::uri_escape($url);
-
-    if ( ( $added == 401 ) or ( $added == 404 ) ) {
-
-        # must be a 404
-        my $location; # = "$Auth_url?mac=$mac&url=$url";
-        $location .= "&expired=1" if ( $added == 401 );
-
-        $r->log->debug( "expired mac address $mac found, code "
-              . $added
-              . ", redirecting to $location" ) if DEBUG;
-        $r->headers_out->set( Location => $location );
-        $r->no_cache(1);
-        return Apache2::Const::REDIRECT;
-    }
 
     # else we have an authenticated user
     my $location = $class->make_post_url($Config->sl_splash_href, $url);

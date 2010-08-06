@@ -2,8 +2,11 @@ www.slwifi.com
 app.redhotpenguin.com
 app.silverliningnetworks.com
 
-authorize.net
-verify.authorize.net
+199.7.0.0/16
+evsecure-ocsp.verisign.com
+evsecure-crl.verisign.com
+ocsp.ams1.verisign.com
+ocsp.mia1.verisign.com
 
 assets0.zendesk.com
 cdn.zendesk.com
@@ -17,11 +20,9 @@ dslreports.com
 www.unwiredltd.com
 i.dslr.net
 
-mt.l.google.com
-maps.google.com
-maps.gstatic.com
 www.google-analytics.com
 
 aircloud.net
-
-
+www.aircloud.com
+www.gstatic.com
+spreadsheets.google.com

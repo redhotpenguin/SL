@@ -22,10 +22,7 @@ our ( $Config, $Lease_file, $Auth_url, $Max_rate, %Db,
 
 BEGIN {
     $Config     = SL::Config->new;
-    $Auth_url   = $Config->sl_cp_auth_url        || die 'oops';
     $Lease_file = $Config->sl_dhcp_lease_file    || die 'oops';
-    $Max_rate   = $Config->sl_ratelimit_max_rate   || die 'oops';
-    $Min_count  = $Config->sl_ratelimit_min_count || die 'oops';
     $Wan_if     = $Config->sl_wan_if              || die 'oops';
     $Lan_if     = $Config->sl_lan_if              || die 'oops';
     ($Lan_ip)   = `/sbin/ifconfig $Lan_if` =~ m/inet addr:(\S+)/;

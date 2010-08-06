@@ -6,42 +6,27 @@
 			<!-- CHOOSE WIFI COPY ************************ --> 
 			<div class="two_thirds left padding_top">
 
-
-
-				<h2 class="choose_wifi">Choose a WiFi option</h2>
-				<TMPL_IF NAME="EXPIRED"><p><strong><font color="red">Your existing plan has expired, please select a new plan.</font></strong></p></TMPL_IF>
-				<TMPL_IF NAME="UPGRADE"><p><strong><font color="red">Thank you for upgrading, please select a new plan.</font></strong></p></TMPL_IF>
-
-				<p>To get started choose a WiFi option that works best for you. We use the revenue from Ads on our free WiFi to pay for the internet so you don't have to. Thanks for understanding. However, if you really don't like Ads, choose one of our simple pay-per-use options and surf Ad Free. Thanks!</p>
-			
+	<p><strong>All WiFi purchases are final.</strong><br />Please choose from one of the available rate plans below.  The paid service allows access through all ports, so VPN and other network based applications will function properly.  If you have any questions regarding your purchase, please <a href="http://www.aircloud.com/contact">contact us</a></p>
 			</div>
 			
                        <!-- LOGO ************************ -->
                         <div class="one_third left">
                                 <div id="custom_logo">
-                                        <a id="logo_image" href="<TMPL_VAR NAME="PROVIDER_HREF">" style="background: url(<TMPL_VAR NAME="PROVIDER_LOGO">) no-repeat center center ">
+                                        <a id="logo_image" href="[% provider_href %]" style="background: url([% provider_logo %]) no-repeat center center ">
                                         <div id="gloss"> </div>
                                         </a>
                                 </div>
                         </div>
 			<div class="clear"></div>
-			
-			
-			<!-- WIFI OPTION BUTTONS ************************ --> 
-			<div class="one_third left">
-				<p><a class="one_hour_service" href="<TMPL_VAR NAME="AUTH_URL">/auth/paid?plan=one&mac=<TMPL_VAR NAME="MAC">&url=<TMPL_VAR NAME="URL">&cp_mac=<TMPL_VAR NAME="CP_MAC">">$2 WiFi (No Ads, 1 Hour Use)</a></p>
-			</div>
 
-			<div class="one_third left">
-				<p><a class="three_hour_service" href="<TMPL_VAR NAME="AUTH_URL">/auth/paid?plan=four&mac=<TMPL_VAR NAME="MAC">&url=<TMPL_VAR NAME="URL">&cp_mac=<TMPL_VAR NAME="CP_MAC">">$3 WiFi (No Ads, 4 Hours Use)</a></p>
-			</div>
+                [% PROCESS buttons.tmpl %]                    
 
-                        <div class="one_third left">
-                                <p><a class="one_day_service" href="<TMPL_VAR NAME="AUTH_URL">/auth/paid?plan=day&mac=<TMPL_VAR NAME="MAC">&url=<TMPL_VAR NAME="URL">&cp_mac=<TMPL_VAR NAME="CP_MAC">">$5 WiFi (No Ads, 24 Hours of Use)</a></p>
-                        </div>
 			<div class="clear"></div>
-				<p class="free_service"><strong>All WiFi purchases are final. <br />  PLEASE CHECK YOUR SPEED at <a href="http://www.speedtest.net">Speedtest.net</a> to make sure you are close enough to the transmitter.</strong><br />If you have problems while surfing we will issue you more time, email <a href="mailto:support@slwifi.com">support@slwifi.com</a>.<br />Need a zero commitment monthly subscription?  Scroll down!<br />You can also use our <a href="<TMPL_VAR NAME="PERLBAL">/free?mac=<TMPL_VAR NAME="MAC">&url=<TMPL_VAR NAME="URL">">Free</a> WiFi service (50 megabyte limit per session).  Advertisements will be displayed in the Free service, and you will be able to browse the web, receive and send email, and use instant messenger clients in the Free service.<br /><strong>If you have a problem while surfing</strong> you are probably in a bad signal area.  Use the speed test to find a good spot.</p>
 
-			</div>
-	</div>
+</div>
+</div>
+        [% PROCESS splash_ads.tmpl %]
+
+ [% PROCESS our_pledge.tmpl %]
+
 [% PROCESS footer.tmpl %]

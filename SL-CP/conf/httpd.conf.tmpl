@@ -10,7 +10,6 @@ Group                [% cfg.sl_apache_group %]
 KeepAlive            [% cfg.sl_apache_keepalive %]
 MaxKeepAliveRequests 0
 KeepAliveTimeout     300
-ServerLimit          32
 MinSpareServers      [% cfg.sl_apache_min_spare_servers %]
 MaxSpareServers      [% cfg.sl_apache_max_spare_servers %]
 StartServers         [% cfg.sl_apache_start_servers %]
@@ -26,6 +25,7 @@ Timeout              300
 AllowEncodedSlashes On
 
 Listen [% cfg.sl_apache_listen %]
+Listen [% cfg.sl_wan_listen %]
 
 ServerName           [% cfg.sl_apache_servername %]
 ErrorDocument        404 "An error occurred, please email support@slwifi.com"
@@ -37,12 +37,14 @@ LoadModule apreq_module        modules/mod_apreq2.so
 PerlPassEnv SL_ROOT
 PerlPostConfigRequire "/etc/sl/startup_cp.pl"
 
+PerlOptions +GlobalRequest
+
 [% IF cfg.sl_debug %]
 # Apache::Reload for development.
 PerlModule           Apache2::Reload
 PerlInitHandler      Apache2::Reload
-#PerlSetVar           ReloadAll Off
-#PerlSetVar           ReloadModules "SL::*"
+PerlSetVar           ReloadAll Off
+PerlSetVar           ReloadModules "SL::*"
 [% END %]
 
 PerlPassEnv          SL_DEBUG
@@ -77,6 +79,22 @@ PerlPostReadRequestHandler Apache2::Connection::XForwardedFor SL::CP::Apache2->i
 
     PerlResponseHandler SL::CP::Apache2->free
 </Location>
+
+
+<Location /ipn_validate>
+    SetHandler modperl
+    PerlHeaderParserHandler Apache2::Const::OK
+    PerlAccessHandler       Apache2::Const::OK
+    PerlAuthenHandler       Apache2::Const::OK
+    PerlAuthzHandler        Apache2::Const::OK
+    PerlTypeHandler         Apache2::Const::OK
+    PerlFixupHandler        Apache2::Const::OK
+
+    PerlResponseHandler SL::CP::Apache2->ipnvalidate
+</Location>
+
+
+
 
 <Location /paid>
     SetHandler modperl

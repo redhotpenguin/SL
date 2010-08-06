@@ -8,18 +8,15 @@ use base 'SL::CP';
 use Data::Dumper   qw(Dumper);
 
 use SL::Config     ();
-use SL::CP         ();
-use LWP::UserAgent ();
-use Crypt::SSLeay  ();
 use URI::Escape    ();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 our (
     $Config,                  $Iptables,   $Wan_if,
-    %tables_chains,           $Lan_if,     $Auth_host,
-    $Perlbal_port,            $Ad_proxy,
-    $Mark_op,                 $Auth_url,   $Lease_file,
+    %tables_chains,           $Lan_if,
+    $Perlbal_port,
+    $Mark_op,                 $Lease_file,
     $Gateway_ip,              $Wan_ip,     $Wan_mac,
 );
 
@@ -36,9 +33,6 @@ BEGIN {
     ($Wan_ip)      = `/sbin/ifconfig $Wan_if` =~ m/inet addr:(\S+)/;
     ($Wan_mac)     = `/sbin/ifconfig $Wan_if` =~ m/HWaddr\s(\S+)/;
 
-    $Auth_host   = $Config->sl_auth_server     || die 'oops';
-    $Auth_url    = $Config->sl_cp_auth_url     || die 'oops';
-    $Ad_proxy    = $Config->sl_proxy           || die 'oops';
     $Mark_op     = $Config->sl_mark_op         || die 'oops';
     $Lease_file  = $Config->sl_dhcp_lease_file || die 'oops';
 
@@ -49,9 +43,6 @@ BEGIN {
     );
 
 }
-
-our $UA = LWP::UserAgent->new;
-$UA->timeout(60);
 
 our $Blocked_mark = '0x100';
 our $Trusted_mark = '0x200';
@@ -248,30 +239,6 @@ sub iptables {
     return 1;
 }
 
-sub _mac_check {
-    my ( $class, $mac ) = @_;
-
-    die "no mac passed to _mac_check" unless $mac;
-
-    my $esc_mac = URI::Escape::uri_escape($mac);
-    my $url     = "$Auth_url/check?mac=$esc_mac";
-
-    my $res = $UA->get($url);
-
-    if ( ( $res->code == 404 ) or ( $res->code == 401 ) ) {
-
-        # no mac authenticated
-        return $res->code;
-
-    }
-    elsif ( !$res->is_success ) {
-
-        die $res;
-    }
-
-    return 1;
-}
-
 sub fixup_access {
     my ( $class, $mac, $ip, $type ) = @_;
 
@@ -339,17 +306,13 @@ sub _paid_chain {
 sub add_to_paid_chain {
     my ( $class, $mac, $ip ) = @_;
 
-    my $check = eval { $class->check_for_mac($mac, $ip) };
-    die $@ if $@;
+    my $esc_mac = URI::Escape::uri_escape($mac);
 
-    return unless $check eq 'paid';
+    # convert minutes to seconds 
+    my $stay = time() + 240 * 60; # 4 hours
+    $class->set($mac => "$stay|paid");
 
-    # see if this mac is already in the ads chain
-    my $ads_ip = $class->check_ads_chain_for_mac( $mac );
-    if ($ads_ip) {
-      warn("deleting mac $mac, ip $ip from ads chain, paid upgrade");
-      $class->delete_from_ads_chain( $mac, $ads_ip );
-    }
+    warn("cache set $mac => $stay") if DEBUG;
 
     # add the mac to the paid chain
     return $class->_paid_chain( 'A', $mac, $ip );

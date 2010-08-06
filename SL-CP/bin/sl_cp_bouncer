@@ -42,21 +42,8 @@ my @paid_users = SL::CP::IPTables->paid_users;
 
 foreach my $user (@paid_users) {
 
-    my $code = SL::CP::IPTables->check_for_paid_mac($user->[1], $user->[0]);
-
-
-    if ($code == 1) {
-
-        warn(sprintf("$$ mac %s from ip %s still valid", $user->[1], $user->[0]));
-
-    } elsif ($code == 404) {
-
-        # something went really wrong
-        warn(sprintf("$$ mac %s, ip %si not registered, removing", $user->[1], $user->[0]));
-        SL::CP::IPTables->delete_from_paid_chain($user->[1], $user->[0]);
-
-    } elsif ($code == 401) {
-
+    my $not_timed_out = SL::CP->not_timed_out($user->[1], $user->[0]);
+    unless ($not_timed_out) {
         warn(sprintf("$$ mac %s, ip %s expired, removing", $user->[1], $user->[0]));
         SL::CP::IPTables->delete_from_paid_chain($user->[1], $user->[0]);
     }
