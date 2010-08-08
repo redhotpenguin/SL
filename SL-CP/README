@@ -1,4 +1,4 @@
-SL-CP version 0.01
+SL-CP version 0.04
 ==================
 
 The README is used to introduce the module and provide instructions on
@@ -25,16 +25,24 @@ DEPENDENCIES
 
 This module requires these other modules and libraries:
 
-  blah blah blah
+mod_perl
 
 COPYRIGHT AND LICENCE
 
-Put the correct copyright and licence information here.
+Copyright 2010 Silver Lining Networks
 
-Copyright (C) 2008 by Fred Moyer
+This program is provided free of charge from Silver Lining Networks
+provided the following terms are adhered to:
 
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.8.8 or,
-at your option, any later version of Perl 5 you may have available.
+1) No redistribution of this program or derivatives are allowed without
+expressed written permission from Silver Lining Networks.
 
+2) The 'Captive Portal by Silver Lining' text must be present in the web page
+fold for all captive portal pages.
+
+3) The user of this program agrees to hold Silver Lining Networks harmless
+for any use of this program.
+
+4) You may modify this program as needed to fit your environment provided
+the previous terms of this license are adhered to.
 
