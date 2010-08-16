@@ -1,15 +1,7 @@
-package SL::Apache2::Search;
+package SL::Search::Apache2
 
 use strict;
 use warnings;
-
-our $VERSION = 0.01;
-
-=head1 NAME
-
-SL::Apache2::Search - mod_perl2 silverlining search handler
-
-=cut
 
 use Apache2::Connection ();
 use Apache2::Response   ();
@@ -353,7 +345,7 @@ __END__
 
 =head1 SYNOPSIS
 
-  PerlResponseHandler SL::Apache2::Search
+  PerlResponseHandler SL::Search::Apache2
 
 =head1 DESCRIPTION
 

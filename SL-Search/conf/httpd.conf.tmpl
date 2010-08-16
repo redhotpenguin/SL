@@ -53,7 +53,7 @@ PerlPassEnv          SL_VERBOSE_DEBUG
 PerlPassEnv          SL_TIMING
 
 # handle dummy connections then security
-PerlPostReadRequestHandler Apache2::Connection::XForwardedFor
+PerlPostReadRequestHandler Apache2::Connection::XForwardedFor SL:Apache2::Search->cookie_monster
 #PerlMapToStorageHandler    Apache2::Const::OK
 #PerlTransHandler           Apache2::Const::OK
 
@@ -67,6 +67,22 @@ PerlPostReadRequestHandler Apache2::Connection::XForwardedFor
     PerlTypeHandler         Apache2::Const::OK
     PerlFixupHandler        Apache2::Const::OK
     PerlResponseHandler     SL::Apache2::Search->handler
+</Location>
+
+<Location /search>
+    SetHandler          modperl
+    PerlHeaderParserHandler Apache2::Const::OK
+    PerlAccessHandler       Apache2::Const::OK
+    PerlAuthenHandler       Apache2::Const::OK
+    PerlAuthzHandler        Apache2::Const::OK
+    PerlTypeHandler         Apache2::Const::OK
+    PerlFixupHandler        Apache2::Const::OK
+    PerlResponseHandler     SL::Apache2::Search->handler
+</Location>
+
+
+<Location /resources>
+    SetHandler default-handler
 </Location>
 
 <Directory />
