@@ -8,8 +8,8 @@ $ENV{MOD_PERL} or die "GATEWAY_INTERFACE not Perl!";
 
 $|++;
 
-use SL::Config ();
-my $config = SL::Config->new();
+use Config::SL ();
+my $config = Config::SL->new();
 
 print STDOUT "Starting SL::Search server on port "
   . $config->sl_apache_listen . "\n";
@@ -37,19 +37,15 @@ use Apache2::Filter         ();
 use APR::Table              ();
 
 # sl
-use SL::Config                         ();
-use SL::Apache2::Search                ();
 use SL::Search ();
+use SL::Search::Apache2 ();
 
 # cpan
 use Apache2::Request                   ();
 use Apache2::Connection::XForwardedFor ();
 use URI                                ();
 use HTTP::Headers::Util                ();
-use Net::Amazon  ();
-use HTML::Entities ();
-use HTML::Template ();
-
+use Template;
 
 # dtrace identified these files as being loaded per request, so load them at startup
 BEGIN {

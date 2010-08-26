@@ -31,12 +31,10 @@ ServerName           [% cfg.sl_apache_servername %]
 
 ErrorDocument 500 "Whoops, an error has occurred.  Our systems support team has been notified, but you can email [% cfg.sl_admin %] for help."
 
-
 LoadModule perl_module        modules/mod_perl.so
 LoadModule apreq_module        modules/mod_apreq2.so
 
-PerlPassEnv SL_ROOT
-PerlPostConfigRequire "[% cfg.sl_root %]/conf/startup_search.pl"
+PerlPostConfigRequire "[% cfg.sl_root %]/conf/startup.pl"
 
 [% IF cfg.sl_debug %]
 # Apache::Reload for development.
@@ -53,7 +51,7 @@ PerlPassEnv          SL_VERBOSE_DEBUG
 PerlPassEnv          SL_TIMING
 
 # handle dummy connections then security
-PerlPostReadRequestHandler Apache2::Connection::XForwardedFor SL:Apache2::Search->cookie_monster
+PerlPostReadRequestHandler Apache2::Connection::XForwardedFor 
 #PerlMapToStorageHandler    Apache2::Const::OK
 #PerlTransHandler           Apache2::Const::OK
 
@@ -65,8 +63,8 @@ PerlPostReadRequestHandler Apache2::Connection::XForwardedFor SL:Apache2::Search
     PerlAuthenHandler       Apache2::Const::OK
     PerlAuthzHandler        Apache2::Const::OK
     PerlTypeHandler         Apache2::Const::OK
-    PerlFixupHandler        Apache2::Const::OK
-    PerlResponseHandler     SL::Apache2::Search->handler
+    PerlFixupHandler        SL::Search::Apache2->cookie_monster
+    PerlResponseHandler     SL::Search::Apache2->handler
 </Location>
 
 <Location /search>
@@ -76,8 +74,8 @@ PerlPostReadRequestHandler Apache2::Connection::XForwardedFor SL:Apache2::Search
     PerlAuthenHandler       Apache2::Const::OK
     PerlAuthzHandler        Apache2::Const::OK
     PerlTypeHandler         Apache2::Const::OK
-    PerlFixupHandler        Apache2::Const::OK
-    PerlResponseHandler     SL::Apache2::Search->handler
+    PerlFixupHandler        SL::Search::Apache2->cookie_monster
+    PerlResponseHandler     SL::Search::Apache2->search
 </Location>
 
 

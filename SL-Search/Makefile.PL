@@ -9,6 +9,7 @@ WriteMakefile(
     NAME         => 'SL-Search',
     VERSION_FROM => 'lib/SL/Search.pm',
     PREREQ_PM    => {
+        'Config::SL'                         => 0.01,
         'Encode::Guess'                      => 0,
         'Mouse'                              => 0,
         'Google::Search'                     => 0.0025,
