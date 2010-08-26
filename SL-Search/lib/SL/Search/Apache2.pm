@@ -59,6 +59,19 @@ sub handler {
     return Apache2::Const::OK;
 }
 
+sub tos {
+    my ($class, $r) = @_;
+
+    my %state = %{$r->pnotes('state')};
+    $state{'tos'} = time(); 
+    $class->send_cookie( $r, \%state );
+    my $output = 'tos accepted, ajax response';
+
+    my $bytes = $class->print_response( $r, $output );
+
+    return Apache2::Const::OK;
+}
+
 # handle /search namespace
 
 sub search {
@@ -175,38 +188,28 @@ sub search {
         $tmpl_args{'next'} = $start + 10;
     }
 
-#    else {
-#        if ( $start < 50 ) {
-#            $tmpl_args{'next'} = 0;
-#        }
+    my @numbers;
+    for ( 1 .. 6 ) {
 
-        my @numbers;
-        for ( 1 .. 6 ) {
+        my %nums = (
+            start => ( ( $_ - 1 ) * 10 ),
+            marker    => $_,
+            plusquery => $plus_q
+        );
 
-            my %nums = (
-                start => ( ( $_ - 1 ) * 10 ),
-                marker    => $_,
-                plusquery => $plus_q
-            );
-
-            if ( $start == $nums{start} ) {
-                $nums{current} = 1;
-            }
-
-            push @numbers, \%nums;
+        if ( $start == $nums{start} ) {
+            $nums{current} = 1;
         }
-        $tmpl_args{'numbers'}        = \@numbers;
-        #   }
+
+        push @numbers, \%nums;
+    }
+    $tmpl_args{'numbers'} = \@numbers;
 
     $tmpl_args{'search_results'} = $search_results;
-    $tmpl_args{'sideadcode'} = 'sidebar ads';
-    $tmpl_args{'template'}   = 'search.tmpl';
+    $tmpl_args{'sideadcode'}     = 'sidebar ads';
+    $tmpl_args{'template'}       = 'search.tmpl';
+    $tmpl_args{'state'} = $r->pnotes('state');
 
-    #    $tmpl_args{'last_seen'}      = $last_seen;
-    #    $tmpl_args{'closed_message'} = $closed_message;
-    my %log = %tmpl_args;
-    delete $log{search_results};
-    $r->log->debug("templ args " . Dumper(\%log));
     my $output = $class->template_process( \%tmpl_args );
 
     my $bytes = $class->print_response( $r, $output );
@@ -228,28 +231,19 @@ sub cookie_monster {
     my $c_in = $j->cookies('SLSearch');
 
     my %state;
-    if ($c_in) {    # read their cookie
+    if ($c_in) {
 
         %state = $class->decode( $c_in->value );
         unless ( keys %state ) {
 
-            %state = (
-                ip         => $r->connection->remote_ip,
-                last_seen  => time(),
-                last_query => undef,
-            );
+            %state = %{ $class->default_state($r) };
             $class->send_cookie( $r, \%state );
         }
 
     }
-    else {    # give them a new cookie
-        $r->log->debug("issuing new cookie") if DEBUG;
+    else {
 
-        %state = (
-            ip         => $r->connection->remote_ip,
-            last_seen  => time(),
-            last_query => undef,
-        );
+        %state = %{ $class->default_state($r) };
         $class->send_cookie( $r, \%state );
     }
 
@@ -260,11 +254,6 @@ sub cookie_monster {
 
 sub print_response {
     my ( $class, $r, $response ) = @_;
-
-    # send out the cookies
-    my $state = $r->pnotes('state');
-    $state->{'last_seen'} = time();
-    $class->send_cookie( $r, $r->pnotes('state') );
 
     $r->content_type('text/html; charset=UTF-8');
     $r->no_cache(1);
@@ -330,6 +319,18 @@ sub send_cookie {
     );
     $cookie->path('/');
     $cookie->bake($r);
+}
+
+sub default_state {
+    my ($class,$r) = @_;
+
+    my %state = (
+        ip         => $r->connection->remote_ip,
+        last_query => undef,
+        tos        => 0,
+    );
+
+    return \%state;
 }
 
 1;

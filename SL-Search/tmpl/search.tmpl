@@ -24,9 +24,7 @@
 <table class=tb>
 <tr><td class=tc colspan=2 height=14 valign=bottom>
 <tr><td class=tc nowrap>
-[% IF last_seen %]
-<h3>HEY THIS IS LAST SEEN: [% last_seen %]</h3>
-[% END %]
+<h3>[% UNLESS state.tos %]Hello new user, please <a href="http://[% perlbal_listen %]/tos">accept the terms of service</a>[% END %]</h3>
 <input type=text name=q size=41 maxlength=2048 value="[% q %]" title="Search"> 
 <input type=submit name="search" value="Search"></td>
 <td class=tc nowrap width=100%><span id=ap></span>&nbsp;&nbsp;</td></tr>

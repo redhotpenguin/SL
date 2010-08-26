@@ -78,6 +78,16 @@ PerlPostReadRequestHandler Apache2::Connection::XForwardedFor
     PerlResponseHandler     SL::Search::Apache2->search
 </Location>
 
+<Location /tos>
+    SetHandler          modperl
+    PerlHeaderParserHandler Apache2::Const::OK
+    PerlAccessHandler       Apache2::Const::OK
+    PerlAuthenHandler       Apache2::Const::OK
+    PerlAuthzHandler        Apache2::Const::OK
+    PerlTypeHandler         Apache2::Const::OK
+    PerlFixupHandler        SL::Search::Apache2->cookie_monster
+    PerlResponseHandler     SL::Search::Apache2->tos
+</Location>
 
 <Location /resources>
     SetHandler default-handler
