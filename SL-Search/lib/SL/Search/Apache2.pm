@@ -148,7 +148,7 @@ sub search {
         foreach my $cg_result ( @{$cg_query} ) {
             next unless $cg_result->neighborhood;
             last if ++$i == 3;
-$r->log->debug("cg results " . Dumper($cg_result));
+
             if ( $i == 1 ) {
                 $cg_result->top_hit(1);
             }
@@ -168,6 +168,9 @@ $r->log->debug("cg results " . Dumper($cg_result));
         start_param => $start + 1,
         finish      => $start + 10,
         cg_ads      => \@citygrid_results,
+        search_results => $search_results,
+        template       => 'search.tmpl',
+        search_engine  => $class->engine,
     );
 
     # figure out previous and next buttons
@@ -200,9 +203,7 @@ $r->log->debug("cg results " . Dumper($cg_result));
     }
 
     $tmpl_args{'numbers'}        = \@numbers;
-    $tmpl_args{'search_results'} = $search_results;
     $tmpl_args{'sideadcode'}     = 'sidebar ads';
-    $tmpl_args{'template'}       = 'search.tmpl';
     $tmpl_args{'state'}          = $r->pnotes('state');
 
     my $output = $class->template_process( \%tmpl_args );

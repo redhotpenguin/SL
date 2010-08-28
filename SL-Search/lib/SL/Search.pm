@@ -9,31 +9,59 @@ SL::Search - Handles searches for Silver Lining virtual hosts
 
 =cut
 
-our $VERSION = 0.01;
+our $VERSION = 0.02;
 
-use Google::Search ();
-use Encode         ();
+use constant SEARCH => 'Google';    #'Yahoo';    # 'Google'
+
+BEGIN {
+
+    if ( SEARCH eq 'Yahoo' ) {
+        require WebService::Yahoo::BOSS;
+    }
+    elsif ( SEARCH eq 'Google' ) {
+        require Google::Search;
+    }
+}
+
+use Encode ();
 use Encode::Guess qw/euc-jp shiftjis 7bit-jis/;
-use Carp ();
 use Data::Dumper qw(Dumper);
 
-use constant DEBUG         => $ENV{SL_SEARCH_DEBUG}  || 0;
-use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
+use constant DEBUG => $ENV{SL_SEARCH_DEBUG} || 0;
 
 use Config::SL;
 
 our $Config = Config::SL->new;
 
+sub engine {
+    return SEARCH;
+}
+
+sub run_search {
+    my ( $class, $search_args ) = @_;
+
+    my $remote_ip = delete $search_args->{remote_ip};
+    my $url = delete $search_args->{url};
+
+    my $search;
+    if ( $class->engine eq 'Google' ) {
+
+        $search_args->{key}      = $Config->sl_gsearch_key;
+        $search_args->{referrer} = $Config->sl_gsearch_referrer;
+        $search = eval { Google::Search->Web(%{$search_args}); };
+        die $@ if $@;
+    }
+    elsif ( $class->engine eq 'Yahoo' ) {
+
+        $search = eval { };
+    }
+    return $search;
+}
+
 sub search {
     my ( $class, $search_args ) = @_;
 
-    $search_args->{key}      = $Config->sl_gsearch_key;
-    $search_args->{referrer} = $Config->sl_gsearch_referrer;
-
-    my $ip = delete $search_args->{'remote_ip'};
-    my $url = delete $search_args->{'url'};
-
-    my $search = eval { Google::Search->Web( %{$search_args} ) };
+    my $search = eval { $class->run_search($search_args) };
     die $@ if $@;
 
     my $i     = 1;
