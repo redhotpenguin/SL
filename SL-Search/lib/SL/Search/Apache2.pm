@@ -60,10 +60,10 @@ sub handler {
 }
 
 sub tos {
-    my ($class, $r) = @_;
+    my ( $class, $r ) = @_;
 
-    my %state = %{$r->pnotes('state')};
-    $state{'tos'} = time(); 
+    my %state = %{ $r->pnotes('state') };
+    $state{'tos'} = time();
     $class->send_cookie( $r, \%state );
     my $output = 'tos accepted, ajax response';
 
@@ -121,8 +121,6 @@ sub search {
     my ( $pkg, $file, $line, $timer_name, $interval ) =
       @{ $Searchtimer->checkpoint };
 
-    $r->log->debug("search time $interval") if DEBUG;
-
     $r->log->debug( Dumper($search_results) ) if VERBOSE_DEBUG;
 
     # now ping citysearch
@@ -130,6 +128,7 @@ sub search {
 
     # hardcode to 1 search per second right now
     my $time = time();
+    my @citygrid_results;
     if ( $time - $last_search > 0 ) {
 
         # ok to run a new search
@@ -138,7 +137,7 @@ sub search {
             api_key   => $Config->sl_citygrid_api_key,
             publisher => $Config->sl_citygrid_publisher,
         );
-        my $cg_results = $cg->query(
+        my $cg_query = $cg->query(
             {
                 mode  => 'locations',
                 where => $Config->sl_citygrid_where,
@@ -146,24 +145,18 @@ sub search {
             }
         );
         my $i = 0;
-        my @refined;
-        foreach my $cg_result ( @{$cg_results} ) {
+        foreach my $cg_result ( @{$cg_query} ) {
             next unless $cg_result->neighborhood;
             last if ++$i == 3;
-
+$r->log->debug("cg results " . Dumper($cg_result));
             if ( $i == 1 ) {
                 $cg_result->top_hit(1);
             }
-            push @refined, $cg_result;
-        }
-
-        if (@refined) {
-            $tmpl_args{'cg_ads'} = \@refined;
+            push @citygrid_results, $cg_result;
         }
     }
 
     $q = HTML::Entities::encode_numeric($q);
-    $r->log->debug("Start is $start");
     my $plus_q = $q;
     $plus_q =~ s/ /\+/g;
 
@@ -174,8 +167,10 @@ sub search {
         start       => $start,
         start_param => $start + 1,
         finish      => $start + 10,
+        cg_ads      => \@citygrid_results,
     );
 
+    # figure out previous and next buttons
     if ( $start > 9 ) {
         $tmpl_args{'prev'}       = 1;
         $tmpl_args{'prev_start'} = $start - 10;
@@ -203,12 +198,12 @@ sub search {
 
         push @numbers, \%nums;
     }
-    $tmpl_args{'numbers'} = \@numbers;
 
+    $tmpl_args{'numbers'}        = \@numbers;
     $tmpl_args{'search_results'} = $search_results;
     $tmpl_args{'sideadcode'}     = 'sidebar ads';
     $tmpl_args{'template'}       = 'search.tmpl';
-    $tmpl_args{'state'} = $r->pnotes('state');
+    $tmpl_args{'state'}          = $r->pnotes('state');
 
     my $output = $class->template_process( \%tmpl_args );
 
@@ -322,7 +317,7 @@ sub send_cookie {
 }
 
 sub default_state {
-    my ($class,$r) = @_;
+    my ( $class, $r ) = @_;
 
     my %state = (
         ip         => $r->connection->remote_ip,
