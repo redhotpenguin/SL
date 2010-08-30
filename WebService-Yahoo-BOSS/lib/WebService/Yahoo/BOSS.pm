@@ -13,37 +13,56 @@ use Any::Moose;
 use Any::URI::Escape;
 use LWP::UserAgent;
 use URI;
+use WebService::Yahoo::BOSS::Result;
+use Data::Dumper;
 
-our $VERSION  = '0.01';
+our $VERSION = '0.02';
 
 our $Ua = LWP::UserAgent->new( agent => __PACKAGE__ . '_' . $VERSION );
 
-our $api_host = 'boss.yahooapis.com';
-our $api_base = "http://$api_host/";
+our $Api_host = 'boss.yahooapis.com';
+our $Api_base = "http://$Api_host/";
 
 has 'appid' => ( is => 'ro', isa => 'Str', required => 1 );
-has 'url'   => ( is => 'ro', isa => 'Str', required => 1,
-                 default => $api_base );
+has 'url' => (
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1,
+    default  => $Api_base,
+);
 
 sub Web {
-  my ($self, %args) = @_;
+    my ( $self, %args ) = @_;
 
-  return unless $args{q};
-  my $format = $args{format} || 'xml';
+    unless ($args{query} && ($args{query} ne '')) {
+        die "query param needed to search";
+    }
 
-  # build the endpoint
-  my $url = URI->new($self->url . 'ysearch/web/v1/' . uri_escape($args{q}) .
-                     '?appid=' . $self->appid . "&format=$format");
+    my $format = $args{format} || 'xml';
+    die 'only xml format supported, patches welcome' unless $format eq 'xml';
 
-  my $res = $Ua->get($url);
-  return unless $res->is_success;
+    # build the endpoint
+    my $urlstring = $self->url
+          . 'ysearch/web/v1/'
+          . uri_escape( $args{query} )
+          . '?appid='
+          . $self->appid
+          . "&format=$format&filter=-porn";
 
-  die "result is " . Dumper($res);
+    if ($args{start}) {
+        $urlstring .= "&start=" . $args{start};
+    }
 
+    my $url = URI->new($urlstring);
 
-  return $res;
+    my $res = $Ua->get($url);
+    unless ( $res->is_success ) {
+        die $res->status_line;
+    }
+
+    my $result = WebService::Yahoo::BOSS::Result->parse($res->decoded_content);
+    return $result;
 }
-
 
 1;
 
@@ -55,6 +74,7 @@ sub Web {
  $Boss = WebService::Yahoo::BOSS->new( appid => $appid );
 
  $res = $Boss->Web( query   => 'microbrew award winner 2010',
+                    start   => 0,
                     exclude => 'pilsner', );
 
  # todo - add pluggable xml/json parser
