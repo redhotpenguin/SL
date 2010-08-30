@@ -11,8 +11,9 @@ SL::Search - Handles searches for Silver Lining virtual hosts
 
 our $VERSION = 0.02;
 
-use constant SEARCH => 'Google';    #'Yahoo';    # 'Google'
+use constant SEARCH => 'Yahoo';    # 'Google'
 
+=cut
 BEGIN {
 
     if ( SEARCH eq 'Yahoo' ) {
@@ -22,12 +23,15 @@ BEGIN {
         require Google::Search;
     }
 }
+=cut
 
+use WebService::Yahoo::BOSS;
 use Encode ();
 use Encode::Guess qw/euc-jp shiftjis 7bit-jis/;
 use Data::Dumper qw(Dumper);
+use RHP::Timer;
 
-use constant DEBUG => $ENV{SL_SEARCH_DEBUG} || 0;
+use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 use Config::SL;
 
@@ -41,19 +45,33 @@ sub run_search {
     my ( $class, $search_args ) = @_;
 
     my $remote_ip = delete $search_args->{remote_ip};
-    my $url = delete $search_args->{url};
+    my $url       = delete $search_args->{url};
 
     my $search;
     if ( $class->engine eq 'Google' ) {
 
         $search_args->{key}      = $Config->sl_gsearch_key;
         $search_args->{referrer} = $Config->sl_gsearch_referrer;
-        $search = eval { Google::Search->Web(%{$search_args}); };
+        $search = eval { Google::Search->Web( %{$search_args} ); };
         die $@ if $@;
     }
     elsif ( $class->engine eq 'Yahoo' ) {
 
-        $search = eval { };
+        my $timer = RHP::Timer->new;
+        $timer->start('new yahoo');
+        my $boss =
+          WebService::Yahoo::BOSS->new( appid => $Config->sl_yahoo_appid );
+
+        warn(sprintf("timer_name: %s, time: %s",
+                                          @{$timer->checkpoint}[3,4]));
+
+        $timer->start('search');
+        $search = eval { $boss->Web( %{$search_args} ) };
+        die $@ if $@;
+
+        warn(sprintf("timer_name: %s, time: %s",
+                                          @{$timer->checkpoint}[3,4]));
+        
     }
     return $search;
 }
@@ -63,6 +81,20 @@ sub search {
 
     my $search = eval { $class->run_search($search_args) };
     die $@ if $@;
+
+    if ( $class->engine eq 'Google' ) {
+        $search = $class->process_google_results($search);
+    }
+    elsif ( $class->engine eq 'Yahoo' ) {
+
+    }
+
+    return $search;
+}
+
+
+sub process_google_results {
+    my ( $class, $search ) = @_;
 
     my $i     = 1;
     my $limit = 10;
@@ -103,7 +135,7 @@ sub search {
 
 sub force_utf8 {
     my ( $class, $string ) = @_;
-
+    
     if ( ref( Encode::Guess::guess_encoding($string) ) ) {
 
         $string = eval { Encode::Guess::decode( "Guess", $string, 0 ) };
