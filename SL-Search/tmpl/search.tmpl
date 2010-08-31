@@ -163,6 +163,7 @@ body,td,div,.p,a{font-family:arial,sans-serif}
 	<tr>[% IF search_engine == 'Google' %]<td nowrap><img src="[% static_host %]/images/logos/powered_by_google.png" alt=Google border=0></td>[% END %]<td align=left nowrap><font size=-1>Results <b>[% start_param %]</b> - <b>[% finish %]</b> for <b>'[% q %]'</b>. (<b>[% query_time %]</b> seconds)
 </table>
 
+[% PROCESS quicklinks.tmpl %]
 [% PROCESS sideadcode.tmpl %]
 
 
