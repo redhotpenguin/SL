@@ -12,7 +12,7 @@ WriteMakefile(
         'Config::SL'                         => 0.01,
         'Encode::Guess'                      => 0,
         'Mouse'                              => 0,
-        'Google::Search'                     => 0.0025,
+        'Google::Search'                     => 0.0027,
         'Digest::MD5'                        => 0,
         'WebService::CityGrid::Search'       => 0.02,
         'Apache2::Connection::XForwardedFor' => 0.02,
