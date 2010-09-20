@@ -27,6 +27,8 @@ use Cache::Memcached             ();
 use MIME::Base64                 ();
 use Crypt::CBC                   ();
 
+#use SL::Network ();
+
 use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 use constant TIMING        => $ENV{SL_TIMING}        || 0;
@@ -147,7 +149,7 @@ sub search {
         my $i = 0;
         foreach my $cg_result ( @{$cg_query} ) {
             next unless $cg_result->neighborhood;
-            last if ++$i == 3;
+            last if ++$i == 4;
 
             if ( $i == 1 ) {
                 $cg_result->top_hit(1);
@@ -169,7 +171,7 @@ sub search {
         finish      => $start + 10,
         cg_ads      => \@citygrid_results,
         search_results => $search_results,
-        template       => 'search.tmpl',
+        template       => 'search2.tmpl',
         search_engine  => $class->engine,
     );
 
@@ -205,6 +207,9 @@ sub search {
     $tmpl_args{'numbers'}        = \@numbers;
     $tmpl_args{'sideadcode'}     = 'sidebar ads';
     $tmpl_args{'state'}          = $r->pnotes('state');
+
+#    $tmpl_args{'network'} = SL::Network->new( ip => $r->connection->remote_ip );
+
 
     my $output = $class->template_process( \%tmpl_args );
 

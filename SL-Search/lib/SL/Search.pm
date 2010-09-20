@@ -13,23 +13,10 @@ our $VERSION = 0.02;
 
 use constant SEARCH => 'Yahoo';    # 'Google'
 
-=cut
-BEGIN {
-
-    if ( SEARCH eq 'Yahoo' ) {
-        require WebService::Yahoo::BOSS;
-    }
-    elsif ( SEARCH eq 'Google' ) {
-        require Google::Search;
-    }
-}
-=cut
-
 use WebService::Yahoo::BOSS;
 use Encode ();
 use Encode::Guess qw/euc-jp shiftjis 7bit-jis/;
 use Data::Dumper qw(Dumper);
-use RHP::Timer;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
@@ -57,20 +44,12 @@ sub run_search {
     }
     elsif ( $class->engine eq 'Yahoo' ) {
 
-        my $timer = RHP::Timer->new;
-        $timer->start('new yahoo');
         my $boss =
           WebService::Yahoo::BOSS->new( appid => $Config->sl_yahoo_appid );
 
-        warn(sprintf("timer_name: %s, time: %s",
-                                          @{$timer->checkpoint}[3,4]));
-
-        $timer->start('search');
         $search = eval { $boss->Web( %{$search_args} ) };
         die $@ if $@;
 
-        warn(sprintf("timer_name: %s, time: %s",
-                                          @{$timer->checkpoint}[3,4]));
         
     }
     return $search;

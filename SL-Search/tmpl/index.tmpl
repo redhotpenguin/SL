@@ -1,5 +1,79 @@
 [% PROCESS header_static.tmpl title="Search - Silver Lining Networks" no_settings="1" %]
 
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <!-- META -->
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />  
+  <meta name="description" content=""/> 
+  <meta name="keywords" content="" /> 
+  
+  <!-- CSS -->
+  <link rel="shortcut icon" type="text/css" href="favicon.ico" />
+  <link rel="stylesheet" type="text/css" href="resources/css/common.css" />
+  <link rel="stylesheet" type="text/css" href="resources/css/960.css" />
+  <link rel="stylesheet" type="text/css" href="resources/css/main.css" />
+  <!-- IE HACKS -->
+  <!--[if lt IE 7]><link rel="stylesheet" type="text/css" href="resources/css/ie/.css" /><![endif]-->
+  
+  <!-- JAVASCRIPT -->
+  <script type="text/javascript" src="resources/js/jquery.js"></script>
+  
+  
+  <title>Displaying [%result.count%] results for [%result.query%]</title>
+</head>
+<body>
+<div id="top">
+<div class="container_16">
+    <div id="link-bar" class="grid_16">
+         <ul>
+             <li><a href="http://www.google.com/images">Images</a></li>
+             <li><a href="http://video.google.com">Videos</a></li>
+             <li><a href="http://maps.google.com">Maps</a></li>
+             <li><a href="http://news.google.com">News</a></li>
+             <li><a href="http://www.google.com/prdhp">Shopping</a></li>
+             <li><a href="http://mail.google.com">Gmail</a></li>
+         </ul>
+         <div class="clear"></div>
+    </div>
+    <div class="clear"></div>
+</div>
+</div>
+<header class="container_16">    
+    <form class="grid_16 search-bar" method="post" action="">
+        <img src="resources/images/sl_logo.png" title="Silver Lining Networks" alt="Silver Lining Networks" /> 
+        <div class="search-container">
+            <input class="search-box" type="text" name="search" value="Search" /> 
+            <input class="submit" type="submit" name="submit" value="Search"/> 
+            <div class="clear"></div>
+            
+            <div class="search-options">
+                <p>About [%results.count%] results</p>
+                <div class="clear"></div>
+            </div>
+        </div>
+    </form>
+    <div class="clear"></div>
+</header>
+
+<div class="container_16">
+    <div class="grid_10"><?php include('includes/results.php'); ?></div>
+    <div class="grid_6"><?php include('includes/ads.php'); ?></div>
+    <div class="clear"></div>
+</div>
+
+<?php include('includes/footer.php')?>
+</body>
+</html>
+
+
+
+
+
+
 		 <h1 id="sl_logo_240" class="center margin_25_t"><a href="http://www.slwifi.com/"><span></span>Silver Lining Networks</a></h1>
 
 		<!-- LOGIN MESSAGES -->
