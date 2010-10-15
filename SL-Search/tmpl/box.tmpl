@@ -1,0 +1,16 @@
+
+    <form class="grid_16 search-bar" method="get" action="http://[% perlbal_listen %]/search">
+
+    [% IF logo %] <img src="/resources/images/sl_logo.png" title="Silver Lining Networks" alt="Silver Lining Networks" /> [% END %]
+
+        <div class="search-container">
+            <input class="search-box" type="text" name="q" value="[% q %]" /> 
+            <input class="submit" type="submit" name="submit" value="Search"/> 
+            <div class="clear"></div>
+<!--            
+            <div class="search-options">
+                <p>About [% results.count %] results</p>
+                <div class="clear"></div>-->
+            </div>
+        </div>
+    </form>

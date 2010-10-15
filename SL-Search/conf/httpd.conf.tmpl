@@ -41,8 +41,7 @@ PerlPostConfigRequire "[% cfg.sl_root %]/conf/startup.pl"
 PerlLoadModule       Apache2::Reload
 PerlInitHandler      Apache2::Reload
 PerlSetVar ReloadAll Off
-PerlSetVar ReloadModules "SL::*"
-PerlSetVar ReloadModules "WebService::*"
+PerlSetVar ReloadModules "SL::* WebService::*"
 [% END %]
 
 PerlPassEnv          SL_DEBUG

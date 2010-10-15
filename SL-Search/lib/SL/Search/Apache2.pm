@@ -47,19 +47,20 @@ our $Cipher = Crypt::CBC->new(
     -cipher => 'Blowfish',
 );
 
+
 # root handler - any requests without queries
 
 sub handler {
     my ( $class, $r ) = @_;
 
-    my %tmpl_args = ( template => 'index.tmpl', );
-
-    my $output = $class->template_process( \%tmpl_args );
-
-    my $bytes = $class->print_response( $r, $output );
-
-    return Apache2::Const::OK;
+    $r->headers_out->set( Location => 'http://'
+          . $Config->sl_perlbal_listen
+          . '/search?q=pizza&submit=Search' );
+    $r->no_cache(1);
+    return Apache2::Const::REDIRECT;
 }
+
+# tos handler - new users
 
 sub tos {
     my ( $class, $r ) = @_;
@@ -81,18 +82,7 @@ sub search {
 
     my $req = Apache2::Request->new($r);
 
-    my $q = $req->param('q');
-    unless ( $q && ( $q ne '' ) ) {
-
-        # no search args?  send to the index page
-        $r->headers_out->set(
-            Location => 'http://' . $Config->sl_perlbal_listen . '/' );
-        $r->no_cache(1);
-        return Apache2::Const::REDIRECT;
-    }
-
-    # process the search
-    my @search_results;
+    my $q = $req->param('q') || 'pizza';
 
     my $start = $req->param('start') || 0;
     my %tmpl_args;
@@ -163,15 +153,15 @@ sub search {
     $plus_q =~ s/ /\+/g;
 
     %tmpl_args = (
-        query_time  => sprintf( "%1.2f", $interval ),
-        q           => $q,
-        plusquery   => $plus_q,
-        start       => $start,
-        start_param => $start + 1,
-        finish      => $start + 10,
-        cg_ads      => \@citygrid_results,
+        query_time     => sprintf( "%1.2f", $interval ),
+        q              => $q,
+        plusquery      => $plus_q,
+        start          => $start,
+        start_param    => $start + 1,
+        finish         => $start + 10,
+        cg_ads         => \@citygrid_results,
         search_results => $search_results,
-        template       => 'search2.tmpl',
+        template       => 'search.tmpl',
         search_engine  => $class->engine,
     );
 
@@ -204,12 +194,11 @@ sub search {
         push @numbers, \%nums;
     }
 
-    $tmpl_args{'numbers'}        = \@numbers;
-    $tmpl_args{'sideadcode'}     = 'sidebar ads';
-    $tmpl_args{'state'}          = $r->pnotes('state');
+    $tmpl_args{'numbers'}    = \@numbers;
+    $tmpl_args{'sideadcode'} = 'sidebar ads';
+    $tmpl_args{'state'}      = $r->pnotes('state');
 
 #    $tmpl_args{'network'} = SL::Network->new( ip => $r->connection->remote_ip );
-
 
     my $output = $class->template_process( \%tmpl_args );
 

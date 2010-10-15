@@ -5,7 +5,7 @@ use warnings;
 
 =head1 NAME
 
-SL::Search - Handles searches for Silver Lining virtual hosts
+SL::Search - Handles searches for Silver Lining
 
 =cut
 
@@ -50,7 +50,6 @@ sub run_search {
         $search = eval { $boss->Web( %{$search_args} ) };
         die $@ if $@;
 
-        
     }
     return $search;
 }
@@ -65,7 +64,7 @@ sub search {
         $search = $class->process_google_results($search);
     }
     elsif ( $class->engine eq 'Yahoo' ) {
-
+        # no-op
     }
 
     return $search;
@@ -114,7 +113,7 @@ sub process_google_results {
 
 sub force_utf8 {
     my ( $class, $string ) = @_;
-    
+
     if ( ref( Encode::Guess::guess_encoding($string) ) ) {
 
         $string = eval { Encode::Guess::decode( "Guess", $string, 0 ) };

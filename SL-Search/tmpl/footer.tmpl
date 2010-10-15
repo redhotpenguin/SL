@@ -1,0 +1,31 @@
+<div id="footer" class="container_16">
+    <div class="pagination grid_10 suffix_6">
+         <ul>
+             [% UNLESS start == 0 %]<li class="selected"><a href="/search?q=[% q %]&start=[% start - 10 %]">Prev</a></li>[% END %]
+
+             <li[% UNLESS start == 0 %] class="selected"><a href="/search?q=[% q %]&start=0"[% END %]>1[% UNLESS start == 0 %]</a>[% END %]</li>
+
+             <li[% UNLESS start == 10 %] class="selected"><a href="/search?q=[% q %]&start=10"[% END %]>2[% UNLESS start == 10 %]</a>[% END %]</li>
+
+             <li[% UNLESS start == 20 %] class="selected"><a href="/search?q=[% q %]&start=20"[% END %]>3[% UNLESS start == 20 %]</a>[% END %]</li>
+
+             <li[% UNLESS start == 30 %] class="selected"><a href="/search?q=[% q %]&start=30"[% END %]>4[% UNLESS start == 30 %]</a>[% END %]</li>
+
+             <li[% UNLESS start == 40 %] class="selected"><a href="/search?q=[% q %]&start=40"[% END %]>5[% UNLESS start == 40 %]</a>[% END %]</li>
+
+             <li[% UNLESS start == 40 %] class="selected"><a href="/search?q=[% q %]&start=[% start + 10 %]">Next</a></li>[% END %]
+         </ul>
+         <div class="clear"></div>
+    </div>
+    <div class="clear"></div>
+
+    [% PROCESS box.tmpl logo=0 %]    
+
+
+    <div class="clear"></div>
+
+    <small id="copyright">Copyright Silver Lining Networks 2010</small>
+</div>
+
+</body>
+</html>
