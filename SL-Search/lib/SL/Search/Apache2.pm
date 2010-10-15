@@ -12,12 +12,10 @@ use Apache2::RequestRec ();
 use Apache2::RequestIO  ();
 use Apache2::Const -compile =>
   qw( SERVER_ERROR DONE OK REDIRECT NOT_FOUND DECLINED );
-use Apache2::URI ();
-
+use Apache2::URI    ();
 use Apache2::Cookie ();
 
-use Config::SL ();
-
+use Config::SL     ();
 use HTML::Entities ();
 use Template       ();
 use Data::Dumper qw(Dumper);
@@ -33,6 +31,8 @@ use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 use constant TIMING        => $ENV{SL_TIMING}        || 0;
 
+use constant CITYGRID_MAX_RATE => 2;    # queries per second
+
 our $Config = Config::SL->new;
 
 our $Template = Template->new( INCLUDE_PATH => $Config->sl_root . '/tmpl/' );
@@ -47,6 +47,10 @@ our $Cipher = Crypt::CBC->new(
     -cipher => 'Blowfish',
 );
 
+our $Cg = WebService::CityGrid::Search->new(
+    api_key   => $Config->sl_citygrid_api_key,
+    publisher => $Config->sl_citygrid_publisher,
+);
 
 # root handler - any requests without queries
 
@@ -115,37 +119,9 @@ sub search {
 
     $r->log->debug( Dumper($search_results) ) if VERBOSE_DEBUG;
 
-    # now ping citysearch
-    my $last_search = $Memd->get('last_citygrid_searchtime') || 0;
-
-    # hardcode to 1 search per second right now
-    my $time = time();
-    my @citygrid_results;
-    if ( $time - $last_search > 0 ) {
-
-        # ok to run a new search
-        $Memd->set( 'last_citygrid_searchtime' => $time );
-        my $cg = WebService::CityGrid::Search->new(
-            api_key   => $Config->sl_citygrid_api_key,
-            publisher => $Config->sl_citygrid_publisher,
-        );
-        my $cg_query = $cg->query(
-            {
-                mode  => 'locations',
-                where => $Config->sl_citygrid_where,
-                what  => URI::Escape::uri_escape($q),
-            }
-        );
-        my $i = 0;
-        foreach my $cg_result ( @{$cg_query} ) {
-            next unless $cg_result->neighborhood;
-            last if ++$i == 4;
-
-            if ( $i == 1 ) {
-                $cg_result->top_hit(1);
-            }
-            push @citygrid_results, $cg_result;
-        }
+    my $citygrid_results = eval { $class->citygrid_results( $q ) };
+    if ($@) {
+        $r->log->error("no citygrid results: " . $@);
     }
 
     $q = HTML::Entities::encode_numeric($q);
@@ -159,10 +135,11 @@ sub search {
         start          => $start,
         start_param    => $start + 1,
         finish         => $start + 10,
-        cg_ads         => \@citygrid_results,
+        cg_ads         => $citygrid_results,
         search_results => $search_results,
         template       => 'search.tmpl',
         search_engine  => $class->engine,
+        state          => $r->pnotes('state'),
     );
 
     # figure out previous and next buttons
@@ -205,6 +182,74 @@ sub search {
     my $bytes = $class->print_response( $r, $output );
 
     return Apache2::Const::OK;
+}
+
+sub citygrid_results {
+    my ( $class, $q ) = @_;
+
+    # ping the cache to see if there are recent
+    my $citygrid_results =
+      $Memd->get( 'citigrid_search|' . URI::Escape::uri_escape($q) );
+use Data::Dumper;
+    if ($citygrid_results) {
+        warn("cache hit, results " . Dumper($citygrid_results));
+        return $citygrid_results;
+
+    }
+    else {
+
+        # nothing in the cache. run a new query within the rate
+        # global rate limit for cg searches
+
+        # last citygrid search time
+        my $last_citysearch = $Memd->get('last_citygrid_searchtime')
+          || [ 0, 0 ];
+
+        if ( Time::HiRes::tv_interval( $last_citysearch,
+            [Time::HiRes::gettimeofday] ) >
+            ( 1 / CITYGRID_MAX_RATE ) )
+        {
+        warn("query limit ok, running query");
+
+            my @citygrid_results;
+            my $cg_query = eval { $Cg->query(
+                {
+                    mode  => 'locations',
+                    where => $Config->sl_citygrid_where,
+                    what  => URI::Escape::uri_escape($q),
+                }
+            ) };
+            die $@ if $@;
+
+            # mark the last search time
+            $Memd->set( 'last_citygrid_searchtime' => time() );
+
+            my $i = 0;
+            foreach my $cg_result ( @{$cg_query} ) {
+                next unless $cg_result->neighborhood;
+                last if ++$i == 4;
+
+                if ( $i == 1 ) {
+                    $cg_result->top_hit(1);
+                }
+                push @citygrid_results, $cg_result;
+            }
+
+            # cache the results
+            $Memd->set( 'citigrid_search|'
+                  . URI::Escape::uri_escape($q) => \@citygrid_results );
+
+            # and return
+            return \@citygrid_results;
+
+        } # end result search
+        else {
+
+            die "exceeded citygrid query rate: " . CITYGRID_MAX_RATE;
+        }
+
+    } # end global rate check
+
 }
 
 =item cookie_monster
@@ -324,6 +369,7 @@ sub default_state {
 }
 
 1;
+
 __END__
 
 =head1 SYNOPSIS

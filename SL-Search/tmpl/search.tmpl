@@ -15,6 +15,11 @@
     <div class="clear"></div>
   </div>
 </div>
+
+[% IF state.tos == 0 %]<div class="container_16">
+ <p>Hi there, to keep this wifi network free, your search results are provided by our sponsors.  Click here to make hide this first time message. X</p></div>
+[% END %]
+
 <div class="container_16">    
 
     [% PROCESS box.tmpl logo=1 %]
@@ -25,6 +30,12 @@
 <div class="container_16">
 
     <div class="grid_10">[% PROCESS results.tmpl %]</div>
+    <div class="clear"></div>
+</div>
+
+<div class="container_16">
+
+    <div class="grid_10">[% IF cg_ads %][% PROCESS citygrid.tmpl %][% ELSE %]Instead of some ads, here is a picture of a mongoose[% END %]</div>
     <div class="clear"></div>
 </div>
 
