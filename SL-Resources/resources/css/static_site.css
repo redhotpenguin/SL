@@ -1161,7 +1161,49 @@ background:  url(../images/backgrounds/login_box/login_box_border.png) no-repeat
 margin: 30px auto;
 text-align: left;
 }
-
+.search_box ul {
+padding: 30px;
+}
+.search_box li {
+margin-bottom: 20px;
+color: #333;
+}
+.search_box label {
+color: #2389a8;
+margin-bottom: 5px;
+font-size: 107%;
+}
+.search_box #query
+{
+display: block;
+padding: 8px; 
+border:1px solid #CCC;
+width: 324px;
+font-size: 132%;
+color: #82C114;
+background: url(../images/backgrounds/login_box/textbox_shadow.png) repeat-x top center;
+}
+.search_box #query {
+width: 190px;
+float: left;
+}
+.search_box #query {
+color: #82c114;
+float: right;
+padding-top: 22px;
+}
+.search_box  #search,
+.search_box  #submit {
+text-indent: -3000px;
+background: url(../images/backgrounds/login_box/signin_button.png) no-repeat top center;
+height: 46px;
+width: 114px;
+border: none;
+cursor: pointer;
+}
+.search_box  #submit {
+background: url(../images/backgrounds/login_box/submit_button.png) no-repeat top center;
+}
 
 
 /* LOGIN PAGE 
