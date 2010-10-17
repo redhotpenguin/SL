@@ -79,81 +79,80 @@ sub search {
     # cache the results
     $Memd->set(
         sprintf( 'search|%s|%s', URI::Escape::uri_escape($q), $start ) =>
-          $search);
+          $search, 60*10 );
 
-          if ( $class->engine eq 'Google' ) {
-            $search = $class->process_google_results($search);
-        }
-        elsif ( $class->engine eq 'Yahoo' ) {
+    if ( $class->engine eq 'Google' ) {
+        $search = $class->process_google_results($search);
+    }
+    elsif ( $class->engine eq 'Yahoo' ) {
 
-            # no-op
-        }
-
-        return $search;
+        # no-op
     }
 
-    sub process_google_results {
-        my ( $class, $search ) = @_;
+    return $search;
+}
 
-        my $i     = 1;
-        my $limit = 10;
-        my @search_results;
-        while ( my $result = $search->next ) {
+sub process_google_results {
+    my ( $class, $search ) = @_;
 
-            warn( "search result: " . Dumper($result) ) if DEBUG;
+    my $i     = 1;
+    my $limit = 10;
+    my @search_results;
+    while ( my $result = $search->next ) {
 
-            last if ++$i > $limit;
-            my %hash = map { $_ => $result->{_content}->{$_} }
-              keys %{ $result->{_content} };
+        warn( "search result: " . Dumper($result) ) if DEBUG;
 
-            if ( defined $hash{'content'} ) {
-                my $content = $hash{'content'};
+        last if ++$i > $limit;
+        my %hash = map { $_ => $result->{_content}->{$_} }
+          keys %{ $result->{_content} };
 
-                $hash{'content'} =
-                  eval { $class->force_utf8( $hash{'content'} ) };
-                warn($@) if ( $@ && DEBUG );
-            }
+        if ( defined $hash{'content'} ) {
+            my $content = $hash{'content'};
 
-            my $title = $hash{'title'};
-            if ( defined $hash{'title'} ) {
-                $hash{'title'} = eval { $class->force_utf8( $hash{'title'} ) };
-                warn($@) if ( $@ && DEBUG );
-            }
-
-            unless ( $hash{'visibleUrl'} =~ m{/} ) {
-
-                $hash{'visibleUrl'} .= '/';
-            }
-
-            $hash{'url'} = $hash{'unescapedUrl'};
-
-            push @search_results, \%hash;
+            $hash{'content'} = eval { $class->force_utf8( $hash{'content'} ) };
+            warn($@) if ( $@ && DEBUG );
         }
 
-        return \@search_results;
+        my $title = $hash{'title'};
+        if ( defined $hash{'title'} ) {
+            $hash{'title'} = eval { $class->force_utf8( $hash{'title'} ) };
+            warn($@) if ( $@ && DEBUG );
+        }
+
+        unless ( $hash{'visibleUrl'} =~ m{/} ) {
+
+            $hash{'visibleUrl'} .= '/';
+        }
+
+        $hash{'url'} = $hash{'unescapedUrl'};
+
+        push @search_results, \%hash;
     }
 
-    sub force_utf8 {
-        my ( $class, $string ) = @_;
+    return \@search_results;
+}
 
-        if ( ref( Encode::Guess::guess_encoding($string) ) ) {
+sub force_utf8 {
+    my ( $class, $string ) = @_;
 
-            $string = eval { Encode::Guess::decode( "Guess", $string, 0 ) };
-            if ($@) {
-                die("could not guess decode for $string");
-            }
+    if ( ref( Encode::Guess::guess_encoding($string) ) ) {
+
+        $string = eval { Encode::Guess::decode( "Guess", $string, 0 ) };
+        if ($@) {
+            die("could not guess decode for $string");
         }
-        else {
-
-            $string = Encode::decode( 'utf8', $string, 0 );
-            if ($@) {
-                die("could not decode utf8 for $string");
-            }
-        }
-
-        return $string;
     }
-    1;
+    else {
+
+        $string = Encode::decode( 'utf8', $string, 0 );
+        if ($@) {
+            die("could not decode utf8 for $string");
+        }
+    }
+
+    return $string;
+}
+1;
 
 =head1 SYNOPSIS
 
