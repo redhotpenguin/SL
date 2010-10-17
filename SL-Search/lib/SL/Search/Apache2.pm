@@ -119,7 +119,8 @@ sub search {
 
     $r->log->debug( Dumper($search_results) ) if VERBOSE_DEBUG;
 
-    my $citygrid_results = eval { $class->citygrid_results( $q ) };
+
+    my $citygrid_results = eval { $class->citygrid_results( $r, $q ) };
     if ($@) {
         $r->log->error("no citygrid results: " . $@);
     }
@@ -186,19 +187,19 @@ sub search {
 }
 
 sub citygrid_results {
-    my ( $class, $q ) = @_;
+    my ( $class, $r, $q ) = @_;
 
     # ping the cache to see if there are recent
     my $citygrid_results =
       $Memd->get( 'citigrid_search|' . URI::Escape::uri_escape($q) );
-use Data::Dumper;
+
     if ($citygrid_results) {
-        warn("cache hit, results " . Dumper($citygrid_results));
+        $r->log->debug("cache hit for citygrid '$q'");
         return $citygrid_results;
 
     }
     else {
-
+        $r->log->debug("cache miss for citygrid '$q'");
         # nothing in the cache. run a new query within the rate
         # global rate limit for cg searches
 
