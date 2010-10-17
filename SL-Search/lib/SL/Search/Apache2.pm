@@ -96,6 +96,7 @@ sub search {
     my %search_args = (
         query     => $q,
         start     => $start,
+        s_referrer => $req->param('s_referrer') || 'google',
         url       => $r->construct_url( $r->unparsed_uri ),
         remote_ip => $r->connection->remote_ip,
         referrer  => $r->headers_in->{'Referer'} || 'http://search.slwifi.com'

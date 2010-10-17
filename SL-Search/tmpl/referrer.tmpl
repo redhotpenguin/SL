@@ -5,4 +5,21 @@
              <li><a href="http://news.google.com">News</a></li>
              <li><a href="http://www.google.com/prdhp">Shopping</a></li>
              <li><a href="http://mail.google.com">Gmail</a></li>
+         [% ELSIF s_referrer == 'yahoo' %]
+
+             <li><a href="http://images.search.yahoo.com/">Images</a></li>vc
+             <li><a href="http://video.search.yahoo.com">Videos</a></li>
+             <li><a href="http://maps.yahoo.com">Maps</a></li>
+             <li><a href="http://news.yahoo.com">News</a></li>
+             <li><a href="http://shopping.yahoo.com">Shopping</a></li>
+             <li><a href="http://mail.yahoo.com">Yahoo Mail</a></li>
+
+         [% ELSIF s_referrer == 'bing' %]
+             <li><a href="http://www.bing.com/images">Images</a></li>
+             <li><a href="http://www.bing.com/videos/browse">Videos</a></li>
+             <li><a href="http://www.bing.com/maps/">Maps</a></li>
+             <li><a href="http://www.bing.com/news">News</a></li>
+             <li><a href="http://www.bing.com/shopping/">Shopping</a></li>
+             <li><a href="http://mail.live.com">Hotmail</a></li>
+
          [% END %]
