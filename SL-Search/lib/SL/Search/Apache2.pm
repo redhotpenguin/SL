@@ -224,7 +224,7 @@ sub citygrid_results {
             die $@ if $@;
 
             # mark the last search time
-            $Memd->set( 'last_citygrid_searchtime' => [Time::HiRes::gettimeofday], 60*10 );
+            $Memd->set( 'last_citygrid_searchtime' => [Time::HiRes::gettimeofday], 60 );
 
             my $i = 0;
             foreach my $cg_result ( @{$cg_query} ) {

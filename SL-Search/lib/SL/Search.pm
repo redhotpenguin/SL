@@ -79,7 +79,7 @@ sub search {
     # cache the results
     $Memd->set(
         sprintf( 'search|%s|%s', URI::Escape::uri_escape($q), $start ) =>
-          $search, 60*10 );
+          $search, 60 );
 
     if ( $class->engine eq 'Google' ) {
         $search = $class->process_google_results($search);
