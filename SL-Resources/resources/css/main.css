@@ -84,6 +84,49 @@ color: #4373DB;
 
 /* ADS
 ============================================= */
+#ads {
+padding-top: 20px;
+}
+.ad {
+margin-bottom: 20px;
+text-decoration: none;
+line-height: 18px;
+}
+.ad h2, .ad h2 a{
+font-size: 14px;
+text-decoration: underline;
+color: #4373DB;
+font-weight: bold;
+marign-bottom: 5px;
+}
+.ad .ad_pic {
+float: left; 
+height: 60px;
+width: 60px;
+padding: 5px;
+border: 1px solid #EEE;
+}
+.ad .ad_content {
+float: left;
+margin-left: 10px;
+width: 258px;
+}
+.ad .ad_main_info, .ad .ad_main_info a {
+color: #444;
+font-size: 11px;
+text-decoration: none;
+line-height: 18px;
+}
+.ad .ad_meta_info, .ad .ad_meta_info a {
+font-size: 10px;
+color: #999;
+}
+
+.city_search_logo {
+width:100px;
+height: 19px;
+}
+
 
 /* FOOTER
 ============================================= */
