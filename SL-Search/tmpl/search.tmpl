@@ -12,12 +12,7 @@
   </div>
 </div>
 
-[% IF state.tos == 0 %]
-<div class="container_16">
- <p class="grid_10 greetings">Hi there, to keep this wifi network free, your search results are provided by our sponsors.  Click here to make hide this first time message. X</p>
-<div class="clear"></div>
-</div>
-[% END %]
+[% IF state.tos == 0 %][% tos.tmpl %][% END %]
 
 <div class="container_16">    
 

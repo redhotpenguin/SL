@@ -1,25 +1,30 @@
-<div style="width: 100%;  padding-left: 10px;">
 
 <!-- CityGrid -->
 [% FOREACH cg_ad IN cg_ads %]
-    <div style="margin-top: 5px; width: 470px; height: 100px; background-color: #F6F6ED;"><a style="text-decoration: none;" href="[% cg_ad.profile %]">
-        <span style="margin-top: 0px; position: absolute; margin-left: 10px; margin-top: 3px;"><strong><font color="#0081C5">[% cg_ad.name %]</font></strong></span>
-        [% IF cg_ad.image %]<span style="position: absolute; margin-left: 10px; margin-top: 25px;"><img border="0" height="60" width="60" src="[% cg_ad.image %]"></span>[% ELSE %]
-        <span style="position: absolute; margin-left: 10px; margin-top: 25px;"><img border="0" src="[% static_host %]/images/logos/citysearch_small.gif"></span>[% END %]
+    <div class="ad">
+    <a href="[% cg_ad.profile %]" title="visit: [%cg_ad.name%]">
+        [% IF cg_ad.image %]
+		<img border="0" class="ad_pic"  height="60" width="60" src="[% cg_ad.image %]"/>
+	[% ELSE %]
+        	<img border="0" class="ad_pic"  src="[% static_host %]/images/logos/citysearch_small.gif"/>
+	[% END %]
 
-
-        [% IF cg_ad.tagline %]<span style="margin-top: 25px; position: absolute;margin-left: 80px; width: 350px;"><font color="black">[% cg_ad.tagline %]</font></span>[% ELSE %]
-        <span style="margin-top: 25px; position: absolute;margin-left: 80px; width: 350px;"><font color="black">[% cg_ad.samplecategories %]</font></span>
-[% END %]
-        <span style="margin-top: 70px; position: absolute;margin-left: 80px; width: 350px;"><font color="grey">Neighborhood:  [% cg_ad.neighborhood %]</font></span>
+	<div class="ad_content">
+       		 <h2>[% cg_ad.name %]</h2>
+		<p class="ad_main_info">
+       		 [% IF cg_ad.tagline %]
+		 	[% cg_ad.tagline %]
+		[% ELSE %]
+       			 [% cg_ad.samplecategories %]
+		[% END %]
+		</p>
+        	<p class="ad_meta_info">Neighborhood:  [% cg_ad.neighborhood %]</p>
+    	</div>
+	<div class="clear"></div>
     </a>
     </div>
-    [% IF cg_ad.top_hit %]
-        <div style="margin-top: -95px; height: 95px; position: relative; margin-left: 480px;"><img src="[% static_host %]/images/logos/Citysearch.gif"></div>
-   [% END %] 
 [% END %]
-</div>
 
-<hr>
-
-
+[% IF cg_ads %]
+        <img class="city_search_logo" src="[% static_host %]/images/logos/Citysearch.gif"/> 
+[% END %] 
