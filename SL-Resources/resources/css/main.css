@@ -30,10 +30,27 @@ margin-right: 10px;
 color: #4373DB;
 }
 
+/*NOTIFICATIONS 
+============================================= */
+.greetings {
+font-size: 12px;
+padding: 10px;
+line-height: 22px;
+color: #666;
+border: 1px solid #ffc600 ;
+background-color: #fdffce;
+margin-top: 15px;
+}
+.greetings a {
+color:#4373DB;
+}
+
+
 /* SEARCH BAR
 ============================================= */
 .search-container {
 float: left;
+width: 600px;
 }
 .search-bar {
 padding: 20px 0px;
@@ -63,7 +80,7 @@ padding: 5px;
 height: 38px;
 border: 1px solid #CCC;
 border-left: none;
-margin-top: 20px;
+margin: 20px 0px 0px 0px;
 float: left;
 }
 .search-options {
@@ -91,6 +108,9 @@ padding-top: 20px;
 margin-bottom: 20px;
 text-decoration: none;
 line-height: 18px;
+}
+.ad a {
+text-decoration: none;
 }
 .ad h2, .ad h2 a{
 font-size: 14px;
@@ -128,6 +148,32 @@ height: 19px;
 }
 
 
+/* RELATED
+============================================= */
+#related {
+margin: 20px auto;
+}
+
+#related h5 {
+margin-bottom: 15px;
+color: #333;
+font-size: 14px;
+}
+#related ul {
+float: left;
+}
+#related li {
+float: left; 
+width: 240px;
+margin-bottom: 15px;
+}
+#related li a {
+font-size: 12px;
+}
+#related  strong {
+font-weight: bold; 
+}
+
 /* FOOTER
 ============================================= */
 #copyright {
@@ -144,6 +190,7 @@ text-align: center;
 }
 .pagination li {
 display: inline;
+margin: 10px;
 }
 
 /* EXTRA
