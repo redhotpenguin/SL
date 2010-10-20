@@ -110,6 +110,9 @@ Apache::DBI->setPingTimeOut( $db_connect_params->[0],
 SL::Model->connect->disconnect;
 $DBI::connect_via = 'Apache::DBI::connect';
 
+use Apache2::SizeLimit;
+Apache2::SizeLimit->set_max_unshared_size(512_000);
+
 print STDOUT "Startup.pl finished...\n";
 
 1;
