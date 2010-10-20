@@ -37,7 +37,7 @@ sub dispatch_index {
             my @accounts =
               SL::Model::App->resultset('Account')->search( { active => 't' } );
             $tmpl_data{accounts} =
-              [ sort { lc( $a->name ) cmp lc( $b->name ) } @accounts ];
+              [ sort { $a->plan cmp $b->plan } sort { lc( $a->name ) cmp lc( $b->name ) } @accounts ];
         }
 
         $TMPL->process( 'settings/index.tmpl', \%tmpl_data, \$output, $r )
