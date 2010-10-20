@@ -10,21 +10,19 @@
 
 	<div id="section_one">
 		<div class="center">
-			<!-- CHOOSE WIFI COPY ************************ --> 
-			<div class="two_thirds left padding_top">
 
 
+<!-- CHOOSE WIFI COPY ************************ --> 
 
+<div class="two_thirds left padding_top">
+
+
+<!--
 				<h2 class="choose_wifi">Choose a WiFi option</h2>
 				[% IF req.param('expired') %]<p><strong><font color="red">Your existing plan has expired, please select a new plan.</font></strong></p>[% END %]
 				[% IF req.param('upgrade') %]<p><strong><font color="red">Thank you for upgrading, please select a new plan.</font></strong></p>[% END %]
 
-				<p>
-				
-				To get started choose a WiFi option that works best 
-				for you. We use the revenue from Ads on our free WiFi to pay for the internet so you don't
-				 have to. Thanks for understanding. However, if you really don't like Ads, choose one of our   simple pay-per-use options and surf Ad Free. Thanks!</p>
-			
+-->		
 			</div>
 			
                        <!-- LOGO ************************ -->
@@ -36,37 +34,19 @@
                                 </div>
                         </div>
 			<div class="clear"></div>
-			
-			
-			<!-- WIFI OPTION BUTTONS ************************ --> 
-			<div class="one_third left">
-				<p><a class="one_hour_service" href="[% base_uri %]/auth/paid?plan=one&mac=[% mac %]&url=[% url %]">$2 WiFi (No Ads, 1 Hour Use)</a></p>
-			</div>
+		<p>	<br />		<!--Need a zero commitment monthly subscription?  Scroll down!<br />-->During this service upgrade, the only option is <a href="[% base_uri %]/auth/free?plan=ads&mac=[% mac %]&url=[% url %]">FREE</a> WiFi service.  Advertisements will be displayed in the Free service, and you will be able to browse the web, receive and send email, and use instant messenger clients in the Free service.<br /><strong>If you have a problem while surfing</strong> you are probably in a bad signal area.  Try moving, even a few feet will do it sometimes.</p>
 
-			<div class="one_third left">
-				<p><a class="three_hour_service" href="[% base_uri %]/auth/paid?plan=four&mac=[% mac %]&url=[% url %]">$3 WiFi (No Ads, 4 Hours Use)</a></p>
-			</div>
-
-                        <div class="one_third left">
-                                <p><a class="one_day_service" href="[% base_uri %]/auth/paid?plan=day&mac=[% mac %]&url=[% url %]">$5 WiFi (No Ads, 24 Hours of Use)</a></p>
-                        </div>
-
-			<div class="clear"></div>
-				<p class="free_service"><strong>All WiFi purchases are final.</strong><br />If you have problems while surfing we will issue you more time, use the support tab on the left.<br />Need a zero commitment monthly subscription?  Scroll down!<br />You can also use our <a href="[% base_uri %]/auth/free?plan=ads&mac=[% mac %]&url=[% url %]">Free</a> WiFi service.  Advertisements will be displayed in the Free service, and you will be able to browse the web, receive and send email, and use instant messenger clients in the Free service.<br /><strong>If you have a problem while surfing</strong> you are probably in a bad signal area.  Try moving, even a few feet will do it sometimes.</p>
-
-			</div>
-	</div>
-	
+<p>Paid service will return early next week.  The free service will allow all ports open, so if you have a VPN you'll still be able to use it.  Thanks for your patience during this upgrade!</p>
+</div>
+<!--	
 	<div id="section_two">
 		<div id="section_two_inner">
 		<div class="center">
-			<!-- MONTLY PLAN ************************ --> 
 			<div class="one_third left">
 				<p><a class="one_month_service" href="[% base_uri %]/auth/paid?plan=month&mac=[% mac %]&url=[% url %]">$15 WiFi (No Ads, 1 Month Use)</a></p>
 			</div>
-			<!-- CHOOSE WIFI COPY ************************ --> 
 			<div class="two_thirds left">
-				<h2 class="monthly_plan">Montly Service Plan</h2>
+				<h2 class="monthly_plan">Monthly Service Plan</h2>
 				<p>
 				<strong>Are you a frequent user?</strong> Sign up for our monthly service and you can get ad free, unlimited service for the whole month for just $15 per month.  No commitment required, cancel anytime.
 				
@@ -82,7 +62,6 @@
 	<div id="section_three">
 		<div id="section_two_inner">
 		<div class="center">
-			<!-- CHOOSE WIFI COPY ************************ --> 
 			<div class="two_thirds left">
 				<h2>Are you a WiFi Network Provider?</h2>
 				<h3>Learn how Silver Lining can help you make money with your WiFi network</h3>
@@ -94,7 +73,6 @@
 				<a href="http://www.silverliningnetworks.com">Learn more about Silver Lining Networks</a>
 				</p>
 			</div>	
-			<!-- LOGO ************************ --> 
 			<div class="one_third left">
 				<h1 id="logo_240"><a href="http://www.silverliningnetworks.com"><span></span>Silver Lining Networks</a></h1>
 			</div>					
@@ -103,7 +81,7 @@
 		</div>
 		</div>	
 	</div>
-
+-->
 [% PROCESS zendesk.tmpl %]
 
 </div>

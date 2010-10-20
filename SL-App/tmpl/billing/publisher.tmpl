@@ -49,6 +49,7 @@
 <dd><font color="red">Please complete the missing fields</font></dd>
 [% END %]
 
+<dd><font color="red">We're sorry, but due to overwhelming demand we are currently closed to new signups.</font><br /><br />To be informed of when we are accepting new signups, please follow us on <a href="http://twitter.com/slwifi">Twitter</a></dd>
                                 <dd class="subtle"><em>All fields required</em></dd>
                                     [% PROCESS auth/form/name.tmpl %]
 
@@ -58,7 +59,7 @@
                                     [% PROCESS auth/form/creditcard.tmpl %]
                                     [% PROCESS auth/form/address.tmpl %]
                                 [% END %]
-                                [% PROCESS auth/form/submit_button.tmpl %]
+                                [% # PROCESS auth/form/submit_button.tmpl %]
                        </dl>
                 </form>
 
