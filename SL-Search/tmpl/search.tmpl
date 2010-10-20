@@ -11,8 +11,7 @@
     <div class="clear"></div>
   </div>
 </div>
-
-[% IF state.tos == 0 %][% tos.tmpl %][% END %]
+[% PROCESS tos.tmpl %]
 
 <div class="container_16">    
 
@@ -23,7 +22,7 @@
 
 <div class="container_16">
     <div class="grid_10">[% PROCESS results.tmpl %]</div>
-    <div class="grid_6">[% IF cg_ads %][% PROCESS citygrid.tmpl %][% ELSE %]Instead of some ads, here is a picture of a mongoose[% END %]</div>
+    <div id="ads"  class="grid_6">[% IF cg_ads %][% PROCESS citygrid.tmpl %][% ELSE %]Instead of some ads, here is a picture of a mongoose[% END %]</div>
     <div class="clear"></div>
 </div>
 

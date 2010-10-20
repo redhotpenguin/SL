@@ -12,7 +12,25 @@
   <link rel="stylesheet" type="text/css" href="/resources/css/main.css" />
   <!-- IE HACKS -->
   <!--[if lt IE 7]><link rel="stylesheet" type="text/css" href="/resources/css/ie/.css" /><![endif]-->
-  
+  <script type="text/javascript" src="/resources/js/mootools.js"></script>
+  <script type="text/javascript">
+	document.addEvent('domready', function(e){
+		var tos_button = $('tos'); 
+
+		if(tos_button) {
+			tos_button.addEvent('click', function(e) {
+				e.stop(); 
+				$$('.greetings').setStyle('display', 'none');
+				new Request.JSON({
+					'url': '/tos'
+				}).send()
+			});
+		}
+	});
+
+
+
+  </script>
 <!-- FAVICON --> 
 <link rel="shorcut icon" href="[% static_host %]/resources/images/icons/favicon.ico" />
   
