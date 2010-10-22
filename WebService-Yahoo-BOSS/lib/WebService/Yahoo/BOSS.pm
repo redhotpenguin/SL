@@ -47,7 +47,7 @@ sub Web {
           . uri_escape( $args{query} )
           . '?appid='
           . $self->appid
-          . "&format=$format&filter=-porn";
+          . "&format=$format&filter=-porn&view=keyterms";
 
     if ($args{start}) {
         $urlstring .= "&start=" . $args{start};
