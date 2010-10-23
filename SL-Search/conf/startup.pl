@@ -37,8 +37,9 @@ use Apache2::Filter         ();
 use APR::Table              ();
 
 # sl
-use SL::Search ();
-use SL::Search::Apache2 ();
+use SL::Search           ();
+use SL::Search::Apache2  ();
+use SL::Search::CityGrid ();
 
 # cpan
 use Cache::Memcached                   ();
