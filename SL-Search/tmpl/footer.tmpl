@@ -2,16 +2,10 @@
 	<div class="grid_10">
 		<h5>Searches related to: <strong>[% q %]</strong></h5>
 		<ul>
-			<li><a href="#">foobar is cool 1</a></li>
-			<li><a href="#">foobar is cool 1</a></li>
-			<li><a href="#">foobar is cool 1</a></li>
-			<li><a href="#"><strong>foobar</strong> is cool 1</a></li>
-			<li><a href="#">foobar is cool 1</a></li>
-			<li><a href="#">foobar is cool 1</a></li>
-			<li><a href="#">foobar is cool 1</a></li>
-			<li><a href="#">foobar is cool 1</a></li>
-			<li><a href="#">foobar is cool 1</a></li>
-			<li><a href="#">foobar is cool 1</a></li>
+            [% FOREACH suggestion = suggestions %]
+
+			<li><a href="/search?q=[% suggestion %]&submit=Search">[% suggestion %]</a></li>
+            [% END %]
 		</ul>
 		<div class="clear"></div>
 	</div>

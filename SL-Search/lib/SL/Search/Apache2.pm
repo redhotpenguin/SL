@@ -32,7 +32,6 @@ use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 use constant TIMING        => $ENV{SL_TIMING}        || 0;
 
-
 our $Config = Config::SL->new;
 
 our $Template = Template->new( INCLUDE_PATH => $Config->sl_root . '/tmpl/' );
@@ -64,9 +63,11 @@ sub handler {
 sub tos {
     my ( $class, $r ) = @_;
 
-    my %state = %{ $r->pnotes('state') };
-    $state{'tos'} = time();
-    $class->send_cookie( $r, \%state );
+    my $state = $r->pnotes('state');
+
+    $r->log->debug("tos state: " . Dumper($state)) if DEBUG;
+    $state->{'tos'} = time();
+    $class->send_cookie( $r, $state );
     my $output = 'tos accepted, ajax response';
 
     my $bytes = $class->print_response( $r, $output );
@@ -118,7 +119,7 @@ sub search {
 
     ################
     # grab the ads
-    my $citygrid = $Memd->get( 'citigrid|' . uri_escape($q) );
+    my $citygrid = $Memd->get( 'citygrid|' . uri_escape($q) );
     unless ($citygrid) {
         $r->log->debug("citygrid cache miss for $q") if DEBUG;
 
@@ -149,6 +150,9 @@ sub search {
         }
     }
 
+    # get search suggestions
+    my $suggestions = SL::Search->suggest($q);
+
     ####################
     # render the template
     $q = HTML::Entities::encode_numeric($q);
@@ -160,6 +164,7 @@ sub search {
         q              => $q,
         plusquery      => $plus_q,
         start          => $start,
+        suggestions    => $suggestions,
         start_param    => $start + 1,
         finish         => $start + 10,
         cg_ads         => $citygrid,
@@ -223,26 +228,32 @@ sub cookie_monster {
     my $j    = Apache2::Cookie::Jar->new($r);
     my $c_in = $j->cookies('SLSearch');
 
-    my %state;
+    my $state;
     if ($c_in) {
 
-        %state = $class->decode( $c_in->value );
-        unless ( keys %state ) {
+        $state = $class->decode( $c_in->value );
 
-            %state = %{ $class->default_state($r) };
-            $class->send_cookie( $r, \%state );
+        unless ( keys %{$state} ) {
+            $state = $class->send_new_cookie($r);
         }
-
     }
     else {
-
-        %state = %{ $class->default_state($r) };
-        $class->send_cookie( $r, \%state );
+        $state = $class->send_new_cookie($r);
     }
 
-    $r->pnotes( 'state' => \%state );
+    $r->pnotes( 'state' => $state );
 
     return Apache2::Const::DECLINED;
+}
+
+# sends a new cookie
+
+sub send_new_cookie {
+    my ( $class, $r ) = @_;
+
+    my $state = $class->default_state($r);
+
+    return $class->send_cookie( $r, $state );
 }
 
 sub print_response {
@@ -274,10 +285,10 @@ sub expire_cookie {
 
     my $cookie = Apache2::Cookie->new(
         $r,
-        -name    => $Config->sl_app_cookie_name,
+        -name    => 'SLSearch',
         -value   => '',
         -expires => 'Mon, 21-May-1971 00:00:00 GMT',
-        -path    => $Config->sl_app_base_uri . '/app/',
+        -path    => '/',
     );
 
     $cookie->bake($r);
@@ -285,18 +296,20 @@ sub expire_cookie {
 }
 
 sub encode {
-    my ( $class, $state_hashref ) = @_;
+    my ( $class, $state ) = @_;
 
-    my $joined = join( ':',
-        map { join( ':', $_, $state_hashref->{$_} ) }
-          keys %{$state_hashref} );
+    my $joined = join(
+        ':', map { join( ':', $_, $state->{$_} ) }
+          keys %{$state}
+    );
     return $Cipher->encrypt($joined);
 }
 
 sub decode {
     my ( $class, $val ) = @_;
     my $decrypted = $Cipher->decrypt($val);
-    return split( ':', $decrypted );
+    my %state = split( ':', $decrypted );
+    return \%state;
 }
 
 sub send_cookie {
@@ -317,11 +330,8 @@ sub send_cookie {
 sub default_state {
     my ( $class, $r ) = @_;
 
-    my %state = (
-        ip         => $r->connection->remote_ip,
-        last_query => undef,
-        tos        => 0,
-    );
+    my %state = ( tos => 0, );
+    $r->log->debug( "new cookie state: " . Dumper( \%state ) ) if DEBUG;
 
     return \%state;
 }

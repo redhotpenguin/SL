@@ -9,8 +9,9 @@ SL::Search - Handles searches for Silver Lining
 
 =cut
 
-our $VERSION = 0.02;
+our $VERSION = 0.03;
 
+use Google::Search ();
 use WebService::Yahoo::BOSS;
 use Encode ();
 use Encode::Guess qw/euc-jp shiftjis 7bit-jis/;
@@ -22,6 +23,8 @@ our $Config = Config::SL->new;
 
 our $boss = WebService::Yahoo::BOSS->new( appid => $Config->sl_yahoo_appid );
 
+# search the web
+
 sub search {
     my ( $class, $search_args ) = @_;
 
@@ -31,6 +34,16 @@ sub search {
     return $search;
 }
 
+# search suggestions
+
+sub suggest {
+    my ( $class, $term ) = @_;
+    my $suggestions = Google::Search->suggest($term);
+
+    my @ranked = map { $_->[0] } sort { $a->[2] <=> $b->[2] } @{$suggestions};
+
+    return \@ranked;
+}
 
 sub force_utf8 {
     my ( $class, $string ) = @_;
