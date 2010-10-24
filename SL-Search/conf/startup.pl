@@ -42,12 +42,10 @@ use SL::Search::Apache2  ();
 use SL::Search::CityGrid ();
 
 # cpan
-use Cache::Memcached                   ();
 use Apache2::Request                   ();
 use Apache2::Connection::XForwardedFor ();
 use URI                                ();
 use HTTP::Headers::Util                ();
-use Template                           ();
 
 # dtrace identified these files as being loaded per request, so load them at startup
 BEGIN {
