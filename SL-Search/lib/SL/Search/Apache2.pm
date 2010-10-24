@@ -136,7 +136,7 @@ sub search {
         if ($citygrid) {
 
             $Memd->set(
-                sprintf( 'citygrid|%s', uri_escape($q) ) => $search,
+                sprintf( 'citygrid|%s', uri_escape($q) ) => $citygrid,
                 60
             );
 
