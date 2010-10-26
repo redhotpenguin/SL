@@ -80,6 +80,8 @@ sub tos {
 sub search {
     my ( $class, $r ) = @_;
 
+    $Searchtimer->start('searchtimer');
+
     my $req = Apache2::Request->new($r);
 
     my $q = $req->param('q') || 'pizza';
@@ -92,7 +94,6 @@ sub search {
     my $search =
       $Memd->get( sprintf( 'search|%s|%s', uri_escape($q), $start ) );
 
-    $Searchtimer->start('searchtimer');
     unless ($search) {
         $r->log->debug("search cache miss for $q") if DEBUG;
 
@@ -113,9 +114,6 @@ sub search {
         );
 
     }
-
-    my ( $pkg, $file, $line, $timer_name, $interval ) =
-      @{ $Searchtimer->checkpoint };
 
     ################
     # grab the ads
@@ -154,6 +152,11 @@ sub search {
     # get search suggestions
     my $suggestions = SL::Search->suggest($q);
 
+
+    my ( $pkg, $file, $line, $timer_name, $interval ) =
+      @{ $Searchtimer->checkpoint };
+
+
     ####################
     # render the template
     $q = HTML::Entities::encode_numeric($q);
@@ -174,6 +177,8 @@ sub search {
         s_referrer => $req->param('s_referrer') || 'google',
         state => $r->pnotes('state'),
     );
+
+
 
     # figure out previous and next buttons
     if ( $start > 9 ) {
@@ -208,6 +213,7 @@ sub search {
     $tmpl_args{'state'}   = $r->pnotes('state');
 
 #    $tmpl_args{'network'} = SL::Network->new( ip => $r->connection->remote_ip );
+
 
     my $output = $class->template_process( \%tmpl_args );
 
