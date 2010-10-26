@@ -150,6 +150,7 @@ sub search {
         }
     }
 
+
     # get search suggestions
     my $suggestions = SL::Search->suggest($q);
 

@@ -13,8 +13,8 @@ our $VERSION = 0.03;
 
 use Google::Search ();
 use WebService::Yahoo::BOSS;
-use Encode ();
-use Encode::Guess qw/euc-jp shiftjis 7bit-jis/;
+#use Encode ();
+#use Encode::Guess qw/euc-jp shiftjis 7bit-jis/;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
