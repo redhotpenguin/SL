@@ -65,7 +65,7 @@ sub tos {
 
     my $state = $r->pnotes('state');
 
-    $r->log->debug("tos state: " . Dumper($state)) if DEBUG;
+    $r->log->debug( "tos state: " . Dumper($state) ) if DEBUG;
     $state->{'tos'} = time();
     $class->send_cookie( $r, $state );
     my $output = 'tos accepted, ajax response';
@@ -148,14 +148,16 @@ sub search {
         }
     }
 
-
-    # get search suggestions
-    my $suggestions = SL::Search->suggest($q);
-
+    # get search suggestions from cache, or ping google
+    my $suggestions = $Memd->get( 'suggestions|' . uri_escape($q) );
+    unless ($suggestions) {
+        $r->log->debug("suggest cache miss for $q") if DEBUG;
+        $suggestions = SL::Search->suggest($q);
+        $Memd->set( 'suggestions|' . uri_escape($q) => $suggestions );
+    }
 
     my ( $pkg, $file, $line, $timer_name, $interval ) =
       @{ $Searchtimer->checkpoint };
-
 
     ####################
     # render the template
@@ -177,8 +179,6 @@ sub search {
         s_referrer => $req->param('s_referrer') || 'google',
         state => $r->pnotes('state'),
     );
-
-
 
     # figure out previous and next buttons
     if ( $start > 9 ) {
@@ -213,7 +213,6 @@ sub search {
     $tmpl_args{'state'}   = $r->pnotes('state');
 
 #    $tmpl_args{'network'} = SL::Network->new( ip => $r->connection->remote_ip );
-
 
     my $output = $class->template_process( \%tmpl_args );
 
