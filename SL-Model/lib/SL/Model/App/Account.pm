@@ -1,181 +1,324 @@
 package SL::Model::App::Account;
 
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+__PACKAGE__->load_components("InflateColumn::DateTime");
+
+=head1 NAME
+
+SL::Model::App::Account
+
+=cut
+
 __PACKAGE__->table("account");
+
+=head1 ACCESSORS
+
+=head2 account_id
+
+  data_type: 'integer'
+  is_auto_increment: 1
+  is_nullable: 0
+  sequence: 'account_account_id_seq'
+
+=head2 name
+
+  data_type: 'text'
+  is_nullable: 0
+
+=head2 premium
+
+  data_type: 'boolean'
+  default_value: true
+  is_nullable: 0
+
+=head2 close_box
+
+  data_type: 'boolean'
+  default_value: true
+  is_nullable: 0
+
+=head2 active
+
+  data_type: 'boolean'
+  default_value: true
+  is_nullable: 0
+
+=head2 aaa_email_cc
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 advertise_here
+
+  data_type: 'text'
+  default_value: 'http://www.silverliningnetworks.com/site/advertise_here.html?'
+  is_nullable: 1
+
+=head2 plan
+
+  data_type: 'text'
+  default_value: 'free'
+  is_nullable: 0
+
+=head2 aaa
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 0
+
+=head2 twitter_id
+
+  data_type: 'text'
+  default_value: 'slwifi'
+  is_nullable: 0
+
+=head2 text_message
+
+  data_type: 'text'
+  default_value: 'This is the default text message for the Silver Lining Text Message Bar'
+  is_nullable: 0
+
+=head2 zone_type
+
+  data_type: 'text'
+  default_value: 'banner_ad'
+  is_nullable: 0
+
+=head2 dnsone
+
+  data_type: 'inet'
+  is_nullable: 1
+
+=head2 dnstwo
+
+  data_type: 'inet'
+  is_nullable: 1
+
+=head2 map_center
+
+  data_type: 'text'
+  default_value: 94109
+  is_nullable: 0
+
+=head2 map_zoom
+
+  data_type: 'integer'
+  default_value: 20
+  is_nullable: 0
+
+=head2 users_today
+
+  data_type: 'integer'
+  default_value: 0
+  is_nullable: 0
+
+=head2 megabytes_today
+
+  data_type: 'integer'
+  default_value: 0
+  is_nullable: 0
+
+=head2 users_monthly
+
+  data_type: 'integer'
+  default_value: 0
+  is_nullable: 0
+
+=head2 megabytes_monthly
+
+  data_type: 'integer'
+  default_value: 0
+  is_nullable: 0
+
+=head2 beta
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 0
+
+=head2 google_ad_client
+
+  data_type: 'text'
+  default_value: 'pub-9104946517470276'
+  is_nullable: 0
+
+=head2 persistent
+
+  data_type: 'boolean'
+  default_value: true
+  is_nullable: 1
+
+=head2 swap
+
+  data_type: 'boolean'
+  default_value: true
+  is_nullable: 1
+
+=cut
+
 __PACKAGE__->add_columns(
   "account_id",
   {
-    data_type => "integer",
-    default_value => "nextval('account_account_id_seq'::regclass)",
+    data_type         => "integer",
     is_auto_increment => 1,
-    is_nullable => 0,
-    size => 4,
+    is_nullable       => 0,
+    sequence          => "account_account_id_seq",
   },
   "name",
-  {
-    data_type => "text",
-    default_value => undef,
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", is_nullable => 0 },
   "premium",
-  {
-    data_type => "boolean",
-    default_value => "true",
-    is_nullable => 0,
-    size => 1,
-  },
+  { data_type => "boolean", default_value => \"true", is_nullable => 0 },
   "close_box",
-  {
-    data_type => "boolean",
-    default_value => "true",
-    is_nullable => 0,
-    size => 1,
-  },
+  { data_type => "boolean", default_value => \"true", is_nullable => 0 },
   "active",
-  {
-    data_type => "boolean",
-    default_value => "true",
-    is_nullable => 0,
-    size => 1,
-  },
+  { data_type => "boolean", default_value => \"true", is_nullable => 0 },
   "aaa_email_cc",
-  {
-    data_type => "text",
-    default_value => undef,
-    is_nullable => 1,
-    size => undef,
-  },
+  { data_type => "text", is_nullable => 1 },
   "advertise_here",
   {
-    data_type => "text",
-    default_value => "'http://www.silverliningnetworks.com/site/advertise_here.html?'::text",
-    is_nullable => 1,
-    size => undef,
+    data_type     => "text",
+    default_value => "http://www.silverliningnetworks.com/site/advertise_here.html?",
+    is_nullable   => 1,
   },
   "plan",
-  {
-    data_type => "text",
-    default_value => "'free'::text",
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", default_value => "free", is_nullable => 0 },
   "aaa",
-  {
-    data_type => "boolean",
-    default_value => "false",
-    is_nullable => 0,
-    size => 1,
-  },
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
   "twitter_id",
-  {
-    data_type => "text",
-    default_value => "'slwifi'::text",
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", default_value => "slwifi", is_nullable => 0 },
   "text_message",
   {
-    data_type => "text",
-    default_value => "'This is the default text message for the Silver Lining Text Message Bar'::text",
-    is_nullable => 0,
-    size => undef,
+    data_type     => "text",
+    default_value => "This is the default text message for the Silver Lining Text Message Bar",
+    is_nullable   => 0,
   },
   "zone_type",
-  {
-    data_type => "text",
-    default_value => "'banner_ad'::text",
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", default_value => "banner_ad", is_nullable => 0 },
   "dnsone",
-  {
-    data_type => "inet",
-    default_value => undef,
-    is_nullable => 1,
-    size => undef,
-  },
+  { data_type => "inet", is_nullable => 1 },
   "dnstwo",
-  {
-    data_type => "inet",
-    default_value => undef,
-    is_nullable => 1,
-    size => undef,
-  },
+  { data_type => "inet", is_nullable => 1 },
   "map_center",
-  {
-    data_type => "text",
-    default_value => 94109,
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", default_value => 94109, is_nullable => 0 },
   "map_zoom",
-  { data_type => "integer", default_value => 15, is_nullable => 0, size => 4 },
+  { data_type => "integer", default_value => 20, is_nullable => 0 },
   "users_today",
-  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
   "megabytes_today",
-  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
   "users_monthly",
-  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
   "megabytes_monthly",
-  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
   "beta",
-  {
-    data_type => "boolean",
-    default_value => "false",
-    is_nullable => 0,
-    size => 1,
-  },
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
   "google_ad_client",
   {
-    data_type => "text",
-    default_value => '',
-    is_nullable => 0,
-    size => undef,
+    data_type     => "text",
+    default_value => "pub-9104946517470276",
+    is_nullable   => 0,
   },
   "persistent",
-  {
-    data_type => "boolean",
-    default_value => "true",
-    is_nullable => 0,
-    size => 1,
-  },
+  { data_type => "boolean", default_value => \"true", is_nullable => 1 },
   "swap",
-  {
-    data_type => "boolean",
-    default_value => "true",
-    is_nullable => 0,
-    size => 1,
-  },
-
+  { data_type => "boolean", default_value => \"true", is_nullable => 1 },
 );
 __PACKAGE__->set_primary_key("account_id");
+
+=head1 RELATIONS
+
+=head2 ad_zones
+
+Type: has_many
+
+Related object: L<SL::Model::App::AdZone>
+
+=cut
+
+__PACKAGE__->has_many(
+  "ad_zones",
+  "SL::Model::App::AdZone",
+  { "foreign.account_id" => "self.account_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 networks
+
+Type: has_many
+
+Related object: L<SL::Model::App::Network>
+
+=cut
+
 __PACKAGE__->has_many(
   "networks",
   "SL::Model::App::Network",
   { "foreign.account_id" => "self.account_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
+
+=head2 payments
+
+Type: has_many
+
+Related object: L<SL::Model::App::Payment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "payments",
+  "SL::Model::App::Payment",
+  { "foreign.account_id" => "self.account_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 regs
+
+Type: has_many
+
+Related object: L<SL::Model::App::Reg>
+
+=cut
+
+__PACKAGE__->has_many(
+  "regs",
+  "SL::Model::App::Reg",
+  { "foreign.account_id" => "self.account_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 routers
+
+Type: has_many
+
+Related object: L<SL::Model::App::Router>
+
+=cut
+
 __PACKAGE__->has_many(
   "routers",
   "SL::Model::App::Router",
   { "foreign.account_id" => "self.account_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04999_08 @ 2009-09-16 00:34:17
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jWgYEgVvzaGrGjoRrCeNqQ
-# These lines were loaded from '/home/phred/dev/perl/lib/site_perl/5.8.9/SL/Model/App/Account.pm' found in @INC.
+# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-09-02 12:45:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dmoXiWWekNhdexQ7q7MNGg
+# These lines were loaded from '/Users/phred/dev/perl-5.12.0/lib/site_perl/5.12.0/SL/Model/App/Account.pm' found in @INC.
 # They are now part of the custom portion of this file
 # for you to hand-edit.  If you do not either delete
 # this section or remove that file from @INC, this section
 # will be repeated redundantly when you re-create this
-# file again via Loader!
-
+# file again via Loader!  See skip_load_external to disable
+# this feature.
 
 use SL::Config  ();
 use File::Path  ();

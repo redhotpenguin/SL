@@ -1,146 +1,212 @@
 package SL::Model::App::Payment;
 
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("InflateColumn::DateTime", "Core");
+__PACKAGE__->load_components("InflateColumn::DateTime");
+
+=head1 NAME
+
+SL::Model::App::Payment
+
+=cut
+
 __PACKAGE__->table("payment");
+
+=head1 ACCESSORS
+
+=head2 payment_id
+
+  data_type: 'integer'
+  is_auto_increment: 1
+  is_nullable: 0
+  sequence: 'payment_payment_id_seq'
+
+=head2 account_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 0
+
+=head2 amount
+
+  data_type: 'money'
+  is_nullable: 0
+
+=head2 start
+
+  data_type: 'timestamp without time zone'
+  default_value: now()
+  is_nullable: 0
+
+=head2 stop
+
+  data_type: 'timestamp without time zone'
+  is_nullable: 0
+
+=head2 authorization_code
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 error_message
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 cts
+
+  data_type: 'timestamp without time zone'
+  default_value: now()
+  is_nullable: 0
+
+=head2 approved
+
+  data_type: 'boolean'
+  is_nullable: 1
+
+=head2 last_four
+
+  data_type: 'integer'
+  is_nullable: 0
+
+=head2 card_type
+
+  data_type: 'text'
+  is_nullable: 0
+
+=head2 mac
+
+  data_type: 'macaddr'
+  is_nullable: 0
+
+=head2 ip
+
+  data_type: 'inet'
+  is_nullable: 0
+
+=head2 email
+
+  data_type: 'text'
+  is_nullable: 0
+
+=head2 md5
+
+  data_type: 'text'
+  is_nullable: 0
+
+=head2 token_processed
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 0
+
+=head2 expires
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 voided
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 1
+
+=head2 order_number
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 0
+
+=cut
+
 __PACKAGE__->add_columns(
   "payment_id",
   {
-    data_type => "integer",
-    default_value => "nextval('payment_payment_id_seq'::regclass)",
+    data_type         => "integer",
     is_auto_increment => 1,
-    is_nullable => 0,
-    size => 4,
+    is_nullable       => 0,
+    sequence          => "payment_payment_id_seq",
   },
   "account_id",
-  {
-    data_type => "integer",
-    default_value => undef,
-    is_foreign_key => 1,
-    is_nullable => 0,
-    size => 4,
-  },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "amount",
-  { data_type => "money", default_value => undef, is_nullable => 0, size => 8 },
+  { data_type => "money", is_nullable => 0 },
   "start",
   {
-    data_type => "timestamp without time zone",
-    default_value => "now()",
-    is_nullable => 0,
-    size => 8,
+    data_type     => "timestamp without time zone",
+    default_value => \"now()",
+    is_nullable   => 0,
   },
   "stop",
-  {
-    data_type => "timestamp without time zone",
-    default_value => undef,
-    is_nullable => 0,
-    size => 8,
-  },
+  { data_type => "timestamp without time zone", is_nullable => 0 },
   "authorization_code",
-  {
-    data_type => "text",
-    default_value => undef,
-    is_nullable => 1,
-    size => undef,
-  },
+  { data_type => "text", is_nullable => 1 },
   "error_message",
-  {
-    data_type => "text",
-    default_value => undef,
-    is_nullable => 1,
-    size => undef,
-  },
+  { data_type => "text", is_nullable => 1 },
   "cts",
   {
-    data_type => "timestamp without time zone",
-    default_value => "now()",
-    is_nullable => 0,
-    size => 8,
+    data_type     => "timestamp without time zone",
+    default_value => \"now()",
+    is_nullable   => 0,
   },
   "approved",
-  { data_type => "boolean", default_value => undef, is_nullable => 1, size => 1 },
+  { data_type => "boolean", is_nullable => 1 },
   "last_four",
-  { data_type => "integer", default_value => undef, is_nullable => 0, size => 4 },
+  { data_type => "integer", is_nullable => 0 },
   "card_type",
-  {
-    data_type => "text",
-    default_value => undef,
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", is_nullable => 0 },
   "mac",
-  { data_type => "macaddr", default_value => undef, is_nullable => 0, size => 6 },
+  { data_type => "macaddr", is_nullable => 0 },
   "ip",
-  {
-    data_type => "inet",
-    default_value => undef,
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "inet", is_nullable => 0 },
   "email",
-  {
-    data_type => "text",
-    default_value => undef,
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", is_nullable => 0 },
   "md5",
-  {
-    data_type => "text",
-    default_value => undef,
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", is_nullable => 0 },
   "token_processed",
-  {
-    data_type => "boolean",
-    default_value => "false",
-    is_nullable => 0,
-    size => 1,
-  },
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
   "expires",
-  {
-    data_type => "text",
-    default_value => undef,
-    is_nullable => 1,
-    size => undef,
-  },
+  { data_type => "text", is_nullable => 1 },
   "voided",
-  {
-    data_type => "boolean",
-    default_value => "false",
-    is_nullable => 1,
-    size => 1,
-  },
+  { data_type => "boolean", default_value => \"false", is_nullable => 1 },
   "order_number",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 0 },
 );
 __PACKAGE__->set_primary_key("payment_id");
+
+=head1 RELATIONS
+
+=head2 account
+
+Type: belongs_to
+
+Related object: L<SL::Model::App::Account>
+
+=cut
+
 __PACKAGE__->belongs_to(
   "account",
   "SL::Model::App::Account",
   { account_id => "account_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04999_07 @ 2009-06-14 16:15:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:W2IlnpNz7WmJYrW0PX0IVQ
-# These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Payment.pm' found in @INC.
+# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-09-02 12:45:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:a49pqOXJjA0z8fnS/Ip7eg
+# These lines were loaded from '/Users/phred/dev/perl-5.12.0/lib/site_perl/5.12.0/SL/Model/App/Payment.pm' found in @INC.
 # They are now part of the custom portion of this file
 # for you to hand-edit.  If you do not either delete
 # this section or remove that file from @INC, this section
 # will be repeated redundantly when you re-create this
-# file again via Loader!
-
+# file again via Loader!  See skip_load_external to disable
+# this feature.
 
 use Business::PayPal::API qw( MassPay DirectPayments );
 use Business::PayPal::API::DirectPayments;

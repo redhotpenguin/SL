@@ -1,344 +1,563 @@
 package SL::Model::App::Router;
 
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+__PACKAGE__->load_components("InflateColumn::DateTime");
+
+=head1 NAME
+
+SL::Model::App::Router
+
+=cut
+
 __PACKAGE__->table("router");
+
+=head1 ACCESSORS
+
+=head2 router_id
+
+  data_type: 'integer'
+  is_auto_increment: 1
+  is_nullable: 0
+  sequence: 'router_router_id_seq'
+
+=head2 serial_number
+
+  data_type: 'character varying'
+  is_nullable: 1
+  size: 24
+
+=head2 macaddr
+
+  data_type: 'macaddr'
+  is_nullable: 1
+
+=head2 cts
+
+  data_type: 'timestamp without time zone'
+  default_value: now()
+  is_nullable: 1
+
+=head2 mts
+
+  data_type: 'timestamp without time zone'
+  default_value: now()
+  is_nullable: 1
+
+=head2 active
+
+  data_type: 'boolean'
+  default_value: true
+  is_nullable: 1
+
+=head2 proxy
+
+  data_type: 'inet'
+  is_nullable: 1
+
+=head2 description
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 name
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 splash_timeout
+
+  data_type: 'integer'
+  default_value: 60
+  is_nullable: 1
+
+=head2 splash_href
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 1
+
+=head2 firmware_version
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 1
+
+=head2 ssid
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 1
+
+=head2 passwd_event
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 1
+
+=head2 firmware_event
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 1
+
+=head2 ssid_event
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 1
+
+=head2 reboot_event
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 1
+
+=head2 halt_event
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 1
+
+=head2 last_ping
+
+  data_type: 'timestamp without time zone'
+  default_value: now()
+  is_nullable: 1
+
+=head2 views_daily
+
+  data_type: 'integer'
+  default_value: 0
+  is_nullable: 0
+
+=head2 account_id
+
+  data_type: 'integer'
+  default_value: 1
+  is_foreign_key: 1
+  is_nullable: 0
+
+=head2 wan_ip
+
+  data_type: 'inet'
+  is_nullable: 1
+
+=head2 lan_ip
+
+  data_type: 'inet'
+  is_nullable: 1
+
+=head2 show_aaa_link
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 0
+
+=head2 device
+
+  data_type: 'character varying'
+  default_value: (empty string)
+  is_nullable: 1
+  size: 64
+
+=head2 adserving
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 0
+
+=head2 notes
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 0
+
+=head2 lat
+
+  data_type: 'double precision'
+  is_nullable: 1
+
+=head2 lng
+
+  data_type: 'double precision'
+  is_nullable: 1
+
+=head2 ip
+
+  data_type: 'inet'
+  is_nullable: 1
+
+=head2 users_daily
+
+  data_type: 'integer'
+  default_value: 0
+  is_nullable: 0
+
+=head2 traffic_daily
+
+  data_type: 'integer'
+  default_value: 0
+  is_nullable: 0
+
+=head2 memfree
+
+  data_type: 'integer'
+  default_value: 0
+  is_nullable: 0
+
+=head2 clients
+
+  data_type: 'integer'
+  default_value: 0
+  is_nullable: 0
+
+=head2 hops
+
+  data_type: 'integer'
+  default_value: 0
+  is_nullable: 0
+
+=head2 kbup
+
+  data_type: 'integer'
+  default_value: 0
+  is_nullable: 0
+
+=head2 kbdown
+
+  data_type: 'integer'
+  default_value: 0
+  is_nullable: 0
+
+=head2 neighbors
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 0
+
+=head2 gateway_quality
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 0
+
+=head2 routes
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 0
+
+=head2 load
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 0
+
+=head2 download_last
+
+  data_type: 'integer'
+  default_value: 0
+  is_nullable: 0
+
+=head2 download_average
+
+  data_type: 'integer'
+  default_value: 0
+  is_nullable: 0
+
+=head2 mesh_ip
+
+  data_type: 'inet'
+  is_nullable: 1
+
+=head2 checkin_status
+
+  data_type: 'text'
+  default_value: 'No checkin history'
+  is_nullable: 0
+
+=head2 speed_test
+
+  data_type: 'text'
+  default_value: 'No speed test data'
+  is_nullable: 0
+
+=head2 firmware_build
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 0
+
+=head2 users_monthly
+
+  data_type: 'integer'
+  default_value: 0
+  is_nullable: 0
+
+=head2 megabytes_monthly
+
+  data_type: 'integer'
+  default_value: 0
+  is_nullable: 0
+
+=head2 gateway
+
+  data_type: 'inet'
+  is_nullable: 1
+
+=head2 robin
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 0
+
+=head2 default_skips
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 0
+
+=head2 custom_skips
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 0
+
+=cut
+
 __PACKAGE__->add_columns(
   "router_id",
   {
-    data_type => "integer",
-    default_value => "nextval('router_router_id_seq'::regclass)",
+    data_type         => "integer",
     is_auto_increment => 1,
-    is_nullable => 0,
-    size => 4,
+    is_nullable       => 0,
+    sequence          => "router_router_id_seq",
   },
   "serial_number",
-  {
-    data_type => "character varying",
-    default_value => undef,
-    is_nullable => 1,
-    size => 24,
-  },
+  { data_type => "character varying", is_nullable => 1, size => 24 },
   "macaddr",
-  { data_type => "macaddr", default_value => undef, is_nullable => 1, size => 6 },
+  { data_type => "macaddr", is_nullable => 1 },
   "cts",
   {
-    data_type => "timestamp without time zone",
-    default_value => "now()",
-    is_nullable => 1,
-    size => 8,
+    data_type     => "timestamp without time zone",
+    default_value => \"now()",
+    is_nullable   => 1,
   },
   "mts",
   {
-    data_type => "timestamp without time zone",
-    default_value => "now()",
-    is_nullable => 1,
-    size => 8,
+    data_type     => "timestamp without time zone",
+    default_value => \"now()",
+    is_nullable   => 1,
   },
   "active",
-  {
-    data_type => "boolean",
-    default_value => "true",
-    is_nullable => 1,
-    size => 1,
-  },
+  { data_type => "boolean", default_value => \"true", is_nullable => 1 },
   "proxy",
-  {
-    data_type => "inet",
-    default_value => undef,
-    is_nullable => 1,
-    size => undef,
-  },
+  { data_type => "inet", is_nullable => 1 },
   "description",
-  {
-    data_type => "text",
-    default_value => undef,
-    is_nullable => 1,
-    size => undef,
-  },
+  { data_type => "text", is_nullable => 1 },
   "name",
-  {
-    data_type => "text",
-    default_value => undef,
-    is_nullable => 1,
-    size => undef,
-  },
+  { data_type => "text", is_nullable => 1 },
   "splash_timeout",
-  { data_type => "integer", default_value => 60, is_nullable => 1, size => 4 },
+  { data_type => "integer", default_value => 60, is_nullable => 1 },
   "splash_href",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 1,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 1 },
   "firmware_version",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 1,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 1 },
   "ssid",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 1,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 1 },
   "passwd_event",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 1,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 1 },
   "firmware_event",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 1,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 1 },
   "ssid_event",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 1,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 1 },
   "reboot_event",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 1,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 1 },
   "halt_event",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 1,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 1 },
   "last_ping",
   {
-    data_type => "timestamp without time zone",
-    default_value => "now()",
-    is_nullable => 1,
-    size => 8,
+    data_type     => "timestamp without time zone",
+    default_value => \"now()",
+    is_nullable   => 1,
   },
   "views_daily",
-  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
   "account_id",
   {
-    data_type => "integer",
-    default_value => 1,
+    data_type      => "integer",
+    default_value  => 1,
     is_foreign_key => 1,
-    is_nullable => 0,
-    size => 4,
+    is_nullable    => 0,
   },
   "wan_ip",
-  {
-    data_type => "inet",
-    default_value => undef,
-    is_nullable => 1,
-    size => undef,
-  },
+  { data_type => "inet", is_nullable => 1 },
   "lan_ip",
-  {
-    data_type => "inet",
-    default_value => undef,
-    is_nullable => 1,
-    size => undef,
-  },
+  { data_type => "inet", is_nullable => 1 },
   "show_aaa_link",
-  {
-    data_type => "boolean",
-    default_value => "false",
-    is_nullable => 0,
-    size => 1,
-  },
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
   "device",
   {
     data_type => "character varying",
-    default_value => "''::character varying",
+    default_value => "",
     is_nullable => 1,
     size => 64,
   },
   "adserving",
-  {
-    data_type => "boolean",
-    default_value => "false",
-    is_nullable => 0,
-    size => 1,
-  },
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
   "notes",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 0 },
   "lat",
-  {
-    data_type => "double precision",
-    default_value => undef,
-    is_nullable => 1,
-    size => 8,
-  },
+  { data_type => "double precision", is_nullable => 1 },
   "lng",
-  {
-    data_type => "double precision",
-    default_value => undef,
-    is_nullable => 1,
-    size => 8,
-  },
+  { data_type => "double precision", is_nullable => 1 },
   "ip",
-  {
-    data_type => "inet",
-    default_value => undef,
-    is_nullable => 1,
-    size => undef,
-  },
+  { data_type => "inet", is_nullable => 1 },
   "users_daily",
-  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
   "traffic_daily",
-  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
   "memfree",
-  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
   "clients",
-  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
   "hops",
-  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
   "kbup",
-  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
   "kbdown",
-  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
   "neighbors",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 0 },
   "gateway_quality",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 0 },
   "routes",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 0 },
   "load",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 0 },
   "download_last",
-  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
   "download_average",
-  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
   "mesh_ip",
-  {
-    data_type => "inet",
-    default_value => undef,
-    is_nullable => 1,
-    size => undef,
-  },
+  { data_type => "inet", is_nullable => 1 },
   "checkin_status",
   {
-    data_type => "text",
-    default_value => "'No checkin history'::text",
-    is_nullable => 0,
-    size => undef,
+    data_type     => "text",
+    default_value => "No checkin history",
+    is_nullable   => 0,
   },
   "speed_test",
   {
-    data_type => "text",
-    default_value => "'No speed test data'::text",
-    is_nullable => 0,
-    size => undef,
-  },
-  "gateway",
-  {
-    data_type => "inet",
-    default_value => undef,
-    is_nullable => 1,
-    size => undef,
+    data_type     => "text",
+    default_value => "No speed test data",
+    is_nullable   => 0,
   },
   "firmware_build",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 0 },
   "users_monthly",
-  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
   "megabytes_monthly",
-  { data_type => "integer", default_value => 0, is_nullable => 0, size => 4 },
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
+  "gateway",
+  { data_type => "inet", is_nullable => 1 },
   "robin",
-  {
-    data_type => "text",
-    default_value => "'0'::text",
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 0 },
   "default_skips",
-  {
-    data_type => "text",
-    default_value => '',
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 0 },
   "custom_skips",
-  {
-    data_type => "text",
-    default_value => '',
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 0 },
 );
 __PACKAGE__->set_primary_key("router_id");
 __PACKAGE__->add_unique_constraint("madaddr_uniq", ["macaddr"]);
+
+=head1 RELATIONS
+
+=head2 checkins
+
+Type: has_many
+
+Related object: L<SL::Model::App::Checkin>
+
+=cut
+
 __PACKAGE__->has_many(
   "checkins",
   "SL::Model::App::Checkin",
   { "foreign.router_id" => "self.router_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
+
+=head2 account
+
+Type: belongs_to
+
+Related object: L<SL::Model::App::Account>
+
+=cut
+
 __PACKAGE__->belongs_to(
   "account",
   "SL::Model::App::Account",
   { account_id => "account_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
+
+=head2 router_ad_zones
+
+Type: has_many
+
+Related object: L<SL::Model::App::RouterAdZone>
+
+=cut
+
 __PACKAGE__->has_many(
-  "router__ad_zones",
+  "router_ad_zones",
   "SL::Model::App::RouterAdZone",
   { "foreign.router_id" => "self.router_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
+
+=head2 usertracks
+
+Type: has_many
+
+Related object: L<SL::Model::App::Usertrack>
+
+=cut
+
 __PACKAGE__->has_many(
   "usertracks",
   "SL::Model::App::Usertrack",
   { "foreign.router_id" => "self.router_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 views
+
+Type: has_many
+
+Related object: L<SL::Model::App::View>
+
+=cut
+
+__PACKAGE__->has_many(
+  "views",
+  "SL::Model::App::View",
+  { "foreign.router_id" => "self.router_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04999_08 @ 2009-09-15 15:16:53
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mlHo+GgLIZh6TMQHS8iCxQ
-# These lines were loaded from '/home/phred/dev/perl/lib/site_perl/5.8.9/SL/Model/App/Router.pm' found in @INC.
+# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-09-02 12:45:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:A3btCfLhTL0NJ/yvSGo+Jw
 # They are now part of the custom portion of this file
 # for you to hand-edit.  If you do not either delete
 # this section or remove that file from @INC, this section
@@ -520,4 +739,3 @@ sub last_seen_html {
 
 
 1;
-# End of lines loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Router.pm' 

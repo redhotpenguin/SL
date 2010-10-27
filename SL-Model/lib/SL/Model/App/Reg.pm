@@ -1,209 +1,320 @@
 package SL::Model::App::Reg;
 
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("InflateColumn::DateTime", "Core");
+__PACKAGE__->load_components("InflateColumn::DateTime");
+
+=head1 NAME
+
+SL::Model::App::Reg
+
+=cut
+
 __PACKAGE__->table("reg");
+
+=head1 ACCESSORS
+
+=head2 reg_id
+
+  data_type: 'integer'
+  is_auto_increment: 1
+  is_nullable: 0
+  sequence: 'reg_reg_id_seq'
+
+=head2 email
+
+  data_type: 'character varying'
+  default_value: (empty string)
+  is_nullable: 0
+  size: 64
+
+=head2 mts
+
+  data_type: 'timestamp without time zone'
+  default_value: now()
+  is_nullable: 1
+
+=head2 city
+
+  data_type: 'character varying'
+  is_nullable: 1
+  size: 64
+
+=head2 state
+
+  data_type: 'character'
+  is_nullable: 1
+  size: 2
+
+=head2 active
+
+  data_type: 'boolean'
+  default_value: true
+  is_nullable: 1
+
+=head2 report_email
+
+  data_type: 'character varying'
+  default_value: (empty string)
+  is_nullable: 1
+  size: 64
+
+=head2 password_md5
+
+  data_type: 'character varying'
+  is_nullable: 1
+  size: 32
+
+=head2 send_reports_daily
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 1
+
+=head2 send_reports_weekly
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 1
+
+=head2 send_reports_monthly
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 1
+
+=head2 send_reports_quarterly
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 1
+
+=head2 report_email_frequency
+
+  data_type: 'character varying'
+  default_value: (empty string)
+  is_nullable: 0
+  size: 16
+
+=head2 account_id
+
+  data_type: 'integer'
+  default_value: 1
+  is_foreign_key: 1
+  is_nullable: 0
+
+=head2 root
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 0
+
+=head2 paypal_id
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 first_name
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 0
+
+=head2 last_name
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 0
+
+=head2 street
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 0
+
+=head2 zip
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 0
+
+=head2 card_last_four
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 0
+
+=head2 card_type
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 0
+
+=head2 card_expires
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 0
+
+=cut
+
 __PACKAGE__->add_columns(
   "reg_id",
   {
-    data_type => "integer",
-    default_value => "nextval('reg_reg_id_seq'::regclass)",
+    data_type         => "integer",
     is_auto_increment => 1,
-    is_nullable => 0,
-    size => 4,
+    is_nullable       => 0,
+    sequence          => "reg_reg_id_seq",
   },
   "email",
   {
     data_type => "character varying",
-    default_value => "''::character varying",
+    default_value => "",
     is_nullable => 0,
     size => 64,
   },
   "mts",
   {
-    data_type => "timestamp without time zone",
-    default_value => "now()",
-    is_nullable => 1,
-    size => 8,
+    data_type     => "timestamp without time zone",
+    default_value => \"now()",
+    is_nullable   => 1,
   },
   "city",
-  {
-    data_type => "character varying",
-    default_value => undef,
-    is_nullable => 1,
-    size => 64,
-  },
+  { data_type => "character varying", is_nullable => 1, size => 64 },
   "state",
-  {
-    data_type => "character",
-    default_value => undef,
-    is_nullable => 1,
-    size => 2,
-  },
+  { data_type => "character", is_nullable => 1, size => 2 },
   "active",
-  {
-    data_type => "boolean",
-    default_value => "true",
-    is_nullable => 1,
-    size => 1,
-  },
+  { data_type => "boolean", default_value => \"true", is_nullable => 1 },
   "report_email",
   {
     data_type => "character varying",
-    default_value => "''::character varying",
+    default_value => "",
     is_nullable => 1,
     size => 64,
   },
   "password_md5",
-  {
-    data_type => "character varying",
-    default_value => undef,
-    is_nullable => 1,
-    size => 32,
-  },
+  { data_type => "character varying", is_nullable => 1, size => 32 },
   "send_reports_daily",
-  {
-    data_type => "boolean",
-    default_value => "false",
-    is_nullable => 1,
-    size => 1,
-  },
+  { data_type => "boolean", default_value => \"false", is_nullable => 1 },
   "send_reports_weekly",
-  {
-    data_type => "boolean",
-    default_value => "false",
-    is_nullable => 1,
-    size => 1,
-  },
+  { data_type => "boolean", default_value => \"false", is_nullable => 1 },
   "send_reports_monthly",
-  {
-    data_type => "boolean",
-    default_value => "false",
-    is_nullable => 1,
-    size => 1,
-  },
+  { data_type => "boolean", default_value => \"false", is_nullable => 1 },
   "send_reports_quarterly",
-  {
-    data_type => "boolean",
-    default_value => "false",
-    is_nullable => 1,
-    size => 1,
-  },
+  { data_type => "boolean", default_value => \"false", is_nullable => 1 },
   "report_email_frequency",
   {
     data_type => "character varying",
-    default_value => "''::character varying",
+    default_value => "",
     is_nullable => 0,
     size => 16,
   },
   "account_id",
   {
-    data_type => "integer",
-    default_value => 1,
+    data_type      => "integer",
+    default_value  => 1,
     is_foreign_key => 1,
-    is_nullable => 0,
-    size => 4,
+    is_nullable    => 0,
   },
   "root",
-  {
-    data_type => "boolean",
-    default_value => "false",
-    is_nullable => 0,
-    size => 1,
-  },
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
   "paypal_id",
-  {
-    data_type => "text",
-    default_value => undef,
-    is_nullable => 1,
-    size => undef,
-  },
+  { data_type => "text", is_nullable => 1 },
   "first_name",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 0 },
   "last_name",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 0 },
   "street",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 0 },
   "zip",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 0 },
   "card_last_four",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 0 },
   "card_type",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 0 },
   "card_expires",
-  {
-    data_type => "text",
-    default_value => "''::text",
-    is_nullable => 0,
-    size => undef,
-  },
+  { data_type => "text", default_value => "", is_nullable => 0 },
 );
 __PACKAGE__->set_primary_key("reg_id");
+
+=head1 RELATIONS
+
+=head2 ad_zones
+
+Type: has_many
+
+Related object: L<SL::Model::App::AdZone>
+
+=cut
+
 __PACKAGE__->has_many(
   "ad_zones",
   "SL::Model::App::AdZone",
   { "foreign.reg_id" => "self.reg_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
+
+=head2 forgots
+
+Type: has_many
+
+Related object: L<SL::Model::App::Forgot>
+
+=cut
+
 __PACKAGE__->has_many(
   "forgots",
   "SL::Model::App::Forgot",
   { "foreign.reg_id" => "self.reg_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
+
+=head2 account
+
+Type: belongs_to
+
+Related object: L<SL::Model::App::Account>
+
+=cut
+
 __PACKAGE__->belongs_to(
   "account",
   "SL::Model::App::Account",
   { account_id => "account_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
+
+=head2 urls
+
+Type: has_many
+
+Related object: L<SL::Model::App::Url>
+
+=cut
+
 __PACKAGE__->has_many(
   "urls",
   "SL::Model::App::Url",
   { "foreign.reg_id" => "self.reg_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04999_07 @ 2009-06-14 16:15:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1Ozsqu3Gt1C8tzOFYyGq/Q
-# These lines were loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Reg.pm' found in @INC.
+# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-09-02 12:45:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DHUlwg9taKqurcN3ktrkhg
+# These lines were loaded from '/Users/phred/dev/perl-5.12.0/lib/site_perl/5.12.0/SL/Model/App/Reg.pm' found in @INC.
 # They are now part of the custom portion of this file
 # for you to hand-edit.  If you do not either delete
 # this section or remove that file from @INC, this section
 # will be repeated redundantly when you re-create this
-# file again via Loader!
-
+# file again via Loader!  See skip_load_external to disable
+# this feature.
 
 use SL::Config       ();
 
