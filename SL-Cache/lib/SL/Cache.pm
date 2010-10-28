@@ -9,7 +9,7 @@ use Cache::Memcached ();
 
 our $VERSION = 0.24;
 
-our $Config = SL::Config->new;
+our $Config = Config::SL->new;
 our $Memd = Cache::Memcached->new({ servers => [ $Config->sl_memcached ] });
 
 sub memd {
