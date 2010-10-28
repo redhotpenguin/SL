@@ -3,59 +3,25 @@ package SL::Cache;
 use strict;
 use warnings;
 
-use SL::Config;
-use Cache::FastMmap;
+use Config::SL;
 use Cache::Memcached ();
 
 
-our $VERSION = 0.23;
+our $VERSION = 0.24;
 
-our( $RAW_CACHE, $OBJ_CACHE, $MEMD );
-
-BEGIN {
-    our $CONFIG = SL::Config->new;
-    $RAW_CACHE = Cache::FastMmap->new(
-        raw_values => 1,
-        cache_size => $CONFIG->sl_raw_cache_size || '64m',
-        share_file => $CONFIG->sl_raw_cache_file || '/tmp/sl_raw_cache',
-    );
-    $OBJ_CACHE = Cache::FastMmap->new(
-        cache_size => $CONFIG->sl_obj_cache_size || '64m',
-        share_file => $CONFIG->sl_obj_cache_file || '/tmp/sl_obj_cache ',
-    );
-
-    $MEMD = Cache::Memcached->new({ servers => [ '127.0.0.1:11211' ] });
-}
+our $Config = SL::Config->new;
+our $Memd = Cache::Memcached->new({ servers => [ $Config->sl_memcached ] });
 
 sub memd {
-  return $MEMD;
+  return $Memd;
 }
 
-sub new {
-    my ( $class, %args ) = @_;
-    die unless ( exists $args{type} );
-    my $self = {};
-    bless $self, $class;
-
-    my $CONFIG = SL::Config->new();
-    if ( $args{type} eq 'raw' ) {
-        $self->{cache} = $RAW_CACHE;
-    }
-    elsif ( $args{type} eq 'obj' ) {
-        $self->{cache} = $OBJ_CACHE;
-    }
-    else {
-        die ' no such type ' . $args{type} . "\n";
-    }
-
-    return $self;
-}
 
 sub url_blacklisted {
-    my ( $self, $url ) = @_;
+    my ( $class, $url ) = @_;
     die unless $url;
 
-    my $blacklist_regex = $self->{cache}->get(' blacklist_regex ');
+    my $blacklist_regex = $class->memd->get(' blacklist_regex ');
 
     unless ($blacklist_regex) {
         warn("Blacklist regex missing from cache!");
@@ -67,44 +33,44 @@ sub url_blacklisted {
 }
 
 sub blacklist_user {
-    my ( $self, $user_id ) = @_;
+    my ( $class, $user_id ) = @_;
     die unless $user_id;
 
-    $self->{cache}->set( join ( '|', 'user', $user_id ) => 1 );
+    $class->memd->set( join ( '|', 'user', $user_id ) => 1 );
     return 1;
 }
 
 sub is_user_blacklisted {
-    my ( $self, $user_id ) = @_;
+    my ( $class, $user_id ) = @_;
     die unless $user_id;
 
-    my $is_blacklisted = $self->{cache}->get( join ( '|', 'user', $user_id ) );
+    my $is_blacklisted = $class->memd->get( join ( '|', 'user', $user_id ) );
     return 1 if $is_blacklisted;
     return;
 }
 
 sub add_known_html {
-    my ( $self, $url, $content_type ) = @_;
+    my ( $class, $url, $content_type ) = @_;
     unless ( $url && $content_type ) {
         warn("url $url or content type $content_type missing");
         return;
     }
 
-    $self->{cache}->set( join ( '|', 'known_html', $url ) => $content_type );
+    $class->memd->set( join ( '|', 'known_html', $url ) => $content_type );
     return 1;
 }
 
 sub is_known_not_html {
-    my ( $self, $url ) = @_;
+    my ( $class, $url ) = @_;
     die unless $url;
 
-    my $content_type = $self->{cache}->get( join ( '|', 'known_html', $url ) );
+    my $content_type = $class->memd->get( join ( '|', 'known_html', $url ) );
     return 1 if ( $content_type && ( $content_type !~ m/text\/html/ ) );
     return;
 }
 
 sub deserialize_ads {
-    my ( $self, $content ) = @_;
+    my ( $class, $content ) = @_;
 
     my %ads;
     foreach my $line ( split ( "\n", $content ) ) {
@@ -117,19 +83,19 @@ sub deserialize_ads {
 }
 
 sub update_ads {
-    my ( $self, $ads_hashref ) = @_;
+    my ( $class, $ads_hashref ) = @_;
 
     foreach my $ip ( keys %{$ads_hashref} ) {
-        $self->{cache}->set( $ip => $ads_hashref->{$ip} );
+        $class->memd->set( $ip => $ads_hashref->{$ip} );
     }
 
     return 1;
 }
 
 sub random_ad {
-    my ( $self, $ip ) = @_;
+    my ( $class, $ip ) = @_;
 
-    my $ads_arrayref = $self->{cache}->get($ip);
+    my $ads_arrayref = $class->memd->get($ip);
     return unless $ads_arrayref;
 
     # grab a random ad
