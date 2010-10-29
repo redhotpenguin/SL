@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use SL::Model::App ();
-use SL::Config     ();
+use Config::SL (); 
 
 use CGI ();
 CGI->compile(':all');
@@ -22,7 +22,7 @@ our $VERSION = 0.05;
 our ( $Config, %Authorize_creds, $Business, $Notify_url, $Return );
 
 BEGIN {
-    $Config          = SL::Config->new;
+    $Config          = Config::SL->new;
     %Authorize_creds = (
         login          => $Config->sl_authorize_login || die,
         password       => $Config->sl_authorize_key || die,

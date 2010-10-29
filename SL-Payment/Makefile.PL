@@ -13,6 +13,7 @@ WriteMakefile(
         'Business::OnlinePayment::AuthorizeNet' => 3.20,
         'Business::PayPal'                      => 0.03,
         'SL::Model'                             => 0.19,
+        'Config::SL'                             => 0.01,
     },
     ABSTRACT => 'Silver Lining Payment abstraction',
     AUTHOR   => 'Fred Moyer <fred@silverliningnetworks.com>',
