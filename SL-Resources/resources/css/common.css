@@ -68,14 +68,27 @@ END ERIC MEYER RESET RELOAD
 .right {
 	float:right;
 }
-.block, header, footer {
+.block {
 display:block;
+}
+.center{
+margin-left:auto;
+margin-right:auto;
+}
+
+/*LINKS
+=== === === === === === === === === === */
+a {
+color:#087598;
+}
+.red_link {
+	color: #900;
 }
 
 
 /*FONTS 
 === === === === === === === === === === */
-body {font:16px verdana,arial,helvetica,clean,sans-serif;}
+body {font:13px "Lucida Grande",Tahoma,Helvetica,Verdana, Arial,sans-serif;}
 table {font-size:inherit;font-size:100%;}
 select, input, textarea {font:99% arial,helvetica,clean,sans-serif;}
 
