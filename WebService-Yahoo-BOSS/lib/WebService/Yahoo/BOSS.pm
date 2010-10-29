@@ -13,10 +13,9 @@ use Any::Moose;
 use Any::URI::Escape;
 use LWP::UserAgent;
 use URI;
-use WebService::Yahoo::BOSS::Result;
-use Data::Dumper;
+use WebService::Yahoo::BOSS::ResultSet;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 our $Ua = LWP::UserAgent->new( agent => __PACKAGE__ . '_' . $VERSION );
 
@@ -60,8 +59,10 @@ sub Web {
         die $res->status_line;
     }
 
-    my $result = WebService::Yahoo::BOSS::Result->parse($res->decoded_content);
-    return $result;
+    my $result_set = WebService::Yahoo::BOSS::ResultSet->parse(
+        $res->decoded_content);
+
+    return $result_set;
 }
 
 1;
