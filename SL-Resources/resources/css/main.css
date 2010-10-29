@@ -33,7 +33,7 @@ color: #4373DB;
 /*NOTIFICATIONS 
 ============================================= */
 .greetings {
-font-size: 12px;
+font-size: 14px;
 padding: 10px;
 line-height: 22px;
 color: #666;
@@ -43,6 +43,7 @@ margin-top: 15px;
 }
 .greetings a {
 color:#4373DB;
+text-decoration: none;
 }
 
 
