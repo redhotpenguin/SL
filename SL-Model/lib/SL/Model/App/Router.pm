@@ -29,7 +29,7 @@ __PACKAGE__->table("router");
 
 =head2 serial_number
 
-  data_type: 'character varying'
+  data_type: 'varchar'
   is_nullable: 1
   size: 24
 
@@ -40,15 +40,17 @@ __PACKAGE__->table("router");
 
 =head2 cts
 
-  data_type: 'timestamp without time zone'
-  default_value: now()
+  data_type: 'timestamp'
+  default_value: current_timestamp
   is_nullable: 1
+  original: {default_value => \"now()"}
 
 =head2 mts
 
-  data_type: 'timestamp without time zone'
-  default_value: now()
+  data_type: 'timestamp'
+  default_value: current_timestamp
   is_nullable: 1
+  original: {default_value => \"now()"}
 
 =head2 active
 
@@ -127,9 +129,10 @@ __PACKAGE__->table("router");
 
 =head2 last_ping
 
-  data_type: 'timestamp without time zone'
-  default_value: now()
+  data_type: 'timestamp'
+  default_value: current_timestamp
   is_nullable: 1
+  original: {default_value => \"now()"}
 
 =head2 views_daily
 
@@ -162,7 +165,7 @@ __PACKAGE__->table("router");
 
 =head2 device
 
-  data_type: 'character varying'
+  data_type: 'varchar'
   default_value: (empty string)
   is_nullable: 1
   size: 64
@@ -341,20 +344,22 @@ __PACKAGE__->add_columns(
     sequence          => "router_router_id_seq",
   },
   "serial_number",
-  { data_type => "character varying", is_nullable => 1, size => 24 },
+  { data_type => "varchar", is_nullable => 1, size => 24 },
   "macaddr",
   { data_type => "macaddr", is_nullable => 1 },
   "cts",
   {
-    data_type     => "timestamp without time zone",
-    default_value => \"now()",
+    data_type     => "timestamp",
+    default_value => \"current_timestamp",
     is_nullable   => 1,
+    original      => { default_value => \"now()" },
   },
   "mts",
   {
-    data_type     => "timestamp without time zone",
-    default_value => \"now()",
+    data_type     => "timestamp",
+    default_value => \"current_timestamp",
     is_nullable   => 1,
+    original      => { default_value => \"now()" },
   },
   "active",
   { data_type => "boolean", default_value => \"true", is_nullable => 1 },
@@ -384,9 +389,10 @@ __PACKAGE__->add_columns(
   { data_type => "text", default_value => "", is_nullable => 1 },
   "last_ping",
   {
-    data_type     => "timestamp without time zone",
-    default_value => \"now()",
+    data_type     => "timestamp",
+    default_value => \"current_timestamp",
     is_nullable   => 1,
+    original      => { default_value => \"now()" },
   },
   "views_daily",
   { data_type => "integer", default_value => 0, is_nullable => 0 },
@@ -404,12 +410,7 @@ __PACKAGE__->add_columns(
   "show_aaa_link",
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
   "device",
-  {
-    data_type => "character varying",
-    default_value => "",
-    is_nullable => 1,
-    size => 64,
-  },
+  { data_type => "varchar", default_value => "", is_nullable => 1, size => 64 },
   "adserving",
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
   "notes",
@@ -556,13 +557,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-09-02 12:45:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:A3btCfLhTL0NJ/yvSGo+Jw
-# They are now part of the custom portion of this file
-# for you to hand-edit.  If you do not either delete
-# this section or remove that file from @INC, this section
-# will be repeated redundantly when you re-create this
-# file again via Loader!
+# Created by DBIx::Class::Schema::Loader v0.07002 @ 2010-11-08 15:50:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qNd/UAxhb9SsBc28R0Y6EQ
 
 use DateTime::Format::Pg;
 
@@ -735,7 +731,5 @@ sub last_seen_html {
 
     return $self->{'last_seen'};
 }
-
-
 
 1;

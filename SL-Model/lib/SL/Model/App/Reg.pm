@@ -29,26 +29,27 @@ __PACKAGE__->table("reg");
 
 =head2 email
 
-  data_type: 'character varying'
+  data_type: 'varchar'
   default_value: (empty string)
   is_nullable: 0
   size: 64
 
 =head2 mts
 
-  data_type: 'timestamp without time zone'
-  default_value: now()
+  data_type: 'timestamp'
+  default_value: current_timestamp
   is_nullable: 1
+  original: {default_value => \"now()"}
 
 =head2 city
 
-  data_type: 'character varying'
+  data_type: 'varchar'
   is_nullable: 1
   size: 64
 
 =head2 state
 
-  data_type: 'character'
+  data_type: 'char'
   is_nullable: 1
   size: 2
 
@@ -60,14 +61,14 @@ __PACKAGE__->table("reg");
 
 =head2 report_email
 
-  data_type: 'character varying'
+  data_type: 'varchar'
   default_value: (empty string)
   is_nullable: 1
   size: 64
 
 =head2 password_md5
 
-  data_type: 'character varying'
+  data_type: 'varchar'
   is_nullable: 1
   size: 32
 
@@ -97,7 +98,7 @@ __PACKAGE__->table("reg");
 
 =head2 report_email_frequency
 
-  data_type: 'character varying'
+  data_type: 'varchar'
   default_value: (empty string)
   is_nullable: 0
   size: 16
@@ -173,33 +174,24 @@ __PACKAGE__->add_columns(
     sequence          => "reg_reg_id_seq",
   },
   "email",
-  {
-    data_type => "character varying",
-    default_value => "",
-    is_nullable => 0,
-    size => 64,
-  },
+  { data_type => "varchar", default_value => "", is_nullable => 0, size => 64 },
   "mts",
   {
-    data_type     => "timestamp without time zone",
-    default_value => \"now()",
+    data_type     => "timestamp",
+    default_value => \"current_timestamp",
     is_nullable   => 1,
+    original      => { default_value => \"now()" },
   },
   "city",
-  { data_type => "character varying", is_nullable => 1, size => 64 },
+  { data_type => "varchar", is_nullable => 1, size => 64 },
   "state",
-  { data_type => "character", is_nullable => 1, size => 2 },
+  { data_type => "char", is_nullable => 1, size => 2 },
   "active",
   { data_type => "boolean", default_value => \"true", is_nullable => 1 },
   "report_email",
-  {
-    data_type => "character varying",
-    default_value => "",
-    is_nullable => 1,
-    size => 64,
-  },
+  { data_type => "varchar", default_value => "", is_nullable => 1, size => 64 },
   "password_md5",
-  { data_type => "character varying", is_nullable => 1, size => 32 },
+  { data_type => "varchar", is_nullable => 1, size => 32 },
   "send_reports_daily",
   { data_type => "boolean", default_value => \"false", is_nullable => 1 },
   "send_reports_weekly",
@@ -209,12 +201,7 @@ __PACKAGE__->add_columns(
   "send_reports_quarterly",
   { data_type => "boolean", default_value => \"false", is_nullable => 1 },
   "report_email_frequency",
-  {
-    data_type => "character varying",
-    default_value => "",
-    is_nullable => 0,
-    size => 16,
-  },
+  { data_type => "varchar", default_value => "", is_nullable => 0, size => 16 },
   "account_id",
   {
     data_type      => "integer",
@@ -306,19 +293,13 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-09-02 12:45:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DHUlwg9taKqurcN3ktrkhg
-# These lines were loaded from '/Users/phred/dev/perl-5.12.0/lib/site_perl/5.12.0/SL/Model/App/Reg.pm' found in @INC.
-# They are now part of the custom portion of this file
-# for you to hand-edit.  If you do not either delete
-# this section or remove that file from @INC, this section
-# will be repeated redundantly when you re-create this
-# file again via Loader!  See skip_load_external to disable
-# this feature.
+# Created by DBIx::Class::Schema::Loader v0.07002 @ 2010-11-08 15:50:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wjcx/x8WOHSbIMgPEm7OCQ
+# These lines were loaded from '/Users/phred/dev/perl-5.12.2/lib/site_perl/5.12.2/SL/Model/App/Reg.pm' found in @INC.
 
-use SL::Config       ();
+use Config::SL ();
 
-our $config = SL::Config->new();
+our $config = Config::SL->new();
 
 sub get_twitter_zone {
   my $self = shift;
@@ -596,5 +577,3 @@ sub get_routers {
 }
 
 1;
-
-# End of lines loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Reg.pm' 

@@ -320,12 +320,12 @@ __PACKAGE__->has_many(
 # file again via Loader!  See skip_load_external to disable
 # this feature.
 
-use SL::Config  ();
+use Config::SL ();
 use File::Path  ();
 use Digest::MD5 ();
 use Geo::Distance ();
 
-our $Config = SL::Config->new();
+our $Config = Config::SL->new();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;

@@ -35,9 +35,10 @@ __PACKAGE__->table("view");
 
 =head2 cts
 
-  data_type: 'timestamp without time zone'
-  default_value: now()
+  data_type: 'timestamp'
+  default_value: current_timestamp
   is_nullable: 1
+  original: {default_value => \"now()"}
 
 =head2 ip
 
@@ -58,7 +59,7 @@ __PACKAGE__->table("view");
 
 =head2 usr_id
 
-  data_type: 'character varying'
+  data_type: 'varchar'
   default_value: 1
   is_nullable: 1
   size: 8
@@ -84,9 +85,10 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "cts",
   {
-    data_type     => "timestamp without time zone",
-    default_value => \"now()",
+    data_type     => "timestamp",
+    default_value => \"current_timestamp",
     is_nullable   => 1,
+    original      => { default_value => \"now()" },
   },
   "ip",
   { data_type => "inet", is_nullable => 1 },
@@ -95,12 +97,7 @@ __PACKAGE__->add_columns(
   "referer",
   { data_type => "text", default_value => "", is_nullable => 1 },
   "usr_id",
-  {
-    data_type => "character varying",
-    default_value => 1,
-    is_nullable => 1,
-    size => 8,
-  },
+  { data_type => "varchar", default_value => 1, is_nullable => 1, size => 8 },
   "router_id",
   {
     data_type      => "integer",
@@ -149,15 +146,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-09-02 12:45:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ELNvLWLVn/OheqjgVd02Dg
-# These lines were loaded from '/Users/phred/dev/perl-5.12.0/lib/site_perl/5.12.0/SL/Model/App/View.pm' found in @INC.
-# They are now part of the custom portion of this file
-# for you to hand-edit.  If you do not either delete
-# this section or remove that file from @INC, this section
-# will be repeated redundantly when you re-create this
-# file again via Loader!  See skip_load_external to disable
-# this feature.
+# Created by DBIx::Class::Schema::Loader v0.07002 @ 2010-11-08 15:50:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SSIGxsdE+YtJieMpGtWmEw
 
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;

@@ -75,9 +75,10 @@ __PACKAGE__->table("ad_zone");
 
 =head2 mts
 
-  data_type: 'timestamp without time zone'
-  default_value: now()
+  data_type: 'timestamp'
+  default_value: current_timestamp
   is_nullable: 1
+  original: {default_value => \"now()"}
 
 =head2 hidden
 
@@ -146,9 +147,10 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
   "mts",
   {
-    data_type     => "timestamp without time zone",
-    default_value => \"now()",
+    data_type     => "timestamp",
+    default_value => \"current_timestamp",
     is_nullable   => 1,
+    original      => { default_value => \"now()" },
   },
   "hidden",
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
@@ -243,14 +245,7 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-09-02 12:45:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OK7rOOZPXc33XWrHQ7n23A
-# These lines were loaded from '/Users/phred/dev/perl-5.12.0/lib/site_perl/5.12.0/SL/Model/App/AdZone.pm' found in @INC.
-# They are now part of the custom portion of this file
-# for you to hand-edit.  If you do not either delete
-# this section or remove that file from @INC, this section
-# will be repeated redundantly when you re-create this
-# file again via Loader!  See skip_load_external to disable
-# this feature.
-# You can replace this text with custom content, and it will be preserved on regeneration
+# Created by DBIx::Class::Schema::Loader v0.07002 @ 2010-11-08 15:50:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KSp15kKqcqDFVnCKNVuTDQ
+
 1;

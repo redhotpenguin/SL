@@ -40,13 +40,14 @@ __PACKAGE__->table("payment");
 
 =head2 start
 
-  data_type: 'timestamp without time zone'
-  default_value: now()
+  data_type: 'timestamp'
+  default_value: current_timestamp
   is_nullable: 0
+  original: {default_value => \"now()"}
 
 =head2 stop
 
-  data_type: 'timestamp without time zone'
+  data_type: 'timestamp'
   is_nullable: 0
 
 =head2 authorization_code
@@ -61,9 +62,10 @@ __PACKAGE__->table("payment");
 
 =head2 cts
 
-  data_type: 'timestamp without time zone'
-  default_value: now()
+  data_type: 'timestamp'
+  default_value: current_timestamp
   is_nullable: 0
+  original: {default_value => \"now()"}
 
 =head2 approved
 
@@ -139,21 +141,23 @@ __PACKAGE__->add_columns(
   { data_type => "money", is_nullable => 0 },
   "start",
   {
-    data_type     => "timestamp without time zone",
-    default_value => \"now()",
+    data_type     => "timestamp",
+    default_value => \"current_timestamp",
     is_nullable   => 0,
+    original      => { default_value => \"now()" },
   },
   "stop",
-  { data_type => "timestamp without time zone", is_nullable => 0 },
+  { data_type => "timestamp", is_nullable => 0 },
   "authorization_code",
   { data_type => "text", is_nullable => 1 },
   "error_message",
   { data_type => "text", is_nullable => 1 },
   "cts",
   {
-    data_type     => "timestamp without time zone",
-    default_value => \"now()",
+    data_type     => "timestamp",
+    default_value => \"current_timestamp",
     is_nullable   => 0,
+    original      => { default_value => \"now()" },
   },
   "approved",
   { data_type => "boolean", is_nullable => 1 },
@@ -198,22 +202,16 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-09-02 12:45:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:a49pqOXJjA0z8fnS/Ip7eg
-# These lines were loaded from '/Users/phred/dev/perl-5.12.0/lib/site_perl/5.12.0/SL/Model/App/Payment.pm' found in @INC.
-# They are now part of the custom portion of this file
-# for you to hand-edit.  If you do not either delete
-# this section or remove that file from @INC, this section
-# will be repeated redundantly when you re-create this
-# file again via Loader!  See skip_load_external to disable
-# this feature.
+# Created by DBIx::Class::Schema::Loader v0.07002 @ 2010-11-08 15:50:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:htXsZS5AlQUHZNY+f9LEfg
+# These lines were loaded from '/Users/phred/dev/perl-5.12.2/lib/site_perl/5.12.2/SL/Model/App/Payment.pm' found in @INC.
 
 use Business::PayPal::API qw( MassPay DirectPayments );
 use Business::PayPal::API::DirectPayments;
 use Mail::Mailer;
 
-use SL::Config;
-our $CFG = SL::Config->new;
+use Config::SL;
+our $CFG = Config::SL->new;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
@@ -483,4 +481,3 @@ sub send_receipt {
 }
 
 1;
-# End of lines loaded from '/Users/phred/dev/perl/lib/site_perl/5.8.8/SL/Model/App/Payment.pm' 

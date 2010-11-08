@@ -29,7 +29,7 @@ __PACKAGE__->table("url");
 
 =head2 url
 
-  data_type: 'character varying'
+  data_type: 'varchar'
   is_nullable: 1
   size: 256
 
@@ -47,9 +47,10 @@ __PACKAGE__->table("url");
 
 =head2 ts
 
-  data_type: 'timestamp without time zone'
-  default_value: now()
+  data_type: 'timestamp'
+  default_value: current_timestamp
   is_nullable: 1
+  original: {default_value => \"now()"}
 
 =cut
 
@@ -62,16 +63,17 @@ __PACKAGE__->add_columns(
     sequence          => "url_url_id_seq",
   },
   "url",
-  { data_type => "character varying", is_nullable => 1, size => 256 },
+  { data_type => "varchar", is_nullable => 1, size => 256 },
   "blacklisted",
   { data_type => "boolean", default_value => \"true", is_nullable => 1 },
   "reg_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "ts",
   {
-    data_type     => "timestamp without time zone",
-    default_value => \"now()",
+    data_type     => "timestamp",
+    default_value => \"current_timestamp",
     is_nullable   => 1,
+    original      => { default_value => \"now()" },
   },
 );
 __PACKAGE__->set_primary_key("url_id");
@@ -95,14 +97,10 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-09-02 12:45:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IA6P097UsvOgx1Runbplyw
-# These lines were loaded from '/Users/phred/dev/perl-5.12.0/lib/site_perl/5.12.0/SL/Model/App/Url.pm' found in @INC.
-# They are now part of the custom portion of this file
-# for you to hand-edit.  If you do not either delete
-# this section or remove that file from @INC, this section
-# will be repeated redundantly when you re-create this
-# file again via Loader!  See skip_load_external to disable
-# this feature.
-# You can replace this text with custom content, and it will be preserved on regeneration
+# Created by DBIx::Class::Schema::Loader v0.07002 @ 2010-11-08 15:50:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LVaphkzuTXwUqJi0dDkxgg
+# These lines were loaded from '/Users/phred/dev/perl-5.12.2/lib/site_perl/5.12.2/SL/Model/App/Url.pm' found in @INC.
+
+
+# End of lines loaded from '/Users/phred/dev/perl-5.12.2/lib/site_perl/5.12.2/SL/Model/App/Url.pm' 
 1;
