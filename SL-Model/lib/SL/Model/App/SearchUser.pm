@@ -38,6 +38,11 @@ __PACKAGE__->table("search_user");
   default_value: false
   is_nullable: 1
 
+=head2 uuid
+
+  data_type: 'text'
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -52,12 +57,29 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 0 },
   "tos",
   { data_type => "boolean", default_value => \"false", is_nullable => 1 },
+  "uuid",
+  { data_type => "text", is_nullable => 0 },
 );
 __PACKAGE__->set_primary_key("search_user_id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07002 @ 2010-11-08 15:50:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vdCbZxGOrMKcTPMfy06DrA
+# Created by DBIx::Class::Schema::Loader v0.07002 @ 2010-11-08 16:06:11
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hQwABTan7tCsGhvOyrhNsg
+
+use Data::UUID;
+
+our $Ug = Data::UUID->new;
+
+sub new {
+    my ($class, $attrs) = @_;
+
+    my $uuid = $Ug->create();
+
+    $attrs->{uuid} = $Ug->to_string($uuid);
+
+    my $new = $class->next::method($attrs);
+    return $new;
+}
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

@@ -23,8 +23,10 @@ WriteMakefile(
         'Regexp::Assemble'            => 0.34,
         'URI'                         => 1.38,
         'Text::Wrap'                  => 2005.0824_01,
-	'SL::Cache'                   => 0.23,
+    	'SL::Cache'                   => 0.23,
+        'Config::SL'                  => 0.01,
         'Geo::Distance'               => 0,
+        'Business::PayPal::API'       => 0,
     },
     EXE_FILES => [
         qw( bin/sl_mail_user_reports.pl
