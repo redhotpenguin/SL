@@ -6,7 +6,7 @@ use warnings;
 use base 'SL::Model';
 
 use Template   ();
-use SL::Config ();
+use Config::SL ();
 use SL::Cache  ();
 
 =head1 NAME
@@ -48,7 +48,7 @@ our ( $Config, $Tmpl, $Leaderboard );
 #                                    { $device2_mac => .. }, ];
 
 BEGIN {
-    $Config = SL::Config->new;
+    $Config = Config::SL->new;
 
     my $path = $Config->sl_root . '/tmpl/';
     die "Template include path $path doesn't exist!\n" unless -d $path;
