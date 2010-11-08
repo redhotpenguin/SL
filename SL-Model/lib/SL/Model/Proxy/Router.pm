@@ -6,8 +6,8 @@ use warnings;
 use SL::Cache;
 use base 'SL::Model';
 
-use SL::Config;
-our $Config           = SL::Config->new;
+use Config::SL;
+our $Config           = Config::SL->new;
 our $Default_Hash_Mac = 'ffffffff';
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
