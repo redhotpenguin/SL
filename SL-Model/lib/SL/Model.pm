@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use DBI        ();
-use SL::Config ();
+use Config::SL ();
 
 our $VERSION = 0.21;
 
@@ -22,7 +22,7 @@ my $db_options = {
 # DBI connect 
 sub connect_params {
     my $self = shift;
-    my $cfg = SL::Config->new;
+    my $cfg = Config::SL->new;
 
  	return [ $self->dsn, $cfg->sl_db_user, $cfg->sl_db_pass, $db_options ];
 }
@@ -30,7 +30,7 @@ sub connect_params {
 # dsn
 sub dsn {
 	my $self = shift;
-    my $cfg = SL::Config->new;
+    my $cfg = Config::SL->new;
     my $db   = shift || $cfg->sl_db_name;
     my $dsn = "dbi:Pg:dbname='$db';";
 	my $host = shift || $cfg->sl_db_host;
