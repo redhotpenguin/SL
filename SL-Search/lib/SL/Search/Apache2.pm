@@ -83,6 +83,7 @@ sub tos {
     }
 
     $state->{'tos'} = time();
+
     $class->send_cookie( $r, $state );
     my $output = 'tos accepted, ajax response';
 
@@ -232,18 +233,27 @@ sub search {
       SL::Model::App->resultset('Network')
       ->find_or_create( { wan_ip => $r->connection->remote_ip } );
 
-    $tmpl_args{'network'} = $network;
+    unless ($network) {
+      $r->log->error("no network for ip " . $r->connection->remote_ip);
+      return Apache2::Const::SERVER_ERROR;
+    }
 
-    # log data for the loghandler
-    $r->pnotes(
-        'search_log' => {
+    $tmpl_args{'network'} = $network;
+    $r->log->debug("state is " . Dumper($r->pnotes('state'))) if DEBUG;
+
+    my %search_log = (
             network  => $network,
             user     => $r->pnotes('state')->{'uuid'},
             query        => $q,
             start    => $start,
             duration => sprintf( "%1.2f", $interval )
-        },
     );
+
+    $r->log->debug(Dumper(\%search_log)) if DEBUG;
+
+    # log data for the loghandler
+    $r->pnotes(
+        'search_log' => \%search_log );
 
     my $output = $class->template_process( \%tmpl_args );
 
@@ -313,7 +323,9 @@ sub send_new_cookie {
 
     my $state = $class->default_state($r);
 
-    return $class->send_cookie( $r, $state );
+    $class->send_cookie( $r, $state );
+
+    return $state;
 }
 
 sub print_response {
