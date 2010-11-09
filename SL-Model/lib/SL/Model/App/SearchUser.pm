@@ -32,15 +32,15 @@ __PACKAGE__->table("search_user");
   data_type: 'text'
   is_nullable: 0
 
-=head2 tos
-
-  data_type: 'boolean'
-  default_value: false
-  is_nullable: 1
-
 =head2 uuid
 
   data_type: 'text'
+  is_nullable: 0
+
+=head2 tos
+
+  data_type: 'integer'
+  default_value: 0
   is_nullable: 0
 
 =cut
@@ -55,16 +55,33 @@ __PACKAGE__->add_columns(
   },
   "user_agent",
   { data_type => "text", is_nullable => 0 },
-  "tos",
-  { data_type => "boolean", default_value => \"false", is_nullable => 1 },
   "uuid",
   { data_type => "text", is_nullable => 0 },
+  "tos",
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
 );
 __PACKAGE__->set_primary_key("search_user_id");
 
+=head1 RELATIONS
 
-# Created by DBIx::Class::Schema::Loader v0.07002 @ 2010-11-08 16:06:11
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hQwABTan7tCsGhvOyrhNsg
+=head2 searches
+
+Type: has_many
+
+Related object: L<SL::Model::App::Search>
+
+=cut
+
+__PACKAGE__->has_many(
+  "searches",
+  "SL::Model::App::Search",
+  { "foreign.search_user_id" => "self.search_user_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07002 @ 2010-11-08 16:57:04
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:neA4QrrCA6Fu8cKyDUz0RA
 
 use Data::UUID;
 
@@ -81,6 +98,4 @@ sub new {
     return $new;
 }
 
-
-# You can replace this text with custom content, and it will be preserved on regeneration
 1;
