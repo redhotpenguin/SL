@@ -55,6 +55,13 @@ __PACKAGE__->table("search");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 mts
+
+  data_type: 'timestamp'
+  default_value: current_timestamp
+  is_nullable: 1
+  original: {default_value => \"now()"}
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -75,6 +82,13 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "search_user_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "mts",
+  {
+    data_type     => "timestamp",
+    default_value => \"current_timestamp",
+    is_nullable   => 1,
+    original      => { default_value => \"now()" },
+  },
 );
 
 =head1 RELATIONS
@@ -110,9 +124,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07002 @ 2010-11-08 16:57:04
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Ptwu6E+l3gqtZWOmjKPmOw
-
+# Created by DBIx::Class::Schema::Loader v0.07002 @ 2010-11-08 17:16:12
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:P3TTH5Lbm+TkuDrzE2QzWg
 
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;
