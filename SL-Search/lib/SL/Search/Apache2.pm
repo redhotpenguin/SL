@@ -12,6 +12,7 @@ use Apache2::Const -compile =>
   qw( SERVER_ERROR DONE OK REDIRECT NOT_FOUND DECLINED );
 use Apache2::URI    ();
 use Apache2::Cookie ();
+use Apache2::Log    ();
 
 use Config::SL     ();
 use HTML::Entities ();
@@ -23,6 +24,7 @@ use MIME::Base64     ();
 use Crypt::CBC       ();
 use URI::Escape qw(uri_escape);
 
+use SL::Model::App       ();
 use SL::Search           ();
 use SL::Search::CityGrid ();
 
@@ -66,6 +68,20 @@ sub tos {
     my $state = $r->pnotes('state');
 
     $r->log->debug( "tos state: " . Dumper($state) ) if DEBUG;
+
+    my ($user) =
+      SL::Model::App->resultset('SearchUser')
+      ->search( { uuid => $state->{'uuid'} } );
+
+    unless ($user) {
+        $r->log->error( "no user for uuid " . $state->{'uuid'} );
+        return Apache2::Const::SERVER_ERROR;
+    }
+    else {
+        $user->tos( time() );
+        $user->update;
+    }
+
     $state->{'tos'} = time();
     $class->send_cookie( $r, $state );
     my $output = 'tos accepted, ajax response';
@@ -212,13 +228,51 @@ sub search {
     $tmpl_args{'numbers'} = \@numbers;
     $tmpl_args{'state'}   = $r->pnotes('state');
 
-#    $tmpl_args{'network'} = SL::Network->new( ip => $r->connection->remote_ip );
+    my ($network) =
+      SL::Model::App->resultset('Network')
+      ->find_or_create( { wan_ip => $r->connection->remote_ip } );
+
+    $tmpl_args{'network'} = $network;
+
+    # log data for the loghandler
+    $r->pnotes(
+        'search_log' => {
+            network  => $network,
+            user     => $r->pnotes('state')->{'uuid'},
+            query        => $q,
+            start    => $start,
+            duration => sprintf( "%1.2f", $interval )
+        },
+    );
 
     my $output = $class->template_process( \%tmpl_args );
 
     my $bytes = $class->print_response( $r, $output );
 
     return Apache2::Const::OK;
+}
+
+# handles logging searches to the db
+
+sub log_handler {
+    my ( $class, $r ) = @_;
+
+    my $search_log = $r->pnotes('search_log');
+    my ($user) =
+      SL::Model::App->resultset('SearchUser')
+      ->search( { uuid => $search_log->{'user'} } );
+
+    my $search = SL::Model::App->resultset('Search')->create(
+        {
+            network_id  => $search_log->{'network'}->network_id,
+            search_user_id     => $user->search_user_id,
+            query    => $search_log->{'query'},
+            start    => $search_log->{'start'},
+            duration => $search_log->{'duration'}
+        }
+    );
+
+    return Apache2::Const::DECLINED;
 }
 
 =item cookie_monster
@@ -327,7 +381,7 @@ sub send_cookie {
         -value => $class->encode($state),
 
         #     -expires => '60s',
-        -expires => '+1M',
+        -expires => '+10Y',
     );
     $cookie->path('/');
     $cookie->bake($r);
@@ -336,7 +390,13 @@ sub send_cookie {
 sub default_state {
     my ( $class, $r ) = @_;
 
-    my %state = ( tos => 0, );
+    my $client_ip = $r->connection->remote_ip;
+
+    my $user =
+      SL::Model::App->resultset('SearchUser')
+      ->create( { user_agent => $r->headers_in->{'User-Agent'}, } );
+
+    my %state = ( tos => 0, uuid => $user->uuid );
     $r->log->debug( "new cookie state: " . Dumper( \%state ) ) if DEBUG;
 
     return \%state;

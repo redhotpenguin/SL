@@ -16,7 +16,8 @@ WriteMakefile(
         'Digest::MD5'                        => 0,
         'WebService::CityGrid::Search'       => 0.02,
         'Apache2::Connection::XForwardedFor' => 0.02,
-        'WebService::Yahoo::BOSS'                           => 0.01,
+        'WebService::Yahoo::BOSS'            => 0.01,
+        'SL::Model'                          => 0.21,
     },
     ABSTRACT_FROM => 'lib/SL/Search.pm',
     AUTHOR        => 'Fred Moyer <fred@slwifi.com>'

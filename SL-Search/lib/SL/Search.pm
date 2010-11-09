@@ -13,8 +13,6 @@ our $VERSION = 0.03;
 
 use Google::Search ();
 use WebService::Yahoo::BOSS;
-#use Encode ();
-#use Encode::Guess qw/euc-jp shiftjis 7bit-jis/;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
@@ -45,29 +43,10 @@ sub suggest {
     return \@ranked;
 }
 
-sub force_utf8 {
-    my ( $class, $string ) = @_;
 
-    if ( ref( Encode::Guess::guess_encoding($string) ) ) {
-
-        $string = eval { Encode::Guess::decode( "Guess", $string, 0 ) };
-        if ($@) {
-            die("could not guess decode for $string");
-        }
-    }
-    else {
-
-        $string = Encode::decode( 'utf8', $string, 0 );
-        if ($@) {
-            die("could not decode utf8 for $string");
-        }
-    }
-
-    return $string;
-}
 1;
 
-=head1 SYNOPSIS
+=head1 SYONPSIS
 
 
 =head1 DESCRIPTION

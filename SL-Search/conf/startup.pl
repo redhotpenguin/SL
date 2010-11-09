@@ -20,32 +20,12 @@ if ( $config->sl_status ) {
     use Apache2::Status;
 }
 
-# core mp2
-use Apache2::Connection     ();
-use Apache2::ConnectionUtil ();
-use Apache2::Log            ();
-use Apache2::RequestIO      ();
-use Apache2::RequestRec     ();
-use Apache2::RequestUtil    ();
-use Apache2::Response       ();
-use Apache2::ServerRec      ();
-use Apache2::ServerUtil     ();
-use Apache2::SubRequest     ();
-use Apache2::URI            ();
-use Apache2::Const          ();
-use Apache2::Filter         ();
-use APR::Table              ();
-
 # sl
 use SL::Search           ();
 use SL::Search::Apache2  ();
 use SL::Search::CityGrid ();
-
-# cpan
-use Apache2::Request                   ();
-use Apache2::Connection::XForwardedFor ();
-use URI                                ();
-use HTTP::Headers::Util                ();
+use SL::Model::App ();
+use SL::Model::App::Network ();
 
 # dtrace identified these files as being loaded per request, so load them at startup
 BEGIN {
@@ -53,6 +33,18 @@ BEGIN {
     require 'utf8_heavy.pl';
     require 'unicore/To/Fold.pl';
 }
+
+print STDOUT "Modules loaded, initializing database connections\n";
+use Apache::DBI;
+$Apache::DBI::DEBUG = $config->sl_db_debug;
+my $db_connect_params = SL::Model->connect_params;
+Apache::DBI->connect_on_init( @{$db_connect_params} );
+Apache::DBI->setPingTimeOut( $db_connect_params->[0],
+    $config->sl_db_ping_timeout );
+
+# delete this line and I will beat you with a stick
+SL::Model->connect->disconnect;
+$DBI::connect_via = 'Apache::DBI::connect';
 
 print STDOUT "Startup.pl finished...\n";
 

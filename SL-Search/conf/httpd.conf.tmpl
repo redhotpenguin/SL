@@ -75,6 +75,7 @@ PerlPostReadRequestHandler Apache2::Connection::XForwardedFor
     PerlTypeHandler         Apache2::Const::OK
     PerlFixupHandler        SL::Search::Apache2->cookie_monster
     PerlResponseHandler     SL::Search::Apache2->search
+    PerlLogHandler          SL::Search::Apache2->log_handler
 </Location>
 
 <Location /tos>
