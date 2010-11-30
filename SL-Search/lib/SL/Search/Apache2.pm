@@ -52,6 +52,11 @@ our $Cipher = Crypt::CBC->new(
 sub handler {
     my ( $class, $r ) = @_;
 
+    if ($r->hostname eq 'app2.silverliningnetworks.com') {
+        $r->headers_out->set( Location => 'https://app2.silverliningnetworks.com');
+        return Apache2::Const::REDIRECT;
+    }
+
     $r->headers_out->set( Location => 'http://'
           . $Config->sl_perlbal_listen
           . '/search?q=pizza&submit=Search' );
