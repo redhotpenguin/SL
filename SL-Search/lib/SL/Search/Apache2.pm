@@ -144,7 +144,14 @@ sub search {
     ################
     # grab the ads
     my $citygrid = $Memd->get( 'citygrid|' . uri_escape($q) );
-    unless ($citygrid) {
+    my $zip = $network->zip;
+
+    if (!$zip) {
+
+      $r->log->error("missing zip for network " . Dumper($network));
+
+    } elsif (!$citygrid && $zip) {
+
         $r->log->debug("citygrid cache miss for $q") if DEBUG;
 
         my $last = $Memd->get('last_citygrid_searchtime')
