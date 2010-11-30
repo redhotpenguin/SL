@@ -10,10 +10,7 @@
 
             [% IF logo %]
             <div class="search-options">
-                <p>Search took [% query_time %] seconds&nbsp;&nbsp;
-[% IF query_time < 0.1 %]<br /><font color="green">Wow, that was fast!</font>[% END %]
-[% IF query_time > 3.00 %]<br /><font color="red">We're sorry that search took so long!  Please use the support tab on the left for assistance.</font>[% END %]
-</p>
+                <p>Search took [% query_time %] seconds</p>
                 <div class="clear"></div>
             </div>
             [% END %]

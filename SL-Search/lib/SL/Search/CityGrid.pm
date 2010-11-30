@@ -17,7 +17,7 @@ our $Cg = WebService::CityGrid::Search->new(
 );
 
 sub search {
-    my ( $class, $q, $last ) = @_;
+    my ( $class, $q, $last, $zip ) = @_;
 
     # last citygrid search time
     if ( Time::HiRes::tv_interval( $last, [Time::HiRes::gettimeofday] ) >
@@ -29,7 +29,7 @@ sub search {
             $Cg->query(
                 {
                     mode  => 'locations',
-                    where => $Config->sl_citygrid_where,
+                    where => $zip,
                     what  => URI::Escape::uri_escape($q),
                 }
             );

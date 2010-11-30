@@ -28,7 +28,6 @@ use SL::Model::App       ();
 use SL::Search           ();
 use SL::Search::CityGrid ();
 
-#use SL::Network ();
 
 use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
@@ -104,6 +103,16 @@ sub search {
     my $q = $req->param('q') || 'pizza';
 
     my $start = $req->param('start') || 0;
+
+    my ($network) =
+      SL::Model::App->resultset('Network')
+      ->find_or_create( { wan_ip => $r->connection->remote_ip } );
+
+    unless ($network) {
+      $r->log->error("no network for ip " . $r->connection->remote_ip);
+      return Apache2::Const::SERVER_ERROR;
+    }
+
     my %tmpl_args;
 
     ################################
@@ -142,7 +151,8 @@ sub search {
           || [ 0, 0 ];
 
         ( $citygrid, $last ) =
-          eval { SL::Search::CityGrid->search( $q, $last ) };
+          eval { SL::Search::CityGrid->search( $q, $last, $network->zip) };
+
         if ($@) {
             $r->log->error("no citygrid results for '$q', $@");
             return Apache2::Const::SERVER_ERROR;
@@ -183,7 +193,7 @@ sub search {
     $plus_q =~ s/ /\+/g;
 
     %tmpl_args = (
-        query_time     => sprintf( "%1.2f", $interval ),
+        query_time     => sprintf( "%1.1f", $interval ),
         q              => $q,
         plusquery      => $plus_q,
         start          => $start,
@@ -229,14 +239,6 @@ sub search {
     $tmpl_args{'numbers'} = \@numbers;
     $tmpl_args{'state'}   = $r->pnotes('state');
 
-    my ($network) =
-      SL::Model::App->resultset('Network')
-      ->find_or_create( { wan_ip => $r->connection->remote_ip } );
-
-    unless ($network) {
-      $r->log->error("no network for ip " . $r->connection->remote_ip);
-      return Apache2::Const::SERVER_ERROR;
-    }
 
     $tmpl_args{'network'} = $network;
     $r->log->debug("state is " . Dumper($r->pnotes('state'))) if DEBUG;
