@@ -52,8 +52,14 @@ our $Cipher = Crypt::CBC->new(
 sub handler {
     my ( $class, $r ) = @_;
 
-    if ($r->hostname eq 'app2.silverliningnetworks.com') {
-        $r->headers_out->set( Location => 'https://app2.silverliningnetworks.com');
+    if (($r->hostname eq 'app.silverliningnetworks.com') or
+        ($r->hostname eq 'app.slwifi.com') or
+        ( $r->construct_url =~ /https:\/\//)) {
+
+        # redirect to the https side for the app
+        $r->headers_out->set( Location => 'https://' . $r->hostname . 
+            '/' . $r->args);
+        $r->no_cache(1);
         return Apache2::Const::REDIRECT;
     }
 
