@@ -54,6 +54,12 @@ This is the home page
 sub dispatch_index {
     my ( $self, $r ) = @_;
 
+    if (($r->hostname eq 'search.slwifi.com') or
+        ( $r->construct_url =~ /http:\/\//)) {
+        
+        $r->headers_out->set( Location => 'http://search.slwifi.com/');
+    }
+
     if ( $r->user ) {
 
         $r->log->debug( sprintf( 'authd user %s, redirecting', $r->user ) )
@@ -72,6 +78,7 @@ sub dispatch_index {
 
     }
 
+    $r->no_cache(1);
     return Apache2::Const::REDIRECT;
 }
 
