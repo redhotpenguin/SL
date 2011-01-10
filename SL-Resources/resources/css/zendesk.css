@@ -23,7 +23,7 @@
 #zenbox_screen { top:0; left:0; z-index:1; width: 100%; position: absolute; background-color: #000; opacity: 0.42; filter:alpha(opacity=42); -moz-opacity: 0.42;}
 
 a#zenbox_tab {
-  bottom: 23%; left: 0; width: 45px; height: 108px; border: solid 1px; cursor:pointer; text-indent:-5000px; 
+  top: 70%; right: 0px; width: 30px; height: 108px; border: solid 1px; cursor:pointer; text-indent:-5000px; 
   position: fixed; _position: absolute; z-index: 10000; overflow:hidden; margin-left: -12px;
 }
 a#zenbox_tab:hover {background-color: #444;}
