@@ -42,19 +42,24 @@
 
     <div class="clear"></div>
 
-    <small id="copyright">Copyright 2010 Silver Lining Networks</small>
+    <small id="copyright">Copyright 2011 Silver Lining Networks</small>
 
 
+<script type="text/javascript" src="//asset0.zendesk.com/external/zenbox/zenbox-2.0.js"></script>
+<style type="text/css" media="screen, projection">
+  @import url(//asset0.zendesk.com/external/zenbox/zenbox-2.0.css);
+</style>
 <script type="text/javascript">
-var zenbox_params = {};
-zenbox_params.tab_id = "support";
-zenbox_params.tab_color = "#03406a";
-zenbox_params.title = "Helping Friendly Support";
-zenbox_params.text = "How may we help you?  Please fill in details below, and we'll get back to you as soon as possible.  Please include your browser and operating system versions, and the url.  Our support ninjas are standing by...";
-zenbox_params.tag = "dropbox";
-zenbox_params.url = "silverlining.zendesk.com";
+  if (typeof(Zenbox) !== "undefined") {
+    Zenbox.init({
+      dropboxID:   "8474",
+      url:         "silverlining.zendesk.com",
+      tabID:       "support",
+      tabColor:    "#03406A",
+      tabPosition: "Right"
+    });
+  }
 </script>
-<script type='text/javascript' src='//assets0.zendesk.com/external/zenbox/overlay.js'></script>
 
 </div>
 
