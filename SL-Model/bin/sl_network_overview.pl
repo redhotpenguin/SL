@@ -258,6 +258,7 @@ foreach my $account_id ( keys %refined ) {
     die "missing account for account $account_id" unless $account;
 
     # users and traffic last 24 hours
+    $account->center_the_map;
     $account->users_today( scalar( keys %{ $refined{$account_id}{users} } ) );
     $account->megabytes_today( int($megabytes_total/1024) );
     $account->update;

@@ -49,8 +49,7 @@ checkin.load, checkin.nodogs, checkin.tcpconns
 FROM checkin, router, account
 WHERE checkin.cts > '%s'
 and router.account_id = account.account_id and
-checkin.router_id = router.router_id and
-account.beta = 't'
+checkin.router_id = router.router_id
 ORDER BY cts desc
 SQL
 
@@ -96,7 +95,6 @@ WHERE
 router.account_id = account.account_id
 AND usertrack.router_id = router.router_id
 AND usertrack.cts > '%s'
-AND account.beta = 't'
 ORDER BY usertrack.cts DESC
 SQL
 
@@ -233,8 +231,11 @@ foreach my $account_id ( keys %refined ) {
             $array[$slot_idx]->[5] = $row->{ping_ms};
 
             # speed megabits per second
-            $array[$slot_idx]->[6] =
-              sprintf( "%2.1f", ( $row->{speed_kbytes} * 8 ) / 1024 );
+	    my $mbits =  $row->{speed_kbytes} * 8 / 1024;
+	    if ($mbits > 11) {
+	    	$mbits = 0;
+	    }
+            $array[$slot_idx]->[6] = sprintf( "%2.1f", $mbits);
 
             # memfree
             $array[$slot_idx]->[7] = $row->{memfree} / 1024;

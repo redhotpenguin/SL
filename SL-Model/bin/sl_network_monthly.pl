@@ -9,7 +9,7 @@ use Data::Dumper;
 use SL::Model;
 use SL::Model::App;
 
-use constant DEBUG => $ENV{SL_DEBUG} || 0;
+use constant DEBUG => $ENV{SL_DEBUG} || 1;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 
 # grab the checkin data for the last 30 days and write a csv file
@@ -24,16 +24,17 @@ SELECT checkin.kbup, checkin.kbdown,
 account.account_id, checkin.cts, router.router_id
 FROM checkin, router, account
 WHERE checkin.cts > '%s'
-and router.account_id = account.account_id and
-checkin.router_id = router.router_id and
-account.beta='t'
+and router.account_id = account.account_id
+and checkin.router_id = router.router_id
 ORDER BY cts desc
 SQL
 
 $sql = sprintf( $sql, DateTime::Format::Pg->format_datetime($yesterday) );
 
+warn("grabbing data") if DEBUG;
 my $results = $dbh->selectall_arrayref( $sql, { Slice => {} } );
 
+warn("processing data") if DEBUG;
 # group this data by account
 my %refined;
 my $now = DateTime->now( time_zone => "local" );
@@ -59,14 +60,15 @@ WHERE
 router.account_id = account.account_id
 AND usertrack.router_id = router.router_id
 AND  usertrack.cts > '%s'
-AND account.beta='t'
 ORDER BY usertrack.cts DESC
 SQL
 
 $sql = sprintf( $sql, DateTime::Format::Pg->format_datetime($yesterday) );
 
+warn("grabbing more data") if DEBUG;
 my $users = $dbh->selectall_arrayref( $sql, { Slice => {} } );
 
+warn("processing more data") if DEBUG;
 foreach my $row (@$users) {
 
     my $dt = DateTime::Format::Pg->parse_datetime( $row->{cts} );
@@ -83,6 +85,7 @@ foreach my $row (@$users) {
 
 foreach my $account_id ( keys %refined ) {
 
+    warn("processing account $account_id") if DEBUG;
     # setup an array to hold the data
 
     my @array;
