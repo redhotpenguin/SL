@@ -701,7 +701,7 @@ sub last_seen_html {
     # hack for pacific time
     my $now = DateTime->now;
     $now->set_time_zone('local');
-    $now->subtract( hours => 8);
+    $now->subtract( hours => 7);
     my $sec = (  $now->epoch - $dt->epoch); 
 
     my $minutes = sprintf( '%d', $sec / 60 );

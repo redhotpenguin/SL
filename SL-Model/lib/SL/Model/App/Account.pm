@@ -401,6 +401,8 @@ sub center_the_map {
     my $rtr    = $dist{rtrone};
     my $ot_rtr = $dist{rtrtwo};
 
+    return unless $rtr && $ot_rtr;
+
     # now get the center of those two points
     my ( $clat, $clng ) =
       ( ( $ot_rtr->lat + $rtr->lat ) / 2, ( $ot_rtr->lng + $rtr->lng ) / 2 );
