@@ -52,6 +52,13 @@ our $Cipher = Crypt::CBC->new(
 sub handler {
     my ( $class, $r ) = @_;
 
+    if ($r->uri eq '/robots.txt') {
+        $r->content_type('text/plain');
+        $r->no_cache(1);
+        $r->print("User-agent: *\nDisallow: /");
+        return Apache2::Const::OK;
+    }
+
     if (($r->hostname eq 'app.silverliningnetworks.com') or
         ($r->hostname eq 'app.slwifi.com') or
         ( $r->construct_url =~ /https:\/\//)) {
@@ -64,7 +71,7 @@ sub handler {
     }
 
     $r->headers_out->set( Location => 'http://'
-          . $Config->sl_perlbal_listen
+          . $Config->sl_apache_servername
           . '/search?q=pizza&submit=Search' );
     $r->no_cache(1);
     return Apache2::Const::REDIRECT;
@@ -362,8 +369,8 @@ sub print_response {
 sub template_process {
     my ( $class, $args ) = @_;
 
-    $args->{perlbal_listen} = $Config->sl_perlbal_listen;
-    $args->{static_host}    = $Config->sl_static_host,
+    $args->{perlbal_listen} = $Config->sl_apache_servername;
+    $args->{static_host}    = $Config->sl_static_host;
 
       my $output;
     $Template->process( $args->{'template'}, $args, \$output )
