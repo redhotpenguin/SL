@@ -13,7 +13,7 @@ WriteMakefile(
         'Compress::Bzip2'    => 2.09,
         'RHP::Timer'         => 0.1,
         'SL::Proxy::Cache'   => 0.02,
-        'SL::Config'         => 0.17,
+        'Config::SL'         => 0.01,
         'SL::HTTP::Client'   => 0.03,
         'SL::DNS'            => 0.04,
     },
