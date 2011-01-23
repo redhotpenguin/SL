@@ -87,7 +87,7 @@
       */
 
       _settings: {
-        assetHost:      "asset0.zendesk.com",
+        assetHost:      "app.silverliningnetworks.com",
         tab_id:         "support",
         tabText:        "Support", // most browsers will use the tab_id image rather than this text
         tab_color:      "#000000",
@@ -152,7 +152,8 @@
 
         this._createTabElement();
 
-        var tab_src = this._settings.assetHost + "/external/zenbox/images/tab_" + this._settings.tab_id + ".png";
+        var tab_src = this._settings.assetHost + "/resources/zendesk/tab_" + this._settings.tab_id + ".png";
+    /* var tab_src = this._settings.assetHost + "/external/zenbox/images/tab_" + this._settings.tab_id + ".png"; */
         var arVersion = window.navigator && window.navigator.appVersion.split("MSIE");
         var version = parseFloat(arVersion[1]);
         if ((version >= 5.5) && (version < 7) && (document.body.filters)) {
