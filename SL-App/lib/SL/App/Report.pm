@@ -22,8 +22,8 @@ our %Temporals = (
 use SL::App::Template ();
 our $tmpl = SL::App::Template->template();
 
-use SL::Config;
-our $Config = SL::Config->new;
+use Config::SL;
+our $Config = Config::SL->new;
 
 sub dispatch_index {
     my ( $self, $r ) = @_;

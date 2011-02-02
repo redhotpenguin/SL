@@ -13,13 +13,13 @@ use Data::FormValidator::Constraints qw(:closures);
 use Digest::MD5 ();
 
 use SL::App::Template ();
-use SL::Config        ();
+use Config::SL        ();
 use SL::Model::App    ();
 use base 'SL::App';
 
 use Data::Dumper;
 
-our $Config    = SL::Config->new();
+our $Config    = Config::SL->new();
 our $TMPL      = SL::App::Template->template();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;

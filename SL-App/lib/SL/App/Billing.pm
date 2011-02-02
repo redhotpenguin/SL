@@ -42,8 +42,8 @@ our %Routers = (
     5 => '$799.00',
 );
 
-use SL::Config;
-our $Config = SL::Config->new;
+use Config::SL;
+our $Config = Config::SL->new;
 
 sub dispatch_publisher {
     my ( $class, $r, $args_ref ) = @_;
