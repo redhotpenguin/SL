@@ -28,7 +28,7 @@ ModPerl::MM::WriteMakefile(
         'Template'                   => 2.14,
         'Template::Plugin::DateTime' => 0.06001,
         'XML::Feed'                  => 0.42,
-        'SL::Config'                 => 0.14,
+        'Config::SL'                 => 0.01,
         'SL::Model'                  => 0.20,
         'SL::Payment'                => 0.05,
         'String::Strip'              => 0,
