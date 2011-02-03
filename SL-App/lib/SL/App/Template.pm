@@ -3,7 +3,7 @@ package SL::App::Template;
 use strict;
 use warnings;
 
-use SL::Config;
+use Config::SL;
 
 use Template;
 use Template::Plugin::Date;
@@ -13,7 +13,7 @@ use base 'Template';
 our ( $Template, %Tmpl_global );
 
 BEGIN {
-    our $config = SL::Config->new;
+    our $config = Config::SL->new;
 
     our %tmpl_config = ( INCLUDE_PATH => $config->sl_root . '/tmpl' );
     $Template = __PACKAGE__->SUPER::new( \%tmpl_config )

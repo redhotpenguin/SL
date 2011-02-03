@@ -39,8 +39,8 @@ use SL::Model::App;    # works for now
 our ( $Config, %Sess_opts );
 
 BEGIN {
-    require SL::Config;
-    $Config = SL::Config->new();
+    require Config::SL;
+    $Config = Config::SL->new();
 
     # session
     unless ( -d $Config->sl_app_session_dir ) {

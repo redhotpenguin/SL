@@ -17,7 +17,7 @@ use Digest::MD5    ();
 
 use SL::Model::App    ();
 use SL::App::Template ();
-use SL::Config ();
+use Config::SL; 
 
 # don't add the () here
 use Data::Dumper;
@@ -33,7 +33,7 @@ our $Tech_error = 'A technical problem occurred, please try again';
 our $From       = 'SLN Support <support@silverliningnetworks.com>';
 our $Signup     = 'SLN Signup <signup@silverliningnetworks.com>';
 
-our $Config = SL::Config->new;
+our $Config = Config::SL->new;
 
 use constant MAX_IMAGE_BYTES => 40_960;
 use constant DEBUG           => $ENV{SL_DEBUG} || 0;

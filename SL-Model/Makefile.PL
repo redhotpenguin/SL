@@ -13,6 +13,7 @@ WriteMakefile(
     PREREQ_PM    => {
         'Class::C3'                   => 0.21,
         'Crypt::SSLeay'               => 0.57,
+        'Data::UUID'                  => 0.01,
         'DBI'                         => 1.605,
         'GD::Graph'                   => 1.44,
         'DateTime::Format::Pg'        => 0.16003,

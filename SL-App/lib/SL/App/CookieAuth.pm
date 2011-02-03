@@ -28,8 +28,8 @@ our $Template = SL::App::Template->template();
 our ( $Config, $CIPHER, %SESS_OPTS );
 
 BEGIN {
-    require SL::Config;
-    $Config = SL::Config->new();
+    require Config::SL;
+    $Config = Config::SL->new();
 
     require Crypt::CBC;
     $CIPHER = Crypt::CBC->new(

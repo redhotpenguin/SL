@@ -146,68 +146,6 @@ PerlLoadModule Apache2::Dispatch
     PerlResponseHandler SL::App::CookieAuth->forgot_reset
 </Location>
 
-<Location /sl/splash>
-    SetHandler modperl
-    PerlResponseHandler SL::App::Ad::Splash->dispatch_splash
-</Location>
-
-
-## captive portal handler
-
-<Location /sl/auth>
-    SetHandler modperl
-	PerlFixupHandler SL::App::CPAuthHandler
-    PerlResponseHandler SL::App::CP->auth
-</Location>
-
-<Location /sl/auth/free>
-    SetHandler modperl
-    PerlResponseHandler SL::App::CP->free
-</Location>
-
-<Location /sl/auth/paid>
-    SetHandler modperl
-    PerlResponseHandler SL::App::CP->paid
-</Location>
-
-<Location /sl/auth/token>
-    SetHandler modperl
-    PerlResponseHandler SL::App::CP->token
-</Location>
-
-<Location /sl/auth/post>
-    SetHandler modperl
-    PerlResponseHandler SL::App::CP->post
-</Location>
-
-<Location /sl/auth/check>
-    SetHandler modperl
-    PerlResponseHandler SL::App::CP->check
-</Location>
-
-<Location /sl/auth/paypal_notify>
-    SetHandler modperl
-    PerlResponseHandler SL::App::CP->paypal_notify
-</Location>
-
-<Location /sl/auth/paypal_return>
-    SetHandler modperl
-    PerlResponseHandler SL::App::CP->paypal_return
-</Location>
-
-<Location /sl/billing>
-	SetHandler modperl
-
-    # dispatch directives
-	DispatchPrefix SL::App::Billing
-	[% IF dispatch_debug %]DispatchDebug [% dispatchdebug %][% END %]
-	DispatchRequire On
-	DispatchUpperCase On
-
-	PerlResponseHandler Apache2::Dispatch
-</Location>
-
-
 ## optimizations, mod_perl for speed freaks
 
 <Directory />

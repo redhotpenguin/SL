@@ -6,9 +6,9 @@ use warnings FATAL => 'all';
 use Template;
 use Template::Context;
 
-use SL::Config;
+use Config::SL;
 
-my $config = SL::Config->new();
+my $config = Config::SL->new();
 
 $|++;
 
