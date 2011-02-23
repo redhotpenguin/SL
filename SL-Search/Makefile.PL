@@ -9,6 +9,7 @@ WriteMakefile(
     NAME         => 'SL-Search',
     VERSION_FROM => 'lib/SL/Search.pm',
     PREREQ_PM    => {
+        'RHP::Timer'                         => 0.01,
         'Config::SL'                         => 0.01,
         'Encode::Guess'                      => 0,
         'Mouse'                              => 0,

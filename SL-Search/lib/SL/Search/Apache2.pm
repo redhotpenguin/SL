@@ -56,7 +56,11 @@ sub handler {
         $r->content_type('text/plain');
         $r->no_cache(1);
         $r->print("User-agent: *\nDisallow: /");
-        return Apache2::Const::OK;
+        return Apache2::Const::DONE;
+    }
+
+    if ($r->headers_in->{'User-Agent'} eq 'SiteUptime.com') {
+        return Apache2::Const::DONE;
     }
 
     if (($r->hostname eq 'app.silverliningnetworks.com') or

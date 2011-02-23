@@ -11,7 +11,7 @@ our $VERSION = 0.21;
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
 
 my $db_options = {
-                  RaiseError         => 0,
+                  RaiseError         => 1,
                   PrintError         => 1,
                   AutoCommit         => 1,
                   FetchHashKeyName   => 'NAME_lc',

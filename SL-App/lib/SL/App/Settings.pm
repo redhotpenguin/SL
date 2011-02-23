@@ -13,14 +13,13 @@ use Data::FormValidator::Constraints qw(:closures);
 use Digest::MD5 ();
 
 use SL::App::Template ();
-use SL::Config        ();
+use Config::SL        ();
 use SL::Model::App    ();
 use base 'SL::App';
 
 use Data::Dumper;
 
-our $Config    = SL::Config->new();
-our $DATA_ROOT = $Config->sl_data_root;
+our $Config    = Config::SL->new();
 our $TMPL      = SL::App::Template->template();
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
@@ -186,16 +185,14 @@ sub dispatch_account {
 
         # we need to update the account
         my $oldbase         = $account->report_base;
-        my $old_report_base = join( '/',
-            $Config->sl_data_root,,
+        my $old_report_base = join( '/tmp/',
             substr( $oldbase, 0, length($oldbase) - 7 ) );
 
         # update the account
         $account->name( $req->param('account') );
         $account->update;
         my $newbase         = $account->report_base;
-        my $new_report_base = join( '/',
-            $Config->sl_data_root,,
+        my $new_report_base = join( '/tmp/',
             substr( $newbase, 0, length($newbase) - 7 ) );
 
         if (-d $old_report_base) {

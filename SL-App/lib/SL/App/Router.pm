@@ -18,9 +18,9 @@ use base 'SL::App';
 use SL::Model;
 use SL::Model::App;    # works for now
 use SL::App::Template ();
-use SL::Config;
+use Config::SL;
 
-our $Config = SL::Config->new;
+our $Config = Config::SL->new;
 
 our $Tmpl = SL::App::Template->template();
 

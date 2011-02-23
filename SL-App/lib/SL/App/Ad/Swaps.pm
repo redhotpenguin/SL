@@ -13,13 +13,13 @@ use Apache2::SubRequest ();
 
 use base 'SL::App';
 
-use SL::Config        ();
+use Config::SL        ();
 use SL::Model         ();
 use SL::Model::App    ();
 use SL::App::Template ();
 use Data::Dumper;
 
-our $Config = SL::Config->new;
+our $Config = Config::SL->new;
 
 our $Tmpl = SL::App::Template->template();
 

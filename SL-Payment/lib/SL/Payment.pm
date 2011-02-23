@@ -24,8 +24,8 @@ our ( $Config, %Authorize_creds, $Business, $Notify_url, $Return );
 BEGIN {
     $Config          = Config::SL->new;
     %Authorize_creds = (
-        login          => $Config->sl_authorize_login || die,
-        password       => $Config->sl_authorize_key || die,
+        login          => $Config->sl_authorize_login,
+        password       => $Config->sl_authorize_key,
     ),
     $Business        = 'paypal@silverliningnetworks.com';
     $Notify_url = 'https://app.silverliningnetworks.com/sl/paypal/notify';

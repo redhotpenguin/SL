@@ -4,4 +4,3 @@ MANIFEST
 README
 t/SL-DNS.t
 lib/SL/DNS.pm
-META.yml                                 Module meta-data (added by MakeMaker)

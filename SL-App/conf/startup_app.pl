@@ -11,8 +11,8 @@ $|++;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 
-use SL::Config;
-my $config = SL::Config->new();
+use Config::SL;
+my $config = Config::SL->new();
 
 print STDOUT "Starting SL::App server on "
   . $config->sl_app_httpd_listen . "\n";
@@ -58,11 +58,8 @@ use SL::App::Ad::Msg                ();
 use SL::App::Ad::Twitter            ();
 use SL::App::Ad::Groups             ();
 use SL::App::Ad::Swaps              ();
-use SL::App::Billing                ();
 use SL::App::Blacklist              ();
 use SL::App::CookieAuth             ();
-use SL::App::CP                     ();
-use SL::App::CPAuthHandler          ();
 use SL::App::Home                   ();
 use SL::App::PostReadRequestHandler ();
 use SL::App::Report                 ();
@@ -76,7 +73,7 @@ use SL::Model::App::Account         ();
 use SL::Model::App::Reg             ();
 use SL::Model::App::Router          ();
 use SL::Model::App::AdZone          ();
-use SL::Model::App::Location        ();
+use SL::Model::App::Network         ();
 use SL::Model::App::AdSize          ();
 use SL::Model::App::Checkin         ();
 use SL::Model::App::Usertrack       ();
