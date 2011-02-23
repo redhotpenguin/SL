@@ -13,6 +13,7 @@ WriteMakefile(
         'Compress::Bzip2'    => 2.09,
         'RHP::Timer'         => 0.1,
         'Config::SL'         => 0.01,
+        'Apache2::Proxy'     => 0.04,
     },
     ABSTRACT  => 'A mod_perl caching forward proxy',
     AUTHOR    => 'Fred Moyer <fred@redhotpenguin.com>',
