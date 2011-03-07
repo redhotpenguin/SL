@@ -7,22 +7,94 @@ our $VERSION = 0.03;
 
 use base 'Apache2::Proxy';
 
-use Apache2::Const -compile => qw( OK DONE );
-  
-use Config::SL       ();
+use Apache2::Const -compile => qw( OK DONE HTTP_SERVICE_UNAVAILABLE );
+use Apache2::Request ();
+
+use Config::SL ();
 
 our $Cache;
 our $Config = Config::SL->new;
 
-use constant DEBUG         => $ENV{SL_DEBUG}   || 0;
+use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 use constant TIMING        => $ENV{SL_TIMING}        || 0;
+
+sub trans_handler {
+    my ( $class, $r ) = @_;
+
+    # handle dummy connections
+    my $ua = $r->headers_in->{'user-agent'};
+    if ( $ua && ( length($ua) > 25 ) ) {
+
+        my $dummy = substr( $ua, ( length($ua) - 27 ), length($ua) );
+        if ( $dummy eq '(internal dummy connection)' ) {
+            $r->set_handlers( PerlResponseHandler => undef );
+            $r->set_handlers(
+                PerlLogHandler => sub {
+                    return Apache2::Const::DONE;
+                }
+            );
+            return Apache2::Const::OK;
+        }
+    }
+
+    # handle secret pings
+    if ( substr( $r->unparsed_uri, 0, 10 ) eq '/sl_secret' ) {
+
+        $r->set_handlers( PerlResponseHandler => undef );
+        $r->set_handlers(
+            PerlLogHandler => sub {
+                return Apache2::Const::DONE;
+            }
+        );
+        return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
+    }
+}
 
 sub handler {
     my ( $class, $r ) = @_;
 
-    $r->log->error("$$ $class handler active, sending to Apache2::Proxy");
-    return $class->SUPER::handler($r);
+    my @hosts = qw( www.google.com search.yahoo.com www.bing.com );
+    $" = '|';
+    if ( $r->hostname =~ m/^(?:@hosts)$/ ) {
+
+        my $req = Apache2::Request->new($r);
+        my ($q, $referer);
+        if ($r->hostname eq 'www.google.com') {
+
+            $q = $req->param('q');
+            $referer = 'google';
+        } elsif ($r->hostname eq 'search.yahoo.com') {
+
+            $q = $req->param('p');
+            $referer = 'yahoo';
+
+        } elsif ($r->hostname eq 'www.bing.com') {
+
+            $q = $req->param('q');
+            $referer = 'bing';
+        }
+
+        $r->log->debug( "$$ $class search redirect for " . $r->hostname );
+        $r->no_cache(1);
+        $r->headers_out->set(
+            Location => "http://search.slwifi.com/search?q=$q&submit=Search?referer=$referer" );
+        return Apache2::Const::REDIRECT;
+    }
+
+    my @domains = qw( google.com yahoo.com bing.com hotmail.com );
+    if ( $r->hostname =~ m/^(?:@hosts)$/ ) {
+
+        $r->log->debug("$$ $class handler active, sending to Apache2::Proxy")
+          if DEBUG;
+        return $class->SUPER::handler($r);
+
+    }
+    else {
+        $r->log->error( "request to domain forbidden: "
+              . $r->construct_url( $r->unparsed_uri ) );
+        return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
+    }
 
 =cut
 
@@ -98,6 +170,7 @@ sub handler {
     no strict 'refs';
     return $class->$sub( $r, $response );
 =cut
+
 }
 
 # this page handles invalid urls, we run ads there
@@ -139,14 +212,15 @@ sub twohundred {
 
     $r->log->error("$$ sub two_hundred super called");
 
-    return $class->SUPER::twohundred($r, $response, $subref );
+    return $class->SUPER::twohundred( $r, $response, $subref );
     my $url = $r->pnotes('url');
 
-    if ($response->is_html) {
+    if ( $response->is_html ) {
 
         $Cache->add_known_html( $url => $response->content_type );
 
-    } else {
+    }
+    else {
 
         $Cache->add_known_not_html( $url => $response->content_type );
     }
