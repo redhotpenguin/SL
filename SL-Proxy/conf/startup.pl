@@ -21,7 +21,7 @@ if ( $config->sl_status ) {
 }
 
 # Preload these modules during httpd startup, don't import any symbols
-use Apache2::Proxy;
+use SL::Proxy;
 
 BEGIN {
 
