@@ -59,7 +59,8 @@ sub handler {
     if ( $r->hostname =~ m/^(?:@hosts)$/ ) {
 
         my $req = Apache2::Request->new($r);
-        my ($q, $referer);
+        my $q = '';
+        my $referer;
         if ($r->hostname eq 'www.google.com') {
 
             $q = $req->param('q');
@@ -78,7 +79,7 @@ sub handler {
         $r->log->debug( "$$ $class search redirect for " . $r->hostname );
         $r->no_cache(1);
         $r->headers_out->set(
-            Location => "http://search.slwifi.com/search?q=$q&submit=Search?referer=$referer" );
+            Location => "http://search.slwifi.com/search?q=$q&submit=Search&referer=$referer" );
         return Apache2::Const::REDIRECT;
     }
 
