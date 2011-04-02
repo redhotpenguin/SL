@@ -59,10 +59,6 @@ sub handler {
         return Apache2::Const::DONE;
     }
 
-    if ($r->headers_in->{'User-Agent'} eq 'SiteUptime.com') {
-        return Apache2::Const::DONE;
-    }
-
     if (($r->hostname eq 'app.silverliningnetworks.com') or
         ($r->hostname eq 'app.slwifi.com') or
         ( $r->construct_url =~ /https:\/\//)) {
@@ -170,7 +166,8 @@ sub search {
 
     if (!$zip) {
 
-      $r->log->error("missing zip for network " . Dumper($network));
+      $r->log->error("missing zip for network " . $r->connection->remote_ip);
+      #$r->log->error("missing zip for network " . Dumper($network));
 
     } elsif (!$citygrid && $zip) {
 
@@ -232,7 +229,7 @@ sub search {
         cg_ads         => $citygrid,
         search_results => $search,
         template       => 'search.tmpl',
-        s_referrer => $req->param('s_referrer') || 'google',
+        s_referer => $req->param('referer') || 'google',
         state => $r->pnotes('state'),
     );
 
