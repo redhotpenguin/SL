@@ -76,7 +76,7 @@ PerlPassEnv          SL_VERBOSE_DEBUG
 PerlPassEnv          SL_TIMING
 PerlSetVar           SLRateLimit "[% cfg.sl_rate_limit %]"
 
-PerlPostReadRequestHandler Apache2::Const::OK
+PerlPostReadRequestHandler Apache2::Connection::XForwardedFor
 PerlTransHandler SL::Proxy->trans_handler
 PerlMapToStorageHandler    Apache2::Const::OK
 

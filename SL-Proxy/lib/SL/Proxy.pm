@@ -54,9 +54,9 @@ sub trans_handler {
 sub handler {
     my ( $class, $r ) = @_;
 
-    my @hosts = qw( www.google.com search.yahoo.com www.bing.com );
-    $" = '|';
-    if ( $r->hostname =~ m/^(?:@hosts)$/ ) {
+    $r->log->error("hostname is " . $r->hostname);
+    my @hosts = qw( www.google.com search.yahoo.com www.bing.com bing.com );
+    if ( grep { $_ eq $r->hostname } @hosts ) {
 
         my $req = Apache2::Request->new($r);
         my $q = '';
@@ -83,8 +83,7 @@ sub handler {
         return Apache2::Const::REDIRECT;
     }
 
-    my @domains = qw( google.com yahoo.com bing.com hotmail.com );
-    if ( $r->hostname =~ m/^(?:@hosts)$/ ) {
+    if ( grep { $_ eq $r->hostname } @hosts ) {
 
         $r->log->debug("$$ $class handler active, sending to Apache2::Proxy")
           if DEBUG;
