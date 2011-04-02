@@ -63,16 +63,17 @@ sub handler {
         my $referer;
         if ($r->hostname eq 'www.google.com') {
 
-            $q = $req->param('q');
+            $q = $req->param('q') || '';
             $referer = 'google';
+
         } elsif ($r->hostname eq 'search.yahoo.com') {
 
-            $q = $req->param('p');
+            $q = $req->param('p') || '';
             $referer = 'yahoo';
 
         } elsif ($r->hostname eq 'www.bing.com') {
 
-            $q = $req->param('q');
+            $q = $req->param('q') || '';
             $referer = 'bing';
         }
 
