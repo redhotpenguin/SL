@@ -45,9 +45,9 @@ Listen [% cfg.sl_apache_listen %]
 </IfModule>
 
 ServerName           [% cfg.sl_servername %]
-ErrorDocument        404	/404.html
-ErrorDocument        500 /500.html
-
+#ErrorDocument        404	/404.html
+#ErrorDocument        500 /500.html
+LoadModule apreq_module modules/mod_apreq2.so
 LoadModule perl_module        modules/mod_perl.so
 
 [% IF cfg.sl_prof %]
@@ -76,9 +76,9 @@ PerlPassEnv          SL_VERBOSE_DEBUG
 PerlPassEnv          SL_TIMING
 PerlSetVar           SLRateLimit "[% cfg.sl_rate_limit %]"
 
-# handle dummy connections then security
+PerlPostReadRequestHandler Apache2::Connection::XForwardedFor
+PerlTransHandler SL::Proxy->trans_handler
 PerlMapToStorageHandler    Apache2::Const::OK
-#PerlTransHandler SL::Apache::Proxy::TransHandler
 
 <Location />
     SetHandler          modperl
@@ -88,7 +88,8 @@ PerlMapToStorageHandler    Apache2::Const::OK
     PerlAuthzHandler        Apache2::Const::OK
     PerlTypeHandler         Apache2::Const::OK
     PerlFixupHandler        Apache2::Const::OK
-    PerlResponseHandler Apache2::Proxy->handler
+    PerlResponseHandler     SL::Proxy->handler
+    #PerlResponseHandler Apache2::Proxy->handler
 </Location>
 
 <Directory />
