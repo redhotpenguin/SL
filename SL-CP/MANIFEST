@@ -1,8 +1,0 @@
-bin/sl_cp
-Changes
-Makefile.PL
-MANIFEST
-README
-lib/SL/CP.pm
-lib/SL/CP/IPTables.pm
-META.yml                                 Module meta-data (added by MakeMaker)
