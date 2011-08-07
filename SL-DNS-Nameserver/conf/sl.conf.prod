@@ -1,0 +1,6 @@
+debug    0
+rr_ttl      300
+search_ip 127.0.0.1
+search_domains www.google.com search.yahoo.com www.bing.com
+port 53
+ip 127.0.0.1

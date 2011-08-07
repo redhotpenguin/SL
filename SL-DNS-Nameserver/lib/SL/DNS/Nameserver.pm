@@ -8,12 +8,28 @@ our $VERSION = 0.01;
 
 use base 'Net::DNS::Nameserver';
 
+use Net::DNS::Resolver;
+use Net::DNS::RR;
+
+use Data::Dumper;
+use Config::SL;
+
+# initialize configuration vars
+our $Config = Config::SL->new;
+
+our $Debug          = $ENV{SL_DEBUG}          || $Config->debug || 0;
+our $Ttl            = $Config->rr_ttl         || die;
+our $Search_ip      = $Config->search_ip      || die;
+our @Search_domains = $Config->search_domains || die;
+our $Port           = $Config->port           || die;
+our $Ip             = $Config->ip             || die;
+
 sub new {
     my ( $class, $args ) = @_;
 
     # default to development settings
-    my $port    = $args->{port}    || '53535';
-    my $ip      = $args->{ip}      || '127.0.0.1';
+    my $port    = $args->{port}    || $Port;
+    my $ip      = $args->{ip}      || $Ip;
     my $verbose = $args->{verbose} || 1;
 
     my $ns = $class->SUPER::new(
@@ -23,12 +39,16 @@ sub new {
         ReplyHandler => \&reply_handler,
     );
 
-    return $ns;
+    my %self = ( ns => $ns );
+
+    bless \%self, $class;
+
+    return \%self;
 }
 
 sub run {
     my $self = shift;
-    $self->main_loop;
+    $self->{ns}->main_loop;
 }
 
 sub reply_handler {
@@ -36,26 +56,88 @@ sub reply_handler {
 
     my ( $rcode, @ans, @auth, @add );
 
-    print "Received query from $peerhost to " . $conn->{"sockhost"} . "\n";
-    $query->print;
+    print "Received query from $peerhost to " . $conn->{"sockhost"} . "\n"
+      if $Debug;
 
-    if ( $qtype eq "A" && $qname eq "foo.example.com" ) {
+    if (
+        (
+               ( $qtype eq 'A' )
+            or ( $qtype eq 'CNAME' )
+        )
+        and grep { $qname eq $_ } @Search_domains
+      )
+    {
 
-        my ( $ttl, $rdata ) = ( 3600, "10.1.2.3" );
-        push @ans, Net::DNS::RR->new("$qname $ttl $qclass $qtype $rdata");
-        $rcode = "NOERROR";
+        print "found search redirect domain $qname\n" if $Debug;
 
-    }
-    elsif ( $qname eq "foo.example.com" ) {
-        $rcode = "NOERROR";
-
+        push @ans, search_rr( $qname, $qtype );
     }
     else {
-        $rcode = "NXDOMAIN";
+
+        print " resolving $qname $qtype\n" if $Debug;
+
+        my $Resolver = Net::DNS::Resolver->new(
+            nameservers => [qw( 192.168.1.1 )],
+            recurse     => 1
+        );
+
+        my $rquery = $Resolver->query( $qname, $qtype );
+
+        if ( $Resolver->errorstring ne 'NOERROR' ) {
+
+            # handle errors
+            if ( ( $qtype eq 'A' ) or ( $qtype eq 'CNAME' ) ) {
+
+                # send the ip of the search service
+                push @ans, search_rr( $qname, $qtype );
+
+            }
+            else {
+
+                $rcode = $Resolver->errorstring;
+
+            }
+        }
+        elsif ($rquery) {
+
+            print "rquery " . Dumper($rquery) if $Debug;
+
+            foreach my $rr ( $rquery->answer ) {
+                print "rr: " . Dumper($rr) if $Debug;
+
+                $rr->ttl($Ttl);
+
+                # cname override for our search domains
+                if (   ( $rr->type eq 'CNAME' )
+                    && ( grep { $_ eq $rr->name } @Search_domains ) )
+                {
+
+                    push @ans, search_rr( $rr->name, 'A' );
+                    last;
+                }
+                else {
+
+                    push @ans, $rr;
+                }
+            }
+        }
+
     }
 
-    # mark the answer as authoritive (by setting the 'aa' flag
+    $rcode ||= "NOERROR";
+
+    print " answer  " . Dumper( \@ans ) if $Debug;
+
+    # mark the answer as authoritive (by setting the 'aa' flag)
     return ( $rcode, \@ans, \@auth, \@add, { aa => 1 } );
+}
+
+sub search_rr {
+    my ( $qname, $qtype ) = @_;
+
+    my $rr = Net::DNS::RR->new("$qname\. $Ttl $qtype $Search_ip");
+
+    return $rr;
 }
 
 1;
