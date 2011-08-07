@@ -30,6 +30,7 @@ if ( $config->sl_status ) {
 
 # Preload these modules during httpd startup, don't import any symbols
 use Apache::DBI             ();
+use Apache2::Const -compile => ':common';
 use Apache2::Connection     ();
 use Apache2::ConnectionUtil ();
 use Apache2::Log            ();
