@@ -66,15 +66,9 @@ use HTTP::Response;
 use HTTP::Headers;
 use Carp qw(croak);
 
-use SL::Config;
-our $Config;
-
-BEGIN {
-    $Config = SL::Config->new;
-}
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
-use constant MAX_CONTENT_LENGTH => $Config->sl_max_content_length || 131072; # 128k
+use constant MAX_CONTENT_LENGTH =>  131072; # 128k
 
 my %default_headers = (
     'X-SLR' => 'aaaaaaaa|001c10090004',
