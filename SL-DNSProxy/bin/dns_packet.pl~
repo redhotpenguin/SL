@@ -1,0 +1,12 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use Net::DNS::Packet;
+
+my $p = Net::DNS::Packet->new("foo.example.com.86400 10.0.2.3");
+
+use Data::Dumper;
+
+print Dumper($p);
