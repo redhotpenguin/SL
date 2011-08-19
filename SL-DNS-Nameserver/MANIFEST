@@ -3,4 +3,4 @@ Makefile.PL
 MANIFEST
 README
 t/SL-DNS-Nameserver.t
-lib/SL-DNS-Nameserver.pm
+lib/SL/DNS/Nameserver.pm
