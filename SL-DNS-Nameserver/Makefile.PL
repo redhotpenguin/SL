@@ -8,7 +8,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME         => 'SL-DNS-Nameserver',
     VERSION_FROM => 'lib/SL/DNS/Nameserver.pm',
-    PREREQ_PM    => { 'Config::SL' => 0 },
+    PREREQ_PM    => { 'Config::SL' => 0, 'Net::DNS' => 0 },
     ABSTRACT     => 'SL Nameserver',
     AUTHOR       => 'Fred Moyer <phred@redhotpenguin.com>',
 );
