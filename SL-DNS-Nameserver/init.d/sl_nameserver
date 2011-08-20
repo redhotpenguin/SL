@@ -1,0 +1,45 @@
+#!/bin/bash
+#
+# sl_nameserver
+
+# perlbrew
+source  $HOME/.bashrc
+
+prog=sl_nameserver
+
+start() {
+        echo -n $"Starting $prog: "
+	$prog 2>&1 >> /var/log/$prog &
+        RETVAL=$?
+        echo
+	return $RETVAL
+}
+
+stop() {
+	echo -n $"Stopping $prog: "
+	pkill $prog
+	RETVAL=$?
+	echo
+}
+
+# See how we were called.
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  restart)
+	stop
+	start
+	;;
+  status)
+	ps aux | grep $prog
+	;;
+  *)
+	echo $"Usage: $prog {start|stop|restart|status}"
+	RETVAL=2
+esac
+
+exit $RETVAL
