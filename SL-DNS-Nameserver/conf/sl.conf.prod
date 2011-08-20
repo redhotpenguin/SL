@@ -2,5 +2,6 @@ debug    0
 rr_ttl      300
 search_ip 127.0.0.1
 search_domains www.google.com search.yahoo.com www.bing.com
+nameservers 69.36.225.253 69.36.225.254
 port 53
-ip 127.0.0.1
+ip 69.36.240.26

@@ -23,6 +23,8 @@ our $Search_ip      = $Config->search_ip      || die;
 our @Search_domains = $Config->search_domains || die;
 our $Port           = $Config->port           || die;
 our $Ip             = $Config->ip             || die;
+our @Nameservers    = $Config->nameservers    || die;
+
 
 sub new {
     my ( $class, $args ) = @_;
@@ -77,7 +79,7 @@ sub reply_handler {
         print " resolving $qname $qtype\n" if $Debug;
 
         my $Resolver = Net::DNS::Resolver->new(
-            nameservers => [qw( 192.168.1.1 )],
+    #        nameservers => [qw( 192.168.1.1 )],
             recurse     => 1
         );
 
