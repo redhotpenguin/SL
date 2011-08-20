@@ -1,6 +1,19 @@
 #!/bin/bash
 #
-# sl_nameserver
+# sl_nameserver		Startup script for the Silver Lining nameserver
+# chkconfig: - 99 3
+# description: The SL nameserver
+# processname: sl_nameserver
+# config: /etc/sl/sl.conf
+#
+### BEGIN INIT INFO
+# Provides: sl_nameserver
+# Required-Start: $network
+# Required-Stop: $network
+# Short-Description: start and stop SL nameserver
+# Description: SL Nameserver
+### END INIT INFO
+
 
 # perlbrew
 source  $HOME/.bashrc

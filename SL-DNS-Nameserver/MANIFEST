@@ -4,3 +4,4 @@ MANIFEST
 README
 t/SL-DNS-Nameserver.t
 lib/SL/DNS/Nameserver.pm
+bin/sl_nameserver

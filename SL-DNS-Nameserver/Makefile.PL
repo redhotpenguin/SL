@@ -9,6 +9,7 @@ WriteMakefile(
     NAME         => 'SL-DNS-Nameserver',
     VERSION_FROM => 'lib/SL/DNS/Nameserver.pm',
     PREREQ_PM    => { 'Config::SL' => 0, 'Net::DNS' => 0 },
+    EXE_FILES    => [ 'bin/sl_nameserver' ],
     ABSTRACT     => 'SL Nameserver',
     AUTHOR       => 'Fred Moyer <phred@redhotpenguin.com>',
 );
