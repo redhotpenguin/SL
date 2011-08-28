@@ -1,6 +1,6 @@
 package SL::DNS::Nameserver;
 
-use 5.014001;
+use 5.010001;
 use strict;
 use warnings;
 

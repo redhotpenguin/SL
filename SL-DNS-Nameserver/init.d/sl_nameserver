@@ -15,14 +15,13 @@
 ### END INIT INFO
 
 
-# perlbrew
-source  $HOME/.bashrc
-
 prog=sl_nameserver
+path='/usr/local/bin'
+progpath="$path/$prog"
 
 start() {
         echo -n $"Starting $prog: "
-	$prog 2>&1 >> /var/log/$prog &
+	$progpath 2>&1 >> /var/log/$prog &
         RETVAL=$?
         echo
 	return $RETVAL
@@ -30,7 +29,7 @@ start() {
 
 stop() {
 	echo -n $"Stopping $prog: "
-	pkill $prog
+	pkill "$prog"
 	RETVAL=$?
 	echo
 }
