@@ -79,7 +79,7 @@ sub reply_handler {
         print " resolving $qname $qtype\n" if $Debug;
 
         my $Resolver = Net::DNS::Resolver->new(
-    #        nameservers => [qw( 192.168.1.1 )],
+            nameservers => \@Nameservers,
             recurse     => 1
         );
 
