@@ -9,7 +9,7 @@ WriteMakefile(
     NAME         => 'SL-DNS-Nameserver',
     VERSION_FROM => 'lib/SL/DNS/Nameserver.pm',
     PREREQ_PM =>
-      { 'Config::SL' => 0.01, 'Net::DNS' => 0.66, 'Cache::Memcached' => 1.29 },
+      { 'Config::SL' => 0.01, 'Net::DNS' => 0.66, 'Cache::Memcached' => 1.28 },
     EXE_FILES => ['bin/sl_nameserver'],
     ABSTRACT  => 'SL Nameserver',
     AUTHOR    => 'Fred Moyer <phred@redhotpenguin.com>',
