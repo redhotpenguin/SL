@@ -1,6 +1,8 @@
 debug    1
-rr_ttl      1
+rr_ttl      30
 search_ip 127.0.0.1
 search_domains www.google.com search.yahoo.com www.bing.com
+search_override 0
 port 53535
-ip 127.0.0.1
+interface lo0
+cacheservers 127.0.0.1:11211

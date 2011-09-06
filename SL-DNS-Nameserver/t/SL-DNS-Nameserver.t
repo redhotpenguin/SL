@@ -1,8 +1,8 @@
-#!/usr/bin/env perl
+#!/usr/bin/perl
 
 use strict;
 use warnings;
 
 use Test::More tests => 1;
-BEGIN { use_ok('SL-DNS-Nameserver') };
+BEGIN { use_ok('SL::DNS::Nameserver') };
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/perl
 
 use strict;
 use warnings;
@@ -8,8 +8,9 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME         => 'SL-DNS-Nameserver',
     VERSION_FROM => 'lib/SL/DNS/Nameserver.pm',
-    PREREQ_PM    => { 'Config::SL' => 0, 'Net::DNS' => 0 },
-    EXE_FILES    => [ 'bin/sl_nameserver' ],
-    ABSTRACT     => 'SL Nameserver',
-    AUTHOR       => 'Fred Moyer <phred@redhotpenguin.com>',
+    PREREQ_PM =>
+      { 'Config::SL' => 0.01, 'Net::DNS' => 0.66, 'Cache::Memcached' => 1.29 },
+    EXE_FILES => ['bin/sl_nameserver'],
+    ABSTRACT  => 'SL Nameserver',
+    AUTHOR    => 'Fred Moyer <phred@redhotpenguin.com>',
 );

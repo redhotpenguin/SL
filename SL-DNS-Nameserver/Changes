@@ -1,5 +1,8 @@
 Revision history for Perl extension SL-DNS-Nameserver.
 
+0.02  Mon Sep 05 2011
+    - memcache suport
+
 0.01  Sun Jul 24 12:38:25 2011
 	- original version; created by h2xs 1.23 with options
 		-X SL-DNS-Nameserver

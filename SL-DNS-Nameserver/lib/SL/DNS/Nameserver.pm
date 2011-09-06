@@ -4,7 +4,7 @@ use 5.010001;
 use strict;
 use warnings;
 
-our $VERSION = 0.01;
+our $VERSION = 0.02;
 
 use base 'Net::DNS::Nameserver';
 
@@ -14,24 +14,38 @@ use Net::DNS::RR;
 use Data::Dumper;
 use Config::SL;
 
+use Cache::Memcached;
+
 # initialize configuration vars
 our $Config = Config::SL->new;
 
-our $Debug          = $ENV{SL_DEBUG}          || $Config->debug || 0;
-our $Ttl            = $Config->rr_ttl         || die;
-our $Search_ip      = $Config->search_ip      || die;
-our @Search_domains = $Config->search_domains || die;
-our $Port           = $Config->port           || die;
-our $Ip             = $Config->ip             || die;
-our @Nameservers    = $Config->nameservers    || die;
+our $Debug           = $ENV{SL_DEBUG}                   || $Config->debug || 0;
+our $Ttl             = $Config->rr_ttl                  || die;
+our $Search_ip       = $Config->search_ip               || die;
+our @Search_domains  = $Config->search_domains          || die;
+our $Search_override = defined $Config->search_override || die;
+our $Port            = $Config->port                    || die;
+our $Interface       = $Config->interface               || die;
+our @Cacheservers    = $Config->cacheservers            || die;
 
+our ($listen_ip) =
+  `/sbin/ifconfig` =~ m/$Interface.*?inet\s(?:addr:)?(\d+\.\d+\.\d+\.\d+)/s;
+
+our @Nameservers = `cat /etc/resolv.conf` =~ m/nameserver\s(\d+\.\d+\.\d+\.\d+)/g;
+
+
+our $Cache = Cache::Memcached->new( { servers => \@Cacheservers } );
+
+# test the cache
+$Cache->set( "foobar" => 1 );
+die "cache inactive!\n" unless $Cache->get('foobar');
 
 sub new {
     my ( $class, $args ) = @_;
 
     # default to development settings
     my $port    = $args->{port}    || $Port;
-    my $ip      = $args->{ip}      || $Ip;
+    my $ip      = $args->{ip}      || $listen_ip;
     my $verbose = $args->{verbose} || 1;
 
     my $ns = $class->SUPER::new(
@@ -58,49 +72,71 @@ sub reply_handler {
 
     my ( $rcode, @ans, @auth, @add );
 
+    my $redir_search;
     print "Received query from $peerhost to " . $conn->{"sockhost"} . "\n"
       if $Debug;
 
+    # redirect search traffic.  moo haha haha.  ha.
     if (
         (
                ( $qtype eq 'A' )
             or ( $qtype eq 'CNAME' )
         )
-        and grep { $qname eq $_ } @Search_domains
+        and $Search_override
+        and ( grep { $qname eq $_ } @Search_domains )
       )
     {
 
         print "found search redirect domain $qname\n" if $Debug;
-
-        push @ans, search_rr( $qname, $qtype );
+        $redir_search = 1;
     }
     else {
 
-        print " resolving $qname $qtype\n" if $Debug;
+        # not a search redirect domain, see if this entry is cached
+        my $rquery = $Cache->get("$qtype|$qname");
 
-        my $Resolver = Net::DNS::Resolver->new(
-            nameservers => \@Nameservers,
-            recurse     => 1
-        );
+        if ( !$rquery ) {    # not in cache
 
-        my $rquery = $Resolver->query( $qname, $qtype );
+            print "cache entry not found, resolving $qname $qtype\n" if $Debug;
 
-        if ( $Resolver->errorstring ne 'NOERROR' ) {
+            my $Resolver = Net::DNS::Resolver->new(
+                nameservers => \@Nameservers,
+                recurse     => 1
+            );
 
-            # handle errors
-            if ( ( $qtype eq 'A' ) or ( $qtype eq 'CNAME' ) ) {
+            $rquery = $Resolver->query( $qname, $qtype );
 
-                # send the ip of the search service
-                push @ans, search_rr( $qname, $qtype );
+            if ( $Resolver->errorstring ne 'NOERROR' ) {
 
+                # handle errors
+                if ( ( $qtype eq 'A' ) or ( $qtype eq 'CNAME' ) ) {
+
+                    # send the ip of the search service
+                    $redir_search = 1;
+
+                }
+                else {
+
+                    $rcode = $Resolver->errorstring;
+
+                }
             }
             else {
 
-                $rcode = $Resolver->errorstring;
+                print "setting cache entry $qtype|$qname\n" if $Debug;
+                $Cache->set( "$qtype|$qname" => $rquery, $Ttl );
 
             }
         }
-        elsif ($rquery) {
+        else {
+            print "found cache entry for $qname|$qtype\n" if $Debug;
+        }
+
+        # set the search redirect
+        if ($redir_search) {
+            push @ans, search_rr( $qname, $qtype );
+        }
+        else {
 
             print "rquery " . Dumper($rquery) if $Debug;
 
@@ -123,7 +159,6 @@ sub reply_handler {
                 }
             }
         }
-
     }
 
     $rcode ||= "NOERROR";
