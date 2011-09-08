@@ -22,17 +22,20 @@ our $Config = Config::SL->new;
 our $Debug           = $ENV{SL_DEBUG}                   || $Config->debug || 0;
 our $Ttl             = $Config->rr_ttl                  || die;
 our $Search_ip       = $Config->search_ip               || die;
-our @Search_domains  = $Config->search_domains          || die;
+our @Search_domains  = $Config->search_domains;
+die unless @Search_domains;
+
 our $Search_override = defined $Config->search_override || die;
 our $Port            = $Config->port                    || die;
 our $Interface       = $Config->interface               || die;
-our @Cacheservers    = $Config->cacheservers            || die;
+
+our @Cacheservers    = $Config->cacheservers;
+die unless @Cacheservers;
 
 our ($listen_ip) =
   `/sbin/ifconfig` =~ m/$Interface.*?inet\s(?:addr:)?(\d+\.\d+\.\d+\.\d+)/s;
 
 our @Nameservers = `cat /etc/resolv.conf` =~ m/nameserver\s(\d+\.\d+\.\d+\.\d+)/g;
-
 
 our $Cache = Cache::Memcached->new( { servers => \@Cacheservers } );
 
