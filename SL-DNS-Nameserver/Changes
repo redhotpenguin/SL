@@ -1,7 +1,10 @@
 Revision history for Perl extension SL-DNS-Nameserver.
 
+
 0.03  Fri Sep 09 2011
     - Handle empty query records
+    - Multiple search ips
+    - Fix major logic bug, search domains were returning empty rrs
 
 0.02  Mon Sep 05 2011
     - Memcached cache operational based on dns ttl records.

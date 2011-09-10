@@ -8,10 +8,21 @@ $|++;
 use Config::SL;
 use SL::DNS::Nameserver;
 
-my $config = Config::SL->new;
+my $sl        = Config::SL->new;
+my $debug     = $ENV{SL_DEBUG} || $sl->debug || 0;
+my $interface = $sl->interface || die;
 
-my $ns = SL::DNS::Nameserver->new;
+our ($listen_ip) =
+  `/sbin/ifconfig` =~ m/$interface.*?inet\s(?:addr:)?(\d+\.\d+\.\d+\.\d+)/s;
 
-print "Starting SL::DNS::Nameserver " . $SL::DNS::Nameserver::VERSION . "\n"; 
+my $ns = SL::DNS::Nameserver->new(
+    {
+        port    => $sl->port,
+        ip      => $listen_ip,
+        verbose => $sl->debug,
+    }
+);
+
+print "Starting SL::DNS::Nameserver " . $SL::DNS::Nameserver::VERSION . "\n";
 
 $ns->run;

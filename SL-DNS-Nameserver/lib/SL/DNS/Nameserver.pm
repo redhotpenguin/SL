@@ -10,32 +10,27 @@ use base 'Net::DNS::Nameserver';
 
 use Net::DNS::Resolver;
 use Net::DNS::RR;
-
 use Data::Dumper;
 use Config::SL;
-
 use Cache::Memcached;
 
 # initialize configuration vars
 our $Config = Config::SL->new;
 
-our $Debug           = $ENV{SL_DEBUG}                   || $Config->debug || 0;
-our $Ttl             = $Config->rr_ttl                  || die;
-our $Search_ip       = $Config->search_ip               || die;
-our @Search_domains  = $Config->search_domains;
-die unless @Search_domains;
+our $Debug     = $ENV{SL_DEBUG}     || $Config->debug || 0;
+our $Ttl       = $Config->rr_ttl    || die;
+our $Search_ip = $Config->search_ip || die;
+
+our %Search_domains = $Config->search_domains;
+die unless keys %Search_domains;
 
 our $Search_override = defined $Config->search_override || die;
-our $Port            = $Config->port                    || die;
-our $Interface       = $Config->interface               || die;
 
-our @Cacheservers    = $Config->cacheservers;
+our @Cacheservers = $Config->cacheservers;
 die unless @Cacheservers;
 
-our ($listen_ip) =
-  `/sbin/ifconfig` =~ m/$Interface.*?inet\s(?:addr:)?(\d+\.\d+\.\d+\.\d+)/s;
-
-our @Nameservers = `cat /etc/resolv.conf` =~ m/nameserver\s(\d+\.\d+\.\d+\.\d+)/g;
+our @Nameservers =
+  `cat /etc/resolv.conf` =~ m/nameserver\s(\d+\.\d+\.\d+\.\d+)/g;
 
 our $Cache = Cache::Memcached->new( { servers => \@Cacheservers } );
 
@@ -47,9 +42,9 @@ sub new {
     my ( $class, $args ) = @_;
 
     # default to development settings
-    my $port    = $args->{port}    || $Port;
-    my $ip      = $args->{ip}      || $listen_ip;
-    my $verbose = $args->{verbose} || $Debug;
+    my $port = $args->{port} || die;
+    my $ip   = $args->{ip}   || die;
+    my $verbose = $args->{verbose};
 
     my $ns = $class->SUPER::new(
         LocalAddr    => $ip,
@@ -79,15 +74,15 @@ sub reply_handler {
     print "Received query from $peerhost to " . $conn->{"sockhost"} . "\n"
       if $Debug;
 
-
     # redirect search traffic.  moo haha haha.  ha.
+    my $rquery;
     if (
         (
                ( $qtype eq 'A' )
             or ( $qtype eq 'CNAME' )
         )
         and $Search_override
-        and ( grep { $qname eq $_ } @Search_domains )
+        and ( grep { $qname eq $_ } keys %Search_domains )
       )
     {
 
@@ -97,7 +92,7 @@ sub reply_handler {
     else {
 
         # not a search redirect domain, see if this entry is cached
-        my $rquery = $Cache->get("$qtype|$qname");
+        $rquery = $Cache->get("$qtype|$qname");
 
         if ( !$rquery ) {    # not in cache
 
@@ -106,7 +101,7 @@ sub reply_handler {
             my $Resolver = Net::DNS::Resolver->new(
                 nameservers => \@Nameservers,
                 recurse     => 1,
-		debug => $Debug,
+                debug       => $Debug,
             );
 
             $rquery = $Resolver->query( $qname, $qtype );
@@ -122,19 +117,19 @@ sub reply_handler {
                 }
                 else {
 
-		    # send the error response
+                    # send the error response
                     $rcode = $Resolver->errorstring;
-    		    return ( $rcode, [], [], [], { aa => 1 } );
+                    return ( $rcode, [], [], [], { aa => 1 } );
 
                 }
             }
             else {
 
-		unless ($rquery) {
+                unless ($rquery) {
 
-			# no rquery means no domain	
-		    	return ( 'NXDOMAIN', [], [], [], { aa => 1 } );
-    		}
+                    # no rquery means no domain
+                    return ( 'NXDOMAIN', [], [], [], { aa => 1 } );
+                }
 
                 print "setting cache entry $qtype|$qname\n" if $Debug;
                 $Cache->set( "$qtype|$qname" => $rquery, $Ttl );
@@ -144,34 +139,37 @@ sub reply_handler {
         else {
             print "found cache entry for $qname|$qtype\n" if $Debug;
         }
+    }
 
-        # set the search redirect
-        if ($redir_search) {
-            push @ans, search_rr( $qname, $qtype );
-        }
-        else {
+    # set the search redirect
+    if ($redir_search) {
+        print "Adding search rr record\n" if $Debug;
+        push @ans, search_rr( $qname, $qtype );
+    }
+    else {
 
-            print "rquery " . Dumper($rquery) if $Debug;
+        # or build the response
+        print "rquery " . Dumper($rquery) if $Debug;
 
-            foreach my $rr ( $rquery->answer ) {
-                print "rr: " . Dumper($rr) if $Debug;
+        foreach my $rr ( $rquery->answer ) {
+            print "rr: " . Dumper($rr) if $Debug;
 
-                $rr->ttl($Ttl);
+            $rr->ttl($Ttl);
 
-                # cname override for our search domains
-                if (   ( $rr->type eq 'CNAME' )
-                    && ( grep { $_ eq $rr->name } @Search_domains ) )
-                {
+            # cname override for our search domains
+            if (   ( $rr->type eq 'CNAME' )
+                && ( grep { $_ eq $rr->name } keys %Search_domains ) )
+            {
 
-                    push @ans, search_rr( $rr->name, 'A' );
-                    last;
-                }
-                else {
+                push @ans, search_rr( $rr->name, 'A' );
+                last;
+            }
+            else {
 
-                    push @ans, $rr;
-                }
+                push @ans, $rr;
             }
         }
+
     }
 
     $rcode ||= "NOERROR";
@@ -185,7 +183,12 @@ sub reply_handler {
 sub search_rr {
     my ( $qname, $qtype ) = @_;
 
-    my $rr = Net::DNS::RR->new("$qname\. $Ttl $qtype $Search_ip");
+    my $search_ip = $Search_ip;
+    if ( exists $Search_domains{$qname} ) {
+        $search_ip = $Search_domains{$qname};
+    }
+
+    my $rr = Net::DNS::RR->new("$qname\. $Ttl $qtype $search_ip");
 
     return $rr;
 }
