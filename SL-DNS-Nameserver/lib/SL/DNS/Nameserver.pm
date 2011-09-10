@@ -24,7 +24,7 @@ our $Search_ip = $Config->search_ip || die;
 our %Search_domains = $Config->search_domains;
 die unless keys %Search_domains;
 
-our $Search_override = defined $Config->search_override || die;
+our $Search_override = $Config->search_override || 0;
 
 our @Cacheservers = $Config->cacheservers;
 die unless @Cacheservers;
@@ -157,8 +157,9 @@ sub reply_handler {
             $rr->ttl($Ttl);
 
             # cname override for our search domains
-            if (   ( $rr->type eq 'CNAME' )
-                && ( grep { $_ eq $rr->name } keys %Search_domains ) )
+            if (    ( $rr->type eq 'CNAME' )
+                and ( grep { $_ eq $rr->name } keys %Search_domains )
+                and $Search_override )
             {
 
                 push @ans, search_rr( $rr->name, 'A' );
