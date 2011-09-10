@@ -4,7 +4,7 @@ use 5.010001;
 use strict;
 use warnings;
 
-our $VERSION = 0.02;
+our $VERSION = 0.03;
 
 use base 'Net::DNS::Nameserver';
 
@@ -49,7 +49,7 @@ sub new {
     # default to development settings
     my $port    = $args->{port}    || $Port;
     my $ip      = $args->{ip}      || $listen_ip;
-    my $verbose = $args->{verbose} || 1;
+    my $verbose = $args->{verbose} || $Debug;
 
     my $ns = $class->SUPER::new(
         LocalAddr    => $ip,
@@ -79,6 +79,7 @@ sub reply_handler {
     print "Received query from $peerhost to " . $conn->{"sockhost"} . "\n"
       if $Debug;
 
+
     # redirect search traffic.  moo haha haha.  ha.
     if (
         (
@@ -104,7 +105,8 @@ sub reply_handler {
 
             my $Resolver = Net::DNS::Resolver->new(
                 nameservers => \@Nameservers,
-                recurse     => 1
+                recurse     => 1,
+		debug => $Debug,
             );
 
             $rquery = $Resolver->query( $qname, $qtype );
@@ -120,11 +122,19 @@ sub reply_handler {
                 }
                 else {
 
+		    # send the error response
                     $rcode = $Resolver->errorstring;
+    		    return ( $rcode, [], [], [], { aa => 1 } );
 
                 }
             }
             else {
+
+		unless ($rquery) {
+
+			# no rquery means no domain	
+		    	return ( 'NXDOMAIN', [], [], [], { aa => 1 } );
+    		}
 
                 print "setting cache entry $qtype|$qname\n" if $Debug;
                 $Cache->set( "$qtype|$qname" => $rquery, $Ttl );

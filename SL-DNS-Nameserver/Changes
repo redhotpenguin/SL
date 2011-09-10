@@ -1,5 +1,8 @@
 Revision history for Perl extension SL-DNS-Nameserver.
 
+0.03  Fri Sep 09 2011
+    - Handle empty query records
+
 0.02  Mon Sep 05 2011
     - Memcached cache operational based on dns ttl records.
     - Set listen ip based on device interface name.
