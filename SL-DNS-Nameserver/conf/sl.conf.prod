@@ -1,6 +1,6 @@
 debug    0
 rr_ttl      300
-search_ip 127.0.0.1
+search_ip 69.36.240.28
 search_domains www.google.com search.yahoo.com www.bing.com
 search_override 0
 port 53
