@@ -4,7 +4,7 @@ use 5.010001;
 use strict;
 use warnings;
 
-our $VERSION = 0.03;
+our $VERSION = 0.04;
 
 use base 'Net::DNS::Nameserver';
 
@@ -70,12 +70,12 @@ sub reply_handler {
 
     my ( $rcode, @ans, @auth, @add );
 
-    my $redir_search;
-    print "Received query from $peerhost to " . $conn->{"sockhost"} . "\n"
-      if $Debug;
+    # log the request before anything has a chance to crash
+    print "[query] $peerhost [" . localtime . "] $qclass $qtype $qname\n";
+
 
     # redirect search traffic.  moo haha haha.  ha.
-    my $rquery;
+    my ($rquery, $redir_search);
     if (
         (
                ( $qtype eq 'A' )
@@ -96,7 +96,7 @@ sub reply_handler {
 
         if ( !$rquery ) {    # not in cache
 
-            print "cache entry not found, resolving $qname $qtype\n" if $Debug;
+            print "[debug] no cache $qname $qtype, resolving\n" if $Debug;
 
             my $Resolver = Net::DNS::Resolver->new(
                 nameservers => \@Nameservers,
