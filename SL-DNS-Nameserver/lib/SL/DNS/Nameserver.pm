@@ -81,7 +81,7 @@ sub reply_handler {
         return ( 'NOERROR', \@ans, [], [], { aa => 1 } );
     }
 
-    my $log = "[query] $peerhost [" . localtime() . "] $qclass $qtype $qname";
+    my $log = "$peerhost [" . localtime() . "] $qclass $qtype $qname";
 
     # redirect search traffic.  moo haha haha.  ha.
     my ($rquery, $redir_search);
