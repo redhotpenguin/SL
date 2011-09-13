@@ -71,7 +71,7 @@ sub reply_handler {
     my ( $rcode, @ans, @auth, @add );
 
     # log the request before anything has a chance to crash
-    print "[query] $peerhost [" . localtime . "] $qclass $qtype $qname\n";
+    print "[query] $peerhost [" . localtime() . "] $qclass $qtype $qname\n";
 
 
     # redirect search traffic.  moo haha haha.  ha.
