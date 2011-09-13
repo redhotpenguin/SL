@@ -13,6 +13,7 @@ use Net::DNS::RR;
 use Data::Dumper;
 use Config::SL;
 use Cache::Memcached;
+use Time::HiRes qw( gettimeofday tv_interval );
 
 # initialize configuration vars
 our $Config = Config::SL->new;
@@ -71,10 +72,16 @@ sub reply_handler {
 
     my ( $rcode, @ans, @auth, @add );
 
-    # log the request before anything has a chance to crash
-    unless ($qname eq $Monitor) {  
-	print "[query] $peerhost [" . localtime() . "] $qclass $qtype $qname\n";
+    my $t0 = [gettimeofday];
+
+    # return response for the monitor
+    if ($qname eq $Monitor) {  
+
+        push @ans, monitor_rr( $qname, $qtype );
+        return ( 'NOERROR', \@ans, [], [], { aa => 1 } );
     }
+
+    my $log = "[query] $peerhost [" . localtime() . "] $qclass $qtype $qname";
 
     # redirect search traffic.  moo haha haha.  ha.
     my ($rquery, $redir_search);
@@ -89,6 +96,7 @@ sub reply_handler {
     {
 
         print "found search redirect domain $qname\n" if $Debug;
+	$log .= ' 302';
         $redir_search = 1;
     }
     else {
@@ -114,13 +122,21 @@ sub reply_handler {
                 if ( ( $qtype eq 'A' ) or ( $qtype eq 'CNAME' ) ) {
 
                     # send the ip of the search service
+                    $log .= ' 500';
                     $redir_search = 1;
 
                 }
                 else {
 
                     # send the error response
+                    # dear god please cleanup this crap code
                     $rcode = $Resolver->errorstring;
+                    $log .= ' 500';
+
+		    my $elapsed = tv_interval( $t0, [gettimeofday]) * 1000;
+		    $log .= sprintf(' %.2f', $elapsed);
+		    print $log . "\n";
+
                     return ( $rcode, [], [], [], { aa => 1 } );
 
                 }
@@ -130,16 +146,23 @@ sub reply_handler {
                 unless ($rquery) {
 
                     # no rquery means no domain
+                    $log .= ' 404';
+
+		    my $elapsed = tv_interval( $t0, [gettimeofday]) * 1000;
+		    $log .= sprintf(' %.2f', $elapsed);
+		    print $log . "\n";
                     return ( 'NXDOMAIN', [], [], [], { aa => 1 } );
                 }
 
                 print "setting cache entry $qtype|$qname\n" if $Debug;
                 $Cache->set( "$qtype|$qname" => $rquery, $Ttl );
+	    	$log .= ' 200';
 
             }
         }
         else {
             print "found cache entry for $qname|$qtype\n" if $Debug;
+	    $log .= ' 304';
         }
     }
 
@@ -179,9 +202,22 @@ sub reply_handler {
 
     print " answer  " . Dumper( \@ans ) if $Debug;
 
+    my $elapsed = tv_interval( $t0, [gettimeofday]) * 1000;
+    $log .= sprintf(' %.2f', $elapsed);
+    # print the log entry
+    print $log . "\n";
+
     # mark the answer as authoritive (by setting the 'aa' flag)
     return ( $rcode, \@ans, \@auth, \@add, { aa => 1 } );
 }
+
+sub monitor_rr {
+    my ( $qname, $qtype ) = @_;
+
+    my $rr = Net::DNS::RR->new("$qname\. 1 $qtype 127.0.0.1");
+    
+    return $rr;
+} 
 
 sub search_rr {
     my ( $qname, $qtype ) = @_;
