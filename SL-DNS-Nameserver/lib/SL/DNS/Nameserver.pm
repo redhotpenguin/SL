@@ -48,18 +48,20 @@ sub new {
     my $ip   = $args->{ip}   || die;
     my $verbose = $args->{verbose};
 
+    my $self = {};
+
+    bless $self, $class;
+
     my $ns = $class->SUPER::new(
         LocalAddr    => $ip,
         LocalPort    => $port,
         Verbose      => $verbose,
-        ReplyHandler => \&reply_handler,
+        ReplyHandler => sub { $self->reply_handler(@_); },
     );
 
-    my %self = ( ns => $ns );
+    $self->{ns} = $ns;
 
-    bless \%self, $class;
-
-    return \%self;
+    return $self;
 }
 
 sub run {
@@ -68,7 +70,7 @@ sub run {
 }
 
 sub reply_handler {
-    my ( $qname, $qclass, $qtype, $peerhost, $query, $conn ) = @_;
+    my ( $self, $qname, $qclass, $qtype, $peerhost, $query, $conn ) = @_;
 
     my ( $rcode, @ans, @auth, @add );
 
@@ -118,11 +120,13 @@ sub reply_handler {
 
             if ( $Resolver->errorstring ne 'NOERROR' ) {
 
+	        $rcode = $Resolver->errorstring;
+
                 # handle errors
                 if ( ( $qtype eq 'A' ) or ( $qtype eq 'CNAME' ) ) {
 
                     # send the ip of the search service
-                    $log .= ' 500';
+                    $log .= ' 404';
                     $redir_search = 1;
 
                 }
@@ -130,9 +134,7 @@ sub reply_handler {
 
                     # send the error response
                     # dear god please cleanup this crap code
-                    $rcode = $Resolver->errorstring;
-                    $log .= ' 500';
-
+                    $log .= " 404 $rcode";
 		    my $elapsed = tv_interval( $t0, [gettimeofday]) * 1000;
 		    $log .= sprintf(' %.2f', $elapsed);
 		    print $log . "\n";
@@ -146,7 +148,7 @@ sub reply_handler {
                 unless ($rquery) {
 
                     # no rquery means no domain
-                    $log .= ' 404';
+                    $log .= ' 404 NXDOMAIN';
 
 		    my $elapsed = tv_interval( $t0, [gettimeofday]) * 1000;
 		    $log .= sprintf(' %.2f', $elapsed);
@@ -203,7 +205,7 @@ sub reply_handler {
     print " answer  " . Dumper( \@ans ) if $Debug;
 
     my $elapsed = tv_interval( $t0, [gettimeofday]) * 1000;
-    $log .= sprintf(' %.2f', $elapsed);
+    $log .= sprintf(' %s %.2f', $rcode, $elapsed);
     # print the log entry
     print $log . "\n";
 
