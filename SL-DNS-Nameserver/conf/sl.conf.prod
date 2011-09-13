@@ -6,3 +6,4 @@ search_override 0
 port 53
 interface eth0
 cacheservers 10.1.0.20:11211 10.1.0.30:11211
+monitor circonus.slwifi.com

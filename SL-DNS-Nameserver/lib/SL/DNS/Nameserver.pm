@@ -20,6 +20,7 @@ our $Config = Config::SL->new;
 our $Debug     = $ENV{SL_DEBUG}     || $Config->debug || 0;
 our $Ttl       = $Config->rr_ttl    || die;
 our $Search_ip = $Config->search_ip || die;
+our $Monitor   = $Config->monitor   || die;
 
 our %Search_domains = $Config->search_domains;
 die unless keys %Search_domains;
@@ -71,8 +72,9 @@ sub reply_handler {
     my ( $rcode, @ans, @auth, @add );
 
     # log the request before anything has a chance to crash
-    print "[query] $peerhost [" . localtime() . "] $qclass $qtype $qname\n";
-
+    unless ($qname eq $Monitor) {  
+	print "[query] $peerhost [" . localtime() . "] $qclass $qtype $qname\n";
+    }
 
     # redirect search traffic.  moo haha haha.  ha.
     my ($rquery, $redir_search);
