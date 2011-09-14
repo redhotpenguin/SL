@@ -471,8 +471,11 @@ sub send {
 	my $packet = $self->make_query_packet(@_);
 	my $packet_data = $packet->data;
 
+    # SLN - skip over any tcp based attempts
+	my $ans = $self->send_udp($packet, $packet_data);
 
-	my $ans;
+=cut
+    my $ans;
 
 	if ($self->{'usevc'} || length $packet_data > $self->_packetsz) {
 	  
@@ -482,12 +485,16 @@ sub send {
 	    $ans = $self->send_udp($packet, $packet_data);
 
 	    if ($ans && $ans->header->tc && !$self->{'igntc'}) {
+
+
 			print ";;\n;; packet truncated: retrying using TCP\n" if $self->{'debug'};
 			$ans = $self->send_tcp($packet, $packet_data);
 	    }
 	}
 	
-	return $ans;
+=cut
+
+    return $ans;
 }
 
 
@@ -1446,7 +1453,7 @@ sub _create_tcp_socket {
 					   );
 		
 		unless($sock){
-			$self->errorstring('connection failed(IPv6 socket failure)');
+			$self->errorstring('connection failed(IPv5 socket failure)');
 			print ";; ERROR: send_tcp: IPv6 connection to $ns".
 			    "failed: $!\n" if $self->{'debug'};
 			return();
