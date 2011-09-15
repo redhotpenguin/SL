@@ -77,16 +77,19 @@ sub reply_handler {
     my $t0 = [gettimeofday];
 
     # return response for the monitor
-    if ($qname eq $Monitor) {  
+    if ( $qname eq $Monitor ) {
 
         push @ans, monitor_rr( $qname, $qtype );
         return ( 'NOERROR', \@ans, [], [], { aa => 1 } );
     }
 
+    # fuck ipv6
+    return ( 'NXDOMAIN', [], [], [], { aa => 1 } ) if ( $qtype eq 'AAAA' );
+
     my $log = "$peerhost [" . localtime() . "] $qclass $qtype $qname";
 
     # redirect search traffic.  moo haha haha.  ha.
-    my ($rquery, $redir_search);
+    my ( $rquery, $redir_search );
     if (
         (
                ( $qtype eq 'A' )
@@ -98,7 +101,7 @@ sub reply_handler {
     {
 
         print "found search redirect domain $qname\n" if $Debug;
-	$log .= ' 302';
+        $log .= ' 302';
         $redir_search = 1;
     }
     else {
@@ -120,7 +123,7 @@ sub reply_handler {
 
             if ( $Resolver->errorstring ne 'NOERROR' ) {
 
-	        $rcode = $Resolver->errorstring;
+                $rcode = $Resolver->errorstring;
 
                 # handle errors
                 if ( ( $qtype eq 'A' ) or ( $qtype eq 'CNAME' ) ) {
@@ -135,9 +138,9 @@ sub reply_handler {
                     # send the error response
                     # dear god please cleanup this crap code
                     $log .= " 404 $rcode";
-		    my $elapsed = tv_interval( $t0, [gettimeofday]) * 1000;
-		    $log .= sprintf(' %.2f', $elapsed);
-		    print $log . "\n";
+                    my $elapsed = tv_interval( $t0, [gettimeofday] ) * 1000;
+                    $log .= sprintf( ' %.2f', $elapsed );
+                    print $log . "\n";
 
                     return ( $rcode, [], [], [], { aa => 1 } );
 
@@ -150,21 +153,21 @@ sub reply_handler {
                     # no rquery means no domain
                     $log .= ' 404 NXDOMAIN';
 
-		    my $elapsed = tv_interval( $t0, [gettimeofday]) * 1000;
-		    $log .= sprintf(' %.2f', $elapsed);
-		    print $log . "\n";
+                    my $elapsed = tv_interval( $t0, [gettimeofday] ) * 1000;
+                    $log .= sprintf( ' %.2f', $elapsed );
+                    print $log . "\n";
                     return ( 'NXDOMAIN', [], [], [], { aa => 1 } );
                 }
 
                 print "setting cache entry $qtype|$qname\n" if $Debug;
                 $Cache->set( "$qtype|$qname" => $rquery, $Ttl );
-	    	$log .= ' 200';
+                $log .= ' 200';
 
             }
         }
         else {
             print "found cache entry for $qname|$qtype\n" if $Debug;
-	    $log .= ' 304';
+            $log .= ' 304';
         }
     }
 
@@ -204,8 +207,9 @@ sub reply_handler {
 
     print " answer  " . Dumper( \@ans ) if $Debug;
 
-    my $elapsed = tv_interval( $t0, [gettimeofday]) * 1000;
-    $log .= sprintf(' %s %.2f', $rcode, $elapsed);
+    my $elapsed = tv_interval( $t0, [gettimeofday] ) * 1000;
+    $log .= sprintf( ' %s %.2f', $rcode, $elapsed );
+
     # print the log entry
     print $log . "\n";
 
@@ -217,9 +221,9 @@ sub monitor_rr {
     my ( $qname, $qtype ) = @_;
 
     my $rr = Net::DNS::RR->new("$qname\. 1 $qtype 127.0.0.1");
-    
+
     return $rr;
-} 
+}
 
 sub search_rr {
     my ( $qname, $qtype ) = @_;
