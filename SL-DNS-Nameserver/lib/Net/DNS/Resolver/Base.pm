@@ -3,6 +3,7 @@ package Net::DNS::Resolver::Base;
 # $Id: Base.pm 830 2009-12-23 16:31:13Z olaf $
 #
 
+
 use strict;
 
 BEGIN { 
@@ -788,7 +789,7 @@ sub send_udp {
 	# Perform each round of retries.
 	for (my $i = 0;
 	     $i < $self->{'retry'};
-	     ++$i, $retrans *= 2, $timeout = int($retrans / (@ns || 1))) {
+	     ++$i, $timeout = int($retrans / (@ns || 1))) {
 
 		$timeout = 1 if ($timeout < 1);
 		
