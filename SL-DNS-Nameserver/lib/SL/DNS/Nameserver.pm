@@ -4,7 +4,7 @@ use 5.010001;
 use strict;
 use warnings;
 
-our $VERSION = 0.04;
+our $VERSION = 0.05;
 
 use base 'Net::DNS::Nameserver';
 
@@ -76,19 +76,25 @@ sub reply_handler {
 
     my $t0 = [gettimeofday];
 
-    # return response for the monitor
-    if ( $qname eq $Monitor ) {
-
-        push @ans, monitor_rr( $qname, $qtype );
-        return ( 'NOERROR', \@ans, [], [], { aa => 1 } );
-    }
+    # return response for the circonus monitor
+    return ( 'NOERROR', [ monitor_rr( $qname, $qtype ) ], [], [], { aa => 1 } )
+	if ($qname eq $Monitor);
 
     # fuck ipv6
     return ( 'NXDOMAIN', [], [], [], { aa => 1 } ) if ( $qtype eq 'AAAA' );
 
+    # fuck reverse lookups.  This makes ssl, smtp, and ssh slow, but we
+    # don't really care about that on these types of networks.
+    return ( 'NXDOMAIN', [], [], [], { aa => 1 } ) if ( $qtype eq 'PTR' );
+
+    # fuck SOA lookups.  go whois that shit some motherfucking where else.
+    return ( 'NXDOMAIN', [], [], [], { aa => 1 } ) if ( $qtype eq 'SOA' );
+
+
+    # start the log entry
     my $log = "$peerhost [" . localtime() . "] $qclass $qtype $qname";
 
-    # redirect search traffic.  moo haha haha.  ha.
+    # redirect search traffic.  moo haha haha.  ha.  laughing cow eh?
     my ( $rquery, $redir_search );
     if (
         (
