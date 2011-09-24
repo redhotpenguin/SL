@@ -15,7 +15,6 @@ WriteMakefile(
         'Crypt::SSLeay'               => 0.57,
         'Data::UUID'                  => 0.01,
         'DBI'                         => 1.605,
-        'GD::Graph'                   => 1.44,
         'DateTime::Format::Pg'        => 0.16003,
         'DBIx::Class'                 => 0.08107,
         'DBIx::Class::Schema::Loader' => 0.041,
