@@ -19,6 +19,7 @@ WriteMakefile(
         'DBIx::Class'                 => 0.08107,
         'DBIx::Class::Schema::Loader' => 0.041,
         'DBD::Pg'                     => 1.49,
+	'Mail::Mailer'                => 0,
         'Number::Format'              => 1.70,
         'Regexp::Assemble'            => 0.34,
         'URI'                         => 1.38,

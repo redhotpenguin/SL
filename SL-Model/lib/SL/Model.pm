@@ -5,6 +5,7 @@ use warnings;
 
 use DBI        ();
 use Config::SL ();
+use Data::Dumper;
 
 our $VERSION = 0.21;
 
@@ -32,11 +33,12 @@ sub dsn {
 	my $self = shift;
     my $cfg = Config::SL->new;
     my $db   = shift || $cfg->sl_db_name;
-    my $dsn = "dbi:Pg:dbname='$db';";
+    my $port = shift || $cfg->sl_db_port;
+    my $dsn = "dbi:Pg:dbname=$db;";
 	my $host = shift || $cfg->sl_db_host;
     unless (($host eq '127.0.0.1') or ($host eq 'localhost')) {
 		# connection not over unix socket, specify connection host
-		$dsn .= "host=$host;";
+		$dsn .= "host=$host;port=$port";
 	}
 	return $dsn;
 }
@@ -52,7 +54,7 @@ sub connect {
     my $dbh     = eval { DBI->connect_cached(@{$connect}) };
     if (!$dbh or ($dbh && $dbh->err) or $@) {
         warn(sprintf("Error %s connecting to database, %s, params %s",
-             $@, $DBI::errstr, $class->connect_params));
+             $@, $DBI::errstr, Dumper($class->connect_params)));
         return;
     }
     return $dbh;
