@@ -18,19 +18,14 @@ if ($ENV{SL_DEBUG}) {
 }
 
 # Fill out the httpd.conf
-mkdir($config->sl_root . '/' . $_) for qw( logs tmp );
-my $conf_tmpl   = sprintf("%s/conf/httpd.conf.tmpl", $config->sl_root);
-my $tmpl_out    = sprintf("%s/tmp/httpd.conf", $config->sl_root);
+mkdir($config->sl_root);
+my $conf_tmpl   = sprintf("%s/httpd_search.conf.tmpl", $config->sl_root);
+my $tmpl_out    = "/etc/httpd/conf.d/sl_search.conf";
 my %tmpl_config = (ABSOLUTE => 1);
 my $template    = Template->new(\%tmpl_config) || die $Template::ERROR, "\n";
 $template->process($conf_tmpl, { cfg => $config }, $tmpl_out)
   || die $template->error, "\n";
 
-$|++;
-
-my $cmd .= sprintf("%s/bin/httpd -f %s -k start", $config->sl_root, $tmpl_out );
-print "Starting with command: $cmd\n";
-my $started = `$cmd`;
-print $started;
+print "$tmpl_out is created\n";
 
 1;

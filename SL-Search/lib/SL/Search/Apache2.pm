@@ -9,7 +9,7 @@ use Apache2::Request    ();
 use Apache2::RequestRec ();
 use Apache2::RequestIO  ();
 use Apache2::Const -compile =>
-  qw( SERVER_ERROR DONE OK REDIRECT NOT_FOUND DECLINED );
+  qw( SERVER_ERROR DONE OK REDIRECT NOT_FOUND DECLINED HTTP_SERVICE_UNAVAILABLE );
 use Apache2::URI    ();
 use Apache2::Cookie ();
 use Apache2::Log    ();
@@ -26,7 +26,7 @@ use URI::Escape qw(uri_escape);
 
 use SL::Model::App       ();
 use SL::Search           ();
-use SL::Search::CityGrid ();
+#use SL::Search::CityGrid ();
 
 
 use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
@@ -35,7 +35,7 @@ use constant TIMING        => $ENV{SL_TIMING}        || 0;
 
 our $Config = Config::SL->new;
 
-our $Template = Template->new( INCLUDE_PATH => $Config->sl_root . '/tmpl/' );
+our $Template = Template->new(INCLUDE_PATH => '/var/www/search.slwifi.com/tmpl' );
 
 our $Timer       = RHP::Timer->new();
 our $Searchtimer = RHP::Timer->new();
@@ -59,6 +59,10 @@ sub handler {
         return Apache2::Const::DONE;
     }
 
+    if ($r->uri eq '/sl_secret_ping_button') {
+	return Apache2::Const::HTTP_SERVICE_UNAVAILABLE;
+    }
+
     if (($r->hostname eq 'app.silverliningnetworks.com') or
         ($r->hostname eq 'app.slwifi.com') or
         ( $r->construct_url =~ /https:\/\//)) {
@@ -70,10 +74,19 @@ sub handler {
         return Apache2::Const::REDIRECT;
     }
 
+    # at this point we have a misdirected domain that we need to handle
+    # so search the domain name
+    my @full = split(/\./, $r->hostname);
+    pop(@full);
+    shift(@full) if $full[0] =~ m/www/;
+
+    my $terms = join('%20', @full);
+
     $r->headers_out->set( Location => 'http://'
           . $Config->sl_apache_servername
-          . '/search?q=pizza&submit=Search' );
+          . "/search?q=$terms&submit=Search" );
     $r->no_cache(1);
+
     return Apache2::Const::REDIRECT;
 }
 
@@ -176,6 +189,7 @@ sub search {
         my $last = $Memd->get('last_citygrid_searchtime')
           || [ 0, 0 ];
 
+=cut
         ( $citygrid, $last ) =
           eval { SL::Search::CityGrid->search( $q, $last, $network->zip) };
 
@@ -199,6 +213,7 @@ sub search {
         else {
             $r->log->warn("citygrid search limit exceeded");
         }
+=cut
     }
 
     # get search suggestions from cache, or ping google

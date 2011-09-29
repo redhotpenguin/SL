@@ -11,9 +11,7 @@ $|++;
 use Config::SL ();
 my $config = Config::SL->new();
 
-print STDOUT "Starting SL::Search server on port "
-  . $config->sl_apache_listen . "\n";
-print STDOUT "Loading modules...\n";
+print STDOUT "Starting SL::Search application\n";
 
 # status
 if ( $config->sl_status ) {
@@ -23,7 +21,7 @@ if ( $config->sl_status ) {
 # sl
 use SL::Search           ();
 use SL::Search::Apache2  ();
-use SL::Search::CityGrid ();
+#use SL::Search::CityGrid ();
 use SL::Model::App ();
 use SL::Model::App::Network ();
 
