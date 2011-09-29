@@ -1,5 +1,10 @@
 Revision history for Perl extension SL-DNS-Nameserver.
 
+0.05  Thu Sep 15 2011
+    - skip ptr, soa, aaaa records and return NXDOMAIN
+
+0.04  Mon Sep 12 2011
+    - Logging queries so we can figure out stuff later
 
 0.03  Fri Sep 09 2011
     - Handle empty query records

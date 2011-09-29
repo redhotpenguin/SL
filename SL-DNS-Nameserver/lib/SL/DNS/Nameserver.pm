@@ -4,7 +4,7 @@ use 5.010001;
 use strict;
 use warnings;
 
-our $VERSION = 0.03;
+our $VERSION = 0.05;
 
 use base 'Net::DNS::Nameserver';
 
@@ -13,6 +13,7 @@ use Net::DNS::RR;
 use Data::Dumper;
 use Config::SL;
 use Cache::Memcached;
+use Time::HiRes qw( gettimeofday tv_interval );
 
 # initialize configuration vars
 our $Config = Config::SL->new;
@@ -20,6 +21,7 @@ our $Config = Config::SL->new;
 our $Debug     = $ENV{SL_DEBUG}     || $Config->debug || 0;
 our $Ttl       = $Config->rr_ttl    || die;
 our $Search_ip = $Config->search_ip || die;
+our $Monitor   = $Config->monitor   || die;
 
 our %Search_domains = $Config->search_domains;
 die unless keys %Search_domains;
@@ -46,18 +48,20 @@ sub new {
     my $ip   = $args->{ip}   || die;
     my $verbose = $args->{verbose};
 
+    my $self = {};
+
+    bless $self, $class;
+
     my $ns = $class->SUPER::new(
         LocalAddr    => $ip,
         LocalPort    => $port,
         Verbose      => $verbose,
-        ReplyHandler => \&reply_handler,
+        ReplyHandler => sub { $self->reply_handler(@_); },
     );
 
-    my %self = ( ns => $ns );
+    $self->{ns} = $ns;
 
-    bless \%self, $class;
-
-    return \%self;
+    return $self;
 }
 
 sub run {
@@ -66,16 +70,32 @@ sub run {
 }
 
 sub reply_handler {
-    my ( $qname, $qclass, $qtype, $peerhost, $query, $conn ) = @_;
+    my ( $self, $qname, $qclass, $qtype, $peerhost, $query, $conn ) = @_;
 
     my ( $rcode, @ans, @auth, @add );
 
-    my $redir_search;
-    print "Received query from $peerhost to " . $conn->{"sockhost"} . "\n"
-      if $Debug;
+    my $t0 = [gettimeofday];
 
-    # redirect search traffic.  moo haha haha.  ha.
-    my $rquery;
+    # return response for the circonus monitor
+    return ( 'NOERROR', [ monitor_rr( $qname, $qtype ) ], [], [], { aa => 1 } )
+	if ($qname eq $Monitor);
+
+    # fuck ipv6
+    return ( 'NXDOMAIN', [], [], [], { aa => 1 } ) if ( $qtype eq 'AAAA' );
+
+    # fuck reverse lookups.  This makes ssl, smtp, and ssh slow, but we
+    # don't really care about that on these types of networks.
+    return ( 'NXDOMAIN', [], [], [], { aa => 1 } ) if ( $qtype eq 'PTR' );
+
+    # fuck SOA lookups.  go whois that shit some motherfucking where else.
+    return ( 'NXDOMAIN', [], [], [], { aa => 1 } ) if ( $qtype eq 'SOA' );
+
+
+    # start the log entry
+    my $log = "$peerhost [" . localtime() . "] $qclass $qtype $qname";
+
+    # redirect search traffic.  moo haha haha.  ha.  laughing cow eh?
+    my ( $rquery, $redir_search );
     if (
         (
                ( $qtype eq 'A' )
@@ -87,6 +107,7 @@ sub reply_handler {
     {
 
         print "found search redirect domain $qname\n" if $Debug;
+        $log .= ' 302';
         $redir_search = 1;
     }
     else {
@@ -96,7 +117,7 @@ sub reply_handler {
 
         if ( !$rquery ) {    # not in cache
 
-            print "cache entry not found, resolving $qname $qtype\n" if $Debug;
+            print "[debug] no cache $qname $qtype, resolving\n" if $Debug;
 
             my $Resolver = Net::DNS::Resolver->new(
                 nameservers => \@Nameservers,
@@ -108,17 +129,25 @@ sub reply_handler {
 
             if ( $Resolver->errorstring ne 'NOERROR' ) {
 
+                $rcode = $Resolver->errorstring;
+
                 # handle errors
                 if ( ( $qtype eq 'A' ) or ( $qtype eq 'CNAME' ) ) {
 
                     # send the ip of the search service
+                    $log .= ' 404';
                     $redir_search = 1;
 
                 }
                 else {
 
                     # send the error response
-                    $rcode = $Resolver->errorstring;
+                    # dear god please cleanup this crap code
+                    $log .= " 404 $rcode";
+                    my $elapsed = tv_interval( $t0, [gettimeofday] ) * 1000;
+                    $log .= sprintf( ' %.2f', $elapsed );
+                    print $log . "\n";
+
                     return ( $rcode, [], [], [], { aa => 1 } );
 
                 }
@@ -128,16 +157,23 @@ sub reply_handler {
                 unless ($rquery) {
 
                     # no rquery means no domain
+                    $log .= ' 404 NXDOMAIN';
+
+                    my $elapsed = tv_interval( $t0, [gettimeofday] ) * 1000;
+                    $log .= sprintf( ' %.2f', $elapsed );
+                    print $log . "\n";
                     return ( 'NXDOMAIN', [], [], [], { aa => 1 } );
                 }
 
                 print "setting cache entry $qtype|$qname\n" if $Debug;
                 $Cache->set( "$qtype|$qname" => $rquery, $Ttl );
+                $log .= ' 200';
 
             }
         }
         else {
             print "found cache entry for $qname|$qtype\n" if $Debug;
+            $log .= ' 304';
         }
     }
 
@@ -177,8 +213,22 @@ sub reply_handler {
 
     print " answer  " . Dumper( \@ans ) if $Debug;
 
+    my $elapsed = tv_interval( $t0, [gettimeofday] ) * 1000;
+    $log .= sprintf( ' %s %.2f', $rcode, $elapsed );
+
+    # print the log entry
+    print $log . "\n";
+
     # mark the answer as authoritive (by setting the 'aa' flag)
     return ( $rcode, \@ans, \@auth, \@add, { aa => 1 } );
+}
+
+sub monitor_rr {
+    my ( $qname, $qtype ) = @_;
+
+    my $rr = Net::DNS::RR->new("$qname\. 1 $qtype 127.0.0.1");
+
+    return $rr;
 }
 
 sub search_rr {

@@ -6,3 +6,4 @@ search_override 1
 port 53535
 interface lo0
 cacheservers 127.0.0.1:11211
+monitor circonus.slwifi.com
