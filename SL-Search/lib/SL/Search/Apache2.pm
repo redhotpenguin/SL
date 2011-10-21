@@ -155,7 +155,7 @@ sub search {
         $r->log->debug("search cache miss for $q") if DEBUG;
 
         $search =
-          eval { SL::Search->search( { query => $q, start => $start } ); };
+          eval { SL::Search->search( { q => $q, start => $start } ); };
 
         if ($@) {
             $r->log->error("search for '$q' failed: $@");

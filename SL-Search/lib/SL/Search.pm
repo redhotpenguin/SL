@@ -19,14 +19,14 @@ use constant DEBUG => $ENV{SL_DEBUG} || 0;
 use Config::SL;
 our $Config = Config::SL->new;
 
-our $boss = WebService::Yahoo::BOSS->new( appid => $Config->sl_yahoo_appid );
+our $Boss = WebService::Yahoo::BOSS->new( ckey => $Config->sl_ckey, csecret => $Config->sl_csecret );
 
 # search the web
 
 sub search {
     my ( $class, $search_args ) = @_;
 
-    my $search = eval { $boss->Web( %{$search_args} ) };
+    my $search = eval { $Boss->Web( %{$search_args} ) };
     die $@ if $@;
 
     return $search;
@@ -59,7 +59,7 @@ Fred Moyer <fred@slwifi.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2010 by Silver Lining Networks.
+This software is copyright (c) 2011 by Silver Lining Networks.
 
 This software is proprietary under the Silver Lining Networks software license.
 
