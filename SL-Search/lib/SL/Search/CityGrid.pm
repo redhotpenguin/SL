@@ -3,7 +3,7 @@ package SL::Search::CityGrid;
 use strict;
 use warnings;
 
-use WebService::CityGrid::Search ();
+use WebService::CityGrid::Ads::Custom ();
 use Config::SL;
 use Time::HiRes;
 
@@ -11,8 +11,7 @@ our $Config = Config::SL->new;
 
 use constant CITYGRID_MAX_RATE => 2;    # queries per second
 
-our $Cg = WebService::CityGrid::Search->new(
-    api_key   => $Config->sl_citygrid_api_key,
+our $Cg = WebService::CityGrid::Ads::Custom->new(
     publisher => $Config->sl_citygrid_publisher,
 );
 
@@ -28,7 +27,6 @@ sub search {
         my $cg_query = eval {
             $Cg->query(
                 {
-                    mode  => 'locations',
                     where => $zip,
                     what  => URI::Escape::uri_escape($q),
                 }
@@ -41,7 +39,6 @@ sub search {
         # mark the last search time
         my $i = 0;
         foreach my $cg_result ( @{$cg_query} ) {
-            next unless $cg_result->neighborhood;
             last if ++$i == 4;
 
             if ( $i == 1 ) {
