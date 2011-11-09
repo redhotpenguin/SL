@@ -2,9 +2,9 @@
 <!-- CityGrid -->
 [% FOREACH cg_ad IN cg_ads %]
     <div class="ad">
-    <a href="[% cg_ad.profile %]" title="visit: [%cg_ad.name%]">
-        [% IF cg_ad.image %]
-		<img border="0" class="ad_pic"  height="60" width="60" src="[% cg_ad.image %]"/>
+    <a href="[% cg_ad.ad_destination_url %]" title="visit: [% cg_ad.name %]">
+        [% IF cg_ad.ad_image_url %]
+		<img border="0" class="ad_pic"  height="60" width="60" src="[% cg_ad.ad_image_url %]"/>
 	[% ELSE %]
         	<img border="0" class="ad_pic"  src="/resources/images/icons/missing_thumb.png"/>
 	[% END %]
@@ -12,13 +12,11 @@
 	<div class="ad_content">
        		 <h2>[% cg_ad.name %]</h2>
 		<p class="ad_main_info">
-       		 [% IF cg_ad.tagline %]
+        [% IF cg_ad.tagline %]
 		 	[% cg_ad.tagline %]
-		[% ELSE %]
-       			 [% cg_ad.samplecategories %]
 		[% END %]
 		</p>
-        	<p class="ad_meta_info">Neighborhood:  [% cg_ad.neighborhood %]</p>
+        	<p class="ad_meta_info">[% cg_ad.reviews || 0 %] Reviews</p>
     	</div>
 	<div class="clear"></div>
     </a>

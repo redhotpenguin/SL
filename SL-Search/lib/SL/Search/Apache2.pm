@@ -26,7 +26,7 @@ use URI::Escape qw(uri_escape);
 
 use SL::Model::App       ();
 use SL::Search           ();
-#use SL::Search::CityGrid ();
+use SL::Search::CityGrid ();
 
 
 use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
@@ -189,13 +189,11 @@ sub search {
         my $last = $Memd->get('last_citygrid_searchtime')
           || [ 0, 0 ];
 
-=cut
         ( $citygrid, $last ) =
           eval { SL::Search::CityGrid->search( $q, $last, $network->zip) };
 
         if ($@) {
             $r->log->error("no citygrid results for '$q', $@");
-            return Apache2::Const::SERVER_ERROR;
         }
 
         if ($citygrid) {
@@ -213,7 +211,6 @@ sub search {
         else {
             $r->log->warn("citygrid search limit exceeded");
         }
-=cut
     }
 
     # get search suggestions from cache, or ping google
