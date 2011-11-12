@@ -28,12 +28,12 @@ use SL::Model::App       ();
 use SL::Search           ();
 use SL::Search::CityGrid ();
 
+our $Config = Config::SL->new;
 
-use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
+use constant DEBUG         => $ENV{SL_DEBUG}         || 1;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 use constant TIMING        => $ENV{SL_TIMING}        || 0;
 
-our $Config = Config::SL->new;
 
 our $Template = Template->new(INCLUDE_PATH => '/var/www/search.slwifi.com/tmpl' );
 
@@ -198,6 +198,7 @@ sub search {
 
         if ($citygrid) {
 
+	    $r->log->debug("ads for $q: " . Dumper($citygrid)) if DEBUG;
             $Memd->set(
                 sprintf( 'citygrid|%s', uri_escape($q) ) => $citygrid,
                 60
