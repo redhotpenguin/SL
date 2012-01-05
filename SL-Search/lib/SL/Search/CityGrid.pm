@@ -27,6 +27,7 @@ sub search {
         my $i = 0;
         foreach my $cg_result ( @{$cg_query} ) {
 
+	    last if $i++ == 5;
             if ( $i == 1 ) {
                 $cg_result->top_hit(1);
             }
