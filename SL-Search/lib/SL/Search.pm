@@ -9,9 +9,8 @@ SL::Search - Handles searches for Silver Lining
 
 =cut
 
-our $VERSION = 0.03;
+our $VERSION = 0.04;
 
-use Google::Search ();
 use WebService::Yahoo::BOSS;
 
 use constant DEBUG => $ENV{SL_DEBUG} || 0;
@@ -31,18 +30,6 @@ sub search {
 
     return $search;
 }
-
-# search suggestions
-
-sub suggest {
-    my ( $class, $term ) = @_;
-    my $suggestions = Google::Search->suggest($term);
-
-    my @ranked = map { $_->[0] } sort { $a->[2] cmp $b->[2] } @{$suggestions};
-
-    return \@ranked;
-}
-
 
 1;
 
