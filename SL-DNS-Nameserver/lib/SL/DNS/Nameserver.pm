@@ -78,7 +78,10 @@ sub reply_handler {
 
     # return response for the circonus monitor
     return ( 'NOERROR', [ monitor_rr( $qname, $qtype ) ], [], [], { aa => 1 } )
-	if ($qname eq $Monitor);
+      if ( $qname eq $Monitor );
+
+    # fuck bind version lookups and text lookups
+    return ( 'NXDOMAIN', [], [], [], { aa => 1 } ) if ( $qtype eq 'TXT' );
 
     # fuck ipv6
     return ( 'NXDOMAIN', [], [], [], { aa => 1 } ) if ( $qtype eq 'AAAA' );
@@ -89,7 +92,6 @@ sub reply_handler {
 
     # fuck SOA lookups.  go whois that shit some motherfucking where else.
     return ( 'NXDOMAIN', [], [], [], { aa => 1 } ) if ( $qtype eq 'SOA' );
-
 
     # start the log entry
     my $log = "$peerhost [" . localtime() . "] $qclass $qtype $qname";
