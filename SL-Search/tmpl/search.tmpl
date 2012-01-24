@@ -1,4 +1,4 @@
-[% PROCESS header_static.tmpl %]
+[% PROCESS header_static.tmpl cg_loader=cg_loader %]
 <div id="top">
   <div class="container_16">
     <div id="link-bar" class="grid_16">
@@ -13,6 +13,7 @@
 </div>
 
 [% IF state.tos == 0 %][% PROCESS tos.tmpl %][% END %]
+[% IF nozip %][% PROCESS nozip.tmpl %][% END %]
 
 <div class="container_16">    
 
@@ -23,7 +24,12 @@
 
 <div class="container_16">
     <div class="grid_10">[% PROCESS results.tmpl %]</div>
-    <div id="ads"  class="grid_6">[% IF cg_ads.0 %][% PROCESS citygrid.tmpl %][% ELSE %][% END %]</div>
+    <div id="ads"  class="grid_6">[% IF cg_ads.0 %][% PROCESS citygrid.tmpl %][% ELSE %][% END %]
+<div id="sidebar_ad_slot"></div>
+[% #cg_loader %]
+[% #cg_js %]
+</div>
+
     <div class="clear"></div>
 </div>
 

@@ -27,18 +27,18 @@ use URI::Escape qw(uri_escape);
 use SL::Model::App       ();
 use SL::Search           ();
 use SL::Search::CityGrid ();
-
-
-use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
-use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
-use constant TIMING        => $ENV{SL_TIMING}        || 0;
+use WebService::CityGrid::Ads::Web ();
 
 our $Config = Config::SL->new;
 
+use constant DEBUG         => $ENV{SL_DEBUG}         || 1;
+use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
+use constant TIMING        => $ENV{SL_TIMING}        || 0;
+
+
 our $Template = Template->new(INCLUDE_PATH => '/var/www/search.slwifi.com/tmpl' );
 
-our $Timer       = RHP::Timer->new();
-our $Searchtimer = RHP::Timer->new();
+our $Timer = RHP::Timer->new();
 
 our $Memd = Cache::Memcached->new( { servers => ['127.0.0.1:11211'] } );
 
@@ -97,7 +97,7 @@ sub tos {
 
     my $state = $r->pnotes('state');
 
-    $r->log->debug( "tos state: " . Dumper($state) ) if DEBUG;
+    $r->log->debug( "tos state: " . Dumper($state) ) if VERBOSE_DEBUG;
 
     my ($user) =
       SL::Model::App->resultset('SearchUser')
@@ -127,7 +127,7 @@ sub tos {
 sub search {
     my ( $class, $r ) = @_;
 
-    $Searchtimer->start('searchtimer');
+    $Timer->start('searchtimer');
 
     my $req = Apache2::Request->new($r);
 
@@ -167,7 +167,7 @@ sub search {
         # cache the results
         $Memd->set(
             sprintf( 'search|%s|%s', uri_escape($q), $start ) => $search,
-            60
+            900
         );
 
     }
@@ -179,50 +179,36 @@ sub search {
 
     if (!$zip) {
 
-      $r->log->error("missing zip for network " . $r->connection->remote_ip);
-      #$r->log->error("missing zip for network " . Dumper($network));
+      $r->log->info("missing zip for network " . $r->connection->remote_ip);
 
     } elsif (!$citygrid && $zip) {
 
-        $r->log->debug("citygrid cache miss for $q") if DEBUG;
+        $r->log->debug("citygrid cache miss for '$q'") if DEBUG;
 
-        my $last = $Memd->get('last_citygrid_searchtime')
-          || [ 0, 0 ];
+        $citygrid =
+          eval { SL::Search::CityGrid->search( $q, $network->zip) };
 
-        ( $citygrid, $last ) =
-          eval { SL::Search::CityGrid->search( $q, $last, $network->zip) };
 
         if ($@) {
-            $r->log->error("no citygrid results for '$q', $@");
-        }
+            $r->log->error("citygrid search error for '$q', $@");
 
-        if ($citygrid) {
+        } elsif ($citygrid) {
 
+	    $r->log->debug("ads for $q: " . Dumper($citygrid)) if VERBOSE_DEBUG;
             $Memd->set(
                 sprintf( 'citygrid|%s', uri_escape($q) ) => $citygrid,
-                60
+                900
             );
 
-            $Memd->set(
-                'last_citygrid_searchtime' => $last,
-                60
-            );
-        }
-        else {
-            $r->log->warn("citygrid search limit exceeded");
+        } elsif (!$citygrid) {
+		$r->log->error("search error for $q");
         }
     }
 
-    # get search suggestions from cache, or ping google
-    my $suggestions = $Memd->get( 'suggestions|' . uri_escape($q) );
-    unless ($suggestions) {
-        $r->log->debug("suggest cache miss for $q") if DEBUG;
-        $suggestions = SL::Search->suggest($q);
-        $Memd->set( 'suggestions|' . uri_escape($q) => $suggestions );
-    }
 
+    my $suggestions;
     my ( $pkg, $file, $line, $timer_name, $interval ) =
-      @{ $Searchtimer->checkpoint };
+      @{ $Timer->checkpoint };
 
     ####################
     # render the template
@@ -231,6 +217,8 @@ sub search {
     $plus_q =~ s/ /\+/g;
 
     %tmpl_args = (
+	nozip          => !$zip,
+	remote_ip      => $r->connection->remote_ip,
         query_time     => sprintf( "%1.1f", $interval ),
         q              => $q,
         plusquery      => $plus_q,
@@ -241,8 +229,8 @@ sub search {
         cg_ads         => $citygrid,
         search_results => $search,
         template       => 'search.tmpl',
-        s_referer => $req->param('referer') || 'google',
-        state => $r->pnotes('state'),
+        s_referer      => $req->param('referer') || 'google',
+        state          => $r->pnotes('state'),
     );
 
     # figure out previous and next buttons
@@ -259,27 +247,12 @@ sub search {
     }
 
     my @numbers;
-    for ( 1 .. 6 ) {
-
-        my %nums = (
-            start => ( ( $_ - 1 ) * 10 ),
-            marker    => $_,
-            plusquery => $plus_q
-        );
-
-        if ( $start == $nums{start} ) {
-            $nums{current} = 1;
-        }
-
-        push @numbers, \%nums;
-    }
-
     $tmpl_args{'numbers'} = \@numbers;
     $tmpl_args{'state'}   = $r->pnotes('state');
 
 
     $tmpl_args{'network'} = $network;
-    $r->log->debug("state is " . Dumper($r->pnotes('state'))) if DEBUG;
+    $r->log->debug("state is " . Dumper($r->pnotes('state'))) if VERBOSE_DEBUG;
 
     my %search_log = (
             network  => $network,
@@ -289,7 +262,7 @@ sub search {
             duration => sprintf( "%1.2f", $interval )
     );
 
-    $r->log->debug(Dumper(\%search_log)) if DEBUG;
+    $r->log->debug(Dumper(\%search_log)) if VERBOSE_DEBUG;
 
     # log data for the loghandler
     $r->pnotes(
@@ -449,7 +422,7 @@ sub default_state {
       ->create( { user_agent => $r->headers_in->{'User-Agent'}, } );
 
     my %state = ( tos => 0, uuid => $user->uuid );
-    $r->log->debug( "new cookie state: " . Dumper( \%state ) ) if DEBUG;
+    $r->log->debug( "new cookie state: " . Dumper( \%state ) ) if VERBOSE_DEBUG;
 
     return \%state;
 }
