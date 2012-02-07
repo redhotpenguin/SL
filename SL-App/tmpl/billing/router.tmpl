@@ -33,7 +33,7 @@
                 <h2 class="header">Purchase Rainmaker<sup>&#0153;</sup> Advertising Appliances</h2>
 
                 <!-- PAYMENT FORM -->
-                <form id="sl_payment" action="[% base_uri %]/billing/router" method="post">
+                <form id="sl_payment" action="/billing/router" method="post">
                         <dl id="form_list">
 
 [% IF errors.payment %]
@@ -70,6 +70,6 @@
 
         [% PROCESS auth/form/our_pledge.tmpl %]
 [% PROCESS zendesk.tmpl %] 
-  <script src="[% base_uri %]/resources/js/simple_validation.js" type="text/javascript"></script>
+  <script src="/resources/js/simple_validation.js" type="text/javascript"></script>
 </body>
 </html>

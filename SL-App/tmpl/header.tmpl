@@ -13,34 +13,34 @@
   [% END %]
 
   <!-- FAVICON -->
-  <link rel="shortcut icon" href="[% base_uri %]/resources/images/logos/dashboard_favicon.ico" />
+  <link rel="shortcut icon" href="/resources/images/logos/dashboard_favicon.ico" />
   
   <!-- CSS -->
-  <link rel="shortcut icon" type="text/css" href="[% base_uri %]/resources/images/icons/favicon.ico" />
-  <link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/common.css" />
-  <link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/960.css" />
-  <link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/zendesk.css" />
-  <link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/jqtransform.css" />
-  <link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/silverlining_app.css" />
-  <link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/confirm.css" />
+  <link rel="shortcut icon" type="text/css" href="/resources/images/icons/favicon.ico" />
+  <link rel="stylesheet" type="text/css" href="/resources/css/common.css" />
+  <link rel="stylesheet" type="text/css" href="/resources/css/960.css" />
+  <link rel="stylesheet" type="text/css" href="/resources/css/zendesk.css" />
+  <link rel="stylesheet" type="text/css" href="/resources/css/jqtransform.css" />
+  <link rel="stylesheet" type="text/css" href="/resources/css/silverlining_app.css" />
+  <link rel="stylesheet" type="text/css" href="/resources/css/confirm.css" />
   <!-- IE HACKS -->
-  <!--[if lt IE 7]>  <link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/silverlining_app_ie6.css" /><![endif]-->
-  <!--[if lte IE 7]>  <link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/silverlining_app_ie.css" /><![endif]-->
+  <!--[if lt IE 7]>  <link rel="stylesheet" type="text/css" href="/resources/css/silverlining_app_ie6.css" /><![endif]-->
+  <!--[if lte IE 7]>  <link rel="stylesheet" type="text/css" href="/resources/css/silverlining_app_ie.css" /><![endif]-->
   
   <!-- JAVASCRIPT -->
-  <script type="text/javascript" src="[% base_uri %]/resources/js/jquery.js"></script>
-  <script type="text/javascript" src="[% base_uri %]/resources/js/sl_dashboard.js"></script>
-  <script type="text/javascript" src="[% base_uri %]/resources/js/jquery.simplemodal.js"></script>
-  <script type="text/javascript" src="[% base_uri %]/resources/js/confirm.js"></script>
-  <script type="text/javascript" src="[% base_uri %]/resources/js/jquery.jqtransform.min.js"></script>
+  <script type="text/javascript" src="/resources/js/jquery.js"></script>
+  <script type="text/javascript" src="/resources/js/sl_dashboard.js"></script>
+  <script type="text/javascript" src="/resources/js/jquery.simplemodal.js"></script>
+  <script type="text/javascript" src="/resources/js/confirm.js"></script>
+  <script type="text/javascript" src="/resources/js/jquery.jqtransform.min.js"></script>
   <title>[% title %]</title>	
 
 [% IF header %][% header %][% END %]
 
 [% IF gmap %]
-<link rel="stylesheet" type="text/css" href="[% base_uri %]/resources/css/google_maps.css" />
-<script type="text/javascript" src="[% base_uri %]/resources/js/mootools.js"></script>
-<script type="text/javascript" src="[% base_uri %]/resources/js/google_maps.js"></script>
+<link rel="stylesheet" type="text/css" href="/resources/css/google_maps.css" />
+<script type="text/javascript" src="/resources/js/mootools.js"></script>
+<script type="text/javascript" src="/resources/js/google_maps.js"></script>
 [% END %]
 
 
@@ -49,14 +49,14 @@
 	<div id="wrapper">
 		<ul id="login_nav">
 			<li>Welcome [% email %]</li>
-			<li><a href="[% base_uri %]/logout">Logout</a></li>
+			<li><a href="/logout">Logout</a></li>
 		</ul>			
 		<h1 id="sl_logo">Silver Lining Networks</h1>
 		<div id="header">
 			<h1>[% reg.account.name %]</h1>
 			<ul>
-				<li id="tab_dashboard" [% IF selected != "account" %]class="selected"[% END %]><a href="[% base_uri %]/app/home/index">Dashboard</a></li>
-				<li id="tab_account" [% IF selected=="account" %]class="selected"[% END %] ><a href="[% base_uri %]/app/settings/index">Account</a></li>
+				<li id="tab_dashboard" [% IF selected != "account" %]class="selected"[% END %]><a href="/app/home/index">Dashboard</a></li>
+				<li id="tab_account" [% IF selected=="account" %]class="selected"[% END %] ><a href="/app/settings/index">Account</a></li>
 			</ul>
 		</div>
 		<div id="content_wrapper">
@@ -67,10 +67,10 @@
 
             [% IF selected !="account" %]
 				 <ul id="nav_dashboard">
-				    <li[% IF selected == 'overview' %] class="selected"[% END %]><a id="button_overview" href="[% base_uri %]/app/home/index">Overview</a></li>
-				    <li[% IF selected == 'network' %] class="selected"[% END %]><a id="button_network" href="[% base_uri %]/app/router/list">Network</a></li>
-				    <li[% IF selected == 'adcenter' %] class="selected"[% END %]><a id="button_banners" href="[% base_uri %]/app/ad/index">Ad Center</a></li>
-				    <li[% IF selected == 'stats' %] class="selected"[% END %]><a id="button_stats" href="[% base_uri %]/app/report/index">Reports</a></li>
+				    <li[% IF selected == 'overview' %] class="selected"[% END %]><a id="button_overview" href="/app/home/index">Overview</a></li>
+				    <li[% IF selected == 'network' %] class="selected"[% END %]><a id="button_network" href="/app/router/list">Network</a></li>
+				    <li[% IF selected == 'adcenter' %] class="selected"[% END %]><a id="button_banners" href="/app/ad/index">Ad Center</a></li>
+				    <li[% IF selected == 'stats' %] class="selected"[% END %]><a id="button_stats" href="/app/report/index">Reports</a></li>
 [% IF new %]
 				    <li><a id="button_kiosk" href="#">Virtual Kiosk</a></li>
 [% END %]
@@ -79,9 +79,9 @@
 				  </ul>
 			[% ELSE %]
 				 <ul id="nav_account">
-				    <li[% IF subselected=="profile" %] class="selected"[% END %] ><a id="button_profile" href="[% base_uri %]/app/settings/account">Profile</a></li>
-				    <li[% IF subselected=="users" %] class="selected"[% END %]><a id="button_users" href="[% base_uri %]/app/settings/users">Users</a></li>
-				    <li[% IF subselected=="payment" %] class="selected"[% END %]><a id="button_profit" href="[% base_uri %]/app/settings/payment">Profit Center</a></li> 
+				    <li[% IF subselected=="profile" %] class="selected"[% END %] ><a id="button_profile" href="/app/settings/account">Profile</a></li>
+				    <li[% IF subselected=="users" %] class="selected"[% END %]><a id="button_users" href="/app/settings/users">Users</a></li>
+				    <li[% IF subselected=="payment" %] class="selected"[% END %]><a id="button_profit" href="/app/settings/payment">Profit Center</a></li> 
 				  </ul>				  
 
               [% END %]

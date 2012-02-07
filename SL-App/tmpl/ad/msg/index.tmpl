@@ -25,7 +25,7 @@
 
 	
 	<div class="row">
-	<form class="form" method="post" action="[% base_uri %]/app/ad/msg/index">
+	<form class="form" method="post" action="/app/ad/msg/index">
 	<!-- ERRORS -->
 	[% IF errors.missing %]<p class="error">Please enter a text message</p>[% END %]
 	[% IF errors.invalid %]<p class="error">Text message can be no greater than 250 characters</p>[% END %]
@@ -45,7 +45,7 @@
 
 
       <li>
-      <label for="twitter_brand">Message Bar Branding Image[% IF reg.account.plan == 'free' %] (<a href="[% base_uri %]/billing/publisher/?plan=basic&email=[% reg.email %]">Paid account needed to change image)</a>[% END %]</label>
+      <label for="twitter_brand">Message Bar Branding Image[% IF reg.account.plan == 'free' %] (<a href="/billing/publisher/?plan=basic&email=[% reg.email %]">Paid account needed to change image)</a>[% END %]</label>
        <a href="[% bug.link_href %]"><img src="[% bug.image_href %]"></a>
 
 [% IF reg.account.plan != 'free' %] 

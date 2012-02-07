@@ -16,7 +16,7 @@
 <p><font color="red">Url '[% url %]' was removed from the blacklist.</font></p>
 [% END %]
 
-<p style="text-align: left; padding-bottom: 5px;"><a href="[% base_uri %]/app/blacklist/edit/?url_id=-1">Blacklist a Url</a></span></p>
+<p style="text-align: left; padding-bottom: 5px;"><a href="/app/blacklist/edit/?url_id=-1">Blacklist a Url</a></span></p>
 
 <table class="list">
   <tr class="list_header">
@@ -41,7 +41,7 @@
     <td>[% url.ts %]</td>
 
     [% IF root == 1 %]
-    <td><a href="[% base_uri %]/app/home/blacklist/delete/?url_id=[% url.url_id %]">Delete</a></td>
+    <td><a href="/app/home/blacklist/delete/?url_id=[% url.url_id %]">Delete</a></td>
     [% END %]
   </tr>
 [% END %]

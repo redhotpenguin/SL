@@ -4,7 +4,7 @@
 <div id="list_center">
 <div class="content">
 
-<h2>[% PROCESS ad/groups/nav.tmpl %] > <a href="[% base_uri %]/app/ad/groups/routers">Routers serving Ad Group '[% ad_group.name %]'</a></h2>
+<h2>[% PROCESS ad/groups/nav.tmpl %] > <a href="/app/ad/groups/routers">Routers serving Ad Group '[% ad_group.name %]'</a></h2>
 <hr class="sl_line">
 
 [% IF msg %]
@@ -22,7 +22,7 @@
 
 <!-- name -->	
 <td class="[% IF loop.index % 2 %]el_lite_left[% ELSE %]el_dark_left[% END %]">
-<a href="[% base_uri %]/app/router/edit/?id=[% router.router_id %]">
+<a href="/app/router/edit/?id=[% router.router_id %]">
 [% router.name %]</a></td>
 
 </tr>

@@ -36,7 +36,7 @@ our $Signup     = 'SLN Signup <signup@silverliningnetworks.com>';
 our $Config = Config::SL->new;
 
 use constant MAX_IMAGE_BYTES => 40_960;
-use constant DEBUG           => $ENV{SL_DEBUG} || 0;
+use constant DEBUG           => 1; #$ENV{SL_DEBUG} || 0;
 use constant VERBOSE_DEBUG   => $ENV{SL_VERBOSE_DEBUG} || 0;
 
 =head1 METHODS
@@ -54,12 +54,6 @@ This is the home page
 sub dispatch_index {
     my ( $self, $r ) = @_;
 
-    if (($r->hostname eq 'search.slwifi.com') or
-        ( $r->construct_url =~ /http:\/\//)) {
-        
-        $r->headers_out->set( Location => 'http://search.slwifi.com/');
-    }
-
     if ( $r->user ) {
 
         $r->log->debug( sprintf( 'authd user %s, redirecting', $r->user ) )
@@ -67,11 +61,11 @@ sub dispatch_index {
 
         # authenticated user, send to the dashboard home page
         $r->headers_out->set(
-            Location => $Config->sl_app_proxy . $Config->sl_app_base_uri . '/app/home/index' );
+            Location => $Config->sl_app_proxy . '/app/home/index' );
 
     }
     else {
-        my $location = $Config->sl_app_proxy . $Config->sl_app_base_uri . '/login';
+        my $location = $Config->sl_app_proxy . '/login';
         $r->log->debug("unknown user, redirecting to $location") if DEBUG;
 
         $r->headers_out->set( Location => $location );

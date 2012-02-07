@@ -7,7 +7,7 @@
 	<p>
 	[% FOREACH mytype = [ 'views', 'users' ] %]
 	    [% UNLESS mytype == type %]
-	    <strong><a href="[% base_uri %]/app/report/index/?type=[% mytype %]&temporal=[% temporal %]">
+	    <strong><a href="/app/report/index/?type=[% mytype %]&temporal=[% temporal %]">
 	    [% END %]
 	    [% types.$mytype %]
 	    [% UNLESS mytype == type %]</a></strong>[% END %]
@@ -19,7 +19,7 @@
 	<p>
 	[% FOREACH mytemporal = [ 'daily', 'weekly', 'monthly', 'quarterly', 'biannually', 'annually' ] %]
 	    [% UNLESS mytemporal == temporal %]
-	    <strong><a href="[% base_uri %]/app/report/index/?temporal=[% mytemporal %]&type=[% type %]">
+	    <strong><a href="/app/report/index/?temporal=[% mytemporal %]&type=[% type %]">
 	    [% END %]
 	    [% temporals.$mytemporal %]
 	    [% UNLESS mytemporal == temporal %]</a></strong>[% END %]
@@ -43,7 +43,7 @@
 	<div id="sc_top">
 		<div id="sc_bottom">
 		
-			<form class="form" method="post" action="[% base_uri %]/app/report/index">
+			<form class="form" method="post" action="/app/report/index">
 				[% IF status == 'updated' %]<p class="error">Email preferences updated</p>[% END %]
 				<ul>
 					<li>

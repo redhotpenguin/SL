@@ -1,7 +1,7 @@
 [% PROCESS header_static.tmpl title="Silver Lining Dashboard:  Forgot Password" no_settings="1" %]
 
 
-	 <h1 id="sl_logo" class="center margin_25_t"><a href="[% base_uri %]"><span></span>Silver Lining Networks</a></h1>
+	 <h1 id="sl_logo" class="center margin_25_t"><a href=""><span></span>Silver Lining Networks</a></h1>
 		<!-- LOGIN MESSAGES -->
 			<div class="message_box center">
 				[% IF status == 'blank' %]<ul class="error_message"><li>Please enter an email address</li></ul>[% END %]
@@ -10,7 +10,7 @@
 			</div>
 						
 			<div class="login_box">
-				<form method="post" action="[% base_uri %]/forgot">
+				<form method="post" action="/forgot">
 					<ul>
 						<li>
 							<p>Enter your email address and we'll send you a link to reset your password.</p>
@@ -24,7 +24,7 @@
 						<li>
 						<input type="submit" name="login" value="reset" id="submit" /> 
 						</li>
-						<li><a href="[% base_uri %]/login">Return to Login page</a></li>
+						<li><a href="/login">Return to Login page</a></li>
 					</ul>
 				</form>
 			</div>

@@ -16,7 +16,7 @@
 		<p class="success">[% msg %]</p>
 	[% END %]
 
-	<form class="form row" method="post" action="[% base_uri %]/app/ad/twitter/index">
+	<form class="form row" method="post" action="/app/ad/twitter/index">
 		<!-- ERRORS -->
 		[% IF errors.missing %]	<p class="error">Please input a Twitter User Name</p>[% END %]
 		[% IF errors.invalid %]	<p class="error">The Twitter User Name you submitted is invalid</p>[% END %]	
@@ -52,7 +52,7 @@
 
 
             <li>
-            <label for="twitter_brand">Twitter Feed Branding Image[% IF reg.account.plan == 'free' %] (<a href="[% base_uri %]/billing/publisher/?plan=basic&email=[% reg.email %]">Paid account needed to change image)</a>[% END %]</label>
+            <label for="twitter_brand">Twitter Feed Branding Image[% IF reg.account.plan == 'free' %] (<a href="/billing/publisher/?plan=basic&email=[% reg.email %]">Paid account needed to change image)</a>[% END %]</label>
             <a href="[% bug.link_href %]"><img src="[% bug.image_href %]"></a>
             [% IF reg.account.plan != 'free' %]
             [% PROCESS ad/banner.tmpl type="Twitter Feed Branding" ad_zone=bug %]

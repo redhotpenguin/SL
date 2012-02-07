@@ -13,8 +13,8 @@
 
 	[% IF !routers.0 %]
 			<p>Oops!  It looks like you don't have any routers added.</p>
-			<p>In order to use Silver Lining on your network, you will need to <a href="[% base_uri %]/app/router/edit">add a router.</a></p>
-			<p>Or you can <a href="[% base_uri %]/app/router/omsync">sync your Open-Mesh.com devices</a></p>
+			<p>In order to use Silver Lining on your network, you will need to <a href="/app/router/edit">add a router.</a></p>
+			<p>Or you can <a href="/app/router/omsync">sync your Open-Mesh.com devices</a></p>
 		[% ELSE %]
 	
 			<!-- DEVICE LIST -->
@@ -25,7 +25,7 @@
 					</div>
 					
 					<div class="grid_8">
-						<h3><a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">[% router.name or router.macaddr %]</a></h3>
+						<h3><a href="/app/router/edit/?router_id=[% router.router_id %]">[% router.name or router.macaddr %]</a></h3>
 						<p>
 							Ads inserted yesterday: <strong>[% router.views_daily %]</strong>, 24 hour users: <strong>[% router.users_daily %]</strong>, 24 hour traffic: <strong>[% router.traffic_daily * 1024 *1024 | format_bytes %]</strong>
 							<br />
@@ -38,7 +38,7 @@
 						</p>
 					</div>
 					<div class="grid_1 omega">
-						<a class="icon_delete right confirm" rel="[% base_uri %]/app/router/deactivate?id=[% router.router_id %]" href="#">Delete</a>
+						<a class="icon_delete right confirm" rel="/app/router/deactivate?id=[% router.router_id %]" href="#">Delete</a>
 					</div>
 					<div class="clear"></div>
 				</div>
@@ -51,11 +51,11 @@
 		<div id="sc_bottom">
 			<ul>
 				<li>
-				<a class="left" id="button_add_device" href="[% base_uri %]/app/router/edit">Add a device</a>
+				<a class="left" id="button_add_device" href="/app/router/edit">Add a device</a>
 					<div class="clear"></div>				
 				</li>
-				<li><a class="icon_sync" href="[% base_uri %]/app/router/omsync">Sync Open-Mesh Devices</a></li>
-		[% IF reg.account.plan != 'free' %]<li><a class="icon_on_off" href="[% base_uri %]/app/router/adbar">Turn Ad Bar On/Off</a></li>[% END %]
+				<li><a class="icon_sync" href="/app/router/omsync">Sync Open-Mesh Devices</a></li>
+		[% IF reg.account.plan != 'free' %]<li><a class="icon_on_off" href="/app/router/adbar">Turn Ad Bar On/Off</a></li>[% END %]
 			</ul>		
 		</div>
 	</div>

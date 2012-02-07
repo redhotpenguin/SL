@@ -1,12 +1,12 @@
 [% PROCESS header_static.tmpl title="Silver Lining Dashboard:  Reset Password" no_settings="1" %]
 
-		 <h1 id="sl_logo" class="center margin_25_t"><a href="[% base_uri %]/app/"><span></span>Silver Lining Networks</a></h1>
+		 <h1 id="sl_logo" class="center margin_25_t"><a href="/app/"><span></span>Silver Lining Networks</a></h1>
 
 			<div class="message_box center">
 				[% IF error == 'tooshort' %]<ul class="error_message"><li>Your password was too short, please try again</li></ul>[% END %]
 			</div>
 			<div class="login_box">				
-				<form method="post" action="[% base_uri %]/forgot/reset/">
+				<form method="post" action="/forgot/reset/">
 					<ul>
 						<li>
 							<p>Please enter a new password.</p>

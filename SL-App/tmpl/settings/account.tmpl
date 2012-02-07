@@ -1,11 +1,11 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  My info"  selected="account" subselected="profile"%]
 <div id="main_content" class="grid_10 suffix_6">	
 
-	<!-- Breadcrumb<p>[% PROCESS settings/nav.tmpl %] > <a href="[% base_uri %]/app/settings/index">Manage account</a> >My info</p>--> 
+	<!-- Breadcrumb<p>[% PROCESS settings/nav.tmpl %] > <a href="/app/settings/index">Manage account</a> >My info</p>--> 
 	
 	
 	<h2>Update Your Account Profile</h2>
-	<form class="form row" method="post" action="[% base_uri %]/app/settings/account">
+	<form class="form row" method="post" action="/app/settings/account">
 		[% IF errors %]<p class="error">Oops, please correct the fields below and try again.</p>[% END %]
 		
 		[% IF errors.invalid.password %]<p class="error">Your passwords did not match or were too short</p>[% END %]

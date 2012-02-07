@@ -19,7 +19,7 @@
 		<p class="tip">You have <strong>[% count %]</strong> banner advertisements</p>
 	</div>
 	<div class="grid_4 omega">
-		<a class="right" id="button_add_banner" href="[% base_uri %]/app/ad/groups/add">Add a Banner</a>
+		<a class="right" id="button_add_banner" href="/app/ad/groups/add">Add a Banner</a>
 		<div class="clear"></div>
 	</div>
 	<div class="clear"></div>
@@ -40,7 +40,7 @@
 	[% FOREACH ad_zone = ad_zones %]
 		<tr>
 			<td class="larger">
-			<a [% IF ad_zone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% ad_zone.image_href %]"[% END %] href="[% base_uri %]/app/ad/groups/edit/?id=[% ad_zone.ad_zone_id %]">
+			<a [% IF ad_zone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% ad_zone.image_href %]"[% END %] href="/app/ad/groups/edit/?id=[% ad_zone.ad_zone_id %]">
 			[% ad_zone.name %]</a></td>
 			
 [% IF views %]			<td class="smaller">NA</td>[% END %]
@@ -53,14 +53,14 @@
 			[% IF ad_zone.router_count == 0 %]
 			    [% ad_zone.router_count %]
 			[% ELSE %]
-			<a href="[% base_uri %]/app/router/list?ad_zone_id=[% ad_zone.ad_zone_id %]">
+			<a href="/app/router/list?ad_zone_id=[% ad_zone.ad_zone_id %]">
 			[% ad_zone.router_count %]</a>
 			[% END %]
 			devices
 			</td>
 			
 			<td class="center">
-            <a href="#" rel="[% base_uri %]/app/ad/deactivate?id=[% ad_zone.ad_zone_id %]"  class="icon_delete confirm">Delete</a></td>
+            <a href="#" rel="/app/ad/deactivate?id=[% ad_zone.ad_zone_id %]"  class="icon_delete confirm">Delete</a></td>
 
             </tr>
 
@@ -74,14 +74,14 @@
 		
 			<h3>Brand your Network</h3>
 			[% IF reg.account.plan == 'free' %]
-			<p>To brand your ad bar, you will need a paid account.  <a href="[% base_uri %]/billing/publisher/?plan=basic&email=[% reg.email %]">Click here</a> to sign up for our Basic Plan.</p>
-<p><img alt="Brand your ad banners with your logo." src="[% base_uri %]/resources/images/logos/application/brand_logo.png "/></p>
+			<p>To brand your ad bar, you will need a paid account.  <a href="/billing/publisher/?plan=basic&email=[% reg.email %]">Click here</a> to sign up for our Basic Plan.</p>
+<p><img alt="Brand your ad banners with your logo." src="/resources/images/logos/application/brand_logo.png "/></p>
 			
 			[% ELSE %]
-			<a href="[% base_uri %]/app/ad/bugs/list">
-				<img alt="Brand your ad banners with your logo." src="[% base_uri %]/resources/images/logos/application/brand_logo.png "/>
+			<a href="/app/ad/bugs/list">
+				<img alt="Brand your ad banners with your logo." src="/resources/images/logos/application/brand_logo.png "/>
 			</a>
-			<p><a href="[% base_uri %]/app/ad/bugs/list">Customize the logo</a> that is displayed next to the Ad banners on your network. </p>
+			<p><a href="/app/ad/bugs/list">Customize the logo</a> that is displayed next to the Ad banners on your network. </p>
 			[% END %]
 			
 		</div>

@@ -16,12 +16,12 @@
 <div class="grid_16 preview">
    <h3>Preview - Banner Ad must be 728 pixels wide by 90 pixels tall (IAB Leaderboard)</h3>
 	<div id="banner_preview">
-   		 <div id="banner">[% IF req.param('code') or ad_zone.code %][% re.param('code') or ad_zone.code %][% ELSE %]<a href="http://www.silverliningnetworks.com/?referer=dashboard_example"><img src="[% base_uri %]/resources/images/ads/sln/sl_leaderboard.gif"></a>[% END %]</div>
+   		 <div id="banner">[% IF req.param('code') or ad_zone.code %][% re.param('code') or ad_zone.code %][% ELSE %]<a href="http://www.silverliningnetworks.com/?referer=dashboard_example"><img src="/resources/images/ads/sln/sl_leaderboard.gif"></a>[% END %]</div>
 		<div class="clear"></div>
 	</div>
 </div>	
 
-<form method="POST" action="[% base_uri %]/app/ad/groups/edit">
+<form method="POST" action="/app/ad/groups/edit">
 
 <div id="main_content" class="grid_10 suffix_1">
 

@@ -32,7 +32,7 @@
 		[% IF gateway or (router.gateway == 0)%]
 			<h3>
 				<label for="device" class="label">Speed Test:</label>
-				 [% speed_one %] gateway <a href="[% base_uri %]/app/router/edit/?router_id=[% gateway.router_id %]">[% speed_two %]</a>
+				 [% speed_one %] gateway <a href="/app/router/edit/?router_id=[% gateway.router_id %]">[% speed_two %]</a>
 			</h3>
 			<div class="clear"></div>
 		[% END %]
@@ -43,46 +43,46 @@
 	
 	<div id="graph-mesh-stats">
       <h3><label for="device" class="label">Gateway Link Quality:</label></h3>
-		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
+		<script type="text/javascript" src="/resources/chart/line/swfobject.js"></script>
 	    <div id="flashcontent_gwqual">
 	        <strong>You need to upgrade your Flash Player</strong>
 	    </div>
 	    <script type="text/javascript">
 	            // <![CDATA[            
-	            var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","ping", "750px", "300px", "4", "#FFFFFF");
-	            so.addVariable("path", "[% base_uri %]/resources/chart/line/");
-	            so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/router_gwqual.xml"));
-	            so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_gwqual.csv"));
+	            var so = new SWFObject("/resources/chart/line/amline.swf","ping", "750px", "300px", "4", "#FFFFFF");
+	            so.addVariable("path", "/resources/chart/line/");
+	            so.addVariable("settings_file", encodeURIComponent("/resources/chart/line/router_gwqual.xml"));
+	            so.addVariable("data_file", encodeURIComponent("/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_gwqual.csv"));
 	            so.write("flashcontent_gwqual");
 	            // ]]>
 	    </script>
 
       <h3><label for="device" class="label">Ping time to gateway:</label></h3>
-		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
+		<script type="text/javascript" src="/resources/chart/line/swfobject.js"></script>
 	    <div id="flashcontent">
 	        <strong>You need to upgrade your Flash Player</strong>
 	    </div>
 	    <script type="text/javascript">
 	            // <![CDATA[            
-	            var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","ping", "750px", "300px", "4", "#FFFFFF");
-	            so.addVariable("path", "[% base_uri %]/resources/chart/line/");
-	            so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/ping_settings.xml"));
-	            so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_ping.csv"));
+	            var so = new SWFObject("/resources/chart/line/amline.swf","ping", "750px", "300px", "4", "#FFFFFF");
+	            so.addVariable("path", "/resources/chart/line/");
+	            so.addVariable("settings_file", encodeURIComponent("/resources/chart/line/ping_settings.xml"));
+	            so.addVariable("data_file", encodeURIComponent("/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_ping.csv"));
 	            so.write("flashcontent");
 	            // ]]>
 	    </script>
 
       <h3><label for="device" class="label">Speed test to gateway:</label></h3>
-		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
+		<script type="text/javascript" src="/resources/chart/line/swfobject.js"></script>
 	    <div id="flashcontent_speed">
 	        <strong>You need to upgrade your Flash Player</strong>
 	    </div>
 	    <script type="text/javascript">
 	            // <![CDATA[            
-	            var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","speed_test", "750px", "300px", "4", "#FFFFFF");
-	            so.addVariable("path", "[% base_uri %]/resources/chart/line/");
-	            so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/speed_settings.xml"));
-	            so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_speed.csv"));
+	            var so = new SWFObject("/resources/chart/line/amline.swf","speed_test", "750px", "300px", "4", "#FFFFFF");
+	            so.addVariable("path", "/resources/chart/line/");
+	            so.addVariable("settings_file", encodeURIComponent("/resources/chart/line/speed_settings.xml"));
+	            so.addVariable("data_file", encodeURIComponent("/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_speed.csv"));
 	            so.write("flashcontent_speed");
 	            // ]]>
 	    </script>
@@ -93,48 +93,48 @@
 	
 	<div id="graph-checkin-memory">
 	    <h3><label for="device" class="label">Device Checkins:</label></h3>
-		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
+		<script type="text/javascript" src="/resources/chart/line/swfobject.js"></script>
 	    <div id="flashcontenttwo">
 	        <strong>You need to upgrade your Flash Player</strong>
 	    </div>
 	    <script type="text/javascript">
 	            // <![CDATA[            
-	            var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","freemem", "900px", "150px", "4", "#FFFFFF");
+	            var so = new SWFObject("/resources/chart/line/amline.swf","freemem", "900px", "150px", "4", "#FFFFFF");
 
-	            so.addVariable("path", "[% base_uri %]/resources/chart/line/");
-	            so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/uptime_settings.xml"));
-	            so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_uptime.csv"));
+	            so.addVariable("path", "/resources/chart/line/");
+	            so.addVariable("settings_file", encodeURIComponent("/resources/chart/line/uptime_settings.xml"));
+	            so.addVariable("data_file", encodeURIComponent("/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_uptime.csv"));
 	            so.write("flashcontenttwo");
 	            // ]]>
 	    </script>
 
 
 		<h3><label for="device" class="label">System Load:</label></h3>
-		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
+		<script type="text/javascript" src="/resources/chart/line/swfobject.js"></script>
 		<div id="flashcontent_load">
 		    <strong>You need to upgrade your Flash Player</strong>
 		</div>
 		<script type="text/javascript">
 		        // <![CDATA[            
-		        var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","load", "900px", "400px", "4", "#FFFFFF");
-		        so.addVariable("path", "[% base_uri %]/resources/chart/line/");
-		        so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/load_settings.xml"));
-		        so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_load.csv"));
+		        var so = new SWFObject("/resources/chart/line/amline.swf","load", "900px", "400px", "4", "#FFFFFF");
+		        so.addVariable("path", "/resources/chart/line/");
+		        so.addVariable("settings_file", encodeURIComponent("/resources/chart/line/load_settings.xml"));
+		        so.addVariable("data_file", encodeURIComponent("/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_load.csv"));
 		        so.write("flashcontent_load");
 		        // ]]>
 		</script>
 
 		<h3><label for="device" class="label">TCP Connections:</label></h3>
-		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
+		<script type="text/javascript" src="/resources/chart/line/swfobject.js"></script>
 		<div id="flashcontent_tcpconns">
 		    <strong>You need to upgrade your Flash Player</strong>
 		</div>
 		<script type="text/javascript">
 		        // <![CDATA[            
-		        var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","tcpconns", "900px", "400px", "4", "#FFFFFF");
-		        so.addVariable("path", "[% base_uri %]/resources/chart/line/");
-		        so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/tcpconns_settings.xml"));
-		        so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_tcpconns.csv"));
+		        var so = new SWFObject("/resources/chart/line/amline.swf","tcpconns", "900px", "400px", "4", "#FFFFFF");
+		        so.addVariable("path", "/resources/chart/line/");
+		        so.addVariable("settings_file", encodeURIComponent("/resources/chart/line/tcpconns_settings.xml"));
+		        so.addVariable("data_file", encodeURIComponent("/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_tcpconns.csv"));
 		        so.write("flashcontent_tcpconns");
 		        // ]]>
 		</script>
@@ -142,31 +142,31 @@
 
 
 		<h3><label for="device" class="label">Free Memory:</label></h3>
-		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
+		<script type="text/javascript" src="/resources/chart/line/swfobject.js"></script>
 		<div id="flashcontent_freemem">
 		    <strong>You need to upgrade your Flash Player</strong>
 		</div>
 		<script type="text/javascript">
 		        // <![CDATA[            
-		        var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","freemem", "900px", "400px", "4", "#FFFFFF");
-		        so.addVariable("path", "[% base_uri %]/resources/chart/line/");
-		        so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/memfree.xml"));
-		        so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_memfree.csv"));
+		        var so = new SWFObject("/resources/chart/line/amline.swf","freemem", "900px", "400px", "4", "#FFFFFF");
+		        so.addVariable("path", "/resources/chart/line/");
+		        so.addVariable("settings_file", encodeURIComponent("/resources/chart/line/memfree.xml"));
+		        so.addVariable("data_file", encodeURIComponent("/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_memfree.csv"));
 		        so.write("flashcontent_freemem");
 		        // ]]>
 		</script>
 
 		<h3><label for="device" class="label">Nodogsplash Threads:</label></h3>
-		<script type="text/javascript" src="[% base_uri %]/resources/chart/line/swfobject.js"></script>
+		<script type="text/javascript" src="/resources/chart/line/swfobject.js"></script>
 		<div id="flashcontent_nodogs">
 		    <strong>You need to upgrade your Flash Player</strong>
 		</div>
 		<script type="text/javascript">
 		        // <![CDATA[            
-		        var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","nodogs", "900px", "400px", "4", "#FFFFFF");
-		        so.addVariable("path", "[% base_uri %]/resources/chart/line/");
-		        so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/nodogs_settings.xml"));
-		        so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_nodogs.csv"));
+		        var so = new SWFObject("/resources/chart/line/amline.swf","nodogs", "900px", "400px", "4", "#FFFFFF");
+		        so.addVariable("path", "/resources/chart/line/");
+		        so.addVariable("settings_file", encodeURIComponent("/resources/chart/line/nodogs_settings.xml"));
+		        so.addVariable("data_file", encodeURIComponent("/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_nodogs.csv"));
 		        so.write("flashcontent_nodogs");
 		        // ]]>
 		</script>
@@ -181,10 +181,10 @@
 		</div>
 		<script type="text/javascript">
 		        // <![CDATA[            
-		        var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","traffic", "900px", "400px", "4", "#FFFFFF");
-		        so.addVariable("path", "[% base_uri %]/resources/chart/line/");
-		        so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/router_traffic.xml"));
-		        so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_traffic.csv"));
+		        var so = new SWFObject("/resources/chart/line/amline.swf","traffic", "900px", "400px", "4", "#FFFFFF");
+		        so.addVariable("path", "/resources/chart/line/");
+		        so.addVariable("settings_file", encodeURIComponent("/resources/chart/line/router_traffic.xml"));
+		        so.addVariable("data_file", encodeURIComponent("/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_traffic.csv"));
 		        so.write("flashcontenttraffic");
 		        // ]]>
 		</script>
@@ -196,10 +196,10 @@
 		</div>
 		<script type="text/javascript">
 		        // <![CDATA[            
-		        var so = new SWFObject("[% base_uri %]/resources/chart/line/amline.swf","users", "900px", "400px", "4", "#FFFFFF");
-		        so.addVariable("path", "[% base_uri %]/resources/chart/line/");
-		        so.addVariable("settings_file", encodeURIComponent("[% base_uri %]/resources/chart/line/router_users.xml"));
-		        so.addVariable("data_file", encodeURIComponent("[% base_uri %]/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_users.csv"));
+		        var so = new SWFObject("/resources/chart/line/amline.swf","users", "900px", "400px", "4", "#FFFFFF");
+		        so.addVariable("path", "/resources/chart/line/");
+		        so.addVariable("settings_file", encodeURIComponent("/resources/chart/line/router_users.xml"));
+		        so.addVariable("data_file", encodeURIComponent("/img/reports/[% reg.account.report_base %]/router_[% router.router_id %]_users.csv"));
 		        so.write("flashcontent_users");
 		        // ]]>
 		</script>
@@ -211,7 +211,7 @@
 <div class="clear"></div>
 
 <div id="device-settings">
-	<form method="post" action="[% base_uri %]/app/router/edit">
+	<form method="post" action="/app/router/edit">
 	<div id="main_content" class="grid_9 suffix_2">
 	
 	
@@ -333,11 +333,11 @@
 	
 					<!-- ad zones -->
 					[% IF reg.account.zone_type == 'msg' %]
-	                    <label for="msg" class="check_label"><a href="[% base_uri %]/app/ad/msg/index">Text Message Bar</a> active for all devices</label>
+	                    <label for="msg" class="check_label"><a href="/app/ad/msg/index">Text Message Bar</a> active for all devices</label>
 					[% ELSIF reg.account.zone_type == 'twitter' %]
 	
 	
-						<label for="twitter" class="check_label"><a href="[% base_uri %]/app/ad/msg/index">Twitter Feed</a> active for all devices</label>
+						<label for="twitter" class="check_label"><a href="/app/ad/msg/index">Twitter Feed</a> active for all devices</label>
 	
 	
 					[% ELSIF !reg.account.zone_type || (reg.account.zone_type == 'banner_ad' ) %]
@@ -350,7 +350,7 @@
 						[% IF loop.index % 2 == 0 %] [% END %]
 						    
 						    	<input type="checkbox" name="ad_zone" value="[% ad_zone.ad_zone_id %]" [% IF ad_zone.selected or (req.param('ad_zone_id') == ad_zone.ad_zone_id) %]checked="checked"[% END %] />
-						    	<label class="check_label"><a [% IF ad_zone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% ad_zone.image_href %]"[% END %] href="[% base_uri %]/app/ad/groups/edit?id=[% ad_zone.id %]">[% ad_zone.name %]</a>[% IF ad_zone.is_default == 1 %] - <em>Default</em>[% END %]</label>
+						    	<label class="check_label"><a [% IF ad_zone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% ad_zone.image_href %]"[% END %] href="/app/ad/groups/edit?id=[% ad_zone.id %]">[% ad_zone.name %]</a>[% IF ad_zone.is_default == 1 %] - <em>Default</em>[% END %]</label>
 						   
 						[% IF loop.index % 2 != 0 %]<div class="clear"></div>[% END %]
 						[% END %]
@@ -364,7 +364,7 @@
 	                [% IF reg.account.plan == 'free' %]
 	       				 <p class="notice">
 	       				 	To brand your ad bar, you will need a paid account.  
-	       				 	<a href="[% base_uri %]/billing/publisher/?plan=basic&email=[% reg.email %]">Click here</a> 
+	       				 	<a href="/billing/publisher/?plan=basic&email=[% reg.email %]">Click here</a> 
 	       				 	to sign up for our Basic Plan.
 	       				 </p>
 	               [% ELSE %]
@@ -376,7 +376,7 @@
 							[% IF loop.index % 2 == 0 %] [% END %]
 								
 							    	<input type="checkbox" name="branding_zone" value="[% bzone.ad_zone_id %]"[% IF bzone.selected or (req.param('ad_zone_id') == bzone.ad_zone_id) %]checked="checked"[% END %] />
-							    	<label class="check_label"><a class="preview" title="[% bzone.link_href %]" rel="[% bzone.image_href %]" href="[% base_uri %]/app/ad/bugs/edit?id=[% bzone.id %]">[% bzone.name %]</a>[% IF bzone.is_default == 1 %] - <em>Default</em>[% END %]</label>
+							    	<label class="check_label"><a class="preview" title="[% bzone.link_href %]" rel="[% bzone.image_href %]" href="/app/ad/bugs/edit?id=[% bzone.id %]">[% bzone.name %]</a>[% IF bzone.is_default == 1 %] - <em>Default</em>[% END %]</label>
 							    
 							[% IF loop.index % 2 != 0 %] <div class="clear"></div>[% END %]
 							[% END %]
@@ -396,14 +396,14 @@
 				<li>
 					<!-- splash page -->
 				    [% IF szones.0 %]
-						<label for="adzone" class="main_label">Assign a <a href="[% base_uri %]/ad/splash/index">splash page ad</a> to this device</label>
+						<label for="adzone" class="main_label">Assign a <a href="/ad/splash/index">splash page ad</a> to this device</label>
 						<label for="ad_zone" class="tip">Click checkbox to add the splash page ad zone to the router (random rotation)</label>
 						
 						[% FOREACH szone = szones %]
 						[% IF loop.index % 2 == 0 %] [% END %]
 						    <div class="grid_4 alpha omega">
 						    	<input type="checkbox" name="splash_zone"  value="[% szone.ad_zone_id %]"[% IF szone.selected or (req.param('ad_zone_id') == szone.ad_zone_id) %]checked="checked"[% END %] />
-						    	<label class="check_label"><a [% IF szone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% szone.image_href %]"[% END %]  href="[% base_uri %]/app/ad/groups/edit?id=[% szone.id %]">[% szone.name %]</a>[% IF szone.is_default == 1 %] - <em>Default</em>[% END %]</label>
+						    	<label class="check_label"><a [% IF szone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% szone.image_href %]"[% END %]  href="/app/ad/groups/edit?id=[% szone.id %]">[% szone.name %]</a>[% IF szone.is_default == 1 %] - <em>Default</em>[% END %]</label>
 						    </div>
 						[% IF loop.index % 2 != 0 %]<div class="clear"></div>[% END %]
 						[% END %]

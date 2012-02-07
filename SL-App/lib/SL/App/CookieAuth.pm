@@ -21,7 +21,7 @@ use base 'SL::App';
 use SL::Model::App    ();
 use SL::App::Template ();
 
-use constant DEBUG => $ENV{SL_DEBUG_AUTH} || 0;
+use constant DEBUG => $ENV{SL_DEBUG} || 1;
 
 our $Template = SL::App::Template->template();
 
@@ -78,7 +78,7 @@ sub authenticate {
     # grab the cookies
     my $jar    = Apache2::Cookie::Jar->new($r);
     my $cookie = $jar->cookies( $Config->sl_app_cookie_name );
-    my $dest   = $Config->sl_app_proxy . $Config->sl_app_base_uri . '/login';
+    my $dest   = $Config->sl_app_proxy . '/login';
 
     # user doesn't have a cookie?
     unless ($cookie) {
@@ -171,7 +171,7 @@ sub logout {
 
     $class->expire_cookie($r);
 
-    $r->headers_out->set( Location => 'http://www.silverliningnetworks.com/' );
+    $r->headers_out->set( Location => 'http://www.slwifi.com/' );
     return Apache2::Const::REDIRECT;
 }
 
@@ -201,7 +201,7 @@ sub login {
 
         # check for both username and password present
         unless ( $req->param('email') && $req->param('password') ) {
-            my $dest = $Config->sl_app_proxy . $Config->sl_app_base_uri . '/login/?error=incomplete';
+            my $dest = $Config->sl_app_proxy .  '/login/?error=incomplete';
             return $class->redirect_auth( $r, "username, password missing",
                 $dest );
         }
@@ -216,7 +216,7 @@ sub login {
 
         # send them back to the login page if pass is invalid
         unless ($reg) {
-            my $dest = $Config->sl_app_proxy . $Config->sl_app_base_uri . '/login/?error=invalid';
+            my $dest = $Config->sl_app_proxy . '/login/?error=invalid';
             return $class->redirect_auth( $r, "username, password missing",
                 $dest );
         }
@@ -231,7 +231,7 @@ sub login {
         $class->send_cookie( $r, $reg, $session_id );
 
         # they're ok
-        my $destination = $req->param('dest') || $Config->sl_app_proxy . $Config->sl_app_base_uri . '/app/home/index';
+        my $destination = $req->param('dest') || $Config->sl_app_proxy . '/app/home/index';
         $r->log->debug("login ok, redirecting to $destination") if DEBUG;
         return $class->redirect_auth(
             $r,
@@ -251,7 +251,7 @@ sub expire_cookie {
         -name    => $Config->sl_app_cookie_name,
         -value   => '',
         -expires => 'Mon, 21-May-1971 00:00:00 GMT',
-        -path    => $Config->sl_app_base_uri . '/app/',
+        -path    => '/app/',
     );
 
     $cookie->bake($r);
@@ -271,6 +271,7 @@ sub send_cookie {
         session_id => $session_id,
     );
 
+$r->log->debug("cookie state is " . Dumper(\%state));
     my $cookie = Apache2::Cookie->new(
         $r,
         -name  => $Config->sl_app_cookie_name,
@@ -278,7 +279,7 @@ sub send_cookie {
 
         #     -expires => '60s',
         -expires => '+1D',
-        -path    => $Config->sl_app_base_uri . '/app/',
+        -path    => '/app/',
     );
 
     $cookie->bake($r);
@@ -329,6 +330,7 @@ sub forgot {
     my $req = Apache2::Request->new($r);
 
     my $email = $req->param('forgot_email');
+    $r->log->debug("serving page for forgot password") if DEBUG;
     if ( $r->method_number == Apache2::Const::M_GET ) {
         my $output;
         $Template->process(
@@ -347,12 +349,11 @@ sub forgot {
     elsif ( $r->method_number == Apache2::Const::M_POST ) {
         $r->method_number(Apache2::Const::M_GET);
 
-        $r->log->debug("$$ POSTING...") if DEBUG;
+        $r->log->debug("$$ POSTING email $email") if DEBUG;
         unless ($email) {
 
             # missing email
             $r->headers_out->set( Location => $Config->sl_app_proxy
-                  . $Config->sl_app_base_uri
                   . '/forgot/?status=blank' );
             return Apache2::Const::REDIRECT;
         }
@@ -363,7 +364,6 @@ sub forgot {
         unless ($reg) {
 
             $r->headers_out->set( Location => $Config->sl_app_proxy
-                  . $Config->sl_app_base_uri
                   . '/forgot/?status=notfound&forgot_email='
                   . $req->param('forgot_email') );
             return Apache2::Const::REDIRECT;
@@ -371,15 +371,16 @@ sub forgot {
         else {
 
             # we have a valid email, setup forgot password link
+            my $forgot_md5 = Digest::MD5::md5_hex(rand(100000) . 'alsdkfjasf');
             my $forgot =
               SL::Model::App->resultset('Forgot')
-              ->new( { reg_id => $reg->reg_id } );
+              ->new( { reg_id => $reg->reg_id, link_md5 => $forgot_md5 } );
             $forgot->insert;
             $forgot->update;
             $forgot->discard_changes;
             my $output;
             my $url = join( '',
-                $Config->sl_app_proxy, $Config->sl_app_base_uri,
+                $Config->sl_app_proxy,
                 '/forgot/reset/?key=' . $forgot->link_md5() );
 
             $Template->process( 'forgot_email.tmpl',
@@ -397,7 +398,6 @@ sub forgot {
             $msg->send;
 
             $r->headers_out->set( Location => $Config->sl_app_proxy
-                  . $Config->sl_app_base_uri
                   . "/forgot/?status=sent&forgot_email=$email" );
             return Apache2::Const::REDIRECT;
 
@@ -422,7 +422,7 @@ sub forgot_reset {
 
         # found the link, serve the reset password page
         my $output;
-        my $url = $Config->sl_app_proxy . $Config->sl_app_base_uri .  '/forgot/reset/?key=' . $forgot->link_md5();
+        my $url = $Config->sl_app_proxy . '/forgot/reset/?key=' . $forgot->link_md5();
 
         $Template->process(
             'forgot_reset.tmpl',
@@ -441,7 +441,7 @@ sub forgot_reset {
 
         if ( length( $req->param('password') ) < 5 ) {
             $r->headers_out->set(
-                Location => $Config->sl_app_proxy . $Config->sl_app_base_uri .
+                Location => $Config->sl_app_proxy .
                     '/forgot/reset/?error=tooshort&key=' . $req->param('key')
             );
             return Apache2::Const::REDIRECT;
@@ -457,7 +457,7 @@ sub forgot_reset {
         $forgot->update;
 
         $r->headers_out->set(
-            Location => $Config->sl_app_proxy . $Config->sl_app_base_uri . '/app/home/index');
+            Location => $Config->sl_app_proxy . '/app/home/index');
         return Apache2::Const::REDIRECT;
 
         # create a session

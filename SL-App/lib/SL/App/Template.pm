@@ -15,7 +15,7 @@ our ( $Template, %Tmpl_global );
 BEGIN {
     our $config = Config::SL->new;
 
-    our %tmpl_config = ( INCLUDE_PATH => $config->sl_root . '/tmpl' );
+    our %tmpl_config = ( INCLUDE_PATH => '/var/www/app.slwifi.com' . '/tmpl' );
     $Template = __PACKAGE__->SUPER::new( \%tmpl_config )
       || die $Template::ERROR;
 

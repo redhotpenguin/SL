@@ -10,7 +10,7 @@
 [% IF errors.missing.email or errors.invalid.email or errors.missing.password or errors.invalid.password %]
 <p><font color="red">Please fill out all fields</font></p>
 [% END %]
-<form method="POST" action="[% base_uri %]/signup">
+<form method="POST" action="/signup">
 
 <div id="signup_form">
 <p>

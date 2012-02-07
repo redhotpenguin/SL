@@ -1,7 +1,7 @@
 [% PROCESS header_static.tmpl title="Logout Successful - Silver Lining Networks" no_settings="1" %]
 
  
-		 <h1 id="sl_logo" class="center margin_25_t"><a href="[% base_uri %]/app/"><span></span>Silver Lining Networks</a></h1>
+		 <h1 id="sl_logo" class="center margin_25_t"><a href="/app/"><span></span>Silver Lining Networks</a></h1>
 			
 		<!-- LOGIN MESSAGES -->
 			<div class="message_box center">
@@ -9,7 +9,7 @@
 			</div>
 	
 			<div class="login_box">				
-				<form method="POST" action="[% base_uri %]/login">					
+				<form method="POST" action="/login">					
 					<ul>
 						<li>
 							<input type="hidden" /> 
@@ -19,7 +19,7 @@
 						<li>
 							<label for="password" class="block">Password</label>
 							<input type="password" name="password" id="password" /> 
-							<a href="[% base_uri %]/forgot" id="forgot_password">forgot password?</a>
+							<a href="/forgot" id="forgot_password">forgot password?</a>
 							<div class="clear"></div>
 						</li>
 						<li>
@@ -35,7 +35,7 @@
 			</div>
 			
 			<p id="need_an_acount">
-				<a href="[% base_uri %]/signup">Need An Account? Sign up free.</a>
+				<a href="/signup">Need An Account? Sign up free.</a>
 			</p>
 
 [% PROCESS zendesk.tmpl %]

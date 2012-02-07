@@ -20,7 +20,7 @@
 
 
 	<div class="grid_3 omega">
-		<a class="right" id="button_add_splash" href="[% base_uri %]/app/ad/splash/add">Add a Splash Page Ad</a>
+		<a class="right" id="button_add_splash" href="/app/ad/splash/add">Add a Splash Page Ad</a>
 		<div class="clear"></div>
 	</div>
 	<div class="clear"></div>
@@ -46,7 +46,7 @@
 	[% FOREACH ad_zone = ad_zones %]
 		<tr>
 			<td class="larger">
-			<a href="[% base_uri %]/app/ad/splash/edit/?id=[% ad_zone.ad_zone_id %]" [% IF ad_zone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% ad_zone.image_href %]"[% END %]   >
+			<a href="/app/ad/splash/edit/?id=[% ad_zone.ad_zone_id %]" [% IF ad_zone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% ad_zone.image_href %]"[% END %]   >
 			[% ad_zone.name %]</a></td>
 			
 [% IF views %]			<td class="smaller">NA</td>[% END %]
@@ -58,7 +58,7 @@
 			[% IF ad_zone.router_count == 0 %]
 			    [% ad_zone.router_count %]
 			[% ELSE %]
-			<a href="[% base_uri %]/app/router/list?ad_zone_id=[% ad_zone.ad_zone_id %]">
+			<a href="/app/router/list?ad_zone_id=[% ad_zone.ad_zone_id %]">
 			[% ad_zone.router_count %]</a>
 			[% END %]
 			devices
@@ -67,7 +67,7 @@
 	        <td class="smaller center">[% IF ad_zone.is_default == 1 %]Yes[% ELSE %]No[% END %]</td>
 	        
 			<td class="center">
-            <a href="#" rel="[% base_uri %]/app/ad/deactivate?id=[% ad_zone.ad_zone_id %]"  class="icon_delete confirm">Delete</a></td>
+            <a href="#" rel="/app/ad/deactivate?id=[% ad_zone.ad_zone_id %]"  class="icon_delete confirm">Delete</a></td>
 		</tr>
 	[% END %]
 	</table>

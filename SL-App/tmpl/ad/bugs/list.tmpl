@@ -20,7 +20,7 @@
 	</div>
 
 	<div class="grid_4 omega">
-		<a class="right" id="button_add_logo" href="[% base_uri %]/app/ad/bugs/add">Add a Branding Image</a>
+		<a class="right" id="button_add_logo" href="/app/ad/bugs/add">Add a Branding Image</a>
 		<div class="clear"></div>
 	</div>
 	<div class="clear"></div>
@@ -39,7 +39,7 @@
 	[% FOREACH ad_zone = ad_zones %]
 		<tr>
 			<td>
-			<a  [% IF ad_zone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% ad_zone.image_href %]"[% END %] href="[% base_uri %]/app/ad/bugs/edit/?id=[% ad_zone.ad_zone_id %]">
+			<a  [% IF ad_zone.image_href %]class="preview" title="[% ad_zone.link_href %]" rel="[% ad_zone.image_href %]"[% END %] href="/app/ad/bugs/edit/?id=[% ad_zone.ad_zone_id %]">
 			[% ad_zone.name %]</a></td>
 			
 			<!--
@@ -47,7 +47,7 @@
 			[% IF ad_zone.router_count == 0 %]
 			    [% ad_zone.router_count %]
 			[% ELSE %]
-			<a href="[% base_uri %]/app/router/list?ad_zone_id=[% ad_zone.ad_zone_id %]">
+			<a href="/app/router/list?ad_zone_id=[% ad_zone.ad_zone_id %]">
 			[% ad_zone.router_count %]</a>
 			[% END %]
 			</td>-->
@@ -57,7 +57,7 @@
             <td class="center">[% IF ad_zone.is_default %]Yes[% ELSE %]No[% END %]</td>
             
 			<td class="center">
-            <a href="#" rel="[% base_uri %]/app/ad/deactivate?id=[% ad_zone.ad_zone_id %]"  class="icon_delete confirm">Delete</a></td>
+            <a href="#" rel="/app/ad/deactivate?id=[% ad_zone.ad_zone_id %]"  class="icon_delete confirm">Delete</a></td>
 		</tr>
 	[% END %]
 	</table>

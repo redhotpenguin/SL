@@ -1,7 +1,7 @@
 <div class="google_bubble">
 
 	<div class="gbub_header">
-		<h1><a href="[% base_uri %]/app/router/edit/?router_id=[% router.router_id %]">[% router.name %]</a></h1>
+		<h1><a href="/app/router/edit/?router_id=[% router.router_id %]">[% router.name %]</a></h1>
 		<p>(last seen [% router.last_seen_html %])</p>
 		<div class="clear"></div>
 	</div>
@@ -21,7 +21,7 @@
        [% FOREACH mrrogers = neighbors %]
 
        <tr>
-         <td><a href="[% base_uri %]/app/router/edit/?router_id=[% mrrogers.router_id %]">[% mrrogers.name %]</a></td>
+         <td><a href="/app/router/edit/?router_id=[% mrrogers.router_id %]">[% mrrogers.name %]</a></td>
          <td>[% mrrogers.ip %]</td>
          <td>[% mrrogers.macaddr %]</td>
          <td class="highlight"><font color="[% IF mrrogers.rssi > 19 %]green[% ELSIF mrrogers.rssi > 10 %]orange[% ELSE %]red[% END %]">[% mrrogers.rssi %]</font></td>

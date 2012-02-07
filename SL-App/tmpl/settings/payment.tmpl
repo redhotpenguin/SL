@@ -1,7 +1,7 @@
 [% PROCESS header.tmpl title="Silver Lining Dashboard:  Billing and Payment" selected="account" subselected="payment" %]
 <div id="main_content" class="grid_16">
 
-[% IF slgateway != 1 %]<p class="error">Your Advertise Here link is not set to the Silver Lining Merchant Gateway.  <a href="[% base_uri %]/app/settings/index">Click here to change it.</a>  You cannot receive payments here without the Silver Lining Merchant Gateway.</a></p>[% END %]
+[% IF slgateway != 1 %]<p class="error">Your Advertise Here link is not set to the Silver Lining Merchant Gateway.  <a href="/app/settings/index">Click here to change it.</a>  You cannot receive payments here without the Silver Lining Merchant Gateway.</a></p>[% END %]
 	<h2>Silver Lining Merchant Gateway Payment History - Total $[% total %]</h2>
 	<div class="row">
 	<table class="small_table basic_table">
