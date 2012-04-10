@@ -5,6 +5,17 @@ use warnings;
 
 our $VERSION = 0.04;
 
+=head1 NAME
+
+Apache2::Proxy - a mod_perl based http proxy base class
+
+=head1 SYNOPSIS
+
+A mod_perl based HTTP proxy base class
+
+=cut
+
+
 use Apache2::Const -compile => qw( OK SERVER_ERROR NOT_FOUND DECLINED
   REDIRECT LOG_DEBUG LOG_ERR LOG_INFO CONN_KEEPALIVE HTTP_BAD_REQUEST
   HTTP_UNAUTHORIZED HTTP_SEE_OTHER HTTP_MOVED_PERMANENTLY DONE
@@ -83,10 +94,6 @@ sub get_request_headers {
             my $k = shift;
             my $v = shift;
 
-          # skip connection or keep alive headers, are added by SL::HTTP::Client
-          #            return 1 if $k =~ m/^keep-alive/i;
-          #            return 1 if $k =~ m/^connection/i;
-
             if ( $k =~ m/^connection/i ) {
                 $headers{$k} = 'keep-alive';
                 return 1;
@@ -145,7 +152,7 @@ sub set_response_headers {
     $class->translate_remaining_headers( $r, \%headers );
 
     # set the server header
-    $headers{Server} ||= 'SLN';
+    $headers{Server} ||= __PACKAGE__;
     $r->log->debug( "$$ server header is " . $headers{Server} )
       if VERBOSE_DEBUG;
     $r->server->add_version_component( $headers{Server} );
@@ -711,6 +718,21 @@ sub _build_response {
         return;
     };
 }
+
+=head1 COPYRIGHT
+
+Copyright 2012 Red Hot Penguin Consulting LLC
+
+=head1 LICENSE
+
+This software is licensed under the same terms as Perl itself.
+
+=head1 SEE ALSO
+
+mod_perl
+
+=cut
+
 
 1;
 

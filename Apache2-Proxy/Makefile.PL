@@ -1,11 +1,13 @@
-use 5.012002;
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
 use ExtUtils::MakeMaker;
 
-# See lib/ExtUtils/MakeMaker.pm for details of how to influence
-# the contents of the Makefile that is written.
 WriteMakefile(
-    NAME         => 'Apache2::Proxy',
-    VERSION_FROM => 'lib/Apache2/Proxy.pm',    # finds $VERSION
+    NAME          => 'Apache2::Proxy',
+    VERSION_FROM  => 'lib/Apache2/Proxy.pm',
     PREREQ_PM     => { 'Compress::Zlib' => 0, 'Compress::Bzip2' => 0, },
     ABSTRACT_FROM => 'lib/Apache2/Proxy.pm',
     AUTHOR        => 'Fred Moyer <fred@slwifi.com>',
