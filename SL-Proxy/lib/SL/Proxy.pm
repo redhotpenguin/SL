@@ -19,7 +19,7 @@ use constant DEBUG         => $ENV{SL_DEBUG}         || 0;
 use constant VERBOSE_DEBUG => $ENV{SL_VERBOSE_DEBUG} || 0;
 use constant TIMING        => $ENV{SL_TIMING}        || 0;
 
-sub trans_handler {
+sub transhandler {
     my ( $class, $r ) = @_;
 
     # handle dummy connections
@@ -51,7 +51,7 @@ sub trans_handler {
     }
 }
 
-sub handler {
+sub responsehandler {
     my ( $class, $r ) = @_;
 
     $r->log->error("hostname is " . $r->hostname);
